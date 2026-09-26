@@ -59,7 +59,7 @@ export default function PricingPage() {
 			<p>
 				OrchestKit itself is free. You still need{" "}
 				<a href="https://www.anthropic.com/claude-code">Claude Code</a> and an
-				Anthropic account to run the underlying agent — that billing is between
+				Anthropic account to run the underlying agent; that billing is between
 				you and Anthropic and is independent of OrchestKit.
 			</p>
 

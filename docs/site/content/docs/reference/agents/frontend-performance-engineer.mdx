@@ -34,14 +34,14 @@ description: "Performance engineer who optimizes Core Web Vitals, analyzes bundl
 
 Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), analyzing bundle composition, profiling React render performance, and implementing performance budgets with Real User Monitoring.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
 
 ## Browser Automation
 
 - Use `agent-browser` CLI via Bash for automated Lighthouse audits and performance testing
-- Run Lighthouse: `npx lighthouse &lt;url&gt;` or via `agent-browser` for interactive scenarios
+- Run Lighthouse: `npx lighthouse <url>` or via `agent-browser` for interactive scenarios
 - Snapshot + Refs workflow for performance profiling: `agent-browser snapshot -i`
 - Run `agent-browser --help` for full CLI docs
 
@@ -295,15 +295,15 @@ console.time('render'); // Use web-vitals library
 
 Both skills are `user-invocable: false` AND `disable-model-invocation: true`, so neither
 has a slash form and the model cannot auto-select them. **These `Read` lines are their
-only load path — do not remove them.** Load them when the
+only load path, do not remove them.** Load them when the
 work needs them, RUM and dashboards for the first, bundle and build analysis for the second:
 
-- `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/monitoring-observability/SKILL.md")`
-- `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/vite-advanced/SKILL.md")`
+- `Read("${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/SKILL.md")`
+- `Read("${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/SKILL.md")`
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

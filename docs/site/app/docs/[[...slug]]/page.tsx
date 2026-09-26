@@ -31,6 +31,7 @@ import { TrackedCodeBlock } from "@/components/tracked-code-block";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { RelatedPages } from "@/components/related-pages";
 import { getRelatedPages } from "@/lib/related-pages";
+import { TocPopoverRole } from "@/components/toc-popover-role";
 
 /**
  * A skill reference page is /docs/reference/skills/<name> where <name>
@@ -135,7 +136,25 @@ export default async function Page(props: {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      breadcrumb={{ enabled: true }}
+      // Deep reference paths truncated every crumb to "Ref..." at 390 (QA N04);
+      // let the trail wrap instead of clipping each item.
+      breadcrumb={{
+        enabled: true,
+        className: "flex-wrap gap-y-1 [&>a]:whitespace-normal [&>span]:whitespace-normal",
+      }}
+      // The popover trigger's name was built from its content, so screen
+      // readers heard the progress ring value first ("0.0294118 Security
+      // Gates..."; QA #20). Name the control for what it is.
+      // Its <header> also sat outside any landmark, so below xl every docs page
+      // had two banners (axe landmark-no-duplicate-banner). Inside a
+      // navigation landmark a <header> is not a banner.
+      tableOfContentPopover={{
+        container: { role: "navigation", "aria-label": "On this page" },
+        trigger: { "aria-label": "Table of contents" },
+      }}
+      // The desktop TOC was a plain div, so axe counted every entry as content
+      // outside any landmark (region). Make it the page's own navigation.
+      tableOfContent={{ container: { role: "navigation", "aria-labelledby": "toc-title" } }}
       footer={{
         items: neighbours,
         children: (
@@ -181,6 +200,7 @@ export default async function Page(props: {
       {skillSlug ? <SkillDossier slug={skillSlug} /> : null}
       {/* The shape of the skill, above the verbatim SKILL.md body below. */}
       {skillSlug ? <SkillFlow slug={skillSlug} /> : null}
+      <TocPopoverRole />
       <DocsBody>
         <MDX
           components={{

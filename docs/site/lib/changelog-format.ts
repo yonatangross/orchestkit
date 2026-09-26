@@ -1,21 +1,82 @@
 import type {
   ChangelogEntry,
+  ChangelogSection,
   SectionType,
 } from "@/lib/generated/changelog-data";
 
-export const SECTION_LABEL: Record<SectionType, string> = {
-  added: "Added",
-  fixed: "Fixed",
-  changed: "Changed",
-  removed: "Removed",
-  deprecated: "Deprecated",
-  security: "Security",
+/** The legend's vocabulary. Docs is split out of the generator's "changed". */
+export type ChangelogCategory = SectionType | "docs";
+
+type CategoryMeta = { label: string; glyph: string; hint: string };
+
+/**
+ * The one table the legend, the section headings under each release and the
+ * per-item icons all read. Row order is legend order.
+ */
+export const CHANGELOG_CATEGORIES: Record<ChangelogCategory, CategoryMeta> = {
+  added: { label: "Added", glyph: "🎯", hint: "new capability" },
+  fixed: { label: "Fixed", glyph: "✅", hint: "a bug closed" },
+  changed: { label: "Changed", glyph: "🔄", hint: "behavior or plumbing" },
+  docs: { label: "Docs", glyph: "📜", hint: "no runtime change" },
+  removed: { label: "Removed", glyph: "❌", hint: "gone, check your usage" },
+  deprecated: { label: "Deprecated", glyph: "⚠️", hint: "still works, going away" },
+  security: { label: "Security", glyph: "🚨", hint: "read before you upgrade" },
 };
 
+/**
+ * Release-please and Keep a Changelog section names, lowercased, mapped to a
+ * legend category. Unknown headings fall back to the generator's section type.
+ */
+export const SECTION_HEADING_CATEGORY: Record<string, ChangelogCategory> = {
+  features: "added",
+  added: "added",
+  "bug fixes": "fixed",
+  fixed: "fixed",
+  miscellaneous: "changed",
+  "code refactoring": "changed",
+  performance: "changed",
+  "ci/cd": "changed",
+  changed: "changed",
+  documentation: "docs",
+  removed: "removed",
+  deprecated: "deprecated",
+  security: "security",
+};
+
+export function sectionCategory(
+  section: Pick<ChangelogSection, "type" | "heading">,
+): ChangelogCategory {
+  return SECTION_HEADING_CATEGORY[section.heading.trim().toLowerCase()] ?? section.type;
+}
+
+export type ReleaseGroup = {
+  category: ChangelogCategory;
+  label: string;
+  glyph: string;
+  items: string[];
+};
+
+/** One group per category, in first-seen order: Miscellaneous + CI/CD read as one Changed. */
+export function groupReleaseSections(entry: ChangelogEntry): ReleaseGroup[] {
+  const groups = new Map<ChangelogCategory, ReleaseGroup>();
+  for (const s of entry.sections) {
+    const category = sectionCategory(s);
+    const group = groups.get(category);
+    if (group) {
+      group.items.push(...s.items);
+    } else {
+      const { label, glyph } = CHANGELOG_CATEGORIES[category];
+      groups.set(category, { category, label, glyph, items: [...s.items] });
+    }
+  }
+  return [...groups.values()];
+}
+
 /** Theme-aware tags: fd-* / george text tokens, not raw Tailwind 400s. */
-export const TAG_BG: Record<SectionType, string> = {
+export const TAG_BG: Record<ChangelogCategory, string> = {
   added: "bg-[var(--color-fd-primary-10)] text-fd-primary",
   changed: "bg-fd-muted text-fd-foreground",
+  docs: "bg-fd-muted text-fd-muted-foreground",
   fixed: "bg-fd-muted text-[var(--yy-george-cool-text)]",
   deprecated: "bg-fd-muted text-[var(--yy-george-warm-text)]",
   removed: "bg-fd-muted text-fd-error",
@@ -95,69 +156,31 @@ export function entryHeadline(items: string[]): string {
   return line.length > 96 ? `${line.slice(0, 93)}…` : line;
 }
 
-export const SECTION_GLYPH: Record<SectionType, string> = {
-  added: "🎯",
-  fixed: "✅",
-  changed: "🔄",
-  removed: "❌",
-  deprecated: "⚠️",
-  security: "🚨",
+const DEFAULT_RATIONALE =
+  "Shipped in this release. Open the linked PR if you need the full rationale.";
+
+/** Rationale copy per commit scope. Icons come from the section category, never the scope. */
+const SCOPE_RATIONALE: Record<string, string> = {
+  build: "Release plumbing. Does not change plugin runtime behavior.",
+  ci: "CI gates. Protects the next push, not an already-open session.",
+  chore: "Housekeeping. No user-facing behavior change.",
+  docs: "Documentation only. Runtime behavior is unchanged.",
+  cc: "Claude Code version triage. Compatibility notes unless the bullet says otherwise.",
+  skills:
+    "A skill you invoke with /ork: changed. Re-read that skill page if you use it.",
+  hooks: "A lifecycle hook changed. Affects matching tool calls in every session.",
+  agents: "A specialist agent prompt or wiring changed.",
+  readme: "README or community copy. No runtime change.",
 };
 
-const DEFAULT_SCOPE = {
-  glyph: "🎯",
-  rationale:
-    "Shipped in this release. Open the linked PR if you need the full rationale.",
-};
-
-const SCOPE_META: Record<string, { glyph: string; rationale: string }> = {
-  build: {
-    glyph: "🔄",
-    rationale: "Release plumbing. Does not change plugin runtime behavior.",
-  },
-  ci: {
-    glyph: "⚡",
-    rationale: "CI gates. Protects the next push, not an already-open session.",
-  },
-  chore: {
-    glyph: "🔄",
-    rationale: "Housekeeping. No user-facing behavior change.",
-  },
-  docs: {
-    glyph: "📜",
-    rationale: "Documentation only. Runtime behavior is unchanged.",
-  },
-  cc: {
-    glyph: "📜",
-    rationale:
-      "Claude Code version triage. Compatibility notes unless the bullet says otherwise.",
-  },
-  skills: {
-    glyph: "📜",
-    rationale:
-      "A skill you invoke with /ork: changed. Re-read that skill page if you use it.",
-  },
-  hooks: {
-    glyph: "⚡",
-    rationale:
-      "A lifecycle hook changed. Affects matching tool calls in every session.",
-  },
-  agents: {
-    glyph: "🤖",
-    rationale: "A specialist agent prompt or wiring changed.",
-  },
-  readme: {
-    glyph: "📜",
-    rationale: "README or community copy. No runtime change.",
-  },
-};
+/** A commit's own leading emoji would compete with the legend glyph, so it is dropped. */
+const LEADING_EMOJI = /^(?:[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}][\u{FE0F}\u{200D}]*)+\s*/u;
 
 export type ChangelogRef = { label: string; href: string };
 
 export type ParsedChange = {
   scope: string | null;
   title: string;
-  glyph: string;
   rationale: string;
   issues: ChangelogRef[];
   shas: ChangelogRef[];
@@ -188,86 +211,29 @@ export function parseChangelogItem(raw: string): ParsedChange {
     .trim();
   const scopeMatch = titlePlain.match(/^([a-z][a-z0-9-]*)(?:\([^)]+\))?:\s*(.+)$/i);
   const scope = scopeMatch ? scopeMatch[1].toLowerCase() : null;
-  const title = scopeMatch ? scopeMatch[2] : titlePlain;
-  const meta = (scope && SCOPE_META[scope]) || DEFAULT_SCOPE;
-  return { scope, title, glyph: meta.glyph, rationale: meta.rationale, issues, shas };
+  const title = (scopeMatch ? scopeMatch[2] : titlePlain).replace(LEADING_EMOJI, "");
+  const rationale = (scope && SCOPE_RATIONALE[scope]) || DEFAULT_RATIONALE;
+  return { scope, title, rationale, issues, shas };
 }
 
 export type ReleaseMixItem = {
-  type: SectionType;
-  heading: string;
+  category: ChangelogCategory;
+  label: string;
   count: number;
 };
 
 export function releaseSectionMix(entry: ChangelogEntry): ReleaseMixItem[] {
-  const counts = new Map<string, ReleaseMixItem>();
-  for (const s of entry.sections) {
-    const heading = s.heading || SECTION_LABEL[s.type];
-    const prev = counts.get(heading);
-    counts.set(heading, {
-      type: s.type,
-      heading,
-      count: (prev?.count ?? 0) + s.items.length,
-    });
-  }
-  return [...counts.values()];
+  return groupReleaseSections(entry).map(({ category, label, items }) => ({
+    category,
+    label,
+    count: items.length,
+  }));
 }
 
-export const HOW_TO_READ = [
-  { glyph: "🎯", label: "Added", hint: "new capability" },
-  { glyph: "✅", label: "Fixed", hint: "a bug closed" },
-  { glyph: "🔄", label: "Changed", hint: "behavior or plumbing" },
-  { glyph: "📜", label: "Docs", hint: "no runtime change" },
-  { glyph: "🚨", label: "Security", hint: "read before you upgrade" },
-] as const;
-
-function mermaidLabel(text: string): string {
-  return text
-    .replace(/[🎯✅🔄❌⚠️🚨📜🤖⚡]/g, "")
-    .replace(/["\[\]]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 48);
+export function releaseItemCount(entry: ChangelogEntry): number {
+  return entry.sections.reduce((sum, s) => sum + s.items.length, 0);
 }
 
-export function howToReadMermaid(): string {
-  return [
-    "flowchart LR",
-    '  A["Added - new capability"]',
-    '  F["Fixed - a bug closed"]',
-    '  C["Changed - behavior or plumbing"]',
-    '  D["Docs - no runtime change"]',
-    '  S["Security - read before you upgrade"]',
-    "  A --- F --- C --- D --- S",
-  ].join("\n");
-}
-
-export function releaseMixMermaid(entry: ChangelogEntry): string {
-  const counts = new Map<string, { n: number; type: SectionType }>();
-  for (const s of entry.sections) {
-    const label = s.heading || SECTION_LABEL[s.type];
-    const prev = counts.get(label);
-    counts.set(label, {
-      n: (prev?.n ?? 0) + s.items.length,
-      type: s.type,
-    });
-  }
-  const nodes = [...counts.entries()].map(([label, { n }], i) => {
-    return `  v --> n${i}["${mermaidLabel(label)} · ${n}"]`;
-  });
-  return [
-    "flowchart LR",
-    `  v["${mermaidLabel(entry.version)}"]`,
-    ...nodes,
-  ].join("\n");
-}
-
-export function recentTimelineMermaid(entries: ChangelogEntry[], take = 6): string {
-  const slice = entries.slice(0, take);
-  const nodeLines = slice.map((e, i) => {
-    const n = e.sections.reduce((sum, s) => sum + s.items.length, 0);
-    return `  v${i}["${mermaidLabel(e.version)} · ${n}"]`;
-  });
-  const edges = slice.slice(1).map((_, i) => `  v${i} --> v${i + 1}`);
-  return ["flowchart LR", ...nodeLines, ...edges].join("\n");
-}
+export const HOW_TO_READ = (
+  Object.entries(CHANGELOG_CATEGORIES) as [ChangelogCategory, CategoryMeta][]
+).map(([category, meta]) => ({ category, ...meta }));

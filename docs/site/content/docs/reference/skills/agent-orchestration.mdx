@@ -5,7 +5,7 @@ description: "Agent orchestration patterns for agentic loops, multi-agent coordi
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="agent-orchestration" />
 
@@ -14,11 +14,11 @@ description: "Agent orchestration patterns for agentic loops, multi-agent coordi
 
 # Agent Orchestration
 
-Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Coordination and multi-scenario categories have individual rule files in `rules/` loaded on-demand; loop and framework tutorials live upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)), with house defaults in `references/ork-delta.md`.
+Comprehensive patterns for building and coordinating AI agents, from single-agent reasoning loops to multi-agent systems and framework selection. Coordination and multi-scenario categories have individual rule files in `rules/` loaded on-demand; loop and framework tutorials live upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)), with house defaults in `references/ork-delta.md`.
 
-> **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
+> **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows*, ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
 >
-> **Ask only when genuinely blocked (CC 2.1.154):** CC now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, rather than asking when it already has enough context to proceed. When orchestrating agents, don't gate progress on an `AskUserQuestion` the lead can resolve from available context — reserve prompts for true branch points (irreversible actions, missing requirements). This complements ork's voice-friendly decision guidance.
+> **Ask only when genuinely blocked (CC 2.1.154):** CC now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, rather than asking when it already has enough context to proceed. When orchestrating agents, don't gate progress on an `AskUserQuestion` the lead can resolve from available context, reserve prompts for true branch points (irreversible actions, missing requirements). This complements ork's voice-friendly decision guidance.
 
 ## Quick Reference
 
@@ -118,8 +118,8 @@ Local tutorials for these topics were retired; consult the first-party source an
 - No step limit in agent loops (infinite loops)
 - No memory management (context overflow)
 - No error isolation in multi-agent (one failure crashes all)
-  - Note (CC 2.1.161): parallel *tool calls* now fail independently — a failed Bash no longer cancels siblings in the same batch. This caveat still applies at the agent-orchestration level, not to tool batches; `claude agents` rows now show `done/total` for fanned-out work.
-  - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent &lt;name&gt;` overrides it — pin the agent type explicitly when dispatching.
+  - Note (CC 2.1.161): parallel *tool calls* now fail independently, a failed Bash no longer cancels siblings in the same batch. This caveat still applies at the agent-orchestration level, not to tool batches; `claude agents` rows now show `done/total` for fanned-out work.
+  - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent <name>` overrides it, pin the agent type explicitly when dispatching.
 - Missing synthesis step (raw agent outputs not useful)
 - Mixing frameworks in one project (complexity explosion)
 - Using Agent Teams for simple sequential work (use the Agent tool)
@@ -317,14 +317,14 @@ class AgentBus:
 - Using Agent Teams for simple sequential work (use Agent tool)
 - Broadcasting when a direct message suffices (wastes tokens)
 
-**Incorrect — no conflict resolution strategy:**
+**Incorrect, no conflict resolution strategy:**
 ```python
 async def multi_agent_analysis(task: str):
     results = await asyncio.gather(agent1(task), agent2(task))
     return results  # Return conflicting results without resolution
 ```
 
-**Correct — LLM arbitration resolves conflicts:**
+**Correct, LLM arbitration resolves conflicts:**
 ```python
 async def multi_agent_analysis(task: str):
     results = await asyncio.gather(agent1(task), agent2(task))
@@ -529,7 +529,7 @@ SendMessage(to="frontend-dev",
 | Communication | Shared state, message bus, or SendMessage (CC 2.1.33+) |
 | Topology | Agent tool (star) for simple; Agent Teams (mesh) for complex |
 
-**Incorrect — sequential execution of independent agents:**
+**Incorrect, sequential execution of independent agents:**
 ```python
 async def analyze(content: str):
     security_result = await security_agent(content)  # Wait
@@ -538,7 +538,7 @@ async def analyze(content: str):
     return [security_result, perf_result, quality_result]
 ```
 
-**Correct — parallel fan-out for independent agents:**
+**Correct, parallel fan-out for independent agents:**
 ```python
 async def analyze(content: str):
     tasks = [
@@ -726,7 +726,7 @@ class SkillOrchestrator(ABC):
 - Unclear difficulty scaling (differ in scale, not approach)
 - Missing aggregation (individual results lack comparative insights)
 
-**Incorrect — running scenarios sequentially:**
+**Incorrect, running scenarios sequentially:**
 ```python
 async def orchestrate(skill_name: str):
     simple = await run_scenario("simple", skill_name)  # Wait
@@ -735,7 +735,7 @@ async def orchestrate(skill_name: str):
     return [simple, medium, complex]
 ```
 
-**Correct — parallel execution of all scenarios:**
+**Correct, parallel execution of all scenarios:**
 ```python
 async def orchestrate(skill_name: str):
     results = await asyncio.gather(
@@ -969,14 +969,14 @@ python run_scenario.py
 | Time budgets | 30s, 90s, 300s |
 | Checkpoint frequency | Every milestone + completion |
 
-**Incorrect — no timeout on skill invocation:**
+**Incorrect, no timeout on skill invocation:**
 ```python
 async def run_scenario(scenario_id: str, skill_name: str):
     result = await invoke_skill(skill_name, get_input(scenario_id))  # Hangs forever
     return result
 ```
 
-**Correct — timeout prevents infinite hangs:**
+**Correct, timeout prevents infinite hangs:**
 ```python
 async def run_scenario(scenario_id: str, skill_name: str):
     timeout = {"simple": 30, "medium": 90, "complex": 300}[scenario_id]

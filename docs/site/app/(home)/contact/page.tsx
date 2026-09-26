@@ -4,7 +4,7 @@ import { ORG, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
 	title: "Contact",
-	description: `How to reach the ${SITE.name} maintainers — report issues, ask questions, and contribute on GitHub.`,
+	description: `How to reach the ${SITE.name} maintainers: report issues, ask questions, and contribute on GitHub.`,
 	alternates: { canonical: `${SITE.domain}/contact` },
 };
 

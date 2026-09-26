@@ -1,6 +1,6 @@
 ---
 title: Implement a Feature
-description: From idea to merged PR with parallel AI agents — a complete walkthrough of the /ork:implement workflow.
+description: "From idea to merged PR with parallel AI agents: a complete walkthrough of the /ork:implement workflow."
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -63,7 +63,7 @@ After you select **Backend only**, OrchestKit creates a task plan via `TaskCreat
 All three agents work simultaneously, then **results are merged**. The `backend-system-architect` designs the implementation while `test-generator` writes tests and `security-auditor` reviews the approach for vulnerabilities. No agent waits for another.
 
 <Callout type="info">
-Parallel agents share the same project context but write to different files. OrchestKit uses `TaskCreate` with `addBlockedBy` dependencies to prevent file conflicts -- tests depend on the implementation being written first, but the security scan runs independently from the start.
+Parallel agents share the same project context but write to different files. OrchestKit uses `TaskCreate` with `addBlockedBy` dependencies to prevent file conflicts: tests depend on the implementation being written first, but the security scan runs independently from the start.
 </Callout>
 
 ### What Gets Created
@@ -101,7 +101,7 @@ After the agents finish, your project tree gains these files:
 
 ## Step 2: Review the Generated Code
 
-Before verifying, look at what was produced. The `backend-system-architect` follows patterns from the `api-design-framework` skill -- endpoints use plural nouns, error responses follow RFC 9457 Problem Details, and tokens use short-lived access with long-lived refresh:
+Before verifying, look at what was produced. The `backend-system-architect` follows patterns from the `api-design-framework` skill: endpoints use plural nouns, error responses follow RFC 9457 Problem Details, and tokens use short-lived access with long-lived refresh:
 
 ```python
 # app/auth/router.py (simplified)
@@ -253,7 +253,7 @@ Here is what happened invisibly during this workflow.
 |---|---|---|
 | `skill-suggester` | Step 1 prompt | Detected "JWT" and "authentication" keywords, injected `security-patterns` and `python-backend` reference skills into agent context |
 | `dangerous-command-blocker` | During coding | Blocked an `rm -rf` that would have wiped the existing `tests/` directory |
-| `file-guard` | During coding | Warned when agent attempted to write `.env` with a JWT secret -- redirected to `.env.example` |
+| `file-guard` | During coding | Warned when agent attempted to write `.env` with a JWT secret, redirected to `.env.example` |
 | `auto-lint` | After each file write | Ran `ruff format` on every Python file the agents created |
 | `git-validator` | Step 4 commit | Verified the branch name and checked for uncommitted secrets |
 | `security-command-audit` | Step 3 verify | Logged the security scan results to session metrics |
@@ -263,14 +263,14 @@ Here is what happened invisibly during this workflow.
 
 Several reference skills were loaded across the three agents without any explicit invocation:
 
-- `api-design` -- REST endpoint patterns, HTTP status codes
-- `python-backend` -- FastAPI, middleware, dependency injection patterns
-- `security-patterns` -- OWASP Top 10, defense-in-depth, input validation
-- `architecture-patterns` -- Clean architecture, separation of concerns
-- `testing-unit` -- Fixtures, parametrize, mocking, data factories
-- `testing-integration` -- API endpoint tests, database tests, contract testing
-- `testing-e2e` -- Playwright, page objects, visual regression
-- `database-patterns` -- Schema design, migrations, query optimization
+- `api-design`: REST endpoint patterns, HTTP status codes
+- `python-backend`: FastAPI, middleware, dependency injection patterns
+- `security-patterns`: OWASP Top 10, defense-in-depth, input validation
+- `architecture-patterns`: Clean architecture, separation of concerns
+- `testing-unit`: Fixtures, parametrize, mocking, data factories
+- `testing-integration`: API endpoint tests, database tests, contract testing
+- `testing-e2e`: Playwright, page objects, visual regression
+- `database-patterns`: Schema design, migrations, query optimization
 
 ---
 
@@ -281,7 +281,7 @@ Several reference skills were loaded across the three agents without any explici
 </Callout>
 
 <Callout type="info">
-**Memory compounds over time.** After this implementation, OrchestKit remembers that your project uses JWT with refresh rotation. Next time you work on auth-related code, this context is automatically injected -- no need to explain your auth strategy again.
+**Memory compounds over time.** After this implementation, OrchestKit remembers that your project uses JWT with refresh rotation. Next time you work on auth-related code, this context is automatically injected, no need to explain your auth strategy again.
 </Callout>
 
 <Callout type="warn">

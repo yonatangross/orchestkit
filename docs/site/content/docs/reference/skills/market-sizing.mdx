@@ -5,7 +5,7 @@ description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation m
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="market-sizing" />
 
@@ -20,9 +20,9 @@ TAM/SAM/SOM framework for estimating addressable market and validating opportuni
 
 | Metric | Definition | Question It Answers |
 |--------|------------|---------------------|
-| **TAM** | Total Addressable Market — everyone who could possibly buy | "What's the theoretical ceiling?" |
-| **SAM** | Serviceable Addressable Market — segment you can actually reach | "What can we realistically target?" |
-| **SOM** | Serviceable Obtainable Market — realistic share in 3 years | "What will we actually capture?" |
+| **TAM** | Total Addressable Market, everyone who could possibly buy | "What's the theoretical ceiling?" |
+| **SAM** | Serviceable Addressable Market, segment you can actually reach | "What can we realistically target?" |
+| **SOM** | Serviceable Obtainable Market, realistic share in 3 years | "What will we actually capture?" |
 
 ```
 +-------------------------------------------------------+
@@ -132,14 +132,14 @@ Always label each number with its confidence level in deliverables.
 
 ## References
 
-- [TAM/SAM/SOM Rules](rules/market-tam-sam-som.md) — Calculation methods, SOM constraint model, cross-referencing
-- [TAM/SAM/SOM Guide](references/tam-sam-som-guide.md) — Detailed guide with data source recommendations
+- [TAM/SAM/SOM Rules](rules/market-tam-sam-som.md): Calculation methods, SOM constraint model, cross-referencing
+- [TAM/SAM/SOM Guide](references/tam-sam-som-guide.md): Detailed guide with data source recommendations
 
 ## Related Skills
 
-- `ork:competitive-analysis` — Understand competitive dynamics that constrain SOM
-- `ork:business-case` — Build financial justification once opportunity is sized
-- `ork:product-frameworks` — Full product strategy toolkit
+- `ork:competitive-analysis`: Understand competitive dynamics that constrain SOM
+- `ork:business-case`: Build financial justification once opportunity is sized
+- `ork:product-frameworks`: Full product strategy toolkit
 
 ---
 
@@ -269,7 +269,7 @@ Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
 | Single method | Cross-validate top-down and bottom-up |
 | Confusing TAM/SAM | TAM is total, SAM is your reach |
 
-**Incorrect — Unrealistic SOM without constraints:**
+**Incorrect, Unrealistic SOM without constraints:**
 ```markdown
 TAM: $10B
 SAM (our segment): $3B
@@ -278,7 +278,7 @@ SOM (10% market share): $300M
 This is achievable in 3 years!
 ```
 
-**Correct — SOM constrained by realistic factors:**
+**Correct, SOM constrained by realistic factors:**
 ```markdown
 SAM: $3B
 

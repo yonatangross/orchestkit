@@ -137,7 +137,7 @@ own, and bounding it converts a silent hang into a reported failure.
 
 ## The executable form of this contract
 
-`scripts/assert-evidence.sh &lt;logfile&gt; [--task-id &lt;id|none&gt;] [--pid &lt;pid&gt;] [--banner-re &lt;re&gt;] [--json]`
+`scripts/assert-evidence.sh <logfile> [--task-id <id|none>] [--pid <pid>] [--banner-re <re>] [--json]`
 implements rules 1-3: EVIDENCE (0) / NO-BANNER (1) / usage (2) / COULD-NOT-OBSERVE (3) /
 STILL-RUNNING (4). Phase 3 runs it before any grade; only EVIDENCE may be graded.
 The banner regex defaults to npm's `> pkg@ver script` line; pass `--banner-re` for other
@@ -158,7 +158,7 @@ Record exactly four fields: (1) was a task id returned; (2) bytes in the harness
 task-output file (`wc -c` on the path Monitor/TaskOutput reports); (3) where npm's banner
 appeared: in that file, inline in the tool result, or nowhere; (4) does `marker.txt`
 exist (absent = the command never launched; present with an empty output file = launched
-and the output was lost). Post the four fields as a comment on #3263 — the operator's
+and the output was lost). Post the four fields as a comment on #3263, the operator's
 comment, not a memory entry. If (1) is null, the Agent-fork result generalises to the
 skill fork; if an id arrives with 0 bytes and the marker exists, the skill-fork path is a
 distinct defect and #3263 gets a new hypothesis rather than a close.
@@ -186,7 +186,7 @@ under #3235.
 Slash invoke: `/ork:verify`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -224,7 +224,6 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 
 ## Dimension Rubrics
 
-&lt;!-- Weights from canonical source: ../references/quality-model.md — keep in sync --&gt;
 
 ### Correctness (Weight: 14%)
 
@@ -314,13 +313,12 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 | 1-3 | Broken layout, major content missing |
 | 0 | Page fails to render |
 
-> **Note**: Visual weight is 0.00 for API-only projects — redistributed proportionally. See [Quality Model](quality-model.md).
+> **Note**: Visual weight is 0.00 for API-only projects, redistributed proportionally. See [Quality Model](quality-model.md).
 
 ---
 
 ## Grade Interpretation
 
-&lt;!-- Canonical source: quality-model.md — keep in sync --&gt;
 
 | Composite | Grade | Verdict |
 |-----------|-------|---------|
@@ -335,7 +333,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 
 ## Dimension-Level Blockers (ork-rubric/1.0)
 
-The composite table above is overridden by per-dimension floors. Thresholds live in `../rubric.json` (`min_blocker` / `min_pass` fields; schema: `../../shared/rubric.schema.json`) — they map to the 0-3 "Poor, blocks merge" band of each dimension rubric.
+The composite table above is overridden by per-dimension floors. Thresholds live in `../rubric.json` (`min_blocker` / `min_pass` fields; schema: `../../shared/rubric.schema.json`), they map to the 0-3 "Poor, blocks merge" band of each dimension rubric.
 
 | Dimension | Threshold | Effect when below |
 |-----------|-----------|-------------------|
@@ -343,7 +341,7 @@ The composite table above is overridden by per-dimension floors. Thresholds live
 | Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (below 3.0 blocks merge) |
 | Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
 
-Reporting format — the tripped dimension leads the verdict, with the threshold named:
+Reporting format, the tripped dimension leads the verdict, with the threshold named:
 
 ```
 Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)
@@ -354,7 +352,6 @@ A passing composite never clears a tripped `min_blocker`; list every tripped dim
 
 ### Orchestration Mode
 
-&lt;!-- SHARED: keep in sync with ../../../assess/references/orchestration-mode.md --&gt;
 # Orchestration Mode Selection
 
 Shared logic for choosing between Agent Teams and Agent tool orchestration in assess/verify skills.
@@ -504,7 +501,7 @@ custom_rules:
 
 Store at: `.claude/policies/verification-policy.yaml`
 
-Multiple policies: `.claude/policies/\{name\}-policy.yaml`
+Multiple policies: `.claude/policies/{name}-policy.yaml`
 
 
 ### Progressive And Partial Results
@@ -515,9 +512,9 @@ Moved from SKILL.md Phase 2. With `workflows/verify-dispatch.js` the dispatch re
 
 ## Progressive Output (CC 2.1.76+)
 
-Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents.
+Output each agent's score **as soon as it completes**, don't wait for all 6-7 agents.
 
-> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message — the user didn't see the incremental outputs.
+> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message, the user didn't see the incremental outputs.
 
 ```
 Security:     8.2/10 — No critical vulnerabilities found
@@ -525,7 +522,7 @@ Code Quality: 7.5/10 — 3 complexity hotspots identified
 [...remaining agents still running...]
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the its rubric `min_blocker` (security 9.0, every other dimension 3.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the its rubric `min_blocker` (security 9.0, every other dimension 3.0), flag it as a **blocker immediately**, the user can terminate early without waiting for remaining agents.
 
 ## Partial results (CC 2.1.98)
 
@@ -553,7 +550,7 @@ A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-t
 Extends the unified scoring framework with Visual as the 8th dimension.
 
 > **Canonical source**: `quality-gates/references/unified-scoring-framework.md`
-> Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")`
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")`
 
 ## verify-Specific Extensions
 
@@ -640,7 +637,7 @@ Record both runs in the manifest row. A proof with only step 5 is not a proof.
 
 ### Rule 1: commit before mutating
 
-`git checkout -- &lt;file&gt;` restores the file to **HEAD**, not to the working state you had
+`git checkout -- <file>` restores the file to **HEAD**, not to the working state you had
 before the mutation. If the change is still uncommitted when you mutate, step 4 reverts
 the mutation *and the change together*, silently destroying the work. This has already
 cost a real fix plus roughly forty lines of a new guard in one stroke.
@@ -1029,7 +1026,7 @@ Copy this template and fill in results from parallel agent verification.
 
 ### Streak Gate
 
-# Streak Gate — consecutive-pass verification
+# Streak Gate: consecutive-pass verification
 
 A single green is not proof. Flaky suites, race conditions, and order-dependent tests pass once and fail the next run. The streak gate makes `/ork:verify` declare a feature done **only after N consecutive passing runs**, resetting the count to zero on any failure. It is the flakiness defense that single-shot pass/fail can't give.
 
@@ -1042,7 +1039,7 @@ A single green is not proof. Flaky suites, race conditions, and order-dependent 
 /ork:verify --streak=3                          # continues an existing streak for the same scope
 ```
 
-`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from the verify rubric's `streak_target` slot (`src/skills/verify/rubric.json`, an integer ≥ 2 validated by `src/shared/rubric.schema.json` — a configured value is schema-checked, not silently ignored); the explicit flag always wins.
+`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from the verify rubric's `streak_target` slot (`src/skills/verify/rubric.json`, an integer ≥ 2 validated by `src/shared/rubric.schema.json`, a configured value is schema-checked, not silently ignored); the explicit flag always wins.
 
 Parse it alongside the other flags in Argument Resolution:
 
@@ -1076,7 +1073,7 @@ The streak persists across independent verify runs in `.claude/chain/verify-stre
 }
 ```
 
-`scope` keys the streak — switching scope starts a fresh streak. `current` is the live consecutive-pass count; `met` is `current >= target`. `last_run_ts` is the timestamp of the run that last wrote the ledger — the freshness stamp a `/goal` loop checks so it never trusts a `met:true` it didn't just produce (see Stale-ledger guard).
+`scope` keys the streak, switching scope starts a fresh streak. `current` is the live consecutive-pass count; `met` is `current >= target`. `last_run_ts` is the timestamp of the run that last wrote the ledger, the freshness stamp a `/goal` loop checks so it never trusts a `met:true` it didn't just produce (see Stale-ledger guard).
 
 **Scope keying is normalized.** The raw scope string is trimmed and its internal whitespace collapsed before it keys the streak, so `"auth flow"` and `"auth  flow"` (or a trailing space) extend the *same* streak instead of silently starting fresh ones:
 
@@ -1108,23 +1105,23 @@ ledger.last_run_ts = now_iso()             # stamp THIS run — the freshness pr
 write_atomic(".claude/chain/verify-streak.json", ledger)   # tmp + rename, never in-place
 ```
 
-**Atomic write (concurrency safety).** The ledger *is* the counter, so a torn or last-writer-wins write corrupts the whole feature. Two verify runs on the same scope (e.g. parallel worktrees) must not race: write to `verify-streak.json.tmp.&lt;pid&gt;` then `rename()` over the target (an atomic filesystem op on POSIX). Never mutate the file in place. If two runs still interleave, rename-last-wins loses at most one increment — it never leaves a half-written ledger.
+**Atomic write (concurrency safety).** The ledger *is* the counter, so a torn or last-writer-wins write corrupts the whole feature. Two verify runs on the same scope (e.g. parallel worktrees) must not race: write to `verify-streak.json.tmp.<pid>` then `rename()` over the target (an atomic filesystem op on POSIX). Never mutate the file in place. If two runs still interleave, rename-last-wins loses at most one increment, it never leaves a half-written ledger.
 
-**Reset rule:** a streak breaks on *any* non-`READY FOR MERGE` verdict — a tripped dimension blocker, a failing test, or an IMPROVEMENTS-RECOMMENDED. One red zeroes the count. There is no partial credit.
+**Reset rule:** a streak breaks on *any* non-`READY FOR MERGE` verdict, a tripped dimension blocker, a failing test, or an IMPROVEMENTS-RECOMMENDED. One red zeroes the count. There is no partial credit.
 
-**Independence rule (the whole point):** each run must re-execute the *actual* tests — no cached results, no "already passed last turn." A streak over cached runs proves nothing. If the suite is fast, run it fresh each turn; if it is slow, that cost is the price of trusting the green.
+**Independence rule (the whole point):** each run must re-execute the *actual* tests, no cached results, no "already passed last turn." A streak over cached runs proves nothing. If the suite is fast, run it fresh each turn; if it is slow, that cost is the price of trusting the green.
 
 ## Verdict mapping
 
-The streak gate sits *above* the normal verdict — it never loosens a blocker, it only withholds "done" until the streak is met:
+The streak gate sits *above* the normal verdict, it never loosens a blocker, it only withholds "done" until the streak is met:
 
 | Streak state | Reported verdict |
 |---|---|
 | this run not READY (blocker/fail) | the normal verdict (BLOCKED / IMPROVEMENTS RECOMMENDED) + `streak reset to 0/N` |
-| READY but `current &lt; target` | **STREAK PROGRESS — `current`/`target`** (not done; run again) |
+| READY but `current < target` | **STREAK PROGRESS, `current`/`target`** (not done; run again) |
 | READY and `current >= target` | **READY FOR MERGE** (streak `target`/`target` met) |
 
-Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 &lt; 9.0)`. The user must see how close (or how broken) the streak is.
+Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 9.0)`. The user must see how close (or how broken) the streak is.
 
 ## Wiring into `/goal`
 
@@ -1138,11 +1135,11 @@ LOOP_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 `no_progress_for_4_turns` is deliberately generous: a streak that keeps resetting *is* progress information (it's surfacing real flakiness), so give it room before aborting.
 
-**Stale-ledger guard (the first-run race).** `/goal` evaluates the `until`-clause at the *top* of each turn — before that turn's verify runs. If a previous completed streak for the same scope left `met:true` in the ledger, a bare `.met==true` check exits on turn 1 having run **zero** fresh verifications. Defense (robust form): the `until`-clause compares `last_run_ts` against the loop-start timestamp, so `met:true` is honored **only when the ledger was written this loop** — you never trust a `met` you didn't just produce. This needs no `rm` and is safe even if a stale ledger exists (the old `rm -f` reset still works as a simpler fallback, but the timestamp guard is preferred because it also survives a mid-loop scope reuse). ISO-8601 UTC timestamps compare correctly as strings.
+**Stale-ledger guard (the first-run race).** `/goal` evaluates the `until`-clause at the *top* of each turn, before that turn's verify runs. If a previous completed streak for the same scope left `met:true` in the ledger, a bare `.met==true` check exits on turn 1 having run **zero** fresh verifications. Defense (robust form): the `until`-clause compares `last_run_ts` against the loop-start timestamp, so `met:true` is honored **only when the ledger was written this loop**, you never trust a `met` you didn't just produce. This needs no `rm` and is safe even if a stale ledger exists (the old `rm -f` reset still works as a simpler fallback, but the timestamp guard is preferred because it also survives a mid-loop scope reuse). ISO-8601 UTC timestamps compare correctly as strings.
 
 ## Reuse in `/ork:cover`
 
-`cover` already auto-heals up to 3 iterations. The same ledger + reset protocol applies: after generating tests, require the suite to pass N times consecutively before declaring coverage done — this catches flaky *generated* tests before they land. Same `verify-streak/1.0` ledger, keyed by the cover scope. (Cover wiring is a follow-up; the protocol here is the shared contract.)
+`cover` already auto-heals up to 3 iterations. The same ledger + reset protocol applies: after generating tests, require the suite to pass N times consecutively before declaring coverage done, this catches flaky *generated* tests before they land. Same `verify-streak/1.0` ledger, keyed by the cover scope. (Cover wiring is a follow-up; the protocol here is the shared contract.)
 
 ## Anti-patterns
 
@@ -1150,8 +1147,8 @@ LOOP_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 |---|---|---|
 | Count cached "passes" toward the streak | Proves the cache is green, not the code | Re-run the real suite each turn |
 | Let an IMPROVEMENTS-RECOMMENDED extend the streak | Streak then means "good enough once", not "green N times" | Only `READY FOR MERGE` extends; everything else resets |
-| Streak target of 1 | Identical to single-shot verify — no flakiness defense | N ≥ 2 (3 is the sensible default) |
-| Raise the streak target to force a pass | Gaming in reverse — moving the goalposts | Target is set once, up front, from intent/policy |
+| Streak target of 1 | Identical to single-shot verify, no flakiness defense | N ≥ 2 (3 is the sensible default) |
+| Raise the streak target to force a pass | Gaming in reverse, moving the goalposts | Target is set once, up front, from intent/policy |
 
 
 ### Task Management
@@ -1347,7 +1344,7 @@ Focus: React 19, Zod, exhaustive types, skeletons, prefetch, a11y
 
 The report's agent scores, tool summaries, and every "X is fixed / clean / passing"
 sentence are **claims** until the lead independently re-runs the proof. The single
-most common verification failure is relaying an agent's assertion as a fact — a
+most common verification failure is relaying an agent's assertion as a fact, a
 sub-agent reports "tsc clean", the lead copies that into the report, it ships, and it
 does **not** work.
 
@@ -1356,12 +1353,12 @@ The **Verification Manifest** is a provenance ledger that closes that seam. For 
 **VERIFIED** (with the exact command + output), merely **CLAIMED** (asserted by an
 agent / tool / doc, never re-run), or **UNCHECKED** (assumed). It is the operational
 form of the [Verification Gate](../../shared/rules/verification-gate.md) and
-[Anti-Sycophancy](../../shared/rules/anti-sycophancy.md) rules — turning "no completion
+[Anti-Sycophancy](../../shared/rules/anti-sycophancy.md) rules, turning "no completion
 claims without fresh evidence" from a principle into a filled-in table.
 
 ## Definitions
 
-**Load-bearing claim** — one where flipping it false would change the verdict, ship a
+**Load-bearing claim**: one where flipping it false would change the verdict, ship a
 bug, or invalidate the merge. You do **not** manifest every trivial statement; you
 manifest the claims the merge *rests on*. If in doubt, it's load-bearing.
 
@@ -1370,19 +1367,19 @@ manifest the claims the merge *rests on*. If in doubt, it's load-bearing.
 | State | Meaning | Row must include |
 |-------|---------|------------------|
 | ✅ **VERIFIED** | The **lead** ran the proof **fresh this session** and read the output. | The command · exit code · the key output line |
-| 🟡 **CLAIMED** | A sub-agent, tool summary, doc, or memory asserted it — **not** independently re-run by the lead. | Who asserted it |
+| 🟡 **CLAIMED** | A sub-agent, tool summary, doc, or memory asserted it, **not** independently re-run by the lead. | Who asserted it |
 | ⬜ **UNCHECKED** | Assumed true; nobody ran a proof (e.g. "no other caller depends on this" with no grep). | Why it was assumed |
 | ⚪ **WAIVED** | A CLAIMED/UNCHECKED item deliberately accepted as non-blocking. | A one-line reason + issue ref if deferred |
 | 🔴 **COULD-NOT-OBSERVE** | Evidence was **attempted and nothing was observed**: the run wrote 0 bytes with no live process, or the runner's banner never appeared (`scripts/assert-evidence.sh` exit 3 or 1). | The assert-evidence output line |
 
 > An agent reporting "PASS" and the lead **copying** that into the manifest is still
-> 🟡 CLAIMED — not ✅ VERIFIED. VERIFIED means *the lead* ran it. The distinction is the
+> 🟡 CLAIMED, not ✅ VERIFIED. VERIFIED means *the lead* ran it. The distinction is the
 > whole point.
 
 ## The rule (wired to the verdict)
 
 > **Any load-bearing claim that is 🟡 CLAIMED or ⬜ UNCHECKED caps the verdict at
-> IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE — until it is ✅ VERIFIED
+> IMPROVEMENTS RECOMMENDED, it cannot grade READY FOR MERGE, until it is ✅ VERIFIED
 > or explicitly ⚪ WAIVED with a reason. A load-bearing 🔴 COULD-NOT-OBSERVE row makes
 > the verdict BLOCKED: the evidence does not exist, so nothing can cap-and-continue.**
 
@@ -1395,17 +1392,17 @@ rule).
 ## How to build it (a synthesis step, after agents return, before the verdict)
 
 1. **Enumerate claims** from three sources:
-   - **a. Agent output** — every sub-agent `approval` / score / "PASS" / "clean" /
+   - **a. Agent output**: every sub-agent `approval` / score / "PASS" / "clean" /
      "no X found" is a CLAIM by default.
-   - **b. The working narrative** — every "X is fixed / passing / done" sentence.
-   - **c. Premises the change rests on** — facts pulled from a doc, memory, or prior
+   - **b. The working narrative**: every "X is fixed / passing / done" sentence.
+   - **c. Premises the change rests on**: facts pulled from a doc, memory, or prior
      session ("the migration already ran", "the endpoint returns Y"). Docs and memory are
-     Tier 2–4 (see the context-precedence rule): **CLAIMED until re-checked at HEAD.**
+     Tier 2-4 (see the context-precedence rule): **CLAIMED until re-checked at HEAD.**
 2. **For each, decide: can I cheaply run the proof now?**
    - Yes → run it **fresh**, capture `command · exit · key line` → ✅ VERIFIED.
    - No → 🟡 CLAIMED / ⬜ UNCHECKED; if load-bearing, it caps the verdict (or ⚪ WAIVE it
      with a reason).
-3. **Spend verification on the load-bearing few.** You need not re-run *everything* — you
+3. **Spend verification on the load-bearing few.** You need not re-run *everything*, you
    need to never *present* a CLAIMED item *as* VERIFIED.
 
 ## Template
@@ -1427,13 +1424,13 @@ verdict capped at IMPROVEMENTS RECOMMENDED until VERIFIED or WAIVED.
 
 ## Anti-patterns
 
-- **Laundering** — copying an agent's "PASS" into the table as ✅ VERIFIED without
+- **Laundering**: copying an agent's "PASS" into the table as ✅ VERIFIED without
   re-running. That's CLAIMED. VERIFIED is the *lead's* fresh run.
-- **Optimism-marking** — flipping everything to ✅ to clear the gate. The manifest
+- **Optimism-marking**: flipping everything to ✅ to clear the gate. The manifest
   measures honesty, not confidence. "Should be fine" is ⬜, not ✅.
-- **Convenient omission** — leaving a load-bearing claim off the table to dodge the
+- **Convenient omission**: leaving a load-bearing claim off the table to dodge the
   verdict cap. The omission *is* the bug the manifest exists to catch.
-- **Trusting agent numbers** — a price, model-id, cost, or count emitted by a sub-agent
+- **Trusting agent numbers**: a price, model-id, cost, or count emitted by a sub-agent
   is CLAIMED until checked against source. (Sub-agents have fabricated off-by-1000×
   figures and retired model ids.) Central-verify before the row goes ✅.
 
@@ -1441,14 +1438,14 @@ verdict capped at IMPROVEMENTS RECOMMENDED until VERIFIED or WAIVED.
 
 | `/effort` | Manifest |
 |-----------|----------|
-| **low** (quick check) | Optional — skip unless a claim would block. |
+| **low** (quick check) | Optional, skip unless a claim would block. |
 | **medium** | Required for any claim that would block or pass the verdict. |
 | **high** / **xhigh** | Full manifest, including doc/memory premises (source c). |
 
 
 ### Verification Phases
 
-# Verification Phases — Detailed Workflow
+# Verification Phases: Detailed Workflow
 
 ## Phase Overview
 
@@ -1481,7 +1478,7 @@ Default: `workflows/verify-dispatch.js` runs this dispatch (SKILL.md Phase 2). W
 
 Use `python-performance-engineer` for backend-focused verification or `frontend-performance-engineer` for frontend-focused verification. See [Quality Model](quality-model.md) for Performance (0.11) and Scalability (0.09) weights.
 
-Optionally add `monitoring-engineer` as a **conditional observability verifier** when the change touches services, handlers, background jobs, or infra (skip for pure UI/docs). It scores whether the new code is *operable in production* — structured logging on critical paths, metrics/SLIs, error/alert coverage — not just correct.
+Optionally add `monitoring-engineer` as a **conditional observability verifier** when the change touches services, handlers, background jobs, or infra (skip for pure UI/docs). It scores whether the new code is *operable in production*, structured logging on critical paths, metrics/SLIs, error/alert coverage, not just correct.
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
@@ -1681,7 +1678,7 @@ Agent(
 )
 ```
 
-**Output**: `verification-output/\{timestamp\}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
+**Output**: `verification-output/{timestamp}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
 
 ---
 
@@ -1731,15 +1728,15 @@ See [Report Template](report-template.md) for full format.
 
 # verify version history
 
-**Version:** 4.7.0 (August 2026) — Phase 3 evidence gate became executable (#3263): tests redirect to a named log, `scripts/assert-evidence.sh` names one of five outcomes, and COULD-NOT-OBSERVE joined the manifest as a blocking state. A verdict skill can no longer end without a verdict: an empty run is a named failure, not silence
-**Version:** 4.6.0 (July 2026) — Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
-**Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
-**Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
+**Version:** 4.7.0 (August 2026), Phase 3 evidence gate became executable (#3263): tests redirect to a named log, `scripts/assert-evidence.sh` names one of five outcomes, and COULD-NOT-OBSERVE joined the manifest as a blocking state. A verdict skill can no longer end without a verdict: an empty run is a named failure, not silence
+**Version:** 4.6.0 (July 2026), Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
+**Version:** 4.5.0 (July 2026), Added the Verification Manifest (VERIFIED vs CLAIMED), a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
+**Version:** 4.4.0 (June 2026), Added `--streak=N` consecutive-pass gate (#2540)
 
 
 ### Visual Capture
 
-# Visual Capture — Phase 2.5
+# Visual Capture: Phase 2.5
 
 Visual verification that produces browsable screenshot evidence with AI evaluation.
 
@@ -1845,7 +1842,7 @@ Grep(pattern="(app|router)\\.(get|post)\\([\"'](/[^\"']*)", glob="**/*.{ts,js}",
 ```
 
 ### Fallback
-If no routes discovered, screenshot just the root URL: `http://localhost:\{port\}/`
+If no routes discovered, screenshot just the root URL: `http://localhost:{port}/`
 
 ### Max Routes
 Cap at **20 routes** to keep gallery manageable and generation fast. Prioritize:

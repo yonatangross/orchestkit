@@ -5,7 +5,7 @@ description: "Error pattern analysis and troubleshooting for Claude Code session
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="errors" />
 
@@ -31,7 +31,7 @@ Analyze errors captured from Claude Code sessions to identify patterns and get a
 | `/debug` | Real-time debug of current session state | Current session |
 | `fix-issue` | Full RCA workflow for specific bug | Single issue |
 
-> **CC 2.1.169+:** for errors that survive `/clear` and restarts, `claude --safe-mode` boots with every customization disabled (CLAUDE.md/plugins/skills/hooks/MCP) — the one-step test that separates "ork/hook/MCP bug" from "CC bug" before deeper analysis.
+> **CC 2.1.169+:** for errors that survive `/clear` and restarts, `claude --safe-mode` boots with every customization disabled (CLAUDE.md/plugins/skills/hooks/MCP), the one-step test that separates "ork/hook/MCP bug" from "CC bug" before deeper analysis.
 
 ## Quick Analysis
 
@@ -104,7 +104,7 @@ fix: Check MCP postgres server connection string - may be connected to wrong dat
 
 ### Hook Errors (CC 2.1.98)
 
-Since CC 2.1.98, hook errors show the first line of stderr directly in the transcript — no need for `--debug`:
+Since CC 2.1.98, hook errors show the first line of stderr directly in the transcript, no need for `--debug`:
 
 ```
 pattern: hook.*error|hook.*failed|PreToolUse.*error
@@ -156,7 +156,7 @@ When matching errors to known patterns:
 3. Check the input/command that triggered the error
 4. Confirm the fix template applies to this specific scenario
 
-## Incorrect — keyword-only matching
+## Incorrect: keyword-only matching
 
 ```json
 {
@@ -182,7 +182,7 @@ def find_fix(error_message: str) -> str:
 # - MCP server failed to start (port 3100)
 ```
 
-## Correct — match full error signature
+## Correct: match full error signature
 
 ```json
 {
@@ -255,7 +255,7 @@ def find_fix(tool: str, error_message: str, tool_input: str, rules: list[ErrorRu
 
 ## Why
 
-The fastest "fix" for an error is to suppress it — wrap in try/catch, add `|| true`, or swallow the exception. This hides the symptom while the underlying bug causes data corruption, silent failures, or cascading issues downstream.
+The fastest "fix" for an error is to suppress it, wrap in try/catch, add `|| true`, or swallow the exception. This hides the symptom while the underlying bug causes data corruption, silent failures, or cascading issues downstream.
 
 ## Rule
 
@@ -266,7 +266,7 @@ Before applying any fix:
 4. Fix the root cause, not the symptom
 5. Verify the error is resolved, not just silenced
 
-## Incorrect — suppress the error
+## Incorrect: suppress the error
 
 ```typescript
 // Error: Cannot read property 'name' of undefined
@@ -299,7 +299,7 @@ echo "Continuing..." # Proceeds without required step
 - The connection error means the DB is down or misconfigured
 - The missing command means a dependency is not installed
 
-## Correct — trace to root cause then fix
+## Correct: trace to root cause then fix
 
 ```typescript
 // Error: Cannot read property 'name' of undefined
@@ -341,7 +341,7 @@ except ConnectionRefusedError as e:
 | Symptom | Likely Root Cause | Do NOT Do |
 |---------|-------------------|-----------|
 | `undefined is not an object` | Missing null check or broken data flow | Wrap in try/catch |
-| `connection refused` | Service not running or wrong config | Add `catch \{ pass \}` |
+| `connection refused` | Service not running or wrong config | Add `catch { pass }` |
 | `command not found` | Missing dependency | Add `\|\| true` |
 | `permission denied` | Wrong user or file permissions | Run as root |
 | `ENOSPC` | Disk full | Delete random files |

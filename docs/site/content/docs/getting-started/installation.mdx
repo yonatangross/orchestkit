@@ -1,29 +1,20 @@
 ---
 title: Installation
-description: "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, Antigravity, or skills.sh for OpenCode and other clients."
+description: "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity, or skills.sh for OpenCode and other clients."
 ---
 
-import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { LazySetupWizard } from '@/components/lazy';
 import { Count } from '@/components/count';
-import { HostMark } from '@/components/host-marks';
 import { HostInstallGrid } from '@/components/host-install';
 
-Pick the host you actually use. Claude Code is the full plugin (<Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks). Cursor gets the same `ork` plugin minus Claude hook scripts. Codex gets the portable `ork-codex` pack. Muse Code (Meta) loads skills from `.agents/skills`. Pi installs via the shipped `pi` manifest. Antigravity reads workspace `.agents/skills`. OpenCode and other Agent Skills clients start with 12 skills on skills.sh.
+## Choose your host
 
-Click a chip. That copies the install. Cursor is a marketplace slug, not a fake CLI.
+Pick the host you actually use. Claude Code is the full plugin (<Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks). Cursor gets the same `ork` plugin minus Claude hook scripts. Codex gets the portable `ork-codex` pack. Devin installs the `ork` plugin from git (skills load, hooks do not yet). Muse Code (Meta) loads skills from `.agents/skills`. Pi installs via the shipped `pi` manifest. Antigravity reads workspace `.agents/skills`. OpenCode and other Agent Skills clients start with 12 skills on skills.sh.
+
+Click a card to copy its install command. Cursor is a marketplace slug, not a fake CLI.
 
 <HostInstallGrid />
-
-<Cards>
-  <Card title="Claude Code" description="/plugin marketplace add yonatangross/orchestkit, /plugin install ork, then /ork:setup and /ork:doctor." href="/docs/getting-started/claude-code" icon={<HostMark host="claude" />} />
-  <Card title="Cursor" description="Marketplace yonatangross/orchestkit. Enable ork. Open a new chat." href="/docs/getting-started/cursor" icon={<HostMark host="cursor" />} />
-  <Card title="Codex" description="codex plugin add ork-codex@orchestkit-codex. Then $ork-implement." href="/docs/getting-started/codex" icon={<HostMark host="codex" />} />
-  <Card title="Muse Code" description="Meta's terminal agent. skills.sh into .agents/skills. No ork-muse pack yet." href="/docs/getting-started/muse" icon={<HostMark host="muse" />} />
-  <Card title="skills.sh" description="OpenCode and other clients. Starter 12, not the firehose. Pi has its own install." href="/docs/getting-started/skills-sh" icon={<HostMark host="pi" />} />
-  <Card title="Antigravity" description="Google's agentic CLI. skills.sh into workspace .agents/skills." href="/docs/getting-started/agy" icon={<HostMark host="agy" />} />
-</Cards>
 
 See the [host matrix](/docs/getting-started/hosts) if you are unsure which row you are on. Measured engine notes (pi, Codex, Cursor) live in [OrchestKit on pi, Codex and Cursor](/docs/guides/orchestkit-on-pi-codex-cursor).
 

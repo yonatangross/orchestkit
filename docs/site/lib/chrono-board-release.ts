@@ -1,12 +1,15 @@
 import { COUNTS, SITE } from "@/lib/constants";
 import type { ChangelogEntry, SectionType } from "@/lib/generated/changelog-data";
 import {
+  CHANGELOG_CATEGORIES,
+  type ChangelogCategory,
   entryHeadline,
   formatChangelogDate,
   isProductChangelogItem,
   parseChangelogItem,
   pickWhatsNewPreview,
   releaseSectionMix,
+  sectionCategory,
 } from "@/lib/changelog-format";
 
 export type ChronoTone = SectionType | "live";
@@ -25,7 +28,7 @@ export type ChronoBoardCardModel = {
 
 export const CHRONO_STATUS_LABEL: Record<ChronoTone, string> = {
   live: "Latest",
-  added: "Shipped",
+  added: "Added",
   fixed: "Fixed",
   changed: "Changed",
   removed: "Removed",
@@ -83,20 +86,20 @@ export function buildVersionChronoCards(
   take = 5,
 ): ChronoBoardCardModel[] {
   return entries.slice(0, take).map((entry, index) => {
-    const product = entry.sections.flatMap((section) =>
-      section.items
-        .filter(isProductChangelogItem)
-        .map((item) => ({ type: section.type, item })),
+    const rows = entry.sections.flatMap((section) =>
+      section.items.map((item) => ({
+        type: section.type,
+        category: sectionCategory(section),
+        item,
+      })),
     );
-    const lead = product[0] ??
-      entry.sections.flatMap((section) =>
-        section.items.map((item) => ({ type: section.type, item })),
-      )[0];
+    const lead = rows.find((row) => isProductChangelogItem(row.item)) ?? rows[0];
     const mix = releaseSectionMix(entry);
     const tone: ChronoTone = index === 0 ? "live" : (lead?.type ?? "changed");
+    const category: ChangelogCategory = lead?.category ?? "changed";
     const description = lead
       ? entryHeadline([lead.item])
-      : mix.map((item) => `${item.count} ${item.heading}`).join(" · ") ||
+      : mix.map((item) => `${item.count} ${item.label}`).join(" · ") ||
         "Release notes";
 
     return {
@@ -104,7 +107,11 @@ export function buildVersionChronoCards(
       title: entry.version,
       description,
       date: formatChangelogDate(entry.date),
-      status: index === 0 ? CHRONO_STATUS_LABEL.live : CHRONO_STATUS_LABEL[tone],
+      // Status speaks the changelog legend's words (Docs, not Changed).
+      status:
+        index === 0
+          ? CHRONO_STATUS_LABEL.live
+          : CHANGELOG_CATEGORIES[category].label,
       tone,
       active: index === 0,
       notesHref: `#${entry.version}`,

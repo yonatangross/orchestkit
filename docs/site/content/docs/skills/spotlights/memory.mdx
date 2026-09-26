@@ -5,7 +5,7 @@ description: Search, load, sync, and visualize your knowledge graph across sessi
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The `/ork:memory` command is the read side of OrchestKit's knowledge system. It searches past decisions, loads context at session start, syncs to cloud storage, visualizes the knowledge graph, and reports system health. Paired with `/ork:remember` (the write side), it forms a persistent memory layer that compounds across sessions -- every decision you store makes future sessions smarter. This page covers each subcommand, the memory architecture, and patterns for getting the most value from persistent knowledge.
+The `/ork:memory` command is the read side of OrchestKit's knowledge system. It searches past decisions, loads context at session start, syncs to cloud storage, visualizes the knowledge graph, and reports system health. Paired with `/ork:remember` (the write side), it forms a persistent memory layer that compounds across sessions: every decision you store makes future sessions smarter. This page covers each subcommand, the memory architecture, and patterns for getting the most value from persistent knowledge.
 
 ## Why This Skill
 
@@ -28,7 +28,7 @@ If you invoke `/ork:memory` without a subcommand, OrchestKit asks which operatio
 
 ## Subcommands
 
-### search -- Find Past Decisions
+### search: Find Past Decisions
 
 Search the knowledge graph for entities, decisions, and patterns:
 
@@ -52,7 +52,7 @@ The `--global` flag searches patterns that apply across all your projects.
 
 Search results automatically adjust based on context window usage: full results when you have room, condensed results when context is tight.
 
-### load -- Restore Session Context
+### load: Restore Session Context
 
 Load relevant memories at the start of a session:
 
@@ -64,7 +64,7 @@ Load relevant memories at the start of a session:
 
 This pulls in recent decisions, active project context, agent-specific memories, and optionally global patterns. It is most valuable at session start, giving Claude immediate context about your project without you having to re-explain anything.
 
-### sync -- Sync Memory
+### sync: Sync Memory
 
 Sync local decisions to the knowledge graph:
 
@@ -74,7 +74,7 @@ Sync local decisions to the knowledge graph:
 /ork:memory sync --dry-run     # Preview what would sync
 ```
 
-### history -- Decision Timeline
+### history: Decision Timeline
 
 View architecture decisions over time:
 
@@ -85,9 +85,9 @@ View architecture decisions over time:
 /ork:memory history --mermaid           # Output as Mermaid diagram
 ```
 
-The Mermaid output is useful for architecture documentation -- paste it into your docs and you have a visual timeline of how your architecture evolved.
+The Mermaid output is useful for architecture documentation: paste it into your docs and you have a visual timeline of how your architecture evolved.
 
-### viz -- Knowledge Graph Visualization
+### viz: Knowledge Graph Visualization
 
 Render the knowledge graph as a Mermaid diagram:
 
@@ -98,7 +98,7 @@ Render the knowledge graph as a Mermaid diagram:
 /ork:memory viz --type Technology        # Filter by entity type
 ```
 
-### status -- Health Check
+### status: Health Check
 
 Check memory system health:
 
@@ -187,8 +187,8 @@ This produces a Mermaid graph showing all architectural decisions and their rela
 
 ## Related Skills
 
-- [/ork:commit](/docs/skills/spotlights/commit) -- Commit changes (memory is often referenced during commit)
-- [/ork:implement](/docs/skills/spotlights/implement) -- Implementation draws on past decisions
-- [/ork:verify](/docs/skills/spotlights/verify) -- Verification stores scores in memory
-- [Memory Architecture](/docs/memory/overview) -- Deep dive into the 3-tier memory system
-- [Command Skills Reference](/docs/skills/command-skills) -- All 36 command skills
+- [/ork:commit](/docs/skills/spotlights/commit): Commit changes (memory is often referenced during commit)
+- [/ork:implement](/docs/skills/spotlights/implement): Implementation draws on past decisions
+- [/ork:verify](/docs/skills/spotlights/verify): Verification stores scores in memory
+- [Memory Architecture](/docs/memory/overview): Deep dive into the 3-tier memory system
+- [Command Skills Reference](/docs/skills/command-skills): Every command skill, grouped by task

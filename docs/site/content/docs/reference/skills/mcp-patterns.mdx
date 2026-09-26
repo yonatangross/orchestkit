@@ -5,7 +5,7 @@ description: "MCP server building, advanced patterns, and security hardening. Us
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="mcp-patterns" />
 
@@ -14,21 +14,21 @@ description: "MCP server building, advanced patterns, and security hardening. Us
 
 # MCP Patterns
 
-Patterns for building, composing, and securing Model Context Protocol servers. Based on the **2025-11-25 specification** — the latest stable release maintained by the [Agentic AI Foundation](https://agenticaifoundation.org/) (Linux Foundation), co-founded by Anthropic, Block, and OpenAI.
+Patterns for building, composing, and securing Model Context Protocol servers. Based on the **2025-11-25 specification**, the latest stable release maintained by the [Agentic AI Foundation](https://agenticaifoundation.org/) (Linux Foundation), co-founded by Anthropic, Block, and OpenAI.
 
 > **Scaffolding a new server?** Use Anthropic's `mcp-builder` skill (from the `anthropics/skills` marketplace: `/plugin marketplace add anthropics/skills`) for project setup and evaluation creation. This skill focuses on **patterns, security, and advanced features** after initial setup.
 >
 > **Deploying to Cloudflare?** See the `building-mcp-server-on-cloudflare` skill for Workers-specific deployment patterns.
 
-> **Pin `mcp&lt;2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
+> **Pin `mcp<2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
 > (`from mcp.server.fastmcp import FastMCP`). The Python SDK released **2.0.0**, `pip install mcp`
-> now resolves to it, and upstream's own README says to keep a `&lt;2` upper bound on your requirement
+> now resolves to it, and upstream's own README says to keep a `<2` upper bound on your requirement
 > until you have migrated. `FastMCP` does not appear anywhere in the 2.0 README, so treat these
 > snippets as v1-only rather than assuming they still apply. v1.x continues to receive critical bug
 > and security fixes on its own branch. Verified 2026-07-31.
 > Migration guide: https://py.sdk.modelcontextprotocol.io/migration/
 
-## Decision Tree — Which Rule to Read
+## Decision Tree: Which Rule to Read
 
 ```
 What are you building?
@@ -128,15 +128,15 @@ What are you building?
 
 | Package | What it is | When to use |
 |---------|-----------|-------------|
-| `mcp` (PyPI) **>=1.27** | Official Python SDK — includes the `FastMCP` helper, transport adapters, Inspector | New Python servers. This is the canonical package. |
+| `mcp` (PyPI) **>=1.27** | Official Python SDK, includes the `FastMCP` helper, transport adapters, Inspector | New Python servers. This is the canonical package. |
 | `@modelcontextprotocol/sdk` (npm) **>=1.29** | Official TypeScript SDK | New TS servers |
-| `fastmcp` (PyPI) | Standalone fork by jlowin — predates `mcp`; API-compatible but diverges on lifespan and middleware | Existing projects pinned to it. New projects should prefer `mcp`. |
+| `fastmcp` (PyPI) | Standalone fork by jlowin, predates `mcp`; API-compatible but diverges on lifespan and middleware | Existing projects pinned to it. New projects should prefer `mcp`. |
 
 > The `fastmcp` fork and the `mcp.server.fastmcp` module are *not the same package*. Imports and `pyproject.toml` entries must agree or stacktraces become cryptic.
 
 ### Debugging with Claude Code
 
-Pass `--mcp-debug` to Claude Code when troubleshooting server wiring — it surfaces the raw JSON-RPC frames, handshake failures, and tool-registration events that the default logger swallows:
+Pass `--mcp-debug` to Claude Code when troubleshooting server wiring, it surfaces the raw JSON-RPC frames, handshake failures, and tool-registration events that the default logger swallows:
 
 ```bash
 claude --mcp-debug "query the local test server"
@@ -144,15 +144,15 @@ claude --mcp-debug "query the local test server"
 export CLAUDE_MCP_DEBUG=1
 ```
 
-Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector &lt;cmd&gt;`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
+Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`), Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
 
-> **CC 2.1.128 — reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__&lt;server&gt;__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
+> **CC 2.1.128, reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__<server>__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
 
-> **CC 2.1.133 — MCP OAuth honors HTTP(S)_PROXY / NO_PROXY / mTLS**: the full MCP OAuth flow (discovery, dynamic client registration, token exchange, token refresh) now respects standard proxy and client-certificate env vars end-to-end. Enterprise deployments behind corporate proxies no longer need OAuth-specific workarounds — the same `HTTPS_PROXY` / `NO_PROXY` / `NODE_EXTRA_CA_CERTS` config that already routes MCP transport now also routes auth. See `configure/references/cc-version-settings.md` (CC 2.1.133 section) for the env-var example. The companion deployment skill `building-mcp-server-on-cloudflare` can drop any prior "proxy-aware OAuth requires manual handling" caveat at this floor.
+> **CC 2.1.133, MCP OAuth honors HTTP(S)_PROXY / NO_PROXY / mTLS**: the full MCP OAuth flow (discovery, dynamic client registration, token exchange, token refresh) now respects standard proxy and client-certificate env vars end-to-end. Enterprise deployments behind corporate proxies no longer need OAuth-specific workarounds, the same `HTTPS_PROXY` / `NO_PROXY` / `NODE_EXTRA_CA_CERTS` config that already routes MCP transport now also routes auth. See `configure/references/cc-version-settings.md` (CC 2.1.133 section) for the env-var example. The companion deployment skill `building-mcp-server-on-cloudflare` can drop any prior "proxy-aware OAuth requires manual handling" caveat at this floor.
 
-> **CC 2.1.169 — managed MCP policies enforced everywhere:** enterprise `allowedMcpServers`/`deniedMcpServers` now apply on reconnect, IDE-typed configs, `--mcp-config` servers in the first session after install, and before remote settings load (previously all four paths skipped enforcement). Orgs without remote settings also get faster cold starts. If a previously-working server stops connecting after 2.1.169, check the managed policy before debugging the server.
+> **CC 2.1.169, managed MCP policies enforced everywhere:** enterprise `allowedMcpServers`/`deniedMcpServers` now apply on reconnect, IDE-typed configs, `--mcp-config` servers in the first session after install, and before remote settings load (previously all four paths skipped enforcement). Orgs without remote settings also get faster cold starts. If a previously-working server stops connecting after 2.1.169, check the managed policy before debugging the server.
 
-> **CC 2.1.163 — stdio servers get `CLAUDE_CODE_SESSION_ID`:** on `--resume`, stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` env var that hooks and Bash already get. Read it inside the server to correlate logs/telemetry across resumed sessions instead of minting your own session key — but never store auth tokens keyed off it (see Common Mistake #7).
+> **CC 2.1.163, stdio servers get `CLAUDE_CODE_SESSION_ID`:** on `--resume`, stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` env var that hooks and Bash already get. Read it inside the server to correlate logs/telemetry across resumed sessions instead of minting your own session key, but never store auth tokens keyed off it (see Common Mistake #7).
 
 ## Example
 
@@ -173,9 +173,9 @@ async def search(query: str) -> str:
 1. No lifecycle management (connection/resource leaks on shutdown)
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
-   - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `$\{VAR\}` references and redacts credential headers and URL secrets in terminal output — but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
-   - CC 2.1.186 adds `claude mcp login &lt;name&gt;` / `claude mcp logout &lt;name&gt;` for OAuth-backed servers (HTTP/SSE/connector). Pass `--no-browser` to print the authorization URL instead of opening a browser — the supported path for SSH/headless/remote sessions (paste the redirect URL back when prompted), so interactive-only auth never blocks automated setup.
-4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
+   - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `${VAR}` references and redacts credential headers and URL secrets in terminal output, but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
+   - CC 2.1.186 adds `claude mcp login <name>` / `claude mcp logout <name>` for OAuth-backed servers (HTTP/SSE/connector). Pass `--no-browser` to print the authorization URL instead of opening a browser, the supported path for SSH/headless/remote sessions (paste the redirect URL back when prompted), so interactive-only auth never blocks automated setup.
+4. Unbounded response sizes without `_meta` annotation, use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)
 7. Storing auth tokens in session IDs (credential leak)
@@ -195,9 +195,9 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `ork:llm-integration` — LLM function calling patterns
-- `ork:security-patterns` — General input sanitization and layered security
-- `ork:api-design` — REST/GraphQL API design patterns
+- `ork:llm-integration`: LLM function calling patterns
+- `ork:security-patterns`: General input sanitization and layered security
+- `ork:api-design`: REST/GraphQL API design patterns
 
 
 ---
@@ -211,14 +211,14 @@ async def search(query: str) -> str:
 
 Compose multiple MCP tools into pipelines, parallel fans, or conditional branches.
 
-**Incorrect -- manual sequential calls with no error handling:**
+**Incorrect, manual sequential calls with no error handling:**
 ```python
 result1 = await tool_a(data)
 result2 = await tool_b(result1)  # Crashes if tool_a fails
 result3 = await tool_c(result2)  # No way to recover
 ```
 
-**Correct -- pipeline composition with error propagation:**
+**Correct, pipeline composition with error propagation:**
 ```python
 from dataclasses import dataclass, field
 from typing import Any, Callable, Awaitable
@@ -255,7 +255,7 @@ search_summarize = ComposedTool(
 )
 ```
 
-**Correct -- parallel composition with error isolation:**
+**Correct, parallel composition with error isolation:**
 ```python
 import asyncio
 
@@ -276,7 +276,7 @@ async def parallel_execute(
     ]
 ```
 
-**Correct -- conditional branching:**
+**Correct, conditional branching:**
 ```python
 def content_router(data: dict) -> str:
     return {
@@ -304,14 +304,14 @@ result = await tools[tool_name](input_data)
 
 Cache MCP resources with TTL and LRU eviction. Always track memory usage and clean up expired entries.
 
-**Incorrect -- no caching, no cleanup:**
+**Incorrect, no caching, no cleanup:**
 ```python
 @mcp.resource("user://{id}/profile")
 async def get_profile(id: str) -> dict:
     return await db.query(f"SELECT * FROM users WHERE id = {id}")  # SQL injection + no cache
 ```
 
-**Correct -- resource manager with TTL and LRU eviction:**
+**Correct, resource manager with TTL and LRU eviction:**
 ```python
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -385,7 +385,7 @@ class MCPResourceManager:
             return len(expired)
 ```
 
-**Correct -- FastMCP lifespan with resource lifecycle:**
+**Correct, FastMCP lifespan with resource lifecycle:**
 ```python
 from contextlib import asynccontextmanager
 from mcp.server.fastmcp import FastMCP
@@ -408,7 +408,7 @@ mcp = FastMCP("cached-server", lifespan=app_lifespan)
 - Always set `max_cache_size` and `max_memory_bytes` caps
 - Use `asyncio.Lock` for thread-safe cache access
 - Run `cleanup_expired()` on shutdown and periodically
-- Parameterize queries -- never interpolate user input into SQL
+- Parameterize queries, never interpolate user input into SQL
 
 
 ### Configure MCP Apps UI sandboxing, CSP declarations, and visibility controls correctly: MEDIUM
@@ -418,7 +418,7 @@ mcp = FastMCP("cached-server", lifespan=app_lifespan)
 
 MCP Apps (SEP-1865) let tools return interactive UIs rendered in sandboxed iframes. Declare `ui://` resources, link them to tools via `_meta.ui.resourceUri`, and configure CSP domains for secure external access.
 
-**Incorrect -- no CSP, no sandbox awareness, no visibility control:**
+**Incorrect, no CSP, no sandbox awareness, no visibility control:**
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -438,7 +438,7 @@ server.registerTool("refresh_dashboard", {
 }));
 ```
 
-**Correct -- `registerAppTool`/`registerAppResource` with CSP and visibility:**
+**Correct, `registerAppTool`/`registerAppResource` with CSP and visibility:**
 ```typescript
 import {
   registerAppTool,
@@ -502,7 +502,7 @@ registerAppTool(server, "refresh_data", {
 }));
 ```
 
-**Correct -- React app using `@modelcontextprotocol/ext-apps/react`:**
+**Correct, React app using `@modelcontextprotocol/ext-apps/react`:**
 ```tsx
 import { useToolResult } from "@modelcontextprotocol/ext-apps/react";
 
@@ -518,9 +518,9 @@ function Dashboard() {
 - Use `registerAppTool` and `registerAppResource` from `@modelcontextprotocol/ext-apps/server`
 - Link tools to UIs via `_meta.ui.resourceUri` on the tool definition
 - Declare CSP domains explicitly: `connectDomains` (fetch), `resourceDomains` (CDN), `frameDomains` (iframes)
-- Omitting CSP defaults to `connect-src 'none'` -- no external network access
+- Omitting CSP defaults to `connect-src 'none'`, no external network access
 - Set `visibility: ["app"]` for tools only the UI should call (hides from model)
-- Default visibility is `["model", "app"]` -- tool visible to both model and UI
+- Default visibility is `["model", "app"]`, tool visible to both model and UI
 - Host renders UI in sandboxed iframe; never assume permissions are granted
 - Content MUST be valid HTML5 provided via `text` (string) or `blob` (base64)
 
@@ -534,7 +534,7 @@ Reference: [MCP Apps Extension (SEP-1865)](https://github.com/modelcontextprotoc
 
 MCP servers are OAuth 2.1 Resource Servers (spec 2025-11-25). Clients MUST use PKCE with S256, bind tokens to the target resource via RFC 8707, and never pass tokens through to downstream services.
 
-**Incorrect -- no PKCE, no resource indicator, token passthrough:**
+**Incorrect, no PKCE, no resource indicator, token passthrough:**
 ```typescript
 // BAD: Missing PKCE and resource parameter
 const authUrl = `${authServer}/authorize?client_id=${clientId}&redirect_uri=${redirect}`;
@@ -553,7 +553,7 @@ function validateToken(token: string) {
 }
 ```
 
-**Correct -- PKCE S256 + RFC 8707 resource binding:**
+**Correct, PKCE S256 + RFC 8707 resource binding:**
 ```typescript
 import crypto from "node:crypto";
 
@@ -602,7 +602,7 @@ async function exchangeCode(
 }
 ```
 
-**Correct -- token validation + confused deputy prevention:**
+**Correct, token validation + confused deputy prevention:**
 ```typescript
 // 4. MCP server validates audience (RFC 8707 + RFC 9068)
 function validateAccessToken(token: string, expectedAudience: string) {
@@ -624,7 +624,7 @@ async function callUpstream(upstreamTokenEndpoint: string) {
 }
 ```
 
-**Correct -- discovery, registration, and incremental scope consent:**
+**Correct, discovery, registration, and incremental scope consent:**
 ```typescript
 // 6. Protected Resource Metadata discovery (RFC 9728)
 async function discoverAuthServer(mcpServerUrl: string) {
@@ -660,7 +660,7 @@ function handleInsufficientScope(wwwAuth: string) {
 }
 ```
 
-**Correct -- OAuth URL paste fallback (headless/SSH environments):**
+**Correct, OAuth URL paste fallback (headless/SSH environments):**
 ```typescript
 // 9. When browser can't open (SSH, containers, headless), print URL for manual paste
 async function authorizeWithFallback(authUrl: string) {
@@ -683,13 +683,13 @@ async function authorizeWithFallback(authUrl: string) {
 **Key rules:**
 - PKCE with S256 is mandatory; refuse to proceed if AS lacks `code_challenge_methods_supported`
 - Include `resource` parameter (RFC 8707) in both authorization and token requests, set to the MCP server's canonical URI
-- MCP servers MUST validate the `aud` claim matches their own URI — reject all other tokens
+- MCP servers MUST validate the `aud` claim matches their own URI, reject all other tokens
 - NEVER pass the client's access token to upstream APIs (confused deputy); obtain a separate token via client credentials or token exchange (RFC 8693)
 - Use Protected Resource Metadata (RFC 9728) for AS discovery; support both OAuth 2.0 AS Metadata and OIDC Discovery
 - Prefer Client ID Metadata Documents over Dynamic Client Registration (RFC 7591) for new implementations
 - Handle `403 insufficient_scope` by re-authorizing with scopes from the `WWW-Authenticate` header
 - For high-security deployments, bind tokens to client certificates via mTLS (RFC 8705) to prevent token theft and replay
-- In headless environments (SSH, containers, CI), implement URL paste fallback — print the auth URL for the user to open manually and accept the callback URL pasted back (see example 9 above)
+- In headless environments (SSH, containers, CI), implement URL paste fallback, print the auth URL for the user to open manually and accept the callback URL pasted back (see example 9 above)
 
 
 ### Implement MCP client patterns for reliable connections and multi-server orchestration: MEDIUM
@@ -699,7 +699,7 @@ async function authorizeWithFallback(authUrl: string) {
 
 Set up MCP clients with proper session management, error handling, and reconnection. Covers TypeScript and Python SDKs for consuming MCP servers from applications.
 
-**Incorrect -- no error handling, no cleanup:**
+**Incorrect, no error handling, no cleanup:**
 ```typescript
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -724,7 +724,7 @@ result = await session.call_tool("search", arguments={"q": "test"})
 print(result.content[0].text)  # No type check, no error handling
 ```
 
-**Correct -- TypeScript client with reconnection and capability negotiation:**
+**Correct, TypeScript client with reconnection and capability negotiation:**
 ```typescript
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -766,7 +766,7 @@ try {
 }
 ```
 
-**Correct -- Python client with context managers:**
+**Correct, Python client with context managers:**
 ```python
 import asyncio
 from mcp import ClientSession, StdioServerParameters, types
@@ -795,7 +795,7 @@ async def run_http_client():
             print([t.name for t in tools.tools])
 ```
 
-**Correct -- multi-server orchestration (TypeScript):**
+**Correct, multi-server orchestration (TypeScript):**
 ```typescript
 async function connectServers(urls: string[]) {
   const clients = await Promise.all(
@@ -822,10 +822,10 @@ async function connectServers(urls: string[]) {
 **Key rules:**
 - Always close transports in `finally` blocks (TS) or use context managers (Python)
 - Call `initialize()` before any other session method in Python
-- Discover tools with `listTools()` before calling -- never assume tool availability
+- Discover tools with `listTools()` before calling, never assume tool availability
 - Use `reconnectionOptions` with exponential backoff for remote HTTP servers
 - Cache `sessionId` to resume sessions after reconnection
-- Check `content.type` before accessing `.text` -- tools may return images or errors
+- Check `content.type` before accessing `.text`, tools may return images or errors
 - For multi-server setups, namespace tools by server to avoid name collisions
 - Declare client capabilities (`sampling`, `elicitation`) during construction
 
@@ -839,7 +839,7 @@ Reference: https://modelcontextprotocol.io/specification/2025-11-25/architecture
 
 MCP elicitation lets servers request structured input from users at runtime via form mode (JSON Schema) or URL mode (external flows). Form mode collects non-sensitive data in-band; URL mode redirects users to secure pages for credentials, OAuth, or payments.
 
-**Incorrect -- requesting secrets via form mode, ignoring decline/cancel:**
+**Incorrect, requesting secrets via form mode, ignoring decline/cancel:**
 ```python
 @mcp.tool()
 async def connect_api(ctx: Context) -> str:
@@ -860,7 +860,7 @@ async def connect_api(ctx: Context) -> str:
     return call_api(result.content["api_key"])
 ```
 
-**Correct -- form mode for non-sensitive data, flat schema, handle all actions:**
+**Correct, form mode for non-sensitive data, flat schema, handle all actions:**
 ```python
 @mcp.tool()
 async def configure_search(ctx: Context) -> str:
@@ -895,7 +895,7 @@ async def configure_search(ctx: Context) -> str:
         return "Search dismissed. I can search with defaults if you'd like."
 ```
 
-**Correct -- URL mode for sensitive data (API keys, OAuth):**
+**Correct, URL mode for sensitive data (API keys, OAuth):**
 ```python
 @mcp.tool()
 async def connect_service(ctx: Context) -> str:
@@ -918,7 +918,7 @@ async def connect_service(ctx: Context) -> str:
         return "Authorization dismissed."
 ```
 
-**Correct -- client declares elicitation capabilities:**
+**Correct, client declares elicitation capabilities:**
 ```typescript
 const client = new Client({
   name: "my-client",
@@ -931,13 +931,13 @@ const client = new Client({
 ```
 
 **Key rules:**
-- Never request secrets (API keys, passwords, tokens) via form mode -- use URL mode instead
-- Schemas must be flat objects with primitive properties only (string, number, integer, boolean, enum) -- no nested objects or `$ref`
+- Never request secrets (API keys, passwords, tokens) via form mode, use URL mode instead
+- Schemas must be flat objects with primitive properties only (string, number, integer, boolean, enum), no nested objects or `$ref`
 - Always handle all three response actions: `accept`, `decline`, `cancel`
-- URL mode `accept` means user consented to open the URL, not that the flow is complete -- listen for `notifications/elicitation/complete`
+- URL mode `accept` means user consented to open the URL, not that the flow is complete, listen for `notifications/elicitation/complete`
 - Clients must show the full URL and get explicit consent before opening; never auto-fetch or auto-navigate
 - Servers must verify the user who completes a URL flow is the same user who initiated it (prevent phishing/account takeover)
-- Check client capabilities before sending elicitation requests -- clients may support only `form`, only `url`, or both
+- Check client capabilities before sending elicitation requests, clients may support only `form`, only `url`, or both
 
 Reference: https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation
 
@@ -949,14 +949,14 @@ Reference: https://modelcontextprotocol.io/specification/2025-11-25/client/elici
 
 Use the official MCP Registry API for programmatic server discovery and apply a vetting checklist before installing any third-party server.
 
-**Incorrect -- blindly install unvetted servers:**
+**Incorrect, blindly install unvetted servers:**
 ```python
 # Grabbed a random server name from a blog post
 config = {"mcpServers": {"sketchy-db": {"command": "npx", "args": ["@unknown/mcp-db"]}}}
 # No source review, no version pinning, no permission audit
 ```
 
-**Correct -- query the official registry and vet before installing:**
+**Correct, query the official registry and vet before installing:**
 ```python
 import httpx
 
@@ -1013,7 +1013,7 @@ def vet_server(server: dict) -> list[str]:
 - [ ] Listed in official registry or reputable directory
 ```
 
-**Icon metadata (spec 2025-11-25) -- expose icons for tools/resources:**
+**Icon metadata (spec 2025-11-25), expose icons for tools/resources:**
 ```python
 @mcp.tool(metadata={"icon": "https://example.com/icons/search.svg"})
 def search(query: str) -> str:
@@ -1024,7 +1024,7 @@ def search(query: str) -> str:
 **Key rules:**
 - Always query the official registry at `registry.modelcontextprotocol.io/v0.1/servers` first
 - Never install a server without checking its source repository and package provenance
-- Pin exact versions in MCP server configurations -- avoid `@latest` in production
+- Pin exact versions in MCP server configurations, avoid `@latest` in production
 - Cross-reference multiple directories (registry, smithery, mcp.run) for trust signals
 - Treat community servers as untrusted by default; apply allowlist patterns from security-hardening
 - Use `vet_server()` checks programmatically when building multi-server orchestrations
@@ -1037,7 +1037,7 @@ def search(query: str) -> str:
 
 MCP sampling lets servers request LLM completions from clients, with optional tool definitions for agentic multi-turn loops. The client controls model access and user approval throughout.
 
-**Incorrect -- no iteration cap, skips user approval:**
+**Incorrect, no iteration cap, skips user approval:**
 ```python
 from mcp.server.fastmcp import FastMCP
 
@@ -1062,7 +1062,7 @@ async def run_agent(task: str, ctx) -> str:
         messages.append({"role": "user", "content": tool_results})
 ```
 
-**Correct -- bounded loop, tool choice control, proper message structure:**
+**Correct, bounded loop, tool choice control, proper message structure:**
 ```python
 from mcp.server.fastmcp import FastMCP, Context
 
@@ -1132,13 +1132,13 @@ capabilities = {
 ```
 
 **Key rules:**
-- Always cap iteration count and use `toolChoice: \{mode: "none"\}` on the final turn to force a text response
-- Tool result messages MUST contain only `tool_result` blocks -- never mix with text or image content
+- Always cap iteration count and use `toolChoice: {mode: "none"}` on the final turn to force a text response
+- Tool result messages MUST contain only `tool_result` blocks, never mix with text or image content
 - Every `tool_use` block (by `id`) must have a matching `tool_result` (by `toolUseId`) before the next assistant turn
 - Clients MUST declare `sampling.tools` capability; servers MUST NOT send tool-enabled requests without it
 - Human-in-the-loop: clients SHOULD present sampling requests and tool calls for user review before execution
 - Use `toolChoice` modes: `auto` (LLM decides), `required` (must call a tool), `none` (text only)
-- Parallel tool calls are supported -- handle arrays of `tool_use` blocks in a single assistant message
+- Parallel tool calls are supported, handle arrays of `tool_use` blocks in a single assistant message
 - Implement rate limiting on the client side to prevent runaway sampling loops
 
 
@@ -1149,14 +1149,14 @@ capabilities = {
 
 Verify every tool with hash-based integrity checks. Use zero-trust allowlists, capability enforcement, and secure sessions.
 
-**Incorrect -- trust all tools without verification:**
+**Incorrect, trust all tools without verification:**
 ```python
 tools = await mcp.list_tools()       # No vetting!
 result = await mcp.call_tool(name, args)  # No integrity check!
 session_id = f"{user_id}:{auth_token}"    # CREDENTIAL LEAK in session ID!
 ```
 
-**Correct -- zero-trust tool allowlist with hash verification:**
+**Correct, zero-trust tool allowlist with hash verification:**
 ```python
 from hashlib import sha256
 from dataclasses import dataclass
@@ -1199,7 +1199,7 @@ class MCPToolAllowlist:
         return True, "OK"
 ```
 
-**Correct -- capability enforcement (least privilege):**
+**Correct, capability enforcement (least privilege):**
 ```python
 from enum import Enum
 
@@ -1229,7 +1229,7 @@ class CapabilityEnforcer:
         return True, "Allowed"
 ```
 
-**Correct -- secure session management:**
+**Correct, secure session management:**
 ```python
 import secrets
 
@@ -1240,7 +1240,7 @@ def generate_session_id() -> str:
 # ALWAYS: session_id = secrets.token_urlsafe(32)
 ```
 
-**Rug pull detection -- hash comparison on every call:**
+**Rug pull detection, hash comparison on every call:**
 ```python
 class ToolIntegrityMonitor:
     def __init__(self):
@@ -1280,14 +1280,14 @@ class ToolIntegrityMonitor:
 
 Treat ALL tool descriptions as untrusted input. Normalize encodings, detect injection patterns, and sanitize before LLM exposure.
 
-**Incorrect -- raw tool description passed to LLM:**
+**Incorrect, raw tool description passed to LLM:**
 ```python
 # INJECTION RISK: description may contain "ignore previous instructions..."
 prompt = f"Use this tool: {tool.description}"
 tools = await mcp.list_tools()  # No validation!
 ```
 
-**Correct -- sanitize tool descriptions before use:**
+**Correct, sanitize tool descriptions before use:**
 ```python
 import re
 
@@ -1323,7 +1323,7 @@ def sanitize_description(description: str) -> tuple[str, list[str]]:
     return sanitized.strip(), threats
 ```
 
-**Correct -- normalize encodings to reveal hidden attacks:**
+**Correct, normalize encodings to reveal hidden attacks:**
 ```python
 import html
 import urllib.parse
@@ -1349,7 +1349,7 @@ def normalize_encodings(text: str) -> str:
     return result
 ```
 
-**Correct -- filter sensitive data from tool responses:**
+**Correct, filter sensitive data from tool responses:**
 ```python
 RESPONSE_FILTERS = [
     (r"api[_-]?key\s*[:=]\s*\S+", "[API_KEY_REDACTED]"),
@@ -1379,7 +1379,7 @@ def filter_tool_response(response: str) -> str:
 
 Use FastMCP with lifespan context for shared resources. Define tools with explicit schemas and return errors as text content.
 
-**Incorrect -- no lifecycle, raw exception:**
+**Incorrect, no lifecycle, raw exception:**
 ```python
 from mcp.server.fastmcp import FastMCP
 
@@ -1391,7 +1391,7 @@ def query(sql: str) -> str:
     return db.query(sql)  # Crashes on connection failure
 ```
 
-**Correct -- FastMCP with lifespan and error handling:**
+**Correct, FastMCP with lifespan and error handling:**
 ```python
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
@@ -1451,7 +1451,7 @@ Tool(
 
 **Key rules:**
 - Always use lifespan for database connections, caches, HTTP clients
-- Return errors as `TextContent` -- never raise unhandled exceptions
+- Return errors as `TextContent`, never raise unhandled exceptions
 - Include `description` for every schema property
 - Use `enum` for fixed option sets, `minimum`/`maximum` for numbers
 - Use `asyncio.to_thread()` for blocking synchronous operations
@@ -1483,7 +1483,7 @@ Choose stdio for CLI/Desktop, Streamable HTTP for web apps and production multi-
 | SSE | **Deprecated** | Browser-compatible | Deprecated since March 2025 |
 | Streamable HTTP | Web apps, production APIs | Multi-client, scalable, stateless option | More setup |
 
-**Incorrect -- hardcoded transport, no configuration:**
+**Incorrect, hardcoded transport, no configuration:**
 ```python
 # Forces stdio -- can't switch to web deployment
 from mcp.server.stdio import stdio_server
@@ -1493,7 +1493,7 @@ async def main():
         await server.run(read, write, server.create_initialization_options())
 ```
 
-**Correct -- Python stdio server:**
+**Correct, Python stdio server:**
 ```python
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -1511,7 +1511,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-**Correct -- TypeScript stdio server:**
+**Correct, TypeScript stdio server:**
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -1526,7 +1526,7 @@ const server = new Server(
 await server.connect(new StdioServerTransport());
 ```
 
-**Deprecated -- SSE for web deployment (use Streamable HTTP instead):**
+**Deprecated, SSE for web deployment (use Streamable HTTP instead):**
 
 > SSE transport was deprecated in March 2025. Migrate to Streamable HTTP for
 > new projects. SSE remains functional but receives no new features.
@@ -1553,7 +1553,7 @@ app = Starlette(routes=[
 ])
 ```
 
-**Correct -- Streamable HTTP server (Python, recommended):**
+**Correct, Streamable HTTP server (Python, recommended):**
 ```python
 from mcp.server.fastmcp import FastMCP
 
@@ -1571,7 +1571,7 @@ if __name__ == "__main__":
     # mcp.run(transport="streamable-http")
 ```
 
-**Correct -- Streamable HTTP server (TypeScript, recommended):**
+**Correct, Streamable HTTP server (TypeScript, recommended):**
 ```typescript
 import { createServer } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -1630,7 +1630,7 @@ createServer(async (req, res) => {
 
 Write automated tests for every tool using the SDK's in-process `Client`, and use MCP Inspector for interactive debugging of transports and auth.
 
-**Incorrect -- manual testing only, no assertions:**
+**Incorrect, manual testing only, no assertions:**
 ```python
 # "I'll just test it in Claude Desktop"
 mcp = FastMCP("my-server")
@@ -1642,7 +1642,7 @@ def search(query: str) -> str:
 # No tests, no fixtures, no CI -- bugs found by end users
 ```
 
-**Correct -- unit tests with in-process Client:**
+**Correct, unit tests with in-process Client:**
 ```python
 import pytest
 from fastmcp import Client  # in-process harness lives in the separate `fastmcp` package
@@ -1671,7 +1671,7 @@ async def test_search_empty_query(client: Client):
     assert "Error" in result.content[0].text  # Graceful error, not crash
 ```
 
-**Correct -- parametrized edge-case tests:**
+**Correct, parametrized edge-case tests:**
 ```python
 @pytest.mark.anyio
 @pytest.mark.parametrize("args", [{"query": ""}, {"max_results": -1}, {}])
@@ -1680,7 +1680,7 @@ async def test_invalid_inputs_return_errors(client: Client, args):
     assert result.isError or "Error" in result.content[0].text
 ```
 
-**Correct -- integration test with stdio transport:**
+**Correct, integration test with stdio transport:**
 ```python
 import subprocess, json
 
@@ -1725,7 +1725,7 @@ npx @modelcontextprotocol/inspector -e API_KEY=xxx uv run server.py
 ```
 
 **Key rules:**
-- Use `Client(app, raise_exceptions=True)` for unit tests -- no transport overhead
+- Use `Client(app, raise_exceptions=True)` for unit tests, no transport overhead
 - Test both valid inputs and edge cases (empty, missing, out-of-range)
 - Use `@pytest.mark.anyio` with `anyio_backend` fixture for async tests
 - Use MCP Inspector (`npx @modelcontextprotocol/inspector`) for interactive debugging
@@ -1739,9 +1739,9 @@ npx @modelcontextprotocol/inspector -e API_KEY=xxx uv run server.py
 
 ## WebMCP Browser Integration
 
-WebMCP is a W3C Community Group standard that exposes structured tools to AI agents inside the browser via `navigator.modelContext`. It complements MCP (not a replacement) — MCP handles AI-to-backend over JSON-RPC, WebMCP handles AI-to-browser-UI via in-page callbacks.
+WebMCP is a W3C Community Group standard that exposes structured tools to AI agents inside the browser via `navigator.modelContext`. It complements MCP (not a replacement), MCP handles AI-to-backend over JSON-RPC, WebMCP handles AI-to-browser-UI via in-page callbacks.
 
-**Incorrect -- registering tools without input schema or user mediation:**
+**Incorrect, registering tools without input schema or user mediation:**
 ```typescript
 // No schema, no description, no user interaction handling
 navigator.modelContext.registerTool({
@@ -1755,7 +1755,7 @@ navigator.modelContext.registerTool({
 });
 ```
 
-**Correct -- full schema, annotations, and user interaction request:**
+**Correct, full schema, annotations, and user interaction request:**
 ```typescript
 navigator.modelContext.registerTool({
   name: "submit-order",
@@ -1814,13 +1814,13 @@ navigator.modelContext.registerTool({
 | Auth | OAuth 2.1 / tokens | Browser-mediated permission |
 
 **Key rules:**
-- WebMCP complements MCP — use MCP for backend services, WebMCP for browser-side UI tools
+- WebMCP complements MCP, use MCP for backend services, WebMCP for browser-side UI tools
 - Always provide `inputSchema` with property descriptions so agents understand parameters
 - Set `annotations.readOnlyHint: true` on tools that only read data (no side effects)
 - Use `client.requestUserInteraction()` before any state-mutating operation
-- WebMCP requires `SecureContext` (HTTPS only) — `navigator.modelContext` is undefined on HTTP
+- WebMCP requires `SecureContext` (HTTPS only), `navigator.modelContext` is undefined on HTTP
 - Call `unregisterTool(name)` or `clearContext()` during SPA route teardown to prevent stale tools
-- Keep tool descriptions specific — agents select tools by description, not by probing
+- Keep tool descriptions specific, agents select tools by description, not by probing
 
 
 
@@ -1886,11 +1886,11 @@ After each audit:
 1. Update the "Upstream latest" and "Last published" columns
 2. Update the "Last audited" header with today's date
 3. If tier classification changes (e.g., a 0.x server hits 1.0), update the Risk Tier table
-4. Commit with message `chore: refresh MCP version audit matrix (\{YYYY-MM-DD\})`
+4. Commit with message `chore: refresh MCP version audit matrix ({YYYY-MM-DD})`
 
 ## When to escalate to a full consumer audit
 
-Trigger a consumer-side review (read every `mcp__&lt;name&gt;__*` call site) when any of:
+Trigger a consumer-side review (read every `mcp__<name>__*` call site) when any of:
 - MCP upstream emits a major version bump
 - Upstream changelog mentions "breaking" or "removed"
 - A skill's MCP-using phase starts failing in production after the fetch
@@ -1899,7 +1899,7 @@ Trigger a consumer-side review (read every `mcp__&lt;name&gt;__*` call site) whe
 ## Escape hatch: pin a specific version
 
 Pinning applies to the **npx stdio** transport only. A hosted HTTP entry
-(`\{"type": "http", "url": "..."\}`) carries no npm package and therefore nothing to pin;
+(`{"type": "http", "url": "..."}`) carries no npm package and therefore nothing to pin;
 upstream versions it server-side. If you need a frozen version, you are choosing stdio.
 
 To freeze a stdio server at a known-good version, edit `.mcp.json`:
@@ -1935,8 +1935,8 @@ mcp__github__* (37 tools re-registered)
 
 **Audit-log impact**: any audit-log diff/grep pattern that counted re-registrations by parsing per-line entries underestimates after 2.1.128. Two changes to apply:
 
-1. **Source-of-truth for tool surface area** — use the **initial connect** event (first registration after server start), which still emits the full per-tool list. Treat reconnect events as deltas only.
-2. **Reconnect-frequency monitoring** — the new summary line still contains the server prefix and tool count, so reconnect-event counters and per-server reconnect histograms continue to work; what changes is the per-tool dimension on reconnects.
+1. **Source-of-truth for tool surface area**: use the **initial connect** event (first registration after server start), which still emits the full per-tool list. Treat reconnect events as deltas only.
+2. **Reconnect-frequency monitoring**: the new summary line still contains the server prefix and tool count, so reconnect-event counters and per-server reconnect histograms continue to work; what changes is the per-tool dimension on reconnects.
 
 **Grep recipes** for the audit log:
 
@@ -1957,9 +1957,9 @@ If you maintain an external system that tracks tool counts via the audit log alo
 
 ## Related
 
-- `mcp-version-matrix.md` — the current-state matrix this runbook maintains
-- `.mcp.json` — the target of pin changes
-- Issue #1462 — doctor check that will warn when HIGH-tier servers are unpinned
+- `mcp-version-matrix.md`: the current-state matrix this runbook maintains
+- `.mcp.json`: the target of pin changes
+- Issue #1462, doctor check that will warn when HIGH-tier servers are unpinned
 
 
 ### Mcp Version Matrix
@@ -1973,8 +1973,8 @@ Tracks OrchestKit's integrated MCP servers against upstream latest. Sourced from
 ## Audit Method
 
 1. `.mcp.json` enumerates project-level servers
-2. `npm view &lt;pkg&gt; version` + `time.modified` for each
-3. Primary consumer located via `grep -rln "mcp__&lt;name&gt;__"` in `src/skills/` and `src/agents/`
+2. `npm view <pkg> version` + `time.modified` for each
+3. Primary consumer located via `grep -rln "mcp__<name>__"` in `src/skills/` and `src/agents/`
 
 ## Matrix
 
@@ -1984,20 +1984,20 @@ Tracks OrchestKit's integrated MCP servers against upstream latest. Sourced from
 | **sequential-thinking** | `@modelcontextprotocol/server-sequential-thinking` | unpinned | **2025.12.18** | 2026-02-06 | unchanged | chain-patterns, brainstorm, setup | Stable, calendar-versioned |
 | **memory** | `@modelcontextprotocol/server-memory` | unpinned | **2026.1.26** | 2026-02-06 | unchanged | 46 files (cross-cutting) | Stable, calendar-versioned |
 | **tavily** | `tavily-mcp` | `@latest` | **0.2.19** | 2026-04-24 | 0.2.18 → 0.2.19 (patch) | chain-patterns fallback (tier-fallbacks.md) | Low direct usage |
-| **21st-dev-magic** | `@21st-dev/magic` | **`@0.1.0` (pinned)** | **0.1.0** | 2025-12-23 | unchanged | None in core (mentioned as option in `component-search`) | Pre-1.0, stale upstream — pinned 2026-04-26 to lock current state |
+| **21st-dev-magic** | `@21st-dev/magic` | **`@0.1.0` (pinned)** | **0.1.0** | 2025-12-23 | unchanged | None in core (mentioned as option in `component-search`) | Pre-1.0, stale upstream, pinned 2026-04-26 to lock current state |
 | **fal** | `fal-ai-mcp` | `@latest` | **0.2.1** | 2026-03-07 | unchanged | None in core (available for multimodal skills) | Active upstream |
 
 ## User-level MCPs (referenced but not in project `.mcp.json`)
 
 | MCP server | Package | Referenced by | Note |
 |---|---|---|---|
-| **notebooklm-mcp** | `notebooklm-mcp-cli` (PyPI, **0.6.1**, 2026-04-28) — installed via `uv tool install notebooklm-mcp-cli`; ships both `nlm` CLI and `notebooklm-mcp` MCP server. NOTE: the npm `notebooklm-mcp@1.2.1` (2025-12-27) is a separate, stale package — do NOT use it. | `src/skills/release-sync/SKILL.md`, `src/skills/notebooklm/SKILL.md` | Configured user-level in `~/.claude.json`; `release-sync` assumes availability |
+| **notebooklm-mcp** | `notebooklm-mcp-cli` (PyPI, **0.6.1**, 2026-04-28), installed via `uv tool install notebooklm-mcp-cli`; ships both `nlm` CLI and `notebooklm-mcp` MCP server. NOTE: the npm `notebooklm-mcp@1.2.1` (2025-12-27) is a separate, stale package, do NOT use it. | `src/skills/release-sync/SKILL.md`, `src/skills/notebooklm/SKILL.md` | Configured user-level in `~/.claude.json`; `release-sync` assumes availability |
 
 ## Status: One HIGH-Tier Server Pinned, Rest on `@latest`
 
 Of 6 active remote MCPs, 1 is now version-pinned (`@21st-dev/magic@0.1.0`) and 5 still resolve to `@latest`. The pinning of the HIGH-tier server addresses the original audit's primary risk: a breaking pre-1.0 upstream change can no longer propagate silently on the next `npx -y` fetch.
 
-**Remaining MEDIUM-tier @latest entries** (`context7`, `tavily`, `fal`) are intentionally left on `@latest` — they're semver-disciplined upstream and benefit from automatic patch/minor uptake. The doctor check (`/ork:doctor` Category 12 sub-check) emits an informational note but does not warn, matching the tier policy.
+**Remaining MEDIUM-tier @latest entries** (`context7`, `tavily`, `fal`) are intentionally left on `@latest`, they're semver-disciplined upstream and benefit from automatic patch/minor uptake. The doctor check (`/ork:doctor` Category 12 sub-check) emits an informational note but does not warn, matching the tier policy.
 
 ## Transport: hosted HTTP is the recommendation for context7
 
@@ -2016,7 +2016,7 @@ and running the package, per project.
 Two consequences for this matrix:
 
 - A hosted entry has **no npm version to pin**. `check-mcp-pinning.sh` finds no package
-  token in it and classifies the server as `&lt;unknown&gt;`, which it skips. That is correct
+  token in it and classifies the server as `<unknown>`, which it skips. That is correct
   behaviour, not a regression: version pinning is a property of the npx transport only.
 - The version column above still matters for the stdio fallback. `4.0.2` is the concrete
   pin to use when one is needed.
@@ -2036,11 +2036,11 @@ silently, so a version bump is never a reason to rewrite a tool name.
 Free is 1,000 requests against public repositories, with no key. Context7 Pro is $10 per
 seat per month for 5,000 requests per seat plus private repo parsing, then $10 per
 additional 1,000. Keys have the form `ctx7sk-...` and are supplied as
-`Authorization: Bearer $\{CONTEXT7_API_KEY\}` on the hosted transport or `--api-key` on
+`Authorization: Bearer ${CONTEXT7_API_KEY}` on the hosted transport or `--api-key` on
 stdio. Never write a literal key into a tracked file.
 
 **Auth caveat.** `tools/list` returns HTTP 200 for every auth state (no header, garbage bearer,
-unexpanded `$\{CONTEXT7_API_KEY\}` literal, valid key), so a connection check can never
+unexpanded `${CONTEXT7_API_KEY}` literal, valid key), so a connection check can never
 confirm a key. Only `tools/call` discriminates: a bad key returns
 `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
 
@@ -2108,13 +2108,13 @@ done
 
 ## References
 
-- `.mcp.json` — project-level MCP server config
-- `~/.claude.json` — user-level MCP server config (not in repo)
-- Issue #1446 — the audit request that produced this matrix
-- PR #1496 (M117) — `/ork:doctor` MCP pinning sub-check
-- `src/skills/mcp-patterns/SKILL.md` — skill that owns this reference
-- `src/skills/doctor/references/mcp-pinning-check.md` — tier source-of-truth for the doctor check
-- `mcp-audit-runbook.md` — the operational procedure
+- `.mcp.json`: project-level MCP server config
+- `~/.claude.json`: user-level MCP server config (not in repo)
+- Issue #1446, the audit request that produced this matrix
+- PR #1496 (M117), `/ork:doctor` MCP pinning sub-check
+- `src/skills/mcp-patterns/SKILL.md`: skill that owns this reference
+- `src/skills/doctor/references/mcp-pinning-check.md`: tier source-of-truth for the doctor check
+- `mcp-audit-runbook.md`: the operational procedure
 
 
 

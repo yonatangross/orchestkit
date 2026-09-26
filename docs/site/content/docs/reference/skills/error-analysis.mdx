@@ -5,7 +5,7 @@ description: "Evals-first error analysis for LLM apps: clusters real Langfuse or
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="error-analysis" />
 
@@ -88,7 +88,7 @@ curl -sS --fail-with-body --proto "${proto:-=https}" -u "$LANGFUSE_PUBLIC_KEY:$L
   -o error-analysis/traces/page1.json
 ```
 
-Paginate with the `cursor` from each response until ~100 distinct `traceId` values are collected (or the cursor is exhausted), aborting on any non-2xx status so an error body is not read as the end of the cursor. Then finish the selected traces: the last trace in the pool may be missing rows, so keep paging until every selected `traceId` has its root observation (the `isRootObservation: true` row, or exactly one `parentObservationId == null` row as fallback; zero or several null-parent rows means `root-unknown`, so exclude that trace and say so in the notes), or fetch the missing rows per trace with `?traceId=&lt;id&gt;`. Group rows by `traceId` and normalize each trace to one JSONL line in `error-analysis/traces.jsonl`: `\{id, timestamp, input, output, scores, observations[]\}`. Observation rows do not carry `scores`; fetch them per trace id from the Scores API v3 (`GET /api/public/v3/scores?traceId=&lt;id&gt;`) and join them in, since low scores and negative feedback are the failure signals Phase 1 prioritizes. Keep the raw tool and DB observations; Phase 5 needs them for replay. On a v3 host the legacy `GET /api/public/traces` list still works; the v2/v1 shapes, deprecation detail, and the JSONL fallback live in `references/langfuse-traces.md`.
+Paginate with the `cursor` from each response until ~100 distinct `traceId` values are collected (or the cursor is exhausted), aborting on any non-2xx status so an error body is not read as the end of the cursor. Then finish the selected traces: the last trace in the pool may be missing rows, so keep paging until every selected `traceId` has its root observation (the `isRootObservation: true` row, or exactly one `parentObservationId == null` row as fallback; zero or several null-parent rows means `root-unknown`, so exclude that trace and say so in the notes), or fetch the missing rows per trace with `?traceId=<id>`. Group rows by `traceId` and normalize each trace to one JSONL line in `error-analysis/traces.jsonl`: `{id, timestamp, input, output, scores, observations[]}`. Observation rows do not carry `scores`; fetch them per trace id from the Scores API v3 (`GET /api/public/v3/scores?traceId=<id>`) and join them in, since low scores and negative feedback are the failure signals Phase 1 prioritizes. Keep the raw tool and DB observations; Phase 5 needs them for replay. On a v3 host the legacy `GET /api/public/traces` list still works; the v2/v1 shapes, deprecation detail, and the JSONL fallback live in `references/langfuse-traces.md`.
 
 **Source B, exported JSONL.** If the user hands you a file, inspect the first line with `head -1` and map its fields to the same normalized shape. Do not assume field names; Langfuse, Braintrust, and home-grown loggers all differ.
 
@@ -310,7 +310,7 @@ esac
 ## Public API shape
 
 Langfuse v4 removed the legacy trace reads (`GET /api/public/traces` and
-`/api/public/traces/\{id\}` return 404 on v4 and are deprecated on v3). The
+`/api/public/traces/{id}` return 404 on v4 and are deprecated on v3). The
 supported read is the Observations API v2:
 
 ```

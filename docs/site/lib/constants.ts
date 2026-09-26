@@ -96,7 +96,7 @@ export const YONYON = {
     "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source plugin for Claude Code.",
   // Plain-language collision note, surfaced as schema.org disambiguatingDescription.
   disambiguation:
-    "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
+    "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
   // Apex brand home. The studio's official website is the apex domain, and the
   // /yonyon page there is the canonical brand page for the studio entity. The
   // Yonyon Organization JSON-LD reuses the apex entity (url + sameAs point at
@@ -137,7 +137,7 @@ export const SAME_AS = [
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
-export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
 
 // Providers OrchestKit or this docs site genuinely integrates with — each entry
 // below is backed by a real dependency or documented integration, not a

@@ -6,8 +6,8 @@ import {
 	type ReactNode,
 } from "react";
 import Link from "next/link";
-import defaultMdxComponents from "fumadocs-ui/mdx";
 import { LibraryMark } from "@/components/category-mark";
+import { ScrollTable } from "@/components/scroll-table";
 import {
 	Item,
 	ItemContent,
@@ -99,7 +99,7 @@ export function parseHookEventTable(children: ReactNode): HookEventRow[] | null 
 			name: textOf(cells[0]).trim(),
 			matcher: textOf(cells[1]).trim(),
 			behavior: textOf(cells[2]).trim(),
-			description: textOf(cells[3]).trim() || "—",
+			description: textOf(cells[3]).trim() || "-",
 		};
 	});
 }
@@ -193,12 +193,12 @@ export function HookIndexList({ rows }: { rows: HookIndexRow[] }) {
 	);
 }
 
-const FumadocsTable = defaultMdxComponents.table;
 
 export function DocsTable(props: ComponentProps<"table">) {
 	const hookRows = parseHookEventTable(props.children);
 	if (hookRows) return <HookEventTable rows={hookRows} />;
 	const indexRows = parseHookIndexTable(props.children);
 	if (indexRows && indexRows.length > 0) return <HookIndexList rows={indexRows} />;
-	return <FumadocsTable {...props} />;
+	return <ScrollTable {...props} />;
 }
+

@@ -5,7 +5,7 @@ description: "Unified decision tree for web research and competitive monitoring.
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="web-research-workflow" />
 
@@ -226,14 +226,14 @@ agent-browser get text body > /tmp/cache/example-com.txt
 | Content in iframe | Use `agent-browser frame @e1` then extract |
 | No TAVILY_API_KEY | Skip Tavily tier, use WebFetch → agent-browser |
 
-**Incorrect — Browser without waiting for content:**
+**Incorrect, Browser without waiting for content:**
 ```bash
 agent-browser open https://spa-app.com
 agent-browser get text body
 # Returns empty - content not loaded yet
 ```
 
-**Correct — Wait for network idle before extracting:**
+**Correct, Wait for network idle before extracting:**
 ```bash
 agent-browser open https://spa-app.com
 agent-browser wait --load networkidle
@@ -249,14 +249,14 @@ agent-browser get text body
 
 Detect differences between snapshots and discover competitor pages for monitoring.
 
-**Incorrect -- manual visual comparison:**
+**Incorrect, manual visual comparison:**
 ```bash
 # Open two browser tabs and visually compare
 # No structured diff, easy to miss changes
 # No record of what changed or when
 ```
 
-**Correct -- automated diff with structured comparison:**
+**Correct, automated diff with structured comparison:**
 ```bash
 # Text diff between latest two snapshots
 LATEST=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.txt | head -1)
@@ -327,13 +327,13 @@ jobs:
 
 Capture point-in-time snapshots of competitor pages for pricing, features, and positioning tracking.
 
-**Incorrect -- manual one-off checks with no history:**
+**Incorrect, manual one-off checks with no history:**
 ```bash
 # Check competitor pricing once, no record kept
 # No snapshot, no history, no comparison baseline
 ```
 
-**Correct -- structured snapshot capture with change classification:**
+**Correct, structured snapshot capture with change classification:**
 ```bash
 # Create snapshots directory
 mkdir -p .competitive-intel/snapshots
@@ -439,7 +439,7 @@ agent-browser close
 
 Content likely needs browser if WebFetch returns:
 - Empty or very short content (&lt; 500 chars)
-- Contains `&lt;noscript&gt;` tags
+- Contains `<noscript>` tags
 - Contains "Loading...", "Please wait", "JavaScript required"
 - Contains only `<div id="root"></div>` or `<div id="app"></div>`
 - Returns 403/401 (may need auth)
@@ -491,9 +491,9 @@ fi
 
 ## Graceful Degradation
 
-If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to the original 2-tier (WebFetch → agent-browser). No configuration needed — agents check for the env var before attempting Tavily calls.
+If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to the original 2-tier (WebFetch → agent-browser). No configuration needed, agents check for the env var before attempting Tavily calls.
 
-**Incorrect — Always using browser for everything:**
+**Incorrect, Always using browser for everything:**
 ```bash
 agent-browser open https://github.com/owner/repo/blob/main/README.md
 agent-browser wait --load networkidle
@@ -501,7 +501,7 @@ agent-browser get text body
 # Slow, unnecessary - static content
 ```
 
-**Correct — Use WebFetch for static content:**
+**Correct, Use WebFetch for static content:**
 ```bash
 WebFetch(
   url="https://github.com/owner/repo/blob/main/README.md",
@@ -539,10 +539,10 @@ curl -s -X POST 'https://api.tavily.com/search' \
 Options:
 - `search_depth`: `"basic"` (fast) or `"advanced"` (thorough, 2x cost)
 - `topic`: `"general"` (default) or `"news"` or `"finance"`
-- `include_domains`: `["example.com"]` — restrict to specific sites
-- `exclude_domains`: `["reddit.com"]` — filter out sites
-- `days`: `3` — limit to recent results (news/finance)
-- `include_raw_content`: `"markdown"` — get full page content
+- `include_domains`: `["example.com"]`, restrict to specific sites
+- `exclude_domains`: `["reddit.com"]`, filter out sites
+- `days`: `3`, limit to recent results (news/finance)
+- `include_raw_content`: `"markdown"`, get full page content
 
 ## Extract (Batch URL Content)
 
@@ -596,18 +596,18 @@ curl -s -X POST 'https://api.tavily.com/crawl' \
 ```
 
 Options:
-- `max_depth`: `2` — how many link-hops from the seed URL
-- `limit`: `50` — max pages to crawl
-- `include_raw_content`: `"markdown"` — get full page content (not just snippets)
-- `exclude_paths`: `["/blog/*"]` — skip certain URL patterns
-- `include_paths`: `["/docs/*"]` — restrict to certain URL patterns
+- `max_depth`: `2`, how many link-hops from the seed URL
+- `limit`: `50`, max pages to crawl
+- `include_raw_content`: `"markdown"`, get full page content (not just snippets)
+- `exclude_paths`: `["/blog/*"]`, skip certain URL patterns
+- `include_paths`: `["/docs/*"]`, restrict to certain URL patterns
 
 **When to use Crawl vs Map+Extract:**
 - Use **Crawl** when you want content from an entire site section (docs, changelog, pricing)
 - Use **Map** when you only need URL discovery without content
 - Use **Extract** when you already have specific URLs
 
-## Research (Deep Research — Beta)
+## Research (Deep Research: Beta)
 
 Multi-step research agent that searches, reads, and synthesizes across multiple sources. Returns a comprehensive report with citations:
 

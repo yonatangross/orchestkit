@@ -5,7 +5,7 @@ description: "Structured review processes, conventional comments, language-speci
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="code-review-playbook" />
 
@@ -170,10 +170,10 @@ Load `Read("references/conventional-comments.md")` for the full format, labels (
 
 This playbook is the manual framework; Claude Code ships built-in commands that automate parts of it:
 
-- **`/code-review`** — reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
-- **`/code-review --fix`** (CC 2.1.152+) — runs the review then applies the findings to your working tree (a bug-hunting review covering correctness plus reuse/simplification/efficiency).
-- **`/code-review --comment`** — posts findings as inline PR comments.
-- **`/simplify`** — **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes — it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
+- **`/code-review`**: reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
+- **`/code-review --fix`** (CC 2.1.152+), runs the review then applies the findings to your working tree (a bug-hunting review covering correctness plus reuse/simplification/efficiency).
+- **`/code-review --comment`**: posts findings as inline PR comments.
+- **`/simplify`**: **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes, it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
 
 Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture).
 
@@ -226,7 +226,7 @@ shape. See `references/ork-delta.md`.
 
 ## Biome Rule Configuration and CI Integration
 
-**Incorrect — default config without key rules enabled:**
+**Incorrect, default config without key rules enabled:**
 ```json
 {
   "linter": { "enabled": true }
@@ -235,7 +235,7 @@ shape. See `references/ork-delta.md`.
 }
 ```
 
-**Correct — production Biome configuration:**
+**Correct, production Biome configuration:**
 ```json
 {
   "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
@@ -272,10 +272,10 @@ shape. See `references/ork-delta.md`.
 
 **Biome 2.0+ type inference features:**
 - Reads `.d.ts` from node_modules for type-aware rules
-- `noFloatingPromises`: Catches unhandled promises — Biome 2.4 moved this to the `types` domain, so set `linter.domains.types: "recommended"` or the rule silently under-functions
+- `noFloatingPromises`: Catches unhandled promises, Biome 2.4 moved this to the `types` domain, so set `linter.domains.types: "recommended"` or the rule silently under-functions
 - Multi-file analysis: Cross-module diagnostics
 
-**Correct — CI integration (GitHub Actions):**
+**Correct, CI integration (GitHub Actions):**
 ```yaml
 # .github/workflows/lint.yml
 name: Lint
@@ -312,14 +312,14 @@ Key decisions:
 
 ## Biome Linting Setup and Migration
 
-**Incorrect — complex multi-tool setup:**
+**Incorrect, complex multi-tool setup:**
 ```json
 // 4+ config files: .eslintrc, .prettierrc, .prettierignore, .editorconfig
 // 127+ npm packages for ESLint + Prettier + plugins
 // 3-5s lint time for 10k lines
 ```
 
-**Correct — Biome single-tool setup:**
+**Correct, Biome single-tool setup:**
 ```bash
 # Install (single binary, no plugins needed)
 npm install --save-dev --save-exact @biomejs/biome
@@ -337,7 +337,7 @@ npx @biomejs/biome check --write .
 npx @biomejs/biome ci .
 ```
 
-**Correct — ESLint migration:**
+**Correct, ESLint migration:**
 ```bash
 # Auto-migrate ESLint configuration
 npx @biomejs/biome migrate eslint --write
@@ -353,7 +353,7 @@ Common rule mappings:
 | eslint-plugin-react | Most supported |
 | eslint-plugin-jsx-a11y | Most supported |
 
-**Correct — gradual adoption with overrides:**
+**Correct, gradual adoption with overrides:**
 ```json
 {
   "overrides": [
@@ -459,7 +459,7 @@ async def fetch_user(user_id: str) -> User:
 # - No mutable default arguments
 ```
 
-**Incorrect — missing validation and timeout:**
+**Incorrect, missing validation and timeout:**
 ```python
 class UserInput(BaseModel):
     email: str  # No validation!
@@ -471,7 +471,7 @@ async def fetch_user(user_id: str) -> User:
     return User(**response.json())
 ```
 
-**Correct — constrained fields with timeout protection:**
+**Correct, constrained fields with timeout protection:**
 ```python
 from pydantic import BaseModel, Field, model_validator
 import asyncio
@@ -559,25 +559,25 @@ router.get('/api/users', requireAuth, getUsers);
 
 ### Input Validation
 
-**Violation — SQL injection via f-string interpolation:**
+**Violation, SQL injection via f-string interpolation:**
 ```python
 # VIOLATION: SQL injection
 query = f"SELECT * FROM users WHERE id = {user_id}"
 ```
 
-**Correct — parameterized query prevents injection:**
+**Correct, parameterized query prevents injection:**
 ```python
 query = "SELECT * FROM users WHERE id = $1"
 await db.execute(query, user_id)
 ```
 
-**Violation — XSS via raw innerHTML assignment:**
+**Violation, XSS via raw innerHTML assignment:**
 ```typescript
 // VIOLATION: XSS — raw HTML insertion
 element.innerHTML = userInput;
 ```
 
-**Correct — textContent auto-escapes HTML entities:**
+**Correct, textContent auto-escapes HTML entities:**
 ```typescript
 element.textContent = userInput;
 ```
@@ -609,7 +609,7 @@ set -x  # In scripts with secrets in scope
 logger.debug("User authenticated", extra={"user_id": user.id})
 ```
 
-**Incorrect — hardcoded secrets, no auth, SQL injection:**
+**Incorrect, hardcoded secrets, no auth, SQL injection:**
 ```python
 # Hardcoded secret
 API_KEY = "sk-1234567890abcdef"
@@ -623,7 +623,7 @@ async def list_users():
 query = f"SELECT * FROM users WHERE id = {user_id}"
 ```
 
-**Correct — env vars, auth middleware, parameterized queries:**
+**Correct, env vars, auth middleware, parameterized queries:**
 ```python
 # Environment variables
 API_KEY = os.environ["API_KEY"]
@@ -642,14 +642,14 @@ await db.execute(query, user_id)
 
 | Check | Severity | Action |
 |-------|----------|--------|
-| Hardcoded secrets | CRITICAL | BLOCK — use env vars |
-| Missing auth | CRITICAL | BLOCK — add middleware |
-| SQL injection | CRITICAL | BLOCK — parameterize |
-| XSS vulnerability | CRITICAL | BLOCK — sanitize |
-| Missing input validation | HIGH | BLOCK — validate at boundary |
-| Debug code | HIGH | BLOCK — remove before merge |
+| Hardcoded secrets | CRITICAL | BLOCK, use env vars |
+| Missing auth | CRITICAL | BLOCK, add middleware |
+| SQL injection | CRITICAL | BLOCK, parameterize |
+| XSS vulnerability | CRITICAL | BLOCK, sanitize |
+| Missing input validation | HIGH | BLOCK, validate at boundary |
+| Debug code | HIGH | BLOCK, remove before merge |
 | Dependency vulnerabilities | VARIES | See audit table above |
-| `set -x` with secrets | HIGH | BLOCK — never expose secrets in logs |
+| `set -x` with secrets | HIGH | BLOCK, never expose secrets in logs |
 
 
 ### Review TypeScript code for any types, missing validation, and weak type usage: HIGH
@@ -731,7 +731,7 @@ function CardSkeleton() {
 }
 ```
 
-**Incorrect — any types, no validation, non-exhaustive switch:**
+**Incorrect, any types, no validation, non-exhaustive switch:**
 ```typescript
 // Defeats type system
 function processData(data: any) { return data.email; }
@@ -746,7 +746,7 @@ switch (status) {
 }  // Adding 'pending' silently breaks
 ```
 
-**Correct — proper types, Zod validation, exhaustive switch:**
+**Correct, proper types, Zod validation, exhaustive switch:**
 ```typescript
 import { z } from 'zod';
 

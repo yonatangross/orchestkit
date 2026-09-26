@@ -19,11 +19,11 @@ description: "Read-side memory operations on the knowledge graph: search past de
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
 > **Cross-session read strategy (Opus 5.5 / CC 2.1.111+):** Opus 5.5 reads filesystem memory reliably across sessions. When loading context at session start, prefer the layered read order:
-> 1. `~/.claude/projects/&lt;slug&gt;/memory/MEMORY.md` (durable index — load first, always)
+> 1. `~/.claude/projects/<slug>/memory/MEMORY.md` (durable index, load first, always)
 > 2. `.claude/chain/state.json` + most recent `NN-*.json` handoff (session continuation)
 > 3. MCP `mcp__memory__search_nodes` for anything the filesystem index doesn't answer (typed graph traversal)
 >
-> Layer 1 is cheap (small index file), Layer 2 is scoped (session-specific), Layer 3 is selective (only when needed). Avoid dumping the full knowledge graph into context — use the index to narrow the search first.
+> Layer 1 is cheap (small index file), Layer 2 is scoped (session-specific), Layer 3 is selective (only when needed). Avoid dumping the full knowledge graph into context, use the index to narrow the search first.
 
 ## Argument Resolution
 
@@ -96,7 +96,7 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 
 | Skip reason | Trigger |
 |-------------|---------|
-| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai`, HQ-only) |
 | `memory MCP unreachable` | memory MCP server down OR `.mcp.json` doesn't define `memory` |
 
 **Report contents:**
@@ -105,7 +105,7 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 - Each row: name, entityType, age in days, observations count
 - Suggested actions per age bucket (>90d review, >180d archive candidate)
 
-**Treats entities with no parsable timestamp as stale** — operator intervention is the right outcome (backfill `last_read` observation OR prune).
+**Treats entities with no parsable timestamp as stale**: operator intervention is the right outcome (backfill `last_read` observation OR prune).
 
 Pure helpers (`parse_iso_timestamp`, `latest_observation_timestamp`, `is_stale`, `build_report_payload`, `render_markdown`) live in sibling `staleness_lib.py` for unit-testability.
 
@@ -175,17 +175,17 @@ When loading or searching memories, prevent duplicate context injection.
 
 ## Rules
 
-1. **Edit over Write** -- When updating `.claude/memory/MEMORY.md` or project memory files, prefer `Edit` over `Write` to preserve existing content and avoid accidental overwrites.
+1. **Edit over Write**: When updating `.claude/memory/MEMORY.md` or project memory files, prefer `Edit` over `Write` to preserve existing content and avoid accidental overwrites.
 
-2. **Anchor-based insertion** -- Always verify the target section header exists before inserting:
+2. **Anchor-based insertion**: Always verify the target section header exists before inserting:
    - `## Recent Decisions`
    - `## Patterns`
    - `## Preferences`
    - `## Detailed Notes`
 
-3. **Surgical edits** -- Use `Edit(file_path, old_string=anchor_line, new_string=anchor_line + "\n" + new_content)` to append under a section header without overwriting the rest.
+3. **Surgical edits**: Use `Edit(file_path, old_string=anchor_line, new_string=anchor_line + "\n" + new_content)` to append under a section header without overwriting the rest.
 
-4. **Verify after edit** -- Always `Read(file_path)` after editing to confirm the edit applied correctly.
+4. **Verify after edit**: Always `Read(file_path)` after editing to confirm the edit applied correctly.
 
 **Incorrect:**
 ```python
@@ -210,7 +210,7 @@ Edit(file_path=".claude/memory/MEMORY.md",
 
 ## Hook Exception
 
-Hooks that need full file control use Node.js `writeFileSync` directly -- this is correct for hooks context. The Edit pattern above is for agent-side SKILL.md operations.
+Hooks that need full file control use Node.js `writeFileSync` directly, this is correct for hooks context. The Edit pattern above is for agent-side SKILL.md operations.
 
 
 ### Entity Extraction Patterns: MEDIUM
@@ -289,9 +289,9 @@ Search past decisions, patterns, and entities from the knowledge graph.
 | Flag | Behavior |
 |------|----------|
 | (default) | Search graph |
-| `--limit &lt;n&gt;` | Max results (default: 10) |
-| `--category &lt;cat&gt;` | Filter by category |
-| `--agent &lt;agent-id&gt;` | Filter results to a specific agent's memories |
+| `--limit <n>` | Max results (default: 10) |
+| `--category <cat>` | Filter by category |
+| `--agent <agent-id>` | Filter results to a specific agent's memories |
 | `--global` | Search cross-project best practices |
 
 **Context-Aware Result Limits:**

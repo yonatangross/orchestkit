@@ -164,7 +164,7 @@ Extract and produce:
 
 ## Stage 2: Match Components (Storybook-First)
 
-**Priority 1 — Check project's own Storybook (if storybook-mcp available):**
+**Priority 1, Check project's own Storybook (if storybook-mcp available):**
 ```python
 # Search the project's existing component library first
 inventory = list-all-documentation()  # Full component + docs manifest
@@ -175,7 +175,7 @@ for component in inventory.components:
         # → Existing component found — skip external search
 ```
 
-**Priority 2 — Search 21st.dev (if no Storybook match and 21st-dev-magic available):**
+**Priority 2, Search 21st.dev (if no Storybook match and 21st-dev-magic available):**
 ```python
 # Search 21st.dev for matching components
 # Use the component descriptions from Stage 1
@@ -185,7 +185,7 @@ for component in inventory.components:
 # (e.g., Luma → rounded/pill-shaped, Nova → compact/dense, Lyra → sharp/boxy)
 ```
 
-**Priority 3 — Filesystem fallback (if no MCP servers available):**
+**Priority 3, Filesystem fallback (if no MCP servers available):**
 ```python
 # Search for components in the project's existing codebase
 Grep(pattern="export.*function|export.*const", glob="**/*.tsx")
@@ -213,16 +213,16 @@ AskUserQuestion(questions=[{
 
 Merge the extracted design context with matched/generated components:
 
-1. **Apply project tokens** — Replace hardcoded colors/spacing with project's design tokens
-2. **Apply shadcn style classes** — If `SHADCN_STYLE` detected, use style-correct class names:
+1. **Apply project tokens**: Replace hardcoded colors/spacing with project's design tokens
+2. **Apply shadcn style classes**: If `SHADCN_STYLE` detected, use style-correct class names:
    - Luma: `rounded-4xl` buttons/cards, `shadow-md` + `ring-1 ring-foreground/5`, `gap-6 py-6`
    - Nova: compact `px-2 py-1`, reduced margins, tight spacing
    - Lyra: `rounded-none`, sharp edges, monospace-friendly
    - Mira: ultra-dense, minimal padding
-3. **Match naming conventions** — Follow project's component naming patterns
-4. **Add TypeScript types** — Full type safety with Zod validation for any data props
-5. **Include tests** — MSW handlers for API-backed components, render tests for static
-6. **Responsive** — Mobile-first with breakpoints matching project's system
+3. **Match naming conventions**: Follow project's component naming patterns
+4. **Add TypeScript types**: Full type safety with Zod validation for any data props
+5. **Include tests**: MSW handlers for API-backed components, render tests for static
+6. **Responsive**: Mobile-first with breakpoints matching project's system
 
 ### Output Structure
 ```
@@ -237,9 +237,9 @@ src/components/
 
 After ADAPT produces a working React component, register it as a json-render catalog entry for multi-surface reuse.
 
-1. **Generate Zod schema** — Derive a Zod schema from the component's TypeScript props
-2. **Add catalog entry** — Register in the project's `defineCatalog()` call with props schema and children declaration
-3. **Verify rendering** — Confirm the component renders correctly through `&lt;Render catalog=\{catalog\} /&gt;` path
+1. **Generate Zod schema**: Derive a Zod schema from the component's TypeScript props
+2. **Add catalog entry**: Register in the project's `defineCatalog()` call with props schema and children declaration
+3. **Verify rendering**: Confirm the component renders correctly through `<Render catalog={catalog} />` path
 
 ```typescript
 import { z } from 'zod'
@@ -264,7 +264,7 @@ export const catalog = {
 }
 ```
 
-**Enables:** same component output to PDF, email, video, or MCP response — no reimplementation needed.
+**Enables:** same component output to PDF, email, video, or MCP response, no reimplementation needed.
 
 **Skip condition:** If the project has no json-render dependency or catalog, inform the user and skip catalog registration. The component from Stage 3 is still fully usable standalone.
 
@@ -298,7 +298,7 @@ previews = preview-stories(stories=[
 # Include preview URLs in response for visual confirmation
 ```
 
-**Skip condition:** If storybook-mcp is not available, skip verification. The component is still usable — just not auto-verified.
+**Skip condition:** If storybook-mcp is not available, skip verification. The component is still usable, just not auto-verified.
 
 ## Graceful Degradation
 
@@ -311,35 +311,35 @@ previews = preview-stories(stories=[
 | Unavailable | Unavailable | Available | Filesystem search + Storybook verify only |
 | Unavailable | Unavailable | Unavailable | Manual analysis + generate from scratch (still works) |
 
-The skill ALWAYS produces output regardless of MCP availability. Storybook MCP adds component reuse (Stage 2) and self-healing verification (Stage 4b) — skipping them still yields a working component.
+The skill ALWAYS produces output regardless of MCP availability. Storybook MCP adds component reuse (Stage 2) and self-healing verification (Stage 4b), skipping them still yields a working component.
 
 ## Anti-Patterns
 
-- **NEVER** output components with hardcoded colors — use design tokens
-- **NEVER** skip TypeScript types — all props must be typed
+- **NEVER** output components with hardcoded colors, use design tokens
+- **NEVER** skip TypeScript types, all props must be typed
 - **NEVER** generate without checking existing project patterns first
 - **NEVER** ignore the project's existing component library structure
 
 ## Quality Bar
 
 Done means all of these hold:
-- Generated components carry no hardcoded colors or literal spacing — every visual value resolves through project design tokens.
+- Generated components carry no hardcoded colors or literal spacing, every visual value resolves through project design tokens.
 - Every prop is TypeScript-typed; data-bearing props carry Zod validation.
 - Stage 2 checked existing components (Storybook, then 21st.dev, then filesystem) before generating from scratch, and the chosen match source is named.
 - When storybook-mcp is available, the component passes `run-story-tests` (component + a11y) before handoff, self-healing within at most 3 attempts.
-- Output follows the `\{ComponentName\}/` structure — component, test, and barrel export.
+- Output follows the `{ComponentName}/` structure, component, test, and barrel export.
 - Each skipped stage (json-render catalog, Storybook verify) is taken ONLY when its dependency is absent, and the skip is stated with its reason.
 
 ## Related Skills
 
-- `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
-- `component-search` — Search 21st.dev registry standalone
-- `design-context-extract` — Extract design DNA from screenshots
-- `design-stylecards` — named aesthetic recipes (shadow stacks, glass surfaces, gradients, type scales) for the polish pass on generated components
-- `design-system-tokens` — Token architecture and management
-- `storybook-testing` — CSF3 patterns, Vitest integration, Chromatic TurboSnap
-- `json-render-catalog` — Catalog definition, Zod schemas, defineCatalog patterns
-- `multi-surface-render` — Render catalog entries to PDF, email, video, MCP
+- `storybook-mcp-integration`: Storybook MCP tools: component discovery, testing, previews
+- `component-search`: Search 21st.dev registry standalone
+- `design-context-extract`: Extract design DNA from screenshots
+- `design-stylecards`: named aesthetic recipes (shadow stacks, glass surfaces, gradients, type scales) for the polish pass on generated components
+- `design-system-tokens`: Token architecture and management
+- `storybook-testing`: CSF3 patterns, Vitest integration, Chromatic TurboSnap
+- `json-render-catalog`: Catalog definition, Zod schemas, defineCatalog patterns
+- `multi-surface-render`: Render catalog entries to PDF, email, video, MCP
 
 
 ---
@@ -432,6 +432,6 @@ export const catalogWithLayout = {
 - Always use `.max()` bounds on strings and arrays to prevent unbounded AI generation
 - Use `z.enum()` for any prop with a finite set of valid values
 - Set `children: false` for data-display components, `children: true` for layout wrappers
-- Compose with object spread (`\{ ...base, ...custom \}`); `@json-render/core` exports no catalog-merge helper
+- Compose with object spread (`{ ...base, ...custom }`); `@json-render/core` exports no catalog-merge helper
 - Export the Zod schema alongside the component for reuse in tests and type generation
 

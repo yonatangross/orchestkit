@@ -29,7 +29,7 @@ With 128K output tokens available, each agent produces **complete artifacts in a
 
 **Key principle:** Prefer one comprehensive response over multiple incremental ones. Only split when scope genuinely exceeds 128K tokens.
 
-**Agent Teams advantage:** Teammates persist across phases 4→5→6, so context is preserved. No re-explaining architecture to implementation agents — they already know it because they designed it.
+**Agent Teams advantage:** Teammates persist across phases 4→5→6, so context is preserved. No re-explaining architecture to implementation agents, they already know it because they designed it.
 
 ---
 
@@ -160,7 +160,7 @@ Agent(
 
 Spawn ONLY when the feature is event-sourcing / CQRS / message-queue / outbox-shaped
 (e.g. order pipelines, real-time notifications, async fan-out, audit logs). Skip for
-plain CRUD — like Agent 4, it self-justifies and returns "No event-driven design needed".
+plain CRUD, like Agent 4, it self-justifies and returns "No event-driven design needed".
 
 ```python
 Agent(
@@ -187,9 +187,9 @@ Agent(
 )
 ```
 
-### Phase 4 — Teams Mode
+### Phase 4: Teams Mode
 
-In Agent Teams mode, 4 teammates form a team (`implement-\{feature-slug\}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
 
 See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
 
@@ -201,7 +201,7 @@ See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn promp
 
 All 5 agents launch in ONE message with `run_in_background=true`.
 
-### Agent 1: Backend — Complete Implementation
+### Agent 1: Backend, Complete Implementation
 ```python
 Agent(
   subagent_type="ork:backend-system-architect",
@@ -242,7 +242,7 @@ Agent(
 )
 ```
 
-### Agent 2: Frontend — Complete Implementation
+### Agent 2: Frontend, Complete Implementation
 ```python
 Agent(
   subagent_type="ork:frontend-ui-developer",
@@ -313,7 +313,7 @@ Agent(
 )
 ```
 
-### Agent 4: Test Suite — Complete Coverage
+### Agent 4: Test Suite, Complete Coverage
 ```python
 Agent(
   subagent_type="ork:test-generator",
@@ -366,7 +366,7 @@ Agent(
 )
 ```
 
-### Phase 5 — Teams Mode
+### Phase 5: Teams Mode
 
 In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
 
@@ -490,9 +490,9 @@ Agent(
 - Proper input validation
 - npm audit / pip-audit
 
-### Phase 6 — Teams Mode
+### Phase 6: Teams Mode
 
-In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the team winds down on its own (CC 2.1.178+ implicit team — no `TeamDelete`; teammates end with their turn, `Ctrl+F` twice to stop any lingering background agent) + worktree cleanup.
+In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the team winds down on its own (CC 2.1.178+ implicit team, no `TeamDelete`; teammates end with their turn, `Ctrl+F` twice to stop any lingering background agent) + worktree cleanup.
 
 ---
 
@@ -573,10 +573,10 @@ Store lessons in memory for future implementations.
 
 # Agent Teams: Full-Stack Feature Pipeline
 
-Team formation template for Pipeline 2 — Full-Stack Feature using CC Agent Teams.
+Team formation template for Pipeline 2, Full-Stack Feature using CC Agent Teams.
 
 **Agents:** 4 teammates + lead
-**Topology:** Mesh — backend hands off API contract to frontend, test-engineer works incrementally
+**Topology:** Mesh, backend hands off API contract to frontend, test-engineer works incrementally
 **Lead mode:** Delegate (coordination only, no code)
 
 ---
@@ -840,7 +840,7 @@ After all teammates complete (or when all tasks are done):
    git commit -m "test({feature}): complete test suite"
    ```
 
-2. **Resolve conflicts** — typically in shared types/interfaces
+2. **Resolve conflicts**: typically in shared types/interfaces
 
 3. **Run integration tests** from the merged branch:
    ```bash
@@ -849,7 +849,7 @@ After all teammates complete (or when all tasks are done):
    npm run lint
    ```
 
-4. **Collect code-reviewer verdict** — APPROVE or REJECT with findings
+4. **Collect code-reviewer verdict**: APPROVE or REJECT with findings
 
 5. **Shut down team:**
    ```
@@ -898,7 +898,7 @@ After all teammates complete (or when all tasks are done):
 
 This reference consolidates Agent Teams mode instructions for Phases 4, 5, 6, and 6b of the implement workflow.
 
-## Phase 4 — Agent Teams Architecture Design
+## Phase 4: Agent Teams Architecture Design
 
 In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teammates message architecture decisions to each other in real-time:
 
@@ -931,11 +931,11 @@ See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for complete sp
 
 ---
 
-## Phase 5 — Agent Teams Implementation
+## Phase 5: Agent Teams Implementation
 
 In Agent Teams mode, teammates are already formed from Phase 4. They transition from architecture to implementation and message contracts to each other:
 
-- **backend-architect** implements the API and messages `frontend-dev` with the contract (types + routes) as soon as endpoints are defined — not after full implementation.
+- **backend-architect** implements the API and messages `frontend-dev` with the contract (types + routes) as soon as endpoints are defined, not after full implementation.
 - **frontend-dev** starts building UI layout immediately, then integrates API hooks once the contract arrives.
 - **test-engineer** writes tests incrementally as contracts stabilize. Reports failing tests directly to the responsible teammate.
 - **code-reviewer** reviews code as it lands. Flags issues to the author directly.
@@ -963,13 +963,13 @@ See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.
 
 ---
 
-## Phase 6 — Agent Teams Integration
+## Phase 6: Agent Teams Integration
 
 In Agent Teams mode, the code-reviewer teammate has already been reviewing code during implementation (Phase 5). Integration verification is lighter:
 
 - **code-reviewer** produces final APPROVE/REJECT verdict based on cumulative review.
 - **Lead** runs integration tests across the merged codebase (or merged worktrees).
-- No need for separate security-auditor spawn — code-reviewer covers security checks. For high-risk features, spawn a `security-auditor` teammate in Phase 4.
+- No need for separate security-auditor spawn, code-reviewer covers security checks. For high-risk features, spawn a `security-auditor` teammate in Phase 4.
 
 ```python
 # Lead runs integration after merging worktrees
@@ -984,7 +984,7 @@ SendMessage(to="code-reviewer",
 
 ---
 
-## Phase 6b — Team Teardown (Agent Teams Only)
+## Phase 6b: Team Teardown (Agent Teams Only)
 
 After Phase 6 completes in Agent Teams mode, tear down the team:
 
@@ -1012,17 +1012,17 @@ git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test 
 ExitWorktree(action="keep")  # Keep branch for PR
 ```
 
-> Phases 7-10 (Scope Creep, E2E Verification, Documentation, Reflection) are the same in both modes — the team is already disbanded.
+> Phases 7-10 (Scope Creep, E2E Verification, Documentation, Reflection) are the same in both modes, the team is already disbanded.
 
 
 ### Agent Teams Security Audit
 
 # Agent Teams: Security Audit Pipeline
 
-Team formation template for Pipeline 4 — Security Audit using CC Agent Teams.
+Team formation template for Pipeline 4, Security Audit using CC Agent Teams.
 
 **Agents:** 3 (all read-only, no file conflicts)
-**Topology:** Mesh — auditors share findings with each other
+**Topology:** Mesh, auditors share findings with each other
 **Lead mode:** Delegate (coordination only)
 
 ---
@@ -1122,9 +1122,9 @@ Return OWASP LLM Top 10 compliance matrix plus specific findings.
 After all teammates complete:
 
 1. **Collect** all three audit reports
-2. **Cross-reference** findings — same issue found by multiple auditors = higher confidence
-3. **Highlight disagreements** — auditors may rate severity differently
-4. **Deduplicate** — merge equivalent findings
+2. **Cross-reference** findings, same issue found by multiple auditors = higher confidence
+3. **Highlight disagreements**: auditors may rate severity differently
+4. **Deduplicate**: merge equivalent findings
 5. **Produce unified report** with:
    - Combined findings sorted by severity
    - Layer coverage matrix
@@ -1158,7 +1158,7 @@ Track actual values to validate.
 # Blast-Radius Clarification (ask "what" before "how")
 
 Before Phase 1, find the unknowns whose answers would **change the architecture** and
-resolve them in blast-radius order — biggest consequence first. The cheapest place to
+resolve them in blast-radius order, biggest consequence first. The cheapest place to
 settle an ambiguity is before code exists; the same ambiguity found mid-build is a
 rework, and found post-merge is an incident. This is "ask what before you ask how" made
 into a step.
@@ -1169,28 +1169,28 @@ into a step.
   Management + Phase 1.
 - **Skip** in `low` effort, or when the feature is small and unambiguous (&lt; ~3 files, no
   schema / auth / contract surface).
-- **Grep the codebase first** — never ask a question the code already answers.
+- **Grep the codebase first**: never ask a question the code already answers.
 
 ## Blast-radius order (ask highest first; skip any tier already unambiguous)
 
 | # | Tier | Why it's high blast-radius | Example question |
 |---|------|----------------------------|------------------|
-| 1 | Data model / schema / migration | An answer reshapes every downstream layer | "New table, or a column on `&lt;Y&gt;`? Nullable? Backfill?" |
-| 2 | Auth / security / trust boundary | Sets who can act + the threat model | "Who calls this — portal user, admin, service token?" |
+| 1 | Data model / schema / migration | An answer reshapes every downstream layer | "New table, or a column on `<Y>`? Nullable? Backfill?" |
+| 2 | Auth / security / trust boundary | Sets who can act + the threat model | "Who calls this, portal user, admin, service token?" |
 | 3 | API contract / breaking change | Ripples to every consumer | "Change an existing response shape, or add a new endpoint?" |
 | 4 | Data volume / performance / scale | Sets the algorithm + index strategy | "Expected cardinality / hot path / concurrency?" |
-| 5 | UX / copy / cosmetics | Cheap to change later — ask LAST | "Inline panel or modal?" |
+| 5 | UX / copy / cosmetics | Cheap to change later, ask LAST | "Inline panel or modal?" |
 
 ## Protocol
 
 1. One question at a time via `AskUserQuestion`, **highest blast-radius first**.
-2. Ask ONLY the genuinely ambiguous, high-blast-radius items — not the obvious ones. Stop
+2. Ask ONLY the genuinely ambiguous, high-blast-radius items, not the obvious ones. Stop
    as soon as the remaining unknowns are low-blast-radius / cosmetic. **Cap ~5.**
 3. Each answer becomes a row in the Decisions table.
 4. Write the table to `.claude/chain/decisions.json` and surface it in the **PR body**
    (Phase 9 documentation) so the "why" lands where reviewers see it.
 5. Feed the schema / auth / contract answers into **Phase 4 (Architecture)** as
-   constraints — they are inputs to the architecture agents, not afterthoughts.
+   constraints, they are inputs to the architecture agents, not afterthoughts.
 
 ## Decisions table (written to state + PR body)
 
@@ -1204,17 +1204,17 @@ into a step.
 
 ## Why (the failure classes this closes)
 
-- **"Start solo → 3 interrupts"** — the operator gets pulled in three separate times
+- **"Start solo → 3 interrupts"**: the operator gets pulled in three separate times
   mid-build for questions a two-minute up-front interview would have batched.
-- **Premature architecture / root-cause commitment** — building on an unstated schema or
+- **Premature architecture / root-cause commitment**: building on an unstated schema or
   auth assumption, then discovering it was wrong after the architecture is set.
 
 ## Anti-patterns
 
-- Asking cosmetic questions first — spends the user's attention on the cheapest unknowns.
+- Asking cosmetic questions first, spends the user's attention on the cheapest unknowns.
 - Interrogating the obvious, or asking what the codebase already answers (grep first).
 - Asking everything → analysis paralysis. Cap and stop at low blast-radius.
-- Proceeding on an ambiguous **schema or auth** question — the exact rework this step
+- Proceeding on an ambiguous **schema or auth** question, the exact rework this step
   exists to prevent. If a tier-1/2 unknown is unresolved, do NOT start Phase 1.
 
 
@@ -1273,7 +1273,7 @@ Resume later with full context preserved.
 Slash invoke: `/ork:implement`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -1412,21 +1412,21 @@ Include a "What I Would Change for Production" section:
 
 # Manual Pre-Create Worktree Pattern
 
-> **⚠ SUPERSEDED — CC 2.1.154, completed in CC 2.1.203.** Upstream fixed the root
+> **⚠ SUPERSEDED, CC 2.1.154, completed in CC 2.1.203.** Upstream fixed the root
 > cause: *"subagents in background sessions bypassing the worktree-isolation guard
 > and writing to the shared checkout"* (CC 2.1.154 changelog). On CC ≥ 2.1.154 you
-> can use `Agent(isolation="worktree")` directly — parallel spawns each get a real
+> can use `Agent(isolation="worktree")` directly, parallel spawns each get a real
 > isolated worktree, no HEAD thrash. 2.1.154 also fixed `worktree.baseRef:"head"`
 > resolving to the main checkout's HEAD instead of the current worktree's when
 > spawning from inside a linked worktree. **The 2.1.154 fix was partial:** a
-> residual leak — isolated subagents *sometimes running shell commands in the
+> residual leak, isolated subagents *sometimes running shell commands in the
 > parent checkout* (the exact symptom in "The bug" below: `git checkout` firing on
-> the primary tree) — persisted through CC 2.1.202 and was closed in **CC 2.1.203**.
+> the primary tree), persisted through CC 2.1.202 and was closed in **CC 2.1.203**.
 > **Prefer `isolation="worktree"` now;** the manual pre-create pattern below is
-> retained for CC ≤ 2.1.153, as a partial mitigation on 2.1.154–2.1.202, and as a
+> retained for CC ≤ 2.1.153, as a partial mitigation on 2.1.154-2.1.202, and as a
 > record of the original failure.
 
-**Original context — workaround for the broken `Agent(isolation="worktree")`
+**Original context, workaround for the broken `Agent(isolation="worktree")`
 behavior in CC ≤ 2.1.153.** Tracked at
 [Yonatan-HQ/platform#3224](https://github.com/Yonatan-HQ/platform/issues/3224).
 
@@ -1435,8 +1435,8 @@ behavior in CC ≤ 2.1.153.** Tracked at
 Don't use `isolation="worktree"` on parallel agent spawns. Instead:
 
 1. The **lead** creates one worktree per agent BEFORE spawning, using
-   `git worktree add -b &lt;branch&gt; &lt;path&gt; origin/main`.
-2. Each agent prompt starts with `FIRST: cd &lt;worktree-path&gt;. THEN ...`.
+   `git worktree add -b <branch> <path> origin/main`.
+2. Each agent prompt starts with `FIRST: cd <worktree-path>. THEN ...`.
 3. Each agent commits + pushes + opens a PR from its own worktree.
 
 Result: 4-22 tool-uses per agent (vs 60-86 with broken isolation),
@@ -1511,7 +1511,7 @@ def setup_agent_worktree(repo_root: str, slug: str, branch: str) -> str:
 
 ## Why this works
 
-The bug appears to be in CC's `isolation` param handling — the param is
+The bug appears to be in CC's `isolation` param handling, the param is
 accepted but the worktree may not actually be created (or `cd`'d into)
 before the agent's first Bash call fires. By the time the agent runs,
 its CWD is still the primary tree. Manual pre-creation moves the
@@ -1524,7 +1524,7 @@ worktree.
 To make the pattern reliable:
 
 1. **`cd` must be the FIRST Bash call.** Wrap it in a header like
-   `FIRST: cd &lt;path&gt;. THEN: ...` so the agent can't skip it.
+   `FIRST: cd <path>. THEN: ...` so the agent can't skip it.
 2. **Forbid touching the primary tree.** Add to the prompt: "Do not
    `cd` out of this worktree. All commits, pushes, and PRs originate
    from \{worktree-path\}."
@@ -1532,19 +1532,19 @@ To make the pattern reliable:
    1 reference doc, commit + push + open PR. Iterate via follow-up
    commits." This converts the 60-tool cliff into an 18-22 first
    checkpoint.
-4. **Explicit branch.** Always pass `-b feat/&lt;slug&gt;-&lt;role&gt;` to the
-   `git worktree add` — never let the agent decide its own branch
+4. **Explicit branch.** Always pass `-b feat/<slug>-<role>` to the
+   `git worktree add`: never let the agent decide its own branch
    (collisions cause the original thrash).
 
 ## What this DOESN'T fix
 
 - **Single-agent isolation:** if you only spawn ONE agent with
-  `isolation="worktree"`, it MAY work — the bug surfaces under parallel
+  `isolation="worktree"`, it MAY work, the bug surfaces under parallel
   spawns. Use the manual pattern anyway for consistency.
 - **EnterWorktree (operator-level):** This is the model-managed,
   not-agent-managed worktree tool. It works fine and is unrelated.
   **CC 2.1.206:** `EnterWorktree` now asks for confirmation before entering a
-  worktree OUTSIDE `.claude/worktrees/`. This `../\{slug\}-\{branch\}` convention is
+  worktree OUTSIDE `.claude/worktrees/`. This `../{slug}-{branch}` convention is
   always outside that directory, so expect a one-time confirmation prompt per
   external worktree. Headless/non-interactive flows that can't answer the prompt
   should place worktrees under `.claude/worktrees/` instead.
@@ -1563,13 +1563,13 @@ git worktree prune
 ```
 
 If a worktree has uncommitted local state when removing, capture or
-discard explicitly — don't blindly `--force` away unmerged work.
+discard explicitly, don't blindly `--force` away unmerged work.
 
 ## References
 
-- `feedback_agent_worktree_isolation_unreliable.md` — original incident
-- `Yonatan-HQ/platform#3224` — upstream tracking issue
-- `Yonatan-HQ/platform#3132` — companion worktree-audit cron script
+- `feedback_agent_worktree_isolation_unreliable.md`: original incident
+- `Yonatan-HQ/platform#3224`: upstream tracking issue
+- `Yonatan-HQ/platform#3132`: companion worktree-audit cron script
 
 
 ### Micro Planning Guide
@@ -1821,9 +1821,9 @@ git branch feat/{feature}/tests
 
 The **lead** creates worktrees before spawning teammates:
 
-Worktrees go INSIDE the repo at `.worktrees/&lt;task&gt;`. A sibling path (`../\{project\}-backend`)
+Worktrees go INSIDE the repo at `.worktrees/<task>`. A sibling path (`../{project}-backend`)
 sits outside the session's project directory, so the harness silently bounces any `cd` into it
-and the teammate ends up operating on the PRIMARY tree — platform#9870 (#3319).
+and the teammate ends up operating on the PRIMARY tree, platform#9870 (#3319).
 
 ```bash
 # Create worktrees — one per implementing teammate
@@ -1837,7 +1837,6 @@ git worktree list
 
 **Directory layout after setup:**
 
-&lt;!-- ascii-lint-disable: balanced-corners --&gt;
 ```
 {project}/                  ← Primary tree (lead + code-reviewer)
 └── .worktrees/
@@ -1857,9 +1856,9 @@ Include the worktree path in each teammate's spawn prompt:
 
 | Teammate | Worktree | Working Directory |
 |----------|----------|-------------------|
-| backend-architect | `../\{project\}-backend/` | Full project access, writes to backend dirs |
-| frontend-dev | `../\{project\}-frontend/` | Full project access, writes to frontend dirs |
-| test-engineer | `../\{project\}-tests/` | Full project access, writes to test dirs |
+| backend-architect | `../{project}-backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `../{project}-frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `../{project}-tests/` | Full project access, writes to test dirs |
 | code-reviewer | Main worktree | Read-only, reviews across all worktrees |
 
 **Spawn prompt addition:**
@@ -1897,9 +1896,9 @@ git commit -m "test({feature}): complete test suite"
 ### Handling Merge Conflicts
 
 Conflicts typically occur in shared files:
-- **Type definitions** — backend and frontend may define overlapping types
-- **Package files** — both may add dependencies
-- **Config files** — shared configuration
+- **Type definitions**: backend and frontend may define overlapping types
+- **Package files**: both may add dependencies
+- **Config files**: shared configuration
 
 Resolution priority:
 1. Backend types are authoritative (they own the API contract)
@@ -1957,7 +1956,7 @@ Do NOT modify: src/components/, src/features/, src/hooks/
 Project configs and auto-memory are **automatically shared** across worktrees (CC 2.1.63+). No manual setup needed:
 
 - `.claude/settings.json` and `CLAUDE.md` available in every worktree
-- Auto-memory persists — teammates inherit learned patterns
+- Auto-memory persists, teammates inherit learned patterns
 - Plugins are discovered from any worktree
 
 ---
@@ -1966,7 +1965,7 @@ Project configs and auto-memory are **automatically shared** across worktrees (C
 
 Before spawning teammates:
 
-- [ ] Feature branch exists (`feat/\{feature\}`)
+- [ ] Feature branch exists (`feat/{feature}`)
 - [ ] Role branches created from feature branch
 - [ ] Worktrees added for each implementing teammate
 - [ ] Each teammate's spawn prompt includes worktree path
@@ -2055,14 +2054,14 @@ Scan codebase for: README keywords (take-home, interview), `.github/workflows/`,
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
 | &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
 | K8s/Terraform, monorepo | **5. Enterprise** | Hexagonal/DDD |
 | CONTRIBUTING.md, LICENSE | **6. Open Source** | Minimal API, exhaustive tests |
 
-If confidence is low, use `AskUserQuestion` to ask the user. Pass detected tier to ALL downstream agents — see `scope-appropriate-architecture`.
+If confidence is low, use `AskUserQuestion` to ask the user. Pass detected tier to ALL downstream agents, see `scope-appropriate-architecture`.
 
 ## Tier → Workflow Mapping
 
@@ -2080,7 +2079,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
 - Agent tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/orchestration-modes.md")`
 
 ## Tier Override
 
@@ -2123,8 +2122,8 @@ EnterWorktree(path="/path/to/existing/worktree")
 ```
 
 This creates (or switches into):
-- New branch `feat-\{feature-slug\}` from HEAD (or reuses existing worktree)
-- Working directory at `.claude/worktrees/feat-\{feature-slug\}/`
+- New branch `feat-{feature-slug}` from HEAD (or reuses existing worktree)
+- Working directory at `.claude/worktrees/feat-{feature-slug}/`
 - Session CWD switches to the worktree automatically
 
 **Tip (CC 2.1.105+):** When a worktree already exists from a prior session, use the `path` parameter to switch into it instead of creating a new one. Check with `git worktree list` first.
@@ -2132,7 +2131,7 @@ This creates (or switches into):
 ### 2. Implement in Isolation
 
 All implementation phases (4-8) run in the worktree. Benefits:
-- Main branch stays clean — no partial changes
+- Main branch stays clean, no partial changes
 - Multiple agents can work without stepping on each other
 - Easy rollback: just delete the worktree branch
 
@@ -2170,10 +2169,10 @@ This is safe because worktree agents operate on an isolated file tree.
 
 Project configs and auto-memory are **automatically shared** across git worktrees. No manual copying needed:
 
-- `.claude/settings.json` — shared across all worktrees
-- `.claude/memory/` — auto-memory persists across worktrees
-- `CLAUDE.md` — project instructions available in every worktree
-- Plugin configs — plugins discovered from any worktree
+- `.claude/settings.json`: shared across all worktrees
+- `.claude/memory/`: auto-memory persists across worktrees
+- `CLAUDE.md`: project instructions available in every worktree
+- Plugin configs, plugins discovered from any worktree
 
 ## CLI Alternative
 
@@ -2210,8 +2209,8 @@ Isolate feature work in dedicated worktrees for clean development and easy rollb
 
 ## Setup Commands
 
-Put the worktree INSIDE the repo, at `.worktrees/&lt;task&gt;`. Never at a sibling
-`../&lt;repo&gt;-&lt;task&gt;`: a sibling path sits outside the session's project directory, and the
+Put the worktree INSIDE the repo, at `.worktrees/<task>`. Never at a sibling
+`../<repo>-<task>`: a sibling path sits outside the session's project directory, and the
 harness bounces any `cd` that leaves it. The command appears to succeed, then every later
 command runs in the PRIMARY tree. That is the failure behind platform#9870, where work was
 committed onto another agent's branch (#3319).
@@ -2294,7 +2293,7 @@ git worktree remove .worktrees/auth
 
 ## Best Practices
 
-1. **Location:** Always `.worktrees/&lt;task&gt;` inside the repo, never a sibling `../project-task`
+1. **Location:** Always `.worktrees/<task>` inside the repo, never a sibling `../project-task`
 2. **Short-lived:** Merge within 1-3 days
 3. **One feature per worktree:** Don't mix concerns
 4. **Regular sync:** Rebase from main frequently

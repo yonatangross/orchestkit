@@ -5,18 +5,14 @@ description: "OS sandbox is opt-in and Bash-only; doctor surfaces whether it's o
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Sandbox Posture
-
-# Check 15: CC Bash-Sandbox Posture
-
-**Severity: info** — this is a *recommendation*, never a hard gate. Claude Code's
+**Severity: info**: this is a *recommendation*, never a hard gate. Claude Code's
 OS sandbox is opt-in and Bash-only; doctor surfaces whether it's on and nudges it,
 but a session is healthy without it.
 
 ## What it is
 
 Claude Code ships a native **Bash sandbox** (`/sandbox` → Seatbelt on macOS,
-bubblewrap on Linux/WSL2). OrchestKit ships **zero** sandbox config by design —
+bubblewrap on Linux/WSL2). OrchestKit ships **zero** sandbox config by design,
 isolation is the harness's job, not a plugin's. So most users never turn it on
 and don't know it exists. This check makes the posture visible.
 
@@ -24,7 +20,7 @@ There is **no runtime API** for a hook to read sandbox state, so the only signal
 is the settings files. Treat a missing `sandbox.enabled` key as "off / unknown".
 
 **Read all four scopes.** The real-world config usually lives in
-`~/.claude/settings.json` (user settings proper), not `settings.local.json` —
+`~/.claude/settings.json` (user settings proper), not `settings.local.json`,
 a check that reads only the local files reports "off / unknown" against a machine
 where the sandbox is on (measured 2026-08-22: live config in user settings.json,
 Check 15 blind to it).
@@ -62,7 +58,7 @@ esac
 ## Reporting + nudge
 
 - `sandbox.enabled == true` → report ON. If `denyRead` is empty, add: *"sandbox on
-  but `~/.ssh` / `~/.aws` are still readable — add them to `sandbox.filesystem.denyRead`."*
+  but `~/.ssh` / `~/.aws` are still readable, add them to `sandbox.filesystem.denyRead`."*
 - `false` / unset → emit the nudge below.
 
 **Nudge (info-level):**
@@ -79,12 +75,12 @@ Run /sandbox to enable Claude Code's OS Bash-sandbox. Starter config for
   }
 ```
 
-## Honest limits — STATE THESE IN THE OUTPUT, do not hide them
+## Honest limits: STATE THESE IN THE OUTPUT, do not hide them
 
 - **Bash-only.** The sandbox confines Bash subprocesses. The Read/Write tools,
   MCP servers, and hooks run **unsandboxed** on the host. Turning it on raises the
   floor; it is **not** full agent containment.
-- **`~/.ssh` is readable by default** unless `sandbox.filesystem.denyRead` is set —
+- **`~/.ssh` is readable by default** unless `sandbox.filesystem.denyRead` is set,
   the nudge above includes it for exactly this reason.
 - **No detection API.** `settings.local.json` is the only signal; a session running
   sandboxed via CLI flag without the settings key reads here as "not configured".
@@ -119,7 +115,7 @@ describes this as real-time notifications with detailed information about what
 was attempted and why it was blocked. Nothing in a CC session surfaces those
 rows, so this sub-check runs a bounded, read-only query and reports what it sees.
 
-**Script:** `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/scripts/check-sandbox-violations.sh`
+**Script:** `${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh`
 
 ```bash
 # Bounded, read-only. Verified live 2026-08-21 on Darwin 25.5.0:
@@ -158,4 +154,3 @@ from an unsandboxed shell.
 - **macOS only.** On Linux, sandbox denials surface via auditd/journald, which
   this check does not read; it exits 3 with an explicit skip reason instead of
   passing silently.
-

@@ -5,7 +5,7 @@ description: "Interactive wizard for OrchestKit settings: MCP servers, hook perm
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="configure" />
 
@@ -113,25 +113,25 @@ Categories available:
 - Team Coordination (locks, conflicts)
 - Notifications (desktop, sound)
 
-> **CC 2.1.49 Managed Settings:** OrchestKit ships plugin `settings.json` with default hook permissions. These are *managed defaults* — users can override them in project or user settings. Enterprise admins can lock managed settings via managed profiles.
+> **CC 2.1.49 Managed Settings:** OrchestKit ships plugin `settings.json` with default hook permissions. These are *managed defaults*, users can override them in project or user settings. Enterprise admins can lock managed settings via managed profiles.
 
-> **CC 2.1.111 — prune overbroad Bash permissions:** Since 2.1.111, read-only Bash commands with glob patterns (`ls:*`, `head:*`, `grep:*`, `wc:*`, `find:*`, etc.) no longer trigger permission prompts by default. If your `.claude/settings.local.json` has explicit `Bash(ls:*)` / `Bash(grep:*)` style allows added to silence old prompts, they are now redundant. The built-in `/less-permission-prompts` skill scans your transcripts and proposes a prune diff — run it once per project and once per user profile, then commit the accepted subset. The committed OrchestKit `src/settings/ork.settings.json` is already minimal (allow = `Read`, `Glob`, `Grep`, a small set of MCP entries) and doesn't need changes.
+> **CC 2.1.111, prune overbroad Bash permissions:** Since 2.1.111, read-only Bash commands with glob patterns (`ls:*`, `head:*`, `grep:*`, `wc:*`, `find:*`, etc.) no longer trigger permission prompts by default. If your `.claude/settings.local.json` has explicit `Bash(ls:*)` / `Bash(grep:*)` style allows added to silence old prompts, they are now redundant. The built-in `/less-permission-prompts` skill scans your transcripts and proposes a prune diff, run it once per project and once per user profile, then commit the accepted subset. The committed OrchestKit `src/settings/ork.settings.json` is already minimal (allow = `Read`, `Glob`, `Grep`, a small set of MCP entries) and doesn't need changes.
 
-> **CC 2.1.129 — `Bash(mkdir *)` / `Bash(touch *)` allow rules now work for in-project paths:** previously silently rejected for project-relative paths; now honored as documented. Workaround entries enumerating explicit subpaths (`Bash(mkdir:./src/*)`, etc.) can be collapsed back to the canonical glob form. See `references/cc-version-settings.md` § CC 2.1.129.
+> **CC 2.1.129, `Bash(mkdir *)` / `Bash(touch *)` allow rules now work for in-project paths:** previously silently rejected for project-relative paths; now honored as documented. Workaround entries enumerating explicit subpaths (`Bash(mkdir:./src/*)`, etc.) can be collapsed back to the canonical glob form. See `references/cc-version-settings.md` § CC 2.1.129.
 
-> **CC 2.1.157 — plugin auto-load + workflow-trigger control:** Plugins in `.claude/skills` auto-load (no marketplace required); `claude plugin init &lt;name&gt;` scaffolds one there. The "Workflow keyword trigger" toggle in `/config` — and pressing backspace right after the keyword — stops a bare "workflow"/"ultracode" from launching a dynamic workflow. `claude agents` honors the `agent` field in `settings.json`, with `--agent &lt;name&gt;` to override.
+> **CC 2.1.157, plugin auto-load + workflow-trigger control:** Plugins in `.claude/skills` auto-load (no marketplace required); `claude plugin init <name>` scaffolds one there. The "Workflow keyword trigger" toggle in `/config`, and pressing backspace right after the keyword, stops a bare "workflow"/"ultracode" from launching a dynamic workflow. `claude agents` honors the `agent` field in `settings.json`, with `--agent <name>` to override.
 
-> **CC 2.1.160 — write prompts for startup files & build configs:** Expect approval prompts before Claude writes shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`) or — in `acceptEdits` mode — build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). These are security defaults; approve them deliberately, don't pre-allow.
+> **CC 2.1.160, write prompts for startup files & build configs:** Expect approval prompts before Claude writes shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`) or, in `acceptEdits` mode, build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). These are security defaults; approve them deliberately, don't pre-allow.
 
-> **CC 2.1.141 — `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `ci-sentinel`, `bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
+> **CC 2.1.141, `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `ci-sentinel`, `bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
 
-> **CC 2.1.142 — `MCP_TOOL_TIMEOUT` for remote MCP:** the per-request timeout now actually applies to remote **HTTP/SSE** MCP servers (previously capped at 60s regardless of the configured value). Raise it (e.g. `MCP_TOOL_TIMEOUT=180000`) for long-poll tools — NotebookLM `studio_status`, knowledge-base ingest, index rebuilds — that legitimately run past 60s, so they don't silently time out and self-skip.
+> **CC 2.1.142, `MCP_TOOL_TIMEOUT` for remote MCP:** the per-request timeout now actually applies to remote **HTTP/SSE** MCP servers (previously capped at 60s regardless of the configured value). Raise it (e.g. `MCP_TOOL_TIMEOUT=180000`) for long-poll tools, NotebookLM `studio_status`, knowledge-base ingest, index rebuilds, that legitimately run past 60s, so they don't silently time out and self-skip.
 
-> **CC 2.1.169 — safe-mode + policy-enforcement fixes:** `--safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) starts CC with ALL customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers — the fastest way to bisect "is ork (or any plugin) causing this?" before filing a bug. Enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) are now enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, and before remote settings load — if your org sets them, previously-working unlisted servers may now be (correctly) blocked. Untrusted project settings can no longer set OTEL client-certificate paths without trust confirmation. Self-hosted runners get a `post-session` lifecycle hook (after session end, before workspace deletion) for snapshotting uncommitted work or exporting logs, plus a configurable SIGTERM→SIGKILL window (default 5s).
+> **CC 2.1.169, safe-mode + policy-enforcement fixes:** `--safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) starts CC with ALL customizations disabled, CLAUDE.md, plugins, skills, hooks, MCP servers, the fastest way to bisect "is ork (or any plugin) causing this?" before filing a bug. Enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) are now enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, and before remote settings load, if your org sets them, previously-working unlisted servers may now be (correctly) blocked. Untrusted project settings can no longer set OTEL client-certificate paths without trust confirmation. Self-hosted runners get a `post-session` lifecycle hook (after session end, before workspace deletion) for snapshotting uncommitted work or exporting logs, plus a configurable SIGTERM→SIGKILL window (default 5s).
 
-> **CC 2.1.166 — `fallbackModel` setting (up to 3 models):** the `fallbackModel` setting now accepts up to three models, tried in order when the primary is overloaded or unavailable, and `--fallback-model` now also applies to **interactive** sessions (not just headless). Set it for long `ork:implement` / `ork:brainstorm` runs so an overloaded primary degrades to the next model instead of stalling the run. Extends the 2.1.152 fallback note in `references/cc-version-settings.md`.
+> **CC 2.1.166, `fallbackModel` setting (up to 3 models):** the `fallbackModel` setting now accepts up to three models, tried in order when the primary is overloaded or unavailable, and `--fallback-model` now also applies to **interactive** sessions (not just headless). Set it for long `ork:implement` / `ork:brainstorm` runs so an overloaded primary degrades to the next model instead of stalling the run. Extends the 2.1.152 fallback note in `references/cc-version-settings.md`.
 
-> **CC 2.1.181 — `/config key=value` for one-off settings:** set any single setting straight from the prompt — `/config thinking=false`, `/config model=opus` — without opening the `/config` menu or hand-editing a settings file. Works in interactive, `-p`, and Remote Control. This is the fast path for a **one-off, ad-hoc** setting change. It does **not** replace durable automation: a "whenever X, do Y" behavior still requires a **hook in `settings.json`** (the harness executes hooks; `/config` only writes a setting value). Use `/config key=value` to flip a setting now; use this skill's hook flow when the change must fire automatically every session. See `references/cc-version-settings.md` § CC 2.1.181.
+> **CC 2.1.181, `/config key=value` for one-off settings:** set any single setting straight from the prompt, `/config thinking=false`, `/config model=opus`, without opening the `/config` menu or hand-editing a settings file. Works in interactive, `-p`, and Remote Control. This is the fast path for a **one-off, ad-hoc** setting change. It does **not** replace durable automation: a "whenever X, do Y" behavior still requires a **hook in `settings.json`** (the harness executes hooks; `/config` only writes a setting value). Use `/config key=value` to flip a setting now; use this skill's hook flow when the change must fire automatically every session. See `references/cc-version-settings.md` § CC 2.1.181.
 
 ## Step 5: Configure MCPs (Optional)
 
@@ -156,7 +156,7 @@ All 4 MCPs ship **enabled by default**. Tavily requires an API key.
 export ENABLE_CLAUDEAI_MCP_SERVERS=false
 ```
 
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai, locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
 ## Steps 6-9: CC Version-Specific Settings
 
@@ -174,7 +174,7 @@ For enterprise GitLab / GitHub Enterprise / Bitbucket installations with non-sta
 }
 ```
 
-Tokens: `\{host\}`, `\{owner\}`, `\{repo\}`, `\{n\}`. See `src/skills/chain-patterns/references/pr-from-platform.md` for the full host-family table and skill-side branching pattern.
+Tokens: `{host}`, `{owner}`, `{repo}`, `{n}`. See `src/skills/chain-patterns/references/pr-from-platform.md` for the full host-family table and skill-side branching pattern.
 
 ## Step 10: Webhook & Telemetry Configuration
 
@@ -216,7 +216,7 @@ Load `Read("references/http-hooks.md")` for the channel history and the CC URL-v
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
 >
-> **Tip (CC 2.1.152+):** If you edited or added **skills** in a skill directory (personal `~/.claude/skills/` or project `.claude/skills/` — not plugin-packaged ones), run `/reload-skills` to re-scan and pick them up in the same session. A `SessionStart` hook can do the same by returning `reloadSkills: true`.
+> **Tip (CC 2.1.152+):** If you edited or added **skills** in a skill directory (personal `~/.claude/skills/` or project `.claude/skills/`, not plugin-packaged ones), run `/reload-skills` to re-scan and pick them up in the same session. A `SessionStart` hook can do the same by returning `reloadSkills: true`.
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
@@ -245,7 +245,7 @@ That reference stages the rollout per #3424 rather than handing over one all-or-
 
 | Stage | Contents | Adopt when |
 |-------|----------|------------|
-| **1 LOOSE** | `sandbox.enabled`, the 19-host exfil denylist, credential file and env denies, `excludedCommands` carve-outs for `op *` / `docker *` / `ssh *` (wildcard form — bare names match only the arg-less command), no network allowlist | first, on a working machine |
+| **1 LOOSE** | `sandbox.enabled`, the 19-host exfil denylist, credential file and env denies, `excludedCommands` carve-outs for `op *` / `docker *` / `ssh *` (wildcard form, bare names match only the arg-less command), no network allowlist | first, on a working machine |
 | **2 STRICT** | adds `network.allowedDomains` with `strictAllowlist: true` | only after stage 1 has held for several days |
 
 **Start with stage 1.** Stage 2 denies every unlisted host with no prompt and will break `api.github.com`, localhost dev URLs, and telemetry ingest first. The reference spells out the expected breakage order and the per-line rollback.
@@ -254,13 +254,13 @@ This skill never writes an operator settings file. Enabling the sandbox is the o
 
 ## VSCode: Remote Control (CC 2.1.79+)
 
-VSCode users can run `/remote-control` to bridge their terminal session to `claude.ai/code`. This lets you continue the same session from a browser or phone — useful for monitoring long-running configurations or agent tasks away from your desk.
+VSCode users can run `/remote-control` to bridge their terminal session to `claude.ai/code`. This lets you continue the same session from a browser or phone, useful for monitoring long-running configurations or agent tasks away from your desk.
 
 ## Related Skills
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |

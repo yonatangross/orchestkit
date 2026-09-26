@@ -5,7 +5,7 @@ description: "UI interaction design patterns for skeleton loading, infinite scro
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="interaction-patterns" />
 
@@ -14,7 +14,7 @@ description: "UI interaction design patterns for skeleton loading, infinite scro
 
 # Interaction Patterns
 
-Codifiable UI interaction patterns that prevent common UX failures. Covers loading states, content pagination, disclosure patterns, overlays, drag-and-drop, tab overflow, and notification systems — all with accessibility baked in.
+Codifiable UI interaction patterns that prevent common UX failures. Covers loading states, content pagination, disclosure patterns, overlays, drag-and-drop, tab overflow, and notification systems, all with accessibility baked in.
 
 ## Quick Reference
 
@@ -33,7 +33,7 @@ Codifiable UI interaction patterns that prevent common UX failures. Covers loadi
 
 **Total: 10 rules across 6 categories**
 
-## Decision Table — Loading States
+## Decision Table: Loading States
 
 | Scenario | Pattern | Why |
 |----------|---------|-----|
@@ -175,21 +175,21 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 ## Key Principles
 
-1. **Keyboard parity** — Every mouse interaction MUST have a keyboard equivalent. No drag-only, no hover-only.
-2. **Skeleton over spinner** — Use content-shaped placeholders for data loading; reserve spinners for indeterminate actions.
-3. **Native HTML first** — Prefer `&lt;dialog&gt;`, `<details>`, `role="feed"` over custom implementations.
-4. **Progressive enhancement** — Features should work without JS where possible, then enhance with interaction.
-5. **Announce state changes** — Use `aria-live` regions to announce dynamic content changes to screen readers.
-6. **Respect scroll position** — Back navigation must restore scroll position; infinite scroll must not lose user's place.
+1. **Keyboard parity**: Every mouse interaction MUST have a keyboard equivalent. No drag-only, no hover-only.
+2. **Skeleton over spinner**: Use content-shaped placeholders for data loading; reserve spinners for indeterminate actions.
+3. **Native HTML first**: Prefer `<dialog>`, `<details>`, `role="feed"` over custom implementations.
+4. **Progressive enhancement**: Features should work without JS where possible, then enhance with interaction.
+5. **Announce state changes**: Use `aria-live` regions to announce dynamic content changes to screen readers.
+6. **Respect scroll position**: Back navigation must restore scroll position; infinite scroll must not lose user's place.
 
 ## Anti-Patterns (FORBIDDEN)
 
-- **Spinner for content loading** — Spinners give no spatial hint. Use skeletons matching the content shape.
-- **Infinite scroll without Load More** — Screen readers and keyboard users cannot reach footer content. Always provide a button fallback.
-- **Modal for browsable content** — Modals trap focus and block interaction. Use drawers or inline expansion for browsing.
-- **Drag-only reorder** — Excludes keyboard and assistive tech users. Always provide arrow key + Enter alternatives.
-- **Toast without ARIA role** — Toasts are invisible to screen readers. Use `role="status"` for success, `role="alert"` for errors.
-- **Auto-dismiss error toasts** — Users need time to read errors. Never auto-dismiss error notifications.
+- **Spinner for content loading**: Spinners give no spatial hint. Use skeletons matching the content shape.
+- **Infinite scroll without Load More**: Screen readers and keyboard users cannot reach footer content. Always provide a button fallback.
+- **Modal for browsable content**: Modals trap focus and block interaction. Use drawers or inline expansion for browsing.
+- **Drag-only reorder**: Excludes keyboard and assistive tech users. Always provide arrow key + Enter alternatives.
+- **Toast without ARIA role**: Toasts are invisible to screen readers. Use `role="status"` for success, `role="alert"` for errors.
+- **Auto-dismiss error toasts**: Users need time to read errors. Never auto-dismiss error notifications.
 
 ## Detailed Documentation
 
@@ -201,11 +201,11 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 ## Related Skills
 
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:animation-motion-design` — Motion library and View Transitions API
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:responsive-patterns` — Responsive layout and container query patterns
-- `ork:performance` — Core Web Vitals and runtime performance optimization
+- `ork:ui-components`: shadcn/ui component patterns and CVA variants
+- `ork:animation-motion-design`: Motion library and View Transitions API
+- `ork:accessibility`: WCAG compliance, ARIA patterns, screen reader support
+- `ork:responsive-patterns`: Responsive layout and container query patterns
+- `ork:performance`: Core Web Vitals and runtime performance optimization
 
 
 ---
@@ -217,7 +217,7 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 ## Cognitive Load Thresholds
 
-Three cognitive science laws with specific, countable thresholds. Apply these as checks during component design — if any count exceeds the limit, restructure before shipping.
+Three cognitive science laws with specific, countable thresholds. Apply these as checks during component design, if any count exceeds the limit, restructure before shipping.
 
 ### Miller's Law: 4±1 Working Memory Chunks (max 7)
 
@@ -324,14 +324,14 @@ async function handleSave(newItem: Item) {
 
 | Delay | Required feedback |
 |-------|------------------|
-| 0–400ms | No indicator needed (perceived as instant) |
-| 400ms–1s | Loading indicator (spinner or inline) |
+| 0-400ms | No indicator needed (perceived as instant) |
+| 400ms-1s | Loading indicator (spinner or inline) |
 | > 1s | Progress indicator + skeleton if layout changes |
 | > 2s | Determinate progress bar if measurable |
 
 **Key rules:**
 - Optimistic updates: reflect expected result at 0ms, reconcile after API responds
-- Skeleton: display within 200ms of navigation trigger — never show blank screen first
+- Skeleton: display within 200ms of navigation trigger, never show blank screen first
 - Use `determinate` progress (bar with %) when total is known; `indeterminate` (spinner) only as fallback
 - Never fire-and-forget mutations without visual acknowledgment
 
@@ -462,7 +462,7 @@ function SortableList({ items, onReorder }: Props) {
 - Use `sortableKeyboardCoordinates` for arrow key navigation within sortable lists
 - Announce drag start, position changes, and drop via `aria-live="assertive"`
 - Provide visual feedback during drag: `opacity`, `shadow`, or `scale` on the dragged item
-- Use `@dnd-kit/core` — not HTML5 drag API which has no keyboard support
+- Use `@dnd-kit/core`, not HTML5 drag API which has no keyboard support
 - Escape must cancel the drag and return the item to its original position
 
 References:
@@ -517,7 +517,7 @@ Cognitive science principles for form design: Fitts's Law for target acquisition
 
 ### Label Placement: Top-Aligned
 
-**Incorrect:** `&lt;input placeholder="Enter your email" /&gt;` — placeholder disappears on focus, fails a11y.
+**Incorrect:** `<input placeholder="Enter your email" />`, placeholder disappears on focus, fails a11y.
 
 **Correct:**
 ```tsx
@@ -536,7 +536,7 @@ Cognitive science principles for form design: Fitts's Law for target acquisition
 </div>
 ```
 
-**Key rules:** top-aligned labels are fastest (NNG eye-tracking); never placeholder-only; mark optional fields not required ones; group with `&lt;fieldset&gt;` + `&lt;legend&gt;`.
+**Key rules:** top-aligned labels are fastest (NNG eye-tracking); never placeholder-only; mark optional fields not required ones; group with `<fieldset>` + `<legend>`.
 
 ### Error Handling: Poka-Yoke (Mistake-Proofing) with React Hook Form + Zod
 
@@ -598,14 +598,14 @@ function ContactForm() {
 }
 ```
 
-**Error message formula:** "[Field] — [cause] — [fix]"
-- "We couldn't verify this email — check for typos or try a different address" (system blame, fix given)
+**Error message formula:** "[Field], [cause], [fix]"
+- "We couldn't verify this email, check for typos or try a different address" (system blame, fix given)
 - NOT: "Invalid email" (user blame, no fix)
 
-**Key rules (Smart Defaults — Postel's Law):**
-- Pre-fill sensible defaults — never start from zero
-- Use `&lt;select&gt;` / radio for known options — constrain inputs to prevent errors at the source
-- Validate on `blur`, NOT `keydown` — keystroke validation fires while the user is still typing
+**Key rules (Smart Defaults, Postel's Law):**
+- Pre-fill sensible defaults, never start from zero
+- Use `<select>` / radio for known options, constrain inputs to prevent errors at the source
+- Validate on `blur`, NOT `keydown`, keystroke validation fires while the user is still typing
 - Remember prior choices in multi-step flows (`sessionStorage` or URL state)
 - Context-aware defaults: country from locale, date format from region
 
@@ -716,9 +716,9 @@ useEffect(() => {
 **Key rules:**
 - Use `role="feed"` on the container with `aria-busy` during fetches
 - Each item needs `aria-posinset` and `aria-setsize` (set `-1` when total unknown)
-- Always provide a visible "Load more" button below the sentinel — never rely solely on auto-load
+- Always provide a visible "Load more" button below the sentinel, never rely solely on auto-load
 - Use `rootMargin: "200px"` on IntersectionObserver to pre-fetch before the user reaches the end
-- Announce item count changes via `aria-live="polite"` — never `"assertive"`
+- Announce item count changes via `aria-live="polite"`, never `"assertive"`
 - Preserve scroll position in `sessionStorage` for back navigation restoration
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/feed/
@@ -729,7 +729,7 @@ Reference: https://www.w3.org/WAI/ARIA/apg/patterns/feed/
 
 ## Modal vs Drawer vs Inline
 
-Choose the right overlay pattern: `&lt;dialog&gt;` modal for confirmations and critical actions, drawer (side panel) for detail views and forms, inline expansion for simple toggles and previews.
+Choose the right overlay pattern: `<dialog>` modal for confirmations and critical actions, drawer (side panel) for detail views and forms, inline expansion for simple toggles and previews.
 
 **Incorrect:**
 ```tsx
@@ -802,7 +802,7 @@ function ProductList({ products }: Props) {
 }
 ```
 
-### Modal with Native `&lt;dialog&gt;`
+### Modal with Native `<dialog>`
 
 ```tsx
 // Use native <dialog> for confirmations — built-in focus trap and Escape handling
@@ -836,7 +836,7 @@ function DeleteConfirmation({ onConfirm, onCancel }: Props) {
 
 | Scenario | Pattern | Why |
 |----------|---------|-----|
-| Delete confirmation | Modal (`&lt;dialog&gt;`) | Critical action, needs focus lock |
+| Delete confirmation | Modal (`<dialog>`) | Critical action, needs focus lock |
 | Item detail view | Drawer (side panel) | Preserves list context |
 | Settings toggle | Inline expansion | Simple, no overlay needed |
 | Multi-field form | Drawer | Space for inputs, closeable |
@@ -844,7 +844,7 @@ function DeleteConfirmation({ onConfirm, onCancel }: Props) {
 | Image preview | Inline / lightbox | Quick glance, no form inputs |
 
 **Key rules:**
-- Use native `&lt;dialog&gt;` element for modals — built-in `showModal()`, focus trap, Escape to close
+- Use native `<dialog>` element for modals, built-in `showModal()`, focus trap, Escape to close
 - Modal = critical actions only (delete, confirm, acknowledge). Never for browsing.
 - Drawer = detail views, forms, settings panels. Preserves page context.
 - Inline = simple toggles, previews, small expansions. No overlay, no focus trap.
@@ -861,7 +861,7 @@ Reference: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
 
 The line between legitimate engagement and manipulation is testable: ethical patterns benefit the user and are reversible; dark patterns deceive or trap. Detect and reject the 13 red flags below before shipping.
 
-### 13 Dark Pattern Red Flags — Detect and Reject
+### 13 Dark Pattern Red Flags: Detect and Reject
 
 | # | Pattern | Description | Signal to detect |
 |---|---------|-------------|-----------------|
@@ -930,9 +930,9 @@ The line between legitimate engagement and manipulation is testable: ethical pat
 ### Legitimate Engagement: Hook Model (Ethical When User Benefits)
 
 The Hook Model (Trigger → Action → Variable Reward → Investment) is ethical when:
-1. **User is aware** — the mechanism is transparent
-2. **Action is freely reversible** — easy to unsubscribe, undo, delete
-3. **User benefits** — the habit improves their outcome, not just retention metrics
+1. **User is aware**: the mechanism is transparent
+2. **Action is freely reversible**: easy to unsubscribe, undo, delete
+3. **User benefits**: the habit improves their outcome, not just retention metrics
 
 **Ethical engagement patterns:**
 
@@ -943,7 +943,7 @@ The Hook Model (Trigger → Action → Variable Reward → Investment) is ethica
 | Progress | Show completion % in onboarding | Helps user achieve their own goal |
 | Variable reward | Notifications for genuinely relevant events | User opted in and gets real value |
 
-**The Ethical Line — 3-question test:**
+**The Ethical Line, 3-question test:**
 
 ```
 1. Is the user aware of what's happening?        YES → proceed  |  NO → dark pattern
@@ -952,15 +952,15 @@ The Hook Model (Trigger → Action → Variable Reward → Investment) is ethica
 ```
 
 **Key rules:**
-- Cancellation must be as easy as signup — if signup = 1 click, cancellation must be self-serve
+- Cancellation must be as easy as signup, if signup = 1 click, cancellation must be self-serve
 - Countdown timers: only use when the deadline is real and server-enforced
 - Pre-selected checkboxes: opt-in (beneficial to user) is acceptable; opt-out (data sharing) is a dark pattern
-- Copy for "no" options must be factual and neutral — never shame, never minimize
-- EU Digital Services Act Art. 25 and FTC guidelines prohibit deceptive patterns — regulatory risk is real
+- Copy for "no" options must be factual and neutral, never shame, never minimize
+- EU Digital Services Act Art. 25 and FTC guidelines prohibit deceptive patterns, regulatory risk is real
 
 References:
-- https://www.deceptive.design (Dark Patterns Hall of Shame — 13-pattern taxonomy)
-- https://nirandfar.com/hooked/ (Hook Model — ethical engagement framework)
+- https://www.deceptive.design (Dark Patterns Hall of Shame, 13-pattern taxonomy)
+- https://nirandfar.com/hooked/ (Hook Model, ethical engagement framework)
 - https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32022R2065 (EU DSA Art. 25)
 
 
@@ -1075,9 +1075,9 @@ function OnboardingWizard() {
 ```
 
 **Key rules:**
-- Use native `<details>` / `<summary>` for simple accordions — zero JS, built-in a11y
+- Use native `<details>` / `<summary>` for simple accordions, zero JS, built-in a11y
 - Group settings by frequency of use: common (visible) > occasional (accordion) > rare (panel)
-- Never hide primary actions behind disclosure — only secondary and advanced options
+- Never hide primary actions behind disclosure, only secondary and advanced options
 - Wizard steps must show progress (`aria-label="Step 2 of 4"`) and allow back navigation
 - Limit visible options to 5-7 items per group (Miller's Law)
 
@@ -1162,11 +1162,11 @@ function TableRowSkeleton() {
 ```
 
 **Key rules:**
-- Skeleton shapes must match the content they replace — same height, width, and position
-- Use `animate-pulse` (Tailwind) or CSS `@keyframes` for subtle shimmer — never spinning skeleton
-- Show skeletons only for loads > 200ms — use `startTransition` or delay to avoid flash
+- Skeleton shapes must match the content they replace, same height, width, and position
+- Use `animate-pulse` (Tailwind) or CSS `@keyframes` for subtle shimmer, never spinning skeleton
+- Show skeletons only for loads > 200ms, use `startTransition` or delay to avoid flash
 - Match skeleton count to expected content count (e.g., 6 card skeletons for a 6-item grid)
-- Never nest spinners inside skeletons — pick one pattern per loading context
+- Never nest spinners inside skeletons, pick one pattern per loading context
 
 References:
 - https://web.dev/articles/ux-basics-skeleton-screens
@@ -1289,9 +1289,9 @@ function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string
 ```
 
 **Key rules:**
-- Show scroll arrows only when content overflows — check `scrollWidth > clientWidth`
+- Show scroll arrows only when content overflows, check `scrollWidth > clientWidth`
 - Use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with `aria-selected` and `aria-controls`
-- Only the active tab has `tabIndex=\{0\}`; all others get `tabIndex=\{-1\}` (roving tabindex)
+- Only the active tab has `tabIndex={0}`; all others get `tabIndex={-1}` (roving tabindex)
 - Arrow keys navigate between tabs; Tab key moves focus to the panel content
 - For 10+ tabs, add an overflow dropdown menu ("More...") showing hidden tabs
 - Hide scrollbar with CSS `scrollbar-width: none` (or Tailwind plugin `scrollbar-none`) but keep scroll arrows visible
@@ -1406,7 +1406,7 @@ const visibleToasts = toasts.slice(-3)
 - Position: `top-right` on desktop, `bottom-center` on mobile (use media query)
 - Stack max 3 visible toasts; dismiss oldest when limit is exceeded
 - Every toast must have a visible dismiss button (not just auto-dismiss)
-- Consider using `sonner` library — built-in a11y, stacking, and swipe-to-dismiss
+- Consider using `sonner` library, built-in a11y, stacking, and swipe-to-dismiss
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/alert/
 
@@ -1429,7 +1429,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 |---------|-------------|-------------|------|
 | Skeleton screen | Content loading with known layout | `animate-pulse` divs matching content shape | `aria-busy="true"` |
 | Inline spinner | Button/form submission | Spinner replacing button text | `aria-busy`, disable button |
-| Progress bar | Measurable operations (upload, export) | `&lt;progress&gt;` element | `aria-valuenow`, `aria-valuemax` |
+| Progress bar | Measurable operations (upload, export) | `<progress>` element | `aria-valuenow`, `aria-valuemax` |
 | Optimistic update | Low-risk mutations (like, bookmark) | Immediate UI change, rollback on error | Announce rollback |
 
 ## Scrolling & Pagination
@@ -1454,7 +1454,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 
 | Pattern | When to Use | Key Element | a11y |
 |---------|-------------|-------------|------|
-| Modal dialog | Confirmations, critical actions | `&lt;dialog&gt;` element | Focus trap, `aria-modal` |
+| Modal dialog | Confirmations, critical actions | `<dialog>` element | Focus trap, `aria-modal` |
 | Drawer / Side panel | Detail views, forms, settings | Slide-in panel | `role="complementary"` |
 | Popover | Context menus, dropdowns | Popover API or floating-ui | `aria-haspopup`, focus management |
 | Lightbox | Image/video preview | Full-screen overlay | Focus trap, Escape to close |
@@ -1475,7 +1475,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 |---------|-------------|-------------|------|
 | Tabs | 2-6 related views | `role="tablist"` | Arrow key navigation |
 | Scrollable tabs | 7+ tabs | Scroll arrows + overflow menu | Roving tabindex |
-| Breadcrumbs | Deep hierarchies | `&lt;nav aria-label="Breadcrumb"&gt;` | `aria-current="page"` |
+| Breadcrumbs | Deep hierarchies | `<nav aria-label="Breadcrumb">` | `aria-current="page"` |
 | Stepper / Wizard | Multi-step processes | Step indicators + back/next | `aria-current="step"` |
 
 ## Feedback
@@ -1489,11 +1489,11 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 
 ## Selection Guidelines
 
-1. **Prefer native HTML** — `&lt;dialog&gt;`, `<details>`, `&lt;progress&gt;` over custom implementations
-2. **Match complexity to task** — Tooltip for a hint, modal for a critical decision
-3. **Mobile-first** — Ensure touch targets are 44x44px minimum, swipe actions have button fallbacks
-4. **Keyboard always** — Every pattern must be operable via keyboard alone
-5. **Announce changes** — Dynamic content changes need `aria-live` announcements
+1. **Prefer native HTML**: `<dialog>`, `<details>`, `<progress>` over custom implementations
+2. **Match complexity to task**: Tooltip for a hint, modal for a critical decision
+3. **Mobile-first**: Ensure touch targets are 44x44px minimum, swipe actions have button fallbacks
+4. **Keyboard always**: Every pattern must be operable via keyboard alone
+5. **Announce changes**: Dynamic content changes need `aria-live` announcements
 
 
 ### Keyboard Interaction Matrix
@@ -1524,7 +1524,7 @@ Keyboard shortcuts and interaction patterns for all interactive components, alig
 | Tab | Move focus into tab panel |
 | Enter / Space | Activate focused tab (manual activation mode) |
 
-## Dialog (`&lt;dialog&gt;`)
+## Dialog (`<dialog>`)
 
 | Key | Action |
 |-----|--------|
@@ -1596,11 +1596,11 @@ Keyboard shortcuts and interaction patterns for all interactive components, alig
 
 ## General Principles
 
-1. **Roving tabindex** — In composite widgets (tabs, menus), only one item has `tabIndex=\{0\}`. Arrow keys move focus. Tab leaves the widget.
-2. **Focus visible** — All focusable elements must have a visible focus indicator (`:focus-visible` outline).
-3. **Focus restoration** — When closing overlays, return focus to the element that triggered the overlay.
-4. **No keyboard traps** — Users must always be able to navigate away from any component using Tab or Escape.
-5. **Skip links** — Provide "Skip to main content" links for keyboard users navigating past repeated headers/nav.
+1. **Roving tabindex**: In composite widgets (tabs, menus), only one item has `tabIndex={0}`. Arrow keys move focus. Tab leaves the widget.
+2. **Focus visible**: All focusable elements must have a visible focus indicator (`:focus-visible` outline).
+3. **Focus restoration**: When closing overlays, return focus to the element that triggered the overlay.
+4. **No keyboard traps**: Users must always be able to navigate away from any component using Tab or Escape.
+5. **Skip links**: Provide "Skip to main content" links for keyboard users navigating past repeated headers/nav.
 
 ## Testing Checklist
 
@@ -1608,7 +1608,7 @@ Keyboard shortcuts and interaction patterns for all interactive components, alig
 - [ ] Arrow keys work within composite widgets (tabs, menus, drag handles)
 - [ ] Escape closes overlays and cancels drag operations
 - [ ] Focus returns to trigger element after overlay closes
-- [ ] No keyboard traps — Tab always moves focus forward
+- [ ] No keyboard traps, Tab always moves focus forward
 - [ ] Focus indicator visible on all focused elements
 - [ ] Screen reader announces state changes via `aria-live`
 
@@ -1671,8 +1671,8 @@ Is the operation measurable (known total)?
 ### Progress Bar
 
 - Show percentage and/or time estimate for operations > 5s
-- Use `&lt;progress&gt;` element for semantic HTML
-- Update smoothly — avoid jumps larger than 10%
+- Use `<progress>` element for semantic HTML
+- Update smoothly, avoid jumps larger than 10%
 - Show indeterminate state if total is temporarily unknown
 
 ### Blur Placeholder
@@ -1695,9 +1695,9 @@ Is the operation measurable (known total)?
 
 ## Anti-Patterns
 
-- **Spinner for content loading** — Gives no spatial hint; use skeleton instead
-- **Flash of loading state** — Show skeleton only after 200ms delay
-- **Progress bar jumping backward** — Never decrease progress; use indeterminate if uncertain
-- **Multiple loading indicators** — One loading indicator per visual region, not per component
-- **Loading without timeout** — Always set a timeout and show error/retry after 30s
+- **Spinner for content loading**: Gives no spatial hint; use skeleton instead
+- **Flash of loading state**: Show skeleton only after 200ms delay
+- **Progress bar jumping backward**: Never decrease progress; use indeterminate if uncertain
+- **Multiple loading indicators**: One loading indicator per visual region, not per component
+- **Loading without timeout**: Always set a timeout and show error/retry after 30s
 

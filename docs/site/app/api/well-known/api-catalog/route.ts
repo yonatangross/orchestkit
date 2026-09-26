@@ -75,7 +75,7 @@ export function GET() {
 					{
 						href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
 						type: "text/html",
-						title: "MCP server (stdio, Docker image — second MCP surface)",
+						title: "MCP server (stdio, Docker image, second MCP surface)",
 					},
 					{
 						href: "https://pypi.org/project/orchestkit-hook-contract/",

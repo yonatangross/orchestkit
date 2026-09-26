@@ -5,10 +5,6 @@ description: "Doctor Report Format for the Doctor skill."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Report Format
-
-# Doctor Report Format
-
 ## ASCII Report
 
 **Full ork plugin:**
@@ -34,7 +30,7 @@ description: "Doctor Report Format for the Doctor skill."
 +===================================================================+
 ```
 
-> **Note:** `\{version\}` is read from `package.json` at runtime. `\{cc_version\}` is detected from Claude Code. Counts reflect installed plugin — dynamic, not hardcoded.
+> **Note:** `{version}` is read from `package.json` at runtime. `{cc_version}` is detected from Claude Code. Counts reflect installed plugin, dynamic, not hardcoded.
 
 
 ## JSON Output (CI Integration)
@@ -75,4 +71,3 @@ description: "Doctor Report Format for the Doctor skill."
 |------|---------|
 | 0 | All checks pass |
 | 1 | One or more checks failed |
-

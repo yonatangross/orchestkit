@@ -5,10 +5,6 @@ description: "Quick remediation steps for common /ork:doctor findings."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Remediation Guide
-
-# Remediation Guide
-
 Quick remediation steps for common `/ork:doctor` findings.
 
 ## Interpreting Results
@@ -61,7 +57,7 @@ claude plugin validate
 
 ### "Stale plugin paths in PATH"
 
-CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.220). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC &lt; 2.1.128, upgrade.
+CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically, no maintenance needed at our floor (2.1.220). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC &lt; 2.1.128, upgrade.
 
 ### "Auto mode unable to evaluate"
 
@@ -72,11 +68,11 @@ Auto mode could not evaluate this action.
   hint: retry, use /compact, or run with --debug
 ```
 
-Pick whichever applies — `/compact` if context is full, `--debug` to see the classifier's reasoning, retry if it was transient.
+Pick whichever applies, `/compact` if context is full, `--debug` to see the classifier's reasoning, retry if it was transient.
 
 ### "Logged out after laptop wake"
 
-If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race — concurrent wake-time refreshes invalidated the active token across every running session.
+If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race, concurrent wake-time refreshes invalidated the active token across every running session.
 
 **Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.220, so anyone on the supported window is already fixed). Recover the session with:
 
@@ -84,13 +80,13 @@ If multiple CC sessions all logged themselves out at the same moment after the l
 claude /login
 ```
 
-Then `claude --resume` the affected session(s). Checkpoint state in `.claude/pipeline-state.json` survives — see `checkpoint-resume` skill for resume semantics.
+Then `claude --resume` the affected session(s). Checkpoint state in `.claude/pipeline-state.json` survives, see `checkpoint-resume` skill for resume semantics.
 
-If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race — investigate the refresh token (expired, keychain ACL changed, 1Password locked) instead.
+If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race, investigate the refresh token (expired, keychain ACL changed, 1Password locked) instead.
 
 ### "All concurrent sessions 401 simultaneously"
 
-If you had multiple CC sessions open (worktree-isolated agents, parallel `/ork:implement` chains, multi-tab work) and every one of them dead-ended at `401 Unauthorized` at the same instant — that is the pre-2.1.133 parallel-session refresh-token race. A refresh-token rotation fired in one session, the other sessions raced against it, and they all wound up holding the now-invalidated old token.
+If you had multiple CC sessions open (worktree-isolated agents, parallel `/ork:implement` chains, multi-tab work) and every one of them dead-ended at `401 Unauthorized` at the same instant, that is the pre-2.1.133 parallel-session refresh-token race. A refresh-token rotation fired in one session, the other sessions raced against it, and they all wound up holding the now-invalidated old token.
 
 **Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.220, so the supported window is already past this). Recover the stuck sessions with:
 
@@ -100,11 +96,11 @@ claude /login
 
 Then `claude --resume` the affected sessions. Worktree state in each agent's branch is unaffected.
 
-If "all sessions 401 at once" still reproduces on CC ≥ 2.1.133, the cause is no longer this race — check the refresh token itself (expired, revoked by the IdP, keychain ACL changed, 1Password locked). See also the "Logged out after laptop wake" entry above for the related 2.1.129 wake-from-sleep race.
+If "all sessions 401 at once" still reproduces on CC ≥ 2.1.133, the cause is no longer this race, check the refresh token itself (expired, revoked by the IdP, keychain ACL changed, 1Password locked). See also the "Logged out after laptop wake" entry above for the related 2.1.129 wake-from-sleep race.
 
 ### "EnterWorktree drops my unpushed commits"
 
-If a worktree spawned via `EnterWorktree`, `--worktree`, or an agent run with `isolation: "worktree"` is missing commits you made locally but never pushed — and `git log` in the new worktree starts from `origin/&lt;default-branch&gt;` instead of your current `HEAD` — that is CC 2.1.133's new `worktree.baseRef` default at work. CC 2.1.133 added the setting with default `"fresh"`, which branches new worktrees from `origin/&lt;default&gt;` rather than local `HEAD` (the 2.1.128–2.1.132 behavior).
+If a worktree spawned via `EnterWorktree`, `--worktree`, or an agent run with `isolation: "worktree"` is missing commits you made locally but never pushed, and `git log` in the new worktree starts from `origin/<default-branch>` instead of your current `HEAD`, that is CC 2.1.133's new `worktree.baseRef` default at work. CC 2.1.133 added the setting with default `"fresh"`, which branches new worktrees from `origin/<default>` rather than local `HEAD` (the 2.1.128-2.1.132 behavior).
 
 **Fix**: set `worktree.baseRef: "head"` in `.claude/settings.json` (project) or `~/.claude/settings.json` (user):
 
@@ -116,7 +112,6 @@ If a worktree spawned via `EnterWorktree`, `--worktree`, or an agent run with `i
 }
 ```
 
-After adding the setting, spawn a fresh worktree — the new one will branch from local `HEAD` and include your unpushed commits. Existing worktrees that were created without the setting need to be recreated; you can recover their work by cherry-picking commits from the original branch first.
+After adding the setting, spawn a fresh worktree, the new one will branch from local `HEAD` and include your unpushed commits. Existing worktrees that were created without the setting need to be recreated; you can recover their work by cherry-picking commits from the original branch first.
 
-See `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/worktree-agent-pattern.md` for the full agent-isolation context, and `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the upstream change description.
-
+See `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md` for the full agent-isolation context, and `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the upstream change description.

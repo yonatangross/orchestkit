@@ -5,7 +5,7 @@ description: "Animation and motion design patterns using Motion library (formerl
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="animation-motion-design" />
 
@@ -29,7 +29,7 @@ Patterns for building performant, accessible animations using **Motion** (former
 
 **Total: 6 rules across 3 categories**
 
-## Decision Table — Motion vs View Transitions API
+## Decision Table: Motion vs View Transitions API
 
 | Scenario | Recommendation | Why |
 |----------|---------------|-----|
@@ -44,7 +44,7 @@ Patterns for building performant, accessible animations using **Motion** (former
 
 ## Quick Start
 
-### Motion — Component Animation
+### Motion: Component Animation
 
 ```tsx
 import { motion, AnimatePresence } from "motion/react"
@@ -75,7 +75,7 @@ function CardList({ items }: { items: Item[] }) {
 }
 ```
 
-### View Transitions API — Page Navigation
+### View Transitions API: Page Navigation
 
 ```tsx
 // React Router v7+ with View Transitions
@@ -90,7 +90,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
 // ::view-transition-new(root) { animation: fade-in 200ms ease; }
 ```
 
-### Motion — Accessible by Default
+### Motion: Accessible by Default
 
 ```tsx
 import { useReducedMotion } from "motion/react"
@@ -150,11 +150,11 @@ GPU compositing, avoiding layout thrash, and keeping animations at 60fps.
 
 ## Key Principles
 
-1. **60fps or nothing** — Only animate `transform` and `opacity` (composite properties). Never animate `width`, `height`, `top`, or `left`.
-2. **Centralized presets** — Define animation variants in a shared file, not inline on every component.
-3. **AnimatePresence for exits** — React unmounts instantly; wrap with AnimatePresence to animate out.
-4. **Spring over duration** — Springs feel natural and are interruptible. Use `stiffness`/`damping`, not `duration`.
-5. **Respect user preferences** — Always check `prefers-reduced-motion` and provide instant alternatives.
+1. **60fps or nothing**: Only animate `transform` and `opacity` (composite properties). Never animate `width`, `height`, `top`, or `left`.
+2. **Centralized presets**: Define animation variants in a shared file, not inline on every component.
+3. **AnimatePresence for exits**: React unmounts instantly; wrap with AnimatePresence to animate out.
+4. **Spring over duration**: Springs feel natural and are interruptible. Use `stiffness`/`damping`, not `duration`.
+5. **Respect user preferences**: Always check `prefers-reduced-motion` and provide instant alternatives.
 
 ## Performance Budget
 
@@ -168,12 +168,12 @@ GPU compositing, avoiding layout thrash, and keeping animations at 60fps.
 
 ## Anti-Patterns (FORBIDDEN)
 
-- **Animating layout properties** — Never animate `width`, `height`, `margin`, `padding` directly. Use `transform: scale()` instead.
-- **Missing AnimatePresence** — Components unmount instantly without it; exit animations are silently lost.
-- **Ignoring prefers-reduced-motion** — Causes vestibular disorders for ~35% of users with motion sensitivity.
-- **Inline transition objects** — Creates new objects every render, breaking React memoization.
-- **duration-based springs** — Motion springs use `stiffness`/`damping`, not `duration`. Mixing causes unexpected behavior.
-- **Synchronous startViewTransition** — Always await or handle the promise from `document.startViewTransition()`.
+- **Animating layout properties**: Never animate `width`, `height`, `margin`, `padding` directly. Use `transform: scale()` instead.
+- **Missing AnimatePresence**: Components unmount instantly without it; exit animations are silently lost.
+- **Ignoring prefers-reduced-motion**: Causes vestibular disorders for ~35% of users with motion sensitivity.
+- **Inline transition objects**: Creates new objects every render, breaking React memoization.
+- **duration-based springs**: Motion springs use `stiffness`/`damping`, not `duration`. Mixing causes unexpected behavior.
+- **Synchronous startViewTransition**: Always await or handle the promise from `document.startViewTransition()`.
 
 ## Detailed Documentation
 
@@ -185,10 +185,10 @@ GPU compositing, avoiding layout thrash, and keeping animations at 60fps.
 
 ## Related Skills
 
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:responsive-patterns` — Responsive layout and container query patterns
-- `ork:performance` — Core Web Vitals and runtime performance optimization
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork:ui-components`: shadcn/ui component patterns and CVA variants
+- `ork:responsive-patterns`: Responsive layout and container query patterns
+- `ork:performance`: Core Web Vitals and runtime performance optimization
+- `ork:accessibility`: WCAG compliance, ARIA patterns, screen reader support
 
 
 ---
@@ -285,10 +285,10 @@ const variants = useAccessibleVariants(
 
 **Key rules:**
 - Always call `useReducedMotion()` and provide a meaningful reduced alternative
-- Never remove animations entirely — replace motion with opacity changes to preserve feedback
+- Never remove animations entirely, replace motion with opacity changes to preserve feedback
 - Auto-playing animations (carousels, marquees) must be completely disabled for reduced motion
 - Test with `prefers-reduced-motion: reduce` enabled in browser DevTools
-- Forced-colors mode breaks color-dependent animations — add border or outline alternatives
+- Forced-colors mode breaks color-dependent animations, add border or outline alternatives
 
 Reference: https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
 
@@ -372,7 +372,7 @@ function Notification({ show, message }: Props) {
 - Every direct child of `AnimatePresence` must have a unique `key` prop
 - Use `mode="wait"` for page transitions where old content should fully exit before new enters
 - Use `mode="popLayout"` for lists where exiting items should not push remaining items around
-- Keep exit animations short (150-250ms) — users should not wait for animations to complete
+- Keep exit animations short (150-250ms), users should not wait for animations to complete
 
 Reference: https://motion.dev/docs/animate-presence
 
@@ -548,7 +548,7 @@ import { LayoutGroup } from "motion/react"
 
 **Key rules:**
 - Use `layout` for position/size changes, never animate `width`/`height` directly
-- Use `layoutId` for shared element transitions — IDs must be unique within a `LayoutGroup`
+- Use `layoutId` for shared element transitions, IDs must be unique within a `LayoutGroup`
 - Set `layout="position"` to only animate position (skip size), reducing visual distortion
 - Wrap siblings in `LayoutGroup` to scope layout animations and prevent cross-contamination
 - Add `layoutDependency` when layout changes depend on non-React state
@@ -655,10 +655,10 @@ import { motion } from "motion/mini"  // ~5KB vs ~16KB
 ```
 
 **Key rules:**
-- Animate only `transform` and `opacity` — everything else triggers layout/paint
-- Do not manually set `will-change` on `motion` components — Motion manages GPU promotion
+- Animate only `transform` and `opacity`, everything else triggers layout/paint
+- Do not manually set `will-change` on `motion` components, Motion manages GPU promotion
 - Use `motion/mini` for simple animations where layout animations are not needed
-- Stagger large lists with `staggerChildren: 0.03` max — longer staggers feel sluggish
+- Stagger large lists with `staggerChildren: 0.03` max, longer staggers feel sluggish
 - Measure with Performance API and DevTools Rendering panel, not visual inspection
 - Use `useInView` to skip animations for off-screen elements in long lists
 
@@ -762,7 +762,7 @@ function safeViewTransition(callback: () => void | Promise<void>) {
 **Key rules:**
 - Always feature-detect `document.startViewTransition` before using it
 - `viewTransitionName` values must be unique on the page at transition time
-- View Transitions cannot be interrupted — once started, they run to completion
+- View Transitions cannot be interrupted, once started, they run to completion
 - Use CSS `::view-transition-old()` and `::view-transition-new()` for custom animations
 - Keep transition animations under 300ms for navigation; users expect instant page loads
 - Prefer React Router's `viewTransition` prop over manual `startViewTransition` calls
@@ -1217,10 +1217,10 @@ function BadgeCount({ count }: { count: number }) {
 - Cannot be interrupted once started
 - Only one transition can run at a time
 - `viewTransitionName` must be unique on the page
-- No spring physics — CSS easing only
+- No spring physics, CSS easing only
 - Cross-document transitions require same-origin
 - No gesture support
-- Snapshot-based — cannot animate mid-state
+- Snapshot-based, cannot animate mid-state
 
 ### Motion
 - Adds ~16KB to bundle (or ~5KB with motion/mini)

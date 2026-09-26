@@ -1,35 +1,35 @@
 ---
 title: "Emulate Seed"
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs, full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="emulate-seed" />
 
-> **Emulate Seed** Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.
+> **Emulate Seed** Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs, full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.
 
 
 # Emulate Seed Configs
 
-Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0) — Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
+Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0), Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
 
-> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "ork:emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 13-emulator service-port matrix and seed-rules in context.
+> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "ork:emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline, it has the full 13-emulator service-port matrix and seed-rules in context.
 
 **Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
 
 ## New in 2026-04 (emulate 0.4.x)
 
-- **Modular `@emulators/*` packages** — each service is its own package (`@emulators/github`, `@emulators/stripe`, etc.); top-level `emulate` re-exports `createEmulator` and the CLI.
+- **Modular `@emulators/*` packages**, each service is its own package (`@emulators/github`, `@emulators/stripe`, etc.); top-level `emulate` re-exports `createEmulator` and the CLI.
 - **4 new services** (12 total): `mongoatlas:4007`, `okta:4008`, `resend:4009`, `stripe:4010` with drop-in seed YAML blocks.
-- **Resend local inbox** — `GET http://localhost:4009/inbox` returns captured emails for assertions without hitting a real provider.
-- **Stripe hosted checkout** — real session redirect flow + `checkout.session.completed`/`expired` webhook delivery, suitable for E2E payment tests.
-- **MongoDB Atlas** — Admin API v2 (projects/clusters/DB users) + Data API v1 with full CRUD + aggregate.
-- **Okta OIDC** — full discovery, JWKS, `authorize/token/userinfo/revoke/introspect` plus Users/Groups/Apps CRUD.
-- **Entra / Apple / Slack expansions (v0.4.0)** — PKCE + refresh rotation (Entra), RS256 JWKS (Apple), OAuth v2 consent UI (Slack).
-- **`@emulators/adapter-next`** — catch-all Next.js route handler runs emulators on the same origin as the app; fixes OAuth callback URL drift on Vercel preview deploys.
+- **Resend local inbox**: `GET http://localhost:4009/inbox` returns captured emails for assertions without hitting a real provider.
+- **Stripe hosted checkout**: real session redirect flow + `checkout.session.completed`/`expired` webhook delivery, suitable for E2E payment tests.
+- **MongoDB Atlas**: Admin API v2 (projects/clusters/DB users) + Data API v1 with full CRUD + aggregate.
+- **Okta OIDC**: full discovery, JWKS, `authorize/token/userinfo/revoke/introspect` plus Users/Groups/Apps CRUD.
+- **Entra / Apple / Slack expansions (v0.4.0)**: PKCE + refresh rotation (Entra), RS256 JWKS (Apple), OAuth v2 consent UI (Slack).
+- **`@emulators/adapter-next`**: catch-all Next.js route handler runs emulators on the same origin as the app; fixes OAuth callback URL drift on Vercel preview deploys.
 
 ## Auto-Discovery (M125 #4)
 
@@ -58,9 +58,9 @@ $ bash "${CLAUDE_SKILL_DIR}/scripts/auto-discover.sh" --apply
 ✓ Wrote /path/to/emulate.config.yaml with 6 service(s)
 ```
 
-Multi-emulator deps default to all reasonable providers; the user prunes the YAML afterwards. Unmapped deps are silently skipped — extending coverage is a docs PR (edit `references/dep-to-emulator-map.json`), not a code change.
+Multi-emulator deps default to all reasonable providers; the user prunes the YAML afterwards. Unmapped deps are silently skipped, extending coverage is a docs PR (edit `references/dep-to-emulator-map.json`), not a code change.
 
-`dev` reads the resulting `emulate.config.yaml` at boot — see `src/skills/dev/scripts/boot.sh`.
+`dev` reads the resulting `emulate.config.yaml` at boot, see `src/skills/dev/scripts/boot.sh`.
 
 ## Quick Reference
 
@@ -90,16 +90,16 @@ npx emulate --service github,stripe --seed ./emulate.config.yaml
 npx emulate init --service github
 ```
 
-## Services (0.10.0 — 14 emulators)
+## Services (0.10.0: 14 emulators)
 
 > **New across releases:**
-> - **0.5.0** — added Clerk, MongoDB Atlas, Stripe, Resend, and Okta emulators; portless integration (embedded emulators without dedicated ports); Google OAuth `hd` claim support; Stripe Checkout + Resend magic link examples; AWS S3 emulator now matches the official SDK wire format.
-> - **0.6.0** — expanded Slack (OAuth v2 consent UI, conversations/reactions).
-> - **0.6.1** — Vercel Blob store.
-> - **0.7.0** — added Linear (13th provider): stateful orgs/teams/issues/cycles + webhooks.
-> - **0.8.0** — added Twilio (14th provider): accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, and simulator endpoints, with a Next.js SMS-verification example.
-> - **0.9.0** — added a Nuxt emulator adapter (alongside the Next.js adapter); provider count unchanged.
-> - **0.10.0** — stateful GitHub repository contents and commit history (`GET /repos/:owner/:repo/readme`, `GET`/`PUT`/`DELETE /repos/:owner/:repo/contents/:path` where writes produce real commits, `GET /repos/:owner/:repo/commits`, and `GET /repositories/:id` by numeric ID); a readonly `generatedSecrets` array on the Emulator object with a new exported `GeneratedSecret` type; GitHub App JWT verification now accepts PKCS#8 as well as PKCS#1 keys. Provider count unchanged.
+> - **0.5.0**, added Clerk, MongoDB Atlas, Stripe, Resend, and Okta emulators; portless integration (embedded emulators without dedicated ports); Google OAuth `hd` claim support; Stripe Checkout + Resend magic link examples; AWS S3 emulator now matches the official SDK wire format.
+> - **0.6.0**, expanded Slack (OAuth v2 consent UI, conversations/reactions).
+> - **0.6.1**, Vercel Blob store.
+> - **0.7.0**, added Linear (13th provider): stateful orgs/teams/issues/cycles + webhooks.
+> - **0.8.0**, added Twilio (14th provider): accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, and simulator endpoints, with a Next.js SMS-verification example.
+> - **0.9.0**, added a Nuxt emulator adapter (alongside the Next.js adapter); provider count unchanged.
+> - **0.10.0**, stateful GitHub repository contents and commit history (`GET /repos/:owner/:repo/readme`, `GET`/`PUT`/`DELETE /repos/:owner/:repo/contents/:path` where writes produce real commits, `GET /repos/:owner/:repo/commits`, and `GET /repositories/:id` by numeric ID); a readonly `generatedSecrets` array on the Emulator object with a new exported `GeneratedSecret` type; GitHub App JWT verification now accepts PKCS#8 as well as PKCS#1 keys. Provider count unchanged.
 >
 > All backwards-compatible, with one behaviour change worth knowing: 0.10.0 switched
 > Stripe webhook deliveries to Stripe's own `Stripe-Signature` header format. Upstream
@@ -113,8 +113,8 @@ npx emulate init --service github
 | **GitHub** | `:4001` | Repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, teams |
 | **Google OAuth** | `:4002` | OAuth 2.0 authorize, token exchange, userinfo |
 | **Slack** | `:4003` | Chat, conversations, users, reactions, OAuth v2 with consent UI |
-| **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
-| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/\{id\}` |
+| **Apple Auth** | `:4004` | Sign in with Apple, OIDC discovery, JWKS (RS256), auth flow, token exchange |
+| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/{id}` |
 | **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
 | **MongoDB Atlas** *(0.4+)* | `:4007` | Admin API v2 (projects, clusters, DB users) + Data API v1 (full CRUD + aggregate) |
 | **Okta** *(0.4+)* | `:4008` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
@@ -126,9 +126,9 @@ npx emulate init --service github
 
 See `references/api-coverage.md` for full endpoint lists.
 
-### Next.js Adapter (0.4+) — `@emulators/adapter-next`
+### Next.js Adapter (0.4+): `@emulators/adapter-next`
 
-Runs emulators **on the same origin** as your Next.js app via a catch-all route handler. Fixes the OAuth callback URL drift problem on Vercel preview deploys — no more `http://localhost:4001` redirect mismatches.
+Runs emulators **on the same origin** as your Next.js app via a catch-all route handler. Fixes the OAuth callback URL drift problem on Vercel preview deploys, no more `http://localhost:4001` redirect mismatches.
 
 ```typescript
 // next.config.js
@@ -359,10 +359,10 @@ and `seed` in the programmatic options is an object rather than a path) plus the
 
 ## Related Skills
 
-- `testing-integration` — Integration test patterns (emulate as first choice for API tests)
-- `testing-e2e` — End-to-end test patterns with emulated backends
-- `testing-unit` — Unit test patterns (use emulate for API-dependent units)
-- `security-patterns` — Auth token patterns (emulate token seeding)
+- `testing-integration`: Integration test patterns (emulate as first choice for API tests)
+- `testing-e2e`: End-to-end test patterns with emulated backends
+- `testing-unit`: Unit test patterns (use emulate for API-dependent units)
+- `security-patterns`: Auth token patterns (emulate token seeding)
 
 ## CLI Reference
 
@@ -378,7 +378,7 @@ See `references/cli-reference.md` for all CLI flags and commands.
 
 ## Auth Token Seeding
 
-Emulate maps token strings to emulated users with configurable scopes. Tests use these seeded token names as Bearer tokens — no real credentials involved.
+Emulate maps token strings to emulated users with configurable scopes. Tests use these seeded token names as Bearer tokens, no real credentials involved.
 
 ### Token Configuration
 
@@ -418,7 +418,7 @@ const readonlyRes = await fetch(`${GITHUB_API_BASE}/orgs/my-org/repos`, {
 // -> 403 Forbidden (readonly_token lacks admin:org scope)
 ```
 
-**Incorrect — using real tokens in test configs:**
+**Incorrect, using real tokens in test configs:**
 
 ```yaml
 # BAD: real GitHub PAT in test config — leaks if committed
@@ -433,7 +433,7 @@ tokens:
 headers: { Authorization: 'Bearer ghp_abc123realtoken456' }
 ```
 
-**Correct — descriptive seeded token names:**
+**Correct, descriptive seeded token names:**
 
 ```yaml
 # GOOD: token name is the bearer value, no real credentials
@@ -476,7 +476,7 @@ describe('permission checks', () => {
 - Use descriptive token names: `admin_token`, `ci_token`, `readonly_token`
 - Map each token to a user login defined in the same config
 - Test permission boundaries by creating tokens with different scope sets
-- Keep token configs in committed files for reproducibility — they contain no secrets
+- Keep token configs in committed files for reproducibility, they contain no secrets
 
 Reference: `rules/seed-config.md`
 
@@ -527,7 +527,7 @@ beforeEach(() => {
 const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
 ```
 
-**Incorrect — all workers hitting the same port:**
+**Incorrect, all workers hitting the same port:**
 
 ```typescript
 // BAD: shared port causes race conditions
@@ -536,7 +536,7 @@ const github = await createEmulator({ service: 'github', port: 4001 })
 // Worker 1 creates a PR, Worker 2 sees it — non-deterministic
 ```
 
-**Correct — per-worker port isolation:**
+**Correct, per-worker port isolation:**
 
 ```typescript
 // GOOD: each worker has isolated state
@@ -637,7 +637,7 @@ google:
       name: Developer
 ```
 
-**Incorrect — hardcoding tokens in test files:**
+**Incorrect, hardcoding tokens in test files:**
 
 ```typescript
 // BAD: tokens scattered across test files, no shared state
@@ -646,7 +646,7 @@ const res = await fetch('http://localhost:4001/repos/org/repo', {
 })
 ```
 
-**Correct — centralized seed config:**
+**Correct, centralized seed config:**
 
 ```yaml
 # .emulate/test.config.yaml
@@ -666,7 +666,7 @@ const res = await fetch(`${GITHUB_API_BASE}/repos/org/repo`, {
 **Key rules:**
 - Place configs in `.emulate/` directory or project root
 - One config per environment: `ci.config.yaml`, `dev.config.yaml`, `test.config.yaml`
-- Token names are the literal Bearer strings used in requests — keep them descriptive
+- Token names are the literal Bearer strings used in requests, keep them descriptive
 - Every token must map to a user defined in the same config's users section
 - Add `.emulate/` to `.gitignore` only if it contains environment-specific overrides
 - Commit shared base configs (e.g., `emulate.config.yaml`) to the repo for reproducibility
@@ -700,7 +700,7 @@ npx emulate --service github,vercel --seed ./emulate.config.yaml
 npx emulate --service github --port 5001
 ```
 
-**Incorrect — writing manual GitHub API mocks when emulate covers it:**
+**Incorrect, writing manual GitHub API mocks when emulate covers it:**
 
 ```typescript
 // BAD: hand-rolled mock that doesn't maintain state
@@ -709,7 +709,7 @@ const mockCreatePR = jest.fn().mockResolvedValue({ number: 1 })
 // After createPR, listPRs still returns [] — not stateful
 ```
 
-**Correct — use emulate for stateful GitHub API testing:**
+**Correct, use emulate for stateful GitHub API testing:**
 
 ```typescript
 import { createEmulator } from 'emulate'
@@ -732,9 +732,9 @@ await github.close()
 ```
 
 **Key rules:**
-- Use `emulate --service github` whenever testing GitHub API interactions — it covers repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, and teams
-- Use `emulate --service vercel` for Vercel platform API testing — projects, deployments, domains, env vars
-- Use `emulate --service google` for Google OAuth flows — authorize, token exchange, userinfo
+- Use `emulate --service github` whenever testing GitHub API interactions, it covers repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, and teams
+- Use `emulate --service vercel` for Vercel platform API testing, projects, deployments, domains, env vars
+- Use `emulate --service google` for Google OAuth flows, authorize, token exchange, userinfo
 - Combine services with comma separation: `--service github,vercel`
 - Fall back to MSW/Nock only for APIs emulate does not cover
 - Custom ports via `--port` when defaults conflict with existing services
@@ -787,7 +787,7 @@ const webhookServer = http.createServer((req, res) => {
 webhookServer.listen(9876)
 ```
 
-**Incorrect — skipping signature verification in tests:**
+**Incorrect, skipping signature verification in tests:**
 
 ```typescript
 // BAD: no signature check — production HMAC bugs go undetected
@@ -801,7 +801,7 @@ webhookServer.on('request', (req, res) => {
 })
 ```
 
-**Correct — verify HMAC even in tests:**
+**Correct, verify HMAC even in tests:**
 
 ```typescript
 // GOOD: same verification logic as production
@@ -818,12 +818,12 @@ if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
 ```
 
 **Key rules:**
-- Always verify HMAC-SHA256 signatures in test webhook receivers — mirrors production behavior
+- Always verify HMAC-SHA256 signatures in test webhook receivers, mirrors production behavior
 - Use `crypto.timingSafeEqual` for constant-time comparison to prevent timing attacks
 - Store the webhook secret in the seed config and share it with the receiver
 - Check the `x-github-event` header to route different event types
 - Clean up the webhook server in `afterAll` to prevent port leaks
-- Emulate delivers webhooks on state mutations (create, update, delete) — not on reads
+- Emulate delivers webhooks on state mutations (create, update, delete), not on reads
 
 Reference: `references/upstream.md` for the emulator lifecycle API,
 `references/ork-delta.md` for the ork-side corrections to it.
@@ -843,139 +843,139 @@ Full list of supported API endpoints per emulate service.
 ## GitHub API (`:4001`)
 
 ### Repositories
-- `GET /repos/:owner/:repo` — Get repository
-- `POST /user/repos` — Create user repository
-- `POST /orgs/:org/repos` — Create org repository
-- `PATCH /repos/:owner/:repo` — Update repository
-- `DELETE /repos/:owner/:repo` — Delete repository (cascading: PRs, issues, webhooks)
-- `GET /repos/:owner/:repo/topics` — List topics
-- `PUT /repos/:owner/:repo/topics` — Replace topics
+- `GET /repos/:owner/:repo`: Get repository
+- `POST /user/repos`: Create user repository
+- `POST /orgs/:org/repos`: Create org repository
+- `PATCH /repos/:owner/:repo`: Update repository
+- `DELETE /repos/:owner/:repo`: Delete repository (cascading: PRs, issues, webhooks)
+- `GET /repos/:owner/:repo/topics`: List topics
+- `PUT /repos/:owner/:repo/topics`: Replace topics
 
 ### Pull Requests
-- `GET /repos/:owner/:repo/pulls` — List PRs (cursor pagination)
-- `POST /repos/:owner/:repo/pulls` — Create PR
-- `GET /repos/:owner/:repo/pulls/:number` — Get PR
-- `PATCH /repos/:owner/:repo/pulls/:number` — Update PR
-- `PUT /repos/:owner/:repo/pulls/:number/merge` — Merge PR
-- `GET /repos/:owner/:repo/pulls/:number/reviews` — List reviews
-- `POST /repos/:owner/:repo/pulls/:number/reviews` — Create review
-- `GET /repos/:owner/:repo/pulls/:number/comments` — List review comments
-- `POST /repos/:owner/:repo/pulls/:number/comments` — Create review comment
+- `GET /repos/:owner/:repo/pulls`: List PRs (cursor pagination)
+- `POST /repos/:owner/:repo/pulls`: Create PR
+- `GET /repos/:owner/:repo/pulls/:number`: Get PR
+- `PATCH /repos/:owner/:repo/pulls/:number`: Update PR
+- `PUT /repos/:owner/:repo/pulls/:number/merge`: Merge PR
+- `GET /repos/:owner/:repo/pulls/:number/reviews`: List reviews
+- `POST /repos/:owner/:repo/pulls/:number/reviews`: Create review
+- `GET /repos/:owner/:repo/pulls/:number/comments`: List review comments
+- `POST /repos/:owner/:repo/pulls/:number/comments`: Create review comment
 
 ### Issues
-- `GET /repos/:owner/:repo/issues` — List issues
-- `POST /repos/:owner/:repo/issues` — Create issue
-- `GET /repos/:owner/:repo/issues/:number` — Get issue
-- `PATCH /repos/:owner/:repo/issues/:number` — Update issue
-- `GET /repos/:owner/:repo/issues/:number/comments` — List comments
-- `POST /repos/:owner/:repo/issues/:number/comments` — Create comment
+- `GET /repos/:owner/:repo/issues`: List issues
+- `POST /repos/:owner/:repo/issues`: Create issue
+- `GET /repos/:owner/:repo/issues/:number`: Get issue
+- `PATCH /repos/:owner/:repo/issues/:number`: Update issue
+- `GET /repos/:owner/:repo/issues/:number/comments`: List comments
+- `POST /repos/:owner/:repo/issues/:number/comments`: Create comment
 
 ### Actions / Workflows
-- `GET /repos/:owner/:repo/actions/workflows` — List workflows
-- `POST /repos/:owner/:repo/actions/workflows/:id/dispatches` — Trigger workflow
-- `GET /repos/:owner/:repo/actions/runs` — List workflow runs
-- `GET /repos/:owner/:repo/actions/runs/:id` — Get run
-- `GET /repos/:owner/:repo/actions/runs/:id/jobs` — List jobs
+- `GET /repos/:owner/:repo/actions/workflows`: List workflows
+- `POST /repos/:owner/:repo/actions/workflows/:id/dispatches`: Trigger workflow
+- `GET /repos/:owner/:repo/actions/runs`: List workflow runs
+- `GET /repos/:owner/:repo/actions/runs/:id`: Get run
+- `GET /repos/:owner/:repo/actions/runs/:id/jobs`: List jobs
 
 ### Webhooks
-- `GET /repos/:owner/:repo/hooks` — List webhooks
-- `POST /repos/:owner/:repo/hooks` — Create webhook
-- `PATCH /repos/:owner/:repo/hooks/:id` — Update webhook
-- `DELETE /repos/:owner/:repo/hooks/:id` — Delete webhook
+- `GET /repos/:owner/:repo/hooks`: List webhooks
+- `POST /repos/:owner/:repo/hooks`: Create webhook
+- `PATCH /repos/:owner/:repo/hooks/:id`: Update webhook
+- `DELETE /repos/:owner/:repo/hooks/:id`: Delete webhook
 
 ### Organizations & Teams
-- `GET /orgs/:org` — Get organization
-- `GET /orgs/:org/repos` — List org repos
-- `GET /orgs/:org/teams` — List teams
-- `POST /orgs/:org/teams` — Create team
-- `GET /orgs/:org/members` — List members
+- `GET /orgs/:org`: Get organization
+- `GET /orgs/:org/repos`: List org repos
+- `GET /orgs/:org/teams`: List teams
+- `POST /orgs/:org/teams`: Create team
+- `GET /orgs/:org/members`: List members
 
 ### Users
-- `GET /user` — Authenticated user
-- `GET /users/:username` — Get user
-- `GET /users/:username/repos` — List user repos
+- `GET /user`: Authenticated user
+- `GET /users/:username`: Get user
+- `GET /users/:username/repos`: List user repos
 
 ## Vercel API (`:4000`)
 
 ### Projects
-- `GET /v9/projects` — List projects
-- `POST /v9/projects` — Create project
-- `GET /v9/projects/:id` — Get project
-- `PATCH /v9/projects/:id` — Update project
-- `DELETE /v9/projects/:id` — Delete project
+- `GET /v9/projects`: List projects
+- `POST /v9/projects`: Create project
+- `GET /v9/projects/:id`: Get project
+- `PATCH /v9/projects/:id`: Update project
+- `DELETE /v9/projects/:id`: Delete project
 
 ### Deployments
-- `GET /v6/deployments` — List deployments
-- `POST /v13/deployments` — Create deployment
-- `GET /v13/deployments/:id` — Get deployment
-- `DELETE /v13/deployments/:id` — Cancel deployment
+- `GET /v6/deployments`: List deployments
+- `POST /v13/deployments`: Create deployment
+- `GET /v13/deployments/:id`: Get deployment
+- `DELETE /v13/deployments/:id`: Cancel deployment
 
 ### Domains
-- `GET /v5/domains` — List domains
-- `POST /v5/domains` — Add domain
-- `DELETE /v5/domains/:name` — Remove domain
+- `GET /v5/domains`: List domains
+- `POST /v5/domains`: Add domain
+- `DELETE /v5/domains/:name`: Remove domain
 
 ### Environment Variables
-- `GET /v9/projects/:id/env` — List env vars
-- `POST /v9/projects/:id/env` — Create env var
-- `PATCH /v9/projects/:id/env/:envId` — Update env var
-- `DELETE /v9/projects/:id/env/:envId` — Delete env var
+- `GET /v9/projects/:id/env`: List env vars
+- `POST /v9/projects/:id/env`: Create env var
+- `PATCH /v9/projects/:id/env/:envId`: Update env var
+- `DELETE /v9/projects/:id/env/:envId`: Delete env var
 
 ### Teams
-- `GET /v2/teams` — List teams
-- `POST /v1/teams` — Create team
-- `GET /v2/teams/:id` — Get team
+- `GET /v2/teams`: List teams
+- `POST /v1/teams`: Create team
+- `GET /v2/teams/:id`: Get team
 
 ## Google OAuth (`:4002`)
 
 ### OAuth 2.0
-- `GET /o/oauth2/v2/auth` — Authorization endpoint
-- `POST /oauth2/v4/token` — Token exchange
-- `GET /oauth2/v2/userinfo` — User info
-- `POST /oauth2/revoke` — Token revocation
+- `GET /o/oauth2/v2/auth`: Authorization endpoint
+- `POST /oauth2/v4/token`: Token exchange
+- `GET /oauth2/v2/userinfo`: User info
+- `POST /oauth2/revoke`: Token revocation
 
 ## Slack Web API (`:4003`)
 
 ### Chat & Conversations
-- `POST /api/chat.postMessage` — Send message
-- `GET /api/conversations.list` — List conversations
-- `GET /api/conversations.history` — Get messages in channel
-- `POST /api/reactions.add` — Add emoji reaction
-- `GET /api/users.list` — List workspace users
+- `POST /api/chat.postMessage`: Send message
+- `GET /api/conversations.list`: List conversations
+- `GET /api/conversations.history`: Get messages in channel
+- `POST /api/reactions.add`: Add emoji reaction
+- `GET /api/users.list`: List workspace users
 
 ### OAuth
-- `GET /oauth/v2/authorize` — OAuth v2 consent UI
-- `POST /api/oauth.v2.access` — Token exchange
+- `GET /oauth/v2/authorize`: OAuth v2 consent UI
+- `POST /api/oauth.v2.access`: Token exchange
 
 ## Apple Authentication (`:4004`)
 
-- `GET /.well-known/openid-configuration` — OIDC discovery
-- `GET /auth/keys` — JWKS endpoint (RS256)
-- `GET /auth/authorize` — Authorization flow
-- `POST /auth/token` — Token exchange
-- `POST /auth/revoke` — Token revocation
+- `GET /.well-known/openid-configuration`: OIDC discovery
+- `GET /auth/keys`: JWKS endpoint (RS256)
+- `GET /auth/authorize`: Authorization flow
+- `POST /auth/token`: Token exchange
+- `POST /auth/revoke`: Token revocation
 
 ## Microsoft Entra ID (`:4005`)
 
-- `GET /\{tenant\}/v2.0/.well-known/openid-configuration` — OIDC discovery
-- `GET /\{tenant\}/oauth2/v2.0/authorize` — Authorization code + PKCE
-- `POST /\{tenant\}/oauth2/v2.0/token` — Token exchange with refresh rotation
-- `GET /\{tenant\}/oauth2/v2.0/logout` — Logout endpoint
+- `GET /{tenant}/v2.0/.well-known/openid-configuration`: OIDC discovery
+- `GET /{tenant}/oauth2/v2.0/authorize`: Authorization code + PKCE
+- `POST /{tenant}/oauth2/v2.0/token`: Token exchange with refresh rotation
+- `GET /{tenant}/oauth2/v2.0/logout`: Logout endpoint
 
 ## AWS (`:4006`)
 
 ### S3
-- `PUT /\{bucket\}` — Create bucket
-- `GET /` — List buckets
-- `PUT /\{bucket\}/\{key\}` — Put object
-- `GET /\{bucket\}/\{key\}` — Get object
-- `DELETE /\{bucket\}/\{key\}` — Delete object
+- `PUT /{bucket}`: Create bucket
+- `GET /`: List buckets
+- `PUT /{bucket}/{key}`: Put object
+- `GET /{bucket}/{key}`: Get object
+- `DELETE /{bucket}/{key}`: Delete object
 
 ### SQS
-- `POST /` — CreateQueue, SendMessage, ReceiveMessage, DeleteMessage
+- `POST /`: CreateQueue, SendMessage, ReceiveMessage, DeleteMessage
 
 ### IAM & STS
-- `POST /` — CreateUser, CreateRole, GetCallerIdentity, AssumeRole
+- `POST /`: CreateUser, CreateRole, GetCallerIdentity, AssumeRole
 
 ## Stateful Behaviors
 
@@ -984,7 +984,7 @@ All services maintain full state:
 - **Cursor pagination**: List endpoints support `?per_page=N&page=N` and Link headers
 - **Auto-incrementing IDs**: PRs, issues, comments get sequential IDs
 - **Webhook delivery**: State mutations trigger webhook POST to configured URLs with HMAC signatures
-- **Scope enforcement**: Token scopes are checked — insufficient scopes return 403
+- **Scope enforcement**: Token scopes are checked, insufficient scopes return 403
 
 
 ### Cli Reference
@@ -1127,9 +1127,6 @@ Upstream: https://github.com/vercel-labs/emulate/tree/main/skills
 
 ### Upstream Github
 
-&lt;!-- SYNCED from vercel-labs/emulate (skills/github/SKILL.md) --&gt;
-&lt;!-- Hash: 1ef2cf7eadb47a76d3a5ff88d47572b73e0d27d51c4f57117575d310e41c7226 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # GitHub API Emulator
@@ -1183,7 +1180,7 @@ The key remains stable across `github.reset()`. Explicit keys are not included i
 
 ## Auth
 
-Pass tokens as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`.
+Pass tokens as `Authorization: Bearer <token>` or `Authorization: token <token>`.
 
 ```bash
 curl http://localhost:4001/user \
@@ -1194,7 +1191,7 @@ Public repo endpoints work without auth. Private repos and write operations requ
 
 ### GitHub App JWT
 
-Configure apps in the seed config with a private key. Sign a JWT with `\{ iss: "&lt;app_id&gt;" \}` using RS256. The emulator verifies the signature and resolves the app.
+Configure apps in the seed config with a private key. Sign a JWT with `{ iss: "<app_id>" }` using RS256. The emulator verifies the signature and resolves the app.
 
 ```yaml
 github:
@@ -1740,9 +1737,6 @@ curl $BASE/repos/my-org/org-repo \
 
 ### Upstream Google
 
-&lt;!-- SYNCED from vercel-labs/emulate (skills/google/SKILL.md) --&gt;
-&lt;!-- Hash: fc3e31be019eb1ba9a4715976f2c34af9e755dd724c558d3df81b84e70f0a9fb --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Google OAuth 2.0 / OIDC + Gmail, Calendar & Drive Emulator
@@ -1940,7 +1934,7 @@ curl http://localhost:4002/.well-known/openid-configuration
 curl http://localhost:4002/oauth2/v3/certs
 ```
 
-Returns `\{ "keys": [] \}`. ID tokens are signed with HS256 using an internal secret.
+Returns `{ "keys": [] }`. ID tokens are signed with HS256 using an internal secret.
 
 ### Authorization
 
@@ -2343,9 +2337,6 @@ curl "$BASE/gmail/v1/users/me/threads?labelIds=INBOX" \
 
 ### Upstream Vercel
 
-&lt;!-- SYNCED from vercel-labs/emulate (skills/vercel/SKILL.md) --&gt;
-&lt;!-- Hash: 932a3b3fd95cd3eacb134aa421e01f3dbd8e5f0bff50dcbdf3bb1d38fee57bcf --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Vercel API Emulator
@@ -2373,7 +2364,7 @@ const vercel = await createEmulator({ service: 'vercel', port: 4000 })
 
 ## Auth
 
-Pass tokens as `Authorization: Bearer &lt;token&gt;`. All endpoints accept `teamId` or `slug` query params for team scoping.
+Pass tokens as `Authorization: Bearer <token>`. All endpoints accept `teamId` or `slug` query params for team scoping.
 
 ```bash
 curl http://localhost:4000/v2/user \
@@ -2696,7 +2687,7 @@ VERCEL_BLOB_API_URL=http://localhost:4000/api/blob
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_mystore_secret
 ```
 
-Any token of the form `vercel_blob_rw_&lt;storeId&gt;_&lt;secret&gt;` is accepted; the store id is parsed from the token.
+Any token of the form `vercel_blob_rw_<storeId>_<secret>` is accepted; the store id is parsed from the token.
 
 ```typescript
 import { put, head, list, del } from '@vercel/blob'
@@ -2827,9 +2818,6 @@ curl "http://localhost:4000/v10/projects?slug=my-team" \
 
 ### Upstream
 
-&lt;!-- SYNCED from vercel-labs/emulate (skills/emulate/SKILL.md) --&gt;
-&lt;!-- Hash: f948aead4a7cb4ad0bd38af85cb1fdd256d1a8711b143fcc4bf9d7f21b7ac2b8 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Service Emulation with emulate
@@ -2893,12 +2881,12 @@ npx emulate list
 | `-p, --port` | `4000` | Base port (auto-increments per service) |
 | `-s, --service` | all | Comma-separated services to enable |
 | `--seed` | auto-detect | Path to seed config (YAML or JSON) |
-| `--base-url` | none | Override advertised base URL (supports `\{service\}` template) |
+| `--base-url` | none | Override advertised base URL (supports `{service}` template) |
 | `--portless` | off | Serve over HTTPS via portless (auto-registers aliases) |
 
 The port can also be set via `EMULATE_PORT` or `PORT` environment variables.
 
-The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `\{service\}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
+The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `{service}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
 
 ## Programmatic API
 
@@ -2928,7 +2916,7 @@ await vercel.close()
 | `service` | *(required)* | `'vercel'`, `'github'`, `'google'`, `'slack'`, `'apple'`, `'microsoft'`, `'okta'`, `'aws'`, `'resend'`, `'stripe'`, `'mongoatlas'`, `'clerk'`, `'linear'`, or `'twilio'` |
 | `port` | `4000` | Port for the HTTP server |
 | `seed` | none | Inline seed data (same shape as YAML config) |
-| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `\{service\}`), then `PORTLESS_URL` (supports `\{service\}`, automatically set by the `portless` CLI wrapper), then `http://localhost:&lt;port&gt;`. |
+| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `{service}`), then `PORTLESS_URL` (supports `{service}`, automatically set by the `portless` CLI wrapper), then `http://localhost:<port>`. |
 
 ### Instance Methods
 
@@ -2968,7 +2956,7 @@ Configuration is optional. The CLI auto-detects config files in this order:
 3. `service-emulator.config.yaml` / `.yml`
 4. `service-emulator.config.json`
 
-Or pass `--seed &lt;file&gt;` explicitly. Run `npx emulate init` to generate a starter file.
+Or pass `--seed <file>` explicitly. Run `npx emulate init` to generate a starter file.
 
 ### Config Structure
 
@@ -3117,7 +3105,7 @@ aws:
 
 ### Auth
 
-Tokens map to users. Pass them as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
+Tokens map to users. Pass them as `Authorization: Bearer <token>` or `Authorization: token <token>`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
 
 Each service also has a fallback user. If no token is provided, requests authenticate as the first seeded user.
 
@@ -3150,7 +3138,7 @@ npx emulate start --base-url "https://{service}.myproxy.test"
 EMULATE_BASE_URL="https://{service}.myproxy.test" npx emulate start
 ```
 
-The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://\{service\}.emulate.localhost`. It supports `\{service\}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
+The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://{service}.emulate.localhost`. It supports `{service}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
 
 Per-service overrides in the seed config (these take highest priority over all other base URL sources):
 
@@ -3230,5 +3218,5 @@ packages/
     aws/             # AWS S3, SQS, IAM, STS plugin
 ```
 
-The core provides a generic `Store` with typed `Collection&lt;T&gt;` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
+The core provides a generic `Store` with typed `Collection<T>` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
 

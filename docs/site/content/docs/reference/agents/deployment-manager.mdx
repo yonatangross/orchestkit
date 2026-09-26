@@ -35,7 +35,7 @@ description: "Deployment specialist: production releases, rollback procedures, f
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for deployment tools
 - `mcp__github-mcp__*` - GitHub releases and deployments
 
@@ -235,7 +235,7 @@ Task: "Deploy v2.3.1 to production with blue-green strategy"
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
@@ -243,6 +243,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

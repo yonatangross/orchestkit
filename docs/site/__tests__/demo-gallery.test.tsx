@@ -583,15 +583,34 @@ describe("DemoGallery", () => {
 
   // ── Card status indicators ──────────────────────────────
 
-  it("shows 'Coming soon' on cards without video", () => {
+  it("does not show 'Coming soon' over a thumbnail preview (QA N06)", () => {
     render(<DemoGallery />);
 
-    // MemoryFabricVertical has no videoCdn
+    // MemoryFabricVertical has no videoCdn, but its local thumbnail loads:
+    // that thumbnail is the preview, so the tile is not "coming soon".
     const card = screen.getByLabelText(
       "View details for Memory Fabric Vertical",
     );
-    // The "Coming soon" text should exist in the card (visible on hover via CSS)
+    expect(within(card).getByRole("img")).toBeInTheDocument();
+    expect(within(card).queryByText("Coming soon")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Coming soon' only when there is no video and the thumbnail fails", () => {
+    render(<DemoGallery />);
+
+    const card = screen.getByLabelText(
+      "View details for Memory Fabric Vertical",
+    );
+    fireEvent.error(within(card).getByRole("img"));
     expect(within(card).getByText("Coming soon")).toBeInTheDocument();
+  });
+
+  it("never shows 'Coming soon' on a card with video, even if its thumbnail fails", () => {
+    render(<DemoGallery />);
+
+    const card = screen.getByLabelText("View details for Scrapbook Demo");
+    fireEvent.error(within(card).getByRole("img"));
+    expect(within(card).queryByText("Coming soon")).not.toBeInTheDocument();
   });
 
   it("does not show 'Coming soon' on cards with video", () => {

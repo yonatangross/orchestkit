@@ -1,15 +1,15 @@
 ---
 title: "Testing E2e"
-description: "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility."
+description: "End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-e2e" />
 
-> **Testing E2e** End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.
+> **Testing E2e** End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.
 
 
 # E2E Testing Patterns
@@ -20,7 +20,7 @@ End-to-end testing with Playwright 1.59+, visual regression, accessibility, and 
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [**emulate Backends**](#emulate-backends) | `rules/emulate-e2e.md` | **HIGH** | **FIRST CHOICE — deterministic API backends for E2E** |
+| [**emulate Backends**](#emulate-backends) | `rules/emulate-e2e.md` | **HIGH** | **FIRST CHOICE, deterministic API backends for E2E** |
 | [Playwright Core](#playwright-core) | `rules/e2e-playwright.md` | HIGH | Semantic locators, auto-wait, flaky detection |
 | [Page Objects](#page-objects) | `rules/e2e-page-objects.md` | HIGH | Encapsulate page interactions, visual regression |
 | [AI Agents](#ai-agents) | `rules/e2e-ai-agents.md` | HIGH | Planner/Generator/Healer, init-agents |
@@ -99,10 +99,10 @@ Anti-patterns (FORBIDDEN):
 - CSS selectors for interactions: `await page.click('.submit-btn')`
 - XPath locators
 
-Removed in 1.58/1.59 — do NOT use:
-- `_react=ComponentName[prop=value]` and `_vue=...` component selector engines — **removed in 1.58**
-- `:light` selector suffix — **removed**
-- `launch(\{ devtools: true \})` option — **removed**; use `args: ['--auto-open-devtools-for-tabs']`
+Removed in 1.58/1.59, do NOT use:
+- `_react=ComponentName[prop=value]` and `_vue=...` component selector engines, **removed in 1.58**
+- `:light` selector suffix, **removed**
+- `launch({ devtools: true })` option, **removed**; use `args: ['--auto-open-devtools-for-tabs']`
 
 ## Page Objects
 
@@ -121,7 +121,7 @@ await checkout.expectConfirmation();
 
 ## AI Agents
 
-Playwright 1.59+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
+Playwright 1.59+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents, minimal output, structured responses, reduced context overhead.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -131,15 +131,15 @@ Playwright 1.59+ AI agent framework for test planning, generation, and self-heal
 npx playwright init-agents --loop=claude    # For Claude Code
 ```
 
-**Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output — use this when running Playwright from AI agents to minimize token consumption.
+**Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output, use this when running Playwright from AI agents to minimize token consumption.
 
 Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests live app) -> Healer (fixes failures, updates selectors).
 
-**New in Playwright 1.59 (Apr 2026) — relevant for AI agents:**
+**New in Playwright 1.59 (Apr 2026), relevant for AI agents:**
 
-- `page.screencast(\{ start, stop, showActions \})` — unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
-- `browser.bind()` / `npx playwright-cli attach` — attach to a running browser from an MCP client mid-test; useful for Healer to inspect a hung or failing CI run.
-- `locator.normalize()` — rewrites a brittle locator to best-practice equivalents. Pair with Healer to auto-upgrade `getByTestId` → `getByRole` where possible.
+- `page.screencast({ start, stop, showActions })`: unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
+- `browser.bind()` / `npx playwright-cli attach`, attach to a running browser from an MCP client mid-test; useful for Healer to inspect a hung or failing CI run.
+- `locator.normalize()`: rewrites a brittle locator to best-practice equivalents. Pair with Healer to auto-upgrade `getByTestId` → `getByRole` where possible.
 
 ## Accessibility (Playwright)
 
@@ -291,7 +291,7 @@ test('modal state has no violations', async ({ page }) => {
 | State testing | Test all interactive states | Modal, error, loading |
 | Browser matrix | Chromium + Firefox | Cross-browser coverage |
 
-**Incorrect — Testing page without WCAG tags:**
+**Incorrect, Testing page without WCAG tags:**
 ```typescript
 test('page has no violations', async ({ page }) => {
   await page.goto('/');
@@ -300,7 +300,7 @@ test('page has no violations', async ({ page }) => {
 });
 ```
 
-**Correct — Testing with WCAG 2.2 AA compliance:**
+**Correct, Testing with WCAG 2.2 AA compliance:**
 ```typescript
 test('page meets WCAG 2.2 AA', async ({ page }) => {
   await page.goto('/');
@@ -360,14 +360,14 @@ new AxeBuilder({ page })
 | Tags | wcag2a, wcag2aa, wcag22aa | Full WCAG 2.2 AA |
 | Exclusions | Third-party widgets only | Minimize blind spots |
 
-**Incorrect — Accessibility tests exist but don't enforce in CI:**
+**Incorrect, Accessibility tests exist but don't enforce in CI:**
 ```yaml
 # .github/workflows/test.yml
 - run: npm run test:a11y  # Runs but doesn't block on failures
 - run: npm run test:unit
 ```
 
-**Correct — CI blocks PRs on accessibility violations:**
+**Correct, CI blocks PRs on accessibility violations:**
 ```yaml
 # .github/workflows/accessibility.yml
 on: [pull_request]
@@ -425,7 +425,7 @@ it('form is accessible', async () => {
 - Never disable axe rules globally
 - Use for fast feedback in development
 
-**Incorrect — Only testing the default state:**
+**Incorrect, Only testing the default state:**
 ```typescript
 it('form is accessible', async () => {
   const { container } = render(<LoginForm />);
@@ -434,7 +434,7 @@ it('form is accessible', async () => {
 });
 ```
 
-**Correct — Testing all component states:**
+**Correct, Testing all component states:**
 ```typescript
 it('form is accessible in all states', async () => {
   const { container, rerender } = render(<LoginForm />);
@@ -483,9 +483,9 @@ npx playwright init-agents --loop=opencode  # For OpenCode
 
 ## Key Concepts
 
-- **seed.spec.ts is required** — Planner executes this to learn environment, auth, UI elements
-- **Generator validates live** — Actually tests app to verify selectors work
-- **Healer auto-fixes** — When UI changes break tests, replays and patches
+- **seed.spec.ts is required**: Planner executes this to learn environment, auth, UI elements
+- **Generator validates live**: Actually tests app to verify selectors work
+- **Healer auto-fixes**: When UI changes break tests, replays and patches
 
 ## Setup Requirements
 
@@ -501,14 +501,14 @@ npx playwright init-agents --loop=opencode  # For OpenCode
 }
 ```
 
-**Incorrect — No seed file for AI agents to learn from:**
+**Incorrect, No seed file for AI agents to learn from:**
 ```typescript
 // Missing tests/seed.spec.ts
 // AI agents have no example to understand app structure
 npx playwright init-agents --loop=claude
 ```
 
-**Correct — Seed file teaches agents app patterns:**
+**Correct, Seed file teaches agents app patterns:**
 ```typescript
 // tests/seed.spec.ts
 import { test } from '@playwright/test';
@@ -579,7 +579,7 @@ await expect(page).toHaveScreenshot('checkout-page.png', {
 3. **Data Operations:** Create, update, delete
 4. **User Settings:** Profile update, preferences
 
-**Incorrect — Duplicating selectors across tests:**
+**Incorrect, Duplicating selectors across tests:**
 ```typescript
 test('checkout flow', async ({ page }) => {
   await page.getByLabel('Email').fill('test@example.com');
@@ -592,7 +592,7 @@ test('another checkout test', async ({ page }) => {
 });
 ```
 
-**Correct — Page Object encapsulates selectors:**
+**Correct, Page Object encapsulates selectors:**
 ```typescript
 const checkout = new CheckoutPage(page);
 await checkout.fillEmail('test@example.com');
@@ -675,14 +675,14 @@ await expect(page.getByRole('alert')).toBeVisible();
 | Execution | 5-30s per test |
 | Retries | 2-3 in CI, 0 locally |
 
-**Incorrect — Using hardcoded waits and CSS selectors:**
+**Incorrect, Using hardcoded waits and CSS selectors:**
 ```typescript
 await page.click('.submit-button');
 await page.waitForTimeout(2000);
 await expect(page.locator('.success-message')).toBeVisible();
 ```
 
-**Correct — Semantic locators with auto-wait:**
+**Correct, Semantic locators with auto-wait:**
 ```typescript
 await page.getByRole('button', { name: 'Submit' }).click();
 await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
@@ -780,7 +780,7 @@ jobs:
           CI: true
 ```
 
-**Incorrect -- E2E tests hitting real GitHub/Vercel APIs:**
+**Incorrect, E2E tests hitting real GitHub/Vercel APIs:**
 ```typescript
 test('shows repos from GitHub', async ({ page }) => {
   // Flaky: depends on real GitHub API, rate-limited, non-deterministic data
@@ -789,7 +789,7 @@ test('shows repos from GitHub', async ({ page }) => {
 });
 ```
 
-**Correct -- emulate backends with seeded data:**
+**Correct, emulate backends with seeded data:**
 ```typescript
 test('shows repos from emulate', async ({ page }) => {
   // Deterministic: emulate seeded with exactly 3 repos
@@ -800,8 +800,8 @@ test('shows repos from emulate', async ({ page }) => {
 
 ## Related Skills
 
-- `emulate-seed` — Seed configuration authoring for emulate providers
-- `testing-integration` — Integration tests also use emulate as first choice
+- `emulate-seed`: Seed configuration authoring for emulate providers
+- `testing-integration`: Integration tests also use emulate as first choice
 
 
 ### Validate end-to-end type safety across API layers to eliminate runtime type errors: HIGH
@@ -809,7 +809,7 @@ test('shows repos from emulate', async ({ page }) => {
 
 ## End-to-End Type Safety Validation
 
-**Incorrect -- type gaps between API layers:**
+**Incorrect, type gaps between API layers:**
 ```typescript
 // Manual type definitions that can drift from schema
 interface User {
@@ -823,7 +823,7 @@ const response = await fetch('/api/users')
 const users = await response.json() // type: any
 ```
 
-**Correct -- tRPC end-to-end type safety:**
+**Correct, tRPC end-to-end type safety:**
 ```typescript
 import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
@@ -848,7 +848,7 @@ export type AppRouter = typeof appRouter
 // Client gets full type inference from server without code generation
 ```
 
-**Correct -- Python type safety with Pydantic and NewType:**
+**Correct, Python type safety with Pydantic and NewType:**
 ```python
 from typing import NewType
 from uuid import UUID
@@ -1192,19 +1192,19 @@ Test with at least one screen reader:
   - [ ] Can navigate by heading (H key in screen reader)
 
 - [ ] **Landmarks**
-  - [ ] `&lt;header&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;footer&gt;` present
+  - [ ] `<header>`, `<nav>`, `<main>`, `<footer>` present
   - [ ] Multiple landmarks of same type have unique labels
   - [ ] Can navigate by landmark (D key in screen reader)
 
 - [ ] **Lists**
-  - [ ] Navigation uses `<ul>` or `&lt;nav&gt;`
+  - [ ] Navigation uses `<ul>` or `<nav>`
   - [ ] Related items grouped in lists
   - [ ] Screen reader announces list with item count
 
 #### Interactive Elements
 
 - [ ] **Forms**
-  - [ ] All inputs have associated `&lt;label&gt;` or `aria-label`
+  - [ ] All inputs have associated `<label>` or `aria-label`
   - [ ] Required fields announced as required
   - [ ] Error messages announced when they appear
   - [ ] Field types announced (email, password, number)
@@ -1648,7 +1648,7 @@ Comprehensive checklist for planning, implementing, and maintaining E2E tests wi
 ### Performance
 - [ ] Run tests in parallel where possible
 - [ ] Minimize test execution time (mock slow APIs)
-- [ ] Use `test.describe.configure(\{ mode: 'parallel' \})`
+- [ ] Use `test.describe.configure({ mode: 'parallel' })`
 - [ ] Avoid unnecessary waits (`waitForTimeout`)
 - [ ] Use strategic waits (`waitForSelector`, `waitForLoadState`)
 - [ ] Optimize page load times (disable unnecessary assets)

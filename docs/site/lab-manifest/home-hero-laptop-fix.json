@@ -1,0 +1,8 @@
+{
+  "slug": "home-hero-laptop-fix",
+  "source": "docs/chore--dsp-24062-orchestkit-yonyon-ai/index.html",
+  "title": "Home hero and nav logo: before and after",
+  "description": "Why the home page looked broken on a laptop (art out of the grid flow beside a tall copy column, a 128px raster logo at 22px) and the fix at five widths.",
+  "tags": ["site", "layout", "css", "brand"],
+  "date": "2026-09-25"
+}

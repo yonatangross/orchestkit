@@ -37,7 +37,7 @@ If you installed via git clone, make sure you ran `npm run build` after cloning.
 
 ## 2. Hooks Not Firing
 
-**Symptom:** Expected behavior does not happen -- skills are not auto-suggested, dangerous commands are not blocked, or memory is not injected.
+**Symptom:** Expected behavior does not happen: skills are not auto-suggested, dangerous commands are not blocked, or memory is not injected.
 
 **Cause:** Hooks are disabled, hooks.json is missing, or the TypeScript bundles are not compiled.
 
@@ -117,7 +117,7 @@ The memory system has 3 tiers. If Tier 1 (Graph) is not configured, decisions fa
 |------|-------|-----|
 | 1. Graph | `claude mcp list` shows memory server | Configure MCP memory server |
 | 2. Local | `.claude/memory/` directory exists | Create it: `mkdir -p .claude/memory` |
-| 3. CC Native | `MEMORY.md` exists in project memory | Automatic -- no action needed |
+| 3. CC Native | `MEMORY.md` exists in project memory | Automatic, no action needed |
 
 ---
 
@@ -248,7 +248,7 @@ If the operation is legitimate:
 1. Check the hook output for which rule triggered
 2. If it is a branch protection rule: create a feature branch instead of committing to `main`
 3. If it is a file-guard rule: verify you are not modifying protected files (`.claude/coordination/`, secrets)
-4. If the block is incorrect: the hook returns `{"continue": false}` with a reason -- share this in a GitHub issue
+4. If the block is incorrect: the hook returns `{"continue": false}` with a reason; share this in a GitHub issue
 
 ---
 

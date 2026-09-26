@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/constants";
 
 export type RoomKind = "chat" | "bot";
@@ -18,7 +18,7 @@ export type RoomBubble = {
 };
 
 const PEOPLE: Record<string, { initial: string; tone: string }> = {
-	Yonatan: { initial: "Y", tone: "text-[#25D366]" },
+	Yonatan: { initial: "Y", tone: "text-[#15803d] dark:text-[#25D366]" },
 	Noa: { initial: "N", tone: "text-[var(--yy-george-cool-text)]" },
 	Ari: { initial: "A", tone: "text-fd-primary" },
 	Lea: { initial: "L", tone: "text-[var(--yy-george-warm-text)]" },
@@ -29,7 +29,7 @@ const CHAT: Omit<RoomBubble, "id" | "kind">[] = [
 	{
 		who: "Yonatan",
 		side: "in",
-		text: "Welcome in 👋 This is the live room — ask when something breaks. Wins count too.",
+		text: "Welcome in 👋 This is the live room. Ask when something breaks. Wins count too.",
 		time: "09:12",
 		reaction: "👋 3",
 		...PEOPLE.Yonatan,
@@ -103,7 +103,7 @@ export function buildRoomPlaylist(botLine: string): RoomBubble[] {
 		side: "in",
 		kind: "bot",
 		text: botLine,
-		time: "08:01",
+		time: "11:43",
 		initial: "OK",
 		tone: "text-fd-primary",
 		reaction: "👀 5",
@@ -111,12 +111,20 @@ export function buildRoomPlaylist(botLine: string): RoomBubble[] {
 	return [...chat.slice(0, 5), bot, ...chat.slice(5)];
 }
 
-function windowAt(playlist: RoomBubble[], endIndex: number): RoomBubble[] {
-	const out: RoomBubble[] = [];
-	for (let i = WINDOW - 1; i >= 0; i--) {
-		out.push(playlist[(endIndex - i + playlist.length) % playlist.length]);
-	}
+/**
+ * The last message index of each frame the thread shows: the opening window,
+ * then one new message at a time up to the last. It plays once and stops.
+ * Looping wrapped 16:11 straight into 09:12 with no new day between them.
+ */
+export function roomTimeline(playlist: RoomBubble[]): number[] {
+	const out: number[] = [];
+	for (let i = Math.min(WINDOW, playlist.length) - 1; i < playlist.length; i++) out.push(i);
 	return out;
+}
+
+/** The messages on screen when `endIndex` is the newest one. */
+export function windowAt(playlist: RoomBubble[], endIndex: number): RoomBubble[] {
+	return playlist.slice(Math.max(0, endIndex - WINDOW + 1), endIndex + 1);
 }
 
 function WhatsAppGlyph({ className }: { className?: string }) {
@@ -176,13 +184,17 @@ function BubbleView({ bubble, pop }: { bubble: RoomBubble; pop: boolean }) {
 	);
 }
 
-/** Animated example thread. Humans tick often; the OrchestKit bot once per demo day. */
+/**
+ * Animated example thread, one day of the room. The server render and reduced
+ * motion show the day's last messages, bot included. With motion, the day
+ * replays once from its first message when the phone nears the viewport, and
+ * stops on the same last messages.
+ */
 export function CommunityRoomThread({ botLine }: { botLine: string }) {
-	const playlist = buildRoomPlaylist(botLine);
-	const startIndex = playlist.length - 1;
-	const [endIndex, setEndIndex] = useState(startIndex);
+	const playlist = useMemo(() => buildRoomPlaylist(botLine), [botLine]);
+	const [endIndex, setEndIndex] = useState(playlist.length - 1);
 	const [motionOn, setMotionOn] = useState(false);
-	const indexRef = useRef(startIndex);
+	const rootRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const reduced =
@@ -190,24 +202,55 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		if (reduced) return undefined;
 
-		setMotionOn(true);
+		const timeline = roomTimeline(playlist);
 		let timer = 0;
-		const step = () => {
-			const next = (indexRef.current + 1) % playlist.length;
-			indexRef.current = next;
+		let frame = 0;
+		const advance = () => {
+			frame += 1;
+			const next = timeline[frame];
 			setEndIndex(next);
-			const hold = playlist[next].kind === "bot" ? BOT_HOLD_MS : CHAT_MS;
-			timer = window.setTimeout(step, hold);
+			if (frame >= timeline.length - 1) return;
+			timer = window.setTimeout(advance, playlist[next].kind === "bot" ? BOT_HOLD_MS : CHAT_MS);
 		};
-		timer = window.setTimeout(step, CHAT_MS);
-		return () => window.clearTimeout(timer);
-	}, [playlist.length]);
+		const play = () => {
+			setMotionOn(true);
+			setEndIndex(timeline[0]);
+			timer = window.setTimeout(advance, CHAT_MS);
+		};
+
+		const el = rootRef.current;
+		if (!el || typeof IntersectionObserver !== "function") {
+			play();
+			return () => window.clearTimeout(timer);
+		}
+		// The bottom margin starts the replay just before the phone scrolls in,
+		// so the jump back to 09:12 happens off screen.
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				observer.disconnect();
+				play();
+			},
+			{ rootMargin: "0px 0px 160px 0px" },
+		);
+		observer.observe(el);
+		return () => {
+			observer.disconnect();
+			window.clearTimeout(timer);
+		};
+	}, [playlist]);
 
 	const visible = windowAt(playlist, endIndex);
-	const showDayMark = visible.some((bubble) => bubble.kind === "bot");
+	const frames = useMemo(() => roomTimeline(playlist), [playlist]);
+	const day = (
+		<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
+			Today
+		</p>
+	);
 
 	return (
 		<div
+			ref={rootRef}
 			aria-hidden="true"
 			className="mx-auto w-[236px] rounded-[1.75rem] border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-foreground)_7%,transparent)] p-1.5 shadow-[var(--shadow-overlay)]"
 		>
@@ -225,25 +268,44 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 						</p>
 					</div>
 				</div>
-				<div className="flex min-h-[268px] flex-col justify-end gap-2.5 px-2.5 py-3">
-					{showDayMark ? (
-						<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
-							Today
-						</p>
-					) : null}
-					{visible.map((bubble, i) => (
-						<BubbleView
-							key={`${endIndex}-${bubble.id}`}
-							bubble={bubble}
-							pop={motionOn && i === visible.length - 1}
-						/>
+				{/* Every frame also renders invisibly in the same grid cell, so the
+				    box is the tallest frame's height from the server render on.
+				    Frames differ by about 31px (the opening one, with the long
+				    welcome, is tallest) and the page below moved with them (gate
+				    2026-09-25). */}
+				<div className="grid min-h-[268px] px-2.5 py-3">
+					{frames.map((end) => (
+						<div
+							key={end}
+							data-room-sizer
+							className="invisible col-start-1 row-start-1 flex flex-col justify-end gap-2.5"
+						>
+							{day}
+							{windowAt(playlist, end).map((bubble) => (
+								<BubbleView key={bubble.id} bubble={bubble} pop={false} />
+							))}
+						</div>
 					))}
+					<div
+						data-room-live
+						className="col-start-1 row-start-1 flex flex-col justify-end gap-2.5"
+					>
+						{/* The whole thread is one day, so the label stays for every frame. */}
+						{day}
+						{visible.map((bubble, i) => (
+							<BubbleView
+								key={`${endIndex}-${bubble.id}`}
+								bubble={bubble}
+								pop={motionOn && i === visible.length - 1}
+							/>
+						))}
+					</div>
 				</div>
 				<div className="flex items-center gap-2 border-t border-fd-border px-2.5 py-2">
 					<span className="flex-1 rounded-full border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-muted)_50%,transparent)] px-2.5 py-1 text-[10px] text-fd-muted-foreground">
 						Message
 					</span>
-					<span className="text-[12px] text-[#25D366]">➤</span>
+					<span className="text-[12px] text-[#15803d] dark:text-[#25D366]">➤</span>
 				</div>
 			</div>
 		</div>

@@ -5,10 +5,6 @@ description: "a scope Claude Code actually reads."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Settings Posture
-
-# Check 16: Operator Settings Posture
-
 **Severity: warn.** Every finding here is a *recommendation* to write something into
 a scope Claude Code actually reads. Doctor never edits a settings file; it prints the
 exact JSON and the operator pastes it. A session runs fine with all of these missing.
@@ -65,8 +61,8 @@ four-hook compaction layer approximated with home-grown token accounting, and
 the reason parts of that layer were deleted (#3321: the imminent-zone gate
 never fired in 2,246 recorded invocations because its counter measured a
 subset of context against a whole-window threshold). ork cannot ship it as a
-plugin default — a plugin settings.json is not a settings scope CC reads
-(binary-proven at 2.1.226, see the header of this file) — so the doctor
+plugin default, a plugin settings.json is not a settings scope CC reads
+(binary-proven at 2.1.226, see the header of this file), so the doctor
 OFFERS it and never sets it. Report at info level when absent; never fail on
 it.
 
@@ -75,20 +71,20 @@ in the operator's own settings. CC 2.1.219 restored nested subagent spawning's
 own default from 1 to 3 (it had been disabled by default since 2.1.217),
 converging exactly with the depth-3 ceiling `chain-patterns/SKILL.md`
 Pattern 9 already recommends in prose. Pinning the var explicitly makes that
-convergence portable and mechanical — CC withholds the `Agent` tool once the
+convergence portable and mechanical, CC withholds the `Agent` tool once the
 pinned depth is hit, instead of the budget depending on the model reading
 Pattern 9's guidance (still the only enforcement while `parent_agent_id`
 stays unexposed at SubagentStart). It is an offer, not a gap: the CC default
 already matches ork's convention, so an absent pin degrades to "guidance
-only," not "unbounded." ork cannot ship the pin itself — a plugin
+only," not "unbounded." ork cannot ship the pin itself, a plugin
 settings.json is not a settings scope CC reads (binary-proven at 2.1.226, see
-the header of this file) — so the doctor OFFERS it and never sets it. Report
+the header of this file), so the doctor OFFERS it and never sets it. Report
 at info level when absent; never fail on it.
 
 ## The check
 
 Read-only. Never prints an environment variable's **value** (presence is tested with
-`[ -n "$\{VAR+x\}" ]`), and never writes a settings file.
+`[ -n "${VAR+x}" ]`), and never writes a settings file.
 
 ```bash
 U="$HOME/.claude/settings.json";  UL="$HOME/.claude/settings.local.json"
@@ -149,7 +145,7 @@ machine, and for every other user of the same repo.
 
 Measured on a real machine, 2026-08-09, CC 2.1.226. `~/.claude/settings.json` carries 20
 top-level keys and `permissions.deny` holds 5 entries, all five of them MCP tool names
-from a single private server (`mcp__&lt;server&gt;__&lt;tool&gt;`, four message-send tools and one
+from a single private server (`mcp__<server>__<tool>`, four message-send tools and one
 session-logout). Not one is a credential-read rule.
 
 That shape is the common one and it is the point of this check: operators reach for
@@ -223,5 +219,4 @@ Five rules can look like a configured posture while covering nothing this check 
 - **Hook-coverage claims in this file are dated.** They were measured against
   `src/hooks/bin/run-hook.mjs` on 2026-08-09 with `rm -rf /` as a passing control.
   Re-run the probes before citing them: an unregistered hook key returns
-  `\{"continue":true\}` with no decision, which reads exactly like an allow.
-
+  `{"continue":true}` with no decision, which reads exactly like an allow.

@@ -20,7 +20,7 @@ export default function TermsPage() {
 				The OrchestKit plugin is licensed under the{" "}
 				<a href="https://opensource.org/license/mit">MIT License</a>. You may
 				use, copy, modify, and redistribute it under those terms. The software
-				is provided &quot;as is&quot;, without warranty of any kind — see the
+				is provided &quot;as is&quot;, without warranty of any kind; see the
 				license text in the <a href={SITE.github}>source repository</a> for the
 				full disclaimer of warranty and limitation of liability.
 			</p>
@@ -41,7 +41,7 @@ export default function TermsPage() {
 				Do not use the site or API to distribute malware, attempt to disrupt
 				service for others, or misrepresent OrchestKit output as an official
 				statement of the project. AI agents and crawlers are explicitly
-				welcome within the published rate limits — see{" "}
+				welcome within the published rate limits; see{" "}
 				<a href="/llms.txt">/llms.txt</a> and <a href="/auth.md">/auth.md</a>.
 			</p>
 

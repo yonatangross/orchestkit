@@ -8,7 +8,6 @@ import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
 import { LibraryCatalog } from "@/components/library-catalog";
-import { CopyInstallButton } from "./copy-button";
 import { WhatsNewStrip } from "@/components/whats-new-strip";
 import { HomeSearchTrigger } from "@/components/home-search-trigger";
 import { HostInstallPicker } from "@/components/host-install";
@@ -92,10 +91,13 @@ export default async function HomePage() {
   return (
     <main>
       <HomepageStructuredData starCount={stars} />
+      {/* Shown from 1320px only: the page sections are 1200px wide with 28px
+          padding, so below ~1290 the fixed badge sat on the third library
+          card column (QA at 1024). From 1320 it clears the content by 16px. */}
       <a
         href={SITE.github}
         aria-label="OrchestKit on GitHub"
-        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 md:block"
+        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 min-[1320px]:block"
       >
         <Image
           src="/brand/george-badge.png"
@@ -106,14 +108,16 @@ export default async function HomePage() {
         />
       </a>
 
-      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html) */}
+      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html).
+          Row 1 is the mockup (copy beside the art); the host picker, search and
+          links sit in a full-width row 2 so the art never faces an empty column. */}
       <section
         aria-labelledby="hero-heading"
         className="home-hero relative overflow-x-hidden border-b border-fd-border"
       >
-        <div className="home-hero-inner relative mx-auto w-full max-w-[1180px] px-7 py-12 sm:py-[72px]">
+        <div className="home-hero-inner relative mx-auto w-full max-w-[var(--hero-max)] px-[var(--hero-pad)] pt-12 pb-10 sm:pt-[72px] sm:pb-12">
           <div className="home-hero-copy relative z-[2] max-w-[520px] text-left max-[900px]:max-w-none">
-            <div className="home-hero-copy-top">
+            <div className="home-hero-copy-top" data-grid-quiet>
               {latest ? (
                 <Link
                   href="/changelog"
@@ -136,7 +140,7 @@ export default async function HomePage() {
               <h1
                 id="hero-heading"
                 data-speakable-headline
-                className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
+                className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground [text-wrap:balance]"
               >
                 <span className="sr-only">OrchestKit. </span>
                 Stop explaining your stack.
@@ -165,81 +169,62 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div className="home-hero-copy-actions">
-              {/* Primary action: the install command itself, above the fold on
-                  375x812 and 1024x768. Other hosts stay in the picker below. */}
-              <div
-                data-hero-install
-                className="mt-6 flex flex-wrap items-center justify-start gap-2.5"
-              >
-                <CopyInstallButton
-                  surface="hero"
-                  className="border-fd-primary/50 bg-[var(--color-fd-surface-raised)] text-fd-foreground hover:border-fd-primary"
-                />
-                <Link
-                  href="/docs/getting-started/first-10-minutes"
-                  className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-fd-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
-                >
-                  Get started{" "}
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </div>
-              <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
-                For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
-              </p>
+            <div className="home-hero-copy-actions" data-grid-quiet>
+              {/* Host first, then that host's one command (operator, 2026-09-25):
+                  76% of host picks were not Claude Code, but the hero printed the
+                  Claude Code command before the picker. */}
               <HostInstallPicker />
-              <HomeSearchTrigger />
-              <WebMcpSearchForm />
-              <div className="mt-4 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
-                <WhatsAppCommunityLink />
-                <Link
-                  href="/docs/cookbook/implement-feature"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  See the cookbook
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/getting-started/configuration"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  Configure your project
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/openapi"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit OpenAPI specification
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/mcp"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit MCP server
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/sdk"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit SDK packages
-                </Link>
-              </div>
-
-              <div className="mt-7 flex flex-wrap items-center justify-start font-mono text-[12px] text-fd-muted-foreground">
-                <StarLink stars={stars} />
-                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-                <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
-                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-                <span className="inline-flex items-center gap-1.5 px-3.5">
-                  Claude Code ≥ {SITE.ccVersion}
-                </span>
-              </div>
             </div>
           </div>
           <HomeHeroArt />
+
+          <div className="home-hero-more" data-grid-quiet>
+            <HomeSearchTrigger />
+            <WebMcpSearchForm />
+            <div className="mt-4 flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-[13px] text-fd-muted-foreground min-[901px]:justify-center">
+              <WhatsAppCommunityLink />
+              <Link
+                href="/docs/cookbook/implement-feature"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                See the cookbook
+              </Link>
+              <Link
+                href="/docs/getting-started/configuration"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                Configure your project
+              </Link>
+              <Link
+                href="/openapi"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit OpenAPI specification
+              </Link>
+              <Link
+                href="/docs/mcp"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit MCP server
+              </Link>
+              <Link
+                href="/docs/sdk"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit SDK packages
+              </Link>
+            </div>
+
+            {/* Spacing, not divider glyphs: a divider in a wrapping row ends a line
+                on its own ("MIT license |" at 390). */}
+            <div className="mt-6 flex flex-wrap items-center justify-start gap-x-6 gap-y-1.5 font-mono text-[12px] text-fd-muted-foreground min-[901px]:justify-center">
+              <StarLink stars={stars} />
+              <span className="inline-flex items-center gap-1.5">MIT license</span>
+              <span className="inline-flex items-center gap-1.5">
+                Claude Code ≥ {SITE.ccVersion}
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -269,14 +254,14 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
             {RECIPES.map((r, idx) => (
               <Link
                 key={r.href}
                 href={r.href}
                 className="group relative flex min-h-[148px] flex-col rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5 transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
               >
-                <div className="mb-3 flex items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
+                <div className="mb-3 flex h-5 items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
                   <span className="tabular-nums">
                     {String(idx + 1).padStart(2, "0")} / {String(RECIPES.length).padStart(2, "0")}
                   </span>
@@ -330,57 +315,6 @@ export default async function HomePage() {
 
       <AgentReadinessSection />
 
-      <footer>
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-7 py-5 text-[13px] text-fd-muted-foreground">
-          <span>
-            OrchestKit is built by Yonyon{" · "}
-            Built with{" "}
-            <a
-              href="https://fumadocs.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary"
-            >
-              Fumadocs
-            </a>
-          </span>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
-            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-foreground">
-              GitHub
-            </a>
-            <Link href="/docs/getting-started/installation" className="hover:text-fd-foreground">
-              Docs
-            </Link>
-            <Link href="/changelog" className="hover:text-fd-foreground">
-              Changelog
-            </Link>
-            <Link href="/community" className="hover:text-fd-foreground">
-              Community
-            </Link>
-            <Link href="/factory-ride" className="hover:text-fd-foreground">
-              Factory ride
-            </Link>
-            <Link href="/developers" className="hover:text-fd-foreground">
-              Developers
-            </Link>
-            <Link href="/compare" className="hover:text-fd-foreground">
-              Compare
-            </Link>
-            <Link href="/pricing" className="hover:text-fd-foreground">
-              Pricing
-            </Link>
-            <Link href="/about" className="hover:text-fd-foreground">
-              About
-            </Link>
-            <Link href="/privacy" className="hover:text-fd-foreground">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-fd-foreground">
-              Terms
-            </Link>
-          </nav>
-        </div>
-      </footer>
     </main>
   );
 }

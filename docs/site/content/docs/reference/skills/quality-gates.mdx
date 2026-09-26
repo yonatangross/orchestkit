@@ -5,7 +5,7 @@ description: "Use when assessing task complexity, before starting complex tasks,
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-red">max</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="quality-gates" />
 
@@ -49,7 +49,7 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 | 4 - Complex | 10-25 | 500-1500 | 8-24 hr | 4-6 deps, significant unknowns |
 | 5 - Very Complex | 25+ | 1500+ | 24+ hr | 7+ deps, many unknowns |
 
-The table above is the canonical rubric. Score with `max(file_count, LOC, dependency_count, unknowns)`, not an average: one Level 5 axis makes the task Level 5. Run `scripts/assess-complexity.md` or `scripts/analyze-codebase.sh &lt;target&gt;` to measure the inputs.
+The table above is the canonical rubric. Score with `max(file_count, LOC, dependency_count, unknowns)`, not an average: one Level 5 axis makes the task Level 5. Run `scripts/assess-complexity.md` or `scripts/analyze-codebase.sh <target>` to measure the inputs.
 
 ### Blocking Thresholds
 
@@ -74,7 +74,7 @@ The escalation protocol and gate decision logic are both in "Quick Reference" be
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit-specific scars and house decisions: line-counting correctness, fail-open policy, gate self-monitoring, non-bypassable categories |
@@ -303,7 +303,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 Track and aggregate success/failure patterns across projects to prevent repeating mistakes.
 
-**Incorrect — no pattern tracking:**
+**Incorrect, no pattern tracking:**
 ```python
 # Same team, third project using offset pagination
 # Each time it fails at scale, each time nobody remembers
@@ -314,7 +314,7 @@ def list_items(page: int = 1, limit: int = 20):
     # Timeout on tables with 1M+ rows — again
 ```
 
-**Correct — pattern library with outcome tracking:**
+**Correct, pattern library with outcome tracking:**
 ```python
 # Pattern library entry (stored in knowledge graph)
 pattern = {
@@ -377,7 +377,7 @@ mcp__memory__search_nodes(query="pagination patterns outcomes")
 
 Use stored patterns to proactively detect anti-patterns and guide reviews.
 
-**Incorrect — reviewing without historical context:**
+**Incorrect, reviewing without historical context:**
 ```python
 # Code review misses known anti-pattern because reviewer
 # doesn't know the team failed with this approach before
@@ -388,7 +388,7 @@ def list_users(page: int = 1):
     return db.query(User).offset((page-1)*20).limit(20).all()
 ```
 
-**Correct — proactive pattern-based review:**
+**Correct, proactive pattern-based review:**
 ```python
 # Before review, query pattern library for relevant categories
 # patterns = search_patterns(categories=["pagination", "auth", "orm"])
@@ -446,14 +446,14 @@ AUTHENTICATION
 
 Pre-implementation check that prevents over-engineering by validating complexity against project scope.
 
-**Incorrect — skipping straight to implementation:**
+**Incorrect, skipping straight to implementation:**
 ```
 Task: "Add user authentication"
 → Immediately builds OAuth2.1 + PKCE + SSO + MFA + custom JWT rotation
 → 2000 LOC for a take-home assignment
 ```
 
-**Correct — YAGNI gate catches this:**
+**Correct, YAGNI gate catches this:**
 ```
 Task: "Add user authentication"
 → YAGNI Gate: Project tier = Interview (detected from README)
@@ -560,7 +560,7 @@ Step 5: Final gate decision
 ## Key Rules
 
 - YAGNI gate runs BEFORE implementation planning, not after
-- Security patterns are exempt — never simplify auth validation, input sanitization, or SQL parameterization
+- Security patterns are exempt, never simplify auth validation, input sanitization, or SQL parameterization
 - The gate evaluates architecture patterns, not business logic complexity
 - When blocked, the agent MUST present the simpler alternative to the user
 - User can override with explicit confirmation ("I know this is a take-home but I want to demonstrate hexagonal architecture")
@@ -583,7 +583,7 @@ or a house decision that survived the thinning of the restated tutorials.
 Bare filenames in the `Why:` lines (for example `gate-patterns.md`) name files retired
 by that thinning. They are provenance, not load pointers, and no longer exist on disk.
 
-## Count files and lines with `awk 'END\{print NR\}'`, never `xargs wc -l | tail -1`
+## Count files and lines with `awk 'END{print NR}'`, never `xargs wc -l | tail -1`
 
 Why: PR #2973 (commit `740dd9c02`) found this skill's own `scripts/analyze-codebase.sh`
 and `scripts/assess-complexity.md` shipping the `xargs wc -l | tail -1` recipe. xargs
@@ -654,7 +654,7 @@ Upstream: `src/shared/rules/verification-gate.md`
 
 # Unified Scoring Framework
 
-Canonical scoring reference shared by `assess`, `verify`, and any skill that produces quality scores. Single source of truth — other skills reference this file instead of defining their own.
+Canonical scoring reference shared by `assess`, `verify`, and any skill that produces quality scores. Single source of truth, other skills reference this file instead of defining their own.
 
 ## Base Dimensions (7)
 
@@ -683,14 +683,14 @@ Skills may add dimensions beyond the base 7. When adding:
 
 | Dimension | Weight | What It Measures |
 |-----------|--------|------------------|
-| Simplicity | 0.10 | Net complexity change — does this simplify or add to the system? |
+| Simplicity | 0.10 | Net complexity change, does this simplify or add to the system? |
 
 **Scoring guide:**
 
 | Score | Criteria |
 |-------|----------|
 | 9-10 | Removes code/concepts while improving or maintaining the result |
-| 7-8 | Neutral complexity — replaces existing with equivalent simplicity |
+| 7-8 | Neutral complexity, replaces existing with equivalent simplicity |
 | 5-6 | Adds moderate complexity proportional to value delivered |
 | 3-4 | Adds significant complexity for marginal gain |
 | 0-2 | Adds ugly complexity, new abstractions, new concepts for little benefit |
@@ -789,7 +789,7 @@ Performance: "p99 latency 142ms (budget: 300ms), 0 N+1" → 8.5/10
 priority = impact / effort
 ```
 
-Higher ratio = do first. **Quick Wins**: Effort &lt;= 2 AND Impact &gt;= 4 — always highlight at top.
+Higher ratio = do first. **Quick Wins**: Effort &lt;= 2 AND Impact &gt;= 4, always highlight at top.
 
 ## Blocking Rules
 

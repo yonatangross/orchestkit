@@ -5,10 +5,6 @@ description: "Reference output examples for each /ork:doctor check category."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Health Check Outputs
-
-# Health Check Output Examples
-
 Reference output examples for each `/ork:doctor` check category.
 
 ## Channel Detection
@@ -129,7 +125,7 @@ Claude Code: 2.1.44 (DEGRADED)
 
 ## External Dependencies
 
-**Installed (agent-browser ≥ 0.26 — structured doctor):**
+**Installed (agent-browser ≥ 0.26, structured doctor):**
 ```
 External Dependencies:
 agent-browser: OK (chrome=128.0.6613.137, net=✓)
@@ -142,7 +138,7 @@ agent-browser: DEGRADED (chrome=128.0.6613.137, net=✗)
   ↳ HIGH: daemon not reachable on port 9222 — try `agent-browser daemon restart`
 ```
 
-**Installed (agent-browser &lt; 0.26 — legacy fuzzy probe):**
+**Installed (agent-browser &lt; 0.26, legacy fuzzy probe):**
 ```
 External Dependencies:
 agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)
@@ -179,14 +175,14 @@ Plugin Validate: SKIPPED (requires CC >= 2.1.77)
 
 ## Managed Settings Policy (CC >= 2.1.92)
 
-**OK — forceRemoteSettingsRefresh with endpoint:**
+**OK, forceRemoteSettingsRefresh with endpoint:**
 ```
 Managed Settings: OK
 - forceRemoteSettingsRefresh: enabled
 - Remote endpoint configured
 ```
 
-**Warning — forceRemoteSettingsRefresh without endpoint:**
+**Warning, forceRemoteSettingsRefresh without endpoint:**
 ```
 Managed Settings: WARNING
 - forceRemoteSettingsRefresh: enabled but no remote settings endpoint detected
@@ -194,7 +190,7 @@ Managed Settings: WARNING
 - Configure a remote endpoint or remove forceRemoteSettingsRefresh
 ```
 
-**Info — not set:**
+**Info, not set:**
 ```
 Managed Settings: OK (default)
 - forceRemoteSettingsRefresh: not set (falls back to cached settings)
@@ -207,4 +203,3 @@ MCP Servers: WARNING
 - Prior to CC 2.1.92 this caused stuck "connecting" state
 - Consider setting ENABLE_CLAUDEAI_MCP_SERVERS=false or renaming the plugin server
 ```
-

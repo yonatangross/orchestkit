@@ -5,7 +5,7 @@ description: "Figma-to-code design handoff patterns including Figma Variables to
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="figma-design-handoff" />
 
@@ -14,7 +14,7 @@ description: "Figma-to-code design handoff patterns including Figma Variables to
 
 # Figma Design Handoff
 
-Figma dominates design tooling in 2026, with the majority of product teams using it as their primary design tool. A structured handoff workflow eliminates design drift — the gap between what designers create and what developers build. This skill covers the full pipeline: Figma Variables to design tokens, component spec extraction, Dev Mode inspection, Auto Layout to CSS mapping, and visual regression testing.
+Figma dominates design tooling in 2026, with the majority of product teams using it as their primary design tool. A structured handoff workflow eliminates design drift, the gap between what designers create and what developers build. This skill covers the full pipeline: Figma Variables to design tokens, component spec extraction, Dev Mode inspection, Auto Layout to CSS mapping, and visual regression testing.
 
 ## Quick Reference
 
@@ -32,12 +32,12 @@ Figma dominates design tooling in 2026, with the majority of product teams using
 
 The Figma Dev Mode MCP Server replaces most manual REST + Dev Mode inspection. Configure it once and any Claude Code session with Figma access can pull design context, tokens, and code mappings directly.
 
-Key tools (16 documented — `developers.figma.com/docs/figma-mcp-server/tools-and-prompts`):
+Key tools (16 documented, `developers.figma.com/docs/figma-mcp-server/tools-and-prompts`):
 
 | Tool | Returns | Use for |
 |------|---------|---------|
 | `get_design_context` | Component tree + layout + typography + spacing | First call on any Figma node → grounds every other tool |
-| `get_variable_defs` | Token collections (variables + modes + aliases) | Straight export to W3C DTCG JSON — skip the REST pipeline |
+| `get_variable_defs` | Token collections (variables + modes + aliases) | Straight export to W3C DTCG JSON, skip the REST pipeline |
 | `get_code_connect_map` | Figma node → codebase component mapping | Linking generated code to existing repo components |
 | `get_screenshot` | PNG of a node or frame | Screenshot for visual diffing / embed in chat |
 | `search_design_system` | Token/component search across libraries | Finding existing tokens before generating new ones |
@@ -130,11 +130,11 @@ export default {
 
 The design-to-code pipeline follows five stages:
 
-1. **Design in Figma** — Designer creates components with Variables, Auto Layout, and proper naming
-2. **Extract Specs** — Use Dev Mode to inspect spacing, typography, colors, and export assets
-3. **Export Tokens** — Figma Variables → W3C tokens JSON via REST API or plugin
-4. **Build Components** — Map Auto Layout to CSS Flexbox/Grid, apply tokens, implement variants
-5. **Visual QA** — Compare production screenshots against Figma frames with Applitools
+1. **Design in Figma**: Designer creates components with Variables, Auto Layout, and proper naming
+2. **Extract Specs**: Use Dev Mode to inspect spacing, typography, colors, and export assets
+3. **Export Tokens**: Figma Variables → W3C tokens JSON via REST API or plugin
+4. **Build Components**: Map Auto Layout to CSS Flexbox/Grid, apply tokens, implement variants
+5. **Visual QA**: Compare production screenshots against Figma frames with Applitools
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌───────────────┐
@@ -155,11 +155,6 @@ The design-to-code pipeline follows five stages:
 
 Each rule is loaded on-demand from the `rules/` directory:
 
-&lt;!-- load:rules/figma-variables-tokens.md --&gt;
-&lt;!-- load:rules/figma-component-specs.md --&gt;
-&lt;!-- load:rules/figma-dev-mode.md --&gt;
-&lt;!-- load:rules/figma-auto-layout.md --&gt;
-&lt;!-- load:rules/figma-visual-regression.md --&gt;
 
 ## Auto Layout to CSS Mapping
 
@@ -224,9 +219,9 @@ The Applitools Figma Plugin overlays production screenshots on Figma frames to c
 
 ## Anti-Patterns (FORBIDDEN)
 
-- **Hardcoded values**: Never hardcode colors, spacing, or typography — always reference tokens
-- **Skipping Dev Mode**: Do not eyeball measurements — use Dev Mode for exact values
-- **Manual token sync**: Do not manually copy values from Figma — automate with REST API
+- **Hardcoded values**: Never hardcode colors, spacing, or typography, always reference tokens
+- **Skipping Dev Mode**: Do not eyeball measurements, use Dev Mode for exact values
+- **Manual token sync**: Do not manually copy values from Figma, automate with REST API
 - **Ignoring modes**: Variables with light/dark modes must map to theme toggles, not separate files
 - **Screenshot-only QA**: Visual comparison without structured regression testing misses subtle drift
 - **Flat token structure**: Use nested W3C DTCG format, not flat key-value pairs
@@ -241,9 +236,9 @@ The Applitools Figma Plugin overlays production screenshots on Figma frames to c
 
 ## Related Skills
 
-- `ork:design-system-tokens` — W3C token architecture and Style Dictionary transforms
-- `ork:ui-components` — shadcn/ui and Radix component patterns
-- `ork:accessibility` — WCAG compliance for components extracted from Figma
+- `ork:design-system-tokens`: W3C token architecture and Style Dictionary transforms
+- `ork:ui-components`: shadcn/ui and Radix component patterns
+- `ork:accessibility`: WCAG compliance for components extracted from Figma
 
 
 ---
@@ -323,7 +318,7 @@ Absolute position           → position: absolute + inset values
 ```
 
 **Key rules:**
-- Always use `gap` for spacing between items — never `margin` on children
+- Always use `gap` for spacing between items, never `margin` on children
 - Map Fill container to `flex: 1 1 0%`, not percentage widths
 - Map Hug contents to `width: fit-content` or omit explicit width
 - Read padding values from Auto Layout panel, not by measuring edges
@@ -392,7 +387,7 @@ for (const [id, set] of Object.entries(components.meta.component_sets)) {
 ```
 
 **Key rules:**
-- Map every Figma component property to a TypeScript prop — no guessing from visuals
+- Map every Figma component property to a TypeScript prop, no guessing from visuals
 - Figma variant properties become string union types with exact value names
 - Figma boolean properties become optional boolean props
 - Figma text properties become string or ReactNode props
@@ -409,7 +404,7 @@ Reference: [Figma Component Properties API](https://www.figma.com/developers/api
 
 ## Figma Dev Mode Inspection
 
-Figma Dev Mode provides exact measurements, CSS code snippets, asset export, and redline overlays. Always use Dev Mode for implementation — never estimate values from the visual canvas.
+Figma Dev Mode provides exact measurements, CSS code snippets, asset export, and redline overlays. Always use Dev Mode for implementation, never estimate values from the visual canvas.
 
 **Incorrect:**
 ```css
@@ -461,11 +456,11 @@ Figma Dev Mode provides exact measurements, CSS code snippets, asset export, and
 ```
 
 **Key rules:**
-- Always use Dev Mode inspect panel — never measure visually on the canvas
+- Always use Dev Mode inspect panel, never measure visually on the canvas
 - Read spacing values from Auto Layout section, not by measuring between elements
 - Copy exact CSS snippets from Dev Mode and map to token variables
-- Export SVG assets at 1x — framework tooling handles optimization
-- Check the Variable name in color values — use the token reference, not the hex value
+- Export SVG assets at 1x, framework tooling handles optimization
+- Check the Variable name in color values, use the token reference, not the hex value
 - Verify responsive constraints (Fill container, Hug contents, Fixed) for layout behavior
 - Use the code panel (CSS/iOS/Android) as a starting point, then replace hardcoded values with tokens
 
@@ -534,12 +529,12 @@ for (const collection of Object.values(meta.variableCollections)) {
 ```
 
 **Key rules:**
-- Always use W3C DTCG format (`$type`, `$value`, `$description`) — never flat key-value
+- Always use W3C DTCG format (`$type`, `$value`, `$description`), never flat key-value
 - Map Figma Variable collections to token groups (colors, spacing, typography)
 - Map Figma Variable modes to theme variants (light/dark, compact/comfortable)
 - Use `$extensions.mode` for multi-mode values, not separate token files
-- Reference aliases (`\{color.blue.600\}`) instead of raw values for semantic tokens
-- Automate extraction via Figma REST API or Variables export plugin — never copy manually
+- Reference aliases (`{color.blue.600}`) instead of raw values for semantic tokens
+- Automate extraction via Figma REST API or Variables export plugin, never copy manually
 - Run Style Dictionary build in CI to catch token schema errors before merge
 
 Reference: [W3C Design Tokens Format](https://design-tokens.github.io/community-group/format/)
@@ -614,7 +609,7 @@ test('homepage matches design', async ({ page }) => {
 - Use Applitools Figma Plugin for direct design-to-production comparison
 - Use Chromatic for component-level regression via Storybook stories
 - Use Percy or Playwright visual comparisons for full-page regression
-- Run visual regression in CI on every PR — never rely on manual review alone
+- Run visual regression in CI on every PR, never rely on manual review alone
 - Set appropriate diff thresholds: strict for components, relaxed for dynamic content
 - Capture multiple viewport widths (375, 768, 1280) for responsive verification
 - Ignore dynamic content regions (timestamps, user data) in snapshot comparisons
@@ -742,7 +737,7 @@ jobs:
 3. **Applitools** captures screenshots and compares against baselines
 4. **Applitools Figma Plugin** overlays production screenshots on Figma frames
 5. **Team** reviews diffs in Applitools dashboard or Figma plugin
-6. **Approve** or **reject** — rejected diffs block the PR
+6. **Approve** or **reject**, rejected diffs block the PR
 
 ## Common Diff Categories
 
@@ -814,19 +809,19 @@ Designers should annotate Figma frames to communicate intent that is not capture
 
 ### Annotation Types
 
-1. **Interaction notes** — Describe hover effects, transitions, animations
+1. **Interaction notes**: Describe hover effects, transitions, animations
    - Format: Yellow sticky with "Interaction:" prefix
    - Example: "Interaction: Card scales to 1.02 on hover with 200ms ease-out"
 
-2. **Responsive notes** — Describe breakpoint behavior
+2. **Responsive notes**: Describe breakpoint behavior
    - Format: Blue sticky with "Responsive:" prefix
    - Example: "Responsive: Stack vertically below 768px, 2-col at 768px, 3-col at 1280px"
 
-3. **Content rules** — Min/max content lengths, truncation behavior
+3. **Content rules**: Min/max content lengths, truncation behavior
    - Format: Green sticky with "Content:" prefix
    - Example: "Content: Title max 2 lines, truncate with ellipsis"
 
-4. **Dev notes** — Technical implementation hints
+4. **Dev notes**: Technical implementation hints
    - Format: Purple sticky with "Dev:" prefix
    - Example: "Dev: Use Intersection Observer for lazy loading"
 
@@ -834,10 +829,10 @@ Designers should annotate Figma frames to communicate intent that is not capture
 
 For complex features, run a 15-minute handoff sync:
 
-1. **Walk through design** (5 min) — Designer shows the feature in Figma
-2. **Token check** (3 min) — Verify all Variables are defined and exported
-3. **Edge cases** (5 min) — Empty states, error states, loading states, overflow
-4. **Questions** (2 min) — Developer clarifies ambiguities
+1. **Walk through design** (5 min), Designer shows the feature in Figma
+2. **Token check** (3 min), Verify all Variables are defined and exported
+3. **Edge cases** (5 min), Empty states, error states, loading states, overflow
+4. **Questions** (2 min), Developer clarifies ambiguities
 
 ## Feedback Loop
 

@@ -4,10 +4,8 @@ import {
   ChangelogLegend,
   RecentVersions,
 } from "@/components/changelog-legend";
-import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { ChronoBoard } from "@/components/ui/chrono-board";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
-import { howToReadMermaid, recentTimelineMermaid } from "@/lib/changelog-format";
 import { buildVersionChronoCards } from "@/lib/chrono-board-release";
 import { SITE } from "@/lib/constants";
 
@@ -21,7 +19,7 @@ export default function ChangelogPage() {
   const latest = CHANGELOG_ENTRIES[0];
 
   return (
-    <main className="mx-auto w-full max-w-[960px] px-7 py-16 sm:py-20">
+    <main className="changelog-veil mx-auto w-full max-w-[960px] px-7 py-16 sm:py-20">
       <p className="font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
         {CHANGELOG_ENTRIES.length} releases
         {latest ? ` · latest ${latest.version}` : ""}
@@ -63,8 +61,9 @@ export default function ChangelogPage() {
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           How to read a release
         </p>
+        {/* A plain key. The same five types used to be drawn again below it as
+            a boxes-and-lines diagram, which read as a sequence (QA 2026-09-25). */}
         <ChangelogLegend />
-        <ChangelogMermaid chart={howToReadMermaid()} />
         <h2
           id="release-activity-heading"
           className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground"
@@ -78,7 +77,8 @@ export default function ChangelogPage() {
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           Recent versions
         </p>
-        <ChangelogMermaid chart={recentTimelineMermaid(CHANGELOG_ENTRIES, 6)} />
+        {/* One row of version cards. An arrow-chain diagram used to repeat the
+            same six versions above it (QA 2026-09-25, NEW-3). */}
         <RecentVersions entries={CHANGELOG_ENTRIES.slice(0, 6)} />
       </div>
 

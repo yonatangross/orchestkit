@@ -1,6 +1,6 @@
 ---
 title: "Design Context Extract"
-description: "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
+description: "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,12 +11,12 @@ description: "Extract design DNA from app screenshots, live URLs, or screen reco
 
 <ContextualSkillSidebar slug="design-context-extract" />
 
-> **Design Context Extract** Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config.
+> **Design Context Extract** Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config.
 
 
 # Design Context Extract
 
-Extract the "Design DNA" from existing applications — colors, typography, spacing, and component patterns — and output as structured tokens.
+Extract the "Design DNA" from existing applications, colors, typography, spacing, and component patterns, and output as structured tokens.
 
 ```bash
 design-context-extract /tmp/screenshot.png       # From screenshot
@@ -91,7 +91,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For screenshots:** Read the image directly (Claude is multimodal). Pasted/attached images are compressed to the same token budget as Read tool images (CC 2.1.97), so both workflows are equally efficient.
 
-> **Resolution budget (Opus 5.5 / CC 2.1.111+):** Max input is **2,576 px on the long edge** (~3.75 MP) — roughly 3× the Opus 4.6 ceiling. Dense dashboards, dark-mode UIs, and technical diagrams benefit the most from the higher ceiling; extraction reads tiny labels, spacing ticks, and component boundaries that were previously blurred. Below 1,024 px, don't upscale — the source bitmap is the ceiling. Resize only when input exceeds 2,576 px.
+> **Resolution budget (Opus 5.5 / CC 2.1.111+):** Max input is **2,576 px on the long edge** (~3.75 MP), roughly 3× the Opus 4.6 ceiling. Dense dashboards, dark-mode UIs, and technical diagrams benefit the most from the higher ceiling; extraction reads tiny labels, spacing ticks, and component boundaries that were previously blurred. Below 1,024 px, don't upscale, the source bitmap is the ceiling. Resize only when input exceeds 2,576 px.
 
 **For URLs:**
 ```python
@@ -114,7 +114,7 @@ Glob("**/theme.*")
 # Read and analyze existing style definitions
 ```
 
-**For screen recordings (video):** the only input mode that carries motion — easing, scroll
+**For screen recordings (video):** the only input mode that carries motion, easing, scroll
 choreography, transitions. Requires `ffmpeg`/`ffprobe` (skip with an install hint if missing).
 
 ```bash
@@ -139,7 +139,7 @@ Then Read the extracted frames (multimodal) and analyze in layers:
 
 Video inputs additionally emit a **motion-spec.md** alongside the token output: per-interaction
 durations (ms), easing, trigger (scroll/hover/load), and a reduced-motion fallback for each entry.
-Never describe motion as "smooth" or "nice" — convert taste into mechanism + numbers.
+Never describe motion as "smooth" or "nice", convert taste into mechanism + numbers.
 
 ## Step 2: Extract Design Context
 
@@ -267,21 +267,21 @@ STYLE_MAP = {
 
 ## Anti-Patterns
 
-- **NEVER** guess colors without analyzing the actual source — use precise extraction
-- **NEVER** skip the oklch conversion — all colors must have oklch equivalents
-- **NEVER** output flat token structures — use three-tier hierarchy (global/alias/component)
+- **NEVER** guess colors without analyzing the actual source, use precise extraction
+- **NEVER** skip the oklch conversion, all colors must have oklch equivalents
+- **NEVER** output flat token structures, use three-tier hierarchy (global/alias/component)
 
 ## Quality Bar
 
 Done means all of these hold:
 - Every color was sampled from the actual source, has an oklch equivalent, and carries a role name
-- Typography includes family, weight, and the observed size scale — not "modern sans-serif"
+- Typography includes family, weight, and the observed size scale, not "modern sans-serif"
 - Output file written in the chosen format and verified to parse (JSON/TS/CSS)
 - Video inputs: motion-spec.md names mechanism + duration + easing + reduced-motion fallback per interaction
 - If the project already had tokens, the diff of new-vs-existing was shown
 
 ## Related Skills
 
-- `ork:design-to-code` — Full pipeline that uses this as Stage 1
-- `ork:design-system-tokens` — Token architecture and W3C spec compliance
-- `ork:component-search` — Find components that match extracted patterns
+- `ork:design-to-code`: Full pipeline that uses this as Stage 1
+- `ork:design-system-tokens`: Token architecture and W3C spec compliance
+- `ork:component-search`: Find components that match extracted patterns

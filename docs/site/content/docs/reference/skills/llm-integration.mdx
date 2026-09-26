@@ -5,7 +5,7 @@ description: "LLM integration patterns for function calling, streaming responses
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="llm-integration" />
 
@@ -87,56 +87,56 @@ model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
 
 Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. On Claude keep the `tools` array stable across turns so the prompt cache holds; add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5) or `defer_loading` instead of swapping subsets (https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Limit to 5-15 tools per request (use `defer_loading` beyond that on Claude). Validate all inputs with Pydantic/Zod, and return errors as tool results.
 
-- `calling-tool-definition.md` -- Strict mode schemas, OpenAI/Anthropic formats, LangChain binding
-- `calling-parallel.md` -- Parallel tool execution, asyncio.gather, strict mode constraints
-- `calling-validation.md` -- Input validation, error handling, tool execution loops
+- `calling-tool-definition.md`: Strict mode schemas, OpenAI/Anthropic formats, LangChain binding
+- `calling-parallel.md`: Parallel tool execution, asyncio.gather, strict mode constraints
+- `calling-validation.md`: Input validation, error handling, tool execution loops
 
 ## Streaming
 
 Deliver LLM responses in real-time for better UX. Use SSE for web, WebSocket for bidirectional. Handle backpressure with bounded queues.
 
-- `streaming-sse.md` -- FastAPI SSE endpoints, frontend consumers, async iterators
-- `streaming-structured.md` -- Streaming with tool calls, partial JSON parsing, chunk accumulation
-- `streaming-backpressure.md` -- Backpressure handling, bounded buffers, cancellation
+- `streaming-sse.md`: FastAPI SSE endpoints, frontend consumers, async iterators
+- `streaming-structured.md`: Streaming with tool calls, partial JSON parsing, chunk accumulation
+- `streaming-backpressure.md`: Backpressure handling, bounded buffers, cancellation
 
 ## Local Inference
 
 Run LLMs locally with Ollama for cost savings (93% vs cloud), privacy, and offline development. Pre-warm models, use provider factory for cloud/local switching.
 
-- `local-ollama-setup.md` -- Installation, model pulling, environment configuration
-- `local-model-selection.md` -- Model comparison by task, hardware profiles, quantization
-- `local-gpu-optimization.md` -- Apple Silicon tuning, keep-alive, CI integration
+- `local-ollama-setup.md`: Installation, model pulling, environment configuration
+- `local-model-selection.md`: Model comparison by task, hardware profiles, quantization
+- `local-gpu-optimization.md`: Apple Silicon tuning, keep-alive, CI integration
 
 ## Fine-Tuning
 
 Customize LLMs with parameter-efficient techniques. Fine-tune ONLY after exhausting prompt engineering and RAG. Requires 1000+ quality examples.
 
-- `tuning-lora.md` -- LoRA/QLoRA configuration, Unsloth training, adapter merging
-- `tuning-dataset-prep.md` -- Synthetic data generation, quality validation, deduplication
-- `tuning-evaluation.md` -- DPO alignment, evaluation metrics, anti-patterns
+- `tuning-lora.md`: LoRA/QLoRA configuration, Unsloth training, adapter merging
+- `tuning-dataset-prep.md`: Synthetic data generation, quality validation, deduplication
+- `tuning-evaluation.md`: DPO alignment, evaluation metrics, anti-patterns
 
 ## Context Optimization
 
 Manage context windows, compression, and attention-aware positioning. Optimize for tokens-per-task.
 
-- `context-window-management.md` -- Five-layer architecture, anchored summarization, compression triggers
-- `context-caching.md` -- Just-in-time loading, budget scaling, probe evaluation, CC 2.1.32+
+- `context-window-management.md`: Five-layer architecture, anchored summarization, compression triggers
+- `context-caching.md`: Just-in-time loading, budget scaling, probe evaluation, CC 2.1.32+
 
 ## Evaluation
 
 Evaluate LLM outputs with multi-dimension scoring, quality gates, and benchmarks.
 
-- `evaluation-metrics.md` -- LLM-as-judge, RAGAS metrics, hallucination detection
-- `evaluation-benchmarks.md` -- Quality gates, batch evaluation, pairwise comparison
+- `evaluation-metrics.md`: LLM-as-judge, RAGAS metrics, hallucination detection
+- `evaluation-benchmarks.md`: Quality gates, batch evaluation, pairwise comparison
 
 ## Prompt Engineering
 
 Design, version, and optimize prompts for production LLM applications.
 
-- `prompt-design.md` -- Chain-of-Thought, few-shot learning, pattern selection guide
-- `prompt-testing.md` -- Langfuse versioning, DSPy optimization, A/B testing, self-consistency
-- `prompt-react-pattern.md` -- ReAct loop for tool-using agents, thought-action-observation format
-- `prompt-optimization.md` -- Token reduction, cost optimization, model tiering, prompt spec format
+- `prompt-design.md`: Chain-of-Thought, few-shot learning, pattern selection guide
+- `prompt-testing.md`: Langfuse versioning, DSPy optimization, A/B testing, self-consistency
+- `prompt-react-pattern.md`: ReAct loop for tool-using agents, thought-action-observation format
+- `prompt-optimization.md`: Token reduction, cost optimization, model tiering, prompt spec format
 
 ## Upstream coverage (do not restate)
 
@@ -159,9 +159,9 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Supporting Files
 
-- `references/ork-delta.md` -- our delta: scars, house ceilings, retired-file provenance
-- `references/model-selection.md` -- local model comparison by task and hardware
-- `scripts/create-lora-config.md` -- LoRA config scaffold with auto-detected model type
+- `references/ork-delta.md`: our delta: scars, house ceilings, retired-file provenance
+- `references/model-selection.md`: local model comparison by task and hardware
+- `scripts/create-lora-config.md`: LoRA config scaffold with auto-detected model type
 
 ## Key Decisions
 
@@ -186,10 +186,10 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
-- `agent-loops` -- Multi-step tool use with reasoning
-- `llm-evaluation` -- Evaluate fine-tuned and local models
-- `langfuse-observability` -- Track training experiments
+- `ork:rag-retrieval`: Embedding patterns, when RAG is better than fine-tuning
+- `agent-loops`: Multi-step tool use with reasoning
+- `llm-evaluation`: Evaluate fine-tuned and local models
+- `langfuse-observability`: Track training experiments
 
 ## Capability Details
 
@@ -296,7 +296,7 @@ async def execute_tools_parallel(tool_calls: list) -> list[dict]:
 - Exceeding API rate limits with too many concurrent calls
 - Missing tool_call_id in response messages
 
-**Incorrect — executing parallel tool calls without error isolation:**
+**Incorrect, executing parallel tool calls without error isolation:**
 ```python
 # Crashes entire batch if one tool fails
 response = await llm.chat(messages=messages, tools=tools, parallel_tool_calls=True)
@@ -306,7 +306,7 @@ results = await asyncio.gather(*[
 ])
 ```
 
-**Correct — handling individual tool failures gracefully:**
+**Correct, handling individual tool failures gracefully:**
 ```python
 async def safe_execute(tc):
     try:
@@ -538,7 +538,7 @@ async def run_tool_loop(
 - No input validation (LLM sends bad params)
 - Missing tool_call_id in response messages
 
-**Incorrect — unbounded tool execution loop:**
+**Incorrect, unbounded tool execution loop:**
 ```python
 async def run_tools(user_message: str):
     messages = [{"role": "user", "content": user_message}]
@@ -549,7 +549,7 @@ async def run_tools(user_message: str):
         # Execute tools and continue...
 ```
 
-**Correct — iteration guard prevents infinite loops:**
+**Correct, iteration guard prevents infinite loops:**
 ```python
 async def run_tools(user_message: str, max_iterations: int = 10):
     messages = [{"role": "user", "content": user_message}]
@@ -567,7 +567,7 @@ async def run_tools(user_message: str, max_iterations: int = 10):
 
 ## Context Caching and Budget Scaling
 
-**Incorrect -- pre-loading all context:**
+**Incorrect, pre-loading all context:**
 ```python
 # Loading entire knowledge base into every request
 context = load_all_documents() + load_all_examples()
@@ -575,7 +575,7 @@ response = llm.chat(system=context, messages=[user_msg])
 # Wastes tokens, hits limits, degrades quality
 ```
 
-**Correct -- just-in-time loading with budget management:**
+**Correct, just-in-time loading with budget management:**
 ```python
 # Just-in-time document loading with token budget
 async def build_context(query: str, budget: int) -> list[dict]:
@@ -590,7 +590,7 @@ async def build_context(query: str, budget: int) -> list[dict]:
     return truncated
 ```
 
-**Correct -- compression strategy selection:**
+**Correct, compression strategy selection:**
 
 | Strategy | Compression | Interpretable | Best For |
 |----------|-------------|---------------|----------|
@@ -599,7 +599,7 @@ async def build_context(query: str, budget: int) -> list[dict]:
 | Regenerative Full | 70-85% | Partial | Simple tasks |
 | Opaque | 95-99% | No | Storage-critical only |
 
-**Correct -- probe-based evaluation of compression:**
+**Correct, probe-based evaluation of compression:**
 ```python
 # Validate compression quality with functional probes
 PROBES = [
@@ -629,14 +629,14 @@ Key principles:
 
 ## Context Window Management
 
-**Incorrect -- context-unaware prompting:**
+**Incorrect, context-unaware prompting:**
 ```python
 # Stuffing entire conversation into context without structure
 messages = full_history + retrieved_docs + system_prompt
 response = llm.chat(messages)  # Hits limits, "lost in the middle" recall drops to 10-40%
 ```
 
-**Correct -- attention-aware context layering:**
+**Correct, attention-aware context layering:**
 ```python
 # Five-layer context architecture with attention-aware positioning
 ALLOCATIONS = {
@@ -656,7 +656,7 @@ MIN_MESSAGES = 10    # Minimum before compressing
 PRESERVE_LAST = 5    # Always keep last 5 uncompressed
 ```
 
-**Correct -- anchored iterative summarization (recommended):**
+**Correct, anchored iterative summarization (recommended):**
 ```markdown
 ## Session Intent
 [What we're trying to accomplish - NEVER lose this]
@@ -677,9 +677,9 @@ PRESERVE_LAST = 5    # Always keep last 5 uncompressed
 
 Key principles:
 - Position critical info at START and END of context (high attention zones)
-- Middle of context has 10-40% recall rate — place background/optional info there
+- Middle of context has 10-40% recall rate, place background/optional info there
 - Merge summaries incrementally, never regenerate from scratch (avoids "telephone game" detail loss)
-- Truncate tool outputs at source — they can consume 83.9% of total context
+- Truncate tool outputs at source, they can consume 83.9% of total context
 - Optimize for tokens-per-task, not tokens-per-request
 
 
@@ -688,14 +688,14 @@ Key principles:
 
 ## LLM Evaluation Benchmarks and Quality Gates
 
-**Incorrect -- no quality gate on LLM output:**
+**Incorrect, no quality gate on LLM output:**
 ```python
 # Returning raw LLM output without validation
 response = await llm.generate(prompt)
 return response  # No quality check!
 ```
 
-**Correct -- quality gate with multi-metric assessment:**
+**Correct, quality gate with multi-metric assessment:**
 ```python
 QUALITY_THRESHOLD = 0.7
 
@@ -719,7 +719,7 @@ async def full_quality_assessment(input_text: str, output_text: str) -> dict:
     return scores
 ```
 
-**Correct -- batch evaluation over golden datasets:**
+**Correct, batch evaluation over golden datasets:**
 ```python
 async def batch_evaluate(model, dataset: list[dict], metrics: list[str]) -> dict:
     """Evaluate model over a golden dataset."""
@@ -735,7 +735,7 @@ async def batch_evaluate(model, dataset: list[dict], metrics: list[str]) -> dict
     return {"sample_size": len(dataset), "avg_scores": avg_scores, "results": results}
 ```
 
-**Correct -- pairwise comparison for A/B evaluation:**
+**Correct, pairwise comparison for A/B evaluation:**
 ```python
 async def pairwise_compare(input_text: str, output_a: str, output_b: str) -> str:
     """Compare two model outputs, return winner."""
@@ -762,7 +762,7 @@ Key principles:
 
 ## LLM Evaluation Metrics
 
-**Incorrect -- single-dimension evaluation:**
+**Incorrect, single-dimension evaluation:**
 ```python
 # Only checking one thing with same model as judge
 output = await gpt4.complete(prompt)
@@ -771,7 +771,7 @@ if score > 0.95:  # Threshold too high, blocks most content
     return "pass"
 ```
 
-**Correct -- multi-dimension LLM-as-judge with different judge model:**
+**Correct, multi-dimension LLM-as-judge with different judge model:**
 ```python
 async def evaluate_quality(input_text: str, output_text: str, dimension: str) -> float:
     """Use a DIFFERENT model as judge."""
@@ -791,7 +791,7 @@ average = sum(scores.values()) / len(scores)
 passed = average >= 0.7  # 0.7 for production, 0.6 for drafts
 ```
 
-**Correct -- RAGAS metrics for RAG evaluation:**
+**Correct, RAGAS metrics for RAG evaluation:**
 
 | Metric | Use Case | Threshold |
 |--------|----------|-----------|
@@ -800,7 +800,7 @@ passed = average >= 0.7  # 0.7 for production, 0.6 for drafts
 | Context Precision | Retrieval quality | >= 0.7 |
 | Context Recall | Retrieval completeness | >= 0.7 |
 
-**Correct -- hallucination detection:**
+**Correct, hallucination detection:**
 ```python
 async def detect_hallucination(context: str, output: str) -> dict:
     """Check if output contains claims not supported by context."""
@@ -924,7 +924,7 @@ async def prewarm_models() -> None:
 - **DON'T** skip pre-warming in CI (30-60s cold start)
 - **DON'T** load more than 3 models simultaneously
 
-**Incorrect — hardcoding cloud API with no local fallback:**
+**Incorrect, hardcoding cloud API with no local fallback:**
 ```python
 from langchain_openai import ChatOpenAI
 
@@ -932,7 +932,7 @@ llm = ChatOpenAI(model="gpt-5.5")  # Always uses cloud, ignores local setup
 response = await llm.ainvoke("Generate code...")
 ```
 
-**Correct — provider factory switches between local and cloud:**
+**Correct, provider factory switches between local and cloud:**
 ```python
 import os
 from langchain_ollama import ChatOllama
@@ -1029,14 +1029,14 @@ ollama pull deepseek-r1:70b-q4_0
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
 
-**Incorrect — loading oversized model for limited hardware:**
+**Incorrect, loading oversized model for limited hardware:**
 ```python
 # M3 Pro 36GB trying to run 70B model
 llm = ChatOllama(model="deepseek-r1:70b")  # OOM error, 42GB VRAM needed
 response = await llm.ainvoke("Simple task")
 ```
 
-**Correct — selecting model based on hardware profile:**
+**Correct, selecting model based on hardware profile:**
 ```python
 def get_model_for_hardware(hardware: str, task: str) -> str:
     profiles = {
@@ -1163,7 +1163,7 @@ ollama pull deepseek-r1:70b-q4_K_M
 - Skipping environment variable configuration
 - Not checking if Ollama is running before making calls
 
-**Incorrect — no keep_alive configuration leads to cold starts:**
+**Incorrect, no keep_alive configuration leads to cold starts:**
 ```python
 from langchain_ollama import ChatOllama
 
@@ -1172,7 +1172,7 @@ response = await llm.ainvoke("Task 1")  # 30-60s cold start
 response = await llm.ainvoke("Task 2")  # Another 30-60s cold start
 ```
 
-**Correct — keep_alive keeps model loaded for subsequent calls:**
+**Correct, keep_alive keeps model loaded for subsequent calls:**
 ```python
 from langchain_ollama import ChatOllama
 
@@ -1190,7 +1190,7 @@ response = await llm.ainvoke("Task 2")  # Instant (model still loaded)
 
 ## Prompt Design Patterns
 
-**Incorrect -- unstructured prompting for complex tasks:**
+**Incorrect, unstructured prompting for complex tasks:**
 ```python
 # No reasoning structure for complex problems
 response = llm.complete("Solve: 15% of 240")  # No CoT!
@@ -1202,7 +1202,7 @@ examples = [{"input": "x", "output": "y"}]
 PROMPT = "You are a helpful assistant..."  # No version control!
 ```
 
-**Correct -- Chain-of-Thought for reasoning tasks:**
+**Correct, Chain-of-Thought for reasoning tasks:**
 ```python
 COT_SYSTEM = """You are a helpful assistant that solves problems step-by-step.
 
@@ -1223,7 +1223,7 @@ cot_prompt = ChatPromptTemplate.from_messages([
 ])
 ```
 
-**Correct -- few-shot with 3-5 diverse examples:**
+**Correct, few-shot with 3-5 diverse examples:**
 ```python
 from langchain_core.prompts import FewShotChatMessagePromptTemplate
 
@@ -1270,7 +1270,7 @@ Key decisions:
 
 ## Prompt Optimization
 
-**Incorrect -- one-size-fits-all prompting:**
+**Incorrect, one-size-fits-all prompting:**
 ```python
 # Same expensive model for every task
 response = await claude_opus.chat(system="You are a helpful assistant.", message=query)
@@ -1282,7 +1282,7 @@ You are an expert in many fields. You provide detailed answers.
 Please make sure to be helpful and answer the question."""  # ~50 tokens of fluff
 ```
 
-**Correct -- tiered optimization by task complexity.**
+**Correct, tiered optimization by task complexity.**
 
 ### Token Reduction Techniques
 
@@ -1290,7 +1290,7 @@ Please make sure to be helpful and answer the question."""  # ~50 tokens of fluf
 |-----------|--------|-------|---------|
 | Remove redundancy | "You are a helpful assistant that helps users" | "You are a helpful assistant" | ~30% |
 | Concise instructions | "Please make sure to always format your response as JSON" | "Respond in JSON" | ~60% |
-| Leverage implicit knowledge | "JSON is a format that uses key-value pairs..." | (omit -- LLMs know JSON) | 100% |
+| Leverage implicit knowledge | "JSON is a format that uses key-value pairs..." | (omit, LLMs know JSON) | 100% |
 | Reference by name | Full schema inline every call | "Use the CustomerOrder schema" | ~80% |
 
 ### Accuracy Improvement
@@ -1391,7 +1391,7 @@ known_limitations:
 ```
 
 Key decisions:
-- Always tier models by task complexity -- never use Opus for classification
+- Always tier models by task complexity, never use Opus for classification
 - Remove prompt fluff: aim for &lt;200 tokens in system prompts
 - Use JSON mode + temperature=0 for structured output consistency
 - Maintain a prompt spec for every production prompt
@@ -1404,7 +1404,7 @@ Key decisions:
 
 ## ReAct Pattern for Tool-Using Agents
 
-**Incorrect -- direct tool calling without reasoning:**
+**Incorrect, direct tool calling without reasoning:**
 ```python
 # Agent calls tools without explicit reasoning steps
 def agent_run(query: str):
@@ -1413,7 +1413,7 @@ def agent_run(query: str):
     return result  # No verification, no reasoning trace
 ```
 
-**Correct -- ReAct loop with explicit thought steps:**
+**Correct, ReAct loop with explicit thought steps:**
 
 ### System Prompt Template
 
@@ -1498,7 +1498,7 @@ Key decisions:
 
 ## Prompt Testing and Optimization
 
-**Incorrect -- deploying prompts without testing or versioning:**
+**Incorrect, deploying prompts without testing or versioning:**
 ```python
 # Hardcoded prompt, no version control, no A/B testing
 PROMPT = "You are a helpful assistant..."
@@ -1506,7 +1506,7 @@ response = llm.complete(PROMPT + user_input)
 # No way to know if prompt changes improve or degrade quality
 ```
 
-**Correct -- prompt versioning with Langfuse SDK v3:**
+**Correct, prompt versioning with Langfuse SDK v3:**
 ```python
 from langfuse import Langfuse
 
@@ -1531,7 +1531,7 @@ with propagate_attributes(metadata={"prompt_version": prompt.version, "variant":
     run_support(compiled)
 ```
 
-**Correct -- DSPy 3.1.0 automatic prompt optimization:**
+**Correct, DSPy 3.1.0 automatic prompt optimization:**
 ```python
 import dspy
 
@@ -1550,7 +1550,7 @@ optimized = optimizer.compile(OptimizedQA(), trainset=examples)
 # Uses model introspection to analyze failures and propose better prompts
 ```
 
-**Correct -- self-consistency for hard problems:**
+**Correct, self-consistency for hard problems:**
 ```python
 async def self_consistent_answer(
     question: str,
@@ -1690,7 +1690,7 @@ async def stream_chat(prompt: str, request: Request):
 - Missing AbortController cleanup on component unmount
 - Not yielding control in consumer (starves event loop)
 
-**Incorrect — unbounded queue causes memory exhaustion:**
+**Incorrect, unbounded queue causes memory exhaustion:**
 ```python
 async def stream_tokens(prompt: str):
     buffer = asyncio.Queue()  # No maxsize = unbounded
@@ -1699,7 +1699,7 @@ async def stream_tokens(prompt: str):
     # Slow consumer = OOM
 ```
 
-**Correct — bounded queue applies backpressure:**
+**Correct, bounded queue applies backpressure:**
 ```python
 async def stream_tokens(prompt: str):
     buffer = asyncio.Queue(maxsize=100)  # Bounded buffer
@@ -1806,7 +1806,7 @@ await streamChat('Hello', (token) => {
 - Not closing connections properly
 - Buffering entire response (defeats purpose of streaming)
 
-**Incorrect — buffering entire response before sending:**
+**Incorrect, buffering entire response before sending:**
 ```python
 @app.get("/chat/stream")
 async def stream_chat(prompt: str):
@@ -1816,7 +1816,7 @@ async def stream_chat(prompt: str):
     return {"response": full_response}  # Send all at once
 ```
 
-**Correct — streaming tokens incrementally:**
+**Correct, streaming tokens incrementally:**
 ```python
 @app.get("/chat/stream")
 async def stream_chat(prompt: str):
@@ -1917,7 +1917,7 @@ async def stream_structured_output(prompt: str):
 - Losing tool call chunks due to incorrect index tracking
 - Not signaling stream completion to consumers
 
-**Incorrect — parsing incomplete tool call arguments:**
+**Incorrect, parsing incomplete tool call arguments:**
 ```python
 async for chunk in stream:
     if chunk.choices[0].delta.tool_calls:
@@ -1927,7 +1927,7 @@ async for chunk in stream:
         execute_tool(tc.function.name, args)
 ```
 
-**Correct — accumulating tool calls before parsing:**
+**Correct, accumulating tool calls before parsing:**
 ```python
 collected_tool_calls = []
 async for chunk in stream:
@@ -2150,7 +2150,7 @@ trainer = SFTTrainer(..., eval_dataset=eval)
 
 **Catastrophic forgetting**: Increase beta, mix in general data, use LoRA
 
-**Incorrect — deploying fine-tuned model without evaluation:**
+**Incorrect, deploying fine-tuned model without evaluation:**
 ```python
 trainer = SFTTrainer(model=model, train_dataset=train_data)
 trainer.train()
@@ -2158,7 +2158,7 @@ model.save_pretrained("./production_model")  # No evaluation
 deploy(model)  # Could be degraded
 ```
 
-**Correct — evaluating before deployment:**
+**Correct, evaluating before deployment:**
 ```python
 train, eval = train_test_split(data, test_size=0.1)
 trainer = SFTTrainer(
@@ -2296,14 +2296,14 @@ merged_model.save_pretrained("./merged_model")
 | 13B | 104GB+ | 32GB | 10GB |
 | 70B | 560GB+ | 160GB | 48GB |
 
-**Incorrect — trying full fine-tuning on consumer hardware:**
+**Incorrect, trying full fine-tuning on consumer hardware:**
 ```python
 model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B")
 trainer = SFTTrainer(model=model, train_dataset=dataset)
 trainer.train()  # OOM: requires 560GB+ VRAM
 ```
 
-**Correct — using QLoRA for memory-efficient training:**
+**Correct, using QLoRA for memory-efficient training:**
 ```python
 model, tokenizer = FastLanguageModel.from_pretrained(
     "unsloth/Meta-Llama-3.1-70B",
@@ -2393,7 +2393,7 @@ ollama pull deepseek-r1:70b-q4_0
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
 
-## Claude Code `/model` Picker — Gateway Discovery (CC 2.1.129+)
+## Claude Code `/model` Picker: Gateway Discovery (CC 2.1.129+)
 
 When using Claude Code with a custom gateway (`ANTHROPIC_BASE_URL` pointed at LiteLLM, Bedrock-via-gateway, or a custom auth proxy), gateway-discovered models are **hidden from the `/model` picker by default** as of CC 2.1.129. Re-enable discovery with the env var:
 
@@ -2402,7 +2402,7 @@ export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
 claude
 ```
 
-CC 2.1.126–2.1.128 queried `/v1/models` automatically; 2.1.129 made it opt-in to avoid unexpected gateway traffic and to keep the picker focused on the static built-in list. If a previously-visible custom model "disappeared" from `/model` after upgrading past 2.1.128, this env var is the one-line fix. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the full rationale.
+CC 2.1.126-2.1.128 queried `/v1/models` automatically; 2.1.129 made it opt-in to avoid unexpected gateway traffic and to keep the picker focused on the static built-in list. If a previously-visible custom model "disappeared" from `/model` after upgrading past 2.1.128, this env var is the one-line fix. See `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the full rationale.
 
 ### Ork Delta
 

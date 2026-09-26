@@ -5,11 +5,11 @@ description: From issue to PR in one command with root cause analysis, memory-po
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The `/ork:fix-issue` command turns a GitHub issue into a complete fix -- root cause analysis, implementation, tests, and a PR linked back to the issue. It is particularly effective for bugs that require investigation, because the `debug-investigator` agent systematically traces execution paths rather than guessing. This cookbook walks through fixing an intermittent authentication failure on mobile Safari.
+The `/ork:fix-issue` command turns a GitHub issue into a complete fix: root cause analysis, implementation, tests, and a PR linked back to the issue. It is particularly effective for bugs that require investigation, because the `debug-investigator` agent systematically traces execution paths rather than guessing. This cookbook walks through fixing an intermittent authentication failure on mobile Safari.
 
 ## Scenario
 
-A user reports issue #123: "Login fails intermittently on mobile Safari." The error is not consistent -- it works on Chrome, works on desktop Safari, and even works on mobile Safari about 70% of the time. Your team has spent 30 minutes in the issue thread theorizing, but nobody has reproduced it yet.
+A user reports issue #123: "Login fails intermittently on mobile Safari." The error is not consistent: it works on Chrome, works on desktop Safari, and even works on mobile Safari about 70% of the time. Your team has spent 30 minutes in the issue thread theorizing, but nobody has reproduced it yet.
 
 ## What You'll Use
 
@@ -67,7 +67,7 @@ Three analysis tracks run in parallel:
 | Track | Details |
 |---|---|
 | **debug-investigator** (opus) | Skills: root-cause-analysis, pwa-patterns, auth-patterns. Reads issue body + 4 comments, traces auth flow (login → cookie → session validation → response), searches codebase for cookie/session config, checks Safari-specific edge cases. |
-| **Memory search** | Query: "Safari" + "cookie" + "authentication". Found 2 past observations — `SameSite-cookie` pattern linked to `intermittent-auth-failures`: *"Safari rejects SameSite=None without Secure flag on localhost"* |
+| **Memory search** | Query: "Safari" + "cookie" + "authentication". Found 2 past observations: `SameSite-cookie` pattern linked to `intermittent-auth-failures`: *"Safari rejects SameSite=None without Secure flag on localhost"* |
 | **Git blame analysis** | Files: `auth/middleware.py`, `auth/config.py`. Cookie config last changed 12 days ago in commit `a3f8c2d`: *"chore: update cookie defaults"* |
 
 The memory search is the key accelerator here. OrchestKit's knowledge graph already contains a pattern from a previous session noting that Safari has stricter cookie handling. This observation immediately narrows the investigation.
@@ -282,8 +282,8 @@ The `/ork:fix-issue` command with "Proper fix" runs through these phases:
 
 | Phase | Action | Agent |
 |---|---|---|
-| 1 | Fetch issue metadata from GitHub | -- |
-| 2 | Read issue body and all comments | -- |
+| 1 | Fetch issue metadata from GitHub | - |
+| 2 | Read issue body and all comments | - |
 | 3 | Search memory for similar past issues | `memory-context-injector` |
 | 4 | Analyze git blame on affected files | `debug-investigator` |
 | 5 | Trace execution path to identify root cause | `debug-investigator` |
@@ -292,7 +292,7 @@ The `/ork:fix-issue` command with "Proper fix" runs through these phases:
 | 8 | Security review of the fix | `security-auditor` |
 | 9 | Write regression tests | `test-generator` |
 | 10 | Run verification | parallel agents |
-| 11 | Commit and create PR linked to issue | -- |
+| 11 | Commit and create PR linked to issue | - |
 
 Phases 3-5 run in parallel during the analysis step. Phases 7-9 run sequentially because each depends on the previous output. Phase 10 spawns parallel verification agents.
 
@@ -309,7 +309,7 @@ Phases 3-5 run in parallel during the analysis step. Phases 7-9 run sequentially
 
 ### Memory Made This Faster
 
-The knowledge graph already contained a `SameSite-cookie` pattern entity from a previous debugging session. Without that memory, the `debug-investigator` would have needed to research Safari cookie behavior from scratch -- adding 30-60 seconds to the analysis phase. With memory, the agent corroborated the pattern against the codebase in under 10 seconds.
+The knowledge graph already contained a `SameSite-cookie` pattern entity from a previous debugging session. Without that memory, the `debug-investigator` would have needed to research Safari cookie behavior from scratch, adding 30-60 seconds to the analysis phase. With memory, the agent corroborated the pattern against the codebase in under 10 seconds.
 
 After this fix, the memory is enriched: the `SameSite-cookie` entity now has an additional observation linking it to OAuth redirects specifically, making future investigations even faster.
 
@@ -330,7 +330,7 @@ After this fix, the memory is enriched: the `SameSite-cookie` entity now has an 
 </Callout>
 
 <Callout type="info">
-**Issue progress comments keep your team informed.** The `issue-progress-tracking` hook posts status updates directly to the GitHub issue thread as the workflow progresses. Your teammates can follow along without asking "any updates?" -- they see the root cause analysis posted in real time.
+**Issue progress comments keep your team informed.** The `issue-progress-tracking` hook posts status updates directly to the GitHub issue thread as the workflow progresses. Your teammates can follow along without asking "any updates?"; they see the root cause analysis posted in real time.
 </Callout>
 
 <Callout type="info">

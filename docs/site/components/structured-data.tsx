@@ -270,7 +270,7 @@ function homeWebPageNode(): JsonLdNode {
 		"@type": "WebPage",
 		"@id": `${SITE.domain}/#webpage`,
 		url: SITE.domain,
-		name: `${SITE.name} — AI Development Toolkit`,
+		name: `${SITE.name}: AI Development Toolkit`,
 		isPartOf: { "@id": WEBSITE_ID },
 		about: { "@id": ORG_ID },
 		primaryImageOfPage: `${SITE.domain}/opengraph-image`,
@@ -305,7 +305,7 @@ export const HOME_FAQS: Faq[] = [
 	{
 		question: "Who builds OrchestKit, and what is Yonyon?",
 		answer:
-			"OrchestKit is built and published by Yonyon, an independent software studio founded by Yonatan Gross. Yonyon is the studio behind the product — the docs live at orchestkit.yonyon.ai — and is not affiliated with the musician of the same name.",
+			"OrchestKit is built and published by Yonyon, an independent software studio founded by Yonatan Gross. Yonyon is the studio behind the product (the docs live at orchestkit.yonyon.ai) and is not affiliated with the musician of the same name.",
 	},
 	{
 		question: "How does OrchestKit compare to GitHub Copilot or Cursor?",

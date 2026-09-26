@@ -225,7 +225,7 @@ The skill automatically extracts entities from your text using these heuristics:
 - **Relationship phrases** like "uses", "requires", "prefers", "chose X over Y" become typed relations (USES, REQUIRES, PREFERS, CHOSE_OVER)
 - **Failed patterns** become AntiPattern entities with an extracted lesson
 
-Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR -> "auth-service"`. This structure enables precise queries like "what does auth-service use?" -- something flat text search cannot do.
+Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR -> "auth-service"`. This structure enables precise queries like "what does auth-service use?", something flat text search cannot do.
 
 ## Tips
 
@@ -255,6 +255,6 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 
 ## Next Steps
 
-- **[Memory Overview](/docs/memory/overview)** -- Deep dive into the 3-tier architecture
-- **[Configuration](/docs/getting-started/configuration)** -- Set up environment variables
-- **[Security Audit Cookbook](/docs/cookbook/security-audit)** -- See memory in action during a security review
+- **[Memory Overview](/docs/memory/overview)**: Deep dive into the 3-tier architecture
+- **[Configuration](/docs/getting-started/configuration)**: Set up environment variables
+- **[Security Audit Cookbook](/docs/cookbook/security-audit)**: See memory in action during a security review

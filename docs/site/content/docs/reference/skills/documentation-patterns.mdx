@@ -5,7 +5,7 @@ description: "Technical documentation patterns for READMEs, ADRs, API docs (Open
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="documentation-patterns" />
 
@@ -14,7 +14,7 @@ description: "Technical documentation patterns for READMEs, ADRs, API docs (Open
 
 # Documentation Patterns
 
-Templates and opinionated structures for technical documentation -- READMEs, Architecture Decision Records, OpenAPI specs, changelogs, and writing style. Each category has individual rule files in `rules/` loaded on-demand.
+Templates and opinionated structures for technical documentation, READMEs, Architecture Decision Records, OpenAPI specs, changelogs, and writing style. Each category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
@@ -54,37 +54,37 @@ Active voice, present tense, second person, one idea per sentence
 
 Complete README template with all essential sections for open-source and internal projects.
 
-- **`docs-readme-structure`** -- Project name, quick start, installation, usage, API reference, configuration, contributing, license
+- **`docs-readme-structure`**: Project name, quick start, installation, usage, API reference, configuration, contributing, license
 
 ## Architecture Decision Records
 
 Structured format for capturing architectural decisions with context and consequences.
 
-- **`docs-adr-template`** -- Status, context, decision, consequences (positive/negative), references
+- **`docs-adr-template`**: Status, context, decision, consequences (positive/negative), references
 
 ## API Documentation
 
 OpenAPI 3.1 specification patterns for consistent, machine-readable API docs.
 
-- **`docs-api-openapi`** -- Path structure, operation definitions, schema components, error responses (RFC 9457)
+- **`docs-api-openapi`**: Path structure, operation definitions, schema components, error responses (RFC 9457)
 
 ## Changelog
 
 Keep a Changelog format for curated, human-readable release history.
 
-- **`docs-changelog-format`** -- Added, Changed, Deprecated, Removed, Fixed, Security sections with semver
+- **`docs-changelog-format`**: Added, Changed, Deprecated, Removed, Fixed, Security sections with semver
 
 ## Writing Style
 
 Technical writing conventions for clear, scannable documentation.
 
-- **`docs-writing-style`** -- Active voice, present tense, concise sentences, API doc checklist
+- **`docs-writing-style`**: Active voice, present tense, concise sentences, API doc checklist
 
 ## Related Skills
 
-- `ork:api-design` -- API design patterns (complements OpenAPI documentation)
-- `ork:architecture-decision-record` -- ADR workflow and lifecycle
-- `ork:release-management` -- Release process including changelog updates
+- `ork:api-design`: API design patterns (complements OpenAPI documentation)
+- `ork:architecture-decision-record`: ADR workflow and lifecycle
+- `ork:release-management`: Release process including changelog updates
 
 **Version:** 1.0.0 (March 2026)
 
@@ -100,7 +100,7 @@ Technical writing conventions for clear, scannable documentation.
 
 ADRs capture the context, decision, and consequences of significant architectural choices. They prevent "why did we do this?" conversations months later.
 
-**Incorrect -- informal decision buried in a Slack message or meeting note:**
+**Incorrect, informal decision buried in a Slack message or meeting note:**
 ```markdown
 ## Meeting Notes 2026-02-15
 
@@ -109,7 +109,7 @@ it seemed like a good fit. John mentioned MongoDB but we didn't think
 it would work. Moving on.
 ```
 
-**Correct -- structured ADR with full context:**
+**Correct, structured ADR with full context:**
 ```markdown
 # ADR-003: Use PostgreSQL for Primary Data Store
 
@@ -162,7 +162,7 @@ We rejected MongoDB because:
 - Context must include constraints, requirements, and team capabilities
 - Decision must state what was chosen AND what was rejected with reasons
 - Consequences must list both positive and negative outcomes
-- Never delete ADRs -- mark superseded and link to the replacement
+- Never delete ADRs, mark superseded and link to the replacement
 - Keep ADRs immutable after acceptance (append amendments, don't edit)
 
 
@@ -173,14 +173,14 @@ We rejected MongoDB because:
 
 OpenAPI specs are the single source of truth for REST APIs. They enable code generation, validation, and interactive documentation.
 
-**Incorrect -- undocumented API with no contract:**
+**Incorrect, undocumented API with no contract:**
 ```yaml
 # No spec, just a comment in code:
 # POST /users - creates a user
 # Returns user object or error
 ```
 
-**Correct -- complete OpenAPI 3.1 specification:**
+**Correct, complete OpenAPI 3.1 specification:**
 ```yaml
 openapi: 3.1.0
 info:
@@ -271,7 +271,7 @@ components:
 
 **Key rules:**
 - Every endpoint needs `operationId`, `summary`, `description`, and `tags`
-- Define reusable schemas in `components/schemas` -- never inline complex objects
+- Define reusable schemas in `components/schemas`, never inline complex objects
 - Document ALL error responses (4xx, 5xx) with RFC 9457 Problem Details format
 - Include `example` values for request bodies and responses
 - Add authentication info in `info.description` and `components/securitySchemes`
@@ -293,7 +293,7 @@ components:
 
 Changelogs are for humans, not machines. They must be curated, categorized, and linked to versions.
 
-**Incorrect -- dumping git log as a changelog:**
+**Incorrect, dumping git log as a changelog:**
 ```markdown
 # Changes
 
@@ -307,7 +307,7 @@ Changelogs are for humans, not machines. They must be curated, categorized, and 
 - bump version
 ```
 
-**Correct -- curated Keep a Changelog format:**
+**Correct, curated Keep a Changelog format:**
 ```markdown
 # Changelog
 
@@ -358,9 +358,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Include issue/PR numbers as `(#NNN)` for traceability
 - `[Unreleased]` section at top collects changes for the next release
 - Write entries from the user's perspective, not the developer's
-- One entry per user-visible change -- combine related commits into a single entry
+- One entry per user-visible change, combine related commits into a single entry
 - Newest version at top, oldest at bottom
-- Never auto-generate from git log -- curate deliberately
+- Never auto-generate from git log, curate deliberately
 
 
 ### Structure READMEs with all essential sections for discoverability and onboarding: HIGH
@@ -368,9 +368,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## README Structure
 
-A README is the front door to any project. It must answer: what is this, how do I use it, and how do I contribute -- in that order.
+A README is the front door to any project. It must answer: what is this, how do I use it, and how do I contribute, in that order.
 
-**Incorrect -- bare README with no structure:**
+**Incorrect, bare README with no structure:**
 ```markdown
 # my-app
 
@@ -379,7 +379,7 @@ This is my app. It does stuff.
 Run `npm start` to start it.
 ```
 
-**Correct -- full structured README:**
+**Correct, full structured README:**
 ```markdown
 # Project Name
 
@@ -442,13 +442,13 @@ MIT -- see [LICENSE](LICENSE) for details.
 ```
 
 **Key rules:**
-- Lead with a one-line description -- readers decide in 5 seconds whether to continue
+- Lead with a one-line description, readers decide in 5 seconds whether to continue
 - Quick Start must be copy-paste ready with no ambiguity
 - Include a configuration table for all environment variables
 - Link to CONTRIBUTING.md for detailed contributor guidance
 - Every code example must be runnable without modification (except secrets)
 
-**Section order matters:** Name > Description > Quick Start > Install > Usage > API > Config > Contributing > License. Users scan top-down and drop off -- put the most useful content first.
+**Section order matters:** Name > Description > Quick Start > Install > Usage > API > Config > Contributing > License. Users scan top-down and drop off, put the most useful content first.
 
 
 ### Write technical documentation in active voice with scannable structure: MEDIUM
@@ -458,7 +458,7 @@ MIT -- see [LICENSE](LICENSE) for details.
 
 Documentation is read under time pressure. Every sentence must earn its place.
 
-**Incorrect -- passive, verbose, unfocused:**
+**Incorrect, passive, verbose, unfocused:**
 ```markdown
 ## Authentication
 
@@ -473,7 +473,7 @@ through the refresh token flow which has been implemented as described
 in the following section of this document.
 ```
 
-**Correct -- active, scannable, direct:**
+**Correct, active, scannable, direct:**
 ```markdown
 ## Authentication
 
@@ -499,7 +499,7 @@ The API uses JWT Bearer tokens. Include the token in the
 - Use imperative mood for steps: "Run the command" not "You should run the command"
 
 ### Sentence structure
-- One idea per sentence -- split compound sentences at conjunctions
+- One idea per sentence, split compound sentences at conjunctions
 - Lead with the action or outcome, not the condition
 - Maximum 25 words per sentence for instructional content
 - Cut filler words: "It should be noted that" becomes nothing; "in order to" becomes "to"
@@ -516,7 +516,7 @@ The API uses JWT Bearer tokens. Include the token in the
 - State what something does before explaining how it works
 - Document the 80% use case first, then edge cases
 - Link to source code or specs rather than duplicating them
-- When docs and code disagree, code is the source of truth -- update the docs
+- When docs and code disagree, code is the source of truth, update the docs
 
 ### API documentation checklist
 - [ ] Every endpoint has a one-line summary and a description

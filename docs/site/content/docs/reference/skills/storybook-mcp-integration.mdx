@@ -5,7 +5,7 @@ description: "Reference for the Storybook MCP server itself (@storybook/addon-mc
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="storybook-mcp-integration" />
 
@@ -14,21 +14,21 @@ description: "Reference for the Storybook MCP server itself (@storybook/addon-mc
 
 # Storybook MCP Integration
 
-Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness of a project's actual component library — props, stories, tests, and live previews.
+Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness of a project's actual component library, props, stories, tests, and live previews.
 
 ## When to Use
 
-- **Component generation** — check existing Storybook components before creating new ones
-- **Component testing** — run story tests + a11y audits via MCP instead of CLI
-- **Visual verification** — embed story previews in chat for user confirmation
-- **Component auditing** — inventory components with full metadata via MCP
+- **Component generation**: check existing Storybook components before creating new ones
+- **Component testing**: run story tests + a11y audits via MCP instead of CLI
+- **Visual verification**: embed story previews in chat for user confirmation
+- **Component auditing**: inventory components with full metadata via MCP
 
-## Quick Reference — 6 Tools, 3 Toolsets
+## Quick Reference: 6 Tools, 3 Toolsets
 
 | Toolset | Tool | Purpose | Key Inputs |
 |---------|------|---------|------------|
 | **dev** | `get-storybook-story-instructions` | Guidance on writing stories + interaction tests | none |
-| **dev** | `preview-stories` | Returns preview URLs for stories (embeddable) | `stories[]: \{storyId\}` or `\{absoluteStoryPath, exportName\}` |
+| **dev** | `preview-stories` | Returns preview URLs for stories (embeddable) | `stories[]: {storyId}` or `{absoluteStoryPath, exportName}` |
 | **docs** | `list-all-documentation` | Full component + docs manifest index | none |
 | **docs** | `get-documentation` | Props, first 3 stories, story index, docs | `id` (required), `storybookId` (optional) |
 | **docs** | `get-documentation-for-story` | Full story source + component docs | `componentId`, `storyName` (required) |
@@ -76,7 +76,7 @@ ToolSearch(query="+storybook list-all-documentation")
 
 ## Rule Details
 
-Load rules on demand with `Read("rules/&lt;file&gt;")`:
+Load rules on demand with `Read("rules/<file>")`:
 
 | Rule | Impact | Description |
 |------|--------|-------------|
@@ -97,7 +97,7 @@ Filter toolsets via `X-MCP-Toolsets` header to reduce agent context:
 ## Chromatic Remote Publishing
 
 For teams using Chromatic, the docs toolset is publishable remotely:
-- Published at `https://&lt;chromatic-storybook-url&gt;/mcp`
+- Published at `https://<chromatic-storybook-url>/mcp`
 - Only docs toolset available remotely (dev + testing need local Storybook)
 - Useful for cross-team design system discovery without running Storybook locally
 
@@ -105,17 +105,17 @@ For teams using Chromatic, the docs toolset is publishable remotely:
 
 | Storybook MCP | Fallback | Behavior |
 |---------------|----------|----------|
-| Available | — | Use MCP tools for component discovery, testing, previews |
+| Available | - | Use MCP tools for component discovery, testing, previews |
 | Unavailable | Filesystem | `Glob("**/components/**/*.tsx")` + `Grep` for component inventory |
 | Unavailable | 21st.dev | Search public registry via 21st-dev-magic MCP |
 | Unavailable | Manual | Claude multimodal analysis of screenshots |
 
 ## Related Skills
 
-- `storybook-testing` — CSF3 patterns, Vitest integration, Chromatic TurboSnap
-- `component-search` — 21st.dev registry search (external components)
-- `design-to-code` — Full mockup-to-component pipeline (uses this skill in Stage 2)
-- `ui-components` — shadcn/ui + Radix component patterns
+- `storybook-testing`: CSF3 patterns, Vitest integration, Chromatic TurboSnap
+- `component-search`: 21st.dev registry search (external components)
+- `design-to-code`: Full mockup-to-component pipeline (uses this skill in Stage 2)
+- `ui-components`: shadcn/ui + Radix component patterns
 
 
 ---
@@ -270,7 +270,7 @@ run-story-tests(
 
 - Max 3 retry attempts per component
 - If still failing after 3 attempts, report failures to user with details
-- Never suppress test failures — always surface them
+- Never suppress test failures, always surface them
 
 
 ### Story Preview Verification: HIGH

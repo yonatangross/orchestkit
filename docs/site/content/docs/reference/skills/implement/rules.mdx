@@ -16,7 +16,7 @@ Each subagent spawned in Phase 4-5 must receive an explicit file scope boundary 
 
 ### Problem
 
-Claude spawns parallel agents (backend, frontend, test-generator) without defining which files each agent owns. Two agents edit the same file — the last one to finish silently overwrites the first. This is especially dangerous without worktree isolation.
+Claude spawns parallel agents (backend, frontend, test-generator) without defining which files each agent owns. Two agents edit the same file, the last one to finish silently overwrites the first. This is especially dangerous without worktree isolation.
 
 ### Scope Assignment
 
@@ -42,7 +42,7 @@ scopes = {
 }
 ```
 
-**Incorrect — no scope boundaries in agent prompts:**
+**Incorrect, no scope boundaries in agent prompts:**
 ```python
 # Phase 5: Agents with overlapping scope
 Agent(subagent_type="ork:backend-system-architect",
@@ -55,7 +55,7 @@ Agent(subagent_type="ork:frontend-ui-developer",
 # Both create src/utils/validation.ts — silent overwrite
 ```
 
-**Correct — explicit scope in every agent prompt:**
+**Correct, explicit scope in every agent prompt:**
 ```python
 # Phase 5: Agents with strict scope boundaries
 Agent(subagent_type="ork:backend-system-architect",
@@ -106,14 +106,14 @@ Large refactors, sweeping renames, signature migrations, or any `ork:implement` 
 For every batch:
 
 1. **Make the change** (Agent edits up to `N` files).
-2. **Run the relevant tests** (`npm test -- &lt;scope&gt;` or framework equivalent).
+2. **Run the relevant tests** (`npm test -- <scope>` or framework equivalent).
 3. **If green**: commit the batch with a descriptive message, proceed to next batch.
 4. **If red**: stop. Do not proceed to the next batch. Debug with the failing batch still uncommitted. Fix the issue before touching more files.
-5. **Never skip step 4** with `// TODO`, `# type: ignore`, or `eslint-disable` — those suppress the signal the batch was too large.
+5. **Never skip step 4** with `// TODO`, `# type: ignore`, or `eslint-disable`, those suppress the signal the batch was too large.
 
 ## Why
 
-From usage analytics across 126 sessions: large one-shot refactors (176-file migrations, 91 exception narrowings) consistently produced cascade failures where one bad change created 50+ test regressions. Sessions that used small batches (≤5 files per cycle) had measurably better outcomes — faster root cause identification, fewer rollbacks, lower turn counts.
+From usage analytics across 126 sessions: large one-shot refactors (176-file migrations, 91 exception narrowings) consistently produced cascade failures where one bad change created 50+ test regressions. Sessions that used small batches (≤5 files per cycle) had measurably better outcomes, faster root cause identification, fewer rollbacks, lower turn counts.
 
 ## Recognizing the Trigger
 
@@ -124,7 +124,7 @@ Before starting an implementation that touches multiple files, run a quick scope
 grep -rl "<pattern-to-replace>" src/ | wc -l
 ```
 
-If count > 10, engage batch governance. If > 50, also consider whether the operation needs a pre-written migration script rather than agent-driven edits — at that scale, a scripted `sed` or `codemod` with a single careful review is usually cheaper than 10+ agent batches.
+If count > 10, engage batch governance. If > 50, also consider whether the operation needs a pre-written migration script rather than agent-driven edits, at that scale, a scripted `sed` or `codemod` with a single careful review is usually cheaper than 10+ agent batches.
 
 ## Incorrect Pattern
 
@@ -151,9 +151,9 @@ for batch in chunks(files, size=5):
 
 ## Interaction With Effort Levels
 
-- `low` / `medium`: batch size 3–5 (default).
+- `low` / `medium`: batch size 3-5 (default).
 - `high`: batch size 5.
-- `xhigh` (Opus 5.5): batch size 5 with an extra validation pass per batch — re-read the just-edited files and verify the change matches the migration intent before running tests. Catches LLM-introduced inconsistencies the linter doesn't see.
+- `xhigh` (Opus 5.5): batch size 5 with an extra validation pass per batch, re-read the just-edited files and verify the change matches the migration intent before running tests. Catches LLM-introduced inconsistencies the linter doesn't see.
 
 ## Argument
 
@@ -169,7 +169,7 @@ Commit working code after each logical unit of work completes. A "logical unit" 
 
 ### Problem
 
-Claude batches all commits to the end of a session. If the session dies mid-implementation (rate limit, timeout, network), all work is lost. The implement skill runs 10 phases — losing phases 1-7 because the commit was planned for phase 10 is catastrophic.
+Claude batches all commits to the end of a session. If the session dies mid-implementation (rate limit, timeout, network), all work is lost. The implement skill runs 10 phases, losing phases 1-7 because the commit was planned for phase 10 is catastrophic.
 
 ### Commit Points
 
@@ -177,12 +177,12 @@ Claude batches all commits to the end of a session. If the session dies mid-impl
 |-------------|---------|-----|
 | 2. Micro-Plan | Yes | Plan files are valuable context for resume |
 | 4. Architecture | Yes | Architecture decisions should survive crashes |
-| 5. Implementation | Yes | The bulk of new code — highest risk of loss |
+| 5. Implementation | Yes | The bulk of new code, highest risk of loss |
 | 6. Integration Verified | Yes | Tests pass, safe checkpoint |
 | 8. E2E Verified | Yes | Full verification complete |
 | 10. Reflection | Yes | Final commit with docs and lessons |
 
-**Incorrect — one commit after all phases:**
+**Incorrect, one commit after all phases:**
 ```bash
 # Phase 1-2: Discovery + Planning (no commit)
 # Phase 4: Architecture decided (no commit)
@@ -193,7 +193,7 @@ Claude batches all commits to the end of a session. If the session dies mid-impl
 # All work lost. No commits exist.
 ```
 
-**Correct — commit at each milestone:**
+**Correct, commit at each milestone:**
 ```bash
 # After Phase 2:
 git add .claude/chain/02-plan.json src/docs/plan.md
@@ -230,8 +230,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### Key Rules
 
 - Never go more than 2 phases without a commit
-- Commit even if tests are not yet written — partial progress beats total loss
-- Use specific `git add &lt;files&gt;` instead of `git add -A` to avoid committing artifacts
+- Commit even if tests are not yet written, partial progress beats total loss
+- Use specific `git add <files>` instead of `git add -A` to avoid committing artifacts
 - If a phase fails, commit the passing phases first, then address the failure
 - Include phase number in commit messages for traceability during resume
 - Handoff JSON files (`.claude/chain/*.json`) should be committed alongside code
@@ -242,7 +242,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## Test Coverage Requirement
 
-Every task in Phase 5 must produce both implementation code AND matching tests. The test-generator agent is not optional — it runs in parallel with implementation agents and its output is required before Phase 6.
+Every task in Phase 5 must produce both implementation code AND matching tests. The test-generator agent is not optional, it runs in parallel with implementation agents and its output is required before Phase 6.
 
 ### Problem
 
@@ -263,7 +263,7 @@ Grep(pattern="def test_|class Test", glob="**/test_*.py")
 # If 0 matches for new code paths → BLOCK Phase 6 entry
 ```
 
-**Incorrect — proceed without tests:**
+**Incorrect, proceed without tests:**
 ```python
 # Phase 5: Implementation
 Agent(subagent_type="ork:backend-system-architect",
@@ -274,7 +274,7 @@ Agent(subagent_type="ork:frontend-ui-developer",
 # Phase 6: "Let's verify integration..." ← no tests exist to run
 ```
 
-**Correct — tests are parallel and mandatory:**
+**Correct, tests are parallel and mandatory:**
 ```python
 # Phase 5: Implementation + Tests (parallel)
 Agent(subagent_type="ork:backend-system-architect",
@@ -312,7 +312,7 @@ Always reference the Test Requirements Matrix from SKILL.md when spawning test-g
 
 - Spawn test-generator in the same message as implementation agents
 - Verify test output before advancing to Phase 6
-- If test-generator fails, re-run it — do not skip
+- If test-generator fails, re-run it, do not skip
 - Include test file paths in the `05-implementation.json` handoff
 
 
@@ -321,7 +321,7 @@ Always reference the Test Requirements Matrix from SKILL.md when spawning test-g
 
 ## Tier Validation
 
-The tier detected in Step 0 sets a hard ceiling on architecture complexity. Every phase must respect this ceiling — especially Phase 4 (Architecture) and Phase 5 (Implementation).
+The tier detected in Step 0 sets a hard ceiling on architecture complexity. Every phase must respect this ceiling, especially Phase 4 (Architecture) and Phase 5 (Implementation).
 
 ### Tier Ceilings
 
@@ -336,7 +336,7 @@ The tier detected in Step 0 sets a hard ceiling on architecture complexity. Ever
 
 Claude defaults to enterprise-grade patterns regardless of project size. A take-home interview gets hexagonal architecture with ports/adapters when a flat Express app with 3 routes would score higher.
 
-**Incorrect — Tier 1 interview with enterprise architecture:**
+**Incorrect, Tier 1 interview with enterprise architecture:**
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
@@ -346,7 +346,7 @@ Agent(subagent_type="ork:backend-system-architect",
 # Result: 35 files, 4 abstraction layers for a CRUD app
 ```
 
-**Correct — Tier 1 interview with appropriate simplicity:**
+**Correct, Tier 1 interview with appropriate simplicity:**
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
@@ -357,7 +357,7 @@ Agent(subagent_type="ork:backend-system-architect",
 # Result: 8 files, runs out of the box, easy to review
 ```
 
-**Validation check — add to Phase 4 handoff:**
+**Validation check, add to Phase 4 handoff:**
 ```python
 # In 04-architecture.json handoff:
 {
@@ -373,7 +373,7 @@ Agent(subagent_type="ork:backend-system-architect",
 
 - Always pass the detected tier to every subagent prompt explicitly
 - If a subagent produces output exceeding the tier ceiling, reject and re-run with stricter constraints
-- When in doubt, under-engineer — simpler code is easier to review and extend
+- When in doubt, under-engineer, simpler code is easier to review and extend
 - Tier upgrades require explicit user confirmation via `AskUserQuestion`
 
 
@@ -382,13 +382,13 @@ Agent(subagent_type="ork:backend-system-architect",
 
 ## Worktree Cleanup
 
-When the implement skill uses `EnterWorktree` for isolation, it MUST call `ExitWorktree` before completing — regardless of success or failure. Orphaned worktrees block future git operations and leak disk space.
+When the implement skill uses `EnterWorktree` for isolation, it MUST call `ExitWorktree` before completing, regardless of success or failure. Orphaned worktrees block future git operations and leak disk space.
 
 ### Problem
 
 Claude enters a worktree for isolation but forgets to exit when the implementation finishes, errors out, or gets interrupted. The worktree directory and its lock file persist, causing `git worktree add` failures in the next session.
 
-**Incorrect — enter worktree, finish, but never exit:**
+**Incorrect, enter worktree, finish, but never exit:**
 ```python
 # Phase 3: Enter worktree
 EnterWorktree(name="feat-user-auth")
@@ -402,7 +402,7 @@ Agent(subagent_type="ork:backend-system-architect", prompt="Implement auth...")
 # Next session: "fatal: 'feat-user-auth' is already checked out"
 ```
 
-**Correct — exit worktree in all code paths:**
+**Correct, exit worktree in all code paths:**
 ```python
 # Phase 3: Enter worktree
 EnterWorktree(name="feat-user-auth")
@@ -417,7 +417,7 @@ ExitWorktree()  # Merges back to original branch and removes worktree
 # Phase 10: Reflection (back in main working tree)
 ```
 
-**Correct — exit worktree even on failure:**
+**Correct, exit worktree even on failure:**
 ```python
 # Phase 3: Enter worktree
 EnterWorktree(name="feat-user-auth")

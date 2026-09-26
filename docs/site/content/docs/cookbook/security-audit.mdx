@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 Your app is a week away from production launch. The FastAPI backend handles user authentication, payment processing, and file uploads. The React frontend consumes 14 API endpoints. You have 200+ tests passing, but nobody has done a dedicated security review.
 
-You know the OWASP Top 10 exists. You know you should check for SQL injection, XSS, and hardcoded secrets. But manually scanning every endpoint, dependency, and configuration file would take days -- and you would still miss things a specialist would catch.
+You know the OWASP Top 10 exists. You know you should check for SQL injection, XSS, and hardcoded secrets. But manually scanning every endpoint, dependency, and configuration file would take days, and you would still miss things a specialist would catch.
 
 OrchestKit runs a **defense-in-depth security audit** that checks 8 layers in parallel, returns findings by severity with file-and-line references, and grades each layer on a 0-10 scale. The entire audit takes 2-5 minutes depending on codebase size.
 
@@ -84,7 +84,7 @@ All three run in parallel, then **results are merged** into a unified security r
 The `security-auditor` runs automated tools (bandit, pip-audit, npm audit). The `code-quality-reviewer` analyzes code patterns. The `debug-investigator` traces data flow from request input to storage to find gaps the automated tools miss.
 
 <Callout type="info">
-The `security-auditor` agent uses parallel tool calls internally. It runs `bandit -r backend/`, `pip-audit`, `npm audit`, and secret-pattern grep all at the same time -- cutting scan time by roughly 60% compared to sequential execution.
+The `security-auditor` agent uses parallel tool calls internally. It runs `bandit -r backend/`, `pip-audit`, `npm audit`, and secret-pattern grep all at the same time, cutting scan time by roughly 60% compared to sequential execution.
 </Callout>
 
 ### Step 3: Review the Security Scorecard
@@ -197,7 +197,7 @@ Findings use three severity levels that map to clear action timelines:
 | **P2 Medium** | Hardening recommendation, best practice gap | Fix in next sprint | Within 1 week |
 
 <Callout type="warn">
-A score below 6/10 on any single layer means the audit found blocking issues at that layer. Do not proceed to production until all P0 findings are resolved and every layer scores at least 6/10. The overall score is an average -- it can hide a critically weak layer.
+A score below 6/10 on any single layer means the audit found blocking issues at that layer. Do not proceed to production until all P0 findings are resolved and every layer scores at least 6/10. The overall score is an average; it can hide a critically weak layer.
 </Callout>
 
 ### Step 5: Fix and Re-Audit
@@ -252,7 +252,7 @@ Results: 7 passed, 0 failed
 These tests validate that OrchestKit's own hooks (like `dangerous-command-blocker` and `file-guard`) correctly block attack vectors. They run automatically in CI and must all pass before merge.
 
 <Callout type="info">
-The security test suite covers 7 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, and additional security checks. These are not application tests -- they validate OrchestKit's defensive hooks that protect your development workflow.
+The security test suite covers 7 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, and additional security checks. These are not application tests; they validate OrchestKit's defensive hooks that protect your development workflow.
 </Callout>
 
 ## Behind the Scenes
@@ -271,13 +271,13 @@ The security test suite covers 7 attack categories: command injection, JQ inject
 
 The `security-auditor` agent receives 7 skills via its agent definition:
 
-- **`owasp-top-10`** -- Patterns for all 10 OWASP 2021 categories with vulnerable-vs-secure code examples
-- **`defense-in-depth`** -- The 8-layer model, ensuring the agent checks every boundary
-- **`auth-patterns`** -- JWT validation, OAuth2 flows, password hashing best practices
-- **`input-validation`** -- SQL injection, XSS, command injection prevention at each input boundary
-- **`llm-safety-patterns`** -- Prompt injection, model output validation, LLM-specific threat vectors
-- **`security-scanning`** -- Scan command templates for bandit, pip-audit, npm audit, semgrep
-- **`mcp-security-hardening`** -- MCP server security: tool whitelisting, input sanitization
+- **`owasp-top-10`**: Patterns for all 10 OWASP 2021 categories with vulnerable-vs-secure code examples
+- **`defense-in-depth`**: The 8-layer model, ensuring the agent checks every boundary
+- **`auth-patterns`**: JWT validation, OAuth2 flows, password hashing best practices
+- **`input-validation`**: SQL injection, XSS, command injection prevention at each input boundary
+- **`llm-safety-patterns`**: Prompt injection, model output validation, LLM-specific threat vectors
+- **`security-scanning`**: Scan command templates for bandit, pip-audit, npm audit, semgrep
+- **`mcp-security-hardening`**: MCP server security: tool whitelisting, input sanitization
 
 ### How the Agents Collaborate
 
@@ -324,7 +324,7 @@ grep -rn "(?i)(api[_-]?key|secret|password|token|credential)" \
 semgrep scan --config=p/security-audit --json
 ```
 
-If a tool is not installed, the agent skips it and notes it in the findings: "bandit not available -- install with `pip install bandit` for Python static analysis."
+If a tool is not installed, the agent skips it and notes it in the findings: "bandit not available, install with `pip install bandit` for Python static analysis."
 
 ## Tips
 
@@ -354,7 +354,7 @@ If a tool is not installed, the agent skips it and notes it in the findings: "ba
 
 ## Next Steps
 
-- **[Implement a Feature](/docs/cookbook/implement-feature)** -- See how security checks integrate into the implementation workflow
-- **[Review a Pull Request](/docs/cookbook/review-pr)** -- Multi-agent PR review with security as one of six dimensions
-- **[Hooks Overview](/docs/hooks/overview)** -- Understand how `dangerous-command-blocker` and `file-guard` work
-- **[Configuration](/docs/getting-started/configuration)** -- Environment setup for security scanning tools
+- **[Implement a Feature](/docs/cookbook/implement-feature)**: See how security checks integrate into the implementation workflow
+- **[Review a Pull Request](/docs/cookbook/review-pr)**: Multi-agent PR review with security as one of six dimensions
+- **[Hooks Overview](/docs/hooks/overview)**: Understand how `dangerous-command-blocker` and `file-guard` work
+- **[Configuration](/docs/getting-started/configuration)**: Environment setup for security scanning tools

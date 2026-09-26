@@ -101,13 +101,13 @@ if current_branch in ("main", "master", "dev"):
     }])
 ```
 
-## Phase 1 — Import
+## Phase 1: Import
 
-Delegate to `design-import` with the bundle argument. Capture its output (the import manifest) — it includes the bundle_id, list of components written, and the provenance file path.
+Delegate to `design-import` with the bundle argument. Capture its output (the import manifest), it includes the bundle_id, list of components written, and the provenance file path.
 
 If import fails, **stop**. Do NOT proceed to test generation against partially-imported components.
 
-## Phase 2 — Cover
+## Phase 2: Cover
 
 Run `cover` scoped to the components written by phase 1:
 
@@ -128,7 +128,7 @@ Agent(
 )
 ```
 
-## Phase 3 — Expect
+## Phase 3: Expect
 
 Run `expect` to do diff-aware browser verification. This produces the screenshots that go into the PR body:
 
@@ -148,7 +148,7 @@ Agent(
 )
 ```
 
-## Phase 4 — Create PR
+## Phase 4: Create PR
 
 Use `create-pr` with a body templated from the bundle and verification results:
 
@@ -184,7 +184,7 @@ Bundle ID: `{bundle_id}` · Provenance: `.claude/design-handoffs/{bundle_id}.jso
 Bash(f"gh pr create --title '{pr_title}' --body @- <<< '{pr_body}' --label claude-design")
 ```
 
-## Phase 5 — Update provenance
+## Phase 5: Update provenance
 
 Patch the provenance file with the opened PR number and URL:
 
@@ -200,8 +200,8 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 |---|---|---|
 | Pre-flight | Dirty tree, on main | AskUserQuestion, do not proceed silently |
 | 1. Import | Schema deviation, token conflict | `design-import` already prompts; if user cancels, abort |
-| 2. Cover | Test generation fails | Continue to expect — tests are recoverable in PR review |
-| 3. Expect | Browser verification fails | Continue to PR — failures noted in PR body |
+| 2. Cover | Test generation fails | Continue to expect, tests are recoverable in PR review |
+| 3. Expect | Browser verification fails | Continue to PR, failures noted in PR body |
 | 4. Create PR | `gh` not authenticated | Stop, surface auth error |
 | 5. Provenance | File not writable | Warn but do not fail (PR is already open) |
 
@@ -209,10 +209,10 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 
 | Skill | Role |
 |---|---|
-| `design-import` | Phase 1 — scaffold components |
-| `cover` | Phase 2 — Storybook + Playwright |
-| `expect` | Phase 3 — diff-aware browser verification |
-| `create-pr` | Phase 4 — open PR with templated body |
+| `design-import` | Phase 1, scaffold components |
+| `cover` | Phase 2, Storybook + Playwright |
+| `expect` | Phase 3, diff-aware browser verification |
+| `create-pr` | Phase 4, open PR with templated body |
 | `remember` / `memory` | Provenance updates |
 
 ## NOT this skill's job
@@ -221,11 +221,11 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 |---|---|
 | Parsing bundles | `claude-design-orchestrator` agent (called by `design-import`) |
 | Component dedup | Orchestrator agent (called by `design-import`) |
-| Test execution (CI) | GitHub Actions — this skill only generates tests |
-| Merging the PR | Human reviewer — never auto-merge |
+| Test execution (CI) | GitHub Actions, this skill only generates tests |
+| Merging the PR | Human reviewer, never auto-merge |
 
 ## Limitations
 
 - **No auto-merge**: this skill opens the PR; humans review and merge.
-- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `design-ship`. The reverse-path (live UI drift → refinement prompt for claude.ai/design) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391 (PR hook), #1393 (`design-iterate`), #1395 (design-drift-detector agent).
+- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `design-ship`. The reverse-path (live UI drift → refinement prompt for claude.ai/design) is tracked in M124, Claude Design Drift Sync (Bet B): #1391 (PR hook), #1393 (`design-iterate`), #1395 (design-drift-detector agent).
 - **Single-bundle scope**: one invocation, one bundle, one PR. Multi-bundle batches are not supported.

@@ -130,6 +130,26 @@ describe("search dialog suggestion re-rank", () => {
 		expect(fetchSpy.mock.calls[0][1]).toMatchObject({ cache: "no-store" });
 	});
 
+	it("never gives a heading suggestion a breadcrumb row under the # glyph", async () => {
+		await renderDialog("");
+
+		await act(async () => setSearchImpl("installation"));
+		await flush();
+		await screen.findByText("Suggestions");
+
+		// fumadocs pins the heading "#" to the row's first line. A breadcrumb
+		// row there put the glyph over its text ("Sec#rity Patterns"), so every
+		// heading option must keep that row empty.
+		const headingOptions = screen
+			.getAllByRole("option")
+			.filter((o) => o.querySelector("svg"));
+		expect(headingOptions.length).toBeGreaterThan(0);
+		for (const option of headingOptions) {
+			const breadcrumbRow = option.firstElementChild;
+			expect(breadcrumbRow?.textContent ?? "").toBe("");
+		}
+	});
+
 	it("makes no request at all when the flag is off at build time", async () => {
 		await renderDialog("");
 

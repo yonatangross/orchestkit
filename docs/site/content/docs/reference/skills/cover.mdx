@@ -244,7 +244,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > hardcoded branch name. **ork does not set it**: a plugin cannot, and no ork
 > settings file carries it. Unless the operator put `"baseRef": "head"` in
 > `.claude/settings.json` or `~/.claude/settings.json`, CC's default `"fresh"`
-> applies: every tier agent branches from `origin/&lt;default&gt;`, unpushed local
+> applies: every tier agent branches from `origin/<default>`, unpushed local
 > commits are invisible to it, and `tsc` fails with "cannot find module" for
 > code you just wrote. Verify the setting before spawning. Full pattern:
 > `Read("../chain-patterns/references/worktree-agent-pattern.md")`
@@ -290,7 +290,7 @@ Output each agent's results **as soon as it returns**. Don't wait for all agents
 
 ### Phase 3b: Behaviour Gate
 
-Before Phase 4, run `node "$\{CLAUDE_SKILL_DIR\}/scripts/check-behaviour-tests.mjs" --json &lt;new test files&gt;` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
+Before Phase 4, run `node "${CLAUDE_SKILL_DIR}/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
@@ -350,7 +350,7 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `cover` runs (unit + integration + E2E with heal loop) take 15-45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete, \{SCOPE\}: \{tests_kept\} tests kept · \{tests_dropped\} dropped by behaviour gate · \{heal_loops\} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
+Full `cover` runs (unit + integration + E2E with heal loop) take 15-45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete, {SCOPE}: {tests_kept} tests kept · {tests_dropped} dropped by behaviour gate · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
@@ -460,7 +460,7 @@ Done means all of these hold:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -494,12 +494,12 @@ Rank candidate code by these signals, highest risk first. Every target carries a
 
 | Signal | How to find it | Example `why` |
 |--------|----------------|---------------|
-| Changed code | `git diff --name-only &lt;base&gt;...HEAD` in scope | "changed in this branch, no test touches it" |
+| Changed code | `git diff --name-only <base>...HEAD` in scope | "changed in this branch, no test touches it" |
 | Complex branches | nested conditionals, state machines, many early returns | "5 branches on order state, none exercised" |
 | Error paths | `catch`, `except`, `throw`/`raise`, retries, timeouts | "retry-exhausted branch never runs in a test" |
 | Security paths | auth, permission checks, input validation, secrets, crypto | "role check guards admin export" |
 | Money paths | prices, discounts, tax, refunds, currency rounding | "refund rounds to cents" |
-| Past bugs | `git log --grep='fix' -- &lt;file&gt;`, linked issues, reverts | "fixed twice in 60 days (see git log)" |
+| Past bugs | `git log --grep='fix' -- <file>`, linked issues, reverts | "fixed twice in 60 days (see git log)" |
 
 Uncovered lines that match no signal (trivial getters, re-exports, generated code) are
 left alone. Handoff shape in `02-cover-analysis.json`:
@@ -566,7 +566,7 @@ are exempt.
 Slash invoke: `/ork:cover`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -688,7 +688,7 @@ for file in scope_files:
 |-------|---------|--------|
 | Vitest | `npx vitest run --coverage --reporter=json` | `coverage/coverage-final.json` |
 | Jest | `npx jest --coverage --json` | `coverage/coverage-final.json` |
-| pytest | `pytest --cov=\{scope\} --cov-report=json` | `coverage.json` |
+| pytest | `pytest --cov={scope} --cov-report=json` | `coverage.json` |
 | Go | `go test -coverprofile=coverage.out ./...` | `coverage.out` |
 | Playwright | Coverage via Istanbul instrumentation | `coverage/` dir |
 
@@ -762,7 +762,7 @@ trusted on their own. `heal-loop.js` also decides from the text:
   `assert 422 == 409`, unittest `422 != 409`, two status codes on one `status` line) is a
   value mismatch whatever category the run agent gave it. Two shapes are excluded: TS2554
   `Expected 2 arguments, but got 1` is a type error, and Playwright
-  `Received: &lt;element(s) not found&gt;` is a locator that matched nothing, so it stays
+  `Received: <element(s) not found>` is a locator that matched nothing, so it stays
   repairable as a stale selector. `toHaveCount` `Received: 0` and a real `toHaveText` diff
   (`Received string: "Submit"`) remain value mismatches.
 - **Fix vetting.** Assertions are extracted from each fix's `before` and `after`: `expect(...)`
@@ -782,7 +782,7 @@ trusted on their own. `heal-loop.js` also decides from the text:
     `golden` even when no reported hunk asserts on it;
   - an assignment changes a literal for a name an assertion inspects (`const got = 409`
     for `expect(got).toBe(409)`), unless it is a stale-selector locator swap, the same
-    rule as a subject rewritten in place (`page.getByRole('button', \{ name: 'Old' \})` to
+    rule as a subject rewritten in place (`page.getByRole('button', { name: 'Old' })` to
     `'New'` for `expect(button).toBeVisible()` is kept);
   - both name sets are collected per file across every hunk of one repair pass, before
     and after, so a value moved in one hunk is caught when the assertion sits in another;
@@ -825,7 +825,7 @@ whatever the syntax:
 - a merge into an existing object: `Object.assign`, lodash `merge`, `deepmerge`, Python
   `d.update(...)`, or a spread in a changed literal;
 - the contents of an object, array or dict literal (a mock return, a seed list, an options
-  object such as `\{ timeout: 5000 \}`);
+  object such as `{ timeout: 5000 }`);
 - any other literal the hunk adds, changes or removes (the closure rule), such as an
   argument to an `expect*` helper (`expectTotal(cart, 3)` to `2`) or a mutating call on an
   expected container (`expected.push(4)`). A literal is a number, string, boolean, regex,
@@ -859,9 +859,9 @@ healable:
   `dataDir`). A substring does not count: `redirectTarget`, `userProfile`, `reportTotal`,
   `hostName` and `timeoutMessage` are held;
 - the fix is `stale-selector` and both values are locator expressions with no literal equal
-  to the failure's expected value (`page.getByRole('button', \{ name: 'Old' \})` to `'New'`),
+  to the failure's expected value (`page.getByRole('button', { name: 'Old' })` to `'New'`),
   or the changed literal is an argument of a locator call;
-- an import line (`import \{ login \} from '../../src/auth'`, Python `from x import y`): a
+- an import line (`import { login } from '../../src/auth'`, Python `from x import y`): a
   module path is not a value;
 - the duration or load state passed to a timing call: `waitForTimeout`, `waitForLoadState`
   (`load`, `domcontentloaded`, `networkidle`), `setTimeout`, `sleep`,
@@ -894,7 +894,7 @@ Instead use:
 
 # Real-Service Detection
 
-Detect and configure real-service infrastructure for integration tests. Real services catch bugs that mocks miss — mock/prod divergence caused silent failures in past incidents.
+Detect and configure real-service infrastructure for integration tests. Real services catch bugs that mocks miss, mock/prod divergence caused silent failures in past incidents.
 
 ## Detection (Phase 1)
 
@@ -931,11 +931,11 @@ docker compose -f docker-compose.test.yml down -v
 ```
 
 Services to look for in compose files:
-- `postgres` / `mysql` / `mongodb` — database
-- `redis` — cache/sessions
-- `rabbitmq` / `kafka` — message queues
-- `elasticsearch` / `opensearch` — search
-- `minio` / `localstack` — S3-compatible storage
+- `postgres` / `mysql` / `mongodb`, database
+- `redis`: cache/sessions
+- `rabbitmq` / `kafka`, message queues
+- `elasticsearch` / `opensearch`, search
+- `minio` / `localstack`, S3-compatible storage
 
 ## Testcontainers Workflow
 
@@ -977,7 +977,7 @@ When real services are running, set connection strings:
 | Service | Env Variable | Source |
 |---------|-------------|--------|
 | PostgreSQL | `DATABASE_URL` | `container.getConnectionUri()` |
-| Redis | `REDIS_URL` | `redis://localhost:\{mapped_port\}` |
+| Redis | `REDIS_URL` | `redis://localhost:{mapped_port}` |
 | MongoDB | `MONGODB_URI` | `container.getConnectionString()` |
 
 ## Cleanup

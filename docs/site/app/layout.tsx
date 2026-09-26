@@ -5,9 +5,11 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { BannerOffset } from "@/components/banner-offset";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
+import { ThemeRevealOrigin } from "@/components/theme-reveal-origin";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { BANNER_TEXT, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
@@ -61,6 +63,13 @@ export const metadata: Metadata = {
 	metadataBase: new URL(SITE.domain),
 };
 
+// Dot-free: fumadocs hides a dismissed banner before hydration with the rule
+// `.nd-banner-<key> #<id> { display: none }`, and a version id with dots
+// ("#v10.0.0-beta.96") is an invalid selector the browser drops, so the
+// banner flashed and left a stale offset for returning visitors (review,
+// 2026-09-25). Dismissals keyed on the old dotted id reset once.
+const BANNER_ID = `v${SITE.version.replace(/\./g, "-")}`;
+
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html
@@ -75,7 +84,23 @@ export default function Layout({ children }: { children: ReactNode }) {
 				>
 					Skip to main content
 				</a>
-				<Banner id={`v${SITE.version}`}>{BANNER_TEXT}</Banner>
+				{/* Own row, not sticky (operator, 2026-09-25). Fumadocs pins the banner
+				    sticky top-0 while the nav also sticks at top 0, so after any scroll
+				    the banner text showed through the nav (48px overlap). It now scrolls
+				    away; BannerOffset feeds docs layouts its visible height, and the
+				    side padding keeps the close X off the text on phones. */}
+				<Banner
+					id={BANNER_ID}
+					className="relative ps-10 pe-10"
+					changeLayout={false}
+					// A named region, so the announcement sits in a landmark (axe
+					// "region" fired on every route, QA 2026-09-25).
+					role="region"
+					aria-label="Release announcement"
+				>
+					{BANNER_TEXT}
+				</Banner>
+				<BannerOffset bannerId={BANNER_ID} />
 				<RootProvider
 					theme={{ defaultTheme: "dark" }}
 					search={{ SearchDialog: CustomSearchDialog }}
@@ -86,6 +111,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				<WebVitalsReporter />
 				<ClientErrorReporter />
 				<GitHubClickTracker />
+				<ThemeRevealOrigin />
 				<WebMcpProvider />
 			</body>
 		</html>

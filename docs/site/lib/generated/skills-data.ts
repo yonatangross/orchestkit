@@ -905,7 +905,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
+    "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command, but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
     "version": "0.2.0",
     "sha256": "9a4a7dfbadc8f2e7964caafef29354c6b71f086aabe5442d766422ea9d1cb761",
     "author": "OrchestKit",
@@ -938,7 +938,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-sentinel": {
     "name": "ci-sentinel",
-    "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
+    "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply, NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
     "version": "0.1.0",
     "sha256": "90ba299311038b1486a01344751aa9c1e644b703f90a756237fe8a3d6c8abc72",
     "author": "OrchestKit",
@@ -1429,7 +1429,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-context-extract": {
     "name": "design-context-extract",
-    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
+    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
     "sha256": "9099da6d39a6c0bf5ee0ad08cbe739b78cca2b745915bd2f01b1575e9697af50",
     "author": "OrchestKit",
@@ -1584,7 +1584,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-stylecards": {
     "name": "design-stylecards",
-    "description": "Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session.",
+    "description": "Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session.",
     "version": "1.0.0",
     "sha256": "fe29c7245ccdb0489efa4a65a3768d80fa55a63a57d5df7b3fafc7fc43efa209",
     "author": "OrchestKit",
@@ -2080,7 +2080,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs, full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
     "sha256": "3e4aecbef236c9d7c4fe187939bc8626f3dbe9ad31923a95069b27a51516c3f0",
     "author": "OrchestKit",
@@ -2216,7 +2216,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "expect": {
     "name": "expect",
-    "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
+    "description": "Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.2.0",
     "sha256": "cdf1770cd8fcde52b53de6c729ab6132c42f577498431c2e6b9346a342e6dd83",
     "author": "OrchestKit",
@@ -2828,7 +2828,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "issue-progress-tracking": {
     "name": "issue-progress-tracking",
-    "description": "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR.",
+    "description": "GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR.",
     "version": "1.0.0",
     "sha256": "bbeb8d544856fc00b4ff03258f3a9bbaeb05f0db8da6166efdc33815abbdf4e2",
     "author": "OrchestKit",
@@ -3282,7 +3282,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multi-surface-render": {
     "name": "multi-surface-render",
-    "description": "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
+    "description": "Multi-surface rendering with json-render, one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
     "sha256": "d9caa657d5231cb0b545e252096c6c18ffa2d21ff80fcf61dbd0339de1a4304b",
     "author": "OrchestKit",
@@ -3613,7 +3613,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "prioritization": {
     "name": "prioritization",
-    "description": "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
+    "description": "Prioritization frameworks, RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.",
     "version": "1.0.0",
     "sha256": "21eee4a9e2449ade77e93a51adca1c967f1c45dbbdc3ec1e4023b3a3112aaf4f",
     "author": "OrchestKit",
@@ -4498,7 +4498,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "swarm-migrate": {
     "name": "swarm-migrate",
-    "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
+    "description": "Cross-repo migration swarm, one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work, that's /ork:implement.",
     "version": "0.1.0",
     "sha256": "395643f25c80ed2a1bf1068a44c5d6a5d7af45351e4ec5d651a8bb16448321a9",
     "author": "OrchestKit",
@@ -4587,7 +4587,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "telemetry-inspect": {
     "name": "telemetry-inspect",
-    "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files.",
+    "description": "Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only, never modifies telemetry files.",
     "version": "1.0.0",
     "sha256": "5803c01de7e9822b1d5a200bf2a63fee8f4e69aa6666c3fbd0d26c7450d7888e",
     "author": "OrchestKit",
@@ -4626,7 +4626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-e2e": {
     "name": "testing-e2e",
-    "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
+    "description": "End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
     "version": "2.1.0",
     "sha256": "8eafca80c852cd1cec0b49ba8ec7cbd5d2ed0fc991ae6f58691a9f64bb1f033d",
     "author": "OrchestKit",
@@ -4678,7 +4678,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-integration": {
     "name": "testing-integration",
-    "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
+    "description": "Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
     "version": "2.1.0",
     "sha256": "c2bb132c4a049b2d21ec668854740c850d07b2b917c1230cd0890f09e1effdf3",
     "author": "OrchestKit",
@@ -4730,7 +4730,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-llm": {
     "name": "testing-llm",
-    "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
+    "description": "LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
     "version": "2.1.0",
     "sha256": "613bbba1c6f3737b3a338be0609629f679588139cc7347bb3f7a1d5b7aa706ea",
     "author": "OrchestKit",
@@ -4775,7 +4775,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-perf": {
     "name": "testing-perf",
-    "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
+    "description": "Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
     "version": "2.1.0",
     "sha256": "6d07ea4145a2acdd3096e2c7d09af54ff2a4ba6aafb69a5c6667f91085d68bf5",
     "author": "OrchestKit",
@@ -4825,7 +4825,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-unit": {
     "name": "testing-unit",
-    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.",
+    "description": "Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.",
     "version": "2.1.0",
     "sha256": "b86d14714c452bf582ecb55702ef9a6fa0832dfd1a0041d4d68920a62816ce7e",
     "author": "OrchestKit",
@@ -5063,7 +5063,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "visualize-plan": {
     "name": "visualize-plan",
-    "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
+    "description": "Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
     "sha256": "4027ff2a07140f079b01ef074f7432394e91d17ba5693334bfa5a5338c3a2ee4",
     "author": "OrchestKit",
@@ -5225,7 +5225,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "write-prd": {
     "name": "write-prd",
-    "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
+    "description": "Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
     "version": "2.0.1",
     "sha256": "ee5ce3da91151a9b7fc654a435c22616337dedea6823cd2b4083c3626cbb368a",
     "author": "OrchestKit",

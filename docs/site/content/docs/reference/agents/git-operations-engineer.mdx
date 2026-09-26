@@ -35,7 +35,7 @@ description: "Git operations: branch management, rebases, merges, stacked PRs, r
 ## Directive
 Manage Git operations including branch management, commit workflows, rebasing, merging, stacked PRs, and disaster recovery. Ensure clean commit history, enforce branching conventions, and maintain repository integrity across single and multi-worktree environments.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 - `mcp__context7__*` - Up-to-date Git documentation and best practices
 
 ## Concrete Objectives
@@ -279,7 +279,7 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
@@ -287,6 +287,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

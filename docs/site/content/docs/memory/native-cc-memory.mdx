@@ -5,7 +5,7 @@ description: "How OrchestKit auto-promotes high-confidence decisions to Claude C
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-CC Native memory is Tier 3 -- the **survivability layer**. Claude Code maintains a file at `~/.claude/projects/<project>/memory/MEMORY.md` that it automatically injects into the system prompt for every session. OrchestKit writes high-confidence decisions to this file, ensuring they persist even if the plugin is removed, reinstalled, or upgraded.
+CC Native memory is Tier 3, the **survivability layer**. Claude Code maintains a file at `~/.claude/projects/<project>/memory/MEMORY.md` that it automatically injects into the system prompt for every session. OrchestKit writes high-confidence decisions to this file, ensuring they persist even if the plugin is removed, reinstalled, or upgraded.
 
 ## How Claude Code Native Memory Works
 
@@ -22,7 +22,7 @@ This means anything written to MEMORY.md is visible to Claude in every conversat
 
 OrchestKit bridges its own memory system to CC Native through **auto-promotion**: high-signal decisions captured during a session get persisted into `MEMORY.md`, where Claude Code injects them into every future session.
 
-Promotion is performed by Claude itself, prompted by OrchestKit's session hooks (`session-summary`, `auto-remember-continuity`): at session end, Claude reviews what was decided and writes durable, high-confidence decisions to MEMORY.md. Low-signal material -- patterns inferred from tool output, transient observations -- stays in the session-local JSONL files instead. This keeps MEMORY.md focused and concise.
+Promotion is performed by Claude itself, prompted by OrchestKit's session hooks (`session-summary`, `auto-remember-continuity`): at session end, Claude reviews what was decided and writes durable, high-confidence decisions to MEMORY.md. Low-signal material (patterns inferred from tool output, transient observations) stays in the session-local JSONL files instead. This keeps MEMORY.md focused and concise.
 
 ## What Gets Written
 
@@ -45,9 +45,9 @@ Each promoted decision is formatted as a concise Markdown list item:
 Each entry includes:
 
 - **Type label** in bold: `[Decision]`, `[Preference]`, `[Pattern]`, or `[Note]`
-- **The decision text** -- the "what"
-- **Rationale** in italics (if provided) -- the "why"
-- **Entity tags** as inline code -- technologies and patterns mentioned
+- **The decision text**: the "what"
+- **Rationale** in italics (if provided): the "why"
+- **Entity tags** as inline code: technologies and patterns mentioned
 
 ## Deduplication
 
@@ -64,7 +64,7 @@ MEMORY.md is injected into the system prompt in its entirety. To prevent it from
 1. The oldest entry is removed
 2. A marker is added: `_...older decisions archived..._`
 
-Archived decisions are not lost -- they still exist in Tier 1 (Graph) and Tier 2 (Local JSONL). The limit only applies to what gets injected into every system prompt.
+Archived decisions are not lost; they still exist in Tier 1 (Graph) and Tier 2 (Local JSONL). The limit only applies to what gets injected into every system prompt.
 
 ## File Location
 
@@ -128,7 +128,7 @@ Different plugin version -->  Tier 3 still works, previous decisions visible
 New machine, same repo   -->  Tier 3 works if ~/.claude/ is synced/backed up
 ```
 
-This means your most important decisions -- the ones that cleared the 0.7 confidence threshold -- are not locked into OrchestKit. They are plain text in a file that Claude Code itself manages. Even if you stop using OrchestKit entirely, Claude remembers what matters.
+This means your most important decisions, the ones that cleared the 0.7 confidence threshold, are not locked into OrchestKit. They are plain text in a file that Claude Code itself manages. Even if you stop using OrchestKit entirely, Claude remembers what matters.
 
 ## Relationship to Other Tiers
 
@@ -171,6 +171,6 @@ Verify the project path mapping. The directory name conversion replaces all path
 
 ## Next Steps
 
-- [Architecture Overview](/docs/memory/overview) -- see how Tier 3 fits into the full system
-- [Graph Memory](/docs/memory/graph-memory) -- the primary tier that feeds auto-promotion
-- [Set Up Cross-Session Memory](/docs/cookbook/setup-memory) -- end-to-end cookbook
+- [Architecture Overview](/docs/memory/overview): see how Tier 3 fits into the full system
+- [Graph Memory](/docs/memory/graph-memory): the primary tier that feeds auto-promotion
+- [Set Up Cross-Session Memory](/docs/cookbook/setup-memory): end-to-end cookbook

@@ -196,7 +196,7 @@ Given a topic (or the conversation, when none is given):
 
 **Triage is a page, every time.** Asks shaped like "triage open issues", "what is left", or "categorize this for me" use `templates/triage.html` and no other layout. This overrides the inline-only rule and the visualize-plan handoff: the page is glyph's, then `/page-serve PATH`. Fill issues from one snapshot, `gh issue list --state open --json number,title,labels,milestone`. Put every gh-sourced string in the hidden snapshot textarea as one base64 blob of the JSON, not as raw JSON and not in the lane markup or the raw dump. A title that contains `</textarea` must never appear as raw markup inside that textarea, or it breaks out before escapeHtml runs. The page decodes the blob, then calls escapeHtml when it inserts each lane item and the raw dump, so a title stays literal text. The open-PRs tile is not in that snapshot. Fill it from `gh pr list --state open --json number`, and if that command was not run print `?`, never a guessed count. Keep the six parts in order: KPI strip, lanes, a route tag on every issue (`devin`, `ork:NAME`, `hq-ext`, `21st-dev`, `human`, `external`), capability map, DECIDE block, collapsed raw snapshot. Hand the file over with `/page-serve PATH`. Never paste a bare path. The copy button must emit `wave=LANE followups=CSV`. When no follow-up is checked, that is `followups=` with nothing after the equals, never `followups=0`.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://&lt;name&gt;.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
+**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
 
 ## Render anatomy (the v3 reference shape)
@@ -207,7 +207,6 @@ part only when the data has nothing for it. The full template with the
 column widths is `templates/inventory.md`; the worked example is in
 `examples/_featured.md`.
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data              header: icon, subject
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]                                 headline meter
@@ -248,7 +247,6 @@ This block intentionally shows multiple sets together as a key. Authors
 should use ONE set per real diagram; the `single-set` lint rule enforces
 this on production diagrams.
 
-&lt;!-- ascii-lint-disable: single-set,single-arrow-style,density-min --&gt;
 ```
 default:   ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
 emphasis:  ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
@@ -410,14 +408,14 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ## ASCII Architecture Visualization Patterns
 
-**Incorrect — flat text descriptions:**
+**Incorrect, flat text descriptions:**
 ```
 The system has a frontend that talks to a backend API which uses
 a database and a cache layer. There's also a message queue for
 async processing.
 ```
 
-**Correct — layered architecture diagram:**
+**Correct, layered architecture diagram:**
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Load Balancer                      │
@@ -495,7 +493,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
 
 ## ASCII Diagram Fundamentals
 
-**Incorrect — inconsistent characters and alignment:**
+**Incorrect, inconsistent characters and alignment:**
 ```
 +-------+    +-------+
 | Frontend | -> | Backend |
@@ -506,7 +504,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
           +--------+
 ```
 
-**Correct — proper box-drawing characters with alignment:**
+**Correct, proper box-drawing characters with alignment:**
 ```
 Box-Drawing Characters:
 ┌─┐│└─┘  Standard weight
@@ -568,7 +566,7 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 
 | Rule | Description |
 |------|-------------|
-| Font | Always monospace — box-drawing characters require fixed-width |
+| Font | Always monospace, box-drawing characters require fixed-width |
 | Weight | Standard (─│) for normal, Heavy (━┃) for emphasis |
 | Arrows | Use ─>, ──>, or │ with v/^ for direction |
 | Alignment | Right-pad labels to match column widths |
@@ -602,7 +600,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ▓▒░     fill: high/med/low          decoration
 ```
 
-### Incorrect — generic decoration
+### Incorrect: generic decoration
 
 ```
 * Build passed
@@ -610,7 +608,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 - Linter clean
 ```
 
-### Correct — semantic glyphs
+### Correct: semantic glyphs
 
 ```
 ✓ Build passed
@@ -618,7 +616,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Linter clean
 ```
 
-### Anti-pattern — repurposing a semantic for decoration
+### Anti-pattern: repurposing a semantic for decoration
 
 ```
 ✓ Item 1
@@ -626,17 +624,17 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Item 3
 ```
 
-A list of items isn't passing/failing — `✓` is reserved for pass/completed
+A list of items isn't passing/failing, `✓` is reserved for pass/completed
 states. Use `●` for active items and `○` for inactive/pending ones, or
 plain `-` for an unmarked list.
 
-### Anti-pattern — mixing semantically-loaded glyphs with decoration
+### Anti-pattern: mixing semantically-loaded glyphs with decoration
 
 ```
 ■  Phase 1   ✓  Phase 2   ◉  Phase 3
 ```
 
-`■` and `◉` are not in the vocabulary — they read as decoration. Pick
+`■` and `◉` are not in the vocabulary, they read as decoration. Pick
 exactly one glyph from the table above per slot:
 
 ```
@@ -671,7 +669,6 @@ thin table.
 
 ## Anatomy of a render (the reference shape)
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]
@@ -743,7 +740,6 @@ Domain icons are chat-only; the PR-body validator does not admit them.
 Use these character sets only; it keeps rendering predictable across
 terminals, GitHub, and CI logs.
 
-&lt;!-- ascii-lint-disable: single-set --&gt;
 ```
 Box drawing:  ┌─┐ │ ┘─└   (light)
               ╔═╗ ║ ╝═╚   (heavy, reserve for top-level section headers)
@@ -819,7 +815,7 @@ bytes.
 
 - **Allowed:** one emoji per H2 heading.
 - **Forbidden:** ASCII boxes, multi-line diagrams, decorative dividers.
-  Extract to `docs/&lt;topic&gt;.md` with a one-line pointer.
+  Extract to `docs/<topic>.md` with a one-line pointer.
 
 ### ✅ PR bodies
 
@@ -917,12 +913,12 @@ Only when the kit is absent does `templates/explainer.html` in this skill apply.
 
 | Topic is about | Write to |
 |---|---|
-| how we build / ship / test | `docs/playgrounds/dev/&lt;slug&gt;-explainer.html` |
-| servers, CI, deploys, cost | `docs/playgrounds/infra/&lt;slug&gt;-explainer.html` |
-| a named client or prospect | `clients/&lt;clientSlug&gt;/playgrounds/&lt;slug&gt;-explainer.html` |
-| the business, money, billing | `docs/playgrounds/ops/&lt;slug&gt;-explainer.html` |
-| design, UI, brand | `docs/playgrounds/design/&lt;slug&gt;-explainer.html` |
-| marketing, content, social | `docs/playgrounds/marketing/&lt;slug&gt;-explainer.html` |
+| how we build / ship / test | `docs/playgrounds/dev/<slug>-explainer.html` |
+| servers, CI, deploys, cost | `docs/playgrounds/infra/<slug>-explainer.html` |
+| a named client or prospect | `clients/<clientSlug>/playgrounds/<slug>-explainer.html` |
+| the business, money, billing | `docs/playgrounds/ops/<slug>-explainer.html` |
+| design, UI, brand | `docs/playgrounds/design/<slug>-explainer.html` |
+| marketing, content, social | `docs/playgrounds/marketing/<slug>-explainer.html` |
 
 Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline is both "how we ship" and "servers"), prefer `dev` when the reader cares about the process and `infra` when they care about the machines.
 
@@ -948,11 +944,11 @@ Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline 
 
 Operator feedback, three rounds in one evening across four pages ("how didn't you verify it yourself, as part of glyph"). These are normative for every page route.
 
-1. **Screenshot and read the pixels before claiming done.** Verify scripts, SVG counts and DOM probes are blind to layout and collision defects; a numeric gate that passes is not a render that looks right. Serve the page via portless (`portless alias &lt;name&gt; &lt;port&gt;` in front of a static server; URL `https://&lt;name&gt;.localhost/...`, never a `:port`), open it with `agent-browser --cdp &lt;port&gt; --no-pin-tab` (a pinned session dies with `tab_gone` after tab churn), take viewport screenshots at several scroll positions, and READ the images. Not computer-use. Never open `file://` in the operator's live browser window with a forced viewport: it lands as a squished window on their screen. If no browser path works from your session, hand the URL to a peer with one and wait for the measured verdict; do not report done on a page you have not seen.
+1. **Screenshot and read the pixels before claiming done.** Verify scripts, SVG counts and DOM probes are blind to layout and collision defects; a numeric gate that passes is not a render that looks right. Serve the page via portless (`portless alias <name> <port>` in front of a static server; URL `https://<name>.localhost/...`, never a `:port`), open it with `agent-browser --cdp <port> --no-pin-tab` (a pinned session dies with `tab_gone` after tab churn), take viewport screenshots at several scroll positions, and READ the images. Not computer-use. Never open `file://` in the operator's live browser window with a forced viewport: it lands as a squished window on their screen. If no browser path works from your session, hand the URL to a peer with one and wait for the measured verdict; do not report done on a page you have not seen.
 2. **Two CDP traps.** (a) `screenshot --full` over CDP can stitch a tile mosaic (hero repeated per tile, sticky bars stamped into each) rather than one page; take viewport shots at scroll positions instead. (b) with `--no-pin-tab`, a later `eval` or `screenshot` targets whatever tab is ACTIVE in that Chrome; after `open`, re-target explicitly or verify the page title in the result before trusting a capture. A PASS on the wrong page is the worst false positive of all.
-3. **RTL in SVG.** Under `dir=rtl`, SVG `&lt;text&gt;` runs RTL from its anchor with no bidi isolation: Hebrew phrases, punctuation AND digit groups flip or spill. Hebrew goes in HTML captions, never SVG text. Numbers that must stay in-SVG use `text-anchor="middle" direction="ltr"`. Single-word Hebrew labels survive only while they stay single words, center-anchored, with a warning comment beside them.
+3. **RTL in SVG.** Under `dir=rtl`, SVG `<text>` runs RTL from its anchor with no bidi isolation: Hebrew phrases, punctuation AND digit groups flip or spill. Hebrew goes in HTML captions, never SVG text. Numbers that must stay in-SVG use `text-anchor="middle" direction="ltr"`. Single-word Hebrew labels survive only while they stay single words, center-anchored, with a warning comment beside them.
 4. **What "richer than prose" meant when it was accepted.** Semantic emoji in tab labels, headings, card titles and list leads; a KPI strip under the hero; a sticky tab bar with hash routing when the page has more than one view; several real diagrams per page. Hex colors only inside any diagram library's class definitions (hsl is a known bug in one of them). Never inline a multi-megabyte diagram bundle; it hung a renderer and read as "broken".
-5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span>&lt;i&gt;&lt;b&gt;` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
+5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span><i><b>` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
 
 ## 5. Reference pages that passed all rounds
 

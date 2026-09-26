@@ -159,7 +159,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Decision Table — json-render vs v0.app vs S…",
+            "label": "Decision Table, json-render vs v0.app vs S…",
             "does": "",
             "out": null,
             "tag": null
@@ -187,7 +187,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Review Example — After AI Generation",
+            "label": "Review Example, After AI Generation",
             "does": "",
             "out": null,
             "tag": null
@@ -247,7 +247,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Data-Quality Caveats — read before reportin…",
+            "label": "Data-Quality Caveats, read before reportin…",
             "does": "",
             "out": null,
             "tag": null
@@ -293,7 +293,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Decision Table — Motion vs View Transitions…",
+            "label": "Decision Table, Motion vs View Transitions…",
             "does": "",
             "out": null,
             "tag": null
@@ -321,21 +321,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Motion — Component Animation",
+            "label": "Motion, Component Animation",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "View Transitions API — Page Navigation",
+            "label": "View Transitions API, Page Navigation",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Motion — Accessible by Default",
+            "label": "Motion, Accessible by Default",
             "does": "",
             "out": null,
             "tag": null
@@ -911,7 +911,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Fixes (wiring only — never description rewr…",
+            "label": "Fixes (wiring only, never description rewr…",
             "does": "",
             "out": null,
             "tag": null
@@ -971,7 +971,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "3.5",
             "label": "Adversarial Refutation",
-            "does": "Before the report, a separate blind refuter verifies CRITICAL/HIGH findings — the",
+            "does": "Before the report, a separate blind refuter verifies CRITICAL/HIGH findings, the",
             "out": null,
             "tag": null
           },
@@ -1193,7 +1193,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0c",
             "label": "Effort-Aware Phase Scaling",
-            "does": "Read the /effort setting and scale brainstorm depth — low runs phases 0/2/5 only, high (default) runs all 7, xhigh adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.",
+            "does": "Read the /effort setting and scale brainstorm depth, low runs phases 0/2/5 only, high (default) runs all 7, xhigh adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.",
             "out": null,
             "tag": null
           }
@@ -1929,7 +1929,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "LOOSE",
-            "does": "sandbox.enabled, the 19-host exfil denylist, credential file and env denies, excludedCommands carve-outs for op / docker / ssh * (wildcard form — bare names match only the arg-less command), no network allowlist",
+            "does": "sandbox.enabled, the 19-host exfil denylist, credential file and env denies, excludedCommands carve-outs for op / docker / ssh * (wildcard form, bare names match only the arg-less command), no network allowlist",
             "out": "first, on a working machine",
             "tag": null
           },
@@ -2349,7 +2349,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "Parse + validate",
-            "does": "Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here — the agent owns the (real, tarball-based) schema.",
+            "does": "Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here, the agent owns the (real, tarball-based) schema.",
             "out": null,
             "tag": null
           },
@@ -2410,14 +2410,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "2",
             "label": "Cover",
             "does": "Test generation fails",
-            "out": "Continue to expect — tests are recoverable in PR review",
+            "out": "Continue to expect, tests are recoverable in PR review",
             "tag": null
           },
           {
             "num": "3",
             "label": "Expect",
             "does": "Browser verification fails",
-            "out": "Continue to PR — failures noted in PR body",
+            "out": "Continue to PR, failures noted in PR body",
             "tag": null
           },
           {
@@ -2898,7 +2898,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "STEP 0: Choose Scope (AskUserQuestion — M11…",
+            "label": "STEP 0: Choose Scope (AskUserQuestion, M11…",
             "does": "",
             "out": null,
             "tag": null
@@ -3106,8 +3106,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "2.5",
-            "label": "Consult-gate (#2351) — never prune a memory…",
-            "does": "Closing the VERIFY loop: a deletion must survive the question \"was this actually consulted?\". A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing — its refs are stale, its knowledge is live. So before pruning, read .claude/logs/memory-consult.jsonl (written by memory-validator on every mcp__memory__search_nodes/open_nodes/read_graph) and downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE (kept + flagged, not auto-deleted).",
+            "label": "Consult-gate (#2351), never prune a memory…",
+            "does": "Closing the VERIFY loop: a deletion must survive the question \"was this actually consulted?\". A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing, its refs are stale, its knowledge is live. So before pruning, read .claude/logs/memory-consult.jsonl (written by memory-validator on every mcp__memory__search_nodes/open_nodes/read_graph) and downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE (kept + flagged, not auto-deleted).",
             "out": null,
             "tag": null
           },
@@ -3180,7 +3180,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Services (0.10.0 — 14 emulators)",
+            "label": "Services (0.10.0-14 emulators)",
             "does": "",
             "out": null,
             "tag": null
@@ -3574,7 +3574,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Prior-fix lookup",
-            "does": "Before diagnosis kicks off, optionally invoke scripts/prior_fix_lookup.py <session-dir> to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:",
+            "does": "Before diagnosis kicks off, optionally invoke scripts/prior_fix_lookup.py <session-dir> to surface similar fixes already recorded in the memory MCP. READ-ONLY, no writeback. Self-skips on every non-happy-path so it never blocks the fix:",
             "out": null,
             "tag": null
           },
@@ -3737,7 +3737,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "2026 CLI changes — what to know",
+            "label": "2026 CLI changes, what to know",
             "does": "",
             "out": null,
             "tag": null
@@ -4037,7 +4037,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0",
             "label": "Effort-Aware Phase Scaling",
-            "does": "Read the /effort setting to scale implementation depth. The effort-aware context budgeting hook detects effort level automatically — adapt the phase plan accordingly:",
+            "does": "Read the /effort setting to scale implementation depth. The effort-aware context budgeting hook detects effort level automatically, adapt the phase plan accordingly:",
             "out": null,
             "tag": null
           },
@@ -4051,7 +4051,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Blast-Radius Clarification",
-            "does": "Before Phase 1, resolve the unknowns whose answers would change the architecture, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then AskUserQuestion one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to .claude/chain/decisions.json and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in low effort. Full protocol: Read(\"references/blast-radius-clarification.md\").",
+            "does": "Before Phase 1, resolve the unknowns whose answers would change the architecture, in blast-radius order, schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then AskUserQuestion one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to .claude/chain/decisions.json and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in low effort. Full protocol: Read(\"references/blast-radius-clarification.md\").",
             "out": null,
             "tag": null
           }
@@ -4065,21 +4065,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "1",
             "label": "Discovery",
             "does": "Research best practices, Context7 docs, break into tasks",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
             "num": "2",
             "label": "Micro-Planning",
             "does": "Detailed plan per task (load references/micro-planning-guide.md)",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
             "num": "3",
             "label": "Worktree",
             "does": "Isolate in git worktree for 5+ file features (load references/worktree-workflow.md)",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
@@ -4114,14 +4114,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "8",
             "label": "E2E Verification",
             "does": "Browser + API E2E testing (load references/e2e-verification.md)",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
             "num": "9",
             "label": "Documentation",
             "does": "Save decisions to memory graph",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
@@ -4144,7 +4144,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Decision Table — Loading States",
+            "label": "Decision Table, Loading States",
             "does": "",
             "out": null,
             "tag": null
@@ -4260,7 +4260,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "2",
-            "label": "During Work — Small Commits",
+            "label": "During Work, Small Commits",
             "does": "Commit after each logical step, not at the end. Every commit references the issue:",
             "out": null,
             "tag": null
@@ -4588,7 +4588,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Decision Tree — Which Rule to Read",
+            "label": "Decision Tree, Which Rule to Read",
             "does": "",
             "out": null,
             "tag": null
@@ -4648,7 +4648,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Decision Tree -- Which File to Read",
+            "label": "Decision Tree, Which File to Read",
             "does": "",
             "out": null,
             "tag": null
@@ -4662,14 +4662,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Quick Start -- New MCP Server",
+            "label": "Quick Start, New MCP Server",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Quick Start -- Enhance Existing Server with…",
+            "label": "Quick Start, Enhance Existing Server with…",
             "does": "",
             "out": null,
             "tag": null
@@ -4895,14 +4895,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Quick Start — Same Catalog, Different Rende…",
+            "label": "Quick Start, Same Catalog, Different Rende…",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Decision Matrix — When to Use Each Target",
+            "label": "Decision Matrix, When to Use Each Target",
             "does": "",
             "out": null,
             "tag": null
@@ -4916,21 +4916,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "PDF Renderer — Reports and Documents",
+            "label": "PDF Renderer, Reports and Documents",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Image Renderer — OG Images and Social Cards",
+            "label": "Image Renderer, OG Images and Social Cards",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Registry Mapping — Same Catalog, Platform-S…",
+            "label": "Registry Mapping, Same Catalog, Platform-S…",
             "does": "",
             "out": null,
             "tag": null
@@ -5455,7 +5455,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "6. Recipe Library — pre-built loops",
+            "label": "6. Recipe Library, pre-built loops",
             "does": "",
             "out": null,
             "tag": null
@@ -5610,7 +5610,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Funnel: [Name] — [Date Range]",
+            "label": "Funnel: [Name], [Date Range]",
             "does": "",
             "out": null,
             "tag": null
@@ -6301,7 +6301,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Skills Auto-Loading",
-            "does": "CC auto-discovers skills -- no manual loading needed!",
+            "does": "CC auto-discovers skills, no manual loading needed!",
             "out": null,
             "tag": null
           },
@@ -6315,7 +6315,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "3.5",
             "label": "/ultrareview Gate",
-            "does": "CC 2.1.111's built-in /ultrareview (parallel multi-agent deep review; Pro/Max get 3 free per month) overlaps Phase 3 but goes deeper. Never fire it by default — only when a trigger justifies the cost, and always ask first.",
+            "does": "CC 2.1.111's built-in /ultrareview (parallel multi-agent deep review; Pro/Max get 3 free per month) overlaps Phase 3 but goes deeper. Never fire it by default, only when a trigger justifies the cost, and always ask first.",
             "out": null,
             "tag": null
           },
@@ -6531,7 +6531,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "2",
             "label": "Stack",
             "does": "Classify detected stack, confidence levels",
-            "out": "—",
+            "out": "-",
             "tag": null
           },
           {
@@ -6580,7 +6580,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "7",
             "label": "Plan",
             "does": "Prioritized improvements with runnable commands",
-            "out": "—",
+            "out": "-",
             "tag": null
           }
         ]
@@ -6603,7 +6603,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Quick Reference — 6 Tools, 3 Toolsets",
+            "label": "Quick Reference, 6 Tools, 3 Toolsets",
             "does": "",
             "out": null,
             "tag": null
@@ -7012,7 +7012,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Stateful API Testing (emulate — FIRST CHOIC…",
+            "label": "Stateful API Testing (emulate, FIRST CHOIC…",
             "does": "",
             "out": null,
             "tag": null
@@ -7564,13 +7564,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4b",
             "label": "Dispatch to Format",
-            "does": "Render the selected sections into the FORMATS chosen in STEP 0.5. ASCII always renders first/inline — the other formats consume the same plan brief. Full table + delegation patterns: Read(\"references/format-dispatch.md\").",
+            "does": "Render the selected sections into the FORMATS chosen in STEP 0.5. ASCII always renders first/inline, the other formats consume the same plan brief. Full table + delegation patterns: Read(\"references/format-dispatch.md\").",
             "out": null,
             "tag": null
           },
           {
             "num": "5",
-            "label": "Offer Actions — the ONE question",
+            "label": "Offer Actions, the ONE question",
             "does": "This is the only blocking question in a default run, and it carries the format choice that used to",
             "out": null,
             "tag": null

@@ -14,7 +14,7 @@ import {
 // two are different layers, not competitors; this page says so honestly and
 // shows where OrchestKit (a plugin) sits.
 export const metadata: Metadata = {
-	title: "Claude Agent SDK vs Claude Code plugins — when you need which",
+	title: "Claude Agent SDK vs Claude Code plugins: when you need which",
 	description:
 		"The Claude Agent SDK is a programmatic layer for building your own agents; Claude Code plugins extend Anthropic's coding CLI. They are complementary layers, not competitors. Here is how to choose.",
 	alternates: {
@@ -27,14 +27,14 @@ export default function SdkVsPluginsPage() {
 		<ContentPage
 			title="Claude Agent SDK vs Claude Code plugins"
 			path="/claude-agent-sdk-vs-claude-code-plugins"
-			lead="They are not competitors — they are different layers of the same stack. The Agent SDK is for building your own agent products in code; plugins extend the Claude Code CLI you already use. Many teams end up using both."
+			lead="They are not competitors; they are different layers of the same stack. The Agent SDK is for building your own agent products in code; plugins extend the Claude Code CLI you already use. Many teams end up using both."
 		>
 			<StructuredData
 				nodes={[
 					organizationNode(),
 					personNode(),
 					techArticleNode({
-						headline: "Claude Agent SDK vs Claude Code plugins — when you need which",
+						headline: "Claude Agent SDK vs Claude Code plugins: when you need which",
 						description: "The Claude Agent SDK is a programmatic layer for building your own agents; Claude Code plugins extend Anthropic's coding CLI. They are complementary layers, not competitors. Here is how to choose.",
 						path: "/claude-agent-sdk-vs-claude-code-plugins",
 						datePublished: "2026-06-11",
@@ -50,14 +50,14 @@ export default function SdkVsPluginsPage() {
 				The <strong>Claude Agent SDK</strong> (TypeScript and Python) is
 				Anthropic&apos;s programmatic layer: you write code that creates agent
 				loops, wires tools, and manages context, and you ship that as your own
-				application or service. It runs headless — there is no terminal UI —
+				application or service. It runs headless (there is no terminal UI),
 				and you own the product around it.
 			</p>
 			<p>
 				<strong>Claude Code plugins</strong> extend Claude Code, Anthropic&apos;s
 				interactive agentic CLI. A plugin contributes skills (reusable knowledge
 				and workflows), agents (specialist personas), hooks (lifecycle
-				automation that runs on every tool call), and MCP servers — all inside
+				automation that runs on every tool call), and MCP servers, all inside
 				the terminal session a developer already works in. You install one with{" "}
 				<code>claude plugin install</code>; nothing about your application
 				changes.
@@ -83,7 +83,7 @@ export default function SdkVsPluginsPage() {
 			</ul>
 			<h2>Where OrchestKit sits</h2>
 			<p>
-				{SITE.name} is a plugin — the largest open-source one we know of for
+				{SITE.name} is a plugin, the largest open-source one we know of for
 				Claude Code: {COUNTS.skills} skills, {COUNTS.agents} agents, and{" "}
 				{COUNTS.hooks} lifecycle hooks, MIT-licensed, no account or hosted
 				service. It does not compete with the Agent SDK; if you are building on

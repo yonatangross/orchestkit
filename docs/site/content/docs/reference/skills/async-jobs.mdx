@@ -5,7 +5,7 @@ description: "Async job processing patterns for background tasks, Celery workflo
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="async-jobs" />
 
@@ -271,7 +271,7 @@ workflow = send_email.starmap([("user1@ex.com", "S1"), ("user2@ex.com", "S2")])
 workflow = process_item.chunks(items, batch_size=100)
 ```
 
-**Incorrect — Mutable signature in chord:**
+**Incorrect, Mutable signature in chord:**
 ```python
 # Body receives polluted args from each parallel task
 chord(
@@ -280,7 +280,7 @@ chord(
 )
 ```
 
-**Correct — Immutable signature in chord:**
+**Correct, Immutable signature in chord:**
 ```python
 # Body receives clean list of results
 chord(
@@ -340,7 +340,7 @@ def generate_report(self, report_id: str) -> dict:
     return {"report_id": report_id, "size": len(pdf)}
 ```
 
-**Incorrect — No progress updates:**
+**Incorrect, No progress updates:**
 ```python
 @shared_task
 def generate_report(report_id: str):
@@ -350,7 +350,7 @@ def generate_report(report_id: str):
     return {"report_id": report_id}
 ```
 
-**Correct — Progress updates:**
+**Correct, Progress updates:**
 ```python
 @shared_task(bind=True)
 def generate_report(self, report_id: str):
@@ -424,7 +424,7 @@ async def create_export(data: ExportRequest, arq: ArqRedis = Depends(get_arq_poo
     return {"job_id": job.job_id}
 ```
 
-**Incorrect — Using BackgroundTasks for long jobs:**
+**Incorrect, Using BackgroundTasks for long jobs:**
 ```python
 # In-process task blocks other requests
 @router.post("/export")
@@ -433,7 +433,7 @@ async def create_export(background_tasks: BackgroundTasks):
     return {"status": "started"}
 ```
 
-**Correct — Use distributed queue:**
+**Correct, Use distributed queue:**
 ```python
 # Offload to worker, instant response
 @router.post("/export")
@@ -524,7 +524,7 @@ def send_email(self, to: str, subject: str, body: str) -> dict:
         raise self.retry(exc=exc)
 ```
 
-**Incorrect — No retry strategy:**
+**Incorrect, No retry strategy:**
 ```python
 # Fails permanently on first error
 @shared_task
@@ -533,7 +533,7 @@ def send_email(to: str, subject: str):
     return response.json()
 ```
 
-**Correct — Retry with exponential backoff:**
+**Correct, Retry with exponential backoff:**
 ```python
 # Retries with backoff
 @shared_task(bind=True, max_retries=3, default_retry_delay=60,
@@ -562,7 +562,7 @@ def send_email(self, to: str, subject: str):
 
 ## Temporal Activity and Worker Patterns
 
-**Incorrect — missing heartbeat and error classification:**
+**Incorrect, missing heartbeat and error classification:**
 ```python
 @activity.defn
 async def process_payment(input: PaymentInput) -> PaymentResult:
@@ -573,7 +573,7 @@ async def process_payment(input: PaymentInput) -> PaymentResult:
     return PaymentResult(**response.json())
 ```
 
-**Correct — heartbeat, error classification, and proper worker setup:**
+**Correct, heartbeat, error classification, and proper worker setup:**
 ```python
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
@@ -669,7 +669,7 @@ async def test_order_workflow(workflow_env):
 
 ## Temporal Workflow Definitions
 
-**Incorrect — non-deterministic workflow operations:**
+**Incorrect, non-deterministic workflow operations:**
 ```python
 @workflow.defn
 class OrderWorkflow:
@@ -684,7 +684,7 @@ class OrderWorkflow:
         response = await httpx.get("https://api.example.com")
 ```
 
-**Correct — deterministic workflow with proper APIs:**
+**Correct, deterministic workflow with proper APIs:**
 ```python
 from temporalio import workflow
 from temporalio.common import RetryPolicy
@@ -769,9 +769,9 @@ class OrderSagaWorkflow:
 
 | Decision | Recommendation |
 |----------|----------------|
-| Workflow ID | Business-meaningful, idempotent (e.g., `order-\{order_id\}`) |
+| Workflow ID | Business-meaningful, idempotent (e.g., `order-{order_id}`) |
 | Task queue | Per-service or per-workflow-type |
-| Determinism | Use `workflow.random()`, `workflow.now()` — never stdlib |
+| Determinism | Use `workflow.random()`, `workflow.now()`, never stdlib |
 | I/O | Always via activities, never directly in workflows |
 | Timers | `workflow.wait_condition()` with timeout for human-in-the-loop |
 
@@ -1056,7 +1056,7 @@ Why: house retry budget. `retry_backoff=True`, `retry_backoff_max=600`, `retry_j
 Upstream: https://docs.celeryq.dev/en/stable/userguide/tasks.html
 
 ## Make a retried task idempotent at two layers
-Why: house rule for money-moving and record-creating tasks. Layer one is a Redis marker keyed `processed:&lt;domain&gt;:&lt;id&gt;` with an 86400s TTL, checked before the side effect; layer two is the vendor's own idempotency key on the outbound call. Layer one alone loses the race between a worker crash and the marker write, so both are required, in that order. Distilled from the retired retry-strategies.md; no traced incident.
+Why: house rule for money-moving and record-creating tasks. Layer one is a Redis marker keyed `processed:<domain>:<id>` with an 86400s TTL, checked before the side effect; layer two is the vendor's own idempotency key on the outbound call. Layer one alone loses the race between a worker crash and the marker write, so both are required, in that order. Distilled from the retired retry-strategies.md; no traced incident.
 Upstream: https://docs.celeryq.dev/en/stable/userguide/tasks.html
 
 ## Give every lock a TTL longer than the task hard time limit
@@ -1126,7 +1126,7 @@ Upstream: https://docs.celeryq.dev/en/stable/userguide/monitoring.html
 
 Why: distilled from the retired `references/result-backends.md`; the house lifecycle is a
 named vocabulary, not a single generic PROGRESS state, with meta shaped
-`\{step, total, description\}`. `rules/jobs-monitoring.md` retains only PROGRESS, so the
+`{step, total, description}`. `rules/jobs-monitoring.md` retains only PROGRESS, so the
 named stages live here. A polling client that has to infer progress from a percentage
 cannot tell "still validating" from "stuck uploading", which is the distinction the
 vocabulary exists to expose. Custom states also require `result_expires=86400` to stay

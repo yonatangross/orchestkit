@@ -5,7 +5,7 @@ description: "Performance optimization patterns covering Core Web Vitals, React 
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="performance" />
 
@@ -312,7 +312,7 @@ These topics used to be restated in this skill's references, checklists, and exa
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit floors, scars, and house decisions for this skill |
@@ -333,7 +333,7 @@ Real production before/after evidence (cache hierarchy, cost math): `examples/or
 
 HTTP cache headers for CDN/browser caching and LLM prompt caching for 90% token savings.
 
-**Incorrect — variable content before cached prefix:**
+**Incorrect, variable content before cached prefix:**
 ```python
 # WRONG: Variable content before static content breaks prompt cache
 messages = [
@@ -342,7 +342,7 @@ messages = [
 ]
 ```
 
-**Correct — static prefix first, then variable content:**
+**Correct, static prefix first, then variable content:**
 ```python
 # Claude prompt caching: static content first with cache_control
 response = await client.messages.create(
@@ -394,7 +394,7 @@ async def get_profile(response: Response):
 
 **Key rules:**
 - Claude: use `cache_control` with `ephemeral` type (5min default, 1h if >10 reads/hour)
-- OpenAI: automatic prefix caching, no markers needed — just put static content first
+- OpenAI: automatic prefix caching, no markers needed, just put static content first
 - HTTP: `public, max-age=60, stale-while-revalidate=300` for API responses
 - Use `s-maxage` or `CDN-Cache-Control` for different CDN vs browser TTLs
 - Semantic caching: start threshold at 0.92, tune based on hit rate
@@ -408,7 +408,7 @@ async def get_profile(response: Response):
 
 Cache-aside, write-through, and invalidation patterns for Redis-backed backend services.
 
-**Incorrect — caching without TTL (memory leak):**
+**Incorrect, caching without TTL (memory leak):**
 ```python
 # WRONG: No TTL = memory grows forever
 async def get_user(user_id: str):
@@ -420,7 +420,7 @@ async def get_user(user_id: str):
     return user
 ```
 
-**Correct — cache-aside with TTL and stampede prevention:**
+**Correct, cache-aside with TTL and stampede prevention:**
 ```python
 import redis.asyncio as redis
 import json
@@ -474,7 +474,7 @@ async def on_user_updated(event: UserUpdatedEvent, cache: CacheAside):
 **Key rules:**
 - Always set TTL (1h default, 5min for volatile data)
 - Use `orjson` for serialization performance over `json`
-- Key naming: `\{entity\}:\{id\}` or `\{entity\}:\{id\}:\{field\}`
+- Key naming: `{entity}:{id}` or `{entity}:{id}:{field}`
 - Stampede prevention: use distributed locks for expensive computations
 - Event-based invalidation for writes, TTL for reads
 - Never use cache as primary storage (data loss risk)
@@ -557,12 +557,12 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 }
 ```
 
-**Incorrect — Image without dimensions causes layout shift:**
+**Incorrect, Image without dimensions causes layout shift:**
 ```tsx
 <img src="/photo.jpg" alt="Photo" />
 ```
 
-**Correct — Explicit dimensions reserve space:**
+**Correct, Explicit dimensions reserve space:**
 ```tsx
 <img src="/photo.jpg" width={800} height={600} alt="Photo" />
 ```
@@ -583,7 +583,7 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 
 # Advanced INP Optimization
 
-Advanced patterns for Interaction to Next Paint — 43% of sites fail INP in 2026, making it the most commonly failed Core Web Vital.
+Advanced patterns for Interaction to Next Paint, 43% of sites fail INP in 2026, making it the most commonly failed Core Web Vital.
 
 ## Common INP Culprits
 
@@ -591,7 +591,7 @@ Form submissions, dropdown opens, accordion expansions, and filter applications 
 
 ## scheduler.yield() for Breaking Long Tasks
 
-**Incorrect — long synchronous event handler blocks paint:**
+**Incorrect, long synchronous event handler blocks paint:**
 ```typescript
 async function handleFilterApply(filters: Filter[]) {
   const results = applyAllFilters(data, filters); // 200ms+ blocking
@@ -600,7 +600,7 @@ async function handleFilterApply(filters: Filter[]) {
 }
 ```
 
-**Correct — yield between chunks to let browser paint:**
+**Correct, yield between chunks to let browser paint:**
 ```typescript
 async function handleFilterApply(filters: Filter[]) {
   // Yield after each filter category to keep INP < 150ms
@@ -618,7 +618,7 @@ async function handleFilterApply(filters: Filter[]) {
 
 ## Avoid Synchronous Layout Thrashing
 
-**Incorrect — forced reflow in a loop:**
+**Incorrect, forced reflow in a loop:**
 ```typescript
 function resizeCards(cards: HTMLElement[]) {
   cards.forEach(card => {
@@ -628,7 +628,7 @@ function resizeCards(cards: HTMLElement[]) {
 }
 ```
 
-**Correct — batch reads then batch writes:**
+**Correct, batch reads then batch writes:**
 ```typescript
 function resizeCards(cards: HTMLElement[]) {
   // Batch all reads first
@@ -644,7 +644,7 @@ function resizeCards(cards: HTMLElement[]) {
 
 ## Audit and Defer Third-Party Scripts
 
-**Incorrect — blocking third-party scripts in critical path:**
+**Incorrect, blocking third-party scripts in critical path:**
 ```html
 <head>
   <script src="https://analytics.example.com/tracker.js"></script>
@@ -653,7 +653,7 @@ function resizeCards(cards: HTMLElement[]) {
 </head>
 ```
 
-**Correct — defer third-party scripts after interaction readiness:**
+**Correct, defer third-party scripts after interaction readiness:**
 ```html
 <head>
   <script src="/app.js"></script>
@@ -684,7 +684,7 @@ function resizeCards(cards: HTMLElement[]) {
 
 ## requestAnimationFrame for Visual Updates
 
-**Incorrect — updating DOM outside rAF causes jank:**
+**Incorrect, updating DOM outside rAF causes jank:**
 ```typescript
 function handleAccordionToggle(panel: HTMLElement) {
   panel.style.height = panel.scrollHeight + 'px'; // May miss frame
@@ -692,7 +692,7 @@ function handleAccordionToggle(panel: HTMLElement) {
 }
 ```
 
-**Correct — schedule visual updates in rAF:**
+**Correct, schedule visual updates in rAF:**
 ```typescript
 function handleAccordionToggle(panel: HTMLElement) {
   requestAnimationFrame(() => {
@@ -704,11 +704,11 @@ function handleAccordionToggle(panel: HTMLElement) {
 
 ## Key Rules
 
-1. **Use** `scheduler.yield()` between chunks — target &lt; 50ms per task (supported in Chrome 129+, Firefox 135+; use `'scheduler' in globalThis && 'yield' in scheduler` feature detection with `setTimeout(resolve, 0)` fallback)
-2. **Audit** third-party scripts — defer or lazy-load non-critical ones
+1. **Use** `scheduler.yield()` between chunks, target &lt; 50ms per task (supported in Chrome 129+, Firefox 135+; use `'scheduler' in globalThis && 'yield' in scheduler` feature detection with `setTimeout(resolve, 0)` fallback)
+2. **Audit** third-party scripts, defer or lazy-load non-critical ones
 3. **Batch** DOM reads before writes to avoid layout thrashing
 4. **Wrap** visual DOM updates in `requestAnimationFrame`
-5. **Profile** real user interactions (form submit, dropdown, accordion, filter) — not just page load
+5. **Profile** real user interactions (form submit, dropdown, accordion, filter), not just page load
 6. Target **&lt;= 150ms** INP for 2026 thresholds
 
 
@@ -787,7 +787,7 @@ function SearchResults() {
 }}>Calculate</button>
 ```
 
-**Incorrect — Blocking click handler delays visual feedback:**
+**Incorrect, Blocking click handler delays visual feedback:**
 ```tsx
 <button onClick={() => {
   const result = heavyComputation(); // Blocks paint
@@ -795,7 +795,7 @@ function SearchResults() {
 }}>Calculate</button>
 ```
 
-**Correct — Deferred work keeps UI responsive:**
+**Correct, Deferred work keeps UI responsive:**
 ```tsx
 <button onClick={() => {
   setLoading(true);
@@ -887,12 +887,12 @@ const [data, setData] = useState(null);
 useEffect(() => { fetchData().then(setData); }, []);
 ```
 
-**Incorrect — Lazy-loading LCP image delays paint:**
+**Incorrect, Lazy-loading LCP image delays paint:**
 ```tsx
 <img src="/hero.webp" alt="Hero" loading="lazy" />
 ```
 
-**Correct — Priority loading for LCP image:**
+**Correct, Priority loading for LCP image:**
 ```tsx
 <img
   src="/hero.webp"
@@ -908,7 +908,7 @@ useEffect(() => { fetchData().then(setData); }, []);
 1. **Never** lazy-load the LCP image
 2. **Always** use `fetchpriority="high"` on LCP images
 3. **Always** server-render LCP content
-4. **Preload** critical resources in `&lt;head&gt;`
+4. **Preload** critical resources in `<head>`
 5. **Preconnect** to third-party origins used for LCP
 6. Target **&lt;= 2.0s** for 2026 thresholds
 
@@ -968,12 +968,12 @@ Rule of thumb: lower quality for large hero images (more compression gain),
 higher quality for small thumbnails (already small files).
 ```
 
-**Incorrect — Single JPEG format misses 30-50% compression savings:**
+**Incorrect, Single JPEG format misses 30-50% compression savings:**
 ```html
 <img src="/photo.jpg" alt="Photo" width="800" height="600" />
 ```
 
-**Correct — Modern formats with fallback:**
+**Correct, Modern formats with fallback:**
 ```html
 <picture>
   <source srcset="/photo.avif" type="image/avif" />
@@ -985,7 +985,7 @@ higher quality for small thumbnails (already small files).
 **Key rules:**
 - **Prefer** AVIF as primary format with WebP fallback
 - **Use** quality 72-78 for AVIF and WebP (visually lossless for most photos)
-- **Always** include a JPEG/PNG fallback in `&lt;picture&gt;`
+- **Always** include a JPEG/PNG fallback in `<picture>`
 - **Use** progressive JPEG for any remaining JPEG images
 - **Automate** format conversion in the build pipeline, not manually
 
@@ -1066,7 +1066,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 />
 ```
 
-**Incorrect — srcset without sizes lets browser guess:**
+**Incorrect, srcset without sizes lets browser guess:**
 ```html
 <img
   srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
@@ -1075,7 +1075,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 />
 ```
 
-**Correct — sizes guides browser to optimal choice:**
+**Correct, sizes guides browser to optimal choice:**
 ```html
 <img
   srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
@@ -1090,7 +1090,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 **Key rules:**
 - **Always** provide `sizes` alongside `srcset` for width descriptors
 - **Use** 3-4 srcset breakpoints (400, 800, 1200, 1600) for most images
-- **Use** `&lt;picture&gt;` with `media` for art direction (different crops)
+- **Use** `<picture>` with `media` for art direction (different crops)
 - **Delegate** resizing to a CDN rather than shipping multiple static files
 - **Set** explicit `width` and `height` to prevent CLS
 
@@ -1165,7 +1165,7 @@ def eval_quantized(client, test_cases):
 # Accept quantization if quality >= 95% of FP16 baseline
 ```
 
-**Incorrect — FP16 on smaller GPUs wastes VRAM:**
+**Incorrect, FP16 on smaller GPUs wastes VRAM:**
 ```bash
 docker run --gpus all \
   vllm/vllm-openai:latest \
@@ -1174,7 +1174,7 @@ docker run --gpus all \
 # Requires 140 GB VRAM
 ```
 
-**Correct — FP8 quantization reduces VRAM by ~45%:**
+**Correct, FP8 quantization reduces VRAM by ~45%:**
 ```bash
 docker run --gpus all \
   vllm/vllm-openai:latest \
@@ -1269,7 +1269,7 @@ Draft model speculation:
   - Requires extra GPU memory for draft model
 ```
 
-**Incorrect — No speculation means sequential token generation:**
+**Incorrect, No speculation means sequential token generation:**
 ```bash
 docker run --gpus '"device=0"' \
   vllm/vllm-openai:latest \
@@ -1277,7 +1277,7 @@ docker run --gpus '"device=0"' \
 # 4 tokens = 4 forward passes
 ```
 
-**Correct — N-gram speculation reduces passes by 30-60%:**
+**Correct, N-gram speculation reduces passes by 30-60%:**
 ```bash
 docker run --gpus '"device=0"' \
   vllm/vllm-openai:latest \
@@ -1360,7 +1360,7 @@ Tensor Parallelism:
   - Use for models > single GPU VRAM
 ```
 
-**Incorrect — Default memory utilization wastes KV cache space:**
+**Incorrect, Default memory utilization wastes KV cache space:**
 ```bash
 docker run --gpus '"device=0"' \
   vllm/vllm-openai:latest \
@@ -1368,7 +1368,7 @@ docker run --gpus '"device=0"' \
 # Uses default 0.70 GPU memory
 ```
 
-**Correct — Higher utilization enables more concurrent requests:**
+**Correct, Higher utilization enables more concurrent requests:**
 ```bash
 docker run --gpus '"device=0"' \
   vllm/vllm-openai:latest \
@@ -1456,7 +1456,7 @@ function DashboardSkeleton() {
 }
 ```
 
-**Incorrect — Missing Suspense fallback causes error:**
+**Incorrect, Missing Suspense fallback causes error:**
 ```tsx
 const Dashboard = lazy(() => import('./Dashboard'));
 
@@ -1465,7 +1465,7 @@ function App() {
 }
 ```
 
-**Correct — Suspense with skeleton fallback:**
+**Correct, Suspense with skeleton fallback:**
 ```tsx
 const Dashboard = lazy(() => import('./Dashboard'));
 
@@ -1567,12 +1567,12 @@ async function handleExport() {
 <button onClick={handleExport}>Export PDF</button>
 ```
 
-**Incorrect — No prefetching causes delayed navigation:**
+**Incorrect, No prefetching causes delayed navigation:**
 ```tsx
 <a href="/dashboard">Dashboard</a>
 ```
 
-**Correct — Hover prefetch gives 200-400ms head start:**
+**Correct, Hover prefetch gives 200-400ms head start:**
 ```tsx
 function NavLink({ to, children }) {
   const prefetchRef = useRef(false);
@@ -1667,7 +1667,7 @@ export default defineConfig({
 });
 ```
 
-**Incorrect — Eager imports bundle all routes together:**
+**Incorrect, Eager imports bundle all routes together:**
 ```tsx
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -1680,7 +1680,7 @@ const router = createBrowserRouter([
 ]);
 ```
 
-**Correct — Lazy routes split per-page bundles:**
+**Correct, Lazy routes split per-page bundles:**
 ```tsx
 const router = createBrowserRouter([
   { path: '/', lazy: () => import('./pages/Home') },
@@ -1770,14 +1770,14 @@ async def profile_requests(request: Request, call_next):
     return response
 ```
 
-**Incorrect — cProfile in production requires code changes:**
+**Incorrect, cProfile in production requires code changes:**
 ```python
 # Must instrument code manually
 with cProfile.Profile() as pr:
     result = expensive_function()
 ```
 
-**Correct — py-spy attaches to running process with zero overhead:**
+**Correct, py-spy attaches to running process with zero overhead:**
 ```bash
 # No code changes, no restart needed
 py-spy record -o profile.svg --pid 12345 --duration 30
@@ -1868,13 +1868,13 @@ const sorted = sortBy(items, 'name');
 const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
 ```
 
-**Incorrect — Importing entire lodash adds 70 kB:**
+**Incorrect, Importing entire lodash adds 70 kB:**
 ```typescript
 import _ from 'lodash';
 const sorted = _.sortBy(items, 'name');
 ```
 
-**Correct — Import single function or use native API:**
+**Correct, Import single function or use native API:**
 ```typescript
 // Option 1: Import only what you need (4 kB)
 import sortBy from 'lodash/sortBy';
@@ -1961,7 +1961,7 @@ MyComponent.whyDidYouRender = true;
 "Hooks changed"       → useMemo/useCallback dependency changed
 ```
 
-**Incorrect — Blind memoization without profiling:**
+**Incorrect, Blind memoization without profiling:**
 ```tsx
 const MemoizedComponent = memo(Component);
 const memoizedValue = useMemo(() => value, []);
@@ -1969,7 +1969,7 @@ const callback = useCallback(() => {}, []);
 // Added optimization without measurement
 ```
 
-**Correct — Profile first, then optimize actual bottlenecks:**
+**Correct, Profile first, then optimize actual bottlenecks:**
 ```tsx
 // 1. Open React DevTools Profiler
 // 2. Record interaction
@@ -1993,7 +1993,7 @@ const callback = useCallback(() => {}, []);
 
 Show immediate UI feedback before server confirmation with proper rollback on error.
 
-**Incorrect — mutation without optimistic update:**
+**Incorrect, mutation without optimistic update:**
 ```tsx
 // WRONG: User waits for server roundtrip
 const mutation = useMutation({
@@ -2005,7 +2005,7 @@ const mutation = useMutation({
 // UI feels sluggish — user sees spinner for 200-500ms
 ```
 
-**Correct — optimistic update with rollback:**
+**Correct, optimistic update with rollback:**
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -2101,7 +2101,7 @@ function PendingTodos() {
 
 Prefetch data before navigation for instant page transitions using TanStack Query v5.
 
-**Incorrect — fetching data only when component mounts:**
+**Incorrect, fetching data only when component mounts:**
 ```tsx
 // WRONG: User clicks link, waits for data to load
 function UserProfile({ userId }: { userId: string }) {
@@ -2115,7 +2115,7 @@ function UserProfile({ userId }: { userId: string }) {
 }
 ```
 
-**Correct — prefetch on hover and in route loaders:**
+**Correct, prefetch on hover and in route loaders:**
 ```typescript
 // 1. Define reusable query options (v5 pattern)
 const userQueryOptions = (id: string) => queryOptions({
@@ -2178,7 +2178,7 @@ const queryClient = new QueryClient({
 - Prefetch on `onMouseEnter` AND `onFocus` for keyboard users
 - Use `ensureQueryData` in loaders (waits for data), `prefetchQuery` for fire-and-forget
 - `useSuspenseQuery` for components where data is guaranteed by loader
-- `gcTime` (v5) replaces `cacheTime` (v4) — controls how long unused data stays in memory
+- `gcTime` (v5) replaces `cacheTime` (v4), controls how long unused data stays in memory
 - `isPending` (v5) replaces `isLoading` for initial load state
 
 
@@ -2225,7 +2225,7 @@ const nextConfig = {
 
 Open React DevTools and look for the "Memo ✨" badge on components. If present, the compiler is successfully memoizing that component.
 
-**Incorrect — Manual memoization when compiler is enabled:**
+**Incorrect, Manual memoization when compiler is enabled:**
 ```tsx
 // next.config.js has reactCompiler: true
 const value = useMemo(() => compute(data), [data]);
@@ -2233,7 +2233,7 @@ const callback = useCallback(() => handle(), []);
 // Compiler already handles this automatically
 ```
 
-**Correct — Let compiler auto-memoize:**
+**Correct, Let compiler auto-memoize:**
 ```tsx
 // Compiler handles memoization automatically
 function Component({ data }) {
@@ -2314,7 +2314,7 @@ function App() {
 4. **Fix**: Apply targeted optimization
 5. **Measure**: Confirm improvement
 
-**Incorrect — State too high causes unnecessary re-renders:**
+**Incorrect, State too high causes unnecessary re-renders:**
 ```tsx
 function App() {
   const [filter, setFilter] = useState('');
@@ -2328,7 +2328,7 @@ function App() {
 }
 ```
 
-**Correct — State colocated minimizes re-renders:**
+**Correct, State colocated minimizes re-renders:**
 ```tsx
 function App() {
   return (
@@ -2342,7 +2342,7 @@ function App() {
 
 ## Key Rules
 
-1. **Profile first** — never optimize without measurement
+1. **Profile first**: never optimize without measurement
 2. **Colocate state** as close to usage as possible
 3. **Use** `useMemo` for effect dependencies that must be stable
 4. **Use** `useCallback` for callbacks passed to memoized children
@@ -2415,7 +2415,7 @@ const virtualizer = useVirtualizer({
 })
 ```
 
-**Incorrect — Rendering 1000 items causes scroll jank:**
+**Incorrect, Rendering 1000 items causes scroll jank:**
 ```tsx
 function List({ items }) {
   return (
@@ -2428,7 +2428,7 @@ function List({ items }) {
 }
 ```
 
-**Correct — Virtualization renders only visible items:**
+**Correct, Virtualization renders only visible items:**
 ```tsx
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -2475,18 +2475,18 @@ function VirtualList({ items }) {
 
 # Sustainability UX
 
-2026 digital sustainability patterns — reduce carbon footprint through efficient resource usage, optimized assets, and intentional UX.
+2026 digital sustainability patterns, reduce carbon footprint through efficient resource usage, optimized assets, and intentional UX.
 
 ## Avoid Heavy Animations When Not Needed
 
-**Incorrect — auto-playing decorative video wastes bandwidth and energy:**
+**Incorrect, auto-playing decorative video wastes bandwidth and energy:**
 ```html
 <video autoplay loop muted playsinline>
   <source src="/hero-bg.mp4" type="video/mp4" />
 </video>
 ```
 
-**Correct — use CSS animation or static image, offer video opt-in:**
+**Correct, use CSS animation or static image, offer video opt-in:**
 ```html
 <!-- Static hero with optional video -->
 <picture>
@@ -2499,7 +2499,7 @@ function VirtualList({ items }) {
 
 ## Prevent Over-Fetching
 
-**Incorrect — fetching entire dataset for a paginated view:**
+**Incorrect, fetching entire dataset for a paginated view:**
 ```typescript
 // Loads ALL 10,000 records on mount
 const { data } = useQuery({
@@ -2509,7 +2509,7 @@ const { data } = useQuery({
 const page = data?.slice(offset, offset + 20);
 ```
 
-**Correct — cursor-based pagination fetches only what is needed:**
+**Correct, cursor-based pagination fetches only what is needed:**
 ```typescript
 const { data, fetchNextPage } = useInfiniteQuery({
   queryKey: ['products'],
@@ -2522,12 +2522,12 @@ const { data, fetchNextPage } = useInfiniteQuery({
 
 ## Serve Optimized Image Formats
 
-**Incorrect — serving unoptimized PNG/JPEG:**
+**Incorrect, serving unoptimized PNG/JPEG:**
 ```html
 <img src="/photo.png" alt="Product" width="800" height="600" />
 ```
 
-**Correct — AVIF/WebP with fallback, sized appropriately:**
+**Correct, AVIF/WebP with fallback, sized appropriately:**
 ```html
 <picture>
   <source srcset="/photo.avif" type="image/avif" />
@@ -2539,14 +2539,14 @@ const { data, fetchNextPage } = useInfiniteQuery({
 
 ## Lazy Load Below-Fold Content
 
-**Incorrect — loading all images eagerly:**
+**Incorrect, loading all images eagerly:**
 ```tsx
 function Gallery({ images }: { images: string[] }) {
   return images.map(src => <img src={src} alt="" />);
 }
 ```
 
-**Correct — lazy load below-fold, eager only for above-fold:**
+**Correct, lazy load below-fold, eager only for above-fold:**
 ```tsx
 function Gallery({ images }: { images: string[] }) {
   return images.map((src, i) => (
@@ -2590,12 +2590,12 @@ const budgets = [
 ## Key Rules
 
 1. **Avoid** auto-playing videos and heavy animations for decoration
-2. **Use** cursor-based pagination — never fetch entire datasets
-3. **Serve** AVIF with WebP fallback — 30-50% smaller than JPEG/PNG
+2. **Use** cursor-based pagination, never fetch entire datasets
+3. **Serve** AVIF with WebP fallback, 30-50% smaller than JPEG/PNG
 4. **Lazy load** all below-fold images and components
-5. **Offer** dark mode — reduces OLED power by up to 60%
+5. **Offer** dark mode, reduces OLED power by up to 60%
 6. **Enforce** &lt; 1MB page weight budget in CI
-7. **Measure** page weight on every PR — prevent creep
+7. **Measure** page weight on every PR, prevent creep
 
 
 
@@ -2608,7 +2608,7 @@ const budgets = [
 # CC Prompt Cache Optimization Guide
 
 ## Why This Matters
-CC 2.1.72 includes a prompt cache fix in SDK query() that reduces input token costs up to 12x. The cache works by recognizing repeated prefixes in prompts — if the first N tokens of a prompt match a cached entry, only the remaining tokens are billed at full rate.
+CC 2.1.72 includes a prompt cache fix in SDK query() that reduces input token costs up to 12x. The cache works by recognizing repeated prefixes in prompts, if the first N tokens of a prompt match a cached entry, only the remaining tokens are billed at full rate.
 
 ## The Golden Rule
 **Stable content FIRST, variable content LAST.**
@@ -2742,7 +2742,7 @@ analyses = await session.execute(
 |------------|----------|---------|
 | **B-tree** | Equality, range queries | `WHERE created_at > '2025-01-01'` |
 | **GIN** | Full-text search, JSONB | `WHERE content_tsvector @@ to_tsquery('python')` |
-| **HNSW** | Vector similarity | `ORDER BY embedding &lt;=&gt; '[0.1, 0.2, ...]'` |
+| **HNSW** | Vector similarity | `ORDER BY embedding <=> '[0.1, 0.2, ...]'` |
 | **Hash** | Exact equality only | `WHERE id = 'abc123'` (rare) |
 
 **Index Creation Examples:**
@@ -3346,7 +3346,7 @@ def upgrade():
 
 **Reproduce issue:**
 1. Start analysis via API
-2. Frontend subscribes to SSE `/progress/\{analysis_id\}`
+2. Frontend subscribes to SSE `/progress/{analysis_id}`
 3. Backend immediately publishes "analysis_started" event
 4. Frontend connects 200ms later → misses early events
 

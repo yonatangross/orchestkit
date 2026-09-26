@@ -9,10 +9,33 @@ import { SITE } from "@/lib/constants";
 const MCP_REGISTRY_URL =
 	"https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit";
 
+/**
+ * A code path that may wrap after each "/" and "." but never mid-segment:
+ * with overflow-wrap alone, "https://orchestkit.yonyon.ai/api/mcp" split as
+ * "api/m" + "cp" at 390 (QA N11). Exported for the unit test.
+ */
+export function Path({ text }: { text: string }) {
+	const parts = text.split(/(?<=[/.])/);
+	return (
+		<code>
+			{parts.map((part, i) => (
+				// Segments can repeat and never reorder, so the index keys them.
+				<span key={i}>
+					{part}
+					{i < parts.length - 1 ? <wbr /> : null}
+				</span>
+			))}
+		</code>
+	);
+}
+
 export function AgentReadinessSection() {
 	return (
 		<section aria-labelledby="agents-heading" className="border-b border-fd-border">
-			<div className="mx-auto max-w-[820px] px-7 py-14">
+			{/* Long code paths wrap at / and . through <Path>; overflow-wrap:anywhere
+			    stays as the last resort: unbreakable, the Go path made the page 7px
+			    wider than a 390px phone (overflow bisect, 2026-09-25). */}
+			<div className="mx-auto max-w-[820px] px-7 py-14 [&_code]:[overflow-wrap:anywhere]">
 				<h2 id="agents-heading" className="text-2xl font-semibold tracking-tight text-fd-foreground">
 					Built for AI agents, too
 				</h2>
@@ -42,12 +65,12 @@ export function AgentReadinessSection() {
 						/docs/mcp
 					</Link>
 					. The OrchestKit MCP server speaks Streamable HTTP at{" "}
-					<code>{SITE.domain}/api/mcp</code> with two read-only tools: documentation search and
+					<Path text={`${SITE.domain}/api/mcp`} /> with two read-only tools: documentation search and
 					Markdown page fetch. It is published in the{" "}
 					<a href={MCP_REGISTRY_URL} className="text-fd-primary underline underline-offset-2">
 						official MCP registry
 					</a>{" "}
-					as <code>io.github.yonatangross/orchestkit</code>, and listed on{" "}
+					as <Path text="io.github.yonatangross/orchestkit" />, and listed on{" "}
 					<a href="https://smithery.ai/servers/yonaigross/orchestkit" className="text-fd-primary underline underline-offset-2">
 						Smithery
 					</a>{" "}
@@ -69,13 +92,13 @@ export function AgentReadinessSection() {
 						/docs/sdk
 					</Link>
 					: npm <code>orchestkit</code>, PyPI <code>orchestkit</code>, and Go{" "}
-					<code>github.com/yonatangross/orchestkit/sdk</code>.
+					<Path text="github.com/yonatangross/orchestkit/sdk" />.
 				</p>
 
 				<h3 className="mt-6 font-semibold text-fd-foreground">NLWeb natural-language queries</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
-					Ask questions in plain language at the NLWeb <code>/ask</code> endpoint —{" "}
-					<code>GET /ask?query=...</code> or POST a JSON body — and get ranked documentation answers
+					Ask questions in plain language at the NLWeb <code>/ask</code> endpoint{" "}
+					(<code>GET /ask?query=...</code> or POST a JSON body) and get ranked documentation answers
 					with NLWeb <code>_meta</code>. Add <code>?streaming=true</code> for Server-Sent Events
 					(start, result, complete).
 				</p>
@@ -83,7 +106,7 @@ export function AgentReadinessSection() {
 				<h3 className="mt-6 font-semibold text-fd-foreground">WebMCP in the browser</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
 					For in-browser agents, every page registers WebMCP tools on load via{" "}
-					<code>document.modelContext.registerTool()</code> (with <code>navigator.modelContext</code> as
+					<Path text="document.modelContext.registerTool()" /> (with <Path text="navigator.modelContext" /> as
 					the trailing fallback): <code>search_docs</code>, <code>get_page</code>,{" "}
 					<code>list_skills</code>, and <code>get_skill</code>, the same capabilities as the remote MCP
 					server, available without leaving the page. The homepage also carries a declarative{" "}
@@ -97,7 +120,7 @@ export function AgentReadinessSection() {
 					<a href="https://www.skills.sh/yonatangross/orchestkit" className="text-fd-primary underline underline-offset-2">
 						skills.sh
 					</a>{" "}
-					straight from this repository — install any of them with{" "}
+					straight from this repository; install any of them with{" "}
 					<code>npx skills add yonatangross/orchestkit</code>.
 				</p>
 

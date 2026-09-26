@@ -5,7 +5,7 @@ description: "GitHub CLI operations for issues, PRs, milestones, and Projects v2
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="github-operations" />
 
@@ -193,9 +193,9 @@ done
 
 1. **Always use `--json` for scripting** - Parse with `--jq` for reliability
 2. **Non-interactive mode for automation** - Use `--title`, `--body` flags
-3. **Check rate limits before bulk operations** - `gh api rate_limit`. On CC ≥ 2.1.116, the Bash tool surfaces a rate-limit hint in the transcript when `gh` hits 403 — **treat that hint as authoritative and back off**, don't blind-retry. Before 2.1.116, agents had no signal and would burn all retry attempts in ~13 s.
-4. **Use heredocs for multi-line content** - `--body "$(cat &lt;&lt;'EOF'...EOF)"`
-5. **Link issues in PRs** - `Closes #123`, `Fixes #456` — GitHub auto-closes on merge
+3. **Check rate limits before bulk operations** - `gh api rate_limit`. On CC ≥ 2.1.116, the Bash tool surfaces a rate-limit hint in the transcript when `gh` hits 403, **treat that hint as authoritative and back off**, don't blind-retry. Before 2.1.116, agents had no signal and would burn all retry attempts in ~13 s.
+4. **Use heredocs for multi-line content** - `--body "$(cat <<'EOF'...EOF)"`
+5. **Link issues in PRs** - `Closes #123`, `Fixes #456`, GitHub auto-closes on merge
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on
 7. **Close milestones, don't delete** - Preserve history
 8. **`--milestone` takes NAME, not number** - Load `Read("references/cli-vs-api-identifiers.md")`
@@ -203,7 +203,7 @@ done
 
 ---
 
-## 2026 CLI changes — what to know
+## 2026 CLI changes: what to know
 
 ### `gh-copilot` extension is retired
 
@@ -233,11 +233,11 @@ gh agent-task watch 42                # live-follow until completion
 gh agent-task cancel 42
 ```
 
-Pairs with the REST endpoint `POST /repos/\{owner\}/\{repo\}/agent-tasks` for CI-driven task creation.
+Pairs with the REST endpoint `POST /repos/{owner}/{repo}/agent-tasks` for CI-driven task creation.
 
 ### Sub-issues (native, 2026)
 
-Sub-issues are now a native GitHub concept — no extension required:
+Sub-issues are now a native GitHub concept, no extension required:
 
 ```bash
 # List sub-issues of parent #123
@@ -299,7 +299,7 @@ their rationale are collected in `references/ork-delta.md`.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | House rules: hook contracts, close-don't-delete, rate-limit discipline, the file-set contract |
@@ -379,14 +379,14 @@ claude --from-pr 42    # Loads PR diff, comments, review status
 | PR to issue | `Closes #N` in PR body | Yes (GitHub) |
 | Issue to PR | `has-pr` label | Manual or hook |
 
-**Incorrect — Branch without issue number prefix:**
+**Incorrect, Branch without issue number prefix:**
 ```bash
 git checkout -b implement-feature
 git commit -m "Add user validation"
 # No automatic linking - reviewer lacks context
 ```
 
-**Correct — Issue-prefixed branch with linked commit:**
+**Correct, Issue-prefixed branch with linked commit:**
 ```bash
 git checkout -b issue/123-implement-feature
 git commit -m "feat(#123): Add user validation"
@@ -468,7 +468,7 @@ Commit messages are matched against issue checkboxes using normalized text compa
 - [x] Write unit tests
 ```
 
-**Incorrect — Manual issue updates without automation:**
+**Incorrect, Manual issue updates without automation:**
 ```bash
 # Commit without issue reference
 git commit -m "Add validation"
@@ -478,7 +478,7 @@ git commit -m "Add validation"
 [Time-consuming, error-prone]
 ```
 
-**Correct — Automated progress tracking:**
+**Correct, Automated progress tracking:**
 ```bash
 # Issue-prefixed branch
 git checkout -b issue/123-validation
@@ -516,10 +516,10 @@ GitHub CLI (`gh`) and the REST API use **different identifier types** for the sa
 | Resource | `gh` CLI flag | REST API field | Example |
 |----------|---------------|----------------|---------|
 | Milestone | `--milestone "Sprint 8"` (NAME) | `milestones/:number` (INTEGER) | CLI: `"Sprint 8"` → API: `/milestones/5` |
-| Issue | `gh issue view 123` (number) | `issues/:number` (INTEGER) | Same — issue number works in both |
-| PR | `gh pr view 456` (number) | `pulls/:number` (INTEGER) | Same — PR number works in both |
+| Issue | `gh issue view 123` (number) | `issues/:number` (INTEGER) | Same, issue number works in both |
+| PR | `gh pr view 456` (number) | `pulls/:number` (INTEGER) | Same, PR number works in both |
 | User | `--assignee "username"` (LOGIN) | `assignees/:username` (STRING) | Same format, no confusion |
-| Label | `--label "bug"` (NAME) | labels by name only | Same — no number in API either |
+| Label | `--label "bug"` (NAME) | labels by name only | Same, no number in API either |
 | Project | `gh project` uses **NUMBER** | Projects v2 uses **node_id** | Different! GraphQL needs `node_id` |
 
 ---
@@ -528,7 +528,7 @@ GitHub CLI (`gh`) and the REST API use **different identifier types** for the sa
 
 `gh issue edit --milestone` and `gh issue list --milestone` accept a **milestone NAME (string)**, not a number.
 
-The REST API endpoint is `repos/:owner/:repo/milestones/:number` — it uses the **milestone NUMBER (integer)**.
+The REST API endpoint is `repos/:owner/:repo/milestones/:number`, it uses the **milestone NUMBER (integer)**.
 
 ```bash
 # CORRECT: gh CLI uses milestone NAME
@@ -584,7 +584,7 @@ gh api graphql -f query='
 
 ## Issue and PR Numbers
 
-Issues and PRs use the same number in both CLI and REST API — no translation needed.
+Issues and PRs use the same number in both CLI and REST API, no translation needed.
 
 ```bash
 # Both work identically
@@ -783,7 +783,7 @@ gh api graphql --paginate \
 
 **Important**: For pagination to work:
 - Include `$endCursor: String` in query variables
-- Include `pageInfo \{ hasNextPage endCursor \}` in response
+- Include `pageInfo { hasNextPage endCursor }` in response
 - Use `after: $endCursor` in the connection
 
 ---
@@ -1141,7 +1141,7 @@ takes a 403, and that hint is the authoritative backoff signal. Before it existe
 agents had no signal and burned the whole retry budget in roughly 13 seconds.
 `tests/evals/skills/github-operations-rate-limit.eval.yaml` grades this behaviour
 and asserts the pre-flight guard, so the `gh api rate_limit` check and the
-`remaining &lt; 100` threshold in `examples/automation-scripts.md` are contract, not
+`remaining < 100` threshold in `examples/automation-scripts.md` are contract, not
 taste. (Eval added under issue #1436, "test(evals): add eval coverage for CC
 2.1.116 behavioral knowledge in skills".)
 Upstream: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
@@ -1604,7 +1604,7 @@ whole retry budget in roughly 13 seconds. Never work around a limit by swapping
 tokens.
 
 The pre-flight guard below is the house pattern that keeps the loop from hitting
-the first 403 at all. The `remaining &lt; 100` floor and the `gh api rate_limit`
+the first 403 at all. The `remaining < 100` floor and the `gh api rate_limit`
 probe are graded by `tests/evals/skills/github-operations-rate-limit.eval.yaml`,
 so keep both:
 

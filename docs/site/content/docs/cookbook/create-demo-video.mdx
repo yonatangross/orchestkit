@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 You just shipped a new authentication flow: login, signup, OAuth, token refresh, password reset. The code works. The tests pass. Now your team lead asks for a 60-second demo video to show stakeholders.
 
-You could open QuickTime, fumble through screen recordings, splice clips in iMovie, and spend two hours on something that looks amateur. Or you can let OrchestKit orchestrate the entire pipeline -- from storyboard to rendered video with background music and thumbnails -- in a single command.
+You could open QuickTime, fumble through screen recordings, splice clips in iMovie, and spend two hours on something that looks amateur. Or you can let OrchestKit orchestrate the entire pipeline, from storyboard to rendered video with background music and thumbnails, in a single command.
 
 ## What You'll Use
 
@@ -113,7 +113,7 @@ Sleep 2s
 The `terminal-demo-generator` skill handles `.tape` file creation. VHS renders each scene as a GIF or MP4 clip.
 
 <Callout type="info">
-VHS must be installed locally: `brew install vhs`. If not available, OrchestKit falls back to static code screenshots with syntax highlighting. The video still renders -- just with stills instead of animated terminal sequences.
+VHS must be installed locally: `brew install vhs`. If not available, OrchestKit falls back to static code screenshots with syntax highlighting. The video still renders, just with stills instead of animated terminal sequences.
 </Callout>
 
 ### Step 4: Composition with Remotion
@@ -163,7 +163,7 @@ Generating audio...
   Output: ./output/auth-demo-audio.mp3
 ```
 
-Kling 3.0 generates background music natively -- multi-shot, 4K at 60fps, up to 15 seconds per clip, with audio in 5 languages. For longer tracks, clips are stitched with crossfade.
+Kling 3.0 generates background music natively: multi-shot, 4K at 60fps, up to 15 seconds per clip, with audio in 5 languages. For longer tracks, clips are stitched with crossfade.
 
 Optionally, add voice narration via ElevenLabs (backup TTS):
 
@@ -173,7 +173,7 @@ Optionally, add voice narration via ElevenLabs (backup TTS):
 ```
 
 <Callout type="warn">
-Audio generation requires the `KLING_API_KEY` environment variable. Optional fallbacks: `FAL_KEY` for video generation, `SUNO_API_KEY` for music. Without any keys, the video renders silently -- still usable, just without generated audio.
+Audio generation requires the `KLING_API_KEY` environment variable. Optional fallbacks: `FAL_KEY` for video generation, `SUNO_API_KEY` for music. Without any keys, the video renders silently, still usable, just without generated audio.
 </Callout>
 
 ### Step 6: Thumbnail Generation
@@ -296,15 +296,15 @@ ElevenLabs serves as a backup TTS provider, used only when explicit narration is
 </Callout>
 
 <Callout type="info">
-**No API keys? No problem.** Without `KLING_API_KEY`, the pipeline still generates the video -- just without generated audio. You can add a royalty-free music track manually in any video editor, or re-run with the key later using the saved storyboard. The pipeline is designed for graceful degradation at every step.
+**No API keys? No problem.** Without `KLING_API_KEY`, the pipeline still generates the video, just without generated audio. You can add a royalty-free music track manually in any video editor, or re-run with the key later using the saved storyboard. The pipeline is designed for graceful degradation at every step.
 </Callout>
 
 <Callout type="info">
-**Generate release videos from changelogs.** For release notes videos, pass your version tag: `/ork:demo-producer --type release-notes v6.0.2`. The agent reads your CHANGELOG.md, extracts highlights, and generates a ReleaseNotes composition automatically. No storyboarding step needed -- the changelog is the storyboard.
+**Generate release videos from changelogs.** For release notes videos, pass your version tag: `/ork:demo-producer --type release-notes v6.0.2`. The agent reads your CHANGELOG.md, extracts highlights, and generates a ReleaseNotes composition automatically. No storyboarding step needed: the changelog is the storyboard.
 </Callout>
 
 ## Next Steps
 
-- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** -- Understand how agents and skills connect
-- **[Configuration](/docs/getting-started/configuration)** -- Set up `KLING_API_KEY` and other env vars
-- **[Security Audit Cookbook](/docs/cookbook/security-audit)** -- Another multi-agent workflow in action
+- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)**: Understand how agents and skills connect
+- **[Configuration](/docs/getting-started/configuration)**: Set up `KLING_API_KEY` and other env vars
+- **[Security Audit Cookbook](/docs/cookbook/security-audit)**: Another multi-agent workflow in action

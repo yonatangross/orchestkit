@@ -47,8 +47,8 @@ EFFORT = EFFORT or "high"  # default
 |--------|-------------|--------|------|
 | `low` | 1 (structure-only) | 1, 2, 8 | ~1 min |
 | `medium` | 2 (structure + data flow) | 1, 2, 3 (subset), 8 | ~3 min |
-| `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
-| `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
+| `high` (default) | 4 (full parallel team) | 1-8 | ~6 min |
+| `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1-8 + caveats | ~8 min |
 
 **Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns only when `xhigh` is configured on a model in its `XHIGH_UNSUPPORTED_PREFIXES` table.
 
@@ -76,7 +76,7 @@ AskUserQuestion(
 
 **Based on answer, adjust workflow:**
 - **Full exploration**: All phases, all parallel agents
-- **Quick scan**: Files + structure only (phases 1-2), skip health/deps/product — no deep agents
+- **Quick scan**: Files + structure only (phases 1-2), skip health/deps/product, no deep agents
 - **Data flow**: Focus phase 3 agents on data tracing
 - **Architecture patterns**: Focus on backend-system-architect agent
 
@@ -129,7 +129,7 @@ Choose **Agent Teams** (mesh) or **Agent tool** (star):
 
 > **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining exploration.
 
-> **Model cost (CC 2.1.198+):** the built-in Explore agent inherits the session model **capped at Opus** — it no longer runs on haiku. From a premium-model session (Opus, Fable), budget Explore fan-outs at Opus rates; there is no knob to pin the built-in Explore back to haiku. ork's own explorer agents can still pin a cheaper model via frontmatter.
+> **Model cost (CC 2.1.198+):** the built-in Explore agent inherits the session model **capped at Opus**, it no longer runs on haiku. From a premium-model session (Opus, Fable), budget Explore fan-outs at Opus rates; there is no knob to pin the built-in Explore back to haiku. ork's own explorer agents can still pin a cheaper model via frontmatter.
 
 ---
 
@@ -180,7 +180,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ### Progressive Output (CC 2.1.76)
 
-Output findings **incrementally** as each phase completes — don't batch until the report:
+Output findings **incrementally** as each phase completes, don't batch until the report:
 
 | After Phase | Show User |
 |-------------|-----------|
@@ -189,7 +189,7 @@ Output findings **incrementally** as each phase completes — don't batch until 
 | 3. Deep Exploration | Each explorer agent's findings as they return |
 | 5. Code Health | Health score with dimension breakdown |
 
-For Phase 3 parallel agents, output each agent's findings **as soon as it returns** — don't wait for all 4 explorers. Early findings from one agent may answer the user's question before remaining agents complete, allowing early termination.
+For Phase 3 parallel agents, output each agent's findings **as soon as it returns**, don't wait for all 4 explorers. Early findings from one agent may answer the user's question before remaining agents complete, allowing early termination.
 
 ---
 
@@ -240,22 +240,22 @@ Parse `--render=` from `$ARGUMENTS`. Default is `both`.
 
 | Mode | Behavior |
 |------|----------|
-| `markdown` | Current behavior — markdown report only. No spec emitted. |
+| `markdown` | Current behavior, markdown report only. No spec emitted. |
 | `json-render` | Emit `.claude/chain/explore-dashboard.json` only. Skip markdown report. |
-| `both` | Emit spec **and** markdown. Default — gives the human a report and downstream skills a structured handoff. |
+| `both` | Emit spec **and** markdown. Default, gives the human a report and downstream skills a structured handoff. |
 
 When emitting a spec:
 
 1. Load the format and catalog: `Read("references/dashboard-spec.md")`. Reference example: `references/dashboard-example.json`.
 2. Build the spec object using only catalog component types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Heatmap`, `Markdown`.
-3. Write to `.claude/chain/explore-dashboard.json` with compact JSON (no indentation) — minimizes token cost for downstream consumers.
+3. Write to `.claude/chain/explore-dashboard.json` with compact JSON (no indentation), minimizes token cost for downstream consumers.
 4. Validate before declaring success:
 
 ```bash
 node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
 ```
 
-If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only and surface the error to the user. Never write a partial or invalid spec.
+If validation fails (exit ≠ 0), **do not emit**, fall back to markdown-only and surface the error to the user. Never write a partial or invalid spec.
 
 5. For `--render=both`, render the markdown view from the spec for consistency:
 
@@ -263,13 +263,13 @@ If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only
 node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
 ```
 
-Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync — a single source of truth.
+Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync, a single source of truth.
 
 **Why this matters:** Downstream skills (`fix-issue`, `implement`, `create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
 
-## Phase 6.5 — Notebook summary (signal-fired, optional)
+## Phase 6.5: Notebook summary (signal-fired, optional)
 
-After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py &lt;session-dir&gt;` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
+After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
@@ -279,17 +279,17 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 
 | Skip reason | Trigger |
 |-------------|---------|
-| `signal absent` | `len(dirs_scanned) &lt; 3` (or field missing on `explore-output.json`) |
-| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `signal absent` | `len(dirs_scanned) < 3` (or field missing on `explore-output.json`) |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai`, HQ-only) |
 | `hq-content MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `hq-content` |
 
-Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `&lt;session-dir&gt;/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
+Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `<session-dir>/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
 
 Mirrors the `brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
 
 ## Notes for long explorations
 
-> **Oversized reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` truncated first page (not a hard error) when a whole-file read exceeds the token limit. When traversing large files, detect that notice and re-read with explicit `offset`/`limit` to page through the rest — never treat the partial as the full file.
+> **Oversized reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` truncated first page (not a hard error) when a whole-file read exceeds the token limit. When traversing large files, detect that notice and re-read with explicit `offset`/`limit` to page through the rest, never treat the partial as the full file.
 
 > **When context fills (CC 2.1.141+):** Use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent context, instead of restarting. Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so a second mid-turn pass is rare.
 
@@ -325,7 +325,7 @@ Done means all of these hold:
 - `ork:implement`: Implement after exploration
 ---
 
-**Version:** 2.6.0 (April 2026) — `$CLAUDE_EFFORT` env var scales agent count (CC 2.1.120, #1540)
+**Version:** 2.6.0 (April 2026), `$CLAUDE_EFFORT` env var scales agent count (CC 2.1.120, #1540)
 
 
 ---
@@ -388,7 +388,7 @@ ExitWorktree(action="keep")
 
 > **Fallback:** If team formation fails, use standard Agent tool spawns. See [exploration-agents.md](exploration-agents.md).
 
-**Incorrect — Sequential exploration without coordination:**
+**Incorrect, Sequential exploration without coordination:**
 ```python
 Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait for result...
@@ -396,7 +396,7 @@ Agent(subagent_type="Explore", prompt="Trace auth data flow")
 # Sequential, no sharing between agents
 ```
 
-**Correct — Team mode with real-time discovery sharing:**
+**Correct, Team mode with real-time discovery sharing:**
 ```python
 # CC 2.1.178+: one implicit team per session — no TeamCreate.
 # Spawn teammates directly via Agent(name=...). Requires
@@ -471,13 +471,13 @@ Agent(
 )
 ```
 
-**Incorrect — Vague code quality feedback:**
+**Incorrect, Vague code quality feedback:**
 ```markdown
 Code Review: The code looks okay. Some parts are complex.
 Maybe add more tests.
 ```
 
-**Correct — Structured health assessment with scores:**
+**Correct, Structured health assessment with scores:**
 ```json
 {
   "overall_score": 6.2,
@@ -555,7 +555,7 @@ Agent(
 )
 ```
 
-**Incorrect — Listing imports without analysis:**
+**Incorrect, Listing imports without analysis:**
 ```markdown
 auth.ts imports:
 - utils.ts
@@ -563,7 +563,7 @@ auth.ts imports:
 - db.ts
 ```
 
-**Correct — Hotspot analysis with coupling score:**
+**Correct, Hotspot analysis with coupling score:**
 ```json
 {
   "coupling_score": 8,
@@ -659,7 +659,7 @@ Since CC 2.1.232 forking is on by default and `subagent_type: "fork"` selects it
 3. **Backend Architect** - Patterns, integration, dependencies
 4. **Frontend Developer** - Components, state, routes
 
-**Incorrect — Sequential exploration:**
+**Incorrect, Sequential exploration:**
 ```python
 Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait...
@@ -669,7 +669,7 @@ Agent(subagent_type="ork:backend-system-architect", prompt="Analyze patterns")
 # Slow, sequential
 ```
 
-**Correct — Parallel exploration in one message:**
+**Correct, Parallel exploration in one message:**
 ```python
 # All 4 in ONE message with run_in_background: true
 Agent(subagent_type="Explore", prompt="Code Structure: Find all files related to auth",
@@ -734,14 +734,14 @@ Agent(
   max_turns=25)
 ```
 
-**Incorrect — Technical analysis without business context:**
+**Incorrect, Technical analysis without business context:**
 ```markdown
 Found auth.ts, user.ts, session.ts
 Uses JWT tokens, bcrypt hashing
 Database: PostgreSQL users table
 ```
 
-**Correct — Product perspective with findability:**
+**Correct, Product perspective with findability:**
 ```json
 {
   "business_purpose": "Secure user authentication and session management",
@@ -777,7 +777,7 @@ Database: PostgreSQL users table
 Slash invoke: `/ork:explore`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -888,7 +888,7 @@ overall = (readability + maintainability + testability + complexity + documentat
 
 When `--render=json-render` or `--render=both` is passed to `/ork:explore`, Phase 8 emits a json-render-compatible JSON spec to `.claude/chain/explore-dashboard.json` instead of (or in addition to) the markdown report.
 
-The spec follows the **flat element-map format** documented in `ork:mcp-visual-output` — `\{ root, elements \}` with each element keyed by id and referencing children by id. This is the format consumed by `@json-render/mcp` 0.17+ when an MCP host iframe-renders it, and is also consumable by downstream skills as a structured handoff.
+The spec follows the **flat element-map format** documented in `ork:mcp-visual-output`, `{ root, elements }` with each element keyed by id and referencing children by id. This is the format consumed by `@json-render/mcp` 0.17+ when an MCP host iframe-renders it, and is also consumable by downstream skills as a structured handoff.
 
 ## Catalog
 
@@ -897,8 +897,8 @@ These are the only component types the spec is allowed to use. They map to `@jso
 | Type | Purpose | Required Props |
 |------|---------|----------------|
 | `Card` | Section wrapper with optional title | `title?: string` |
-| `StatGrid` | 2–6 metrics in a grid | `items: \{ label, value, trend?, color? \}[]` |
-| `DataTable` | Tabular rows | `columns: \{ key, label \}[]`, `rows: Record&lt;string,string&gt;[]` |
+| `StatGrid` | 2-6 metrics in a grid | `items: { label, value, trend?, color? }[]` |
+| `DataTable` | Tabular rows | `columns: { key, label }[]`, `rows: Record<string,string>[]` |
 | `StatusBadge` | Single status indicator | `label: string`, `status: success|warning|error|info|pending` |
 | `BarMeter` | 0-10 score bar | `label: string`, `value: number` (0-10), `color?: string` |
 | `Heatmap` | Coupling/dependency matrix | `xLabels: string[]`, `yLabels: string[]`, `cells: number[][]` |
@@ -906,7 +906,7 @@ These are the only component types the spec is allowed to use. They map to `@jso
 
 `trend` enum: `up | down | flat`. `color` enum: `green | red | yellow | blue | gray`.
 
-Elements may reference children only by id from the same `elements` map. Recursion is bounded — Cards can contain other Cards but no deeper than 2 levels.
+Elements may reference children only by id from the same `elements` map. Recursion is bounded, Cards can contain other Cards but no deeper than 2 levels.
 
 ## Example
 
@@ -997,7 +997,7 @@ The companion script `scripts/render-spec.mjs` validates the spec on emission:
 - BarMeter values are in [0, 10]
 - DataTable rows match column keys
 
-Validation failure aborts emission with a non-zero exit. The skill MUST fall back to markdown when validation fails — never emit a partial or invalid spec.
+Validation failure aborts emission with a non-zero exit. The skill MUST fall back to markdown when validation fails, never emit a partial or invalid spec.
 
 ## How downstream skills consume it
 

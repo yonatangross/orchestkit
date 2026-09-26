@@ -7,7 +7,7 @@ description: "Automatic tracking of which sub-agents contributed to each branch,
 
 OrchestKit automatically tracks which sub-agents contributed to your work and surfaces that attribution in **commit messages** and **PR descriptions**.
 
-Instead of GitHub showing a single "claude" contributor, agent attribution shows the full team — which specialized agents ran, what they did, how long they took, and whether they ran in parallel.
+Instead of GitHub showing a single "claude" contributor, agent attribution shows the full team: which specialized agents ran, what they did, how long they took, and whether they ran in parallel.
 
 ## How It Works
 
@@ -100,9 +100,9 @@ A Markdown table showing each agent, what it did, its execution stage, and durat
 
 A collapsible `<details>` section grouping agents by execution stage:
 
-- **Lead** — The first agent spawned (typically the architect or designer)
-- **Parallel** — Agents that ran simultaneously (security, testing, frontend)
-- **Follow-up** — Agents that ran after the parallel batch (CI/CD, quality review)
+- **Lead**: The first agent spawned (typically the architect or designer)
+- **Parallel**: Agents that ran simultaneously (security, testing, frontend)
+- **Follow-up**: Agents that ran after the parallel batch (CI/CD, quality review)
 
 ## Parallel Execution Stages
 
@@ -110,7 +110,7 @@ OrchestKit tracks whether agents ran sequentially or in parallel:
 
 | Stage | Value | Meaning |
 |-------|-------|---------|
-| Lead | `0` | First agent spawned — sets the direction |
+| Lead | `0` | First agent spawned, sets the direction |
 | Parallel | `1` | Ran in background simultaneously with others |
 | Follow-up | `2` | Ran after the parallel batch completed |
 
@@ -123,7 +123,7 @@ This maps to how OrchestKit skills actually work. For example, `/ork:brainstorm`
 | `.claude/agents/activity/{branch}.jsonl` | Branch activity ledger | Until branch is deleted or 30 days |
 | `.claude/agents/session-state.json` | Start times + commit base | Current session |
 
-Both files are `.gitignore`d — they're ephemeral session data, never committed to the repository.
+Both files are `.gitignore`d; they're ephemeral session data, never committed to the repository.
 
 ## Cleanup
 

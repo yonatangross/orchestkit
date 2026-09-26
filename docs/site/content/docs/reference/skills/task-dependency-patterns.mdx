@@ -5,7 +5,7 @@ description: "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, Tas
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="task-dependency-patterns" />
 
@@ -73,7 +73,7 @@ pending/in_progress → deleted
 - **pending**: Task created but not started
 - **in_progress**: Actively being worked on
 - **completed**: Work finished and verified
-- **deleted**: Task removed — permanently removes the task
+- **deleted**: Task removed, permanently removes the task
 
 ### Task Deletion
 
@@ -109,7 +109,7 @@ Provide present-continuous form for spinner display:
 
 Agent Teams provides multi-agent coordination with shared task lists and peer-to-peer messaging.
 
-> **CC 2.1.161 — independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
+> **CC 2.1.161, independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
 
 ### Team Workflow
 
@@ -173,8 +173,8 @@ SendMessage(to: "backend-dev",
 
 When using Agent Teams, if context limit is reached mid-workflow:
 - Collect partial results from completed teammates via `TaskList`
-- Synthesize available outputs — prefer partial results over silent failure
-- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: \{"skipped": "context limit"\})`
+- Synthesize available outputs, prefer partial results over silent failure
+- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: {"skipped": "context limit"})`
 
 ## Anti-Patterns
 
@@ -194,7 +194,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -257,14 +257,14 @@ SendMessage(
 ```
 
 **Key rules:**
-- Always set `owner` when transitioning a task to `in_progress` — this prevents duplicate work
+- Always set `owner` when transitioning a task to `in_progress`, this prevents duplicate work
 - Use `TaskList` to find unblocked, unowned tasks before claiming one
-- Design tasks to be completable by a single agent — avoid tasks that require two agents to collaborate mid-execution
+- Design tasks to be completable by a single agent, avoid tasks that require two agents to collaborate mid-execution
 - Use `SendMessage` to share completion context (output formats, file locations, decisions made) with agents who own dependent tasks
-- Mark tasks `completed` promptly after finishing — delayed completion blocks dependent agents unnecessarily
+- Mark tasks `completed` promptly after finishing, delayed completion blocks dependent agents unnecessarily
 - Release ownership (`owner: ""`) if you cannot finish a task, reverting it to `pending` so another agent can pick it up
 
-Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md) — Best Practices (lines 110-116), Agent Workflow (lines 47-70)
+Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md), Best Practices (lines 110-116), Agent Workflow (lines 47-70)
 
 
 ### Verify task completion criteria before marking done to prevent cascading dependency failures: HIGH
@@ -331,12 +331,12 @@ TaskUpdate(taskId: "1", status: "completed")
 
 **Key rules:**
 - Verify all four completion criteria before marking done: implementation complete, tests passing, no blockers for dependents, documentation updated if applicable
-- Never skip `in_progress` — always transition `pending` to `in_progress` to `completed` for proper visibility
+- Never skip `in_progress`, always transition `pending` to `in_progress` to `completed` for proper visibility
 - If blocked mid-work, revert to `pending` and create a new blocker task with `addBlockedBy` linking
 - When partial work is done but scope remains, create follow-up tasks for the remaining items rather than leaving one large task incomplete
 - After completing a task, run `TaskList` to identify newly unblocked dependents
 
-Reference: [Status Workflow](../references/status-workflow.md) — Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
+Reference: [Status Workflow](../references/status-workflow.md), Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
 
 
 ### Validate task dependencies before starting to avoid wasted work on blocked tasks: HIGH
@@ -394,7 +394,7 @@ TaskUpdate(taskId: "3", addBlockedBy: ["6"])
 - When completing a task, call `TaskList` to check if dependent tasks are now unblocked
 - Document why each dependency exists in the task description so future agents understand the ordering
 
-Reference: [Dependency Tracking](../references/dependency-tracking.md) — Validation Rules (lines 72-77), Best Practices (lines 89-94)
+Reference: [Dependency Tracking](../references/dependency-tracking.md), Validation Rules (lines 72-77), Best Practices (lines 89-94)
 
 
 

@@ -95,9 +95,9 @@ Use the universal generator:
 ```
 
 This creates:
-- `orchestkit-demos/scripts/demo-\{name\}.sh` - Bash simulator
-- `orchestkit-demos/tapes/sim-\{name\}.tape` - VHS horizontal
-- `orchestkit-demos/tapes/sim-\{name\}-vertical.tape` - VHS vertical
+- `orchestkit-demos/scripts/demo-{name}.sh` - Bash simulator
+- `orchestkit-demos/tapes/sim-{name}.tape` - VHS horizontal
+- `orchestkit-demos/tapes/sim-{name}-vertical.tape` - VHS vertical
 
 ### Phase 4: Record VHS
 
@@ -168,11 +168,11 @@ Experiments/    → WIP content
 ```
 
 #### ID Naming Conventions
-- Landscape: `\{SkillName\}` (e.g., `Implement`, `Verify`)
-- Vertical: `V-TTR-\{SkillName\}`, `V-PZ-\{SkillName\}`, `V-SM-\{SkillName\}`
-- Square: `SQ-TTR-\{SkillName\}`, `SQ-PZ-\{SkillName\}`, `SQ-SM-\{SkillName\}`
-- Templates: `TPL-\{ComponentType\}` (e.g., `TPL-TriTerminalRace`)
-- Experiments: `EXP-\{Name\}`
+- Landscape: `{SkillName}` (e.g., `Implement`, `Verify`)
+- Vertical: `V-TTR-{SkillName}`, `V-PZ-{SkillName}`, `V-SM-{SkillName}`
+- Square: `SQ-TTR-{SkillName}`, `SQ-PZ-{SkillName}`, `SQ-SM-{SkillName}`
+- Templates: `TPL-{ComponentType}` (e.g., `TPL-TriTerminalRace`)
+- Experiments: `EXP-{Name}`
 
 ### Phase 6: Render Final
 
@@ -232,7 +232,7 @@ Before marking complete:
 
 ## 128K Output Tokens
 
-With 128K output tokens, generate complete artifacts in a single pass. Do not split large outputs across multiple responses — deliver comprehensive results at once.
+With 128K output tokens, generate complete artifacts in a single pass. Do not split large outputs across multiple responses, deliver comprehensive results at once.
 
 ## Task Boundaries
 
@@ -252,19 +252,19 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
+You can spawn your declared sub-agents via the Agent tool, chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed), bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
 | `ork:frontend-ui-developer` | A Remotion composition needs new React/TypeScript components or animation work beyond wiring existing templates (TriTerminalRace, ProgressiveZoom) into Root.tsx |
-| `ork:multimodal-specialist` | A demo needs net-new AI-GENERATED media (b-roll, thumbnails, voiceover) via the fal MCP — distinct from composing already-existing assets with VHS capture or Remotion |
+| `ork:multimodal-specialist` | A demo needs net-new AI-GENERATED media (b-roll, thumbnails, voiceover) via the fal MCP, distinct from composing already-existing assets with VHS capture or Remotion |
 
-Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting, see `chain-patterns` Pattern 9.
 
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
@@ -272,6 +272,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

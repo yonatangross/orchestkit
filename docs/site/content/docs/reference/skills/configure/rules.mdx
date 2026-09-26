@@ -24,7 +24,7 @@ Before modifying any configuration file:
 3. Apply changes to the original
 4. Report the backup location to the user
 
-## Incorrect — overwrite config without backup
+## Incorrect: overwrite config without backup
 
 ```bash
 # Directly overwrite existing config
@@ -49,7 +49,7 @@ writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
 - Custom hook permissions are lost
 - No way to revert if new config causes failures
 
-## Correct — backup then modify
+## Correct: backup then modify
 
 ```bash
 # Backup existing config with timestamp
@@ -107,7 +107,7 @@ fi
 
 ## Why
 
-Configuration files are consumed by Claude Code's plugin loader. A malformed JSON file, a missing required field, or an invalid enum value will silently fail to load — the user sees no error, just missing functionality.
+Configuration files are consumed by Claude Code's plugin loader. A malformed JSON file, a missing required field, or an invalid enum value will silently fail to load, the user sees no error, just missing functionality.
 
 ## Rule
 
@@ -117,7 +117,7 @@ After every config write:
 3. Validate field values against allowed enums
 4. Report success or failure to the user
 
-## Incorrect — write config and assume success
+## Incorrect: write config and assume success
 
 ```bash
 # Write config, no verification
@@ -141,7 +141,7 @@ console.log("Done!"); // No verification that file is valid
 - Missing trailing brace from template errors breaks parsing
 - Typo in preset name ("compelte") silently falls back to defaults
 
-## Correct — write then validate
+## Correct: write then validate
 
 ```bash
 CONFIG="$HOME/.claude/plugins/orchestkit/config.json"

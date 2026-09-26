@@ -61,7 +61,7 @@ export function GET() {
 
 	lines.push(
 		"",
-		"# Content Signals — https://contentsignals.org/",
+		"# Content Signals: https://contentsignals.org/",
 		"Content-Signal: ai-train=yes, search=yes, ai-input=yes",
 		"",
 		`Sitemap: ${SITE.domain}/sitemap.xml`,

@@ -23,7 +23,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/agents/overview",
     "title": "Agents Overview",
-    "description": "37 specialized agents -- how they activate, what they know, and when to use each."
+    "description": "36 specialized agents: how they activate, what they know, and when to use each."
   },
   {
     "url": "/docs/agents/writing-agents",
@@ -33,7 +33,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/analytics",
     "title": "Analytics Dashboard",
-    "description": "Visualize your Claude Code usage — model delegation, token costs, agent performance, and session trends."
+    "description": "Visualize your Claude Code usage: model delegation, token costs, agent performance, and session trends."
   },
   {
     "url": "/docs/changelog",
@@ -43,7 +43,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/cookbook/claude-design-handoff",
     "title": "Claude Design → PR",
-    "description": "Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command — the closed-loop pipeline from design exploration to production code."
+    "description": "Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command, the closed-loop pipeline from design exploration to production code."
   },
   {
     "url": "/docs/cookbook/create-demo-video",
@@ -58,7 +58,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/cookbook/implement-feature",
     "title": "Implement a Feature",
-    "description": "From idea to merged PR with parallel AI agents — a complete walkthrough of the /ork:implement workflow."
+    "description": "From idea to merged PR with parallel AI agents: a complete walkthrough of the /ork:implement workflow."
   },
   {
     "url": "/docs/cookbook",
@@ -113,7 +113,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/cookbook/task-management",
     "title": "Task Management Patterns",
-    "description": "Track complex work with TaskCreate, TaskUpdate, and dependency chains — from single-phase tasks to multi-agent coordination."
+    "description": "Track complex work with TaskCreate, TaskUpdate, and dependency chains, from single-phase tasks to multi-agent coordination."
   },
   {
     "url": "/docs/foundations/agent-attribution",
@@ -123,12 +123,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/choosing-a-plugin",
     "title": "Plugin Architecture",
-    "description": "OrchestKit ships as one unified plugin — everything loads on-demand with zero overhead."
+    "description": "OrchestKit ships as one unified plugin: everything loads on-demand with zero overhead."
   },
   {
     "url": "/docs/foundations",
     "title": "Foundations",
-    "description": "The core concepts behind OrchestKit — skills, agents, hooks, and how they compose."
+    "description": "The core concepts behind OrchestKit: skills, agents, hooks, and how they compose."
   },
   {
     "url": "/docs/foundations/mcp-servers",
@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 107 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code: 107 skills, 36 agents, 171 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -178,7 +178,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/first-10-minutes",
     "title": "Your First 10 Minutes",
-    "description": "From install to your first AI-assisted commit — a guided walkthrough."
+    "description": "From install to your first AI-assisted commit, a guided walkthrough."
   },
   {
     "url": "/docs/getting-started/hosts",
@@ -193,7 +193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "Installation",
-    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, Antigravity, or skills.sh for OpenCode and other clients."
+    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity, or skills.sh for OpenCode and other clients."
   },
   {
     "url": "/docs/getting-started/muse",
@@ -203,12 +203,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/navigating",
     "title": "Find What You Need",
-    "description": "Hub-and-spoke navigation — find the right skills and agents for your role and task."
+    "description": "Hub-and-spoke navigation: find the right skills and agents for your role and task."
   },
   {
     "url": "/docs/getting-started/skills-sh",
-    "title": "skills.sh (Pi, OpenCode, and other clients)",
-    "description": "Install OrchestKit skills into Pi, OpenCode, or any skills.sh client. Starter 12, not the whole catalog. Muse Code has its own page."
+    "title": "Pi, and skills.sh for OpenCode and other clients",
+    "description": "Pi installs from its shipped manifest; OpenCode and any other skills.sh client take the starter 12 skills. Muse Code has its own page."
   },
   {
     "url": "/docs/getting-started/superpowers",
@@ -243,12 +243,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/guides/orchestkit-with-nextjs",
     "title": "Using OrchestKit with Next.js",
-    "description": "How OrchestKit's skills, agents, and hooks apply to a Next.js / React codebase — installation, which components activate, and real workflows."
+    "description": "How OrchestKit's skills, agents, and hooks apply to a Next.js / React codebase: installation, which components activate, and real workflows."
   },
   {
     "url": "/docs/guides/orchestkit-with-python-fastapi",
     "title": "Using OrchestKit with Python and FastAPI",
-    "description": "How OrchestKit applies to a Python backend — async patterns, SQLAlchemy, migrations, and the typed hook contract on PyPI."
+    "description": "How OrchestKit applies to a Python backend: async patterns, SQLAlchemy, migrations, and the typed hook contract on PyPI."
   },
   {
     "url": "/docs/hooks/architecture",
@@ -263,7 +263,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/lifecycle-hooks",
     "title": "Session Start to Stop",
-    "description": "How OrchestKit manages the full session lifecycle -- from environment setup and context loading through metrics, compaction, and fire-and-forget cleanup."
+    "description": "How OrchestKit manages the full session lifecycle, from environment setup and context loading through metrics, compaction, and fire-and-forget cleanup."
   },
   {
     "url": "/docs/hooks/memory-hooks",
@@ -273,12 +273,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/overview",
     "title": "171 Hooks: What Fires When",
-    "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
+    "description": "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
     "url": "/docs/hooks/safety-hooks",
     "title": "Security Gates and File Guards",
-    "description": "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations -- the defense-in-depth hooks that run before every tool use."
+    "description": "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations: the defense-in-depth hooks that run before every tool use."
   },
   {
     "url": "/docs/hooks/spotlights/memory-validator",
@@ -308,7 +308,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/writing-hooks",
     "title": "Create Your Own Hook",
-    "description": "Step-by-step guide to writing, registering, building, and testing a custom OrchestKit hook -- from TypeScript types to esbuild bundles."
+    "description": "Step-by-step guide to writing, registering, building, and testing a custom OrchestKit hook, from TypeScript types to esbuild bundles."
   },
   {
     "url": "/docs/memory/graph-memory",
@@ -713,7 +713,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 107 skills, 36 agents, and 171 hooks."
+    "description": "Complete reference for every OrchestKit skill, agent, and hook, generated from source."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -828,12 +828,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/ci-debug",
     "title": "Ci Debug",
-    "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+    "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command, but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
   },
   {
     "url": "/docs/reference/skills/ci-sentinel",
     "title": "Ci Sentinel",
-    "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
+    "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply, NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
   },
   {
     "url": "/docs/reference/skills/code-review-playbook",
@@ -913,7 +913,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-context-extract",
     "title": "Design Context Extract",
-    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
+    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
   },
   {
     "url": "/docs/reference/skills/design-import",
@@ -928,7 +928,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-stylecards",
     "title": "Design Stylecards",
-    "description": "Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session."
+    "description": "Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session."
   },
   {
     "url": "/docs/reference/skills/design-system-tokens",
@@ -1033,22 +1033,22 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
     "title": "Doctor: Version Compatibility: Overview",
-    "description": "OrchestKit requires Claude Code >= 2.1.277."
+    "description": "Version Compatibility for the Doctor skill, page 1 of 4: Overview."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
-    "title": "Doctor: Version Compatibility: Feature Matrix (part 1)",
-    "description": "Part 2 of 4 of Version Compatibility for the Doctor skill."
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 2)",
+    "description": "Version Compatibility for the Doctor skill, page 2 of 4: Feature Matrix (part 1 of 2)."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
-    "title": "Doctor: Version Compatibility: Feature Matrix (part 2)",
-    "description": "Reading: on this account a user-tier hooks module (mods/lesson-cards via --plugin-dir) does NOT load with CLAUDECODEENABLEFUNCTIONHOOKS unset; the debug log..."
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 2)",
+    "description": "Version Compatibility for the Doctor skill, page 3 of 4: Feature Matrix (part 2 of 2)."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
     "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
-    "description": "For API-key, Bedrock, Vertex, or Foundry users running long OrchestKit sessions (brainstorm, implement, cover chains), enable 1-hour prompt caching"
+    "description": "Version Compatibility for the Doctor skill, page 4 of 4: Prompt Caching Recommendation."
   },
   {
     "url": "/docs/reference/skills/doctor/rules",
@@ -1073,7 +1073,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/emulate-seed",
     "title": "Emulate Seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs, full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
   },
   {
     "url": "/docs/reference/skills/error-analysis",
@@ -1088,7 +1088,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/expect",
     "title": "Expect",
-    "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
+    "description": "Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
   },
   {
     "url": "/docs/reference/skills/explore",
@@ -1163,7 +1163,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/issue-progress-tracking",
     "title": "Issue Progress Tracking",
-    "description": "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
+    "description": "GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
   },
   {
     "url": "/docs/reference/skills/json-render-catalog",
@@ -1213,7 +1213,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/multi-surface-render",
     "title": "Multi Surface Render",
-    "description": "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec."
+    "description": "Multi-surface rendering with json-render, one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec."
   },
   {
     "url": "/docs/reference/skills/multimodal-llm",
@@ -1253,7 +1253,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/prioritization",
     "title": "Prioritization",
-    "description": "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
+    "description": "Prioritization frameworks, RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
   },
   {
     "url": "/docs/reference/skills/product-analytics",
@@ -1338,7 +1338,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/swarm-migrate",
     "title": "Swarm Migrate",
-    "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement."
+    "description": "Cross-repo migration swarm, one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work, that's /ork:implement."
   },
   {
     "url": "/docs/reference/skills/task-dependency-patterns",
@@ -1348,32 +1348,32 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/telemetry-inspect",
     "title": "Telemetry Inspect",
-    "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files."
+    "description": "Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only, never modifies telemetry files."
   },
   {
     "url": "/docs/reference/skills/testing-e2e",
     "title": "Testing E2e",
-    "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility."
+    "description": "End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility."
   },
   {
     "url": "/docs/reference/skills/testing-integration",
     "title": "Testing Integration",
-    "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration."
+    "description": "Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration."
   },
   {
     "url": "/docs/reference/skills/testing-llm",
     "title": "Testing Llm",
-    "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
+    "description": "LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
   },
   {
     "url": "/docs/reference/skills/testing-perf",
     "title": "Testing Perf",
-    "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure."
+    "description": "Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure."
   },
   {
     "url": "/docs/reference/skills/testing-unit",
     "title": "Testing Unit",
-    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest."
+    "description": "Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest."
   },
   {
     "url": "/docs/reference/skills/ui-components",
@@ -1408,7 +1408,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/visualize-plan",
     "title": "Visualize Plan",
-    "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
+    "description": "Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
   },
   {
     "url": "/docs/reference/skills/vite-advanced",
@@ -1423,7 +1423,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/write-prd",
     "title": "Write Prd",
-    "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
+    "description": "Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
   },
   {
     "url": "/docs/reference/skills/zustand-patterns",
@@ -1443,17 +1443,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/showcase/lab",
     "title": "The Lab",
-    "description": "Interactive playgrounds OrchestKit generates as working artifacts — triage boards, adoption-wave explorers, and decision boards, published as-is."
+    "description": "Interactive playgrounds OrchestKit generates as working artifacts (triage boards, adoption-wave explorers, and decision boards), published as-is."
   },
   {
     "url": "/docs/showcase/lab/session-standing",
     "title": "Case study: Session Standing Board",
-    "description": "A drag-to-triage standing board for session outcomes, with full keyboard and touch support — the accessibility reference for Lab decision boards."
+    "description": "A drag-to-triage standing board for session outcomes, with full keyboard and touch support: the accessibility reference for Lab decision boards."
   },
   {
     "url": "/docs/showcase/lab/triage-board",
     "title": "Case study: Issue Triage Board",
-    "description": "The entire open-issue backlog as one interactive board — 98 issues triaged in a single session instead of a week of grooming."
+    "description": "The entire open-issue backlog as one interactive board: 98 issues triaged in a single session instead of a week of grooming."
   },
   {
     "url": "/docs/showcase/pipeline",
@@ -1502,8 +1502,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "18 Commands You Can Invoke",
-    "description": "Every /ork:X command skill in OrchestKit -- grouped by category with descriptions and usage examples."
+    "title": "36 Commands You Can Invoke",
+    "description": "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
   },
   {
     "url": "/docs/skills/dependency-graph",
@@ -1518,17 +1518,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/overview",
     "title": "How Skills Work",
-    "description": "Skills are reusable knowledge modules -- SKILL.md files with optional references -- that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
+    "description": "Skills are reusable knowledge modules (SKILL.md files with optional references) that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
   },
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 71 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
+    "description": "The 71 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",
     "title": "Composing Skills Into Workflows",
-    "description": "How command skills, reference skills, hooks, and agents combine to form intelligent workflows -- and when to use each composition pattern."
+    "description": "How command skills, reference skills, hooks, and agents combine to form intelligent workflows, and when to use each composition pattern."
   },
   {
     "url": "/docs/skills/spotlights/commit",
@@ -1558,7 +1558,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/writing-skills",
     "title": "Create Your Own SKILL.md",
-    "description": "Step-by-step guide to writing custom skills -- frontmatter template, best practices, directory structure, and testing with npm run test:skills."
+    "description": "Step-by-step guide to writing custom skills: frontmatter template, best practices, directory structure, and testing with npm run test:skills."
   },
   {
     "url": "/docs/troubleshooting/faq",

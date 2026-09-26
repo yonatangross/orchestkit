@@ -255,7 +255,7 @@ claude plugin validate
 
 ## 14. Stale Project State (CC >= 2.1.126, #1582, fixed in #1587)
 
-CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when canonical project paths no longer exist on disk.
+CC 2.1.126 added `claude project purge [path]`, deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when canonical project paths no longer exist on disk.
 
 ```bash
 # Check CC version supports project purge (>= 2.1.126)
@@ -284,7 +284,7 @@ CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcr
 
 **Why info, never warn or fail:** the user may have moved a project rather than deleted it; aggressive removal would lose transcript history. Always recommend `--dry-run` first. Mirrors the pattern from `claude plugin prune` (Category 13b).
 
-**Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results — `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
+**Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results, `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
 
 
 ### MCP Status Checks: HIGH

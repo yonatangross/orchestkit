@@ -16,7 +16,7 @@ import {
 export const metadata: Metadata = {
 	title: "Best Claude Code plugins and marketplaces (2026)",
 	description:
-		"An honest roundup of Claude Code plugins and plugin marketplaces — Anthropic's official catalogs, the biggest community marketplaces, and where OrchestKit fits. Maintainer-disclosed.",
+		"An honest roundup of Claude Code plugins and plugin marketplaces: Anthropic's official catalogs, the biggest community marketplaces, and where OrchestKit fits. Maintainer-disclosed.",
 	alternates: { canonical: `${SITE.domain}/best-claude-code-plugins` },
 };
 
@@ -33,7 +33,7 @@ const OFFICIAL: Entry[] = [
 		name: "claude-plugins-official",
 		url: "https://github.com/anthropics/claude-plugins-official",
 		by: "Anthropic",
-		what: "The vetted official plugin catalog, auto-registered in Claude Code at startup — the de facto default marketplace.",
+		what: "The vetted official plugin catalog, auto-registered in Claude Code at startup, and the de facto default marketplace.",
 		signal: "~30k stars · Apache-2.0",
 	},
 	{
@@ -47,7 +47,7 @@ const OFFICIAL: Entry[] = [
 		name: "knowledge-work-plugins",
 		url: "https://github.com/anthropics/knowledge-work-plugins",
 		by: "Anthropic",
-		what: "Role-oriented plugins for non-engineering knowledge work — sales, legal, finance, and similar.",
+		what: "Role-oriented plugins for non-engineering knowledge work: sales, legal, finance, and similar.",
 		signal: "~20k stars",
 	},
 	{
@@ -63,7 +63,7 @@ const COMMUNITY: Entry[] = [
 	{
 		name: "OrchestKit (this site)",
 		url: "https://github.com/yonatangross/orchestkit",
-		by: "Yonyon — that's us; see disclosure above",
+		by: "Yonyon, that's us; see disclosure above",
 		what: `${COUNTS.skills} skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks in one plugin: parallel-agent feature implementation and PR review, fail-closed security hooks, persistent memory, and a docs MCP server (hosted + Docker).`,
 		signal: "MIT · no account, no hosted service",
 	},
@@ -71,14 +71,14 @@ const COMMUNITY: Entry[] = [
 		name: "claude-skills",
 		url: "https://github.com/alirezarezvani/claude-skills",
 		by: "alirezarezvani",
-		what: "The most prolific community marketplace by skill count — 338 skills and 13 agents across many domains.",
+		what: "The most prolific community marketplace by skill count: 338 skills and 13 agents across many domains.",
 		signal: "~18k stars · MIT",
 	},
 	{
 		name: "claude-code-skills",
 		url: "https://github.com/daymade/claude-code-skills",
 		by: "daymade",
-		what: "A curated set of ~61 deeper, narrower skills — quality-over-quantity philosophy.",
+		what: "A curated set of ~61 deeper, narrower skills with a quality-over-quantity philosophy.",
 		signal: "~1.2k stars · MIT",
 	},
 	{
@@ -112,7 +112,7 @@ function EntryList({ entries }: { entries: Entry[] }) {
 					<a href={e.url} target="_blank" rel="noopener noreferrer">
 						{e.name}
 					</a>{" "}
-					<em>({e.by})</em> — {e.what} <span>[{e.signal}]</span>
+					<em>({e.by})</em>: {e.what} <span>[{e.signal}]</span>
 				</li>
 			))}
 		</ul>
@@ -132,7 +132,7 @@ export default function BestPluginsPage() {
 					personNode(),
 					techArticleNode({
 						headline: "Best Claude Code plugins and marketplaces (2026)",
-						description: "An honest roundup of Claude Code plugins and plugin marketplaces — Anthropic's official catalogs, the biggest community marketplaces, and where OrchestKit fits. Maintainer-disclosed.",
+						description: "An honest roundup of Claude Code plugins and plugin marketplaces: Anthropic's official catalogs, the biggest community marketplaces, and where OrchestKit fits. Maintainer-disclosed.",
 						path: "/best-claude-code-plugins",
 						datePublished: "2026-06-11",
 					}),
@@ -160,7 +160,7 @@ export default function BestPluginsPage() {
 					skills.sh
 				</a>{" "}
 				indexes skills across agents (Claude Code and OpenAI Codex both speak
-				the SKILL.md standard) with real install counts —{" "}
+				the SKILL.md standard) with real install counts:{" "}
 				<a
 					href="https://www.skills.sh/yonatangross/orchestkit"
 					target="_blank"
@@ -186,10 +186,10 @@ export default function BestPluginsPage() {
 				</li>
 				<li>
 					<strong>Engineering depth</strong>: pick a plugin that encodes
-					practices, not just prompts — look for hooks (enforcement that runs
+					practices, not just prompts. Look for hooks (enforcement that runs
 					on every tool call) and tests in the plugin&apos;s own CI. This is{" "}
 					{SITE.name}&apos;s lane ({COUNTS.hooks} hooks, security suite gating
-					every release) — see{" "}
+					every release); see{" "}
 					<Link href="/compare">the detailed comparison</Link>.
 				</li>
 				<li>
@@ -198,7 +198,7 @@ export default function BestPluginsPage() {
 				</li>
 				<li>
 					<strong>Building your own agent product instead?</strong> You want
-					the SDK layer, not a plugin —{" "}
+					the SDK layer, not a plugin:{" "}
 					<Link href="/claude-agent-sdk-vs-claude-code-plugins">
 						Claude Agent SDK vs plugins, explained
 					</Link>

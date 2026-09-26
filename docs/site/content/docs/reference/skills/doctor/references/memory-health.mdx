@@ -5,10 +5,6 @@ description: "OrchestKit uses graph memory for knowledge persistence."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Memory Health
-
-# Memory Health
-
 ## Overview
 
 OrchestKit uses graph memory for knowledge persistence. Doctor validates it with automated checks.
@@ -79,13 +75,13 @@ done < .claude/memory/decisions.jsonl
 
 Separate from the graph store above: the harness injects a per-project
 **auto-memory index** (`MEMORY.md`) into context every session. CC loads only
-the **first 200 lines OR first 25 KB, whichever comes first** — anything past
+the **first 200 lines OR first 25 KB, whichever comes first**, anything past
 either limit is silently dropped (per code.claude.com/docs/memory). CC gives no
 warning as you approach those caps; this check makes it actionable by pointing
 at the fix (`/ork:dream`). A growing index also busts the prompt cache, since it
 changes whenever a memory is written.
 
-The index lives under `~/.claude/projects/&lt;encoded-cwd&gt;/memory/MEMORY.md` — the
+The index lives under `~/.claude/projects/<encoded-cwd>/memory/MEMORY.md`, the
 harness encodes the project path by replacing both `/` and `.` with `-`.
 
 ```bash
@@ -149,4 +145,3 @@ with open('.claude/memory/decisions.jsonl') as f:
 ### High queue depth
 
 Queue items accumulate if the stop dispatcher doesn't run (e.g., session crash). The queue-recovery hook processes orphaned queues on the next session start.
-

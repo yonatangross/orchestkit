@@ -5,7 +5,7 @@ description: "Chain patterns for multi-phase pipelines: MCP detection, handoff f
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="chain-patterns" />
 
@@ -16,7 +16,7 @@ description: "Chain patterns for multi-phase pipelines: MCP detection, handoff f
 
 ## Overview
 
-Foundation patterns for CC 2.1.71 pipeline skills. This skill is loaded via the `skills:` frontmatter field — it provides patterns that parent skills follow.
+Foundation patterns for CC 2.1.71 pipeline skills. This skill is loaded via the `skills:` frontmatter field, it provides patterns that parent skills follow.
 
 ## Pattern 1: MCP Detection (ToolSearch Probe)
 
@@ -63,7 +63,7 @@ Write(".claude/chain/NN-phase-name.json", JSON.stringify({
 }))
 ```
 
-**Location:** `.claude/chain/` — numbered files for ordering, descriptive names for clarity.
+**Location:** `.claude/chain/`, numbered files for ordering, descriptive names for clarity.
 
 Load schema: `Read("references/handoff-schema.md")`
 
@@ -111,9 +111,9 @@ Agent(
 
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
 
-> **CC 2.1.157 worktree lifecycle:** `EnterWorktree` can switch between Claude-managed worktrees mid-session, and worktrees are left **unlocked** when the agent finishes — so `git worktree remove`/`prune` cleans them up without `--force`.
+> **CC 2.1.157 worktree lifecycle:** `EnterWorktree` can switch between Claude-managed worktrees mid-session, and worktrees are left **unlocked** when the agent finishes, so `git worktree remove`/`prune` cleans them up without `--force`.
 
-> **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep` — it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
+> **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep`, it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
 **When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
 Load details: `Read("references/worktree-agent-pattern.md")`
@@ -138,11 +138,11 @@ Load patterns: `Read("references/cron-monitoring.md")`
 
 ## Pattern 6: Progressive Output (CC 2.1.76)
 
-Launch agents with `run_in_background=true` and output results as each returns — don't wait for all agents to finish. Gives ~60% faster perceived feedback.
+Launch agents with `run_in_background=true` and output results as each returns, don't wait for all agents to finish. Gives ~60% faster perceived feedback.
 
-> **Background by default (CC 2.1.198+):** Agent-tool subagents launch in the background even when `run_in_background` is omitted. Pass `run_in_background: false` only when a stage must block on the result before continuing (e.g. a verdict gate ahead of a destructive step). The `Notification` hook fires `agent_needs_input` / `agent_completed` as background agents progress — ork's notification hooks surface both.
+> **Background by default (CC 2.1.198+):** Agent-tool subagents launch in the background even when `run_in_background` is omitted. Pass `run_in_background: false` only when a stage must block on the result before continuing (e.g. a verdict gate ahead of a destructive step). The `Notification` hook fires `agent_needs_input` / `agent_completed` as background agents progress, ork's notification hooks surface both.
 >
-> **Skill-side twin (CC 2.1.218+):** skills with `context: fork` also background by default; the per-skill opt-out is `background: false` in frontmatter. ork's rule: every `user-invocable: true` fork skill declares it (a human typed the command and is waiting — verdict gates and AskUserQuestion turns need the interactive loop), while model-invoked fork skills deliberately keep the background default, which is the 2.1.218 win. When authoring a pipeline skill, decide this explicitly rather than inheriting whatever the current default is (#3093).
+> **Skill-side twin (CC 2.1.218+):** skills with `context: fork` also background by default; the per-skill opt-out is `background: false` in frontmatter. ork's rule: every `user-invocable: true` fork skill declares it (a human typed the command and is waiting, verdict gates and AskUserQuestion turns need the interactive loop), while model-invoked fork skills deliberately keep the background default, which is the 2.1.218 win. When authoring a pipeline skill, decide this explicitly rather than inheriting whatever the current default is (#3093).
 
 ```python
 # Launch all agents in ONE message with run_in_background=true
@@ -161,16 +161,16 @@ Agent(subagent_type="ork:test-generator",
 
 **Key rules:**
 - Launch ALL independent agents in a single message (parallel)
-- Output each result incrementally — don't batch
+- Output each result incrementally, don't batch
 - Flag critical findings immediately (don't wait for stragglers)
-- Background bash tasks are killed at 5GB output (CC 2.1.77) — pipe verbose output to files
-- Parallel tool calls fail independently (CC 2.1.161) — a failed Bash no longer cancels siblings in the batch; add explicit per-call error handling instead of relying on cascade-abort
+- Background bash tasks are killed at 5GB output (CC 2.1.77), pipe verbose output to files
+- Parallel tool calls fail independently (CC 2.1.161), a failed Bash no longer cancels siblings in the batch; add explicit per-call error handling instead of relying on cascade-abort
 
 ## Pattern 7: SendMessage Agent Resume (CC 2.1.77)
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
 
-Continue a previously spawned agent using `SendMessage`. CC 2.1.77 auto-resumes stopped agents — no error handling needed.
+Continue a previously spawned agent using `SendMessage`. CC 2.1.77 auto-resumes stopped agents, no error handling needed.
 
 ```python
 # Spawn agent
@@ -187,7 +187,7 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 ## Pattern 8: /loop Skill Chaining (CC 2.1.71)
 
-`/loop` runs a prompt or skill on a recurring interval — session-scoped, 7-day auto-expiry (the task fires one final time, then deletes itself), and unexpired tasks are restored on `claude --resume` / `--continue`. Unlike `CronCreate` (agent-initiated), `/loop` is user-invoked and can chain other skills.
+`/loop` runs a prompt or skill on a recurring interval, session-scoped, 7-day auto-expiry (the task fires one final time, then deletes itself), and unexpired tasks are restored on `claude --resume` / `--continue`. Unlike `CronCreate` (agent-initiated), `/loop` is user-invoked and can chain other skills.
 
 ```text
 # User types these — skills suggest them in "Next Steps"
@@ -205,21 +205,21 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 - Skills suggest `/loop` in "Next Steps" for user-initiated monitoring
 
 **When to suggest /loop in Next Steps:**
-- After creating a PR → `/loop 5m gh pr checks \{pr_number\}`
+- After creating a PR → `/loop 5m gh pr checks {pr_number}`
 - After running tests → `/loop 10m npm test`
-- After deployment → `/loop 1h check health at \{endpoint\}`
-- After verification → `/loop 30m verify \{scope\}`
+- After deployment → `/loop 1h check health at {endpoint}`
+- After verification → `/loop 30m verify {scope}`
 
 **Dynamic /loop (self-paced):** omitting the interval (e.g. `/loop gh pr checks 42`) lets the model pace itself via scheduled wakeups. Rules:
 - Never schedule short-interval polling for harness-tracked background work; completion re-invokes automatically.
 - Always set a long fallback heartbeat, 1200s or more, as the safety net.
 - Pick delays from how fast the watched EXTERNAL state actually changes: a ~8 minute CI run deserves one ~480s check, not eight 60s checks.
 
-> **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd &lt;dir&gt;` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
+> **CC 2.1.169, `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd <dir>` instead of ending the session, the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
 
 ## Pattern 9: Nested Delegation (CC 2.1.172)
 
-Sub-agents can spawn their own sub-agents, up to 3 levels deep by default (CC 2.1.219+; see the depth-budget note below for pinning it explicitly). Agents declaring `Agent(ork:xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager` runs as a live 3-level chain.
+Sub-agents can spawn their own sub-agents, up to 3 levels deep by default (CC 2.1.219+; see the depth-budget note below for pinning it explicitly). Agents declaring `Agent(ork:xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real, e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager` runs as a live 3-level chain.
 
 ```python
 # Parent agent's prompt can delegate a sub-problem to ITS declared specialist:
@@ -228,7 +228,7 @@ Agent(subagent_type="ork:backend-system-architect",
 # backend-system-architect internally calls Agent(ork:database-engineer) — depth 2.
 ```
 
-> **Registry names, advisory scope (#2371, live-verified on CC 2.1.173):** nested spawns must use the namespaced registry type — bare `Agent(database-engineer)` fails at dispatch. And the `Agent(...)` grant is advisory: CC does not block out-of-grant spawns, so the declared list steers the model only through its prompt documentation.
+> **Registry names, advisory scope (#2371, live-verified on CC 2.1.173):** nested spawns must use the namespaced registry type, bare `Agent(database-engineer)` fails at dispatch. And the `Agent(...)` grant is advisory: CC does not block out-of-grant spawns, so the declared list steers the model only through its prompt documentation.
 
 **Nest when** (depth 2-3):
 - A specialist needs its OWN specialist for a bounded sub-problem (schema → index tuning)
@@ -236,19 +236,19 @@ Agent(subagent_type="ork:backend-system-architect",
 - Worktree isolation should scope to the subtree (`isolation: "worktree"` works recursively)
 
 **Flatten when** (parallel dispatch from the main loop):
-- Sub-tasks are independent — parallel fan-out is faster and cheaper than a serial chain
+- Sub-tasks are independent, parallel fan-out is faster and cheaper than a serial chain
 - The main loop needs each raw result anyway (nesting hides intermediates)
-- You're tempted past depth 3 — each level multiplies latency and token cost; CC now defaults to a 3-level cap (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, CC 2.1.219+)
+- You're tempted past depth 3, each level multiplies latency and token cost; CC now defaults to a 3-level cap (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, CC 2.1.219+)
 
-**Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it (see the CC 2.1.219 note below for the mechanical backstop; doctor Check 16 offers the pin, `skills/doctor/references/settings-posture.md`).
+**Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks, respect it (see the CC 2.1.219 note below for the mechanical backstop; doctor Check 16 offers the pin, `skills/doctor/references/settings-posture.md`).
 
 CC 2.1.224 removed the 200-subagent-per-session spawn cap (CHANGELOG verbatim: "Removed the 200-subagent-per-session spawn cap"), so ork budgets, the depth-3 ceiling and the refuter spawn cap, are now the only brake; respect them.
 
-> **CC 2.1.181 — foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past a hard technical ceiling (5 levels, as shipped in 2.1.181), the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection — distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). **CC 2.1.219 went further**, restoring nested spawning's own default to depth 3 (was 1 — 2.1.217 had briefly disabled nesting by default) — matching ork's ≤3 convention exactly rather than merely sitting under a looser ceiling. Pin `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=3` so CC rejects AT the intended budget, not just the older 5-level ceiling; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
+> **CC 2.1.181, foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past a hard technical ceiling (5 levels, as shipped in 2.1.181), the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection, distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). **CC 2.1.219 went further**, restoring nested spawning's own default to depth 3 (was 1, 2.1.217 had briefly disabled nesting by default), matching ork's ≤3 convention exactly rather than merely sitting under a looser ceiling. Pin `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=3` so CC rejects AT the intended budget, not just the older 5-level ceiling; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
 
-> **CC 2.1.203 — subagents less likely to re-delegate their whole task:** upstream tuned subagent behavior so an agent no longer hands its ENTIRE task to another subagent instead of doing the work itself. This reinforces the "each level synthesizes, never forwards" contract below — with accidental full-task handoff suppressed, the remaining depth pressure is the deliberate-nesting cost this budget already governs.
+> **CC 2.1.203, subagents less likely to re-delegate their whole task:** upstream tuned subagent behavior so an agent no longer hands its ENTIRE task to another subagent instead of doing the work itself. This reinforces the "each level synthesizes, never forwards" contract below, with accidental full-task handoff suppressed, the remaining depth pressure is the deliberate-nesting cost this budget already governs.
 
-**Worked example — depth-3 infra chain** (grants live in `src/agents/`):
+**Worked example, depth-3 infra chain** (grants live in `src/agents/`):
 
 ```python
 # Depth 1 — main loop dispatches the architect:
@@ -270,14 +270,14 @@ Agent(subagent_type="ork:deployment-manager",
               rollback sequence if p99 regresses post-cutover.")
 ```
 
-**What flows back up** — each level synthesizes, never forwards raw transcripts:
+**What flows back up**: each level synthesizes, never forwards raw transcripts:
 - deployment-manager → ci-cd-engineer: rollout plan + rollback commands (final text result)
 - ci-cd-engineer → infrastructure-architect: workflow files written, rollout plan folded into the deploy job
-- infrastructure-architect → main loop: ONE report — module paths, pipeline summary, rollout strategy. The main loop never sees depths 2-3 directly.
+- infrastructure-architect → main loop: ONE report, module paths, pipeline summary, rollout strategy. The main loop never sees depths 2-3 directly.
 
-Grant chain: `infrastructure-architect` declares `Agent(ork:ci-cd-engineer)` + `Agent(ork:deployment-manager)`; `ci-cd-engineer` declares `Agent(ork:deployment-manager)`; `deployment-manager` declares no `Agent(...)` grants — the natural leaf, so the chain can't drift past depth 3.
+Grant chain: `infrastructure-architect` declares `Agent(ork:ci-cd-engineer)` + `Agent(ork:deployment-manager)`; `ci-cd-engineer` declares `Agent(ork:deployment-manager)`; `deployment-manager` declares no `Agent(...)` grants, the natural leaf, so the chain can't drift past depth 3.
 
-> **Compatibility:** chains deeper than 2 require CC 2.1.172+. On older CC, nested `Agent(...)` calls fail at dispatch — design chains to degrade (intermediate agent does the work inline) rather than assume the specialist ran.
+> **Compatibility:** chains deeper than 2 require CC 2.1.172+. On older CC, nested `Agent(...)` calls fail at dispatch, design chains to degrade (intermediate agent does the work inline) rather than assume the specialist ran.
 
 ## Pattern 10: Cross-Session Messaging (CC 2.1.224)
 
@@ -314,7 +314,7 @@ SendMessage(to="ci-watcher", message="PR #42: all required checks green, safe to
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -328,14 +328,14 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
 | `dynamic-workflow-patterns.md` | The 6 Dynamic-Workflow patterns → ork map, failure-mode selection, per-agent model tiers, use-directly-vs-template, quarantine pointer |
-| `assertion-grader.md` | Fresh-context grader auditing a `/goal` assertion set on timeout/stall — verdict tighten/loosen/abort + revised line |
+| `assertion-grader.md` | Fresh-context grader auditing a `/goal` assertion set on timeout/stall, verdict tighten/loosen/abort + revised line |
 
 ## Related Skills
 
-- `ork:implement` — Full-power feature implementation (primary consumer)
-- `ork:fix-issue` — Issue debugging and resolution pipeline
-- `ork:verify` — Post-implementation verification
-- `ork:brainstorm` — Design exploration pipeline
+- `ork:implement`: Full-power feature implementation (primary consumer)
+- `ork:fix-issue`: Issue debugging and resolution pipeline
+- `ork:verify`: Post-implementation verification
+- `ork:brainstorm`: Design exploration pipeline
 
 
 ---
@@ -467,7 +467,7 @@ else:
 
 ## Exception: alwaysLoad (CC 2.1.121+)
 
-If the project's `.mcp.json` sets `"alwaysLoad": true` on a server, **skip the probe**. The server is in the tool registry from session start; the probe is wasted work. OrchestKit ships `alwaysLoad: true` for `memory`, `context7`, and `sequential-thinking` (the universally-needed T2 trio). On older CC, `alwaysLoad` is an unknown key and is silently ignored — the on-demand probe path still works as a fallback if the skill keeps it.
+If the project's `.mcp.json` sets `"alwaysLoad": true` on a server, **skip the probe**. The server is in the tool registry from session start; the probe is wasted work. OrchestKit ships `alwaysLoad: true` for `memory`, `context7`, and `sequential-thinking` (the universally-needed T2 trio). On older CC, `alwaysLoad` is an unknown key and is silently ignored, the on-demand probe path still works as a fallback if the skill keeps it.
 
 ```python
 # CC 2.1.121+ with alwaysLoad on the T2 trio: probe-free
@@ -487,8 +487,8 @@ When a skill's typical runtime exceeds 5 minutes, fire a `PushNotification` at c
 
 | Skill runtime | Notify? |
 |---|---|
-| &lt; 2 min | No — user is still at the terminal. |
-| 2–5 min | Optional — only if the skill has parallel agents or external I/O that makes timing unpredictable. |
+| &lt; 2 min | No, user is still at the terminal. |
+| 2-5 min | Optional, only if the skill has parallel agents or external I/O that makes timing unpredictable. |
 | > 5 min | **Yes.** Fire a notification at the final synthesis / report step. |
 
 Apply to: `ork:implement`, `ork:audit-full`, `ork:cover`, `ork:demo-producer`, `ork:verify` (runs on large changes), `ork:brainstorm` (deep 7-phase mode).
@@ -511,11 +511,11 @@ PushNotification(
 return final_report
 ```
 
-The title names the skill; the body summarizes the outcome in one line. Users filter their notification center by title, so keep it stable: `"ork:&lt;skill&gt; complete"` or `"ork:&lt;skill&gt; needs input"`.
+The title names the skill; the body summarizes the outcome in one line. Users filter their notification center by title, so keep it stable: `"ork:<skill> complete"` or `"ork:<skill> needs input"`.
 
 ## Graceful fallback
 
-`PushNotification` requires Remote Control with "Push when Claude decides" enabled. Users without it see **no error** — the call is a silent no-op. No try/except needed. Do not branch on capability detection; the tool handles the absence itself.
+`PushNotification` requires Remote Control with "Push when Claude decides" enabled. Users without it see **no error**, the call is a silent no-op. No try/except needed. Do not branch on capability detection; the tool handles the absence itself.
 
 ```python
 # GOOD: unconditional call; tool is a no-op when RC is disabled
@@ -529,20 +529,20 @@ if has_remote_control():  # this API does not exist
 ## Body content rules
 
 - **Include an actionable outcome**, not just "done". Bad: `"finished"`. Good: `"47 files changed · all tests green · PR #1492 opened"`.
-- **≤ 100 characters** — notification UIs truncate aggressively.
-- **No emojis** — they render inconsistently across devices.
+- **≤ 100 characters**: notification UIs truncate aggressively.
+- **No emojis**: they render inconsistently across devices.
 - **State the next step** when the skill expects one. Example: `"ready for /ork:verify"` or `"3 conflicts need review"`.
 
 ## Why
 
-Users running `/ork:implement` on a medium-sized feature commonly walk away for 20–30 min. A silent completion means either (a) they check back prematurely and see nothing interesting, or (b) they forget entirely. Neither is the point of running the skill.
+Users running `/ork:implement` on a medium-sized feature commonly walk away for 20-30 min. A silent completion means either (a) they check back prematurely and see nothing interesting, or (b) they forget entirely. Neither is the point of running the skill.
 
-Remote Control is opt-in — users who have enabled it have explicitly signaled they want these notifications. Skipping the call for "safety" wastes that signal.
+Remote Control is opt-in, users who have enabled it have explicitly signaled they want these notifications. Skipping the call for "safety" wastes that signal.
 
 ## Related
 
-- `chain-patterns/references/monitor-patterns.md` — streaming progress *during* a long run (complements completion notification).
-- `ork:implement`, `ork:audit-full`, `ork:cover`, `ork:demo-producer` — skills that apply this rule.
+- `chain-patterns/references/monitor-patterns.md`: streaming progress *during* a long run (complements completion notification).
+- `ork:implement`, `ork:audit-full`, `ork:cover`, `ork:demo-producer`, skills that apply this rule.
 
 
 
@@ -554,15 +554,15 @@ Remote Control is opt-in — users who have enabled it have explicitly signaled 
 
 # Assertion Grader Pattern
 
-Fresh-context audit of a `/goal` assertion set after the loop times out, stalls, or succeeds suspiciously fast. The grader judges the **assertions**, not the work: were they too weak (the agent could satisfy them without real success), too strict (unsatisfiable as written), or was the task genuinely blocked? A verifier sub-agent outperforms self-critique because grading happens in an independent context window (Lance Martin, 2026-06-09) — applied here to the `until` clause itself.
+Fresh-context audit of a `/goal` assertion set after the loop times out, stalls, or succeeds suspiciously fast. The grader judges the **assertions**, not the work: were they too weak (the agent could satisfy them without real success), too strict (unsatisfiable as written), or was the task genuinely blocked? A verifier sub-agent outperforms self-critique because grading happens in an independent context window (Lance Martin, 2026-06-09), applied here to the `until` clause itself.
 
 ## When to Fire
 
 | Trigger | Signal | Why grade the assertions |
 |---|---|---|
-| Timeout | the `, or stop after N turns` bound was reached | Assertions may be unsatisfiable — tokens are burning on an impossible bound |
+| Timeout | the `, or stop after N turns` bound was reached | Assertions may be unsatisfiable, tokens are burning on an impossible bound |
 | Stall | `no_progress_for_K_turns` tripped | Loop plateaued; assertions may not discriminate real progress |
-| Suspicious quick success | All assertions green in 1–2 turns on a non-trivial spec | Assertions probably too weak — the letter was satisfied, not the intent |
+| Suspicious quick success | All assertions green in 1-2 turns on a non-trivial spec | Assertions probably too weak, the letter was satisfied, not the intent |
 
 Do NOT fire on a clean, plausible success or a user-initiated abort.
 
@@ -601,17 +601,17 @@ OUTPUT (JSON only)
 
 ## Independence Requirements
 
-- **Fresh context.** The grader must not share the producer loop's context window — bare-eval (`claude -p --bare` with `CLAUDE_CODE_FORK_SUBAGENT=1`) or a fresh `Agent` spawn with no conversation state.
-- **No producer prose.** Never paste the looping agent's own claims or success summaries into the grader prompt — only the `/goal` line, the rubric, a mechanical turn summary, and raw evidence. The producer's narrative is exactly the bias the grader exists to bypass.
+- **Fresh context.** The grader must not share the producer loop's context window, bare-eval (`claude -p --bare` with `CLAUDE_CODE_FORK_SUBAGENT=1`) or a fresh `Agent` spawn with no conversation state.
+- **No producer prose.** Never paste the looping agent's own claims or success summaries into the grader prompt, only the `/goal` line, the rubric, a mechanical turn summary, and raw evidence. The producer's narrative is exactly the bias the grader exists to bypass.
 - **Evidence over narrative.** Regenerate repo-state evidence at grading time (re-run the assertion commands), do not quote results from the loop transcript.
-- **Rubric as user signal.** If `.claude/rubric.json` exists, the user edited (or accepted) it before the run — treat its weights and `min_pass` thresholds as the user's intent, senior to the literal assertion text.
+- **Rubric as user signal.** If `.claude/rubric.json` exists, the user edited (or accepted) it before the run, treat its weights and `min_pass` thresholds as the user's intent, senior to the literal assertion text.
 
 ## Budget Cap
 
 One grader call per timeout/stall event. The grader itself never loops:
 
 - Grader verdict → at most ONE `/goal` re-run with the revised line.
-- If the re-run also times out, escalate to the user — never grade again automatically.
+- If the re-run also times out, escalate to the user, never grade again automatically.
 - Hard ceiling: 2 grader calls per `/goal` task lifetime (initial + post-revision), then mandatory human review.
 - The grader stays cheap: it reads evidence and judges. It never edits files, never runs the fix itself.
 
@@ -636,7 +636,7 @@ Grader output:
 }
 ```
 
-Counter-case (same line, different evidence): `src/x.ts` exists but contains only `export \{\}`, and `tests_pass` is green because no test imports it. Verdict is `tighten` — the revised line adds substance checks so an empty stub can no longer satisfy the set:
+Counter-case (same line, different evidence): `src/x.ts` exists but contains only `export {}`, and `tests_pass` is green because no test imports it. Verdict is `tighten`, the revised line adds substance checks so an empty stub can no longer satisfy the set:
 
 ```
 /goal until grep -q "export function transform" src/x.ts AND npm test -- tests/x.spec.ts passes AND lint_clean, or stop after 15 turns
@@ -731,7 +731,7 @@ When resuming a long chain after an idle period, CC 2.1.108 provides automatic s
 - **`/recap`**: Restores conversational context (what was discussed, decided, attempted)
 - **`state.json`**: Restores pipeline progress (which phases completed, what data was produced)
 
-Both should be consulted on resume. The PostCompact hook already re-injects branch and task state — `/recap` adds the conversational layer on top.
+Both should be consulted on resume. The PostCompact hook already re-injects branch and task state, `/recap` adds the conversational layer on top.
 
 Session recap is enabled by default since CC 2.1.110 (even with telemetry disabled). Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`.
 
@@ -745,7 +745,7 @@ Session recap is enabled by default since CC 2.1.110 (even with telemetry disabl
 
 ## Plan Mode Preserved Across `--resume` (CC 2.1.132+)
 
-Plan mode preserved across `--resume` (CC 2.1.132+) — `--permission-mode plan` is honored when resuming a plan-mode session, and `ExitPlanMode` re-applies plan mode for the rest of the session. Pre-2.1.132 the flag was silently dropped, so any chain using `--resume` to re-enter plan mode could leak past plan-mode constraints. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
+Plan mode preserved across `--resume` (CC 2.1.132+), `--permission-mode plan` is honored when resuming a plan-mode session, and `ExitPlanMode` re-applies plan mode for the rest of the session. Pre-2.1.132 the flag was silently dropped, so any chain using `--resume` to re-enter plan mode could leak past plan-mode constraints. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
 
 
 ### Cron Monitoring
@@ -795,7 +795,7 @@ CronCreate(
 
 ## Best Practices
 
-- Always include a `CronDelete` condition — don't leave crons running forever
+- Always include a `CronDelete` condition, don't leave crons running forever
 - Use descriptive prompts so the cron agent knows what to check
 - Prefer `gh` CLI over `curl` for GitHub checks (auth handled)
 - Schedule frequency: CI checks every 5min, health checks every 6h, regression daily
@@ -806,14 +806,14 @@ CronCreate(
 # Dynamic Workflow Patterns
 
 Reference for CC Dynamic Workflows (the `Workflow` tool / `ultracode`, shipped 2026-05-28).
-A workflow is a harness Claude writes on the fly — a JS file that spawns and coordinates
+A workflow is a harness Claude writes on the fly, a JS file that spawns and coordinates
 subagents with per-agent isolation, model choice, and isolation level. This maps the **6
 patterns** to ork's own flows so the right shape is reached for deliberately, picks the
 right model tier per agent (#2233), and resolves the "use directly vs ship-as-template"
 question.
 
 > **Not a wrapper.** Per [[feedback_workflows_use_dont_wrap]], ork does NOT wrap workflows
-> into skills as a forced fit. This is a *reference* — USE the `Workflow` tool directly for
+> into skills as a forced fit. This is a *reference*, USE the `Workflow` tool directly for
 > ork's bounded audits/sweeps. Grounded in two workflows run on 2026-06-05: the
 > drift-register re-audit (caught a 60%-wrong audit) and the adversarial-verify design
 > (found all 3 designs unsound on first pass).
@@ -821,7 +821,7 @@ question.
 ## Parse-safety: write it as plain JS (the 3 killers)
 
 The script is a **plain-JS string**, and agent prompts are full of the exact characters JS uses
-to delimit/interpolate strings — so prompt content fights the syntax. Almost every "Invalid
+to delimit/interpolate strings, so prompt content fights the syntax. Almost every "Invalid
 workflow script / Unexpected token (L:C)" is one of three collisions; the `(line:col)` in the
 error points at the exact character.
 
@@ -840,8 +840,8 @@ error points at the exact character.
    OK    const xs = []                              <- no type annotations, ever
 ```
 
-**The rule that kills all three:** inside any `agent()` / `log()` string — no backticks, no
-`$\{...\}`, no TS syntax. For multi-line prompts, concatenate single-quoted lines instead of
+**The rule that kills all three:** inside any `agent()` / `log()` string, no backticks, no
+`${...}`, no TS syntax. For multi-line prompts, concatenate single-quoted lines instead of
 reaching for a backtick template:
 
 ```js
@@ -849,12 +849,12 @@ agent(['Do X.', 'Then Y.', 'Return JSON only.'].join('\n'))   // backtick-free, 
 ```
 
 **When it keeps parse-failing:** stop re-sending the whole 180-line blob and guessing. Every
-`Workflow` run persists its script to a file — `Write`/`Edit` that `.js` (where a stray backtick
-is visible) and re-run with `Workflow(\{scriptPath\})`. Two more parse traps: `meta` must be a
+`Workflow` run persists its script to a file, `Write`/`Edit` that `.js` (where a stray backtick
+is visible) and re-run with `Workflow({scriptPath})`. Two more parse traps: `meta` must be a
 pure literal (no vars/calls/spreads), and `Date.now()` / `Math.random()` / argless `new Date()`
-throw at runtime — pass timestamps in via `args`.
+throw at runtime, pass timestamps in via `args`.
 
-> **Fixed in CC 2.1.202.** Two long-standing traps here got fixed: (1) workflow scripts with unicode quote escapes (smart/curly quotes) are no longer corrupted *before* parsing, so a smart quote pasted into a prompt string no longer detonates the parse silently; and (2) parse errors now point at the offending line instead of always blaming TypeScript. Practically: the `(line:col)` is now trustworthy — read that exact line — and a genuine "TypeScript" mention in the error is now a real signal (trap #3 above), not the default scapegoat.
+> **Fixed in CC 2.1.202.** Two long-standing traps here got fixed: (1) workflow scripts with unicode quote escapes (smart/curly quotes) are no longer corrupted *before* parsing, so a smart quote pasted into a prompt string no longer detonates the parse silently; and (2) parse errors now point at the offending line instead of always blaming TypeScript. Practically: the `(line:col)` is now trustworthy, read that exact line, and a genuine "TypeScript" mention in the error is now a real signal (trap #3 above), not the default scapegoat.
 
 ## Fan-out cost and concurrency (CC >= 2.1.229)
 
@@ -877,7 +877,7 @@ the script:
 
 ## The 6 patterns → ork map
 
-> These six are **ork's own taxonomy** for naming multi-agent shapes — not a Claude Code
+> These six are **ork's own taxonomy** for naming multi-agent shapes, not a Claude Code
 > standard. CC documents the `Workflow` tool's *mechanics* (`agent()`/`parallel()`/`pipeline()`,
 > `opts.model`, isolation levels); the pattern **names and the selection rule** below are ork
 > conventions layered on top.
@@ -888,7 +888,7 @@ the script:
 | **Fan-out-synthesize** | split → parallel agent per piece → merge (barrier) | `explore`; `audit-full` **scale tier** (committed: `audit-full/workflows/audit-full-mapreduce.js`); the drift re-audit |
 | **Adversarial verification** | a separate, blind agent refutes each finding | `assess` Ph 2.5, `review-pr` Ph 4.5, `audit-full` STEP 3.5; `shared/rules/adversarial-refutation.md` |
 | **Generate-and-filter** | generate N ideas → filter by rubric/verify → dedup | `brainstorm` (divergent → keep/discard) |
-| **Tournament** | pairwise comparison beats absolute scoring | *gap* — `prioritization`/`competitive-analysis` use absolute scores |
+| **Tournament** | pairwise comparison beats absolute scoring | *gap*, `prioritization`/`competitive-analysis` use absolute scores |
 | **Loop-until-done** | spawn until a stop condition (K dry rounds) | `cover` (bounded heal); `ci-sentinel` could loop-until-dry |
 
 ## Who holds the plan
@@ -915,10 +915,10 @@ Pick the pattern that **structurally prevents** the failure your task is hitting
 
 | Failure mode (single-context) | Pattern that fixes it |
 |-------------------------------|------------------------|
-| **Goal drift** — loses fidelity to the objective over many turns | Fan-out (each agent one focused goal) |
-| **Self-preferential bias** — Claude favors its own work when judging it | Adversarial verification (blind refuter) |
-| **Agentic laziness** — declares done after partial progress | Loop-until-done + `/goal` hard completion |
-| **Hard-to-score** — taste/ranking quality degrades at scale | Tournament (pairwise) |
+| **Goal drift**, loses fidelity to the objective over many turns | Fan-out (each agent one focused goal) |
+| **Self-preferential bias**, Claude favors its own work when judging it | Adversarial verification (blind refuter) |
+| **Agentic laziness**, declares done after partial progress | Loop-until-done + `/goal` hard completion |
+| **Hard-to-score**, taste/ranking quality degrades at scale | Tournament (pairwise) |
 
 ## Per-agent model tiers (#2233)
 
@@ -932,22 +932,22 @@ when an agent's job is genuinely cheap or expensive:
 | Everything in between / when unsure | inherit (omit `model`) |
 
 In `agent()`, set `opts.model`. Example from the drift re-audit (improved): the 5 structural
-refuters → `haiku`, the synthesis → `opus`. Don't over-optimize — a wrong-tier cheap agent
+refuters → `haiku`, the synthesis → `opus`. Don't over-optimize, a wrong-tier cheap agent
 that misses a structural dependency costs more than the tokens it saved (the version-matrix
 verdict needed a careful read, not a cheap grep).
 
-## Per-agent types (`agentType`) — the DEFAULT, not an option
+## Per-agent types (`agentType`): the DEFAULT, not an option
 
 Same logic for WHO runs the stage, but with the polarity flipped: **every `agent()` stage
 names a specialist via `opts.agentType` by default.** A stage stays generic only when the
-work is genuinely cross-domain/glue — and then the script carries a one-line comment saying
+work is genuinely cross-domain/glue, and then the script carries a one-line comment saying
 why, so the omission reads as a decision rather than a default.
 
 The measurement that forced the flip: under the old "set it when the owner is OBVIOUS"
 framing, the generic workflow-subagent bucket grew **394 → 2,612 spawns/30d (6.6×, 41% of
 ALL spawns)** and specialist share of the addressable set fell **44.2% → 25.6%**
 (2026-06-23 baseline → 2026-08-17). Descriptions are not the lever (an A/B scored 18/18
-both ways, Δ0) — the authoring default is.
+both ways, Δ0), the authoring default is.
 
 | Stage shape | agentType |
 |-------------|-----------|
@@ -957,9 +957,9 @@ both ways, Δ0) — the authoring default is.
 | Web/competitive research fan-out | `ork:web-research-analyst` |
 | Backend/API/schema design | `ork:backend-system-architect` |
 | Frontend component work | `ork:frontend-ui-developer` |
-| Genuinely cross-domain, mixed, or glue stages | omit — with a comment saying why |
+| Genuinely cross-domain, mixed, or glue stages | omit, with a comment saying why |
 
-Use the namespaced registry name (`ork:x`) — bare names fail to resolve at dispatch (#2371).
+Use the namespaced registry name (`ork:x`), bare names fail to resolve at dispatch (#2371).
 The `workflow-agenttype-advisor` hook nudges any inline script whose stages are not fully
 typed (partial typing no longer mutes it), and flags typed names that do not resolve.
 
@@ -983,25 +983,25 @@ Decision test: would a regular Claude Code session finish this in five minutes? 
 need a workflow at all (the article's own first warning). Reach for one only for the long,
 parallel, structured, or adversarial classes above.
 
-**Committed templates in ork** (run via `Workflow(\{scriptPath: "$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/workflows/&lt;file&gt;"\})`):
+**Committed templates in ork** (run via `Workflow({scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/workflows/<file>"})`):
 
 | Template | Skill | Shape |
 |----------|-------|-------|
 | `workflows/skill-fitness.js` | `bare-eval` | fan-out one isolated agent per skill → ranked fitness scorecard |
 | `workflows/audit-full-mapreduce.js` | `audit-full` | shard → per-shard audit → cross-shard synthesis → adversarial refute (the scale tier for repos that exceed 1M context) |
 
-Both are TEMPLATES — pass `args` (skills / shards) per run; don't treat them as fixed scripts.
+Both are TEMPLATES, pass `args` (skills / shards) per run; don't treat them as fixed scripts.
 
-### Plugin-shipped workflows MUST be `.js` — `.mjs` is silently dropped
+### Plugin-shipped workflows MUST be `.js`: `.mjs` is silently dropped
 
 ork ships these three through the plugin `workflows/` directory, so they also resolve by name as
-`/ork:skill-fitness`, `/ork:audit-full-mapreduce`, `/ork:heal-loop` (namespaced `$\{plugin\}:$\{meta.name\}`).
+`/ork:skill-fitness`, `/ork:audit-full-mapreduce`, `/ork:heal-loop` (namespaced `${plugin}:${meta.name}`).
 That only works because the files end in `.js`.
 
 The plugin workflow scanner filters on `name.endsWith(".js")` and returns `null` for anything else
 with **no warning at all**. A `.mjs` file is dropped before its `meta` is ever parsed, so the
-workflow simply does not exist: `Workflow(\{name\})` answers `not found`, and nothing anywhere says
-why. Verified against the installed CC binary and reproduced live — renaming one shipped `.mjs` to
+workflow simply does not exist: `Workflow({name})` answers `not found`, and nothing anywhere says
+why. Verified against the installed CC binary and reproduced live, renaming one shipped `.mjs` to
 `.js` and reloading made it resolve immediately.
 
 The sibling user/project loader treats the same mistake very differently: it counts
@@ -1011,18 +1011,18 @@ extension is a known authoring trap upstream; the plugin path just doesn't tell 
 Two consequences worth remembering:
 - Name a new plugin workflow `.js`, never `.mjs`, whatever your editor suggests.
 - Absence of an error is not evidence of loading. Confirm a plugin workflow registered by
-  calling it by name, not by seeing the file in `plugins/&lt;name&gt;/workflows/`.
+  calling it by name, not by seeing the file in `plugins/<name>/workflows/`.
 
 ## Untrusted input → quarantine
 
 Any workflow/skill that reads untrusted content (GitHub issue bodies, PR descriptions, CI
 logs, scraped pages) must **quarantine** it: read-only reader agents with no high-privilege
-tools extract structured facts; a separate actor agent — never exposed to the raw text —
+tools extract structured facts; a separate actor agent, never exposed to the raw text,
 acts. See `shared/rules/untrusted-input-quarantine.md` (#2232).
 
 ## Cost discipline
 
-Workflows often use 5–10× the tokens. Set an explicit budget in the prompt ("use 10k
+Workflows often use 5-10× the tokens. Set an explicit budget in the prompt ("use 10k
 tokens"); pair loop patterns with `/goal` for hard completion; keep the bracket/stop-condition
 in deterministic loop code, not in an agent's context.
 
@@ -1036,10 +1036,10 @@ Append-only TSV log for tracking try/measure/keep-or-discard cycles across sessi
 ## When to Use
 
 Any skill that produces scored/rated output and may run multiple times on similar topics:
-- `brainstorm` — log evaluated ideas with composite scores and keep/discard status
-- `verify` / `cover` — log optimization attempts with metric deltas
-- `implement` — log iterative optimization attempts (performance, bundle size, prompts)
-- `fix-issue` — log attempted fixes with pass/fail
+- `brainstorm`: log evaluated ideas with composite scores and keep/discard status
+- `verify` / `cover`, log optimization attempts with metric deltas
+- `implement`: log iterative optimization attempts (performance, bundle size, prompts)
+- `fix-issue`: log attempted fixes with pass/fail
 
 ## File Location
 
@@ -1158,7 +1158,7 @@ Journals are local working memory, not source code. They survive across sessions
 
 ### Fork Pattern
 
-# Fork Pattern — Cache-Sharing Parallel Subagents
+# Fork Pattern: Cache-Sharing Parallel Subagents
 
 CC 2.1.89 automatically forks subagents that meet certain criteria, sharing the parent's cached API prefix. This eliminates cold-start re-tokenization and reduces API cost by 30-50% for multi-agent skills.
 
@@ -1197,7 +1197,7 @@ Agent(
 
 **Rules:**
 - Start with `Scope:` header (signals fork-friendly intent)
-- Keep prompt under 500 words — parent context is inherited
+- Keep prompt under 500 words, parent context is inherited
 - Do NOT repeat system instructions (fork inherits them)
 - Do NOT set `model=` (breaks cache prefix sharing)
 - Do NOT set `isolation: "worktree"` (breaks fork mode)
@@ -1267,7 +1267,7 @@ it (#3321 claim 3). Every subagent gets the same staging path.
 
 `subagent-quality.jsonl` carries no fork or cache columns. It used to log
 `is_fork` and `cache_hit_pct`, computed from three SubagentStop payload fields
-CC never sends — verified against the 2.1.228 payload builder and measured
+CC never sends, verified against the 2.1.228 payload builder and measured
 across 11,020 real rows (`cache_hit_pct` present in 0, `is_fork:true` in 0).
 Both columns were removed in #3321 rather than left reporting a constant.
 
@@ -1367,14 +1367,14 @@ Probe MCP server availability before using any MCP tool. This prevents hard cras
 
 ## Skip the probe when alwaysLoad is set (CC 2.1.121+)
 
-`@2.1.121` introduced `"alwaysLoad": true` in `.mcp.json` — flagged servers stay in the tool registry from session start, so the probe is redundant. OrchestKit's project-level `.mcp.json` sets `alwaysLoad: true` on `memory`, `context7`, and `sequential-thinking` (the T2 trio). On those servers, **skip the probe and call the MCP tool directly** — the fallback for downgraded users is already encoded in the schema (CC &lt; 2.1.121 silently ignores unknown keys, so the server still loads but on-demand; the existing probe path remains valid).
+`@2.1.121` introduced `"alwaysLoad": true` in `.mcp.json`, flagged servers stay in the tool registry from session start, so the probe is redundant. OrchestKit's project-level `.mcp.json` sets `alwaysLoad: true` on `memory`, `context7`, and `sequential-thinking` (the T2 trio). On those servers, **skip the probe and call the MCP tool directly**, the fallback for downgraded users is already encoded in the schema (CC &lt; 2.1.121 silently ignores unknown keys, so the server still loads but on-demand; the existing probe path remains valid).
 
 ```python
 # CC 2.1.121+ with alwaysLoad: skip probe entirely
 mcp__memory__search_nodes(query="past auth fixes")  # always available
 ```
 
-If a downstream skill is unsure whether the user adopted `alwaysLoad`, it MAY still probe — the cost is one ToolSearch call and the result is the same. The recommendation: project skills assume `alwaysLoad` for the T2 trio; user-facing one-off scripts probe defensively.
+If a downstream skill is unsure whether the user adopted `alwaysLoad`, it MAY still probe, the cost is one ToolSearch call and the result is the same. The recommendation: project skills assume `alwaysLoad` for the T2 trio; user-facing one-off scripts probe defensively.
 
 ## Probe Pattern (CC &lt; 2.1.121, or non-alwaysLoad servers)
 
@@ -1431,15 +1431,15 @@ else:
 
 ## Important Notes
 
-- ToolSearch is fast (~50ms) — probe overhead is negligible
+- ToolSearch is fast (~50ms), probe overhead is negligible
 - Probe ONCE at skill start, not before every MCP call
 - Store in `.claude/chain/capabilities.json` so all phases can read it
-- If a probe fails (tool not found), treat as `false` — never error
+- If a probe fails (tool not found), treat as `false`, never error
 
 
 ### Mcp Tool Hooks
 
-# Hooks Invoking MCP Tools — `type: "mcp_tool"`
+# Hooks Invoking MCP Tools: `type: "mcp_tool"`
 
 CC 2.1.118 added a new hook dispatch type that lets a registered hook invoke an MCP tool directly, without spawning a subagent. Unlocks fast access to MCP context (memory, sequential-thinking) from inside hook handlers.
 
@@ -1451,8 +1451,8 @@ Before 2.1.118, a hook that needed MCP context had two options, both bad:
 
 | Old approach | Cost | Failure mode |
 |---|---|---|
-| Spawn a subagent via `Agent()` from inside the hook | 30–60s + ~150K tokens | Hook timeouts, context budget blown |
-| Shell out to `npx -y &lt;mcp-server&gt;` and parse stdout | 2–5s + brittle parser | npm cache misses, MCP version drift, ad-hoc auth |
+| Spawn a subagent via `Agent()` from inside the hook | 30-60s + ~150K tokens | Hook timeouts, context budget blown |
+| Shell out to `npx -y <mcp-server>` and parse stdout | 2-5s + brittle parser | npm cache misses, MCP version drift, ad-hoc auth |
 
 Both forced hooks into either expensive (subagent) or fragile (shell) territory for what should be a simple tool call.
 
@@ -1481,9 +1481,9 @@ In `hooks.json`, register a hook that invokes an MCP tool:
 2. Dispatch the tool call with `input` (templated against the hook's input)
 3. Return the MCP response back to the hook context (via `outputMapping`)
 
-No subprocess spawn, no shell parsing — same dispatch path the model uses when invoking the tool itself.
+No subprocess spawn, no shell parsing, same dispatch path the model uses when invoking the tool itself.
 
-## Pattern 1 — Inject Memory Context Before Edit
+## Pattern 1: Inject Memory Context Before Edit
 
 ```json
 {
@@ -1501,7 +1501,7 @@ No subprocess spawn, no shell parsing — same dispatch path the model uses when
 
 Use case: surface prior decisions about the file being edited.
 
-## Pattern 2 — Sequential Thinking on Long Tasks
+## Pattern 2: Sequential Thinking on Long Tasks
 
 ```json
 {
@@ -1525,49 +1525,49 @@ Use case: kick off a structured plan for any task description over 200 chars.
 | Situation | Use instead |
 |---|---|
 | MCP server is `disabled: true` in `.mcp.json` | Skip the hook (it'll fail at dispatch) |
-| You need to gate on the MCP response | Subagent — `mcp_tool` doesn't support conditional logic in-place |
-| The hook needs MCP output for >1 downstream MCP call | Subagent — chained MCP calls are expensive in this dispatch type |
+| You need to gate on the MCP response | Subagent, `mcp_tool` doesn't support conditional logic in-place |
+| The hook needs MCP output for >1 downstream MCP call | Subagent, chained MCP calls are expensive in this dispatch type |
 | MCP server is HIGH-tier (`@21st-dev/magic` pre-1.0) | Pin first (see `src/skills/mcp-patterns/references/mcp-version-matrix.md`) |
 
 ## Performance Envelope
 
 | Path | Cold | Warm | Cost (tokens) |
 |---|---|---|---|
-| Subagent spawn | 30–60s | 30–60s | ~150K |
-| Shell `npx -y` | 2–5s | 0.3–1s | ~0 |
-| `type: "mcp_tool"` | 0.1–0.3s | 0.05–0.1s | ~0 (within MCP server limits) |
+| Subagent spawn | 30-60s | 30-60s | ~150K |
+| Shell `npx -y` | 2-5s | 0.3-1s | ~0 |
+| `type: "mcp_tool"` | 0.1-0.3s | 0.05-0.1s | ~0 (within MCP server limits) |
 
-The new type is functionally a free dispatch — same overhead as the model invoking the tool itself.
+The new type is functionally a free dispatch, same overhead as the model invoking the tool itself.
 
 ## Tier Compatibility
 
-The new type is enforced at hook registration time (CC ≥ 2.1.118). For older CC versions, hook registration is rejected with `unsupported hook type: "mcp_tool"`. OrchestKit floors at 2.1.118 as of 7.70.0 — see `src/hooks/src/lib/cc-version-matrix.ts`.
+The new type is enforced at hook registration time (CC ≥ 2.1.118). For older CC versions, hook registration is rejected with `unsupported hook type: "mcp_tool"`. OrchestKit floors at 2.1.118 as of 7.70.0, see `src/hooks/src/lib/cc-version-matrix.ts`.
 
 ## Related
 
-- `chain-patterns/references/monitor-patterns.md` — Monitor tool for streaming process output
-- `src/skills/mcp-patterns/references/mcp-version-matrix.md` — Tier classification for `.mcp.json` entries
-- `src/skills/doctor/references/mcp-pinning-check.md` — Doctor warn on HIGH-tier `@latest`
+- `chain-patterns/references/monitor-patterns.md`: Monitor tool for streaming process output
+- `src/skills/mcp-patterns/references/mcp-version-matrix.md`: Tier classification for `.mcp.json` entries
+- `src/skills/doctor/references/mcp-pinning-check.md`: Doctor warn on HIGH-tier `@latest`
 
 
 ### Monitor Patterns
 
 # Monitor Tool Patterns
 
-`Monitor` (CC 2.1.98) streams each stdout line from a backgrounded process as a notification. Use it anywhere a workflow would otherwise poll output files or block on completion — tests, builds, long agents, agent-browser sessions.
+`Monitor` (CC 2.1.98) streams each stdout line from a backgrounded process as a notification. Use it anywhere a workflow would otherwise poll output files or block on completion, tests, builds, long agents, agent-browser sessions.
 
 ## When to use Monitor
 
 | Situation | Use |
 |---|---|
-| Background build/test/long script | `Monitor` — stream progress live |
+| Background build/test/long script | `Monitor`, stream progress live |
 | Finished task, need its final output | `Read` the task's output file (CC 2.1.277 removed `TaskOutput`; on older versions `TaskOutput(task_id)`, no block=true) |
 | Gate entry on matching stdout line | `Monitor` + `until-condition` loop |
-| Very short command (&lt;5s) | `Bash(command="...")` foreground — not worth the overhead |
+| Very short command (&lt;5s) | `Bash(command="...")` foreground, not worth the overhead |
 
 Monitor is NOT a replacement for the final output read on finished tasks. They answer different questions: *"what is this process doing right now?"* vs *"what did that task produce?"*. On CC 2.1.277+ the final read is `Read` on the task's output file; `TaskOutput` was removed (it had been deprecated since 2.1.83).
 
-## Pattern 1 — Streaming test execution
+## Pattern 1: Streaming test execution
 
 ```python
 # Start the test suite in the background
@@ -1581,7 +1581,7 @@ Monitor(pid=test_task_id)
 
 Applies to: `ork:cover`, `ork:verify`, any skill that runs a test suite longer than ~10 seconds.
 
-## Pattern 2 — Streaming agent progress
+## Pattern 2: Streaming agent progress
 
 ```python
 # Spawn a background agent
@@ -1598,7 +1598,7 @@ Monitor(pid=agent_task_id)
 
 Applies to: `ork:implement`, `ork:cover`, any skill that spawns long-running background agents.
 
-## Pattern 3 — Until-condition gate
+## Pattern 3: Until-condition gate
 
 ```python
 # Start a dev server
@@ -1610,9 +1610,9 @@ Monitor(pid=dev_server_id)
 
 Applies to: `ork:expect` (agent-browser readiness), preview servers, long initialization.
 
-## Pattern 4 — Partial-result salvage
+## Pattern 4: Partial-result salvage
 
-Background agents can return `[PARTIAL RESULT]` when killed by context limit or timeout. With `Monitor` in place, the parent has already seen the partial stream — no need to re-spawn:
+Background agents can return `[PARTIAL RESULT]` when killed by context limit or timeout. With `Monitor` in place, the parent has already seen the partial stream, no need to re-spawn:
 
 ```python
 # After Agent completes (partial or whole):
@@ -1658,14 +1658,14 @@ Foreground `Bash` is simpler and faster for short commands.
 
 ## Related
 
-- `chain-patterns/rules/push-notification-on-completion.md` — notify at completion (complements streaming during run).
-- `chain-patterns/references/checkpoint-resume.md` — state.json discipline for long streaming runs.
-- `ork:implement`, `ork:cover`, `ork:verify`, `ork:expect` — skills that apply these patterns.
+- `chain-patterns/rules/push-notification-on-completion.md`: notify at completion (complements streaming during run).
+- `chain-patterns/references/checkpoint-resume.md`: state.json discipline for long streaming runs.
+- `ork:implement`, `ork:cover`, `ork:verify`, `ork:expect`, skills that apply these patterns.
 
 
 ### Plugin Tag
 
-# `claude plugin tag` — Plugin Release Tagging
+# `claude plugin tag`: Plugin Release Tagging
 
 CC 2.1.118 added the `claude plugin tag` CLI command for tagging plugin releases with version validation. OrchestKit's release flow adopts this in M122 to catch manifest-vs-tag drift before users see it.
 
@@ -1673,7 +1673,7 @@ CC 2.1.118 added the `claude plugin tag` CLI command for tagging plugin releases
 
 ## What It Does
 
-`claude plugin tag &lt;version&gt;` runs validation across the plugin manifest hierarchy:
+`claude plugin tag <version>` runs validation across the plugin manifest hierarchy:
 
 | Check | Source of truth | Failure mode |
 |---|---|---|
@@ -1684,13 +1684,13 @@ CC 2.1.118 added the `claude plugin tag` CLI command for tagging plugin releases
 | No uncommitted changes in plugins/ | working tree | Tag rejected |
 | Plugin can be loaded | `claude plugin validate` (CC ≥ 2.1.77) | Tag rejected |
 
-If all pass, an annotated git tag `v&lt;version&gt;` is created locally; pushing it triggers downstream release automation (GitHub Release, NotebookLM sync, etc.).
+If all pass, an annotated git tag `v<version>` is created locally; pushing it triggers downstream release automation (GitHub Release, NotebookLM sync, etc.).
 
 ## OrchestKit Adoption
 
 ### release-please integration
 
-`.github/workflows/release-please.yml` runs `claude plugin tag` after release-please opens its release PR — it validates the staged version bump *before* the PR is approved, catching drift early.
+`.github/workflows/release-please.yml` runs `claude plugin tag` after release-please opens its release PR, it validates the staged version bump *before* the PR is approved, catching drift early.
 
 ```yaml
 - name: Validate plugin tag
@@ -1725,7 +1725,7 @@ $ claude plugin tag 7.70.0
   fix:      stale plugins/ — run `npm run build` and re-stage
 ```
 
-Without this check, users would have installed `ork@7.70.0` from the marketplace and gotten a 7.69.0 manifest — confusing and hard to diagnose.
+Without this check, users would have installed `ork@7.70.0` from the marketplace and gotten a 7.69.0 manifest, confusing and hard to diagnose.
 
 ## Failure Modes Pre-2.1.118
 
@@ -1756,9 +1756,9 @@ git add . && git commit -m "chore: release X.Y.Z"
 
 ## Related
 
-- `.github/workflows/release-please.yml` — release automation
-- `.release-please-config.json` — extra-files configuration (5 file paths kept in sync)
-- `src/skills/release-management/SKILL.md` — release flow ownership
+- `.github/workflows/release-please.yml`: release automation
+- `.release-please-config.json`: extra-files configuration (5 file paths kept in sync)
+- `src/skills/release-management/SKILL.md`: release flow ownership
 
 
 ### Pr From Platform
@@ -1773,19 +1773,19 @@ CC 2.1.119 extends `--from-pr` to accept GitLab MR, Bitbucket PR, and GitHub Ent
 
 | Host family | URL pattern | Detection regex |
 |---|---|---|
-| github.com (public) | `https://github.com/\{owner\}/\{repo\}/pull/\{n\}` | `^https://github\.com/` |
-| GitHub Enterprise | `https://\{host\}/\{owner\}/\{repo\}/pull/\{n\}` (host suffix `.github.&lt;corp&gt;`) | `\.github\.[a-z]+/` |
-| GitLab.com | `https://gitlab.com/\{owner\}/\{repo\}/-/merge_requests/\{n\}` | `^https://gitlab\.com/` |
-| Self-hosted GitLab | `https://gitlab.\{corp\}/\{group\}/\{repo\}/-/merge_requests/\{n\}` | `^https://gitlab\.` |
-| Bitbucket Cloud | `https://bitbucket.org/\{owner\}/\{repo\}/pull-requests/\{n\}` | `^https://bitbucket\.org/` |
+| github.com (public) | `https://github.com/{owner}/{repo}/pull/{n}` | `^https://github\.com/` |
+| GitHub Enterprise | `https://{host}/{owner}/{repo}/pull/{n}` (host suffix `.github.<corp>`) | `\.github\.[a-z]+/` |
+| GitLab.com | `https://gitlab.com/{owner}/{repo}/-/merge_requests/{n}` | `^https://gitlab\.com/` |
+| Self-hosted GitLab | `https://gitlab.{corp}/{group}/{repo}/-/merge_requests/{n}` | `^https://gitlab\.` |
+| Bitbucket Cloud | `https://bitbucket.org/{owner}/{repo}/pull-requests/{n}` | `^https://bitbucket\.org/` |
 
 ## Skill Adoption
 
 Skills that previously assumed `github.com`:
 
-- `src/skills/review-pr/SKILL.md` — review existing PR (any host)
-- `src/skills/create-pr/SKILL.md` — push branch + open PR (host-aware)
-- `src/skills/fix-issue/SKILL.md` — branch from issue/MR (host-aware)
+- `src/skills/review-pr/SKILL.md`: review existing PR (any host)
+- `src/skills/create-pr/SKILL.md`: push branch + open PR (host-aware)
+- `src/skills/fix-issue/SKILL.md`: branch from issue/MR (host-aware)
 
 Each skill should:
 1. Parse the URL with the host-detector helper (`src/hooks/src/lib/pr-host-parser.ts`).
@@ -1793,7 +1793,7 @@ Each skill should:
    - GitHub: `gh pr view/edit/checks` (existing path)
    - GitLab: `glab mr view/edit` (or REST `/projects/:id/merge_requests/:iid`)
    - Bitbucket: `bb pr` (or REST `/repositories/:ws/:repo/pullrequests/:id`)
-3. Fall back to `github.com` defaults when host is unrecognized — never crash.
+3. Fall back to `github.com` defaults when host is unrecognized, never crash.
 
 ## Configuration: `prUrlTemplate`
 
@@ -1847,16 +1847,16 @@ When converting a skill from github.com-only to multi-host:
 
 ## Related
 
-- `src/skills/review-pr/SKILL.md` — PR review skill (multi-host adopted)
-- `src/skills/create-pr/SKILL.md` — PR creation skill (multi-host adopted)
-- `src/skills/fix-issue/SKILL.md` — issue-to-branch skill (multi-host adopted)
-- `src/skills/configure/references/` — `prUrlTemplate` documentation
+- `src/skills/review-pr/SKILL.md`: PR review skill (multi-host adopted)
+- `src/skills/create-pr/SKILL.md`: PR creation skill (multi-host adopted)
+- `src/skills/fix-issue/SKILL.md`: issue-to-branch skill (multi-host adopted)
+- `src/skills/configure/references/`: `prUrlTemplate` documentation
 
 
-### ScheduleWakeup — Dynamic Loop Pacing
+### ScheduleWakeup: Dynamic Loop Pacing
 
 
-# ScheduleWakeup — Dynamic Loop Pacing
+# ScheduleWakeup: Dynamic Loop Pacing
 
 ## When to Use
 
@@ -1872,14 +1872,14 @@ When converting a skill from github.com-only to multi-host:
 
 ## Cache-Aware Delay Selection
 
-The prompt cache has a **5-minute TTL**. Sleeping past 300s means the next wake-up reads full context uncached — slower and more expensive.
+The prompt cache has a **5-minute TTL**. Sleeping past 300s means the next wake-up reads full context uncached, slower and more expensive.
 
 | Delay | Cache | Use When |
 |-------|-------|----------|
-| 60–270s | Warm | Active work — build running, CI check pending, process just started |
+| 60-270s | Warm | Active work, build running, CI check pending, process just started |
 | **Never 300s** | **Worst of both** | Cache miss without amortizing the wait |
-| 300–3600s | Cold | Genuinely idle — nothing to check for minutes |
-| 1200–1800s | Cold (amortized) | Idle ticks with no specific signal to watch |
+| 300-3600s | Cold | Genuinely idle, nothing to check for minutes |
+| 1200-1800s | Cold (amortized) | Idle ticks with no specific signal to watch |
 
 ## Patterns
 
@@ -1948,15 +1948,15 @@ else:
 
 ## Anti-Patterns
 
-- **300s delay**: Exactly at cache boundary — pays cache miss without useful wait
-- **Fixed intervals for variable tasks**: If build takes 2-8min, don't use fixed 5min — check elapsed and adapt
+- **300s delay**: Exactly at cache boundary, pays cache miss without useful wait
+- **Fixed intervals for variable tasks**: If build takes 2-8min, don't use fixed 5min, check elapsed and adapt
 - **ScheduleWakeup for persistent monitors**: Use CronCreate for things that should survive session end
 
-## CC 2.1.183 — scheduled deliveries are task notifications, not keystrokes
+## CC 2.1.183: scheduled deliveries are task notifications, not keystrokes
 
 Scheduled-task and webhook trigger deliveries (the CronCreate / `/schedule` and webhook paths) now classify as **task notifications** rather than keyboard input. Two consequences for chain authors:
 
-- In **auto mode**, a wakeup/cron delivery can no longer approve a pending action or set the session title — it can only resume work. Design persistent monitors to *propose* and let a human approve; do not rely on a scheduled tick to auto-confirm a gated prompt.
+- In **auto mode**, a wakeup/cron delivery can no longer approve a pending action or set the session title, it can only resume work. Design persistent monitors to *propose* and let a human approve; do not rely on a scheduled tick to auto-confirm a gated prompt.
 - This removes the old "phantom user message" footgun where a delivery was treated as if the user typed it. A wakeup prompt now reliably resumes the loop body instead of racing the approval UI.
 
 
@@ -1978,8 +1978,8 @@ Every skill MUST work at T1 (zero MCP servers). T2 and T3 enhance but are never 
 
 | MCP Tool | T2/T3 Behavior | T1 Fallback |
 |----------|----------------|-------------|
-| `mcp__memory__search_nodes` | Search past decisions | Skip — rely on codebase Grep |
-| `mcp__memory__create_entities` | Save patterns | Skip — patterns not persisted |
+| `mcp__memory__search_nodes` | Search past decisions | Skip, rely on codebase Grep |
+| `mcp__memory__create_entities` | Save patterns | Skip, patterns not persisted |
 | `mcp__context7__query-docs` | Live library docs | `WebFetch` docs URL directly |
 | `mcp__sequential-thinking__*` | Structured reasoning | Use inline evaluation rubric |
 | `mcp__tavily__tavily_search` | Deep web search | `WebSearch` (CC built-in) |
@@ -2002,19 +2002,19 @@ else:
 
 ## Rules
 
-1. **Never assume MCP exists** — always check `capabilities.json`
-2. **Never error on missing MCP** — skip gracefully with fallback
-3. **T1 must produce useful output** — reduced quality is OK, failure is not
-4. **Log which tier is active** — include in handoff files (`mcps_used` field)
+1. **Never assume MCP exists**: always check `capabilities.json`
+2. **Never error on missing MCP**: skip gracefully with fallback
+3. **T1 must produce useful output**: reduced quality is OK, failure is not
+4. **Log which tier is active**: include in handoff files (`mcps_used` field)
 
 
 ### Worktree Agent Pattern
 
 # Worktree-Isolated Agents
 
-Use `isolation: "worktree"` when spawning agents that write files in parallel. Each agent gets its own copy of the repo — no merge conflicts.
+Use `isolation: "worktree"` when spawning agents that write files in parallel. Each agent gets its own copy of the repo, no merge conflicts.
 
-> **Isolation is enforced, not advisory (CC 2.1.216+):** a worktree-isolated subagent can no longer redirect git into the shared checkout via `git -C &lt;path&gt;`, `--git-dir`, or the `GIT_DIR`/`GIT_WORK_TREE` env vars — CC 2.1.216 closed that escape. Write coordinator prompts accordingly: a worker that "helpfully" targets the parent repo with `git -C` now fails instead of silently mutating the shared tree, so route any parent-tree git through the coordinator, never through an isolated worker (#3068).
+> **Isolation is enforced, not advisory (CC 2.1.216+):** a worktree-isolated subagent can no longer redirect git into the shared checkout via `git -C <path>`, `--git-dir`, or the `GIT_DIR`/`GIT_WORK_TREE` env vars, CC 2.1.216 closed that escape. Write coordinator prompts accordingly: a worker that "helpfully" targets the parent repo with `git -C` now fails instead of silently mutating the shared tree, so route any parent-tree git through the coordinator, never through an isolated worker (#3068).
 
 ## When to Use
 
@@ -2049,7 +2049,7 @@ Agent(
 ## How It Works
 
 1. CC creates a git worktree (separate directory, own branch)
-2. Agent works in the worktree — edits don't affect main working directory
+2. Agent works in the worktree, edits don't affect main working directory
 3. On completion, agent's changes are on a separate branch
 4. Parent skill merges the branches back
 
@@ -2066,12 +2066,12 @@ to register `worktree/worktree-provisioner` there, which silently disabled
 `.worktreeinclude`, `worktree.baseRef`, `settings.local.json` propagation,
 PR-based worktrees and branch cleanup. Those hooks (`worktree-provisioner`,
 `exit-finalizer`, `worktree-lifecycle-logger`) are deleted; CC provisions
-worktrees natively again. Do not re-register anything on `WorktreeCreate` —
+worktrees natively again. Do not re-register anything on `WorktreeCreate`,
 `hooks-json-wiring.test.ts` asserts the event stays empty.
 
 ## Required Setting (CC ≥ 2.1.133)
 
-CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` branches new worktrees from `origin/&lt;default-branch&gt;` — **not** from local `HEAD`. OrchestKit's agent-isolation pattern needs unpushed commits to be visible to spawned agents, so set:
+CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` branches new worktrees from `origin/<default-branch>`, **not** from local `HEAD`. OrchestKit's agent-isolation pattern needs unpushed commits to be visible to spawned agents, so set:
 
 ```json
 {
@@ -2081,38 +2081,38 @@ CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` bra
 }
 ```
 
-Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Agent(... isolation: "worktree")` start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
+Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Agent(... isolation: "worktree")` start from origin and miss every unpushed local commit, `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
 
-**This is operator-owned, and unset by default.** ork does not ship it and cannot: a plugin's bundled `settings.json` only supplies the `agent` and `subagentStatusLine` keys, so `worktree.baseRef` declared there would be inert. Any skill that claims ork sets it is wrong — check the two files above and, if the key is absent, the effective value is CC's default `"fresh"`. Nothing in `ork:doctor` flags a missing `baseRef` today, so this is a manual check.
+**This is operator-owned, and unset by default.** ork does not ship it and cannot: a plugin's bundled `settings.json` only supplies the `agent` and `subagentStatusLine` keys, so `worktree.baseRef` declared there would be inert. Any skill that claims ork sets it is wrong, check the two files above and, if the key is absent, the effective value is CC's default `"fresh"`. Nothing in `ork:doctor` flags a missing `baseRef` today, so this is a manual check.
 
 > **Only effective since #3366.** Before that, ork registered its own hook on `WorktreeCreate`, which replaced CC's native provisioning wholesale and made `worktree.baseRef` inert *even when the operator had set it correctly*. On any ork build carrying `worktree/worktree-provisioner`, setting `"head"` changed nothing. Since #3366 removed that hook, CC provisions natively and the setting takes effect as documented.
 
-## Branch base (CC 2.1.128–2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
+## Branch base (CC 2.1.128-2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
 
-With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where this was the default), `EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/&lt;default-branch&gt;`. This means:
+With `worktree.baseRef: "head"` (or any CC in the 2.1.128-2.1.132 window where this was the default), `EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/<default-branch>`. This means:
 
 - Unpushed commits in the parent worktree are preserved in the new worktree
 - No need to `git push` before spawning isolated agents
 - Parent and child see the same uncommitted history
 
-CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.220`, so the setting is the single source of truth.
+CC ≤ 2.1.127 branched from `origin/<default-branch>`, which silently dropped local-only commits. CC 2.1.128-2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;), see "Required Setting" above. We floor at `2.1.220`, so the setting is the single source of truth.
 
-> **CC 2.1.154 — nested-worktree HEAD fix**: `worktree.baseRef: "head"` previously resolved to the **main checkout's** HEAD (not the current worktree's) when spawning subagents or calling `EnterWorktree` from *inside* a linked worktree. 2.1.154 fixed this, so `"head"` is now reliable for nested/recursive worktree spawns too. Also in 2.1.154: subagents in background sessions no longer bypass the worktree-isolation guard, so `Agent(isolation:"worktree")` is safe for parallel spawns — the manual pre-create workaround (`implement/references/manual-worktree-pattern.md`) is superseded.
+> **CC 2.1.154, nested-worktree HEAD fix**: `worktree.baseRef: "head"` previously resolved to the **main checkout's** HEAD (not the current worktree's) when spawning subagents or calling `EnterWorktree` from *inside* a linked worktree. 2.1.154 fixed this, so `"head"` is now reliable for nested/recursive worktree spawns too. Also in 2.1.154: subagents in background sessions no longer bypass the worktree-isolation guard, so `Agent(isolation:"worktree")` is safe for parallel spawns, the manual pre-create workaround (`implement/references/manual-worktree-pattern.md`) is superseded.
 >
-> **CC 2.1.203 — residual shell-command leak closed**: the 2.1.154 guard was not complete — worktree-isolated subagents could still *sometimes run shell commands in the parent checkout* instead of their own worktree (CC 2.1.203 changelog). Through CC 2.1.202, an isolated agent's `git`/build commands could fire against the primary tree. 2.1.203 closes the leak — and ork's floor is now 2.1.220, so every supported session is past the leak window; the 2.1.183–2.1.202 known-risk note applies only to historical sessions below the floor.
+> **CC 2.1.203, residual shell-command leak closed**: the 2.1.154 guard was not complete, worktree-isolated subagents could still *sometimes run shell commands in the parent checkout* instead of their own worktree (CC 2.1.203 changelog). Through CC 2.1.202, an isolated agent's `git`/build commands could fire against the primary tree. 2.1.203 closes the leak, and ork's floor is now 2.1.220, so every supported session is past the leak window; the 2.1.183-2.1.202 known-risk note applies only to historical sessions below the floor.
 >
-> **CC 2.1.206 — external-worktree confirmation**: `EnterWorktree` now prompts for confirmation before entering a worktree **outside** `.claude/worktrees/`. ork's convention (`../&lt;repo&gt;-&lt;task&gt;`) is always outside that directory, so any `EnterWorktree` into a pre-created external worktree now triggers a one-time prompt. Interactive operators just confirm; headless/agent-driven flows that can't answer should either use `Agent(isolation:"worktree")` (which manages its own worktree under `.claude/worktrees/`) or expect and pre-authorize the prompt.
+> **CC 2.1.206, external-worktree confirmation**: `EnterWorktree` now prompts for confirmation before entering a worktree **outside** `.claude/worktrees/`. ork's convention (`../<repo>-<task>`) is always outside that directory, so any `EnterWorktree` into a pre-created external worktree now triggers a one-time prompt. Interactive operators just confirm; headless/agent-driven flows that can't answer should either use `Agent(isolation:"worktree")` (which manages its own worktree under `.claude/worktrees/`) or expect and pre-authorize the prompt.
 >
-> **CC 2.1.221 — `/fork` makes its own worktree**: sessions forked with `/fork` now create a new worktree of their own instead of working in the original session's checkout (CC 2.1.221 changelog). This changes nothing about `Agent(isolation:"worktree")`; it closes the *manual* route to the failure this pattern exists to prevent, where forking a session left two sessions writing into one tree. Through 2.1.220, `/fork` was a shared-checkout operation.
+> **CC 2.1.221, `/fork` makes its own worktree**: sessions forked with `/fork` now create a new worktree of their own instead of working in the original session's checkout (CC 2.1.221 changelog). This changes nothing about `Agent(isolation:"worktree")`; it closes the *manual* route to the failure this pattern exists to prevent, where forking a session left two sessions writing into one tree. Through 2.1.220, `/fork` was a shared-checkout operation.
 >
-> **CC 2.1.222 — the guard's fourth patch**: worktree-isolated sessions **and** their subagents could still run destructive git commands against the main checkout; 2.1.222 fixes that and states isolation now applies to file edits and Bash in *every session type* (CC 2.1.222 changelog). The changelog does not enumerate which session types were leaking, so the honest reading is scope, not mechanism: the same guard has now been patched in 2.1.154, 2.1.203, 2.1.216 and 2.1.222, each release closing a hole the previous one left open. Two consequences. (1) ork's floor is `2.1.220`, so a session sitting exactly at the floor is still inside this leak window. Run parallel worktree agents on 2.1.222+ if the workers touch git. (2) Treat isolation as a strong default rather than a security boundary: keep the coordinator the only writer to the parent tree, which is the same instruction the 2.1.216 note at the top of this file already gives.
+> **CC 2.1.222, the guard's fourth patch**: worktree-isolated sessions **and** their subagents could still run destructive git commands against the main checkout; 2.1.222 fixes that and states isolation now applies to file edits and Bash in *every session type* (CC 2.1.222 changelog). The changelog does not enumerate which session types were leaking, so the honest reading is scope, not mechanism: the same guard has now been patched in 2.1.154, 2.1.203, 2.1.216 and 2.1.222, each release closing a hole the previous one left open. Two consequences. (1) ork's floor is `2.1.220`, so a session sitting exactly at the floor is still inside this leak window. Run parallel worktree agents on 2.1.222+ if the workers touch git. (2) Treat isolation as a strong default rather than a security boundary: keep the coordinator the only writer to the parent tree, which is the same instruction the 2.1.216 note at the top of this file already gives.
 
-> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
+> **CC 2.1.133, concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed, concurrent worktree sessions are stable. See `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
 
 ## Limitations
 
 - Worktree agents are slightly slower to start (~2-3s overhead)
-- Each worktree is a full copy — uses disk space
+- Each worktree is a full copy, uses disk space
 - Merge conflicts possible if agents edit same files (rare with proper task splitting)
-- Don't use for read-only agents — unnecessary overhead
+- Don't use for read-only agents, unnecessary overhead
 

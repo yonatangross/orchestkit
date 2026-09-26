@@ -5,7 +5,7 @@ description: "Use when setting up CI/CD pipelines, containerizing applications, 
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="devops-deployment" />
 
@@ -402,10 +402,10 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 
 **Key rules:**
 - Always deploy migrations before the application code that depends on them
-- Never add a NOT NULL column in a single step — use the 3-phase pattern (add nullable, backfill, add constraint)
+- Never add a NOT NULL column in a single step, use the 3-phase pattern (add nullable, backfill, add constraint)
 - Always write a `downgrade()` function so migrations can be rolled back (`alembic downgrade -1`)
 - Always review auto-generated migrations before applying (`alembic revision --autogenerate`)
-- Test rollback procedures regularly — do not assume `downgrade()` works without verification
+- Test rollback procedures regularly, do not assume `downgrade()` works without verification
 - Column renames require a view alias to maintain backward compatibility during rollout
 
 Reference: https://alembic.sqlalchemy.org/en/latest/tutorial.html for revision/upgrade/downgrade mechanics; `ork:database-patterns` for the Python migration workflow.
@@ -473,8 +473,8 @@ tests/
 ```
 
 **Key rules:**
-- Never run containers as root — always create a non-root user with `USER` directive
-- Never pass secrets via `ARG` or `ENV` in the Dockerfile — they are visible in `docker history`
+- Never run containers as root, always create a non-root user with `USER` directive
+- Never pass secrets via `ARG` or `ENV` in the Dockerfile, they are visible in `docker history`
 - Always use a `.dockerignore` to exclude `.env`, `.git`, `node_modules`, and test files
 - Use `COPY --chown` to set file ownership without a separate `chown` layer
 - Prefer minimal base images (`-alpine`) to reduce the CVE surface area
@@ -584,8 +584,8 @@ Reference: `references/docker-patterns.md` (lines 7-50)
 
 - Use Railway's **shared variables** for cross-service config (DATABASE_URL, REDIS_URL)
 - **Service-specific** variables override shared ones
-- Reference other vars: `$\{\{shared.DATABASE_URL\}\}`
-- Never hardcode secrets — use Railway's encrypted env vars
+- Reference other vars: `${{shared.DATABASE_URL}}`
+- Never hardcode secrets, use Railway's encrypted env vars
 
 ## Database Provisioning
 
@@ -597,7 +597,7 @@ Railway provisions managed databases with one click:
 ## Multi-Service Setup
 
 - Use **monorepo** config: set `rootDirectory` per service
-- Internal networking: services communicate via `$\{\{service.RAILWAY_PRIVATE_DOMAIN\}\}:port`
+- Internal networking: services communicate via `${{service.RAILWAY_PRIVATE_DOMAIN}}:port`
 - Shared env groups for common config
 
 ## Railway CLI
@@ -614,10 +614,10 @@ railway shell              # Open shell in service
 ## Anti-Patterns
 
 **Incorrect:**
-- Running `railway up` from CI without `railway link` — deploys to wrong project
-- Using Dockerfile when Nixpacks handles the stack — unnecessary complexity
-- Storing secrets in railway.json — use env vars
-- Skipping healthcheck config — Railway can't detect failed deploys
+- Running `railway up` from CI without `railway link`, deploys to wrong project
+- Using Dockerfile when Nixpacks handles the stack, unnecessary complexity
+- Storing secrets in railway.json, use env vars
+- Skipping healthcheck config, Railway can't detect failed deploys
 
 **Correct:**
 - Configure healthcheckPath for all web services
@@ -627,9 +627,9 @@ railway shell              # Open shell in service
 
 ## References
 
-- `references/railway-json-config.md` — Full railway.json schema and examples
-- `references/nixpacks-customization.md` — Custom build configs, environment detection
-- `references/multi-service-setup.md` — Monorepo deploy, service networking
+- `references/railway-json-config.md`: Full railway.json schema and examples
+- `references/nixpacks-customization.md`: Custom build configs, environment detection
+- `references/multi-service-setup.md`: Monorepo deploy, service networking
 
 
 
@@ -1052,7 +1052,7 @@ API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
 **Key points:**
 - Private networking uses internal DNS, no public internet
 - Zero egress costs between services
-- Always use the `PORT` variable — not hardcoded ports
+- Always use the `PORT` variable, not hardcoded ports
 - Services must listen on `0.0.0.0` (not `localhost`)
 
 ## Common Architectures
@@ -1074,15 +1074,15 @@ Use Railway's shared variables (project-level) for values needed by all services
 - `LOG_LEVEL=info`
 
 Use reference variables for cross-service connections:
-- `DATABASE_URL=$\{\{Postgres.DATABASE_URL\}\}`
-- `REDIS_URL=$\{\{Redis.REDIS_URL\}\}`
-- `API_URL=http://$\{\{api.RAILWAY_PRIVATE_DOMAIN\}\}:$\{\{api.PORT\}\}`
+- `DATABASE_URL=${{Postgres.DATABASE_URL}}`
+- `REDIS_URL=${{Redis.REDIS_URL}}`
+- `API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`
 
 ## Deploy Order
 
 Railway deploys services in parallel by default. If you need ordering (e.g., run migrations before starting web):
 1. Put migrations in the API service's `startCommand`
-2. Use healthchecks — dependent services will retry connections until the API is healthy
+2. Use healthchecks, dependent services will retry connections until the API is healthy
 3. For strict ordering, use separate deploy triggers via Railway CLI
 
 
@@ -1186,12 +1186,12 @@ House rules that survive after the vendor tutorials were routed to their first-p
 Everything here is a threshold, a working config, or an ordering constraint we actually rely on.
 Vendor mechanics live upstream; see the "Upstream coverage" table in `SKILL.md`.
 
-A "retired `&lt;path&gt;`" in a Why line is a historical citation of a file that was deleted in this
+A "retired `<path>`" in a Why line is a historical citation of a file that was deleted in this
 change, not a live pointer. Do not try to open those paths.
 
 ## Give every CI workflow a concurrency group keyed on workflow and ref
 
-Why: distilled from the retired `examples/github-actions-cicd.md`; no traced incident. The house shape is `group: $\{\{ github.workflow \}\}-$\{\{ github.ref \}\}` with `cancel-in-progress: true`, so a force-push to a PR branch cannot leave two runs racing toward the same deploy target.
+Why: distilled from the retired `examples/github-actions-cicd.md`; no traced incident. The house shape is `group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true`, so a force-push to a PR branch cannot leave two runs racing toward the same deploy target.
 Upstream: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 ## Keep CI feedback under 5 minutes by path-filtering per service
@@ -1206,7 +1206,7 @@ Upstream: https://docs.github.com/en/actions/tutorials/use-containerized-service
 
 ## Deploy the exact image SHA that CI tested, never a rebuild
 
-Why: house rule. The retired `examples/github-actions-cicd.md` tagged images `$\{\{ github.sha \}\}` at build time but then deployed with `aws ecs update-service --force-new-deployment`, which pins nothing and re-pulls whatever the task definition points at. That gap is the reason this rule is written down rather than assumed: tag with the SHA AND reference that tag in the deploy step, so "the artifact we tested" and "the artifact we shipped" are byte-for-byte identical. Production deploys additionally sit behind `environment: production` for the approval gate.
+Why: house rule. The retired `examples/github-actions-cicd.md` tagged images `${{ github.sha }}` at build time but then deployed with `aws ecs update-service --force-new-deployment`, which pins nothing and re-pulls whatever the task definition points at. That gap is the reason this rule is written down rather than assumed: tag with the SHA AND reference that tag in the deploy step, so "the artifact we tested" and "the artifact we shipped" are byte-for-byte identical. Production deploys additionally sit behind `environment: production` for the approval gate.
 Upstream: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
 
 ## Invalidate the CDN after the object sync, never before
@@ -1251,7 +1251,7 @@ Upstream: https://developer.hashicorp.com/terraform/language/backend/s3
 
 ## Rehearse the rollback, do not just document it
 
-Why: distilled from the retired `references/environment-management.md` and `checklists/production-readiness.md`; both carried the same standing instruction, that a rollback path is only real once it has been executed. The three house handles are `helm rollback &lt;release&gt; &lt;revision&gt;`, `kubectl rollout undo deployment/&lt;name&gt;`, and `alembic downgrade -1`, and the same rehearsal rule applies to backup restore, not only to backup creation.
+Why: distilled from the retired `references/environment-management.md` and `checklists/production-readiness.md`; both carried the same standing instruction, that a rollback path is only real once it has been executed. The three house handles are `helm rollback <release> <revision>`, `kubectl rollout undo deployment/<name>`, and `alembic downgrade -1`, and the same rehearsal rule applies to backup restore, not only to backup creation.
 Upstream: https://helm.sh/docs/helm/helm_rollback/
 
 ## Alert on the house thresholds, and always require a dwell window
@@ -1304,7 +1304,7 @@ Upstream: the in-repo `ork:testing-perf`, `ork:security-patterns` and
 
 # railway.json Configuration
 
-Complete reference for `railway.json` schema — the primary way to configure build and deploy behavior on Railway.
+Complete reference for `railway.json` schema, the primary way to configure build and deploy behavior on Railway.
 
 ## Full Schema
 
@@ -1336,7 +1336,7 @@ Complete reference for `railway.json` schema — the primary way to configure bu
 
 | Builder | When to Use |
 |---------|-------------|
-| `NIXPACKS` | Default — auto-detects language and builds (Node, Python, Go, Rust, etc.) |
+| `NIXPACKS` | Default, auto-detects language and builds (Node, Python, Go, Rust, etc.) |
 | `DOCKERFILE` | Complex builds, multi-stage images, custom system deps |
 | `PAKETO` | Cloud Native Buildpacks alternative |
 

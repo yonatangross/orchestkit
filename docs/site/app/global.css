@@ -203,18 +203,43 @@
 }
 
 /* ============================================================
-   HOME HERO A: left copy + right conductor bleed (~55%)
+   HOME HERO A: left copy + right conductor art, one art per theme
    Reference: approved-design/hero-a-2026-09-22.html
-   Cosmic/dot grid stays on body (unchanged). No new motion here;
-   prefers-reduced-motion already gates body::after cosmic-drift.
+   Cosmic/dot grid stays on body (unchanged). Motion: the theme switch
+   crossfades the art and reveals the page in a circle; both are off
+   under prefers-reduced-motion.
    ============================================================ */
 
+/* Row 1: copy beside the art, both vertically centred on each other.
+   Row 2 (.home-hero-more): picker, search, links and proof across both
+   columns. The art is a grid item in column 2, never absolute: out of flow
+   it left column 2 empty and the long copy column (picker, search, proof)
+   ran ~600px past it, the "broken on a laptop" report of 2026-09-25. */
 .home-hero-inner {
+  /* Single source for the container: page.tsx sets max-width and padding
+     from these. */
+  --hero-max: 1180px;
+  --hero-pad: 28px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 24px;
-  align-items: start;
-  min-height: min(72vh, 720px);
+  column-gap: 24px;
+  row-gap: 48px;
+  align-items: center;
+}
+
+.home-hero-copy {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.home-hero-more {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  /* Wide enough for the quick-links row on one line from 1024 up (at 760px
+     "OrchestKit SDK packages" wrapped alone). Search stays 440px, centred. */
+  max-width: 1000px;
+  justify-self: center;
 }
 
 /* Hero-only display cap (mockup A). Keep global --text-fluid-h1 at 6rem
@@ -223,45 +248,118 @@
   --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
 }
 
-/* Desktop art box follows source 1280x723. Do not stretch top/bottom to the
-   full copy column (picker/search/proof): that made object-fit:cover crop the
+/* 901 to 1279px: the copy column is ~440 to 560px, and at the fluid size
+   "Stop explaining" did not fit, leaving "Stop" alone on line one at 1024.
+   Scale the headline to the column in that band only. */
+@media (min-width: 901px) and (max-width: 1279px) {
+  .home-hero {
+    --text-fluid-h1: clamp(2.5rem, 2.6vw + 1.2rem, 3.4rem);
+  }
+}
+
+/* Art box keeps the art's ratio (both layers are cropped to 1.16:1). Never
+   stretch it to the copy column height: object-fit:cover then cropped the
    conductor to one arm at about 2x zoom (reviewer-estate-3 HOLD on #4345).
-   Top-align with the headline column so art sits beside the copy-top, not
-   centered beside the host picker. */
+   Capped to column 2, no gutter bleed: the old source was 44% black on the
+   left and the box grew with the viewport, so at 2000px the conductor sat
+   ~490px from the headline (operator, 2026-09-25). Both themes feather every
+   edge into the page, since each theme now has its own art. */
 .home-hero-art {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: auto;
-  width: 55%;
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  width: 100%;
   height: auto;
-  aspect-ratio: 1280 / 723;
-  transform: none;
+  aspect-ratio: 840 / 723;
   z-index: 1;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 12%,
-    #000 38%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 12%,
-    #000 38%
-  );
+  /* Radial, sized to the box (closest-side) so it reaches full transparency
+     AT the edges. Four linear fades, or an ellipse larger than the box, left
+     straight edges where the art's backdrop hid the page grid. */
+  -webkit-mask-image: radial-gradient(closest-side at 55% 50%, #000 62%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 55% 50%, #000 62%, transparent 100%);
 }
 
 .home-hero-art img {
   object-fit: cover;
-  object-position: right center;
+  object-position: center center;
+}
+
+/* One layer per theme. The incoming layer settles in with a keyframe, not a
+   transition: fumadocs sets next-themes disableTransitionOnChange, which
+   injects transition:none on every element during a theme change, so a
+   transition never runs. The same keyframe gives the art a soft entrance on
+   first load. Inside the circle reveal below it reads as a crossfade. */
+.home-hero-art-layer {
+  opacity: 0;
+}
+
+.dark .home-hero-art-dark,
+:root:not(.dark) .home-hero-art-light {
+  opacity: 1;
+  animation: hero-art-in 900ms var(--ease-out-expo) both;
+}
+
+@keyframes hero-art-in {
+  from {
+    opacity: 0.15;
+    transform: scale(1.04);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark .home-hero-art-dark,
+  :root:not(.dark) .home-hero-art-light {
+    animation: none;
+  }
+}
+
+/* Theme switch: fumadocs wraps setTheme in document.startViewTransition
+   (layouts/shared/slots/theme-switch.js). Replace the default crossfade with
+   a circle that grows from the pressed toggle (--theme-x/--theme-y are set by
+   components/theme-reveal-origin.tsx). Instant under reduced motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  /* Ease in-out, not ease-out-expo: expo covered the page in ~100ms, so the
+     circle never read as a circle in a recording. */
+  animation: theme-reveal 700ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, calc(100% - 96px)) var(--theme-y, 76px));
+  }
+  to {
+    clip-path: circle(150vmax at var(--theme-x, calc(100% - 96px)) var(--theme-y, 76px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
+  /* Stretch, not the desktop grid's align-items:center: centred at
+     fit-content, the pill and headline started at x=48 at 768 while the
+     picker and command box started at x=28 (QA, 2026-09-25). One left edge. */
   .home-hero-inner {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 8px;
     min-height: 0;
     padding-top: 48px;
@@ -269,7 +367,7 @@
   }
 
   /* Contents of .home-hero-copy become flex siblings of the art so the
-     16:9 band sits under the headline (copy-top), before install CTAs. */
+     host picker and command sit under the headline, before the 16:9 band. */
   .home-hero-copy {
     display: contents;
   }
@@ -278,26 +376,38 @@
     order: 1;
   }
 
+  /* 4:3, not 16:9: the art is cropped to its subject (1.16:1), and a 16:9 band
+     cut the outer players off at 768. Same radial fade as desktop. Full
+     column width: the old 640px cap left the band narrower than the install
+     block above it from 697 to 900px (64..704 against 28..740 at 768). */
   .home-hero-art {
-    position: relative;
-    order: 2;
+    order: 3;
     width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    inset: auto;
-    top: auto;
-    transform: none;
+    align-self: stretch;
+    aspect-ratio: 4 / 3;
     margin-top: 8px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
   }
 
   .home-hero-art img {
-    object-position: center 30%;
+    object-position: center 45%;
   }
 
+  /* Install before the art on phones: 35% of home sessions are mobile and
+     the median home scroll is 10%, so the command must be on screen one. */
   .home-hero-copy-actions {
-    order: 3;
+    order: 2;
+    /* The desktop grid's align-items:center survives into this flex column.
+       Centred at fit-content, the unwrapped command lines made the block wider
+       than the phone and it spilled past both edges. Stretch it and let it
+       shrink so the lines scroll inside the command box instead. */
+    align-self: stretch;
+    min-width: 0;
+  }
+
+  .home-hero-more {
+    order: 4;
+    max-width: none;
+    margin-top: 8px;
   }
 }
 
@@ -453,8 +563,26 @@
    ON PURPOSE: on docs pages the same `[data-search-full]` marks the
    SIDEBAR search box, which must stay. Cmd/Ctrl-K still opens search
    everywhere (verified: the dialog mounts on the homepage). */
+/* Hiding it outright left /changelog, /community and the 404 with no visible
+   search on desktop, because fumadocs shows its search ICON only below lg
+   (dogfood 2026-09-25). So the bar becomes an icon-only round button: the nav
+   stays plain, and the "Search" text stays in the accessible name. */
 #nd-nav [data-search-full] {
-  display: none !important;
+  font-size: 0;
+  gap: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+  border-radius: 9999px;
+}
+#nd-nav [data-search-full] > :not(svg) {
+  display: none;
+}
+#nd-nav [data-search-full] svg {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -617,6 +745,13 @@
 #nd-nav {
   view-transition-name: site-header;
 }
+/* The view-transition-name above makes the header a backdrop root, so the
+   fumadocs backdrop-blur on its surface samples nothing and page text showed
+   through the 80% background on scroll (QA 2026-09-25). Opaque surface. */
+#nd-nav > div,
+#nd-subnav {
+  background-color: var(--color-fd-background);
+}
 #nd-sidebar {
   view-transition-name: docs-sidebar;
 }
@@ -644,12 +779,23 @@
 }
 
 /* ============================================================
-   INLINE CODE IN TABLES — Prevent line-breaking at hyphens
+   INLINE CODE IN TABLES: wraps with its cell
    ============================================================ */
 
+/* Code used to be nowrap here, which made every command and path one
+   unbreakable box: a 90 character command set a 705px column and the feature
+   matrix laid out 1707px wide on a 390px phone. Code now wraps at spaces and
+   hyphens like the prose around it, and a token longer than its column
+   breaks where it must. A cell holding code keeps a floor, so a column of
+   short names is not squeezed to one character per line. */
 :where(table) :is(td, th) code {
-  white-space: nowrap;
-  word-break: keep-all;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+:where(table) td:has(code) {
+  min-width: 6rem;
 }
 
 /* ============================================================
@@ -662,6 +808,14 @@ pre:where(:not(.not-fumadocs-codeblock *)) {
   background-color: var(--color-fd-card);
   border: 1px solid var(--color-fd-border);
   border-radius: 0.5rem;
+}
+
+/* Inside a fumadocs code block the <figure> already draws the border and the
+   radius; the rule above put a second border on the inner <pre>, which read
+   as a box inside the box in light mode (QA N05). */
+figure.shiki pre {
+  border: 0;
+  border-radius: 0;
 }
 
 pre code {
@@ -721,6 +875,22 @@ pre code {
   width: 2px;
   border-radius: 1px;
   background: var(--color-fd-primary);
+}
+
+/* Sidebar scroller under the "Install OrchestKit" banner (QA #17). Fumadocs
+   centers the active page in the scroller on load, so the top edge landed
+   mid-row and the cut row read as hidden under the button. Rows are snap
+   points (proximity), so any scroll, the automatic one included, settles on a
+   whole row, and a hairline marks where the list starts. */
+:is(#nd-sidebar, #nd-sidebar-mobile) div:has(> [data-radix-scroll-area-viewport]) {
+  border-top: 1px solid var(--color-fd-border);
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 12px;
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] :is(a, button) {
+  scroll-snap-align: start;
 }
 
 /* TOC active item — george-cool ice marker; text stays readable indigo. */
@@ -1012,6 +1182,31 @@ article blockquote {
   border-radius: 4px;
 }
 
+/* Changelog column over the kinetic grid: release text sat directly on the
+   grid lines, which read bright behind it in dark mode (QA N09). A soft veil
+   in the page colour dims the grid under the column and fades out at the
+   edges, so the grid still shows in the margins. */
+.changelog-veil {
+  position: relative;
+  isolation: isolate;
+}
+.changelog-veil::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--color-fd-background) 82%, transparent);
+}
+/* Only where the margins can hold the fade without a sideways scroll. */
+@media (min-width: 1100px) {
+  .changelog-veil::before {
+    inset: 0 -48px;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+  }
+}
+
 /* Community live-room example — bubble arrive. Gated for reduced motion. */
 @keyframes community-room-pop {
   from {
@@ -1030,4 +1225,115 @@ article blockquote {
   .community-room-pop {
     animation: none;
   }
+}
+
+/* Docs prev/next cards: fumadocs-ui 16.15 renders the description with
+   `truncate`, which cut "Skills are knowledge, agents are specialists…" to one
+   line. The live deploy predates that and wrapped. Keep the full sentence,
+   capped at two lines. */
+#nd-page a.rounded-lg.border > p.text-fd-muted-foreground.truncate {
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  /* Chrome drops the clamp ellipsis on end-aligned text, so the "next" card
+     cut its sentence with no "…" (QA V01). Lines stay start-aligned; a short
+     description still sits at the end edge because the box hugs its text. */
+  text-align: start;
+}
+#nd-page a.rounded-lg.border.text-end > p.text-fd-muted-foreground.truncate {
+  align-self: flex-end;
+  max-width: 100%;
+  width: fit-content;
+}
+
+/* Contrast (axe color-contrast, serious), measured 2026-09-25:
+   - Dark: primary text on the primary tints (What's new, NEW, Latest,
+     changelog version chips) read 3.7 to 4.49:1. Lighten primary TEXT only;
+     buttons that use primary as a background keep it.
+   - Shiki GitHub themes: light `export` red #D73A49 was 4.37:1 and dark
+     comment grey #6A737D was 3.97:1 on the code background. */
+.dark .text-fd-primary {
+  color: oklch(0.76 0.13 264);
+}
+.shiki span[style*="--shiki-light:#D73A49"] {
+  --shiki-light: #b31d28 !important;
+}
+/* github-light orange (#E36209) is 3.34:1 on the code background; #c2410c
+   keeps the hue at 4.96:1 (axe color-contrast, serious, gate 2026-09-25). */
+.shiki span[style*="--shiki-light:#E36209"] {
+  --shiki-light: #c2410c !important;
+}
+.dark .shiki span[style*="--shiki-dark:#6A737D"] {
+  --shiki-dark: #8b949e !important;
+}
+
+/* Sideways scroll areas (hero command box, wide docs tables): these shadows
+   show that there is more (scroll-shadow technique, no JS). */
+.scroll-shadows {
+  /* The cover colour must match what sits behind the region. */
+  --scroll-shadow-bg: var(--color-fd-surface-raised);
+  background:
+    linear-gradient(to right, var(--scroll-shadow-bg) 30%, transparent) left / 24px 100% no-repeat local,
+    linear-gradient(to left, var(--scroll-shadow-bg) 30%, transparent) right / 24px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, color-mix(in oklch, var(--color-fd-foreground) 45%, transparent), transparent) left / 16px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in oklch, var(--color-fd-foreground) 45%, transparent), transparent) right / 16px 100% no-repeat scroll;
+}
+#nd-page .scroll-shadows {
+  --scroll-shadow-bg: var(--color-fd-background);
+}
+
+/* Wide docs tables: the background shadows above cannot show here, because
+   the table's own cell backgrounds paint over the wrapper. Fade the right
+   edge while there is more to the right instead, driven by the table's own
+   scroll position. With nothing to scroll, the scroll timeline is inactive,
+   the offset stays 0 and the mask is fully opaque. Browsers without scroll
+   timelines show no fade. */
+@property --scroll-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes scroll-fade {
+  from {
+    --scroll-fade-end: 40px;
+  }
+  to {
+    --scroll-fade-end: 0px;
+  }
+}
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--scroll-fade-end)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--scroll-fade-end)), transparent);
+  animation: scroll-fade linear both;
+  animation-timeline: scroll(self inline);
+}
+
+/* The first column stays put while a wide table scrolls, so every row keeps
+   its label on screen. Fumadocs gives the table overflow hidden for its
+   rounded corners, which would make the table itself the sticky container;
+   clip keeps the corners without that. The left fade is replaced by a shadow
+   on the pinned column, which only shows once the table has scrolled. */
+.scroll-fade > table {
+  overflow: clip;
+}
+@keyframes scroll-pin-edge {
+  from {
+    box-shadow: none;
+  }
+  4%,
+  to {
+    box-shadow: 6px 0 8px -6px color-mix(in oklch, var(--color-fd-foreground) 55%, transparent);
+  }
+}
+.scroll-fade :is(td, th):first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  animation: scroll-pin-edge linear both;
+  animation-timeline: scroll(nearest inline);
+}
+.scroll-fade td:first-child {
+  background-color: var(--color-fd-card);
 }

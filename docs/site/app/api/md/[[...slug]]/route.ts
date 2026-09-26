@@ -33,7 +33,7 @@ function homepageMarkdown(): string {
 	return [
 		`# ${SITE.name}`,
 		"",
-		`> AI development toolkit for Claude Code — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
+		`> AI development toolkit for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 		"",
 		"## Documentation",
 		"",

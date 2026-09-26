@@ -224,15 +224,15 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, ant
 
 Progressive output and partial results in Agent Teams or plain Agent mode: `Read("references/progressive-and-partial-results.md")`.
 
-### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
+### Phase 2.5: Visual Capture (NEW, runs in parallel with Phase 2)
 
 Load details: `Read("references/visual-capture.md")` for auto-detection, route discovery, screenshot capture, and AI vision evaluation.
 
 **Summary**: Auto-detects project framework, starts dev server, discovers routes, uses agent-browser to screenshot each route, evaluates with Claude vision, generates self-contained `gallery.html` with base64-embedded images.
 
-**Output**: `verification-output/\{timestamp\}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
+**Output**: `verification-output/{timestamp}/gallery.html`, open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
 
-**Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning — never blocks verification.
+**Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning, never blocks verification.
 
 ---
 
@@ -242,11 +242,11 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dime
 
 ### Dimension-Level Blockers (ork-rubric/1.0)
 
-Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 9.0 (fixed, hard), every other dimension `min_blocker` 3.0, compliance `min_pass` 6.0, compliance `min_pass` 6.0.
+Composite is necessary but not sufficient, a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 9.0 (fixed, hard), every other dimension `min_blocker` 3.0, compliance `min_pass` 6.0, compliance `min_pass` 6.0.
 
 - **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)`.
-- A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
+- A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED, it cannot grade READY FOR MERGE.
 - Blocked verdicts list every tripped dimension first, each with the fix needed to clear it.
 - A project `.claude/policies/verification-policy.json` (see Policy-as-Code) may tighten these thresholds, never loosen them below the rubric defaults.
 
@@ -256,15 +256,15 @@ Threshold bands and reporting format: `references/grading-rubric.md` ("Dimension
 
 ## Streak Gate (consecutive-pass mode)
 
-A single green is not proof — flaky and order-dependent suites pass once and fail the next run. With `--streak=N`, verify declares **READY FOR MERGE only after N consecutive passing runs**, resetting the count to 0 on any non-ready verdict. The count persists across independent runs in `.claude/chain/verify-streak.json`, keyed by scope.
+A single green is not proof, flaky and order-dependent suites pass once and fail the next run. With `--streak=N`, verify declares **READY FOR MERGE only after N consecutive passing runs**, resetting the count to 0 on any non-ready verdict. The count persists across independent runs in `.claude/chain/verify-streak.json`, keyed by scope.
 
 - `--streak=N` (N ≥ 2; 3 is the sensible default). Absent ⇒ today's single pass/fail behavior, unchanged. Target may also come from `.claude/policies/verification-policy.json` (`"streak_target"`); the flag wins.
-- The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
+- The gate sits **above** the verdict, it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes, that independence is the whole point).
 - Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
-- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 &lt; 9.0)`.
-- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
+- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 9.0)`.
+- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first**, `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
-Full protocol — ledger schema, run loop, `/goal` wiring, and `cover` reuse: `Read("references/streak-gate.md")`.
+Full protocol, ledger schema, run loop, `/goal` wiring, and `cover` reuse: `Read("references/streak-gate.md")`.
 
 ---
 
@@ -297,11 +297,11 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## Verification Manifest (VERIFIED vs CLAIMED)
 
-Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence are **claims** until the lead re-runs the proof. Before the verdict, build a **Verification Manifest** marking every *load-bearing* claim ✅ VERIFIED (lead ran it fresh — cites `command · exit · key line`), 🟡 CLAIMED (an agent/tool/doc asserted it, not re-run), ⬜ UNCHECKED, ⚪ WAIVED (accepted non-blocking, with a reason), or 🔴 COULD-NOT-OBSERVE (evidence was attempted and nothing was observed; the `assert-evidence.sh` line is the citation, and a load-bearing row in this state makes the verdict BLOCKED, not merely capped). An agent's "PASS" copied into the report is still CLAIMED — VERIFIED means *the lead* ran it; a sub-agent's number (price, model-id, count) is CLAIMED until checked against source.
+Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence are **claims** until the lead re-runs the proof. Before the verdict, build a **Verification Manifest** marking every *load-bearing* claim ✅ VERIFIED (lead ran it fresh, cites `command · exit · key line`), 🟡 CLAIMED (an agent/tool/doc asserted it, not re-run), ⬜ UNCHECKED, ⚪ WAIVED (accepted non-blocking, with a reason), or 🔴 COULD-NOT-OBSERVE (evidence was attempted and nothing was observed; the `assert-evidence.sh` line is the citation, and a load-bearing row in this state makes the verdict BLOCKED, not merely capped). An agent's "PASS" copied into the report is still CLAIMED, VERIFIED means *the lead* ran it; a sub-agent's number (price, model-id, count) is CLAIMED until checked against source.
 
-> **Verdict rule:** any load-bearing claim still 🟡 CLAIMED or ⬜ UNCHECKED **caps the verdict at IMPROVEMENTS RECOMMENDED** (never READY FOR MERGE) until it is ✅ VERIFIED or ⚪ WAIVED — this stacks with the dimension-level blockers (both must clear), and under `--streak=N` it resets the streak.
+> **Verdict rule:** any load-bearing claim still 🟡 CLAIMED or ⬜ UNCHECKED **caps the verdict at IMPROVEMENTS RECOMMENDED** (never READY FOR MERGE) until it is ✅ VERIFIED or ⚪ WAIVED, this stacks with the dimension-level blockers (both must clear), and under `--streak=N` it resets the streak.
 
-Protocol — claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("references/verification-manifest.md")`.
+Protocol, claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("references/verification-manifest.md")`.
 
 ### Reachability: is the green load-bearing? (REACHED vs UNREACHED)
 
@@ -315,13 +315,13 @@ For every test the diff **adds or modifies**, the manifest carries a second mark
 | 🟡 **UNREACHED** | The test is green but has never been seen to fail. Not evidence. |
 | ⚪ **WAIVED** | Deliberately accepted with a one-line reason. |
 
-> **Verdict rule:** a test added or modified by this diff that is 🟡 UNREACHED **caps the verdict at IMPROVEMENTS RECOMMENDED** until the proof is shown or the row is ⚪ WAIVED. Stacks with the provenance cap and the dimension blockers — all must clear. Under `--streak=N` it resets the streak.
+> **Verdict rule:** a test added or modified by this diff that is 🟡 UNREACHED **caps the verdict at IMPROVEMENTS RECOMMENDED** until the proof is shown or the row is ⚪ WAIVED. Stacks with the provenance cap and the dimension blockers, all must clear. Under `--streak=N` it resets the streak.
 
 Two ordering rules make the proof safe, and both come from real damage: **commit before mutating** (`git checkout --` restores to HEAD, so mutating uncommitted work destroys the change on restore), and **mutate the call site, not the new unit** (mutating the unit proves the unit's tests work, and leaves a dead call site undetected).
 
-**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `implement` or `cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
+**This skill does not perform the mutation**: it writes no test files and edits no source. The proof is produced upstream by `implement` or `cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
 
-Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("references/reachability-proof.md")`.
+Protocol, scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("references/reachability-proof.md")`.
 
 ---
 
@@ -345,11 +345,11 @@ Load details: `Read("references/report-template.md")` for full format. Summary:
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
 
-> **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
+> **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user, they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
 >
 > ```python
 > PushNotification(
->   message=f"ork:verify complete — \{verdict\} · \{score\}/10 · \{blockers_count\} blockers",
+>   message=f"ork:verify complete, \{verdict\} · \{score\}/10 · \{blockers_count\} blockers",
 >   status="proactive"
 > )
 > ```
@@ -358,7 +358,7 @@ Load details: `Read("references/report-template.md")` for full format. Summary:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -377,7 +377,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Rules
 
-Load on demand with `Read("rules/&lt;file&gt;")`:
+Load on demand with `Read("rules/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -386,13 +386,13 @@ Load on demand with `Read("rules/&lt;file&gt;")`:
 
 ### Verification Gate (Cross-Cutting)
 
-Load `Read("../../shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
+Load `Read("../../shared/rules/verification-gate.md")`, the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
 
-Producer findings must also satisfy the evidence-replay gate (machine-checkable `\{file, line, quote\}` or `\{command, expected_output\}`, replayed before entering any verdict or score): `Read("../../shared/rules/evidence-replay.md")`.
+Producer findings must also satisfy the evidence-replay gate (machine-checkable `{file, line, quote}` or `{command, expected_output}`, replayed before entering any verdict or score): `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Anti-Sycophancy Protocol
 
-Load `Read("../../shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
+Load `Read("../../shared/rules/anti-sycophancy.md")`, all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
 
 ### Agent Status Protocol
 
@@ -430,7 +430,7 @@ TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 Done means all of these hold:
 - verdict is exactly one of READY FOR MERGE / IMPROVEMENTS RECOMMENDED / BLOCKED, with the composite and every dimension score cited
 - every load-bearing "passing/clean/fixed" claim sits in the Verification Manifest marked VERIFIED (lead re-ran, cites command · exit · key line), CLAIMED, UNCHECKED, or WAIVED
-- test evidence is the actual runner summary line (command, exit code, pass count) — never paraphrase
+- test evidence is the actual runner summary line (command, exit code, pass count), never paraphrase
 - every test the diff added or modified carries a Reached mark: REACHED cites the failing run AND the passing run; a green-only row is UNREACHED, not evidence
 - any dimension below its `min_blocker` is reported BLOCKED regardless of composite
 - READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED, no diff-added test is still UNREACHED (and under `--streak=N`, the full streak is met)

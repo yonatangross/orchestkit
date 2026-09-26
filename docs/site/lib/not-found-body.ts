@@ -49,7 +49,8 @@ export const RECOVERY_LINKS: readonly RecoveryLink[] = [
 		desc: "The full REST surface, for function-calling and client generation.",
 	},
 	{
-		href: "/api/search?query=",
+		// A working example: an empty query always answered 400 (dogfood 2026-09-25).
+		href: "/api/search?query=install",
 		title: "Search API",
 		desc: "GET /api/search?query=..., find the page you were looking for by keyword.",
 	},

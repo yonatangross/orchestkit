@@ -27,10 +27,10 @@ DRY_RUN = "--dry-run" in "$ARGUMENTS"  # Preview changes without writing
 ## Overview
 
 Memory files accumulate across sessions. Over time they develop problems:
-- **Stale references** — memories pointing to files, functions, or classes that no longer exist
-- **Duplicates** — multiple memories covering the same topic with overlapping content
-- **Contradictions** — newer memories superseding older ones without cleanup
-- **Index drift** — MEMORY.md index out of sync with actual memory files
+- **Stale references**: memories pointing to files, functions, or classes that no longer exist
+- **Duplicates**: multiple memories covering the same topic with overlapping content
+- **Contradictions**: newer memories superseding older ones without cleanup
+- **Index drift**: MEMORY.md index out of sync with actual memory files
 
 This skill fixes all four problems using deterministic checks only.
 
@@ -38,7 +38,7 @@ This skill fixes all four problems using deterministic checks only.
 
 Budget: one read pass over the discovered memory files (STEP 1), one MEMORY.md rewrite (STEP 5) plus the STEP 5.5 trailer rewrite when the index is over budget, and no subagents (every check is deterministic); stop and report at the finish line or the first cap, whichever comes first.
 
-> **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate" — consolidation is no longer needed to head off compaction inefficiency.
+> **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate", consolidation is no longer needed to head off compaction inefficiency.
 
 ---
 
@@ -138,9 +138,9 @@ for symbol in symbol_refs:
 | Some verifiable refs missing | PARTIALLY_STALE | Flag for review |
 | All verifiable refs missing AND all symbols missing | FULLY_STALE | Prune candidate |
 
-Only memories classified as FULLY_STALE are auto-pruned. PARTIALLY_STALE memories are reported but kept — the user decides.
+Only memories classified as FULLY_STALE are auto-pruned. PARTIALLY_STALE memories are reported but kept, the user decides.
 
-### 2d: Prune guards — checked AFTER classification, before any delete
+### 2d: Prune guards, checked AFTER classification, before any delete
 
 `FULLY_STALE` is necessary but **not sufficient** to delete. Every guard below downgrades to
 PARTIALLY_STALE (kept + flagged). These exist because memory files are **not in git**: a wrong
@@ -180,9 +180,9 @@ Guard 3 is the subtle one. `reference_cmux_scroll_blank_research` said *"RESOLVE
 regression it was written to prevent. A memory whose value is a prohibition is at its most useful
 precisely when the original code is gone.
 
-### STEP 2.5: Consult-gate (#2351) — never prune a memory that's still being used
+### STEP 2.5: Consult-gate (#2351), never prune a memory that's still being used
 
-Closing the VERIFY loop: a deletion must survive the question *"was this actually consulted?"*. A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing — its **refs** are stale, its **knowledge** is live. So before pruning, read `.claude/logs/memory-consult.jsonl` (written by `memory-validator` on every `mcp__memory__search_nodes`/`open_nodes`/`read_graph`) and **downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE** (kept + flagged, not auto-deleted).
+Closing the VERIFY loop: a deletion must survive the question *"was this actually consulted?"*. A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing, its **refs** are stale, its **knowledge** is live. So before pruning, read `.claude/logs/memory-consult.jsonl` (written by `memory-validator` on every `mcp__memory__search_nodes`/`open_nodes`/`read_graph`) and **downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE** (kept + flagged, not auto-deleted).
 
 ```python
 import json, time
@@ -216,7 +216,7 @@ for m in list(fully_stale_files):
         partially_stale_files.append(m)
 ```
 
-This is conservative by design — fuzzy term matching errs toward **keeping** a maybe-consulted memory rather than deleting a live one. The Step 6 report records each consult-gated keep (the "did it matter?" audit the loop was missing). If the log is absent (consult instrumentation not yet exercised), the gate is a no-op and pruning proceeds as before.
+This is conservative by design, fuzzy term matching errs toward **keeping** a maybe-consulted memory rather than deleting a live one. The Step 6 report records each consult-gated keep (the "did it matter?" audit the loop was missing). If the log is absent (consult instrumentation not yet exercised), the gate is a no-op and pruning proceeds as before.
 
 ---
 
@@ -225,8 +225,8 @@ This is conservative by design — fuzzy term matching errs toward **keeping** a
 Compare memories pairwise within the same directory. Two memories are duplicates when:
 
 1. **Same type** (both `feedback`, both `project`, etc.)
-2. **Overlapping topic** — 60%+ of significant words (excluding stopwords) appear in both bodies
-3. **Same subject** — `name` or `description` fields reference the same concept
+2. **Overlapping topic**: 60%+ of significant words (excluding stopwords) appear in both bodies
+3. **Same subject**: `name` or `description` fields reference the same concept
 
 ```python
 stopwords = {"the", "a", "an", "is", "are", "was", "were", "be", "been",
@@ -258,8 +258,8 @@ def overlap_ratio(words_a, words_b):
 
 Contradictions occur when two memories of the same type make opposing claims about the same subject. Detection:
 
-1. **Same type + same topic** (overlap >= 0.4 but &lt; 0.6 — related but not duplicate)
-2. **Negation signals** — one body contains negation of the other's assertion:
+1. **Same type + same topic** (overlap >= 0.4 but &lt; 0.6, related but not duplicate)
+2. **Negation signals**: one body contains negation of the other's assertion:
    - "do X" vs "do not X" / "don't X" / "never X"
    - "use X" vs "avoid X" / "stop using X"
    - "prefer X" vs "prefer Y" (for same decision domain)
@@ -426,7 +426,7 @@ After STEP 6: `Read("references/housekeeping.md")` for STEP 7 (orphaned plugin p
 ## STEP 9: Cross-Repo Promotion Candidates (#3295)
 
 A memory pattern that shows up in **2+ projects** is a capability that outgrew its repo.
-While consolidating, detect these deterministically and **offer** promotion -- dream never
+While consolidating, detect these deterministically and **offer** promotion, dream never
 moves content itself, so this step stays safe when dream is model-invoked.
 
 ```bash
@@ -440,13 +440,13 @@ grep -l -i "<topic-key>" ~/.claude/projects/*/memory/MEMORY.md \
 - **2+ distinct projects match** -> the memory is a promotion candidate.
 - Deterministic only: match on normalized slug/title tokens, never on semantic judgment.
 - False positives are cheap (the user declines); silent misses are the failure mode this
-  step exists for -- the same infra lesson re-learned per repo, N times, with nothing watching.
+  step exists for, the same infra lesson re-learned per repo, N times, with nothing watching.
 
 **Interactive runs:** AskUserQuestion per candidate (batch when more than 3):
-- "Promote to a shared plugin" -- org-specific patterns go to the org's private plugin,
+- "Promote to a shared plugin", org-specific patterns go to the org's private plugin,
   generic ones to a public plugin; dream only opens the door, the user routes.
-- "Keep local" -- legitimately repo-specific overlap.
-- "Stop suggesting this one" -- append `promotion: declined` to the memory's frontmatter
+- "Keep local", legitimately repo-specific overlap.
+- "Stop suggesting this one", append `promotion: declined` to the memory's frontmatter
   metadata so future runs skip it.
 
 **Non-interactive / dry runs:** list candidates in the Dream Consolidation Report under
@@ -456,17 +456,17 @@ grep -l -i "<topic-key>" ~/.claude/projects/*/memory/MEMORY.md \
 
 ## When NOT to Use
 
-- To **store** new decisions -- use `remember`
-- To **search** past decisions -- use `memory search`
-- To **load** context at session start -- use `memory load`
-- After fewer than 5 sessions -- memory files are unlikely to have accumulated enough staleness
+- To **store** new decisions, use `remember`
+- To **search** past decisions, use `memory search`
+- To **load** context at session start, use `memory load`
+- After fewer than 5 sessions, memory files are unlikely to have accumulated enough staleness
 
 ---
 
 ## Related Skills
 
-- `ork:remember` -- Store decisions and patterns (write-side)
-- `ork:memory` -- Search, load, sync, visualize (read-side)
+- `ork:remember`: Store decisions and patterns (write-side)
+- `ork:memory`: Search, load, sync, visualize (read-side)
 
 
 ---
@@ -495,7 +495,7 @@ Skip this step on CC &lt; 2.1.121. The state file `.claude/state/last-prune.txt`
 
 ## STEP 8: Stale Project State Hint (CC 2.1.126+, #1582, fixed in #1587)
 
-After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge — only preview it.
+After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge, only preview it.
 
 ```bash
 # Skip on CC < 2.1.126 (no `claude project purge` available)
@@ -528,7 +528,7 @@ fi
 
 # Index budget (STEP 5.5)
 
-`scripts/index-budget.mjs &lt;memory_dir&gt; [--ceiling N] [--handoff-days 7] [--entry-days 30] [--apply] [--json]`
+`scripts/index-budget.mjs <memory_dir> [--ceiling N] [--handoff-days 7] [--entry-days 30] [--apply] [--json]`
 
 ## Why a script
 
@@ -567,7 +567,7 @@ fall through to hook trimming in the rebuild step, then warn. Nothing is ever de
 ## Apply
 
 `--apply` copies `MEMORY.md` to `.MEMORY.md.prev` first, removes the proposed lines from
-`MEMORY.md`, appends them to `MEMORY-ARCHIVE.md` under `## Moved from MEMORY.md &lt;date&gt; (N)`
+`MEMORY.md`, appends them to `MEMORY-ARCHIVE.md` under `## Moved from MEMORY.md <date> (N)`
 (creating the archive with a short header if absent), rewrites the single trailer to link
 `MEMORY-ARCHIVE.md` by exact name, re-verifies the invariant from disk, and exits 1 if it fails.
 The archive is not budgeted: it is read on demand, never auto-loaded.
@@ -604,7 +604,7 @@ Rules:
 - **Never `mv` over an existing name.** Two runs on the same day can select the
   same filename; `mv -n` refuses silently, which is the failure mode this whole
   file exists to prevent. Test first and suffix on collision:
-  `[ -e "$dest" ] && dest="$\{dest%.md\}.2.md"`.
+  `[ -e "$dest" ] && dest="${dest%.md}.2.md"`.
 - **Sweep on the NEXT run, not this one.** Deleting a 7-day-old trash directory
   at the start of a run means a session that dreams twice in one day still has
   yesterday's safety net. Sweeping at the end means a crash mid-run leaves the

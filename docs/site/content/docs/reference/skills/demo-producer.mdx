@@ -5,7 +5,7 @@ description: "Universal demo video creator for skills, agents, plugins, tutorial
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="demo-producer" />
 
@@ -18,8 +18,8 @@ Universal demo video creation for any content type.
 
 > **Tool versions (2026-Q2):** VHS >= 0.11, Remotion >= 4.0.448. VHS 0.11 added:
 >
-> - **`Wait` keyword** — supersedes `Sleep N` with a condition-based wait (`Wait "prompt>"` blocks until the given string appears). Use `Wait` over `Sleep` for any prompt that can appear at variable times.
-> - **`ScrollUp N` / `ScrollDown N`** — explicit scroll steps inside a recorded session; useful for demonstrating TUI apps and long `less`-style output.
+> - **`Wait` keyword**, supersedes `Sleep N` with a condition-based wait (`Wait "prompt>"` blocks until the given string appears). Use `Wait` over `Sleep` for any prompt that can appear at variable times.
+> - **`ScrollUp N` / `ScrollDown N`**, explicit scroll steps inside a recorded session; useful for demonstrating TUI apps and long `less`-style output.
 >
 > Keep existing `Sleep N` only for fixed visual pacing where no event is available.
 
@@ -38,7 +38,7 @@ demo-producer --live 4           # Live preview via dev --live (4-hour public fu
 `--live N` is a thin wrapper around `dev --live N`: it boots the dev stack
 behind `portless --funnel` (publicly exposed via Tailscale Funnel), records an
 expiry of `N` hours into `.claude/state/live-demos.jsonl`, and prints a public
-URL plus `&lt;iframe&gt;` snippet for embedding in customer emails or docs pages.
+URL plus `<iframe>` snippet for embedding in customer emails or docs pages.
 
 ```bash
 demo-producer --live 4
@@ -52,7 +52,7 @@ dev --live 4
 
 `doctor` warns about live demos older than 24 hours so they don't sprawl.
 Tear down with `dev stop`. Tailscale CLI must be installed (only required
-behind `--live` — not for static demo recording modes).
+behind `--live`, not for static demo recording modes).
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -187,7 +187,7 @@ Compositions organized under `Production/` by format (Landscape, Vertical, Squar
 
 ## PushNotification on Completion (CC 2.1.110+)
 
-VHS recording and Remotion rendering commonly take 10–45 min per video, and full multi-variant productions (landscape + vertical + square) can exceed an hour. **After all output files are written and verified, call `PushNotification`** so the user knows the video is ready for review.
+VHS recording and Remotion rendering commonly take 10-45 min per video, and full multi-variant productions (landscape + vertical + square) can exceed an hour. **After all output files are written and verified, call `PushNotification`** so the user knows the video is ready for review.
 
 ```python
 PushNotification(
@@ -196,7 +196,7 @@ PushNotification(
 )
 ```
 
-Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Best Practices
 
@@ -231,7 +231,7 @@ Core rule: If content doesn't earn its screen time, cut it.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `template-system.md` | Template architecture and SkillDemoConfig interface |
@@ -305,19 +305,19 @@ tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
 ### Key Rules
 
 - Parse frontmatter YAML **before** the closing `---` delimiter
-- Phase headers follow `## Phase N:` pattern — extract name and description
+- Phase headers follow `## Phase N:` pattern, extract name and description
 - Code examples need **language tag** and **surrounding context**
 - Related skills come from `## Related Skills` section with backtick-wrapped names
 - Validate extracted metadata against the `SkillMetadata` interface before generating demos
 
-**Incorrect — Parsing description from wrong section:**
+**Incorrect, Parsing description from wrong section:**
 ```bash
 # Extracts from body instead of frontmatter
 description=$(grep -m1 "description:" SKILL.md | cut -d: -f2-)
 # Gets "Description of feature X" from body, not skill description
 ```
 
-**Correct — Extracting from frontmatter only:**
+**Correct, Extracting from frontmatter only:**
 ```bash
 # Extract frontmatter between --- delimiters
 frontmatter=$(sed -n '/^---$/,/^---$/p' SKILL.md | sed '1d;$d')
@@ -330,7 +330,7 @@ description=$(echo "$frontmatter" | grep "^description:" | cut -d: -f2- | xargs)
 
 ## Video Composition and Audio
 
-**Incorrect — poor composition and audio:**
+**Incorrect, poor composition and audio:**
 ```typescript
 // WRONG: Spring animation starting at frame 0 (invisible first frame)
 const scale = spring({ frame, fps, from: 0, to: 1 });
@@ -340,7 +340,7 @@ const scale = spring({ frame, fps, from: 0, to: 1 });
 // Both tracks at -12 dB = unintelligible narration
 ```
 
-**Correct — Remotion composition with proper patterns:**
+**Correct, Remotion composition with proper patterns:**
 ```typescript
 // Remotion folder organization
 Production/
@@ -368,7 +368,7 @@ Production/
 |------|-------|
 | Text | 3-4 words maximum |
 | Test | Must be readable at small preview size |
-| First frame | Optimize — many platforms use it as preview |
+| First frame | Optimize, many platforms use it as preview |
 
 ### Visual Effects Categories
 
@@ -406,14 +406,14 @@ Production/
 
 ## Video Production Pipeline
 
-**Incorrect — jumping straight to recording:**
+**Incorrect, jumping straight to recording:**
 ```
 # WRONG: No planning, no script, no timing
 vhs record my-demo.tape
 # Results in: rambling, bad pacing, missed key moments
 ```
 
-**Correct — structured pre-production pipeline:**
+**Correct, structured pre-production pipeline:**
 ```
 video-storyboarding     terminal-demo-generator     manim-visualizer
 (pre-production)        (recording)                 (animations)
@@ -1001,7 +1001,7 @@ Experiments/                  # Work in progress, testing new ideas
      </Folder>
    </Folder>
    ```
-3. **Use unique composition IDs** — IDs must be globally unique across all folders
+3. **Use unique composition IDs**: IDs must be globally unique across all folders
 4. **Add vertical/square variants** in their respective format folders with prefixes (e.g., `V-TTR-`, `SQ-TTR-`)
 
 
@@ -1902,8 +1902,8 @@ interface ScrapbookDemoProps {
 
 ### Variants
 
-- `ScrapbookDemo` — 1920x1080 landscape (16:9)
-- `ScrapbookDemoSquare` — 1080x1080 square (1:1), fewer social cards
+- `ScrapbookDemo`: 1920x1080 landscape (16:9)
+- `ScrapbookDemoSquare`: 1080x1080 square (1:1), fewer social cards
 
 ---
 

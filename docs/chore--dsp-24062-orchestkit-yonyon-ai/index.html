@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home hero and nav logo fix: before and after</title>
+<meta name="description" content="Why the OrchestKit home page looked broken on a laptop, the root cause in the hero grid and the nav mark, and before/after screenshots at five widths.">
+<style>
+:root { --bg:#f7f5ef; --fg:#1d1d1b; --muted:#5d5b55; --line:#dcd8cc; --accent:#3b5bdb; --card:#fffdf8; }
+.dark { --bg:#15161f; --fg:#e8e8ef; --muted:#a3a5b5; --line:#2c2e3d; --accent:#8ea2ff; --card:#1c1d29; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 ui-sans-serif,system-ui,sans-serif; }
+main { max-width:1180px; margin:0 auto; padding:40px 24px 80px; }
+h1 { font-size:30px; margin:0 0 6px; letter-spacing:-0.01em; }
+h2 { font-size:19px; margin:40px 0 10px; border-top:1px solid var(--line); padding-top:22px; }
+h3 { font-size:15px; margin:26px 0 8px; color:var(--muted); font-weight:600; }
+.verdict { font-size:17px; margin:10px 0 18px; }
+.cause { background:var(--card); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:10px; padding:14px 18px; }
+.cause p { margin:6px 0; }
+pre { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:12.5px/1.45 ui-monospace,Menlo,monospace; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+figure { margin:0; }
+figure img { width:100%; display:block; border:1px solid var(--line); border-radius:8px; }
+figcaption { font-size:12.5px; color:var(--muted); margin-top:4px; }
+button { position:fixed; top:14px; right:14px; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; }
+code { font:13px ui-monospace,Menlo,monospace; }
+@media (max-width:760px) { .two { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<button type="button" onclick="document.documentElement.classList.toggle('dark')">Light / dark</button>
+<main>
+<h1>Home hero and nav logo: before and after</h1>
+<p class="verdict">The hero looked broken on laptops because the art was taken out of the grid flow, so the right column sat empty beside a copy column about 600 px taller than the art. The nav logo was a detailed 128 px raster shrunk to 22 px.</p>
+
+<div class="cause">
+<p><strong>Hero root cause.</strong> <code>.home-hero-art</code> was <code>position:absolute; top:0; right:0; width:55%</code> with a fixed aspect ratio, inside a two-column grid whose second column held nothing. The copy column carried the host picker, search and links, so everything under the art was bare grid. The 1180 px container cap also left the right gutter unused at 1575 px and up. In light mode the opaque night-scene art, feathered on one side only, showed as a black slab.</p>
+<p><strong>Hero fix.</strong> The art is a grid item in column 2, vertically centred on the copy. Install is host-first: the copy column holds the host picker and one command box for the picked host, with its Copy button, docs link and Get started. Search, links and the proof row move to a full-width row under the hero. Both arts are cropped to the subject (the source was 44% black on the left, which pushed the conductor ~490 px from the headline at 2000 px) and the box stays in column 2. Light mode has its own art, a GPT Image 2 restyle of the dark one. The theme switch reveals the page in a circle from the toggle while the incoming art settles in.</p>
+<p><strong>Logo root cause and fix.</strong> <code>george-badge.png</code> (128 px, detailed husky, no alpha) rendered at 22 px with a warm ring beside a wordmark whose "Kit" had its own gradient. The failure was the crop, not George: the suit, ring and disc were squeezed in with him. The nav now shows an 84 px crop of his head at 30 px on a rounded square, so the ears, glasses and two eye colors read, beside a one-color wordmark.</p>
+</div>
+
+<h2>Mockup (shown before the build; the picker later moved up into the copy column)</h2>
+<pre>BEFORE (prod, 1575 dark)                  AFTER
++ [o] OrchestKit  Docs Cookbook ... +       + [O] OrchestKit  Docs Cookbook ... +
+| 22px raster husky + ring,       |       | George head crop 30px, one color  |
+| "Kit" in gradient               |       |                                   |
+| Stop explaining   +-art 55%--+  |       | Stop explaining   ..conductor.....|
+| your stack.       | hard box |  |       | your stack.       ..bleeds to.....|
+| Start shipping.   +----------+  |       | Start shipping.   ..viewport edge.|
+| [ $ install ]      empty grid   |       | [ $ install ]  Get started        |
+| host picker 4x2    empty grid   |       +--- full-width band, centered -----+
+| search, links      empty grid   |       |     host picker 4x2, search       |
+| proof row          empty grid   |       |     links, stars, MIT, CC ver     |
++---------------------------------+       +-----------------------------------+
+light: black slab on white                light: art in a rounded framed card</pre>
+
+<h2>Compare in the browser</h2>
+<section class="pair"><h3>1575 px laptop, dark (the operator's report)</h3><div class="two">
+<figure><img loading="lazy" alt="before-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+<section class="pair"><h3>1575 px laptop, light</h3><div class="two">
+<figure><img loading="lazy" alt="before-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-light.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-light.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+<section class="pair"><h3>1280 px, dark</h3><div class="two">
+<figure><img loading="lazy" alt="before-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1280x800-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1280x800-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+<section class="pair"><h3>1920 px, dark</h3><div class="two">
+<figure><img loading="lazy" alt="before-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1920x1080-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1920x1080-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+<section class="pair"><h3>390 px mobile, dark</h3><div class="two">
+<figure><img loading="lazy" alt="before-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+<section class="pair"><h3>390 px mobile, light</h3><div class="two">
+<figure><img loading="lazy" alt="before-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-light.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/7e134042e957062c5230f45d0dd3af97ac725fe6/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-light.jpg"><figcaption>After (this PR)</figcaption></figure>
+</div></section>
+</main>
+</body>
+</html>

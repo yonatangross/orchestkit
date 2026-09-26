@@ -5,7 +5,7 @@ description: "AI-assisted UI generation patterns for json-render, v0.app, Google
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="ai-ui-generation" />
 
@@ -14,13 +14,13 @@ description: "AI-assisted UI generation patterns for json-render, v0.app, Google
 
 # AI UI Generation
 
-Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0.app, Google Stitch, Bolt Cloud, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0.app, Google Stitch, Bolt Cloud, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom**, the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
 
 > **Tool landscape as of 2026-04:**
-> - **v0.dev → v0.app** (Jan 2026 rebrand) — expanded from component scaffolding to full-stack app generation with shipping targets (Vercel, Cloudflare, Railway). v0.app MCP server (`@vercel/v0-mcp`) exposes generation as an MCP tool, so agents can call it programmatically.
-> - **Google Stitch** — design-first generation via `stitch.withgoogle.com/docs/mcp`. Produces multi-screen apps (up to 5 interconnected screens) with React/HTML + PNG. Strong when input is a screenshot, URL, or DESIGN.md file.
-> - **Bolt Cloud** (StackBlitz, 2026) — Bolt now runs the dev environment in the cloud (no local WebContainer). Integrates with GitHub and supports persistent databases. Best for full-stack prototypes with backend + deploy.
-> - **v0.app** and **Stitch** both integrate with shadcn/ui styles; pair with the `shadcn apply &lt;style&gt;` CLI (v4) to reuse generated output.
+> - **v0.dev → v0.app** (Jan 2026 rebrand), expanded from component scaffolding to full-stack app generation with shipping targets (Vercel, Cloudflare, Railway). v0.app MCP server (`@vercel/v0-mcp`) exposes generation as an MCP tool, so agents can call it programmatically.
+> - **Google Stitch**, design-first generation via `stitch.withgoogle.com/docs/mcp`. Produces multi-screen apps (up to 5 interconnected screens) with React/HTML + PNG. Strong when input is a screenshot, URL, or DESIGN.md file.
+> - **Bolt Cloud** (StackBlitz, 2026), Bolt now runs the dev environment in the cloud (no local WebContainer). Integrates with GitHub and supports persistent databases. Best for full-stack prototypes with backend + deploy.
+> - **v0.app** and **Stitch** both integrate with shadcn/ui styles; pair with the `shadcn apply <style>` CLI (v4) to reuse generated output.
 
 ## Quick Reference
 
@@ -34,16 +34,16 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 
 **Total: 8 rules across 5 categories**
 
-## Decision Table — json-render vs v0.app vs Stitch vs Bolt Cloud vs Cursor
+## Decision Table: json-render vs v0.app vs Stitch vs Bolt Cloud vs Cursor
 
 | Scenario | Tool | Why |
 |----------|------|-----|
-| Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
+| Multi-surface / MCP visual output | json-render | Single catalog renders to any surface, FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
-| New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply &lt;style&gt;` for style consistency |
-| Full-stack app with deploy | v0.app | Jan 2026 expansion — routes, DB, auth, Vercel/Cloudflare deploy in one generation |
-| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/\{project\}/screens/\{screen\}")` |
+| New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply <style>` for style consistency |
+| Full-stack app with deploy | v0.app | Jan 2026 expansion, routes, DB, auth, Vercel/Cloudflare deploy in one generation |
+| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/{project}/screens/{screen}")` |
 | Multi-screen flow from a visual source | Google Stitch | Strongest when grounded in an existing design |
 | Full-stack prototype with persistent backend | Bolt Cloud | Cloud dev env, GitHub integration, databases |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
@@ -67,7 +67,7 @@ Generate a React signup form component using:
 - Responsive: stack on mobile (<640px), 2-col on desktop
 ```
 
-### Review Example — After AI Generation
+### Review Example: After AI Generation
 
 ```tsx
 // AI generated: hardcoded hex value
@@ -125,22 +125,22 @@ Choosing the right AI tool and iterating effectively.
 
 ## Key Principles
 
-1. **Own the output** — AI generates a draft; the engineer reviews, refactors, and is accountable for what ships.
-2. **Tokens over literals** — Never accept hardcoded colors, spacing, or typography values. Always map to design tokens.
-3. **Constraint-first prompts** — Specify framework, tokens, shadcn style (Luma/Nova/etc.), a11y, and states upfront. Vague prompts produce vague output.
-4. **Iterative refinement** — Complex components need 2-3 prompt passes: structure first, states second, polish third.
-5. **CI is non-negotiable** — Every AI-generated component goes through the same CI pipeline as hand-written code.
-6. **Accessibility by default** — Include a11y requirements in every prompt; verify with automated checks post-generation.
+1. **Own the output**: AI generates a draft; the engineer reviews, refactors, and is accountable for what ships.
+2. **Tokens over literals**: Never accept hardcoded colors, spacing, or typography values. Always map to design tokens.
+3. **Constraint-first prompts**: Specify framework, tokens, shadcn style (Luma/Nova/etc.), a11y, and states upfront. Vague prompts produce vague output.
+4. **Iterative refinement**: Complex components need 2-3 prompt passes: structure first, states second, polish third.
+5. **CI is non-negotiable**: Every AI-generated component goes through the same CI pipeline as hand-written code.
+6. **Accessibility by default**: Include a11y requirements in every prompt; verify with automated checks post-generation.
 
 ## Anti-Patterns (FORBIDDEN)
 
-- **Shipping raw AI output** — Never merge AI-generated code without human review and design system refactoring.
-- **Vague prompts** — "Make a nice form" produces inconsistent, non-conformant output. Always specify constraints.
-- **Hardcoded hex/rgb values** — AI tools default to arbitrary colors. Replace with OKLCH design tokens.
-- **Skipping CI for "simple" components** — AI-generated code has the same bug surface as hand-written code.
-- **Using v0.app for incremental changes** — v0.app generates from scratch; use Cursor for changes within an existing codebase.
-- **Single-pass complex components** — Multi-state components (loading, error, empty, success) need iterative prompting.
-- **Trusting AI a11y claims** — AI tools add ARIA attributes inconsistently. Always verify with axe-core or Storybook a11y addon.
+- **Shipping raw AI output**: Never merge AI-generated code without human review and design system refactoring.
+- **Vague prompts**: "Make a nice form" produces inconsistent, non-conformant output. Always specify constraints.
+- **Hardcoded hex/rgb values**: AI tools default to arbitrary colors. Replace with OKLCH design tokens.
+- **Skipping CI for "simple" components**: AI-generated code has the same bug surface as hand-written code.
+- **Using v0.app for incremental changes**: v0.app generates from scratch; use Cursor for changes within an existing codebase.
+- **Single-pass complex components**: Multi-state components (loading, error, empty, success) need iterative prompting.
+- **Trusting AI a11y claims**: AI tools add ARIA attributes inconsistently. Always verify with axe-core or Storybook a11y addon.
 
 ## Detailed Documentation
 
@@ -152,14 +152,14 @@ Choosing the right AI tool and iterating effectively.
 
 ## Related Skills
 
-- `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
-- `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
-- `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:animation-motion-design` — Motion library animation patterns
-- `ork:responsive-patterns` — Responsive layout and container query patterns
-- `ork:design-system-tokens` — Design token architecture and theming
+- `ork:json-render-catalog`: json-render catalog authoring, schema validation, and registry patterns
+- `ork:mcp-visual-output`: MCP visual output rendering with json-render specs
+- `ork:multi-surface-render`: Cross-platform rendering from a single component catalog
+- `ork:ui-components`: shadcn/ui component patterns and CVA variants
+- `ork:accessibility`: WCAG compliance, ARIA patterns, screen reader support
+- `ork:animation-motion-design`: Motion library animation patterns
+- `ork:responsive-patterns`: Responsive layout and container query patterns
+- `ork:design-system-tokens`: Design token architecture and theming
 
 
 ---
@@ -171,7 +171,7 @@ Choosing the right AI tool and iterating effectively.
 
 ## CI Gate for AI-Generated UI
 
-Every AI-generated component must pass the same CI pipeline as hand-written code. AI tools produce plausible output that passes visual inspection but fails automated checks — especially accessibility, type safety, and bundle size.
+Every AI-generated component must pass the same CI pipeline as hand-written code. AI tools produce plausible output that passes visual inspection but fails automated checks, especially accessibility, type safety, and bundle size.
 
 **Incorrect:**
 ```yaml
@@ -273,11 +273,11 @@ export default defineConfig({
 ```
 
 **Key rules:**
-- AI-generated components go through the exact same CI as hand-written code — no fast lanes
+- AI-generated components go through the exact same CI as hand-written code, no fast lanes
 - The CI gate runs `tsc --noEmit` before anything else because type errors indicate fundamental issues
-- Use `--max-warnings 0` for ESLint — AI-generated code often has warnings that hide bugs
-- Test bundle size — AI tools import entire icon libraries instead of individual icons
-- Add Storybook stories for every AI-generated component — they serve as both docs and test targets
+- Use `--max-warnings 0` for ESLint, AI-generated code often has warnings that hide bugs
+- Test bundle size, AI tools import entire icon libraries instead of individual icons
+- Add Storybook stories for every AI-generated component, they serve as both docs and test targets
 
 Reference: https://storybook.js.org/docs/writing-tests/accessibility-testing
 
@@ -299,7 +299,7 @@ Complex interactive components require 2-3 prompt passes. A single prompt cannot
 
 Result: AI generates the happy path (data visible, sorted) but produces broken loading spinners, missing error boundaries, and no empty state.
 
-**Correct — 3-Pass Approach:**
+**Correct, 3-Pass Approach:**
 
 ### Pass 1: Structure and Happy Path
 ```
@@ -358,8 +358,8 @@ error → loading (retry clicked) → success | error
 - Use single-pass only for static or single-interaction components
 - Always separate structure (Pass 1) from states (Pass 2) from advanced interactions (Pass 3)
 - Define the state transition map before writing any prompt
-- Tell the AI to "keep existing code unchanged" in follow-up passes — prevents regression
-- Review each pass output before proceeding to the next — errors compound across passes
+- Tell the AI to "keep existing code unchanged" in follow-up passes, prevents regression
+- Review each pass output before proceeding to the next, errors compound across passes
 
 Reference: https://tanstack.com/table/latest
 
@@ -420,11 +420,11 @@ Integration: [form library, state management, API calls]
 ```
 
 **Key rules:**
-- Always specify the UI library AND shadcn style (e.g., "shadcn/ui Luma style") — AI tools default to raw HTML and generic classes otherwise
-- List design token variable names explicitly — AI cannot infer your token system
-- Enumerate every state the component must handle — AI skips states you do not mention
-- Include responsive breakpoints — AI defaults to desktop-only layouts
-- Specify TypeScript strictness — AI generates `any` types without explicit instruction
+- Always specify the UI library AND shadcn style (e.g., "shadcn/ui Luma style"), AI tools default to raw HTML and generic classes otherwise
+- List design token variable names explicitly, AI cannot infer your token system
+- Enumerate every state the component must handle, AI skips states you do not mention
+- Include responsive breakpoints, AI defaults to desktop-only layouts
+- Specify TypeScript strictness, AI generates `any` types without explicit instruction
 
 Reference: https://v0.dev/docs
 
@@ -494,11 +494,11 @@ export function StatusBadge({
 
 ### The 5-Step Refactoring Process
 
-1. **Extract tokens** — Replace all hardcoded colors (`green-100`, `#3b82f6`) with semantic tokens (`bg-primary`, `text-muted-foreground`)
-2. **Apply CVA variants** — Convert conditional className strings to `cva()` variant definitions with `defaultVariants`
-3. **Add TypeScript props** — Create explicit interface extending HTML element props + `VariantProps&lt;typeof variants&gt;`
-4. **Wire to design system** — Import `cn()` utility, accept `className` prop for composition, use `forwardRef` if needed
-5. **Verify theme** — Test light mode, dark mode, and high contrast — tokens must resolve correctly in all themes
+1. **Extract tokens**: Replace all hardcoded colors (`green-100`, `#3b82f6`) with semantic tokens (`bg-primary`, `text-muted-foreground`)
+2. **Apply CVA variants**: Convert conditional className strings to `cva()` variant definitions with `defaultVariants`
+3. **Add TypeScript props**: Create explicit interface extending HTML element props + `VariantProps<typeof variants>`
+4. **Wire to design system**: Import `cn()` utility, accept `className` prop for composition, use `forwardRef` if needed
+5. **Verify theme**: Test light mode, dark mode, and high contrast, tokens must resolve correctly in all themes
 
 ### Refactoring Checklist
 
@@ -506,16 +506,16 @@ export function StatusBadge({
 |------|-------------------|-------------------|
 | Colors | `bg-blue-500`, `text-gray-600` | `bg-primary`, `text-muted-foreground` |
 | Variants | Ternary chains in className | `cva()` with named variants |
-| Props | `\{ status: string \}` | `StatusBadgeProps` with union types |
+| Props | `{ status: string }` | `StatusBadgeProps` with union types |
 | Composition | No className prop | `cn(variants(), className)` |
 | Theme | Light mode only | Verified in light, dark, high contrast |
 
 **Key rules:**
-- Never ship raw AI output — always run the 5-step process
-- Use CVA for any component with 2+ visual variants — AI outputs ternary chains instead
-- Union types over `string` for variant props — `"active" | "inactive"` not `string`
+- Never ship raw AI output, always run the 5-step process
+- Use CVA for any component with 2+ visual variants, AI outputs ternary chains instead
+- Union types over `string` for variant props, `"active" | "inactive"` not `string`
 - Always accept `className` and spread `...props` for composition
-- Test dark mode — AI tools generate with light backgrounds, tokens may not resolve in dark
+- Test dark mode, AI tools generate with light backgrounds, tokens may not resolve in dark
 
 Reference: https://cva.style/docs
 
@@ -525,7 +525,7 @@ Reference: https://cva.style/docs
 
 ## AI-Generated UI Review Checklist
 
-Every AI-generated component must pass this 10-point checklist before merging. AI tools produce plausible but subtly incorrect code — systematic review catches issues that look correct at a glance.
+Every AI-generated component must pass this 10-point checklist before merging. AI tools produce plausible but subtly incorrect code, systematic review catches issues that look correct at a glance.
 
 **Incorrect:**
 ```tsx
@@ -574,22 +574,22 @@ export function UserCard({ user, onSelect }: UserCardProps) {
 
 | # | Check | What to Look For |
 |---|-------|-----------------|
-| 1 | **Semantic HTML** | `&lt;button&gt;` not `<div onClick>`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;` |
+| 1 | **Semantic HTML** | `<button>` not `<div onClick>`, `<nav>`, `<main>`, `<article>` |
 | 2 | **ARIA roles** | Interactive elements have labels, live regions for dynamic content |
-| 3 | **Design tokens** | No hardcoded hex/rgb/hsl — use Tailwind semantic classes (`bg-primary`) |
+| 3 | **Design tokens** | No hardcoded hex/rgb/hsl, use Tailwind semantic classes (`bg-primary`) |
 | 4 | **TypeScript props** | Explicit interface, no `any`, proper event handler types |
-| 5 | **Responsive** | Works at 320px, 768px, 1024px+ — no horizontal overflow |
+| 5 | **Responsive** | Works at 320px, 768px, 1024px+, no horizontal overflow |
 | 6 | **Keyboard navigation** | Tab order, Enter/Space activation, Escape to close |
 | 7 | **Focus indicators** | `focus-visible:ring-2` on all interactive elements |
 | 8 | **Image alt text** | Meaningful alt on images, `alt=""` for decorative |
-| 9 | **Error states** | Loading, error, empty states handled — not just happy path |
+| 9 | **Error states** | Loading, error, empty states handled, not just happy path |
 | 10 | **No console/debug** | Remove `console.log`, TODO comments, placeholder data |
 
 **Key rules:**
-- Run through all 10 points for every AI-generated component — no exceptions
+- Run through all 10 points for every AI-generated component, no exceptions
 - Flag any hardcoded color, spacing, or typography value as a blocking issue
-- Interactive `<div>` or `<span>` elements must be converted to `&lt;button&gt;` or `<a>`
-- Missing TypeScript props interface is a blocking issue — AI often uses implicit `any`
+- Interactive `<div>` or `<span>` elements must be converted to `<button>` or `<a>`
+- Missing TypeScript props interface is a blocking issue, AI often uses implicit `any`
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/
 
@@ -599,7 +599,7 @@ Reference: https://www.w3.org/WAI/ARIA/apg/patterns/
 
 ## Design Token Injection in AI Prompts
 
-Always pass design token variable names in AI prompts. AI tools cannot infer your token system — they default to hardcoded values that break dark mode, theme switching, and design system consistency.
+Always pass design token variable names in AI prompts. AI tools cannot infer your token system, they default to hardcoded values that break dark mode, theme switching, and design system consistency.
 
 **Incorrect:**
 ```
@@ -677,11 +677,11 @@ DO NOT use arbitrary Tailwind values like bg-[#3b82f6].
 ```
 
 **Key rules:**
-- Include the full token injection block in every AI prompt — AI tools cannot read your CSS variables
-- Flag any `bg-[#...]`, `text-[#...]`, or inline `style=\{\{ color: "..." \}\}` as a blocking review issue
+- Include the full token injection block in every AI prompt, AI tools cannot read your CSS variables
+- Flag any `bg-[#...]`, `text-[#...]`, or inline `style={{ color: "..." }}` as a blocking review issue
 - After generation, search-and-replace any remaining hardcoded values with token classes
-- Verify dark mode works — hardcoded values are invisible against dark backgrounds
-- Use OKLCH for new token definitions — wider gamut and perceptually uniform lightness
+- Verify dark mode works, hardcoded values are invisible against dark backgrounds
+- Use OKLCH for new token definitions, wider gamut and perceptually uniform lightness
 
 Reference: https://ui.shadcn.com/docs/theming
 
@@ -691,7 +691,7 @@ Reference: https://ui.shadcn.com/docs/theming
 
 ## AI Tool Selection for UI Generation
 
-Match the AI tool to the task type. **json-render is the first choice** for multi-surface, MCP output, and type-safe catalog workflows. Each tool has a sweet spot — using it outside that range produces poor results or unnecessary rework.
+Match the AI tool to the task type. **json-render is the first choice** for multi-surface, MCP output, and type-safe catalog workflows. Each tool has a sweet spot, using it outside that range produces poor results or unnecessary rework.
 
 **Incorrect:**
 ```
@@ -717,7 +717,7 @@ Prompt to v0: "Fix the pagination bug in our DataTable component"
 
 | Task | Best Tool | Why | Avoid |
 |------|-----------|-----|-------|
-| Multi-surface / MCP output | **json-render** | Single catalog, renders anywhere — FIRST CHOICE | v0 (single-surface only) |
+| Multi-surface / MCP output | **json-render** | Single catalog, renders anywhere, FIRST CHOICE | v0 (single-surface only) |
 | Type-safe component catalog | **json-render** | Schema-driven specs with per-platform registries | Bolt (no catalog abstraction) |
 | Streaming UI from AI agents | **json-render** | Structured JSON specs render progressively | Cursor (no streaming output) |
 | New component from scratch | **v0** | Best scaffold quality, shadcn/ui native | Cursor (no visual preview) |
@@ -733,17 +733,17 @@ Prompt to v0: "Fix the pagination bug in our DataTable component"
 
 For maximum efficiency, combine tools:
 
-1. **v0** — Generate initial component scaffold with visual preview
-2. **Copy** — Paste output into your project
-3. **Cursor** — Refactor to match your design system, add project-specific logic
-4. **CI** — Run lint, a11y, visual regression checks
+1. **v0**: Generate initial component scaffold with visual preview
+2. **Copy**: Paste output into your project
+3. **Cursor**: Refactor to match your design system, add project-specific logic
+4. **CI**: Run lint, a11y, visual regression checks
 
 **Key rules:**
-- Use json-render when output must render on multiple surfaces, stream via MCP, or enforce a type-safe catalog — it is the first choice
+- Use json-render when output must render on multiple surfaces, stream via MCP, or enforce a type-safe catalog, it is the first choice
 - Use v0 for net-new components where visual preview accelerates design decisions
-- Use Cursor for any change that touches existing code — it reads project context
+- Use Cursor for any change that touches existing code, it reads project context
 - Use Bolt only when you need backend + frontend together in a prototype
-- Never use v0 for bug fixes or refactoring — it generates from scratch and ignores your codebase
+- Never use v0 for bug fixes or refactoring, it generates from scratch and ignores your codebase
 - Combine tools: json-render for catalog definition, v0 for scaffold, Cursor for integration and refinement
 
 Reference: https://v0.dev, https://bolt.new, https://cursor.com
@@ -758,22 +758,22 @@ json-render is the **first choice** when AI-generated UI must render across mult
 
 ### When to Use json-render (FIRST CHOICE)
 
-- **Multi-surface output** — one catalog renders to web, mobile, CLI, or any custom surface
-- **MCP visual output** — structured JSON specs travel over MCP and render on the host surface
-- **Type-safe catalogs** — schema-driven component definitions with compile-time validation
-- **Streaming UI** — AI agents emit JSON specs progressively; renderers display as specs arrive
+- **Multi-surface output**: one catalog renders to web, mobile, CLI, or any custom surface
+- **MCP visual output**: structured JSON specs travel over MCP and render on the host surface
+- **Type-safe catalogs**: schema-driven component definitions with compile-time validation
+- **Streaming UI**: AI agents emit JSON specs progressively; renderers display as specs arrive
 
 ### When to Use v0 / Bolt / Cursor Instead
 
-- **Quick visual prototyping** — v0 gives instant visual preview with shadcn/ui
-- **Full-stack prototype** — Bolt scaffolds backend + frontend + deployment together
-- **Incremental changes** — Cursor reads your codebase context for inline edits and refactors
+- **Quick visual prototyping**: v0 gives instant visual preview with shadcn/ui
+- **Full-stack prototype**: Bolt scaffolds backend + frontend + deployment together
+- **Incremental changes**: Cursor reads your codebase context for inline edits and refactors
 
 ### Integration Pattern
 
-1. **Define catalog** — declare component schemas in a json-render catalog (see `ork:json-render-catalog`)
-2. **AI generates spec** — the AI produces a JSON spec conforming to the catalog schema
-3. **Render on target surface** — per-platform registries map specs to native components
+1. **Define catalog**: declare component schemas in a json-render catalog (see `ork:json-render-catalog`)
+2. **AI generates spec**: the AI produces a JSON spec conforming to the catalog schema
+3. **Render on target surface**: per-platform registries map specs to native components
 
 **Incorrect:**
 ```tsx
@@ -822,16 +822,16 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 1. Hardcoded Color Values
 
 **Frequency:** Very common (80%+ of AI output)
-**Problem:** AI generates `bg-[#3b82f6]`, `text-[#64748b]`, or inline `style=\{\{ color: "#..." \}\}` instead of design tokens.
-**Detection:** `grep -rn 'bg-\[#\|text-\[#\|border-\[#\|style=\{\{' src/components/`
+**Problem:** AI generates `bg-[#3b82f6]`, `text-[#64748b]`, or inline `style={{ color: "#..." }}` instead of design tokens.
+**Detection:** `grep -rn 'bg-\[#\|text-\[#\|border-\[#\|style={{' src/components/`
 **Fix:** Replace with semantic token classes: `bg-primary`, `text-muted-foreground`, `border-border`.
 
 ## 2. Non-Semantic HTML
 
 **Frequency:** Very common
-**Problem:** AI uses `<div onClick>` instead of `&lt;button&gt;`, `<div>` instead of `&lt;nav&gt;`, `<span>` for headings.
+**Problem:** AI uses `<div onClick>` instead of `<button>`, `<div>` instead of `<nav>`, `<span>` for headings.
 **Detection:** ESLint `jsx-a11y/no-noninteractive-element-interactions`, `jsx-a11y/click-events-have-key-events`.
-**Fix:** Replace with semantic elements: `&lt;button&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;`, `&lt;section&gt;`.
+**Fix:** Replace with semantic elements: `<button>`, `<nav>`, `<main>`, `<article>`, `<section>`.
 
 ## 3. Missing Loading/Error States
 
@@ -843,7 +843,7 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 4. Implicit `any` TypeScript
 
 **Frequency:** Common
-**Problem:** AI generates `function Card(\{ data \})` without TypeScript interface, creating implicit `any`.
+**Problem:** AI generates `function Card({ data })` without TypeScript interface, creating implicit `any`.
 **Detection:** `tsc --noEmit` with `strict: true` in tsconfig.
 **Fix:** Add explicit props interface with union types for variants.
 
@@ -852,19 +852,19 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 **Frequency:** Common
 **Problem:** AI imports entire icon libraries (`import * from "lucide-react"`) or unused dependencies.
 **Detection:** `size-limit` CI check, ESLint `no-unused-imports` rule.
-**Fix:** Import individual icons: `import \{ Search, ChevronDown \} from "lucide-react"`.
+**Fix:** Import individual icons: `import { Search, ChevronDown } from "lucide-react"`.
 
 ## 6. Missing Focus Management
 
 **Frequency:** Common
 **Problem:** No `focus-visible:ring` on interactive elements, no focus trap in modals, no focus return after close.
-**Detection:** Tab through the component — if focus is invisible or gets lost, it fails.
+**Detection:** Tab through the component, if focus is invisible or gets lost, it fails.
 **Fix:** Add `focus-visible:ring-2 focus-visible:ring-ring` to all interactive elements. Use Radix Dialog for focus trapping.
 
 ## 7. Incorrect ARIA Usage
 
 **Frequency:** Moderate (40%+)
-**Problem:** AI adds ARIA attributes incorrectly — `aria-label` on non-interactive elements, redundant roles, conflicting attributes.
+**Problem:** AI adds ARIA attributes incorrectly, `aria-label` on non-interactive elements, redundant roles, conflicting attributes.
 **Detection:** axe-core or Storybook a11y addon catches most ARIA errors.
 **Fix:** Follow WAI-ARIA Authoring Practices. Remove ARIA when semantic HTML conveys the same meaning.
 
@@ -878,14 +878,14 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 9. String Concatenation for Classes
 
 **Frequency:** Moderate
-**Problem:** AI generates `className=\{"base " + (active ? "bg-blue-500" : "bg-gray-200")\}` instead of CVA or `cn()`.
+**Problem:** AI generates `className={"base " + (active ? "bg-blue-500" : "bg-gray-200")}` instead of CVA or `cn()`.
 **Detection:** Grep for template literals or string concatenation in className.
 **Fix:** Use `cn()` from `@/lib/utils` or CVA for variant-based styling. See `rules/ai-refactoring-conformance.md`.
 
 ## 10. Stale or Deprecated APIs
 
 **Frequency:** Occasional
-**Problem:** AI generates code using deprecated APIs — `framer-motion` (now `motion/react`), React class components, old Next.js pages router patterns.
+**Problem:** AI generates code using deprecated APIs, `framer-motion` (now `motion/react`), React class components, old Next.js pages router patterns.
 **Detection:** Code review, comparing against current documentation.
 **Fix:** Specify exact library versions and import paths in prompts. See `rules/ai-prompt-patterns.md`.
 
@@ -912,12 +912,12 @@ grep -rn "className={['\"]" "$1"
 ```
 
 
-### AI UI Tool Comparison — json-render vs v0 vs Bolt vs Cursor vs Copilot
+### AI UI Tool Comparison: json-render vs v0 vs Bolt vs Cursor vs Copilot
 
 
 # AI UI Tool Comparison
 
-Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a specific workflow — none is universally best.
+Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a specific workflow, none is universally best.
 
 ## Feature Comparison
 
@@ -937,16 +937,16 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 ### json-render (FIRST CHOICE)
 **Strengths:**
-- Single catalog renders to any surface — web, mobile, CLI, MCP
+- Single catalog renders to any surface, web, mobile, CLI, MCP
 - Type-safe component specs with schema validation at build time
 - AI agents generate structured JSON specs that render progressively (streaming UI)
-- Platform-agnostic — no framework lock-in, per-platform registries map to native components
+- Platform-agnostic, no framework lock-in, per-platform registries map to native components
 - Ideal for MCP visual output where structured data must travel across tool boundaries
 
 **Weaknesses:**
-- Not a visual prototyping tool — no instant preview like v0
+- Not a visual prototyping tool, no instant preview like v0
 - Requires upfront catalog definition before rendering
-- No backend scaffolding — focused on the render layer only
+- No backend scaffolding, focused on the render layer only
 - Learning curve for catalog schema authoring
 
 **When to use:** Multi-surface output, MCP visual rendering, type-safe component catalogs, streaming AI UI. This is the first choice for any workflow where output must render on more than one surface.
@@ -960,9 +960,9 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 - Multiple design variations per prompt
 
 **Weaknesses:**
-- No project context — cannot read your codebase
-- React/Next.js only — no Vue, Svelte, Angular
-- Frontend only — no backend or API routes
+- No project context, cannot read your codebase
+- React/Next.js only, no Vue, Svelte, Angular
+- Frontend only, no backend or API routes
 - Output requires refactoring for design system conformance
 - Cannot modify existing components
 
@@ -977,19 +977,19 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 **Weaknesses:**
 - Lower component quality than v0 for individual components
 - Generated backend code needs significant security review
-- Large output surface area — more to review
+- Large output surface area, more to review
 - Token/session limits for complex applications
 
 ### Cursor
 **Strengths:**
-- Full project context — reads imports, types, tokens
+- Full project context, reads imports, types, tokens
 - Inline edits within existing files
 - Multi-file refactoring with dependency awareness
 - Works with any framework or language
 - Understands your design system from codebase
 
 **Weaknesses:**
-- No visual preview — must run the app to see results
+- No visual preview, must run the app to see results
 - Slower for greenfield components (no scaffold templates)
 - Quality depends on existing code quality (garbage in, garbage out)
 - Composer mode can make unintended changes across files
@@ -998,11 +998,11 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 **Strengths:**
 - Always available in VS Code / JetBrains
 - Good at completing patterns from surrounding code
-- Low friction — inline suggestions as you type
+- Low friction, inline suggestions as you type
 - Workspace-level context with `@workspace`
 
 **Weaknesses:**
-- Autocomplete granularity — not full component generation
+- Autocomplete granularity, not full component generation
 - Limited multi-file awareness compared to Cursor
 - Cannot generate visual designs or previews
 - Suggestions vary in quality without explicit prompting
@@ -1022,7 +1022,7 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 | You Need | Use | Why |
 |----------|-----|-----|
-| Multi-surface / MCP visual output | json-render | Single catalog renders anywhere — FIRST CHOICE |
+| Multi-surface / MCP visual output | json-render | Single catalog renders anywhere, FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with compile-time validation |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | A new shadcn/ui component | v0 | Best scaffold quality, visual iteration |

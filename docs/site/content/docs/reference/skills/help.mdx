@@ -18,7 +18,7 @@ description: "OrchestKit help directory with categorized skill listings. Use whe
 
 Dynamic skill discovery: enumerates the installed plugin at runtime so listings are never stale.
 
-> **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter — open it and start typing the skill name. Use `help` when you want categorized browsing or rationale for *why* a skill applies.
+> **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter, open it and start typing the skill name. Use `help` when you want categorized browsing or rationale for *why* a skill applies.
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ if not matches:
 ```
 
 If BOTH probes return zero files, say so plainly ("could not locate the OrchestKit
-skills directory, checked `$\{CLAUDE_PLUGIN_ROOT\}/skills` and `src/skills`") and stop.
+skills directory, checked `${CLAUDE_PLUGIN_ROOT}/skills` and `src/skills`") and stop.
 Do NOT substitute a remembered list of skill names. Any such list is stale by
 construction and a confident wrong answer is worse than no answer.
 
@@ -150,17 +150,17 @@ For each skill in the category, render:
   Example: /ork:{name} {argument-hint example}
 ```
 
-### "Show all" — Full Listing
+### "Show all": Full Listing
 
 If user picks "Show all", render ALL user-invocable skills grouped by category from
-STEP 0 data, then close with the derived total: `\{TOTAL\} user-invocable skills`.
+STEP 0 data, then close with the derived total: `{TOTAL} user-invocable skills`.
 Print `TOTAL` from `len(matches)`. Never type a number you did not just count.
 
 ---
 
 ## CC Built-in Commands (2.1.72+)
 
-Not OrchestKit skills — these are Claude Code built-ins:
+Not OrchestKit skills, these are Claude Code built-ins:
 
 | Command | Description | Since |
 |---------|-------------|-------|
@@ -174,15 +174,15 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
 | `/recap` | Session context restoration after idle | CC 2.1.108 |
 | `/undo` | Alias for `/rewind` | CC 2.1.108 |
-| `/skills` | Native skill picker — type to filter | CC 2.1.121 |
-| `/effort` | Reasoning effort — sets `$CLAUDE_EFFORT` env for skills | CC 2.1.72 (env var since 2.1.120) |
+| `/skills` | Native skill picker, type to filter | CC 2.1.121 |
+| `/effort` | Reasoning effort, sets `$CLAUDE_EFFORT` env for skills | CC 2.1.72 (env var since 2.1.120) |
 | `/cd` | Move session to a new working directory without breaking the prompt cache | CC 2.1.169 |
 | `--safe-mode` | Start with ALL customizations disabled (troubleshooting bisect) | CC 2.1.169 (flag/env, not a slash command) |
 
 ## Performance Tips
 
-- **`ENABLE_PROMPT_CACHING_1H=1`** — Extends prompt cache TTL from 5 min to 1 hour. Set this for long sessions with multi-phase skills (brainstorm, implement, cover). Available on API key, Bedrock, Vertex, Foundry.
-- **`/recap`** — Restores session context after stepping away. Complements OrchestKit's checkpoint-resume for chain recovery.
+- **`ENABLE_PROMPT_CACHING_1H=1`**: Extends prompt cache TTL from 5 min to 1 hour. Set this for long sessions with multi-phase skills (brainstorm, implement, cover). Available on API key, Bedrock, Vertex, Foundry.
+- **`/recap`**: Restores session context after stepping away. Complements OrchestKit's checkpoint-resume for chain recovery.
 
 ## Keyboard Shortcuts
 
@@ -209,9 +209,9 @@ You don't need to memorize skills. Just describe your task naturally:
 
 ## Related Skills
 
-- `/help` — Claude Code built-in help
-- `doctor` — OrchestKit health check
-- `setup` — Full onboarding wizard
+- `/help`: Claude Code built-in help
+- `doctor`: OrchestKit health check
+- `setup`: Full onboarding wizard
 
 
 ---
@@ -241,7 +241,7 @@ CONFIG  -> tags contain: setup, config, onboarding, diagnostics
 EXPLORE -> tags contain: explore, analysis, architecture, codebase
 ```
 
-### Incorrect -- placing skill in wrong category:
+### Incorrect: placing skill in wrong category:
 
 ```python
 # "assess" placed only in PLAN category
@@ -255,7 +255,7 @@ CONFIG_SKILLS = ["setup", "doctor", "configure"]
 # User checking QUALITY for diagnostics misses it
 ```
 
-### Correct -- using tags to allow multi-category placement:
+### Correct: using tags to allow multi-category placement:
 
 ```python
 # Read skill frontmatter
@@ -270,7 +270,7 @@ CONFIG_SKILLS = ["setup", "doctor", "configure"]
 # doctor appears in QUALITY too -- correct cross-listing
 ```
 
-### Incorrect -- ignoring metadata.category field:
+### Incorrect: ignoring metadata.category field:
 
 ```python
 # Skill has metadata.category: "workflow-automation"
@@ -282,7 +282,7 @@ CONFIG_SKILLS = ["setup", "doctor", "configure", "remember"]
 # Belongs in MEMORY, not CONFIG
 ```
 
-### Correct -- checking metadata.category:
+### Correct: checking metadata.category:
 
 ```python
 skill_meta = read_frontmatter("src/skills/remember/SKILL.md")
@@ -295,7 +295,7 @@ skill_meta = read_frontmatter("src/skills/remember/SKILL.md")
 
 1. For each skill in a category listing, read its `tags` array from SKILL.md
 2. Verify at least one tag matches the category-to-tag mapping above
-3. If zero tags match, the skill is miscategorized -- move it to the correct category
+3. If zero tags match, the skill is miscategorized, move it to the correct category
 4. Skills matching multiple categories should appear in all matching categories
 
 ### Key Rules
@@ -317,7 +317,7 @@ The help skill can display skills that have been removed, renamed, or merged if 
 
 Before rendering any skill listing, cross-reference every skill name against `manifests/ork.json` or scan `src/skills/*/SKILL.md` files. Never display a skill that does not exist in the current manifest.
 
-### Incorrect -- rendering from hardcoded list:
+### Incorrect: rendering from hardcoded list:
 
 ```python
 # Hardcoded category mapping (goes stale when skills change)
@@ -330,7 +330,7 @@ for skill in BUILD_SKILLS:
     render_skill_entry(skill)
 ```
 
-### Correct -- validate against live source:
+### Correct: validate against live source:
 
 ```python
 # Step 1: Scan for all user-invocable skills
@@ -353,14 +353,14 @@ valid_build = [s for s in BUILD_CATEGORY if s in live_skills]
 # "scaffold" is excluded because it no longer exists in source
 ```
 
-### Incorrect -- showing a count without verification:
+### Incorrect: showing a count without verification:
 
 ```
 OrchestKit: 107 skills available
 # Count is from CLAUDE.md header, may not match actual manifest
 ```
 
-### Correct -- deriving count from scan:
+### Correct: deriving count from scan:
 
 ```
 OrchestKit: {len(live_skills)} user-invocable skills available
@@ -370,7 +370,7 @@ OrchestKit: {len(live_skills)} user-invocable skills available
 ### Key Rules
 
 - Always run STEP 0 (dynamic skill discovery) before rendering any skill list
-- Never hardcode skill names or counts -- derive from source files
+- Never hardcode skill names or counts, derive from source files
 - If a skill appears in category mapping but not in live scan, silently omit it
 - If a category becomes empty after filtering, omit the entire category from display
 - Log a warning (not shown to user) when a mapped skill is missing for maintainer awareness
