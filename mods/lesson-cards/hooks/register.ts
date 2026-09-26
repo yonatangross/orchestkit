@@ -260,24 +260,26 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // a typed free-text answer, and no dialog at all (headless -p) all deny:
     // a block lesson fails closed (estate-6 HOLD on #4429).
     if (lesson.severity === 'block' && lesson.source === 'pattern') {
-      const canAsk = interactive && typeof $.ui.ask === 'function';
+      // $.ui.ask is only ever called: CC's validator refuses reading it as a value.
       let answer: unknown;
-      let dismissed = false;
-      if (canAsk) {
+      let outcome: 'answered' | 'dismissed' | 'no-dialog' = 'no-dialog';
+      if (interactive) {
         try {
           answer = await $.ui.ask(askQuestion(lesson), [PROCEED, CANCEL]);
-        } catch {
-          // Escape: the dialog throws "no answer (the dialog was dismissed)".
-          dismissed = true;
+          outcome = 'answered';
+        } catch (err) {
+          // Escape: the dialog throws "$.ui.ask: no answer (...)". Any other
+          // throw means there was no dialog to answer.
+          outcome = err instanceof Error && err.message.includes('no answer') ? 'dismissed' : 'no-dialog';
         }
       }
       if (answer !== PROCEED) {
         // { deny } is the tool.call refusal CC 2.1.282 reads: the call is not
         // run and the model sees the reason as a permission denial. A bare
         // { result: string } is refused for Bash (its output is an object).
-        const why = !canAsk
+        const why = outcome === 'no-dialog'
           ? 'Not run: no dialog to confirm.'
-          : answer === CANCEL || dismissed
+          : outcome === 'dismissed' || answer === CANCEL
             ? 'Cancelled by you; not run.'
             : 'Not run: no "Proceed anyway".';
         return {
