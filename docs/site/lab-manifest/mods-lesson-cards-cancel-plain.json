@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-cancel-plain",
+  "source": "docs/fix--lesson-cards-cancel-plain/index.html",
+  "title": "lesson-cards: a cancel is not an Error",
+  "description": "On CC 2.1.283, a mod deny that already starts with Cancelled: is left alone (no Error: glue). lesson-cards 1.0.6 uses that head for Cancel and Escape and drops the Fix line; other refuses still keep a short Fix.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-26"
+}

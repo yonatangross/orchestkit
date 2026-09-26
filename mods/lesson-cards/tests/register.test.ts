@@ -504,8 +504,14 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
       const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string; result?: string };
       expect(ran).toBe(false);
       expect(out.result).toBeUndefined();
-      expect(out.deny?.startsWith(`${why} [lesson:cancelled-check-is-not-pass]`)).toBe(true);
+      const cancel = why === 'Cancelled by you; not run.';
+      const head = cancel ? 'Cancelled: Cancelled by you; not run.' : why;
+      expect(out.deny?.startsWith(`${head} [lesson:cancelled-check-is-not-pass]`)).toBe(true);
       expect(out.deny).not.toMatch(/error/i);
+      if (cancel) {
+        expect(out.deny).not.toContain('Fix:');
+        expect(out.deny?.startsWith('Cancelled: ')).toBe(true);
+      }
       if (isInteractive !== true) expect(asks).toHaveLength(0);
     });
   }
@@ -535,13 +541,34 @@ describe('the lesson paragraph is drawn once: the card, never the question or th
     });
   }
 
-  test('the deny is one short line: reason, lesson id and Fix', async () => {
+  test('Cancel deny is plain: Cancelled: head, lesson id, no Fix', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$({ askAnswer: 'Cancel' });
     await startSession(hooks, $);
 
     const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
-    expect(out.deny).toBe(`Cancelled by you; not run. [lesson:cancelled-check-is-not-pass] Fix: ${PATTERNS[0].example_fix}`);
+    expect(out.deny).toBe('Cancelled: Cancelled by you; not run. [lesson:cancelled-check-is-not-pass]');
+    expect(out.deny).not.toContain('Fix:');
+    expect(out.deny).not.toMatch(/^Error:/);
+  });
+
+  test('Escape deny is the same plain cancel line (no Fix, Cancelled: head)', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: ESCAPE });
+    await startSession(hooks, $);
+
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
+    expect(out.deny).toBe('Cancelled: Cancelled by you; not run. [lesson:cancelled-check-is-not-pass]');
+    expect(out.deny).not.toContain('Fix:');
+  });
+
+  test('a typed free-text deny still keeps the short Fix for the model', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'sure, go ahead' });
+    await startSession(hooks, $);
+
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
+    expect(out.deny).toBe(`Not run: no "Proceed anyway". [lesson:cancelled-check-is-not-pass] Fix: ${PATTERNS[0].example_fix}`);
   });
 });
 
