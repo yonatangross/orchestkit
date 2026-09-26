@@ -14,7 +14,7 @@ record follows the repository text rule:
 ```sh
 check_dash=-
 check_option="${check_dash}${check_dash}check"
-CC_OUTPUT_KEYS_BINARY="/Users/yonatangross/.local/share/claude/versions/2.1.283" \
+CC_OUTPUT_KEYS_BINARY="$HOME/.local/share/claude/versions/2.1.283" \
   node scripts/derive-cc-output-keys.mjs "$check_option"
 ```
 
