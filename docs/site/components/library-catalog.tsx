@@ -8,19 +8,18 @@ import { LazySkillBrowser } from "@/components/lazy";
 import { AnimatedTabs } from "@/components/ui/animated-tabs";
 import { CategoryMark, LibraryMark } from "@/components/category-mark";
 import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
-import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { SearchParamsSync } from "@/components/search-params-sync";
 import { AGENTS } from "@/lib/generated/shared-data";
 import { COUNTS } from "@/lib/constants";
 import {
   CATEGORY_BADGE_CLASS,
   CATEGORY_COLORS,
+  categoryBorder,
   categoryLabel,
 } from "@/lib/category-colors";
 import {
   groupedHookEvents,
   hookLifecycleFlow,
-  HOOK_LIFECYCLE_CHART,
 } from "@/lib/hook-phases";
 import { parseHostId } from "@/lib/host-installs";
 import {
@@ -257,7 +256,7 @@ function AgentsGrid() {
               href={`/docs/reference/agents/${agent.name}`}
               aria-label={agent.name}
               aria-describedby={`agent-card-${agent.name}-desc`}
-              className={`group rounded-lg border border-fd-border p-4 transition-colors hover:bg-fd-muted${
+              className={`group rounded-lg border border-fd-border border-l-[3px] ${categoryBorder(agent.category)} p-4 transition-colors hover:bg-fd-muted${
                 capped && index >= AGENTS_NARROW_PAGE ? " max-lg:hidden" : ""
               }`}
             >
@@ -317,14 +316,14 @@ function AgentsGrid() {
 const HOOK_NODE_CLASS =
   "rounded-md border border-fd-border bg-fd-background px-2 py-1 font-mono text-xs text-fd-foreground";
 
-/** Phone rendition of HOOK_LIFECYCLE_CHART: the spine, then its fan-out. */
+/** The hook lifecycle as HTML: the spine, then its fan-out (HOOK_LIFECYCLE_CHART data). */
 function HookFlowCompact() {
   const { spine, branches } = hookLifecycleFlow();
   const last = spine[spine.length - 1];
   return (
     <div
       data-testid="hook-flow-compact"
-      className="space-y-2 rounded-lg border border-fd-border p-3 md:hidden"
+      className="space-y-2"
     >
       <ol className="flex flex-wrap items-center gap-1.5" aria-label="Lifecycle order">
         {spine.map((node, i) => (
@@ -370,11 +369,9 @@ function HooksFlow() {
         for the hooks that run there.
       </p>
       <div className="mb-8 overflow-x-auto rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] p-4">
-        {/* The SVG scales to this box, so below md its labels drew at about
-            8px. Phones get the same flow as 12px text instead. */}
-        <div className="max-md:hidden">
-          <ChangelogMermaid chart={HOOK_LIFECYCLE_CHART} />
-        </div>
+        {/* One HTML flow at every width, in the site's own tokens: the scaled
+            SVG drew 8px labels on phones, and at desktop its default grey
+            boxes read as generic next to the rest of the library (gate). */}
         <HookFlowCompact />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">

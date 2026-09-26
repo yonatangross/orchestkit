@@ -51,6 +51,13 @@ describe("generated display copy", () => {
 		expect(offenders).toEqual([]);
 	});
 
+	it("skill flow graphs carry no placeholder hyphen (it rendered '-> -')", () => {
+		const offenders = Object.entries(SKILL_FLOWS)
+			.filter(([, flow]) => /":"-"/.test(JSON.stringify(flow)))
+			.map(([id]) => id);
+		expect(offenders).toEqual([]);
+	});
+
 	it("agent descriptions carry no em or en dash", () => {
 		const offenders = AGENTS.filter((agent) => DASH.test(agent.description)).map((agent) => agent.id);
 		expect(offenders).toEqual([]);

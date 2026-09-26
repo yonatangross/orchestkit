@@ -29,12 +29,6 @@ vi.mock("@/components/lazy", () => ({
   LazySkillBrowser: () => <div>skill browser</div>,
 }));
 
-vi.mock("@/components/changelog-mermaid", () => ({
-  ChangelogMermaid: ({ chart }: { chart: string }) => (
-    <pre data-testid="hook-flow">{chart}</pre>
-  ),
-}));
-
 describe("LibraryCatalog", () => {
   beforeEach(() => {
     search = new URLSearchParams();
@@ -78,8 +72,8 @@ describe("LibraryCatalog", () => {
     expect(
       await screen.findByRole("heading", { name: /session/i }),
     ).toBeTruthy();
-    expect(screen.getByTestId("hook-flow").textContent).toMatch(
-      /Session --> Prompt/,
+    expect(screen.getByTestId("hook-flow-compact").textContent).toMatch(
+      /Session.*Prompt/,
     );
   });
 
@@ -93,6 +87,11 @@ describe("LibraryCatalog", () => {
     links.forEach((link, i) => {
       expect(link.className.includes("max-lg:hidden")).toBe(i >= 8);
     });
+    // Every agent card carries the skill card's category left border (follow-up to #4414).
+    for (const link of links) {
+      expect(link.className).toContain("border-l-[3px]");
+      expect(link.className).toMatch(/\bborder-l-(?!\[)[a-z]+-\d+|border-l-fd-border/);
+    }
     // Named by the agent alone, not the whole card text run together (QA #20).
     const first = links[0];
     expect(first).toHaveAccessibleName(first.querySelector("h3")?.textContent ?? "");
@@ -136,17 +135,17 @@ describe("LibraryCatalog", () => {
     expect(categoryLabel("llm")).toBe("LLM");
   });
 
-  it("draws the hook flow as text below md and keeps the diagram from md up", async () => {
+  it("draws the hook flow as one HTML flow at every width, never the SVG", async () => {
+    // The SVG drew 8px labels on phones and default grey boxes at desktop.
     search = new URLSearchParams("lib=hooks");
     render(<LibraryCatalog />);
     const compact = await screen.findByTestId("hook-flow-compact");
-    expect(compact.className.split(" ")).toContain("md:hidden");
+    expect(compact.className.split(" ")).not.toContain("md:hidden");
     expect(compact.textContent).toMatch(/Session.*Prompt.*Tools.*Files.*Agents.*Tasks.*Model/);
     for (const node of compact.querySelectorAll("li")) {
       if (node.children.length === 0) expect(node.className).toContain("text-xs");
     }
-    const diagram = screen.getByTestId("hook-flow").parentElement as HTMLElement;
-    expect(diagram.className.split(" ")).toContain("max-md:hidden");
+    expect(compact.parentElement?.querySelector("svg")).toBeNull();
   });
 
   it("moves focus to the newly selected tab on arrow keys", async () => {

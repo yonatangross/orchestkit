@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site polish after #4414: five finishing fixes</title>
+<meta name="description" content="The five polish items the UI finish gate logged on the OrchestKit site after #4414, what each one looked like, and the measured result.">
+<style>
+:root { --bg:#f7f5ef; --fg:#1d1d1b; --muted:#5d5b55; --line:#dcd8cc; --accent:#3b5bdb; --card:#fffdf8; --good:#2b8a3e; }
+.dark { --bg:#15161f; --fg:#e8e8ef; --muted:#a3a5b5; --line:#2c2e3d; --accent:#8ea2ff; --card:#1c1d29; --good:#69db7c; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 ui-sans-serif,system-ui,sans-serif; }
+main { max-width:960px; margin:0 auto; padding:40px 24px 80px; }
+h1 { font-size:28px; margin:0 0 6px; letter-spacing:-0.01em; }
+.verdict { font-size:17px; margin:10px 0 24px; }
+table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+th, td { text-align:left; vertical-align:top; padding:10px 12px; border-bottom:1px solid var(--line); }
+th { font-size:13px; color:var(--muted); font-weight:600; }
+td.n { font:600 13px ui-monospace,Menlo,monospace; color:var(--accent); white-space:nowrap; }
+td.m { font:13px ui-monospace,Menlo,monospace; color:var(--good); }
+code { font:13px ui-monospace,Menlo,monospace; }
+.note { color:var(--muted); font-size:13.5px; margin-top:18px; }
+button { position:fixed; top:14px; right:14px; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; }
+@media (max-width:640px) { th:nth-child(3), td:nth-child(3) { display:none; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Site polish after #4414: five finishing fixes"><meta property="og:description" content="The reduced-motion chat gap, one host order, agent card borders, empty phase outputs and the hooks chart: what each looked like and the measured result."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/site-polish-after-4414.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Site polish after #4414: five finishing fixes"><meta name="twitter:description" content="The reduced-motion chat gap, one host order, agent card borders, empty phase outputs and the hooks chart: what each looked like and the measured result."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<button type="button" onclick="document.documentElement.classList.toggle('dark')">Light / dark</button>
+<main>
+<h1>Site polish after #4414</h1>
+<p class="verdict">Five finishing fixes the UI finish gate logged as non-blocking on #4414, held back so the operator's visual approval covered exactly what merged. Each has a test that fails on main and passes here.</p>
+<table>
+<tr><th>#</th><th>What was wrong</th><th>Fix</th><th>Measured</th></tr>
+<tr><td class="n">1</td><td>With reduced motion, the community chat left about 31px empty above "Today".</td><td>The chat reserved its tallest frame, but reduced motion only shows the last one. The earlier frame sizers now drop out by <code>motion-reduce:hidden</code>, so the server render is already right.</td><td class="m">gap above "Today": 43px to 12px (the padding)</td></tr>
+<tr><td class="n">2</td><td>Host order differed between the chips, the Installation page copy and the Getting Started sidebar. An unused icon row still listed "Pi (skills.sh)" and no OpenCode.</td><td>The page copy and the sidebar follow the site's one host order. The unused <code>HostIconRow</code> is deleted. <code>SITE_HOSTS</code> is untouched, because the OG card depends on it.</td><td class="m">sidebar: Claude Code, Cursor, Codex, Devin, skills.sh (OpenCode, Pi), Muse Code, Antigravity</td></tr>
+<tr><td class="n">3</td><td>Agent cards had no left border, while skill cards carry a category accent.</td><td>One border map in <code>lib/category-colors.ts</code>, read by both card types, with the agent-only categories added.</td><td class="m">36 of 36 agent cards carry the accent</td></tr>
+<tr><td class="n">4</td><td>Skill phase flows showed "&#8594; -" where a phase has no output (implement, setup).</td><td>A lone dash in the flow data is an empty-value placeholder, so the data generator now emits an empty string and the page omits it.</td><td class="m">implement page: 0 bare "-" nodes</td></tr>
+<tr><td class="n">5</td><td>The hooks chart at 1440 in light mode drew default grey diagram boxes.</td><td>The HTML flow that phones already used is now the chart at every width, in the site's own tokens.</td><td class="m">no SVG; chips at every width</td></tr>
+</table>
+<p class="note">Production build of the branch: axe 0 violations of any impact over 40 page views, the 8 install flows pass, 33 of 33 e2e, no horizontal overflow at 390.</p>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

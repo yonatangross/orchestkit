@@ -4065,21 +4065,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "1",
             "label": "Discovery",
             "does": "Research best practices, Context7 docs, break into tasks",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
             "num": "2",
             "label": "Micro-Planning",
             "does": "Detailed plan per task (load references/micro-planning-guide.md)",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
             "num": "3",
             "label": "Worktree",
             "does": "Isolate in git worktree for 5+ file features (load references/worktree-workflow.md)",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
@@ -4114,14 +4114,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "8",
             "label": "E2E Verification",
             "does": "Browser + API E2E testing (load references/e2e-verification.md)",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
             "num": "9",
             "label": "Documentation",
             "does": "Save decisions to memory graph",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
@@ -6531,7 +6531,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "2",
             "label": "Stack",
             "does": "Classify detected stack, confidence levels",
-            "out": "-",
+            "out": "",
             "tag": null
           },
           {
@@ -6580,7 +6580,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "7",
             "label": "Plan",
             "does": "Prioritized improvements with runnable commands",
-            "out": "-",
+            "out": "",
             "tag": null
           }
         ]

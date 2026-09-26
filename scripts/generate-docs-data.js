@@ -412,11 +412,17 @@ function displayMarkdown(md) {
 }
 
 // displayText on every string in a derived structure (the skill flow graphs).
-function displayDeep(value) {
-  if (typeof value === 'string') return displayText(value);
-  if (Array.isArray(value)) return value.map(displayDeep);
+// A lone dash in a node's `out` is an empty-value placeholder, so it becomes
+// empty and the page omits it; as "-" it rendered "-> -" on phases with no
+// output. Other keys keep a literal "-" (review, #4452).
+function displayDeep(value, key) {
+  if (typeof value === 'string') {
+    const text = displayText(value);
+    return key === 'out' && text === '-' ? '' : text;
+  }
+  if (Array.isArray(value)) return value.map((item) => displayDeep(item));
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, displayDeep(v)]));
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, displayDeep(v, k)]));
   }
   return value;
 }
@@ -1459,5 +1465,7 @@ function generate() {
   console.log('');
 }
 
-// Run
-generate();
+// Run when executed directly; a require() (the unit test) only gets the helpers.
+if (require.main === module) generate();
+
+module.exports = { displayText, displayMarkdown, displayDeep };

@@ -600,7 +600,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/getting-started/skills-sh",
-    "title": "Pi, and skills.sh for OpenCode and other clients",
+    "title": "OpenCode and other skills.sh clients, plus Pi",
     "headings": [
       "Starter 12"
     ]

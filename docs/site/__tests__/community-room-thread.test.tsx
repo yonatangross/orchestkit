@@ -9,6 +9,17 @@ function times(container: HTMLElement): string[] {
 }
 
 describe("CommunityRoomThread", () => {
+  it("reserves only the last frame under reduced motion (no gap above Today)", () => {
+    // Reduced motion shows the last frame alone; reserving the tallest frame
+    // left ~31px empty above "Today" (follow-up to #4414).
+    const { container } = render(<CommunityRoomThread botLine="Daily digest" />);
+    const sizers = [...container.querySelectorAll("[data-room-sizer]")];
+    expect(sizers.length).toBeGreaterThan(1);
+    const last = sizers[sizers.length - 1];
+    expect(last.className).not.toContain("motion-reduce:hidden");
+    for (const sizer of sizers.slice(0, -1)) expect(sizer.className).toContain("motion-reduce:hidden");
+  });
+
 	afterEach(() => {
 		vi.useRealTimers();
 		vi.unstubAllGlobals();
