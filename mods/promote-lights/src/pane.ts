@@ -22,7 +22,8 @@ export function buildStatusLine(
   lights: ClassifiedLight[],
   mergeStateStatus: string,
   hold: boolean,
-  label?: string
+  label?: string,
+  degraded = false
 ): string {
   const counts = {
     green: lights.filter((l) => l.color === "green").length,
@@ -44,6 +45,10 @@ export function buildStatusLine(
 
   if (hold) {
     parts.unshift("HOLD");
+  }
+
+  if (degraded) {
+    parts.push("DEGRADED");
   }
 
   return parts.join(", ");

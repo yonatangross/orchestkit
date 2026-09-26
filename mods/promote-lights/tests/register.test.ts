@@ -398,6 +398,128 @@ describe("register behavior (mutant-killing)", () => {
     );
   });
 
+  test("session.start finds a promote PR past the first 30 open PRs via server side filters", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    // 40 ordinary PRs plus one dev head promote PR at position 35.
+    // A single unfiltered gh pr list page holds 30 entries, so the old
+    // query missed it. The stub mimics that server behavior: unfiltered
+    // lists are cut to 30, filtered ones return their full match set.
+    interface StubPR {
+      number: number;
+      headRefName: string;
+      headRefOid: string;
+      title: string;
+      labels: Array<{ name: string }>;
+    }
+    const ordinary: StubPR[] = Array.from({ length: 40 }, (_, i) => ({
+      number: 4400 + i,
+      headRefName: `feat/work-${i}`,
+      headRefOid: `fff111222333${i}`,
+      title: `ordinary work ${i}`,
+      labels: [],
+    }));
+    const promote: StubPR = {
+      number: 4500,
+      headRefName: "dev",
+      headRefOid: "abc123def4567",
+      title: "promote dev",
+      labels: [],
+    };
+    const all: StubPR[] = [...ordinary.slice(0, 34), promote, ...ordinary.slice(34)];
+    expect(all.indexOf(promote)).toBeGreaterThan(29);
+    const fallback = makeDispatchingRun();
+    const serverRun = vi.fn(
+      async (argv: readonly string[], init?: Record<string, unknown>) => {
+        if (argv[1] === "pr" && argv[2] === "list") {
+          const headIdx = argv.indexOf("--head");
+          const labelIdx = argv.indexOf("--label");
+          const limitIdx = argv.indexOf("--limit");
+          let page: StubPR[];
+          if (headIdx !== -1) {
+            page = all.filter((pr) => pr.headRefName === argv[headIdx + 1]);
+          } else if (labelIdx !== -1) {
+            page = all.filter((pr) =>
+              pr.labels.some((l) => l.name === argv[labelIdx + 1])
+            );
+          } else {
+            page = all.slice(0, 30);
+          }
+          if (limitIdx !== -1) page = page.slice(0, Number(argv[limitIdx + 1]));
+          return { exitCode: 0, stdout: JSON.stringify(page), stderr: "" };
+        }
+        return fallback(argv, init);
+      }
+    );
+    const $ = createFake$({ run: serverRun });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    // Every list call carries a server side filter, never a bare page.
+    const listCalls = serverRun.mock.calls.filter(
+      (c) => (c[0] as readonly string[])[1] === "pr" && (c[0] as readonly string[])[2] === "list"
+    );
+    expect(listCalls).toHaveLength(2);
+    expect(
+      listCalls.every(
+        (c) =>
+          (c[0] as readonly string[]).includes("--head") ||
+          (c[0] as readonly string[]).includes("--label")
+      )
+    ).toBe(true);
+
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+    expect($.store.set).toHaveBeenCalledWith(
+      KEY,
+      expect.objectContaining({ prNumber: 4500, head: "abc123def4567", passing: true })
+    );
+  });
+
+  test("session.start warns when one promote query fails and uses the other", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const fallback = makeDispatchingRun();
+    const partialRun = vi.fn(
+      async (argv: readonly string[], init?: Record<string, unknown>) => {
+        if (argv[1] === "pr" && argv[2] === "list" && argv.includes("--head")) {
+          return { exitCode: 1, stdout: "", stderr: "rate limited" };
+        }
+        if (argv[1] === "pr" && argv[2] === "list") {
+          return {
+            exitCode: 0,
+            stdout: JSON.stringify([
+              { number: 4418, headRefName: "release/roundup", headRefOid: "abc123def4567", title: "roundup", labels: [{ name: "promote" }] },
+            ]),
+            stderr: "",
+          };
+        }
+        return fallback(argv, init);
+      }
+    );
+    const $ = createFake$({ run: partialRun });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    // The surviving label query still tracks the promote PR.
+    expect($.store.set).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ prNumber: 4418, passing: true })
+    );
+    // And the failed head query is surfaced, never silent.
+    expect($.ui.status).toHaveBeenCalledWith(
+      expect.stringContaining("head query failed")
+    );
+    // The degradation persists: the snapshot records it and the tick's
+    // status line keeps saying so after the warning is overwritten.
+    expect($.store.set).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ prNumber: 4418, degraded: true })
+    );
+    expect($.ui.status).toHaveBeenCalledWith(
+      expect.stringContaining("DEGRADED")
+    );
+  });
+
   test("session.start tracks a non dev head carrying the promote label", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
@@ -433,6 +555,18 @@ describe("register behavior (mutant-killing)", () => {
       KEY,
       expect.objectContaining({ prNumber: 4419 })
     );
+    // The configured head must reach the list argv, not just the match:
+    // without it the test would pass if the head query never ran.
+    const listArgvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls
+      .map((c) => c[0] as readonly string[])
+      .filter((argv) => argv[1] === "pr" && argv[2] === "list");
+    expect(
+      listArgvs.some(
+        (argv) =>
+          argv.includes("--head") &&
+          argv[argv.indexOf("--head") + 1] === "release"
+      )
+    ).toBe(true);
   });
 
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
@@ -444,8 +578,14 @@ describe("register behavior (mutant-killing)", () => {
 
     // CC 2.1.282 process.run takes the argv array positionally plus init,
     // not an { argv, init } object.
+    // Both list queries are filtered server side with an explicit limit
+    // so a promote PR past position 30 is still returned.
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels"],
+      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      { timeoutMs: 15000 }
+    );
+    expect($.process.run).toHaveBeenCalledWith(
+      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
       { timeoutMs: 15000 }
     );
 

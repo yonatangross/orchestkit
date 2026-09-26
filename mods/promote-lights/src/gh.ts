@@ -4,6 +4,8 @@
  *
  * Commands used:
  * - gh pr list --base main --state open --json number,headRefName,headRefOid,title,labels
+ * - gh pr list with a head filter for the promote branch
+ * - gh pr list with a label filter for the promote label
  * - gh api repos/{owner}/{repo}/branches/main/protection
  * - gh api repos/{owner}/{repo}/rules/branches/main
  * - gh api repos/{owner}/{repo}/commits/{head}/check-runs?per_page=100
@@ -31,6 +33,79 @@ export interface PRInfo {
  */
 export const DEFAULT_PROMOTE_HEAD = "dev";
 export const PROMOTE_LABEL = "promote";
+
+/**
+ * Fields requested from the PR list endpoint.
+ */
+export const PR_LIST_FIELDS = "number,headRefName,headRefOid,title,labels";
+
+/**
+ * Page size for the filtered PR list queries. Each query is narrowed
+ * server side (one by head branch, one by label) so promote PRs are
+ * returned even when the repo has more open PRs than the gh default
+ * page of 30. Without the filters a promote PR past position 30 is
+ * silently missed.
+ */
+export const PR_LIST_LIMIT = "100";
+
+/**
+ * Query argv listing open PRs into main from the promote branch.
+ */
+export function buildHeadQueryArgs(promoteHead: string = DEFAULT_PROMOTE_HEAD): readonly string[] {
+  return [
+    "gh",
+    "pr",
+    "list",
+    "--base",
+    "main",
+    "--head",
+    promoteHead,
+    "--state",
+    "open",
+    "--json",
+    PR_LIST_FIELDS,
+    "--limit",
+    PR_LIST_LIMIT,
+  ];
+}
+
+/**
+ * Query argv listing open PRs into main carrying the promote label.
+ * This covers promote PRs raised from a head other than the promote
+ * branch, which the head query alone would miss.
+ */
+export function buildLabelQueryArgs(): readonly string[] {
+  return [
+    "gh",
+    "pr",
+    "list",
+    "--base",
+    "main",
+    "--label",
+    PROMOTE_LABEL,
+    "--state",
+    "open",
+    "--json",
+    PR_LIST_FIELDS,
+    "--limit",
+    PR_LIST_LIMIT,
+  ];
+}
+
+/**
+ * Merge PR list pages, deduped by PR number. Either query can return
+ * the same PR (a dev head PR that also carries the label), so the
+ * first occurrence wins.
+ */
+export function mergePRLists(...lists: PRInfo[][]): PRInfo[] {
+  const seen = new Map<number, PRInfo>();
+  for (const list of lists) {
+    for (const pr of list) {
+      if (!seen.has(pr.number)) seen.set(pr.number, pr);
+    }
+  }
+  return [...seen.values()];
+}
 
 export function isPromotePR(pr: PRInfo, promoteHead: string = DEFAULT_PROMOTE_HEAD): boolean {
   if (pr.headRefName !== undefined && pr.headRefName === promoteHead) return true;

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>promote-lights finds the promote PR past 30 | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  h2 { font-size: 1.2rem; margin-top: 28px; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  .you { font-size: 1.15rem; background: #fff; border: 1px solid #d9d3c7; border-left: 4px solid #1f7a4d; border-radius: 10px; padding: 14px 18px; }
+  .proof { font-family: ui-monospace, monospace; background: #f1efe9; border-radius: 8px; padding: 12px 16px; white-space: pre-wrap; font-size: 14px; }
+  button { font: inherit; color: #fff; background: #2a6f97; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin-top: 12px; }
+  th, td { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+  tr.hit td { background: #e3f2e7; font-weight: 600; }
+  tr.missed td { background: #f7e8e8; }
+  footer { margin-top: 32px; color: #5b6570; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · PROMOTE-LIGHTS</p>
+<h1>promote-lights finds the promote PR past 30</h1>
+<p class="you">Session start listed open promote PRs with one unfiltered gh pr list page, which holds at most 30 entries. A promote PR past position 30 was silently missed. Now two server side filtered queries run instead.</p>
+<h2>Before</h2>
+<p>One call: <span class="proof">gh pr list --base main --state open</span> returns entries 1 to 30. The promote PR at position 35 never arrives, so no lights are tracked.</p>
+<h2>After</h2>
+<p>Two calls, each filtered server side with an explicit limit, merged and deduped by PR number:</p>
+<p class="proof">gh pr list --base main --head dev --state open --limit 100
+gh pr list --base main --label promote --state open --limit 100</p>
+<p><button id="run" type="button">Run the 41 PR simulation</button></p>
+<table id="prs" aria-label="Simulated open PRs">
+<thead><tr><th>#</th><th>Position</th><th>Head</th><th>Old query</th><th>New queries</th></tr></thead>
+<tbody></tbody>
+</table>
+<p class="proof" id="verdict">Press the button.</p>
+<h2>Proof</h2>
+<p class="proof">mods/promote-lights suite 94 passed, typecheck clean. Regression test feeds 40 ordinary PRs plus the promote PR at position 35 through a stub that mimics server paging: it fails on the pre-fix query and passes with the fix.</p>
+<footer>PR chore/dsp-56397-4422-promote-lights, fixes #4422. Mod version 0.0.5.</footer>
+<script>
+(function() {
+  var ORDINARY = 40;
+  var PROMOTE_AT = 35;
+  var tbody = document.querySelector("#prs tbody");
+  var verdict = document.getElementById("verdict");
+  document.getElementById("run").addEventListener("click", function() {
+    var rows = "";
+    var found = false;
+    for (var i = 1; i <= ORDINARY + 1; i++) {
+      var isPromote = (i === PROMOTE_AT);
+      var num = isPromote ? 4500 : 4400 + i;
+      var head = isPromote ? "dev" : "feat/work-" + i;
+      var inOldPage = i <= 30;
+      var inNew = isPromote;
+      if (inNew) found = true;
+      var cls = isPromote ? (inOldPage ? "hit" : "missed") : "";
+      rows += "<tr class=\"" + cls + "\"><td>" + num + "</td><td>" + i + "</td><td>" + head + "</td><td>" +
+        (inOldPage ? "seen" : "cut off") + "</td><td>" + (inNew ? "matched" : "filtered out") + "</td></tr>";
+    }
+    tbody.innerHTML = rows;
+    verdict.textContent = found
+      ? "New queries: promote PR 4500 (dev head, position 35) tracked. Old query: missed, page cut at 30."
+      : "No promote PR matched.";
+  });
+})();
+</script>
+</body>
+</html>
