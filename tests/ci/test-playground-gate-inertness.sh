@@ -111,7 +111,7 @@ check $'docs/audits/a.md\nsrc/hooks/src/prompt/foo.ts' yes "an audit record plus
 
 section "4. Mixed diffs are decided by the non-inert file"
 check $'README.md\nsrc/skills/glyph/SKILL.md' yes "docs + a skill"
-check $'.github/workflows/ci.yml\ntests/x.sh'    yes "config + a test"
+check $'.github/workflows/ci.yml\ntests/x.sh'    no "config + a test"
 
 section "5. Fail-closed on unknown paths"
 check "some/brand/new/surface.ts"              yes "a path the list predates"
@@ -169,8 +169,13 @@ check "tests/evals/scripts/run-skill-eval.sh"  no "eval harness under tests/ onl
 check $'tests/evals/scripts/run-skill-eval.sh\nsrc/skills/glyph/SKILL.md' yes "eval harness plus a skill"
 check $'tests/a.sh\nsrc/hooks/src/__tests__/foo.test.ts' no "two test paths"
 assert_msg "tests/ci/test-playground-gate-inertness.sh" "$TEST_ONLY_MSG" "notice is exactly the test-only message"
-check $'README.md\ntests/a.sh' yes "docs plus a test is not test-only"
-check $'.github/workflows/ci.yml\ntests/x.sh' yes "config plus a test still requires a playground"
+check $'README.md\ntests/a.sh' no "docs plus a test has no user-facing path"
+check $'.github/workflows/ci.yml\ntests/x.sh' no "config plus a test has no user-facing path"
+check $'.github/workflows/ci.yml\ntests/ci/test-lab-copy-tracking.mjs' no "original PR 4480 paths are exempt"
+check $'README.md\nsrc/hooks/src/foo.spec.ts' no "docs plus a colocated spec is exempt"
+check $'.github/workflows/ci.yml\ntests/x.sh\nsrc/hooks/src/prompt/foo.ts' yes "config and test cannot hide a hook change"
+check $'README.md\ntests/x.sh\nsome/new/surface.ts' yes "inert and test cannot hide an unknown path"
+assert_msg $'.github/workflows/ci.yml\ntests/ci/test-lab-copy-tracking.mjs' "Skipping playground check: every changed file is inert or a test" "mixed exemption has a distinct notice"
 src_on_ci=$(decide "src/skills/glyph/SKILL.md" "ci/hand-reopened" "octocat" "false")
 if grep -q '^required=false$' <<< "$src_on_ci" && grep -q 'automated branch' <<< "$src_on_ci"; then
   log_pass "ci/ prefix still skips, and still says automated branch"
