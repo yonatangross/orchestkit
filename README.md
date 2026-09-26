@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.106](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.105...v10.0.0-beta.106)** · 2026-09-26
+
+- **site:** polish after [#4414](https://github.com/yonatangross/orchestkit/issues/4414): chat gap, host order, card border (#4452)
+
 **[v10.0.0-beta.105](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.104...v10.0.0-beta.105)** · 2026-09-26
 
 - **promote-lights:** draw the lights once, in the band (#4454)
@@ -663,12 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99)** · 2026-09-25
 
 - **secrets-veil:** fail closed when session.start never ran (#4436)
-
-**[v10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98)** · 2026-09-25
-
-- **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons (#4429)
-- **promote-lights:** draw the band with $.ui.resolve, add /lights watch (#4430)
-- **skills:** runnable examples in verify refs, cover, review-pr ([#4424](https://github.com/yonatangross/orchestkit/issues/4424) CodeRabbit follow-up) (#4433)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
