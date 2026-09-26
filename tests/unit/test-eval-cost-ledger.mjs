@@ -20,6 +20,7 @@ import {
   isFailedVerdict,
   parseVerdict,
   rejudgeExitCode,
+  assertHasJudgeJobs,
   textFromMessage,
 } from "../../scripts/lib/eval-judge-verdict.mjs";
 import {
@@ -201,6 +202,16 @@ assert.equal(normalizeModelId("claude-opus-5-5-20260901"), "claude-opus-5-5");
     rejudgeExitCode({ results: ["PASS"], disagreements: ["a"] }),
     1,
   );
+  assert.equal(assertHasJudgeJobs([{ case: "x" }]), 1);
+  let noJobs = null;
+  try {
+    assertHasJudgeJobs([]);
+  } catch (e) {
+    noJobs = e;
+  }
+  assert.ok(noJobs);
+  assert.equal(noJobs.code, "ORK_EVAL_NO_JUDGE_JOBS");
+  assert.match(noJobs.message, /no judge jobs selected/);
 }
 
 {

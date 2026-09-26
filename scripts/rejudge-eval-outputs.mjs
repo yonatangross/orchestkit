@@ -37,7 +37,7 @@ import {
   createAnthropicClient,
   judgeOnce,
 } from "./lib/eval-judge-sdk.mjs";
-import { rejudgeExitCode } from "./lib/eval-judge-verdict.mjs";
+import { rejudgeExitCode, assertHasJudgeJobs } from "./lib/eval-judge-verdict.mjs";
 
 const args = process.argv.slice(2);
 const runPath = args.find((a) => a.endsWith("run.json"));
@@ -127,6 +127,12 @@ for (const c of run.cases)
         prompt: buildJudgePrompt(g.criterion, ev),
       });
   }
+try {
+  assertHasJudgeJobs(jobs);
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
 console.error(
   `${jobs.length} judge calls on ${judge} via Anthropic SDK, concurrency ${conc}`,
 );

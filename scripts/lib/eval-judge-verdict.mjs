@@ -35,6 +35,18 @@ export function rejudgeExitCode({ results = [], disagreements = [] } = {}) {
   return 0;
 }
 
+/**
+ * Zero selected jobs (bad --case, or no stored evidence) must not silent-pass.
+ */
+export function assertHasJudgeJobs(jobs) {
+  if (Array.isArray(jobs) && jobs.length > 0) return jobs.length;
+  const err = new Error(
+    "no judge jobs selected (check --case filter and that run.json has grader evidence)",
+  );
+  err.code = "ORK_EVAL_NO_JUDGE_JOBS";
+  throw err;
+}
+
 export function textFromMessage(message) {
   const blocks = message?.content ?? [];
   const parts = [];
