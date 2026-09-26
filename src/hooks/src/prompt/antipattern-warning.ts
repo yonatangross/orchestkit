@@ -73,18 +73,19 @@ function userRulesDir(): string {
 /**
  * Materialize static anti-patterns to a rules file (called once at session start).
  * CC loads .claude/rules/ files into every prompt (prompt-cached, not free).
- * Skips the project-level write when the user-global copy is byte-identical
- * and the project copy is absent or already identical; a stale project copy
- * is still refreshed below. Hooks never delete rules files.
+ * Seeds only absent project files, preserving existing project policy.
+ * Skips seeding when the user-global copy is byte-identical or
+ * ORK_NO_RULE_SEED=1. Hooks never overwrite or delete existing rules files.
  */
 export function materializeAntipatternRules(projectDir: string): void {
+  if (process.env.ORK_NO_RULE_SEED === '1') return;
+
   const content = buildAntipatternsContent();
   const rulesDir = join(projectDir, '.claude', 'rules');
 
   if (
-    rulesFileMatches(userRulesDir(), 'antipatterns.md', content) &&
-    (rulesFileMatches(rulesDir, 'antipatterns.md', content) ||
-      !rulesFileExists(rulesDir, 'antipatterns.md'))
+    rulesFileExists(rulesDir, 'antipatterns.md') ||
+    rulesFileMatches(userRulesDir(), 'antipatterns.md', content)
   ) {
     return;
   }
