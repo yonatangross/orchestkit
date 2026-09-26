@@ -446,7 +446,7 @@ describe('block lessons ask before the call runs', () => {
     expect(asks[0].question).toContain('cancelled-check-is-not-pass');
     expect(asks[0].options).toEqual(['Proceed anyway', 'Cancel']);
     expect(out.result).toBeUndefined();
-    expect(out.deny).toContain('by you; not run.');
+    expect(out.deny).toContain('Cancelled: by you; not run.');
     expect(out.deny).toContain('[lesson:cancelled-check-is-not-pass]');
   });
 
@@ -474,8 +474,8 @@ describe('block lessons ask before the call runs', () => {
 
 describe('a block lesson fails closed: only an explicit Proceed anyway runs it', () => {
   const cases: Array<[string, string | undefined, boolean | undefined, string]> = [
-    ['Escape (the live 2.1.283 rejection throw)', ESCAPE, true, 'by you; not run.'],
-    ['Escape with no dialog text (the dismiss fallback)', ESCAPE_NO_TEXT, true, 'by you; not run.'],
+    ['Escape (the live 2.1.283 rejection throw)', ESCAPE, true, 'Cancelled: by you; not run.'],
+    ['Escape with no dialog text (the dismiss fallback)', ESCAPE_NO_TEXT, true, 'Cancelled: by you; not run.'],
     ['a throw that is not the dismiss', REFUSED, true, 'Not run: no dialog to confirm.'],
     ['a host deny ("no answer" without a rejection text)', HOST_DENY, true, 'Not run: no dialog to confirm.'],
     ['a typed free-text answer', 'sure, go ahead', true, 'Not run: no "Proceed anyway".'],
@@ -504,7 +504,7 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
       const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string; result?: string };
       expect(ran).toBe(false);
       expect(out.result).toBeUndefined();
-      const cancel = why === 'by you; not run.';
+      const cancel = why === 'Cancelled: by you; not run.';
       expect(out.deny?.startsWith(`${why} [lesson:cancelled-check-is-not-pass]`)).toBe(true);
       expect(out.deny).not.toMatch(/error/i);
       if (cancel) {
@@ -546,7 +546,7 @@ describe('the lesson paragraph is drawn once: the card, never the question or th
     await startSession(hooks, $);
 
     const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
-    expect(out.deny).toBe('by you; not run. [lesson:cancelled-check-is-not-pass]');
+    expect(out.deny).toBe('Cancelled: by you; not run. [lesson:cancelled-check-is-not-pass]');
     expect(out.deny).not.toContain('Fix:');
   });
 
@@ -556,7 +556,7 @@ describe('the lesson paragraph is drawn once: the card, never the question or th
     await startSession(hooks, $);
 
     const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
-    expect(out.deny).toBe('by you; not run. [lesson:cancelled-check-is-not-pass]');
+    expect(out.deny).toBe('Cancelled: by you; not run. [lesson:cancelled-check-is-not-pass]');
     expect(out.deny).not.toContain('Fix:');
   });
 

@@ -117,22 +117,24 @@ export function askQuestion(lesson: MatchedLesson): string {
 
 /**
  * True when why is a user cancel (Cancel button or Escape). Those omit Fix.
- * Our why is "by you; not run." — Claude Code adds the "Cancelled: " head
- * (2.1.283 pass-through), so the on-screen line reads
- * "Cancelled: by you; not run. [lesson:id]".
+ * The deny starts with "Cancelled: " so Claude Code's 2.1.283 renderer leaves
+ * it alone (same pass-through as "Error: "); the rest is "by you; not run."
+ * so Cancelled is said once (not "Cancelled: Cancelled by you").
  */
 export function isUserCancel(why: string): boolean {
   return (
-    why === 'by you; not run.' ||
+    why === 'Cancelled: by you; not run.' ||
     why.startsWith('Cancelled: ') ||
+    why === 'by you; not run.' ||
     why === 'Cancelled by you; not run.'
   );
 }
 
 /**
  * The one-line reason a refused call carries: why, the lesson id, and (for a
- * real block, not a user cancel) a short fix. A cancel uses "by you; not run."
- * so CC's Cancelled: head is said once and Fix is omitted.
+ * real block, not a user cancel) a short fix. A cancel uses
+ * "Cancelled: by you; not run." so the Cancelled: head avoids Error: glue and
+ * Fix is omitted.
  */
 export function denyLine(lesson: MatchedLesson, why: string): string {
   const fix = isUserCancel(why) ? undefined : shortFix(lesson.fix);

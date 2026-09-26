@@ -288,7 +288,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
         const why = outcome === 'no-dialog'
           ? 'Not run: no dialog to confirm.'
           : outcome === 'dismissed' || answer === CANCEL
-            ? 'by you; not run.'
+            ? 'Cancelled: by you; not run.'
             : 'Not run: no "Proceed anyway".';
         return {
           deny: denyLine(lesson, why),
