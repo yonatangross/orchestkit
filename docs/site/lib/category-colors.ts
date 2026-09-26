@@ -65,7 +65,7 @@ export const CATEGORY_BORDER_CLASS: Record<string, string> = {
   product: "border-l-pink-400 dark:border-l-pink-500",
   data: "border-l-indigo-400 dark:border-l-indigo-500",
   research: "border-l-teal-400 dark:border-l-teal-500",
-  quality: "border-l-lime-400 dark:border-l-lime-500",
+  quality: "border-l-sky-400 dark:border-l-sky-500",
   design: "border-l-fuchsia-400 dark:border-l-fuchsia-500",
   git: "border-l-emerald-400 dark:border-l-emerald-500",
   llm: "border-l-cyan-400 dark:border-l-cyan-500",

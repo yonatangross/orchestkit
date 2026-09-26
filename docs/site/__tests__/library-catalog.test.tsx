@@ -29,12 +29,6 @@ vi.mock("@/components/lazy", () => ({
   LazySkillBrowser: () => <div>skill browser</div>,
 }));
 
-vi.mock("@/components/changelog-mermaid", () => ({
-  ChangelogMermaid: ({ chart }: { chart: string }) => (
-    <pre data-testid="hook-flow">{chart}</pre>
-  ),
-}));
-
 describe("LibraryCatalog", () => {
   beforeEach(() => {
     search = new URLSearchParams();
@@ -151,7 +145,7 @@ describe("LibraryCatalog", () => {
     for (const node of compact.querySelectorAll("li")) {
       if (node.children.length === 0) expect(node.className).toContain("text-xs");
     }
-    expect(screen.queryByTestId("hook-flow")).toBeNull();
+    expect(compact.parentElement?.querySelector("svg")).toBeNull();
   });
 
   it("moves focus to the newly selected tab on arrow keys", async () => {

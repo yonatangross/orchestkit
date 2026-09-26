@@ -17,7 +17,7 @@ describe("hook phases", () => {
     );
   });
 
-  it("keeps the mermaid at six nodes, not one per hook", () => {
+  it("keeps the chart at six nodes, not one per hook", () => {
     const declared = HOOK_PHASES.reduce((n, phase) => n + phase.slugs.length, 0);
     expect(declared).toBe(HOOK_EVENT_PAGES.length);
     expect(HOOK_PHASES).toHaveLength(7);
@@ -25,7 +25,7 @@ describe("hook phases", () => {
 });
 
 describe("hookLifecycleFlow", () => {
-  it("reads the phone flow from the same chart as the mermaid", () => {
+  it("reads the phone flow from the same chart as the chart", () => {
     expect(hookLifecycleFlow()).toEqual({
       spine: ["Session", "Prompt", "Tools"],
       branches: ["Files", "Agents", "Tasks", "Model"],

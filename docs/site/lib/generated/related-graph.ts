@@ -170,7 +170,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/getting-started/skills-sh": {
-      "title": "Pi, and skills.sh for OpenCode and other clients",
+      "title": "OpenCode and other skills.sh clients, plus Pi",
       "inbound": 6
     },
     "/docs/getting-started/superpowers": {

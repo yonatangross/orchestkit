@@ -207,7 +207,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/getting-started/skills-sh",
-    "title": "Pi, and skills.sh for OpenCode and other clients",
+    "title": "OpenCode and other skills.sh clients, plus Pi",
     "description": "Pi installs from its shipped manifest; OpenCode and any other skills.sh client take the starter 12 skills. Muse Code has its own page."
   },
   {
