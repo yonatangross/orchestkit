@@ -105,6 +105,8 @@ type StoredLights = {
   hold?: boolean;
   passing?: boolean;
   error?: string;
+  /** The token of the session that wrote this entry (see sessionToken). */
+  session?: string;
   [key: string]: unknown;
 };
 
@@ -126,9 +128,43 @@ let tracked: Tracked | null = null;
 
 const TICK_MS = 60000;
 
-/** Store key: always under the session repo, so ui.render finds it. */
-function keyFor(repo: { owner: string; name: string } | null): string {
-  return repo ? `lights:${repo.owner}/${repo.name}` : "lights:_session";
+/**
+ * One token per loaded module, so per Claude Code process. $.store outlives
+ * the process, and ui.render can run BEFORE session.start clears the key
+ * (measured on 2.1.283: a new session drew the previous session's lights
+ * for about 3 s). Every write carries this token and every read ignores an
+ * entry with any other token, so a stale entry is never drawn.
+ */
+function newToken(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+/** Rotated at every session.start, so a /clear inside one process starts clean too. */
+let sessionToken = newToken();
+
+/** The current token (tests seed entries with it). */
+export function currentSessionToken(): string {
+  return sessionToken;
+}
+
+/** Tag an entry as written by this process. */
+function stamp<T extends object>(value: T): T & { session: string } {
+  return { ...value, session: sessionToken };
+}
+
+/** The stored entry only when this process wrote it; anything else reads as nothing. */
+function own(stored: StoredLights | null): StoredLights | null {
+  return stored && stored.session === sessionToken ? stored : null;
+}
+
+/**
+ * Store key: the session repo plus this session's token. Per repo alone, two
+ * live sessions on the same repo shared one key, and each write blanked the
+ * other session's band until its next tick.
+ */
+function keyFor(repo: { owner: string; name: string } | null, token: string = sessionToken): string {
+  const base = repo ? `lights:${repo.owner}/${repo.name}` : "lights:_session";
+  return `${base}:${token}`;
 }
 
 function labelFor(t: Tracked): string {
@@ -152,6 +188,10 @@ function prViewArgv(t: { owner: string; repo: string; number: number }): string[
 
 export const register: Register = (on) => {
   on("session.start", {}, async ($, e, next) => {
+    // Rotate first, before any await: from here on nothing this process
+    // stored for the previous session (a /clear) can be read or drawn.
+    const previousToken = sessionToken;
+    sessionToken = newToken();
     await $.command.register({
       name: "lights",
       description: "CI lights for the open promote PR, or any PR with /lights watch",
@@ -160,11 +200,10 @@ export const register: Register = (on) => {
     const repo = await $.session.repo();
     const key = keyFor(repo);
 
-    // $.store outlives the session: without this, the first AbovePrompt
-    // render drew the lights a PREVIOUS session stored (measured 2026-09-25:
-    // a demo opened on #4414 from an earlier run while it was told #4428).
-    // A new session shows nothing until its own first tick lands.
-    await $.store.delete(key);
+    // $.store outlives the session: drop what this process stored under its
+    // previous token (a /clear), so no orphan is left behind. Entries of
+    // other processes live under their own keys and are never touched.
+    await $.store.delete(keyFor(repo, previousToken));
     // A tick or a tracked PR from before /clear must not outlive it either.
     stopTick();
     tracked = null;
@@ -194,7 +233,7 @@ export const register: Register = (on) => {
       ], { timeoutMs: 15000 });
 
     if (result.exitCode !== 0) {
-      await $.store.set(key, { error: "gh: not found" });
+      await $.store.set(key, stamp({ error: "gh: not found" }));
       return next(e);
     }
 
@@ -250,9 +289,9 @@ export const register: Register = (on) => {
         return next(e);
       }
       stopTick();
-      await $.store.set(key, {
+      await $.store.set(key, stamp({
         error: "head moved, stopped",
-      });
+      }));
       tracked = null;
       $.ui.invalidate("ui.render");
       return next(e);
@@ -269,7 +308,7 @@ export const register: Register = (on) => {
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
     const downstream = await next(e);
     const repo = await $.session.repo();
-    const stored = await $.store.get(keyFor(repo));
+    const stored = own(await $.store.get(keyFor(repo)));
 
     if (!stored) return downstream;
 
@@ -324,7 +363,7 @@ export const register: Register = (on) => {
       return { text: outcome };
     }
 
-    const stored = await $.store.get(key);
+    const stored = own(await $.store.get(key));
 
     if (stored && stored.lights) {
       return {
@@ -350,7 +389,7 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
   const details = view.exitCode === 0 ? parsePRView(view.stdout) : null;
   const name = formatWatchTarget(target);
   if (!details) {
-    await $.store.set(key, { error: `watch ${name}: gh pr view failed` });
+    await $.store.set(key, stamp({ error: `watch ${name}: gh pr view failed` }));
     $.ui.invalidate("ui.render");
     return `lights: could not read ${name} (gh pr view exit ${view.exitCode})`;
   }
@@ -404,7 +443,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     if (requiredContexts.length === 0 && t.mode === "promote") {
       // A promote verdict with nothing required would be a green lie.
       const refused: StoredLights = { error: "empty required contexts", prNumber };
-      await $.store.set(key, refused);
+      await $.store.set(key, stamp(refused));
       $.ui.invalidate("ui.render");
       return refused;
     }
@@ -424,7 +463,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
           error: `watch ${formatWatchTarget({ owner, repo, number: prNumber })}: no check runs on ${head.slice(0, 7)}`,
           prNumber,
         };
-        await $.store.set(key, empty);
+        await $.store.set(key, stamp(empty));
         $.ui.invalidate("ui.render");
         return empty;
       }
@@ -450,7 +489,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
       passing,
       ts: Date.now(),
     };
-    await $.store.set(key, snapshot);
+    await $.store.set(key, stamp(snapshot));
 
     const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label);
     await $.ui.status(statusLine);
@@ -458,7 +497,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     return snapshot;
   } catch (err) {
     const failed: StoredLights = { error: String(err), prNumber };
-    await $.store.set(key, failed);
+    await $.store.set(key, stamp(failed));
     $.ui.invalidate("ui.render");
     return failed;
   }

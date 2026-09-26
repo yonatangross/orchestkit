@@ -191,12 +191,20 @@ const NEXT = (_ev?: unknown) => Promise.resolve({});
 
 /** Fresh module instance per load: register.ts keeps lastPR/ticking in
  * module-level state, so tests that need independent runs re-import it. */
-async function loadRegister(): Promise<{ register: (on: never) => void }> {
+type LoadedModule = { register: (on: never) => void; currentSessionToken: () => string };
+
+/** The module instance loadRegister() loaded last; seeded entries carry its CURRENT token. */
+let loaded: LoadedModule | null = null;
+const currentToken = (): string => (loaded ? loaded.currentSessionToken() : "");
+
+async function loadRegister(): Promise<LoadedModule> {
   vi.resetModules();
-  return (await import("../hooks/register.ts")) as unknown as {
-    register: (on: never) => void;
-  };
+  loaded = (await import("../hooks/register.ts")) as unknown as LoadedModule;
+  return loaded;
 }
+
+/** Keys are per repo AND per session token. */
+const KEY = expect.stringMatching(/^lights:yonatangross\/orchestkit:/);
 
 describe("register", () => {
   let fake$: Fake$;
@@ -321,8 +329,9 @@ describe("register behavior (mutant-killing)", () => {
 
     await handlers.get("session.start")!($, {}, NEXT);
 
-    expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
+    expect($.store.set).toHaveBeenCalledWith(KEY, {
       error: "gh: not found",
+      session: expect.any(String),
     });
     expect($.clock.every).not.toHaveBeenCalled();
   });
@@ -337,7 +346,7 @@ describe("register behavior (mutant-killing)", () => {
     await handlers.get("session.start")!($, {}, NEXT);
 
     // $.store outlives the session, so the first render must not find old lights.
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     const cleared = vi.mocked($.store.delete).mock.invocationCallOrder[0];
     const firstRun = vi.mocked($.process.run).mock.invocationCallOrder[0];
     expect(cleared).toBeLessThan(firstRun);
@@ -350,7 +359,7 @@ describe("register behavior (mutant-killing)", () => {
 
     await handlers.get("session.start")!($, {}, NEXT);
 
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     expect($.clock.every).not.toHaveBeenCalled();
   });
 
@@ -365,7 +374,7 @@ describe("register behavior (mutant-killing)", () => {
 
     await handlers.get("session.start")!($, {}, NEXT);
 
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     expect($.clock.every).not.toHaveBeenCalled();
     expect($.ui.status).not.toHaveBeenCalled();
   });
@@ -384,7 +393,7 @@ describe("register behavior (mutant-killing)", () => {
 
     expect($.clock.every).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ prNumber: 4417, head: "abc123def4567", passing: true })
     );
   });
@@ -402,7 +411,7 @@ describe("register behavior (mutant-killing)", () => {
 
     expect($.clock.every).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ prNumber: 4418, passing: true })
     );
   });
@@ -421,7 +430,7 @@ describe("register behavior (mutant-killing)", () => {
 
     expect($.clock.every).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ prNumber: 4419 })
     );
   });
@@ -452,7 +461,7 @@ describe("register behavior (mutant-killing)", () => {
 
     // All-green check runs over the protection contexts => passing true.
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({
         prNumber: 4165,
         head: "abc123def4567",
@@ -480,7 +489,7 @@ describe("register behavior (mutant-killing)", () => {
     await handlers.get("session.start")!($, {}, NEXT);
 
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ passing: false })
     );
   });
@@ -513,11 +522,11 @@ describe("register behavior (mutant-killing)", () => {
     await handlersFirst.get("session.start")!(failureFirst, {}, NEXT);
 
     expect(failureLast.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ passing: false })
     );
     expect(failureFirst.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ passing: false })
     );
   });
@@ -532,7 +541,7 @@ describe("register behavior (mutant-killing)", () => {
     await handlers.get("session.start")!($, {}, NEXT);
 
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ error: "empty required contexts", prNumber: 4165 })
     );
     // No lights were ever published for the PR.
@@ -557,7 +566,7 @@ describe("register behavior (mutant-killing)", () => {
     expect(result).toEqual({ text: "lights: stopped" });
     // The interval is cancelled, so no further ticks fire.
     expect(handle.cancel).toHaveBeenCalledTimes(1);
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
 
@@ -638,7 +647,7 @@ describe("register behavior (mutant-killing)", () => {
     await handlers.get("turn.complete")!($, {}, NEXT);
 
     expect(handle.cancel).toHaveBeenCalledTimes(1);
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
 
@@ -659,8 +668,9 @@ describe("register behavior (mutant-killing)", () => {
     await handlers.get("turn.complete")!($, {}, NEXT);
 
     expect(handle.cancel).toHaveBeenCalledTimes(1);
-    expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
+    expect($.store.set).toHaveBeenCalledWith(KEY, {
       error: "head moved, stopped",
+      session: expect.any(String),
     });
   });
 });
@@ -704,7 +714,7 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   test("while lights are stored, the downstream renderer still runs and its tree is kept under the band", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...STORED, session: currentToken() });
     const e = { component: "AbovePrompt", props: {} };
     const next = vi.fn((_ev?: unknown) => Promise.resolve(DOWNSTREAM));
 
@@ -741,7 +751,7 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   test("while lights are stored and nothing is drawn downstream, only the band is returned", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...STORED, session: currentToken() });
     const next = vi.fn((_ev?: unknown) => Promise.resolve(null));
 
     const out = (await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, next)) as {
@@ -754,17 +764,18 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   });
 });
 
+const WATCH_VIEW = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED" });
+const MIXED_RUNS = JSON.stringify({
+  total_count: 4,
+  check_runs: [
+    { name: "build", status: "completed", conclusion: "success" },
+    { name: "lint", status: "completed", conclusion: "failure" },
+    { name: "e2e", status: "in_progress", conclusion: null },
+    { name: "build", status: "completed", conclusion: "success" },
+  ],
+});
+
 describe("watch mode (demo: lights for any open PR)", () => {
-  const WATCH_VIEW = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED" });
-  const MIXED_RUNS = JSON.stringify({
-    total_count: 4,
-    check_runs: [
-      { name: "build", status: "completed", conclusion: "success" },
-      { name: "lint", status: "completed", conclusion: "failure" },
-      { name: "e2e", status: "in_progress", conclusion: null },
-      { name: "build", status: "completed", conclusion: "success" },
-    ],
-  });
 
   beforeEach(() => {
     vi.resetModules();
@@ -787,7 +798,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
 
     // Stored under the SESSION repo key so ui.render finds it.
     const stored = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
-      (c) => c[0] === "lights:yonatangross/orchestkit" && (c[1] as { lights?: unknown }).lights
+      (c) => /^lights:yonatangross\/orchestkit:/.test(String(c[0])) && (c[1] as { lights?: unknown }).lights
     )?.[1] as { lights: Array<{ name: string; color: string }>; label: string; passing: boolean; mode: string };
     expect(stored.mode).toBe("watch");
     expect(stored.label).toBe("watch acme/widgets#77");
@@ -838,7 +849,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
     expect(argvs.some((a) => a.startsWith("gh pr list"))).toBe(false);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ label: "watch acme/widgets#77", mode: "watch" })
     );
   });
@@ -853,7 +864,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     });
     await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ error: "watch acme/widgets#77: no check runs on feedbee" })
     );
   });
@@ -883,7 +894,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     await handlers.get("session.start")!($, {}, NEXT);
 
     expect(handle.cancel).toHaveBeenCalledTimes(1);
-    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.store.delete).toHaveBeenCalledWith(KEY);
     expect($.clock.every).toHaveBeenCalledTimes(1);
 
     // Nothing is tracked any more: a refresh runs no gh call at all.
@@ -926,7 +937,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS });
     await handlers.get("session.start")!($, {}, NEXT);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ error: "empty required contexts" })
     );
     const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
@@ -956,6 +967,7 @@ describe("ui.render draws with $.ui.resolve elements", () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
     ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      session: currentToken(),
       prNumber: 77,
       head: "feedbee1234567",
       label: "watch acme/widgets#77",
@@ -988,7 +1000,7 @@ describe("ui.render draws with $.ui.resolve elements", () => {
   test("a stored error draws one dim line instead of nothing", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "empty required contexts", prNumber: 4165 });
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "empty required contexts", prNumber: 4165, session: currentToken() });
     const DOWN = { type: "Box", props: {}, children: ["cc band"] };
     const out = (await handlers.get("ui.render")!(
       $,
@@ -1007,8 +1019,111 @@ describe("ui.render draws with $.ui.resolve elements", () => {
   test("/lights reports a stored error in words", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "head moved, stopped" });
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "head moved, stopped", session: currentToken() });
     const out = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as { text: string };
     expect(out.text).toBe("lights: head moved, stopped");
+  });
+});
+
+describe("a previous process's lights are never drawn", () => {
+  // Measured on CC 2.1.283: ui.render can run before session.start clears
+  // the key, and the new session drew the previous session's lights.
+  const FOREIGN = {
+    prNumber: 4435,
+    label: "watch yonatangross/orchestkit#4435",
+    head: "3afff24aa",
+    mergeStateStatus: "DIRTY",
+    hold: false,
+    lights: [{ name: "Build", color: "green", conclusion: "success" }],
+  };
+  const DOWN = { type: "Box", props: {}, children: ["cc band"] };
+
+  test("ui.render before session.start returns only the downstream tree for an entry from another process", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...FOREIGN, session: "another-process" });
+    const out = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(out).toBe(DOWN);
+  });
+
+  test("an entry with no token at all (written by an older version) is ignored too", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(FOREIGN);
+    const out = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(out).toBe(DOWN);
+    const text = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as { text: string };
+    expect(text.text).not.toContain("4435");
+  });
+});
+
+/** One Map shared by several fake $ objects: two live sessions on one machine share $.store. */
+function sharedStore(): { map: Map<string, unknown>; store: Record<string, unknown> } {
+  const map = new Map<string, unknown>();
+  return {
+    map,
+    store: {
+      get: vi.fn(async (k: string) => (map.has(k) ? map.get(k) : null)),
+      set: vi.fn(async (k: string, v: unknown) => {
+        map.set(k, v);
+      }),
+      delete: vi.fn(async (k: string) => {
+        map.delete(k);
+      }),
+    },
+  };
+}
+
+describe("two live sessions on the same repo keep their own bands", () => {
+  const DOWN = { type: "Box", props: {}, children: ["cc band"] };
+  const bandText = (out: unknown): string => JSON.stringify(out);
+
+  test("each session still draws its own watched PR after the other one writes", async () => {
+    const shared = sharedStore();
+    const watch = (target: string) =>
+      vi.fn(async (k: string) => (k === "PROMOTE_LIGHTS_WATCH" ? target : undefined));
+
+    // Two module instances = two Claude Code processes, one store.
+    const a = captureHandlers(await loadRegister());
+    const $a = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW, envGet: watch("acme/widgets#77") });
+    $a.store = shared.store as never;
+    await a.get("session.start")!($a, {}, NEXT);
+
+    const b = captureHandlers(await loadRegister());
+    const $b = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW, envGet: watch("acme/widgets#88") });
+    $b.store = shared.store as never;
+    await b.get("session.start")!($b, {}, NEXT);
+
+    const outA = await a.get("ui.render")!($a, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    const outB = await b.get("ui.render")!($b, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(bandText(outA)).toContain("acme/widgets#77");
+    expect(bandText(outA)).not.toContain("acme/widgets#88");
+    expect(bandText(outB)).toContain("acme/widgets#88");
+    expect(shared.map.size).toBe(2);
+  });
+});
+
+describe("a /clear inside one process never draws the previous session's lights", () => {
+  test("session.start rotates the token, so an entry from before it is ignored and its key removed", async () => {
+    const shared = sharedStore();
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ prList: "[]" });
+    $.store = shared.store as never;
+    const before = currentToken();
+    const oldKey = `lights:yonatangross/orchestkit:${before}`;
+    shared.map.set(oldKey, {
+      prNumber: 1,
+      label: "watch old/repo#1",
+      lights: [{ name: "Build", color: "green", conclusion: "success" }],
+      session: before,
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect(currentToken()).not.toBe(before);
+    expect(shared.map.has(oldKey)).toBe(false);
+    const DOWN = { type: "Box", props: {}, children: ["cc band"] };
+    const out = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(out).toBe(DOWN);
   });
 });
