@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.107](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107)** · 2026-09-26
+
+- **lesson-cards:** draw the lesson once, in the card (#4453)
+
 **[v10.0.0-beta.106](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.105...v10.0.0-beta.106)** · 2026-09-26
 
 - **site:** polish after [#4414](https://github.com/yonatangross/orchestkit/issues/4414): chat gap, host order, card border (#4452)
@@ -663,10 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **lab:** commit missing coderabbit-runnable-examples page (#4439)
 - **evals:** move eval judges and holdout grader to claude-opus-5-5 (#4443)
 - **skills:** retire testing-patterns stub, disambiguate memory cluster (#4428)
-
-**[v10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99)** · 2026-09-25
-
-- **secrets-veil:** fail closed when session.start never ran (#4436)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
