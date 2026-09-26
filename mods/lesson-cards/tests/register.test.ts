@@ -57,6 +57,9 @@ interface Fake$Options {
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.282. */
 const ESCAPE = '<escape>';
 
+/** askAnswer sentinel: the dialog throws for a reason other than Escape. */
+const REFUSED = '<refused>';
+
 /** A node built by a fake element constructor: the name as type, props spread. */
 type FakeNode = { type: string; key?: string; children?: unknown; [prop: string]: unknown };
 
@@ -86,6 +89,9 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     asks.push({ question, options: opts });
     if (options.askAnswer === ESCAPE) {
       throw new Error('$.ui.ask: no answer (the dialog was dismissed)');
+    }
+    if (options.askAnswer === REFUSED) {
+      throw new Error('$.ui.ask: no answer (a hook refused the dialog)');
     }
     return options.askAnswer as string;
   };
@@ -426,7 +432,7 @@ describe('block lessons ask before the call runs', () => {
     expect(asks[0].question).toContain('cancelled-check-is-not-pass');
     expect(asks[0].options).toEqual(['Proceed anyway', 'Cancel']);
     expect(out.result).toBeUndefined();
-    expect(out.deny).toContain('chose Cancel');
+    expect(out.deny).toContain('Cancelled by you');
     expect(out.deny).toContain('[lesson:cancelled-check-is-not-pass]');
   });
 
@@ -453,16 +459,20 @@ describe('block lessons ask before the call runs', () => {
 });
 
 describe('a block lesson fails closed: only an explicit Proceed anyway runs it', () => {
-  const cases: Array<[string, string | undefined]> = [
-    ['Escape (the dialog throws)', ESCAPE],
-    ['a typed free-text answer', 'sure, go ahead'],
-    ['no dialog at all (headless)', undefined],
+  const cases: Array<[string, string | undefined, boolean | undefined, string]> = [
+    ['Escape (the dismiss throw)', ESCAPE, true, 'Cancelled by you; not run.'],
+    ['a throw that is not the dismiss', REFUSED, true, 'Not run: no dialog to confirm.'],
+    ['a typed free-text answer', 'sure, go ahead', true, 'Not run: no "Proceed anyway".'],
+    ['a missing $.ui.ask (the call throws, the try/catch denies)', undefined, true, 'Not run: no dialog to confirm.'],
+    ['a headless session (isInteractive false)', 'Proceed anyway', false, 'Not run: no dialog to confirm.'],
+    ['a session.start without isInteractive', 'Proceed anyway', undefined, 'Not run: no dialog to confirm.'],
   ];
-  for (const [label, answer] of cases) {
+  for (const [label, answer, isInteractive, why] of cases) {
     test(`${label} denies without running the tool`, async () => {
       const { hooks } = captureHooks();
-      const { $ } = makeFake$(answer === undefined ? {} : { askAnswer: answer });
-      await startSession(hooks, $);
+      const { $, asks } = makeFake$(answer === undefined ? {} : { askAnswer: answer });
+      const event = isInteractive === undefined ? { cwd: '/repo' } : { ...SESSION_EVENT, isInteractive };
+      await hooks.get('session.start')!($, event, async (ev: unknown) => ev);
 
       let ran = false;
       const next = async (): Promise<unknown> => {
@@ -472,26 +482,44 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
       const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string; result?: string };
       expect(ran).toBe(false);
       expect(out.result).toBeUndefined();
-      expect(out.deny).toContain('no explicit "Proceed anyway"');
-      expect(out.deny).toContain('[lesson:cancelled-check-is-not-pass]');
+      expect(out.deny?.startsWith(`${why} [lesson:cancelled-check-is-not-pass]`)).toBe(true);
+      expect(out.deny).not.toMatch(/error/i);
+      if (isInteractive !== true) expect(asks).toHaveLength(0);
     });
   }
 });
 
-describe('the deny is one short line, not a red wall', () => {
-  test('one line, at most 240 characters, id, first sentence and a short Fix', async () => {
+describe('the lesson paragraph is drawn once: the card, never the question or the deny', () => {
+  const MESSAGE = 'Cancelled CI tiers are not pass.';
+  const copies = (text: string): number => text.split(MESSAGE).length - 1;
+
+  for (const [label, answer] of [['Cancel', 'Cancel'], ['Escape', ESCAPE]]) {
+    test(`${label}: one copy across card, question and deny`, async () => {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: answer });
+      await startSession(hooks, $);
+
+      const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-once' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
+      const tree = await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-once' }, asNext<never>(null));
+
+      const card = JSON.stringify(tree);
+      const question = asks[0]?.question ?? '';
+      const deny = out.deny ?? '';
+      expect(copies(card)).toBe(1);
+      expect(copies(question)).toBe(0);
+      expect(copies(deny)).toBe(0);
+      expect(copies(card + question + deny)).toBe(1);
+      expect(question).toBe('lesson cancelled-check-is-not-pass: Proceed anyway?');
+    });
+  }
+
+  test('the deny is one short line: reason, lesson id and Fix', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$({ askAnswer: 'Cancel' });
     await startSession(hooks, $);
 
     const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
-    const deny = out.deny ?? '';
-    expect(deny).not.toContain('\n');
-    expect(deny.length).toBeLessThanOrEqual(240);
-    expect(deny).toContain('[lesson:cancelled-check-is-not-pass]');
-    expect(deny).toContain('Cancelled CI tiers are not pass.');
-    expect(deny).not.toContain('Never trust a green rollup');
-    expect(deny).toContain('Fix: Use gh pr view with --json to check mergeStateStatus.');
+    expect(out.deny).toBe(`Cancelled by you; not run. [lesson:cancelled-check-is-not-pass] Fix: ${PATTERNS[0].example_fix}`);
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { denyLine, shortFix, cutCodePoints, MAX_DENY_CHARS } from '../src/card.js';
+import { askQuestion, denyLine, shortFix, cutCodePoints, MAX_DENY_CHARS } from '../src/card.js';
 
 const lesson = (message: string, fix?: string) => ({ id: 'l1', severity: 'block' as const, message, fix, source: 'pattern' as const });
 
@@ -23,18 +23,19 @@ describe('shortFix', () => {
 });
 
 describe('denyLine', () => {
-  test('one line with the id, the first sentence and a short Fix', () => {
-    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'the user chose Cancel');
-    expect(line).toBe('lesson-cards: the user chose Cancel; call not run. [lesson:l1] First sentence here. Fix: new()');
+  test('one line with the reason, the id and a short Fix, never the message', () => {
+    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Cancelled by you; not run.');
+    expect(line).toBe('Cancelled by you; not run. [lesson:l1] Fix: new()');
+    expect(line).not.toContain('First sentence');
     expect(line).not.toContain('\n');
   });
 
   test('no fix, no Fix label', () => {
-    expect(denyLine(lesson('Only this.'), 'no dialog')).toBe('lesson-cards: no dialog; call not run. [lesson:l1] Only this.');
+    expect(denyLine(lesson('Only this.'), 'Not run: no dialog to confirm.')).toBe('Not run: no dialog to confirm. [lesson:l1]');
   });
 
   test('the cap counts code points and never splits a surrogate pair', () => {
-    const line = denyLine(lesson('\u{1F6A6}'.repeat(400)), 'no dialog');
+    const line = denyLine({ ...lesson('m'), id: '\u{1F6A6}'.repeat(400) }, 'Cancelled by you; not run.');
     const points = Array.from(line);
     expect(points.length).toBe(MAX_DENY_CHARS);
     expect(line.endsWith('...')).toBe(true);
@@ -46,10 +47,16 @@ describe('denyLine', () => {
     expect(cutCodePoints('abc', 10)).toBe('abc');
   });
 
-  test('a long first sentence is cut, the Fix stays whole', () => {
-    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'the user chose Cancel');
-    expect(Array.from(line).length).toBeLessThanOrEqual(MAX_DENY_CHARS);
+  test('a long message never reaches the line, the Fix stays whole', () => {
+    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled by you; not run.');
+    expect(line).not.toContain('www');
     expect(line.endsWith(' Fix: use_the_safe_call()')).toBe(true);
+  });
+});
+
+describe('askQuestion', () => {
+  test('the lesson title and "Proceed anyway?" only', () => {
+    expect(askQuestion(lesson('A long lesson paragraph.'))).toBe('lesson l1: Proceed anyway?');
   });
 });
 
