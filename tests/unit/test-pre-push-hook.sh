@@ -749,11 +749,19 @@ test_shared_load_backoff_fixture() {
     log_section "Test 12: every stage receives one 5-minute load back-off (#4238)"
 
     local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
-    local tmp bin stub_log fns out count notice
+    local tmp bin root stub_log fns out count notice missing
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-backoff.XXXXXX")
     bin="$tmp/bin"
     stub_log="$tmp/stub.log"
     mkdir -p "$bin"
+    # The stages run from this fixture root, not PROJECT_ROOT. Both stages
+    # check the tree before they run: security needs an executable
+    # tests/security/run-security-tests.sh, and vitest SKIPs when
+    # src/hooks/node_modules/.bin/vitest is absent (#4220). A worktree with no
+    # src/hooks install used to fail this test on every push, because the vitest
+    # stage skipped and never reached the npx stub.
+    root="$tmp/root"
+    mkdir -p "$root/tests/security" "$root/src/hooks/node_modules/.bin"
 
     fns=$(sed -n '/^load5_from_uptime_tail()/,/^}/p' "$hook")
     fns+=$'\n'"$(sed -n '/^resolve_pre_push_jobs()/,/^}/p' "$hook")"
@@ -765,10 +773,6 @@ test_shared_load_backoff_fixture() {
     fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_hooks_vitest_stage()/,/^}/p' "$hook")"
     printf '%s\n' "$fns" > "$tmp/fns.sh"
-    # This extracted copy calls the logging stub by path. The hook does not
-    # grow a PATH switch to make that possible.
-    sed "s#\\./tests/security/run-security-tests.sh#${bin}/run-security-tests.sh#" "$tmp/fns.sh" > "$tmp/fns.stub.sh"
-    mv "$tmp/fns.stub.sh" "$tmp/fns.sh"
 
     if [[ -z "$fns" || "$fns" != *'run_hooks_vitest_stage()'* ]]; then
         log_fail "could not extract the three stage runners from the hook"
@@ -784,12 +788,27 @@ test_shared_load_backoff_fixture() {
     printf '%s\n' \
         '#!/bin/bash' \
         'printf "SECURITY jobs=%s args=%s\n" "${ORK_PRE_PUSH_STAGE_JOBS:-unset}" "$*" >> "$STUB_LOG"' \
-        'exit 0' > "$bin/run-security-tests.sh"
+        'exit 0' > "$root/tests/security/run-security-tests.sh"
     printf '%s\n' \
         '#!/bin/bash' \
         'printf "NPX %s\n" "$*" >> "$STUB_LOG"' \
         'exit 0' > "$bin/npx"
-    chmod +x "$bin/xargs" "$bin/run-security-tests.sh" "$bin/npx"
+    # Only has to exist and be executable: the stage calls npx, which is stubbed.
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "VITEST-BIN %s\n" "$*" >> "$STUB_LOG"' \
+        'exit 0' > "$root/src/hooks/node_modules/.bin/vitest"
+    chmod +x "$bin/xargs" "$bin/npx" \
+        "$root/tests/security/run-security-tests.sh" \
+        "$root/src/hooks/node_modules/.bin/vitest"
+
+    # stub_legs <jobs>: prints the legs of the stub log that do not show <jobs>,
+    # or nothing when unit, security and vitest all received it.
+    stub_legs() {
+        grep -F -q -- "-P $1 " "$stub_log" || printf 'unit(xargs -P %s) ' "$1"
+        grep -F -q "SECURITY jobs=$1 args=" "$stub_log" || printf 'security(jobs=%s) ' "$1"
+        grep -F -q -- "--maxWorkers=$1" "$stub_log" || printf 'vitest(--maxWorkers=%s) ' "$1"
+    }
 
     local second
     second=$(/bin/bash -c 'source "$1"; load5_from_uptime_tail "$2"' _ "$tmp/fns.sh" "1.25 80.5 9.0")
@@ -808,7 +827,7 @@ test_shared_load_backoff_fixture() {
     # run_case <ncpu> <load5>
     run_case() {
         : > "$stub_log"
-        out=$(cd "$PROJECT_ROOT" && env -u ORK_PRE_PUSH_JOBS \
+        out=$(cd "$root" && env -u ORK_PRE_PUSH_JOBS \
             PATH="$bin:$PATH" \
             STUB_LOG="$stub_log" \
             /bin/bash -c '
@@ -831,12 +850,11 @@ test_shared_load_backoff_fixture() {
     else
         log_fail "load 80 notice count=$count (want 3). output: $out"
     fi
-    if grep -F -q -- '-P 1 ' "$stub_log" \
-        && grep -F -q 'SECURITY jobs=1 args=' "$stub_log" \
-        && grep -F -q -- '--maxWorkers=1' "$stub_log"; then
+    missing=$(stub_legs 1)
+    if [[ -z "$missing" ]]; then
         log_pass "load 80 on 16 cores: unit, security, and vitest all receive jobs=1"
     else
-        log_fail "load 80 stub log did not show jobs=1: $(cat "$stub_log")"
+        log_fail "load 80: missing ${missing}in stub log: $(cat "$stub_log") output: $out"
     fi
 
     run_case 16 0
@@ -847,12 +865,11 @@ test_shared_load_backoff_fixture() {
     else
         log_fail "idle box printed a load notice: $out"
     fi
-    if grep -F -q -- '-P 8 ' "$stub_log" \
-        && grep -F -q 'SECURITY jobs=8 args=' "$stub_log" \
-        && grep -F -q -- '--maxWorkers=8' "$stub_log"; then
+    missing=$(stub_legs 8)
+    if [[ -z "$missing" ]]; then
         log_pass "idle 16-core box keeps the old cap of 8 on every stage"
     else
-        log_fail "idle stub log was not the cap of 8: $(cat "$stub_log")"
+        log_fail "idle: missing ${missing}in stub log: $(cat "$stub_log") output: $out"
     fi
 
     rm -rf "$tmp"
