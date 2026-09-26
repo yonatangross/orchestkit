@@ -39,7 +39,7 @@ Parse the user's argument to determine which report to show. If no argument prov
 | `cost` | Token cost estimation with cache savings | `stats-cache.json` | `references/cost-estimation.md` |
 | `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `references/trends-analysis.md` |
 | `summary` | Unified view of all categories | All files | `references/jq-queries.md` |
-| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl`, or a gateway's Loki + Prometheus when the user names them | `references/otel-fields.md`, `references/otel-gateway-source.md` |
+| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl`, or user-named Loki + Prometheus endpoints after schema discovery | `references/otel-fields.md`, `references/otel-gateway-source.md` |
 
 ### Quick Start Example
 
