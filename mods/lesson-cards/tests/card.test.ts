@@ -30,10 +30,10 @@ describe('denyLine', () => {
     expect(line).not.toContain('\n');
   });
 
-  test('a user cancel keeps Cancelled: once, by you; not run., no Fix', () => {
-    const why = 'Cancelled: by you; not run.';
+  test('a user cancel is plain: Cancelled: once, lesson id, no Fix', () => {
+    const why = 'Cancelled: by you; not run. Waiting for your next instruction.';
     const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), why);
-    expect(line).toBe('Cancelled: by you; not run. [lesson:l1]');
+    expect(line).toBe('Cancelled: by you; not run. Waiting for your next instruction. [lesson:l1]');
     expect(line.startsWith('Cancelled: ')).toBe(true);
     expect(line).not.toContain('Fix:');
     expect(line).not.toMatch(/^Cancelled: Cancelled/);
@@ -44,7 +44,7 @@ describe('denyLine', () => {
   });
 
   test('the cap counts code points and never splits a surrogate pair', () => {
-    const line = denyLine({ ...lesson('m'), id: '\u{1F6A6}'.repeat(400) }, 'Cancelled: by you; not run.');
+    const line = denyLine({ ...lesson('m'), id: '\u{1F6A6}'.repeat(400) }, 'Cancelled: by you; not run. Waiting for your next instruction.');
     const points = Array.from(line);
     expect(points.length).toBe(MAX_DENY_CHARS);
     expect(line.endsWith('...')).toBe(true);
@@ -57,7 +57,7 @@ describe('denyLine', () => {
   });
 
   test('a long message never reaches a cancel line (no Fix to keep)', () => {
-    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled: by you; not run.');
+    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled: by you; not run. Waiting for your next instruction.');
     expect(line).not.toContain('www');
     expect(line).not.toContain('Fix:');
     expect(line.startsWith('Cancelled: by you; not run.')).toBe(true);
