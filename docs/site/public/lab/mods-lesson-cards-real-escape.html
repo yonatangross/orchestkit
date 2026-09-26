@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lesson-cards: Escape reads as cancelled by you | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  pre { background: #272822; color: #f8f8f2; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; font-size: 14px; }
+  .bad { color: #f92672; }
+  .dim { color: #a6a28c; }
+  label { display: inline-flex; gap: 6px; margin-right: 18px; cursor: pointer; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards: Escape reads as cancelled by you"><meta property="og:description" content="On CC 2.1.283, Escape on the Proceed anyway question throws the tool rejection text, not the dismiss text, so 1.0.4 printed 'no dialog to confirm'. 1.0.5 matches both and pins the live throw in a test."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/mods-lesson-cards-real-escape.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards: Escape reads as cancelled by you"><meta name="twitter:description" content="On CC 2.1.283, Escape on the Proceed anyway question throws the tool rejection text, not the dismiss text, so 1.0.4 printed 'no dialog to confirm'. 1.0.5 matches both and pins the live throw in a test."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
+<h1>Escape reads as cancelled by you</h1>
+<p>In lesson-cards 1.0.4 (beta.107), pressing Escape on the Proceed anyway question printed <code>Not run: no dialog to confirm.</code>, as if no dialog had opened. The mod matched only the text <code>the dialog was dismissed</code>, but a live probe on Claude Code 2.1.283 shows Escape throws Claude Code's tool rejection text instead. That dismiss text is only the fallback for a dialog that returns no text. Now both read as <code>Cancelled by you; not run.</code>, and every other throw (a host deny, a refused dialog, no dialog at all) still reads <code>Not run: no dialog to confirm.</code></p>
+<p>
+  <label><input type="radio" name="v" value="before"> Before (1.0.4, beta.107)</label>
+  <label><input type="radio" name="v" value="after" checked> After (1.0.5)</label>
+</p>
+<pre class="dim">$.ui.ask throw on Escape, captured live:
+lesson-cards: $.ui.ask: no answer (The user doesn't want to proceed with this tool use. The tool use was rejected ...)</pre>
+<pre id="before" hidden><span class="bad">Error: Not run: no dialog to confirm. [lesson:git-ls-files-quotepath-blind] Fix: git ls-files -z | tr '\0' '\n' | grep -qxF "$name"</span></pre>
+<pre id="after"><span class="bad">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind] Fix: git ls-files -z | tr '\0' '\n' | grep -qxF "$name"</span></pre>
+<p>The test fake now throws the captured 2.1.283 text for Escape. That row fails on 1.0.4 and passes on 1.0.5. Separate rows cover the dismiss fallback and a host deny.</p>
+<script>
+  for (const r of document.querySelectorAll('input[name=v]')) {
+    r.addEventListener('change', () => {
+      document.getElementById('before').hidden = r.value !== 'before' || !r.checked;
+      document.getElementById('after').hidden = r.value !== 'after' || !r.checked;
+    });
+  }
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

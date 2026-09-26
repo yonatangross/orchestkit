@@ -54,11 +54,17 @@ interface Fake$Options {
   askAnswer?: string;
 }
 
-/** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.282. */
+/** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.283 (captured live). */
 const ESCAPE = '<escape>';
+
+/** askAnswer sentinel: the Escape throw when the dialog returns no text (CC's fallback). */
+const ESCAPE_NO_TEXT = '<escape-no-text>';
 
 /** askAnswer sentinel: the dialog throws for a reason other than Escape. */
 const REFUSED = '<refused>';
+
+/** askAnswer sentinel: a host deny, which also throws "no answer (...)". */
+const HOST_DENY = '<host-deny>';
 
 /** A node built by a fake element constructor: the name as type, props spread. */
 type FakeNode = { type: string; key?: string; children?: unknown; [prop: string]: unknown };
@@ -88,10 +94,18 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   const ask = async (question: string, opts: readonly string[]): Promise<string> => {
     asks.push({ question, options: opts });
     if (options.askAnswer === ESCAPE) {
+      throw new Error(
+        "lesson-cards: $.ui.ask: no answer (The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). STOP what you are doing and wait for the user to tell you how to proceed.)",
+      );
+    }
+    if (options.askAnswer === ESCAPE_NO_TEXT) {
       throw new Error('$.ui.ask: no answer (the dialog was dismissed)');
     }
     if (options.askAnswer === REFUSED) {
       throw new Error('$.ui.ask: no answer (a hook refused the dialog)');
+    }
+    if (options.askAnswer === HOST_DENY) {
+      throw new Error('lesson-cards: $.ui.ask: no answer (no surface)');
     }
     return options.askAnswer as string;
   };
@@ -460,8 +474,10 @@ describe('block lessons ask before the call runs', () => {
 
 describe('a block lesson fails closed: only an explicit Proceed anyway runs it', () => {
   const cases: Array<[string, string | undefined, boolean | undefined, string]> = [
-    ['Escape (the dismiss throw)', ESCAPE, true, 'Cancelled by you; not run.'],
+    ['Escape (the live 2.1.283 rejection throw)', ESCAPE, true, 'Cancelled by you; not run.'],
+    ['Escape with no dialog text (the dismiss fallback)', ESCAPE_NO_TEXT, true, 'Cancelled by you; not run.'],
     ['a throw that is not the dismiss', REFUSED, true, 'Not run: no dialog to confirm.'],
+    ['a host deny ("no answer" without a rejection text)', HOST_DENY, true, 'Not run: no dialog to confirm.'],
     ['a typed free-text answer', 'sure, go ahead', true, 'Not run: no "Proceed anyway".'],
     ['a missing $.ui.ask (the call throws, the try/catch denies)', undefined, true, 'Not run: no dialog to confirm.'],
     ['a headless session (isInteractive false)', 'Proceed anyway', false, 'Not run: no dialog to confirm.'],
