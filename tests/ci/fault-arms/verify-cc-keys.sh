@@ -48,7 +48,9 @@ cp "$REPO/spec/cc-output-keys.spec.yml" "$FIX/tree/spec/"
             ? m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS
             : new Set();
         for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME) {
-          if (!henReviewed.has(e)) console.log(`hookEventName:R("${e}")`);
+          if (henReviewed.has(e)) continue;
+          const additionalContext = acSchema.has(e) ? ",additionalContext:o().optional()" : "";
+          console.log(`({hookEventName:R("${e}")${additionalContext}})`);
         }
       });
     ' "$FIX/tree/src/hooks/bin/cc-output-keys.generated.mjs"

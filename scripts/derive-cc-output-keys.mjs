@@ -67,6 +67,8 @@ const EXIT_OK = 0;
 const EXIT_DRIFT = 1;
 const EXIT_CANNOT_OBSERVE = 2;
 const EXIT_UNREVIEWED = 3;
+const MAX_SCHEMA_SCAN_CHARS = 64 * 1024;
+const MAX_SCHEMA_CANDIDATES = 128;
 
 /**
  * Resolve the real binary, not the shim. TWO layouts ship it and only one of
@@ -94,6 +96,17 @@ const EXIT_UNREVIEWED = 3;
  */
 function findBinary() {
   return binaryFromVersionsDir() ?? binaryFromPath();
+}
+
+/** Use a specific observed artifact when reproducing an evidence record. */
+function binaryFromOverride(requested) {
+  try {
+    const path = realpathSync(requested);
+    if (!statSync(path).isFile()) return null;
+    return { path, version: versionNear(path) ?? 'unknown' };
+  } catch {
+    return null;
+  }
 }
 
 /** The native installer's layout: a versioned file per release. */
@@ -188,6 +201,145 @@ function hookEventNameEventsFrom(strings) {
 }
 
 /**
+ * Events whose output-schema variant accepts additionalContext.
+ *
+ * Find the event's enclosing object without relying on a minifier constructor
+ * name. additionalContext must be a direct field of that object, so a key on a
+ * neighbouring or nested object cannot satisfy the evidence gate.
+ */
+function additionalContextSchemaEventsFrom(strings) {
+  const found = new Set();
+  const event = /hookEventName:R\("([A-Za-z]+)"\)/g;
+  for (const m of strings.matchAll(event)) {
+    const schemaObject = enclosingEventObject(strings, m.index);
+    if (
+      schemaObject &&
+      (hasDirectProperty(schemaObject.source, 'additionalContext') ||
+        hasAdditionalContextExtension(strings, schemaObject.end, 'additionalContext'))
+    ) {
+      found.add(m[1]);
+    }
+  }
+  return found;
+}
+
+function enclosingEventObject(strings, eventIndex) {
+  const minimumStart = Math.max(0, eventIndex - MAX_SCHEMA_SCAN_CHARS);
+  const maximumEnd = Math.min(strings.length, eventIndex + MAX_SCHEMA_SCAN_CHARS);
+  let start = strings.lastIndexOf('{', eventIndex);
+  let candidates = 0;
+  while (start >= minimumStart && candidates < MAX_SCHEMA_CANDIDATES) {
+    const end = matchingBrace(strings, start, maximumEnd);
+    if (end >= eventIndex && braceDepthAt(strings, start, eventIndex) === 1) {
+      return { source: strings.slice(start, end + 1), end };
+    }
+    start = strings.lastIndexOf('{', start - 1);
+    candidates += 1;
+  }
+  return null;
+}
+
+function matchingBrace(strings, start, maximumEnd = strings.length) {
+  let depth = 0;
+  let quote = null;
+  for (let i = start; i < maximumEnd; i += 1) {
+    const ch = strings[i];
+    if (quote) {
+      if (ch === '\\') i += 1;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+    } else if (ch === '{') {
+      depth += 1;
+    } else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * A schema generator may add a field with `u({...}).extend({...})`. The
+ * extension is part of the same schema expression, so accept only a direct
+ * property in the immediately chained extension object. Dynamic spreads stay
+ * unproven because this extractor cannot safely resolve their source.
+ */
+function hasAdditionalContextExtension(strings, schemaEnd, property) {
+  const suffixEnd = Math.min(strings.length, schemaEnd + MAX_SCHEMA_SCAN_CHARS);
+  const suffix = strings.slice(schemaEnd + 1, suffixEnd);
+  const extension = /^\s*\)\s*\.extend\s*\(\s*\{/.exec(suffix);
+  if (!extension) return false;
+
+  const extensionStart = schemaEnd + 1 + extension[0].lastIndexOf('{');
+  const extensionEnd = matchingBrace(
+    strings,
+    extensionStart,
+    Math.min(strings.length, extensionStart + MAX_SCHEMA_SCAN_CHARS),
+  );
+  return (
+    extensionEnd >= 0 &&
+    hasDirectProperty(strings.slice(extensionStart, extensionEnd + 1), property)
+  );
+}
+
+function braceDepthAt(strings, start, index) {
+  let depth = 0;
+  let quote = null;
+  for (let i = start; i < index; i += 1) {
+    const ch = strings[i];
+    if (quote) {
+      if (ch === '\\') i += 1;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+    } else if (ch === '{') {
+      depth += 1;
+    } else if (ch === '}') {
+      depth -= 1;
+    }
+  }
+  return depth;
+}
+
+function hasDirectProperty(schemaObject, property) {
+  let depth = 0;
+  let quote = null;
+  for (let i = 0; i < schemaObject.length; i += 1) {
+    const ch = schemaObject[i];
+    if (quote) {
+      if (ch === '\\') i += 1;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') {
+      depth += 1;
+      continue;
+    }
+    if (ch === '}') {
+      depth -= 1;
+      continue;
+    }
+    if (depth !== 1 || !schemaObject.startsWith(property, i)) continue;
+    const before = schemaObject[i - 1] ?? '';
+    const after = schemaObject[i + property.length] ?? '';
+    if (/[$\w]/.test(before) || /[$\w]/.test(after)) continue;
+    let cursor = i + property.length;
+    while (/\s/.test(schemaObject[cursor] ?? '')) cursor += 1;
+    if (schemaObject[cursor] === ':') return true;
+  }
+  return false;
+}
+
+/**
  * The generated module is hand-mirrored from the spec (its header says so),
  * so a --check that never opens the spec can report OK with the spec emptied
  * or deleted. Measured 2026-09-06 (tests/ci/fault-arms/verify-cc-keys.sh):
@@ -216,8 +368,14 @@ async function main() {
   const check = process.argv.includes('--check');
   if (check) requireSpec();
 
-  const bin = findBinary();
+  const requestedBinary = process.env.CC_OUTPUT_KEYS_BINARY;
+  const bin = requestedBinary ? binaryFromOverride(requestedBinary) : findBinary();
   if (!bin) {
+    if (requestedBinary) {
+      console.error(`CANNOT OBSERVE: CC_OUTPUT_KEYS_BINARY is not a usable file: ${requestedBinary}`);
+      console.error('  The explicit binary pin is authoritative, so no fallback binary was used.');
+      process.exit(EXIT_CANNOT_OBSERVE);
+    }
     console.error('CANNOT OBSERVE: no CC binary found. Looked in both known layouts:');
     console.error(`    native: ${join(homedir(), '.local/share/claude/versions')}/<x.y.z>`);
     console.error('    npm:    `claude` on PATH, symlinks followed');
@@ -248,6 +406,7 @@ async function main() {
 
   const binaryAdditionalContext = additionalContextEventsFrom(strings);
   const binaryHookEventName = hookEventNameEventsFrom(strings);
+  const binaryAdditionalContextSchema = additionalContextSchemaEventsFrom(strings);
 
   // Same vacuous-pass bar for the hookEventName schema extract (#4291): an
   // empty set has an empty difference against any allow-list subset.
@@ -261,6 +420,8 @@ async function main() {
   for (const e of [...binaryAdditionalContext].sort()) console.log(`  ${e}`);
   console.log(`CC ${bin.version} - events with hookEventName:R("...") in the output schema:`);
   for (const e of [...binaryHookEventName].sort()) console.log(`  ${e}`);
+  console.log(`CC ${bin.version} - output-schema variants that accept additionalContext:`);
+  for (const e of [...binaryAdditionalContextSchema].sort()) console.log(`  ${e}`);
 
   if (!check) {
     console.log('\n(run with check mode to compare against the generated module)');
@@ -279,19 +440,29 @@ async function main() {
     process.exit(EXIT_CANNOT_OBSERVE);
   }
 
+  const reviewedAdditionalContext =
+    generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
+      ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
+      : new Set();
+  const schemaAcceptedAdditionalContext =
+    generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
+      ? generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
+      : new Set();
+  const acSchemaEvidence = inspectAdditionalContextSchemaEvidence({
+    schemaAccepted: schemaAcceptedAdditionalContext,
+    reviewedExceptions: reviewedAdditionalContext,
+    schemaEvents: binaryAdditionalContextSchema,
+    corroboratedEvents: binaryAdditionalContext,
+  });
+  printSchemaEvidence(schemaAcceptedAdditionalContext, binaryAdditionalContextSchema);
+
   const acDrift = arbitrateSet({
     label: 'EVENTS_WITH_ADDITIONAL_CONTEXT',
     key: 'additionalContext',
     allowed: generated.EVENTS_WITH_ADDITIONAL_CONTEXT,
     binaryEvents: binaryAdditionalContext,
-    reviewedExceptions:
-      generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
-        ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
-        : new Set(),
-    schemaAccepted:
-      generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
-        ? generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
-        : new Set(),
+    reviewedExceptions: reviewedAdditionalContext,
+    schemaAccepted: schemaAcceptedAdditionalContext,
     missingHint: 'The guard would STRIP valid output on those events.',
     unreviewedHint:
       'Either settle by trace-and-observe and add to ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS,\n' +
@@ -332,13 +503,61 @@ async function main() {
   if (acDrift.missing || henDrift.missing) {
     process.exit(EXIT_DRIFT);
   }
-  if (acDrift.unreviewed || henDrift.unreviewed) {
+  if (acDrift.unreviewed || henDrift.unreviewed || acSchemaEvidence.invalid) {
     process.exit(EXIT_UNREVIEWED);
   }
 
   console.log('\nOK: EVENTS_WITH_ADDITIONAL_CONTEXT and EVENTS_WITH_HOOK_EVENT_NAME both');
   console.log('match the binary (every binary event present; every uncorroborated entry reviewed).');
   process.exit(EXIT_OK);
+}
+
+/**
+ * Validate the distinct evidence classes for additionalContext exemptions.
+ * Schema acceptance proves parser shape only. Reviewed exceptions require
+ * trace-and-observe evidence, so membership in both classes is contradictory.
+ */
+function inspectAdditionalContextSchemaEvidence({
+  schemaAccepted,
+  reviewedExceptions,
+  schemaEvents,
+  corroboratedEvents,
+}) {
+  const overlap = [...schemaAccepted].filter((e) => reviewedExceptions.has(e)).sort();
+  if (overlap.length > 0) {
+    console.error(
+      '\nDRIFT [ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED]: entries also appear in ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS:',
+    );
+    for (const e of overlap) console.error(`  ${e}`);
+  }
+
+  const missingSchema = [...schemaAccepted].filter((e) => !schemaEvents.has(e)).sort();
+  if (missingSchema.length > 0) {
+    console.error(
+      '\nDRIFT [ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED]: no output-schema additionalContext variant for:',
+    );
+    for (const e of missingSchema) console.error(`  ${e}`);
+  }
+
+  const staleSchema = [...schemaAccepted].filter((e) => corroboratedEvents.has(e)).sort();
+  if (staleSchema.length > 0) {
+    console.log(
+      '\nSTALE [ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED]: schema-accepted entry is now corroborated by binary prose; remove it from the schema-accepted set:',
+    );
+    for (const e of staleSchema) console.log(`  ${e}`);
+  }
+
+  return { invalid: overlap.length > 0 || missingSchema.length > 0 };
+}
+
+function printSchemaEvidence(schemaAccepted, schemaEvents) {
+  console.log('\nSCHEMA EVIDENCE [ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED]:');
+  for (const event of [...schemaAccepted].sort()) {
+    const verdict = schemaEvents.has(event)
+      ? 'resolved in this binary output-schema variant'
+      : 'MISSING from this binary output-schema variant';
+    console.log(`  ${event}: ${verdict}`);
+  }
 }
 
 /**
