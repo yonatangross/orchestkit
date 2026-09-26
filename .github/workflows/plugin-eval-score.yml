@@ -37,11 +37,12 @@ jobs:
   score:
     name: Scored ablation run (manual only)
     runs-on: ubuntu-latest
-    # Max-plan OAuth, not ANTHROPIC_API_KEY: that env is NOT read by `claude -p`
-    # in a fresh HOME (#1857). On fork PRs secrets are absent, so this resolves
-    # to '' and the loud-skip path fires.
+    # Max-plan OAuth for the agent turns. Paid spend must also set
+    # ORK_EVALS_API_KEY (dedicated, spend-capped; orchestkit#4461). Never use a
+    # shared ANTHROPIC_API_KEY as the eval key.
     env:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ORK_EVALS_API_KEY: ${{ secrets.ORK_EVALS_API_KEY }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
         with:
@@ -51,21 +52,22 @@ jobs:
           node-version: "24"
 
       - name: 'SKIPPED: no Claude auth in this run context'
-        if: env.CLAUDE_CODE_OAUTH_TOKEN == ''
+        if: env.CLAUDE_CODE_OAUTH_TOKEN == '' || env.ORK_EVALS_API_KEY == ''
         run: |
-          echo "::notice title=Plugin eval SKIPPED — NOT a pass::CLAUDE_CODE_OAUTH_TOKEN is unavailable in this run context (fork PR, or repo secret unset). Nothing was scored."
+          echo "::notice title=Plugin eval SKIPPED — NOT a pass::CLAUDE_CODE_OAUTH_TOKEN or ORK_EVALS_API_KEY is unavailable in this run context (fork PR, or repo secret unset). Nothing was scored."
           {
             echo "## Plugin eval SKIPPED (no Claude auth)"
             echo ""
             echo "**Nothing was scored. This is a skip, not a pass.**"
+            echo "Requires CLAUDE_CODE_OAUTH_TOKEN and ORK_EVALS_API_KEY (dedicated evals key)."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build plugin
-        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != '' && env.ORK_EVALS_API_KEY != ''
         run: npm ci && npm run build
 
       - name: Run suite with ablation
-        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != '' && env.ORK_EVALS_API_KEY != ''
         # Dispatch inputs reach the shell as env vars, never as inline template
         # expansions, so an input value cannot be interpreted as shell code.
         env:
@@ -94,7 +96,7 @@ jobs:
       # (delta-based, noise-floor aware, refuses on partial). This step only
       # copies it into the job summary. No `|| true`: the gate is the point.
       - name: Summarise deltas
-        if: always() && env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        if: always() && env.CLAUDE_CODE_OAUTH_TOKEN != '' && env.ORK_EVALS_API_KEY != ''
         run: node scripts/summarise-eval-run.mjs evals/results >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload raw reports

@@ -35,7 +35,11 @@ YAML harness. The two do not share a format and neither replaces the other.
 
 ## Running it
 
+Requires `ORK_EVALS_API_KEY` (dedicated, spend-capped). There is no fallback to
+a shared `ANTHROPIC_API_KEY` (orchestkit#4461).
+
 ```bash
+export ORK_EVALS_API_KEY=sk-ant-...   # dedicated evals key with a spend cap
 bash scripts/run-plugin-eval.sh                      # pilot: 1 run per case, $3 ceiling
 bash scripts/run-plugin-eval.sh --runs 3 --max-cost-usd 10
 bash scripts/run-plugin-eval.sh --case '2*'          # one skill's cases
@@ -175,8 +179,13 @@ between runs. Unanimity is not robustness. So:
 8. **Calibrate offline before spending on agents.** Agent turns are 98% of
    spend and every agent output is stored in `run.json` under `evidence`.
    `scripts/rejudge-eval-outputs.mjs` re-scores them against the current
-   graders for cents. Write hand verdicts first, then compare. The gate for a
-   re-pilot is 100% agreement, or every disagreement named and reworded.
+   graders for cents via the Anthropic Messages SDK (rubric + evidence only;
+   never a Claude Code session). Set `ORK_EVALS_API_KEY` (dedicated,
+   spend-capped); there is no `ANTHROPIC_API_KEY` fallback. Pass
+   `--metered-usd` from Console usage to fail when the ledger (which prices
+   `cache_creation` and `cache_read`) differs by more than 20%. Write hand
+   verdicts first, then compare. The gate for a re-pilot is 100% agreement,
+   or every disagreement named and reworded.
 9. **Gate on delta with a noise floor.** One judge flip on a weight-1 grader in
    a 1.5-weight case across three runs moves the mean by 0.22, so a per-case
    floor tighter than about -0.34 gates on noise.

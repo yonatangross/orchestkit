@@ -58,6 +58,14 @@ fi
 if [ ! -f "$PLUGIN_DIR/plugin.json" ]; then
   echo "plugins/ork is not built. Run: npm run build" >&2; exit 1
 fi
+# Paid runs need a dedicated, spend-capped evals key (orchestkit#4461).
+# Never fall back to a shared ANTHROPIC_API_KEY.
+if [ -z "${ORK_EVALS_API_KEY:-}" ]; then
+  echo "paid plugin eval requires ORK_EVALS_API_KEY (dedicated, spend-capped)." >&2
+  echo "Refusing to fall back to ANTHROPIC_API_KEY." >&2
+  exit 1
+fi
+export ANTHROPIC_API_KEY="$ORK_EVALS_API_KEY"
 
 # Stage the tracked cases into the plugin. results/ never goes in.
 rm -rf "$STAGED"
