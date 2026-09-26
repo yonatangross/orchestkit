@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.110](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.109...v10.0.0-beta.110)** · 2026-09-26
+
+- **promote-lights:** a rejected status clear keeps the lights (#4464)
+
 **[v10.0.0-beta.109](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.108...v10.0.0-beta.109)** · 2026-09-26
 
 - **lesson-cards:** read the real Escape throw as cancelled by you (#4462)
@@ -658,10 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **promote-lights:** find promote PR past first 30 open PRs (#4435)
 - **site:** put the home hero art in the grid and redraw the nav mark (#4414)
-
-**[v10.0.0-beta.102](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.101...v10.0.0-beta.102)** · 2026-09-26
-
-- **promote-lights:** never draw another session's stored lights (#4447)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
