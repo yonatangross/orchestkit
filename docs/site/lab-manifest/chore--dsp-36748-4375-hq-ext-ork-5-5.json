@@ -1,0 +1,13 @@
+{
+  "slug": "chore--dsp-36748-4375-hq-ext-ork-5-5",
+  "source": "docs/chore--dsp-36748-4375-hq-ext-ork-5-5/index.html",
+  "title": "Your rules file stays yours",
+  "description": "The antipattern-warning SessionStart hook wrote its built-in list over .claude/rules/antipatterns.md in the project whenever the user-global copy was not byte-identical, so a tracked project policy was lost on every session and pull-based deploy checkouts came back dirty (#4375). It now seeds only an absent file, never overwrites an existing one, and ORK_NO_RULE_SEED=1 turns seeding off. Pick a machine state and compare what the hook does before and after.",
+  "tags": [
+    "hooks",
+    "session-start",
+    "rules",
+    "regression"
+  ],
+  "date": "2026-09-26"
+}
