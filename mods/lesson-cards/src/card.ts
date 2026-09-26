@@ -116,22 +116,19 @@ export function askQuestion(lesson: MatchedLesson): string {
 }
 
 /**
- * True when why is a user cancel (Cancel button or Escape). Those must not
- * look like failures: no Fix line. The card above the row already shows the
- * lesson and the alternative.
+ * True when why is a user cancel (Cancel button or Escape). Those omit Fix.
+ * The deny starts with "Cancelled: " so Claude Code's 2.1.283 renderer leaves
+ * it alone (same pass-through as "Error: "); the rest is the plain reason.
  */
 export function isUserCancel(why: string): boolean {
-  return why === 'Cancelled by you; not run.' || why.startsWith('Cancelled: ');
+  return why.startsWith('Cancelled: ') || why === 'Cancelled by you; not run.';
 }
 
 /**
  * The one-line reason a refused call carries: why, the lesson id, and (for a
- * real block, not a user cancel) a short fix. A cancel is not a failure, so it
- * omits Fix. Claude Code's tool-result renderer (2.1.283) still glues
- * "Error: " in front of any deny that does not already start with "Error: "
- * or "Cancelled: "; we do not add our own Cancelled: head (that would read
- * "Cancelled: Cancelled by you"), so the on-screen line stays the plain why
- * the operator asked for, with CC's Error: prefix if any.
+ * real block, not a user cancel) a short fix. A cancel uses
+ * "Cancelled: by you; not run. Waiting for your next instruction." so the
+ * Cancelled: head is said once (CC pass-through) and Fix is omitted.
  */
 export function denyLine(lesson: MatchedLesson, why: string): string {
   const fix = isUserCancel(why) ? undefined : shortFix(lesson.fix);

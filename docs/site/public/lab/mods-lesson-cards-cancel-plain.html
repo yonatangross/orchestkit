@@ -15,11 +15,11 @@
   .dim { color: #a6a28c; }
   label { display: inline-flex; gap: 6px; margin-right: 18px; cursor: pointer; }
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards: a cancel drops the Fix"><meta property="og:description" content="Cancel and Escape deny keep the plain why and lesson id, and drop Fix. Claude Code may still glue Error:; this mod does not add its own Cancelled: head."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/mods-lesson-cards-cancel-plain.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards: a cancel drops the Fix"><meta name="twitter:description" content="Cancel and Escape deny keep the plain why and lesson id, and drop Fix. Claude Code may still glue Error:; this mod does not add its own Cancelled: head."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards: a cancel drops the Fix"><meta property="og:description" content="Cancel and Escape deny start with Cancelled: so CC leaves them alone, say by you once, drop Fix, and wait for the next instruction."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/mods-lesson-cards-cancel-plain.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards: a cancel drops the Fix"><meta name="twitter:description" content="Cancel and Escape deny start with Cancelled: so CC leaves them alone, say by you once, drop Fix, and wait for the next instruction."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
 <body>
 <p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
 <h1>A cancel drops the Fix</h1>
-<p>In lesson-cards 1.0.5, Escape and Cancel already said <code>Cancelled by you; not run.</code>, but the deny still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 keeps that plain why (plus the lesson id) and drops Fix. Claude Code's tool-result renderer (2.1.283) still glues <code>Error: </code> unless the deny already starts with <code>Error: </code> or <code>Cancelled: </code>; this mod does not add its own <code>Cancelled: </code> head, because that would read <code>Cancelled: Cancelled by you</code>. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
+<p>In lesson-cards 1.0.5, Escape and Cancel said <code>Cancelled by you; not run.</code> and still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 drops Fix and starts the deny with <code>Cancelled: </code> so Claude Code's 2.1.283 tool-result renderer leaves it alone (same pass-through as <code>Error: </code>). The rest is <code>by you; not run. Waiting for your next instruction.</code>, so Cancelled is said once. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
 <p>
   <label><input type="radio" name="v" value="before"> Before (1.0.5)</label>
   <label><input type="radio" name="v" value="after" checked> After (1.0.6)</label>
@@ -27,10 +27,10 @@
 <pre class="dim">Claude Code tool-result renderer (2.1.283):
 if startsWith("Error: ") or startsWith("Cancelled: ") → leave alone
 else → glue "Error: " in front
-(mod deny is the why string; CC wraps it, then Fp decides the prefix)</pre>
+(mod deny starts with Cancelled: so Fp leaves it alone)</pre>
 <pre id="before" hidden><span class="bad">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind] Fix: git ls-files -z | tr '\0' '\n' | grep -qxF "$name"</span></pre>
-<pre id="after"><span class="ok">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind]</span>
-<span class="dim">(plain why, lesson id, no Fix; Error: is still CC glue)</span></pre>
+<pre id="after"><span class="ok">Cancelled: by you; not run. Waiting for your next instruction. [lesson:git-ls-files-quotepath-blind]</span>
+<span class="dim">(Cancelled: once, lesson id, no Fix; CC does not glue Error:)</span></pre>
 <script>
   for (const r of document.querySelectorAll('input[name=v]')) {
     r.addEventListener('change', () => {
