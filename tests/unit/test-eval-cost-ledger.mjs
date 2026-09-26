@@ -17,12 +17,14 @@ import {
 import {
   JUDGE_PREAMBLE,
   buildJudgePrompt,
-  createAnthropicClient,
   isFailedVerdict,
-  judgeOnce,
   parseVerdict,
   rejudgeExitCode,
   textFromMessage,
+} from "../../scripts/lib/eval-judge-verdict.mjs";
+import {
+  createAnthropicClient,
+  judgeOnce,
 } from "../../scripts/lib/eval-judge-sdk.mjs";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

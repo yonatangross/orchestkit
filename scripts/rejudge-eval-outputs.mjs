@@ -36,8 +36,8 @@ import {
   buildJudgePrompt,
   createAnthropicClient,
   judgeOnce,
-  rejudgeExitCode,
 } from "./lib/eval-judge-sdk.mjs";
+import { rejudgeExitCode } from "./lib/eval-judge-verdict.mjs";
 
 const args = process.argv.slice(2);
 const runPath = args.find((a) => a.endsWith("run.json"));
