@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.101](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.100...v10.0.0-beta.101) (2026-09-25)
+
+
+### Features
+
+* **promote-lights:** cap the band at five problem lines ([#4445](https://github.com/yonatangross/orchestkit/issues/4445)) ([fa6fbdc](https://github.com/yonatangross/orchestkit/commit/fa6fbdc9799067b10da0e3013bfc88b17e5d1221))
+
+
+### Bug Fixes
+
+* **lesson-cards:** keep a stopped call to one short line ([#4442](https://github.com/yonatangross/orchestkit/issues/4442)) ([9a43923](https://github.com/yonatangross/orchestkit/commit/9a43923ed09ff5bc471c0d859ef8c2563801fb3f))
+* **secrets-veil:** keep masking linear on long lines ([#4441](https://github.com/yonatangross/orchestkit/issues/4441)) ([67a8b7d](https://github.com/yonatangross/orchestkit/commit/67a8b7dc316383d3c8be100ee852baa7db25f812))
+
 ## [10.0.0-beta.100](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.99...v10.0.0-beta.100) (2026-09-25)
 
 

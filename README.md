@@ -630,6 +630,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.101](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.100...v10.0.0-beta.101)** · 2026-09-25
+
+- **promote-lights:** cap the band at five problem lines (#4445)
+- **lesson-cards:** keep a stopped call to one short line (#4442)
+- **secrets-veil:** keep masking linear on long lines (#4441)
+
 **[v10.0.0-beta.100](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.99...v10.0.0-beta.100)** · 2026-09-25
 
 - **promote-lights:** compact band, one line per failing check (#4440)
@@ -663,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.94](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.93...v10.0.0-beta.94)** · 2026-09-25
 
 - **skills:** Opus 5.5 wording, model ids, Claude API tool rules (#4415)
-
-**[v10.0.0-beta.93](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93)** · 2026-09-25
-
-- **skills:** Opus 5.5 budgets, split create-pr and dream (#4416)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
