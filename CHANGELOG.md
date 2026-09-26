@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.109](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.108...v10.0.0-beta.109) (2026-09-26)
+
+
+### Bug Fixes
+
+* **lesson-cards:** read the real Escape throw as cancelled by you ([#4462](https://github.com/yonatangross/orchestkit/issues/4462)) ([fd5961d](https://github.com/yonatangross/orchestkit/commit/fd5961d086ea888ee6dbbab246c95e5b24a8dbe7))
+
 ## [10.0.0-beta.108](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108) (2026-09-26)
 
 
