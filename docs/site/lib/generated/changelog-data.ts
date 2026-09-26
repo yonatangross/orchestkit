@@ -18,6 +18,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.115",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** reject untracked generated lab copies ([#4480](https://github.com/yonatangross/orchestkit/issues/4480)) ([a80ff12](https://github.com/yonatangross/orchestkit/commit/a80ff12ebf0586774fabd404e171b2802a5fc181))",
+          "**docs:** validate npm hosts and advertise markdown twins ([#4481](https://github.com/yonatangross/orchestkit/issues/4481)) ([6f21d5c](https://github.com/yonatangross/orchestkit/commit/6f21d5c1e225cbd44db06a1afa8d89e02a9a4fd9))",
+          "**scripts:** require schema evidence for hook exemptions ([#4478](https://github.com/yonatangross/orchestkit/issues/4478)) ([ad3085d](https://github.com/yonatangross/orchestkit/commit/ad3085d2590d547ea4c322d2fa29c3671ae6d3a7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.114",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114",
