@@ -116,31 +116,30 @@ export function askQuestion(lesson: MatchedLesson): string {
 }
 
 /**
- * True when why is a user cancel (Cancel button or Escape). Those must not
- * look like failures: no Fix line, and a "Cancelled: " head so Claude Code's
- * tool-result renderer leaves the string alone instead of prefixing "Error: ".
- * (CC 2.1.283: startsWith("Error: ") || startsWith("Cancelled: ") passes through.)
+ * True when why is a user cancel (Cancel button or Escape). Those omit Fix.
+ * The deny starts with "Cancelled: " so Claude Code's 2.1.283 renderer leaves
+ * it alone (same pass-through as "Error: "); the rest is "by you; not run."
+ * so Cancelled is said once (not "Cancelled: Cancelled by you").
  */
 export function isUserCancel(why: string): boolean {
-  return why === 'Cancelled by you; not run.' || why.startsWith('Cancelled: ');
+  return (
+    why === 'Cancelled: by you; not run.' ||
+    why.startsWith('Cancelled: ') ||
+    why === 'by you; not run.' ||
+    why === 'Cancelled by you; not run.'
+  );
 }
 
 /**
  * The one-line reason a refused call carries: why, the lesson id, and (for a
- * real block, not a user cancel) a short fix. Claude Code draws a mod deny as
- * "Error: <deny>" unless the deny already starts with "Error: " or "Cancelled: ".
- * A cancel is not an error, so it uses the Cancelled: head and omits Fix; the
- * card above the row already shows the lesson and the alternative.
+ * real block, not a user cancel) a short fix. A cancel uses
+ * "Cancelled: by you; not run." so the Cancelled: head avoids Error: glue and
+ * Fix is omitted.
  */
 export function denyLine(lesson: MatchedLesson, why: string): string {
-  const cancel = isUserCancel(why);
-  // CC leaves "Cancelled: ..." alone (no "Error:" glue). Keep the human phrase.
-  const head = why === 'Cancelled by you; not run.'
-    ? 'Cancelled: Cancelled by you; not run.'
-    : why;
-  const fix = cancel ? undefined : shortFix(lesson.fix);
+  const fix = isUserCancel(why) ? undefined : shortFix(lesson.fix);
   const tail = fix ? ` Fix: ${fix}` : '';
-  return cutCodePoints(`${head} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
+  return cutCodePoints(`${why} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
 }
 
 /**
