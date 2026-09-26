@@ -74,17 +74,32 @@ masked result.
 
 ## Copy to your clipboard (opt-in)
 
-With `SECRETS_VEIL_OFFER_COPY=1` in the environment, a masked result also
-opens the Claude Code question dialog (`$.ui.ask`): "Copy the masked value to
-your clipboard? It goes to your clipboard only; Claude never sees it." The
-answers are `Copy to clipboard` and `Keep hidden`. `Copy to clipboard` hands
-the first covered value to `$.ui.copy` (OSC 52 in the terminal) and nothing
-else: the tool result the model reads stays masked, and the question, the
-toast, the status line and the log carry counts only (the copy toast reads
-`copied to your clipboard; Claude still sees dots`, with no length). A missing
-dialog, a refused or timed-out copy, a question nobody answers within 120 s, or
-`Keep hidden` all leave the value covered. The option is off by default because
-a dialog on every masked result would be noise.
+Opt in with `SECRETS_VEIL_OFFER_COPY=1`, and only when **no other installed
+mod hooks `ui.copy`, `ui.*` or `*`**. Claude Code dispatches `ui.copy` as a
+hookable event (wildcard hooks included) before the clipboard write, so any
+other installed mod on that event receives the raw value and could log it or
+send it on. This mod never passes the value to Claude; whether anything
+else sees it depends on the other mods you run.
+
+With the flag set, a masked result also opens the Claude Code question dialog
+(`$.ui.ask`): "Copy the masked value to your clipboard? This mod sends it to
+the clipboard only, never to Claude; another installed mod that hooks
+clipboard events could still receive it." The answers are `Copy to clipboard`
+and `Keep hidden`. `Copy to clipboard` hands the first covered value to
+`$.ui.copy` (OSC 52 in the terminal) and nothing else: the tool result the
+model reads stays masked, and the question, the toast, the status line and
+this mod's log carry counts only. A missing dialog, a refused or timed-out
+copy, a question nobody answers within 120 s, or `Keep hidden` all leave the
+value covered. The option is off by default because a dialog on every masked
+result would be noise.
+
+What a copy leaves behind, outside this mod:
+
+- Claude Code's own debug log records the copied value's **length** (for
+  example `$.ui.copy (secrets-veil): 40 chars, ... copied`), never the value.
+- The clipboard keeps the value until something replaces it, and clipboard
+  managers, `pbcopy`/`pbpaste` history tools and terminal multiplexer buffers
+  (tmux, screen) may keep their own copies. Clear them if that matters.
 
 Measured on CC 2.1.282 (2026-09-25): the model read 8 bullets, the debug log
 said `$.ui.copy (secrets-veil): 40 chars, path native, OSC 52 written; copied`,

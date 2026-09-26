@@ -56,7 +56,7 @@ export const KEEP = "Keep hidden";
  */
 export function copyQuestion(values: number, tool: string): string {
   const which = values === 1 ? "the masked value" : `the first of ${values} masked values`;
-  return `secrets-veil covered a secret in ${tool}. Copy ${which} to your clipboard? It goes to your clipboard only; Claude never sees it.`;
+  return `secrets-veil covered a secret in ${tool}. Copy ${which} to your clipboard? This mod sends it to the clipboard only, never to Claude; another installed mod that hooks clipboard events could still receive it.`;
 }
 
 /** What one tool result's masking did, in counts and UTF-8 bytes. */
