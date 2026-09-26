@@ -57,6 +57,9 @@ interface Fake$Options {
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.282. */
 const ESCAPE = '<escape>';
 
+/** askAnswer sentinel: the dialog throws for a reason other than Escape. */
+const REFUSED = '<refused>';
+
 /** A node built by a fake element constructor: the name as type, props spread. */
 type FakeNode = { type: string; key?: string; children?: unknown; [prop: string]: unknown };
 
@@ -86,6 +89,9 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     asks.push({ question, options: opts });
     if (options.askAnswer === ESCAPE) {
       throw new Error('$.ui.ask: no answer (the dialog was dismissed)');
+    }
+    if (options.askAnswer === REFUSED) {
+      throw new Error('$.ui.ask: no answer (a hook refused the dialog)');
     }
     return options.askAnswer as string;
   };
@@ -453,17 +459,20 @@ describe('block lessons ask before the call runs', () => {
 });
 
 describe('a block lesson fails closed: only an explicit Proceed anyway runs it', () => {
-  const cases: Array<[string, string | undefined, boolean, string]> = [
-    ['Escape (the dialog throws)', ESCAPE, true, 'Cancelled by you; not run.'],
+  const cases: Array<[string, string | undefined, boolean | undefined, string]> = [
+    ['Escape (the dismiss throw)', ESCAPE, true, 'Cancelled by you; not run.'],
+    ['a throw that is not the dismiss', REFUSED, true, 'Not run: no dialog to confirm.'],
     ['a typed free-text answer', 'sure, go ahead', true, 'Not run: no "Proceed anyway".'],
-    ['no dialog at all (no $.ui.ask)', undefined, true, 'Not run: no dialog to confirm.'],
+    ['a missing $.ui.ask (the call throws, the try/catch denies)', undefined, true, 'Not run: no dialog to confirm.'],
     ['a headless session (isInteractive false)', 'Proceed anyway', false, 'Not run: no dialog to confirm.'],
+    ['a session.start without isInteractive', 'Proceed anyway', undefined, 'Not run: no dialog to confirm.'],
   ];
   for (const [label, answer, isInteractive, why] of cases) {
     test(`${label} denies without running the tool`, async () => {
       const { hooks } = captureHooks();
       const { $, asks } = makeFake$(answer === undefined ? {} : { askAnswer: answer });
-      await hooks.get('session.start')!($, { ...SESSION_EVENT, isInteractive }, async (ev: unknown) => ev);
+      const event = isInteractive === undefined ? { cwd: '/repo' } : { ...SESSION_EVENT, isInteractive };
+      await hooks.get('session.start')!($, event, async (ev: unknown) => ev);
 
       let ran = false;
       const next = async (): Promise<unknown> => {
@@ -475,7 +484,7 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
       expect(out.result).toBeUndefined();
       expect(out.deny?.startsWith(`${why} [lesson:cancelled-check-is-not-pass]`)).toBe(true);
       expect(out.deny).not.toMatch(/error/i);
-      if (!isInteractive) expect(asks).toHaveLength(0);
+      if (isInteractive !== true) expect(asks).toHaveLength(0);
     });
   }
 });

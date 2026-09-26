@@ -63,14 +63,17 @@ type UiRenderEvent = {
 export const PROCEED = 'Proceed anyway';
 export const CANCEL = 'Cancel';
 
+/** The tail of the $.ui.ask throw when the person presses Escape. */
+const DISMISSED = 'the dialog was dismissed';
+
 type NextFn<E> = (ev: E) => Promise<unknown>;
 
 type SessionStartEvent = { cwd: string; isInteractive: boolean };
 
 // Module-scope state (per session)
 let corpus: Corpus | null = null;
-/** False for a headless (-p) session: there is no dialog to ask. */
-let interactive = true;
+/** True only after session.start says isInteractive; headless (-p) or no session.start never asks. */
+let interactive = false;
 const matchMap = new Map<string, MatchedLesson[]>();
 
 /**
@@ -223,7 +226,7 @@ function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
 export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
   on('session.start', async ($: Hook$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
     corpus = await loadCorpus($);
-    interactive = e.isInteractive !== false;
+    interactive = e.isInteractive === true;
     matchMap.clear();
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     return next(e);
@@ -256,7 +259,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     const context = formatContext(lesson);
 
     // A block lesson asks the human before the call runs, and only an explicit
-    // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "no answer"),
+    // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "dismissed"),
     // a typed free-text answer, and no dialog at all (headless -p) all deny:
     // a block lesson fails closed (estate-6 HOLD on #4429).
     if (lesson.severity === 'block' && lesson.source === 'pattern') {
@@ -268,9 +271,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
           answer = await $.ui.ask(askQuestion(lesson), [PROCEED, CANCEL]);
           outcome = 'answered';
         } catch (err) {
-          // Escape: the dialog throws "$.ui.ask: no answer (...)". Any other
-          // throw means there was no dialog to answer.
-          outcome = err instanceof Error && err.message.includes('no answer') ? 'dismissed' : 'no-dialog';
+          // Escape throws "$.ui.ask: no answer (the dialog was dismissed)". Any
+          // other throw (no ask, a refused dialog) is not the user cancelling.
+          outcome = err instanceof Error && err.message.includes(DISMISSED) ? 'dismissed' : 'no-dialog';
         }
       }
       if (answer !== PROCEED) {
