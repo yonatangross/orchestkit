@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.108](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108) (2026-09-26)
+
+
+### Miscellaneous
+
+* **evals:** Opus 5.5 judge baselines ([#4456](https://github.com/yonatangross/orchestkit/issues/4456)) ([c50a39f](https://github.com/yonatangross/orchestkit/commit/c50a39f7475f0e7cbaffd6cdb84a717ab3ab2f16))
+
 ## [10.0.0-beta.107](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107) (2026-09-26)
 
 
