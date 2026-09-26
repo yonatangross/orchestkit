@@ -58,6 +58,16 @@ fi
 if [ ! -f "$PLUGIN_DIR/plugin.json" ]; then
   echo "plugins/ork is not built. Run: npm run build" >&2; exit 1
 fi
+# Presence gate only (orchestkit#4461 / #4466 HOLD): agent turns stay on Max
+# OAuth (CLAUDE_CODE_OAUTH_TOKEN). Do NOT export ORK_EVALS_API_KEY into
+# ANTHROPIC_API_KEY; that leak path billed the evals key for agent turns.
+# Offline SDK rejudge reads ORK_EVALS_API_KEY via its own client.
+if [ -z "${ORK_EVALS_API_KEY:-}" ]; then
+  echo "paid plugin eval requires ORK_EVALS_API_KEY (dedicated, spend-capped)." >&2
+  echo "Refusing to fall back to ANTHROPIC_API_KEY." >&2
+  echo "Agent turns use Max OAuth; the key is not exported into this process." >&2
+  exit 1
+fi
 
 # Stage the tracked cases into the plugin. results/ never goes in.
 rm -rf "$STAGED"
