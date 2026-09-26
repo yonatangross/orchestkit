@@ -1084,9 +1084,8 @@ if [ -n "${ORK_OTEL_PROM_URL:-}" ]; then
   curl -s "$ORK_OTEL_PROM_URL/api/v1/labels" | jq -r '.data[]' | grep -E '^(hq_|skill|agent|model|effort|query_source)'
 fi
 if [ -n "${ORK_OTEL_LOKI_URL:-}" ] && [ -n "${ORK_OTEL_LOKI_SELECTOR:-}" ]; then
-  query_option=-data-urlencode
-  curl -sG "$ORK_OTEL_LOKI_URL/loki/api/v1/query_range" "-$query_option" "query=$ORK_OTEL_LOKI_SELECTOR" \
-    "-$query_option" 'limit=1' | jq -r '.data.result[0].values[0][1]' | jq 'keys, (.attributes // {} | keys)'
+  curl -sG "$ORK_OTEL_LOKI_URL/loki/api/v1/query_range" --data-urlencode "query=$ORK_OTEL_LOKI_SELECTOR" \
+    --data-urlencode 'limit=1' | jq -r '.data.result[0].values[0][1]' | jq 'keys, (.attributes // {} | keys)'
 fi
 ```
 
