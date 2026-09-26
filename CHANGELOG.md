@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.116](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.115...v10.0.0-beta.116) (2026-09-26)
+
+
+### Features
+
+* **analytics:** add an OTEL gateway source (Loki + Prometheus) ([#4479](https://github.com/yonatangross/orchestkit/issues/4479)) ([e50f3e0](https://github.com/yonatangross/orchestkit/commit/e50f3e0a40dcfb25d9a0dbeaa00bf2d62590b227))
+
 ## [10.0.0-beta.115](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115) (2026-09-26)
 
 
