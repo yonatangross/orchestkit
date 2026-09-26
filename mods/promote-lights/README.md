@@ -33,6 +33,14 @@ The band is built from the `Box` and `Text` elements that `$.ui.resolve(e)` hand
 
 A real promote PR keeps its stricter rule: an empty required-context union refuses green instead of falling back.
 
+## Only this session's lights
+
+Lights are kept in `$.store`, which outlives a Claude Code session, and the
+band can be drawn before `session.start` runs. Every stored entry therefore
+carries a token of the process that wrote it, and the band and `/lights`
+ignore any entry with another token (or none). A new session never shows the
+previous session's lights, even for a moment.
+
 ## Light colors
 
 | Status | Color |

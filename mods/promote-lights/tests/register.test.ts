@@ -191,11 +191,17 @@ const NEXT = (_ev?: unknown) => Promise.resolve({});
 
 /** Fresh module instance per load: register.ts keeps lastPR/ticking in
  * module-level state, so tests that need independent runs re-import it. */
+/** The token of the module instance loadRegister() loaded last; seeded entries carry it. */
+let SESSION = "";
+
 async function loadRegister(): Promise<{ register: (on: never) => void }> {
   vi.resetModules();
-  return (await import("../hooks/register.ts")) as unknown as {
+  const mod = (await import("../hooks/register.ts")) as unknown as {
     register: (on: never) => void;
+    SESSION_TOKEN: string;
   };
+  SESSION = mod.SESSION_TOKEN;
+  return mod;
 }
 
 describe("register", () => {
@@ -323,6 +329,7 @@ describe("register behavior (mutant-killing)", () => {
 
     expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
       error: "gh: not found",
+      session: expect.any(String),
     });
     expect($.clock.every).not.toHaveBeenCalled();
   });
@@ -661,6 +668,7 @@ describe("register behavior (mutant-killing)", () => {
     expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
       error: "head moved, stopped",
+      session: expect.any(String),
     });
   });
 });
@@ -704,7 +712,7 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   test("while lights are stored, the downstream renderer still runs and its tree is kept under the band", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...STORED, session: SESSION });
     const e = { component: "AbovePrompt", props: {} };
     const next = vi.fn((_ev?: unknown) => Promise.resolve(DOWNSTREAM));
 
@@ -741,7 +749,7 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   test("while lights are stored and nothing is drawn downstream, only the band is returned", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...STORED, session: SESSION });
     const next = vi.fn((_ev?: unknown) => Promise.resolve(null));
 
     const out = (await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, next)) as {
@@ -956,6 +964,7 @@ describe("ui.render draws with $.ui.resolve elements", () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
     ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      session: SESSION,
       prNumber: 77,
       head: "feedbee1234567",
       label: "watch acme/widgets#77",
@@ -988,7 +997,7 @@ describe("ui.render draws with $.ui.resolve elements", () => {
   test("a stored error draws one dim line instead of nothing", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "empty required contexts", prNumber: 4165 });
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "empty required contexts", prNumber: 4165, session: SESSION });
     const DOWN = { type: "Box", props: {}, children: ["cc band"] };
     const out = (await handlers.get("ui.render")!(
       $,
@@ -1007,8 +1016,41 @@ describe("ui.render draws with $.ui.resolve elements", () => {
   test("/lights reports a stored error in words", async () => {
     const handlers = captureHandlers(await loadRegister());
     const $ = createFake$();
-    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "head moved, stopped" });
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "head moved, stopped", session: SESSION });
     const out = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as { text: string };
     expect(out.text).toBe("lights: head moved, stopped");
   });
 });
+
+describe("a previous process's lights are never drawn", () => {
+  // Measured on CC 2.1.283: ui.render can run before session.start clears
+  // the key, and the new session drew the previous session's lights.
+  const FOREIGN = {
+    prNumber: 4435,
+    label: "watch yonatangross/orchestkit#4435",
+    head: "3afff24aa",
+    mergeStateStatus: "DIRTY",
+    hold: false,
+    lights: [{ name: "Build", color: "green", conclusion: "success" }],
+  };
+  const DOWN = { type: "Box", props: {}, children: ["cc band"] };
+
+  test("ui.render before session.start returns only the downstream tree for an entry from another process", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ ...FOREIGN, session: "another-process" });
+    const out = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(out).toBe(DOWN);
+  });
+
+  test("an entry with no token at all (written by an older version) is ignored too", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(FOREIGN);
+    const out = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(DOWN));
+    expect(out).toBe(DOWN);
+    const text = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as { text: string };
+    expect(text.text).not.toContain("4435");
+  });
+});
+

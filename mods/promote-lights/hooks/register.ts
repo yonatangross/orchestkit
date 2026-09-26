@@ -105,6 +105,8 @@ type StoredLights = {
   hold?: boolean;
   passing?: boolean;
   error?: string;
+  /** The token of the process that wrote this entry (see SESSION_TOKEN). */
+  session?: string;
   [key: string]: unknown;
 };
 
@@ -125,6 +127,25 @@ let tickInterval: { cancel: () => void } | null = null;
 let tracked: Tracked | null = null;
 
 const TICK_MS = 60000;
+
+/**
+ * One token per loaded module, so per Claude Code process. $.store outlives
+ * the process, and ui.render can run BEFORE session.start clears the key
+ * (measured on 2.1.283: a new session drew the previous session's lights
+ * for about 3 s). Every write carries this token and every read ignores an
+ * entry with any other token, so a stale entry is never drawn.
+ */
+export const SESSION_TOKEN = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
+/** Tag an entry as written by this process. */
+function stamp<T extends object>(value: T): T & { session: string } {
+  return { ...value, session: SESSION_TOKEN };
+}
+
+/** The stored entry only when this process wrote it; anything else reads as nothing. */
+function own(stored: StoredLights | null): StoredLights | null {
+  return stored && stored.session === SESSION_TOKEN ? stored : null;
+}
 
 /** Store key: always under the session repo, so ui.render finds it. */
 function keyFor(repo: { owner: string; name: string } | null): string {
@@ -194,7 +215,7 @@ export const register: Register = (on) => {
       ], { timeoutMs: 15000 });
 
     if (result.exitCode !== 0) {
-      await $.store.set(key, { error: "gh: not found" });
+      await $.store.set(key, stamp({ error: "gh: not found" }));
       return next(e);
     }
 
@@ -250,9 +271,9 @@ export const register: Register = (on) => {
         return next(e);
       }
       stopTick();
-      await $.store.set(key, {
+      await $.store.set(key, stamp({
         error: "head moved, stopped",
-      });
+      }));
       tracked = null;
       $.ui.invalidate("ui.render");
       return next(e);
@@ -269,7 +290,7 @@ export const register: Register = (on) => {
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
     const downstream = await next(e);
     const repo = await $.session.repo();
-    const stored = await $.store.get(keyFor(repo));
+    const stored = own(await $.store.get(keyFor(repo)));
 
     if (!stored) return downstream;
 
@@ -324,7 +345,7 @@ export const register: Register = (on) => {
       return { text: outcome };
     }
 
-    const stored = await $.store.get(key);
+    const stored = own(await $.store.get(key));
 
     if (stored && stored.lights) {
       return {
@@ -350,7 +371,7 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
   const details = view.exitCode === 0 ? parsePRView(view.stdout) : null;
   const name = formatWatchTarget(target);
   if (!details) {
-    await $.store.set(key, { error: `watch ${name}: gh pr view failed` });
+    await $.store.set(key, stamp({ error: `watch ${name}: gh pr view failed` }));
     $.ui.invalidate("ui.render");
     return `lights: could not read ${name} (gh pr view exit ${view.exitCode})`;
   }
@@ -404,7 +425,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     if (requiredContexts.length === 0 && t.mode === "promote") {
       // A promote verdict with nothing required would be a green lie.
       const refused: StoredLights = { error: "empty required contexts", prNumber };
-      await $.store.set(key, refused);
+      await $.store.set(key, stamp(refused));
       $.ui.invalidate("ui.render");
       return refused;
     }
@@ -424,7 +445,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
           error: `watch ${formatWatchTarget({ owner, repo, number: prNumber })}: no check runs on ${head.slice(0, 7)}`,
           prNumber,
         };
-        await $.store.set(key, empty);
+        await $.store.set(key, stamp(empty));
         $.ui.invalidate("ui.render");
         return empty;
       }
@@ -450,7 +471,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
       passing,
       ts: Date.now(),
     };
-    await $.store.set(key, snapshot);
+    await $.store.set(key, stamp(snapshot));
 
     const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label);
     await $.ui.status(statusLine);
@@ -458,7 +479,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     return snapshot;
   } catch (err) {
     const failed: StoredLights = { error: String(err), prNumber };
-    await $.store.set(key, failed);
+    await $.store.set(key, stamp(failed));
     $.ui.invalidate("ui.render");
     return failed;
   }

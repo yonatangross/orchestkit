@@ -1,6 +1,6 @@
 {
   "name": "@orchestkit/mod-promote-lights",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "type": "module",
   "description": "Shows CI status lights above the prompt while a promote PR (base main) is open. One REST page per minute, PR-open only. Cancelled is not-pass.",
