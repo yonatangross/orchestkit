@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.114",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** preserve consumer file content in write-headers ([#4475](https://github.com/yonatangross/orchestkit/issues/4475)) ([bb0a7ae](https://github.com/yonatangross/orchestkit/commit/bb0a7aed3052a514b3908fecfbee4823985e7497))",
+          "**hooks:** stop antipattern-warning overwriting tracked project rules ([#4476](https://github.com/yonatangross/orchestkit/issues/4476)) ([bf0e999](https://github.com/yonatangross/orchestkit/commit/bf0e999dd41b1c56271c3388a91a9678ccbb4c04))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.113",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.112...v10.0.0-beta.113",
