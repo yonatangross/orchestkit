@@ -35,8 +35,10 @@ YAML harness. The two do not share a format and neither replaces the other.
 
 ## Running it
 
-Requires `ORK_EVALS_API_KEY` (dedicated, spend-capped). There is no fallback to
-a shared `ANTHROPIC_API_KEY` (orchestkit#4461).
+Requires `ORK_EVALS_API_KEY` as a presence gate (dedicated, spend-capped). There
+is no fallback to a shared `ANTHROPIC_API_KEY` (orchestkit#4461). Agent turns
+stay on Max OAuth; the wrapper does not export the evals key into
+`ANTHROPIC_API_KEY`. Offline SDK rejudge alone passes the key to its client.
 
 ```bash
 export ORK_EVALS_API_KEY=sk-ant-...   # dedicated evals key with a spend cap

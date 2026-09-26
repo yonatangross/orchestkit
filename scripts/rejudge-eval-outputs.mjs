@@ -10,9 +10,12 @@
 // only. Never `claude -p` (that wrote ~132k of CC context as cache_creation).
 //
 // Auth: requires ORK_EVALS_API_KEY. Refuses ANTHROPIC_API_KEY fallback.
+// The key is passed only to the SDK client; never exported into the process
+// env for a Claude Code session (#4466 HOLD).
 //
 // Cost: accumulates cache_creation + cache_read at vocab prices. Pass
 // --metered-usd <n> (Console figure) to fail when ledger differs by >20%.
+// A present but non-numeric --metered-usd fails loudly (never silent-skip).
 //
 // Usage:
 //   ORK_EVALS_API_KEY=sk-... node scripts/rejudge-eval-outputs.mjs <run.json> \
@@ -22,8 +25,10 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import {
   assertMeteredMatchesLedger,
+  getModelPricing,
   ledgerCostUsd,
   loadVocabPricing,
+  parseMeteredUsdFlag,
   requireEvalsApiKey,
   sumUsage,
 } from "./lib/eval-cost-ledger.mjs";
@@ -31,6 +36,7 @@ import {
   buildJudgePrompt,
   createAnthropicClient,
   judgeOnce,
+  rejudgeExitCode,
 } from "./lib/eval-judge-sdk.mjs";
 
 const args = process.argv.slice(2);
@@ -45,13 +51,18 @@ const conc = args.includes("-j")
 const caseFilter = args.includes("--case")
   ? args[args.indexOf("--case") + 1]
   : null;
-const meteredIdx = args.indexOf("--metered-usd");
-const meteredUsd =
-  meteredIdx >= 0 ? Number(args[meteredIdx + 1]) : Number.NaN;
 
 let apiKey;
 try {
   apiKey = requireEvalsApiKey();
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
+
+let metered;
+try {
+  metered = parseMeteredUsdFlag(args);
 } catch (e) {
   console.error(e.message);
   process.exit(1);
@@ -65,6 +76,8 @@ if (!runPath) {
 const run = JSON.parse(readFileSync(runPath, "utf8"));
 const hand = handPath ? JSON.parse(readFileSync(handPath, "utf8")) : null;
 const pricing = loadVocabPricing();
+// Fail before any paid call when the judge id has no price row.
+getModelPricing(judge, pricing);
 const client = createAnthropicClient(apiKey);
 
 function llmGraders(caseName) {
@@ -172,11 +185,11 @@ console.error(
     `(in=${tokens.input} out=${tokens.output} ` +
     `cache_creation=${tokens.cache_creation} cache_read=${tokens.cache_read})`,
 );
-if (Number.isFinite(meteredUsd)) {
+if (metered.present) {
   try {
-    const rel = assertMeteredMatchesLedger(meteredUsd, ledger.total);
+    const rel = assertMeteredMatchesLedger(metered.value, ledger.total);
     console.error(
-      `metered $${meteredUsd.toFixed(4)} within ${(rel * 100).toFixed(1)}% of ledger`,
+      `metered $${metered.value.toFixed(4)} within ${(rel * 100).toFixed(1)}% of ledger`,
     );
   } catch (e) {
     console.error(e.message);
@@ -184,4 +197,15 @@ if (Number.isFinite(meteredUsd)) {
   }
 }
 
-process.exit(disagreements.length ? 1 : 0);
+const code = rejudgeExitCode({ results, disagreements });
+if (code !== 0) {
+  const bad = results.filter(
+    (v) => String(v).startsWith("ERR:") || String(v).startsWith("ODD:"),
+  );
+  if (bad.length) {
+    console.error(
+      `${bad.length} judge call(s) returned ERR or ODD; failing the run`,
+    );
+  }
+}
+process.exit(code);

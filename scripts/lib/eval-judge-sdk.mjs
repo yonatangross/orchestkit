@@ -26,6 +26,18 @@ export function parseVerdict(text) {
   return `ODD:${String(text ?? "").trim().slice(0, 40)}`;
 }
 
+/** ERR: (API/transport) or ODD: (unparseable) must fail the rejudge run. */
+export function isFailedVerdict(verdict) {
+  const v = String(verdict ?? "");
+  return v.startsWith("ERR:") || v.startsWith("ODD:");
+}
+
+export function rejudgeExitCode({ results = [], disagreements = [] } = {}) {
+  if (disagreements.length > 0) return 1;
+  if (results.some(isFailedVerdict)) return 1;
+  return 0;
+}
+
 export function textFromMessage(message) {
   const blocks = message?.content ?? [];
   const parts = [];

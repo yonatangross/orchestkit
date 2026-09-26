@@ -66,13 +66,56 @@ export function loadVocabPricing(vocabPath = VOCAB_REL) {
   return vocab.pricing ?? {};
 }
 
+/**
+ * Strip session labels ([1m]) and trailing date stamps so a priced base id
+ * can match. Never reverse-match: bare "claude" must not inherit Fable.
+ */
+export function normalizeModelId(model) {
+  let id = String(model ?? "").trim();
+  id = id.replace(/\[[^\]]*\]$/g, "");
+  id = id.replace(/-\d{4}-\d{2}-\d{2}$/, "");
+  id = id.replace(/-\d{8}$/, "");
+  return id;
+}
+
+/**
+ * Exact id, then longest priced prefix of the normalized id.
+ * First-prefix table order mispriced claude-opus-5-5[1m] as Opus 5 (#4466 HOLD).
+ */
 export function getModelPricing(model, pricingTable) {
   const table = pricingTable ?? loadVocabPricing();
   if (table[model]) return table[model];
+  const normalized = normalizeModelId(model);
+  if (table[normalized]) return table[normalized];
+  let best = null;
+  let bestLen = -1;
   for (const [id, row] of Object.entries(table)) {
-    if (model.startsWith(id) || id.startsWith(model)) return row;
+    if (normalized.startsWith(id) && id.length > bestLen) {
+      best = row;
+      bestLen = id.length;
+    }
   }
+  if (best) return best;
   throw new Error(`no pricing row for model ${model} in models.vocab.json`);
+}
+
+/**
+ * Parse --metered-usd from argv. Absent → { present:false }.
+ * Present but non-finite → throws (never silent-skip).
+ */
+export function parseMeteredUsdFlag(args) {
+  const idx = args.indexOf("--metered-usd");
+  if (idx < 0) return { present: false, value: null };
+  const raw = args[idx + 1];
+  const value = Number(raw);
+  if (!Number.isFinite(value)) {
+    const err = new Error(
+      `--metered-usd requires a finite number, got ${JSON.stringify(raw ?? "")}`,
+    );
+    err.code = "ORK_EVAL_METERED_USD_INVALID";
+    throw err;
+  }
+  return { present: true, value };
 }
 
 /**

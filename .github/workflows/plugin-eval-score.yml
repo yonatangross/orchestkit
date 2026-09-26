@@ -37,9 +37,10 @@ jobs:
   score:
     name: Scored ablation run (manual only)
     runs-on: ubuntu-latest
-    # Max-plan OAuth for the agent turns. Paid spend must also set
-    # ORK_EVALS_API_KEY (dedicated, spend-capped; orchestkit#4461). Never use a
-    # shared ANTHROPIC_API_KEY as the eval key.
+    # Max-plan OAuth for agent turns. ORK_EVALS_API_KEY is a presence gate only
+    # (dedicated, spend-capped; orchestkit#4461 / #4466 HOLD). run-plugin-eval.sh
+    # must NOT export it as ANTHROPIC_API_KEY: agent turns stay on OAuth.
+    # Offline SDK rejudge alone reads the key via its own client.
     env:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
       ORK_EVALS_API_KEY: ${{ secrets.ORK_EVALS_API_KEY }}
