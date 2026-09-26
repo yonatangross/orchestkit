@@ -1,0 +1,12 @@
+{
+  "slug": "backlog-3684-npm-links-markdown",
+  "title": "Match the package and advertise its twin",
+  "description": "Try npm URL lookalikes and inspect the Markdown alternates for pricing and API policy.",
+  "source": "docs/fix\u002d\u002dbacklog-3684-npm-host/index.html",
+  "tags": [
+    "ci",
+    "regression",
+    "review"
+  ],
+  "date": "2026-09-26"
+}

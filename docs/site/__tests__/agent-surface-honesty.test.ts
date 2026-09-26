@@ -7,9 +7,9 @@
 // the outside:
 //
 //   1. rel="alternate" type="text/markdown" is advertised ONLY where a Markdown
-//      twin exists. mdTarget() maps "/" and "/docs/*"; the 13 marketing pages
-//      have no twin, so each must keep its own `alternates` object, which is
-//      what stops the root layout's default from reaching them. A page that
+//      twin exists. Standalone alternates name their own Markdown routes.
+//      Other marketing pages keep canonical-only metadata, which stops
+//      the root layout's alternate from reaching them. A page that
 //      drops its `alternates.canonical` would silently start advertising a
 //      Markdown URL that answers with HTML.
 //   2. Served Markdown opens with a frontmatter block naming title,
@@ -41,6 +41,8 @@ vi.mock("next/font/google", () => ({
 }));
 
 import { GET as getAiCatalog } from "@/app/api/well-known/ai-catalog/route";
+import { metadata as apiPolicyMetadata } from "@/app/(home)/api-policy/page";
+import { metadata as pricingMetadata } from "@/app/(home)/pricing/page";
 import { GET as getApiPolicyMd } from "@/app/api-policy.md/route";
 import { GET as getPricingMd } from "@/app/pricing.md/route";
 import { metadata as rootMetadata } from "@/app/layout";
@@ -90,15 +92,14 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 		expect(res?.headers.get("x-middleware-rewrite")).toContain("/api/md");
 	});
 
-	it("every marketing page keeps its own alternates, so none inherits the link", () => {
+	it("marketing pages without an advertised Markdown twin keep their own alternates", () => {
 		// Next merges metadata shallowly per top-level key: a page that declares
 		// `alternates` replaces the layout's object entirely. These marketing pages have
-		// no Markdown twin in mdTarget(), so that replacement is the only thing
-		// keeping a false rel="alternate" off them.
+		// no advertised standalone Markdown twin. Replacing the default keeps
+		// a false inherited rel="alternate" off them.
 		const pages = [
 			"about",
 			"alternatives",
-			"api-policy",
 			"best-claude-code-plugins",
 			"claude-agent-sdk-vs-claude-code-plugins",
 			"compare",
@@ -108,7 +109,6 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 			"factory-ride",
 			"mcp-server",
 			"openapi",
-			"pricing",
 			"privacy",
 			"sdk",
 			"status",
@@ -133,6 +133,26 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 				src.includes('"text/markdown":'),
 				`${page}/page.tsx advertises a Markdown alternate it does not have`,
 			).toBe(false);
+		}
+	});
+
+	it("standalone Markdown twins advertise a route served by their handler", async () => {
+		const pages = [
+			["pricing", pricingMetadata, getPricingMd, "/pricing.md"],
+			["api policy", apiPolicyMetadata, getApiPolicyMd, "/api-policy.md"],
+		] as const;
+
+		for (const [name, metadata, get, markdownPath] of pages) {
+			expect(
+				(metadata.alternates?.types as Record<string, unknown> | undefined)?.[
+					"text/markdown"
+				],
+				name,
+			).toBe(`${ORIGIN}${markdownPath}`);
+			const markdown = await get().text();
+			expect(parseFrontmatter(markdown).canonical, name).toBe(
+				`${ORIGIN}${markdownPath.slice(0, -3)}`,
+			);
 		}
 	});
 
