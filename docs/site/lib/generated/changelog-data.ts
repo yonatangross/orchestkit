@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.108",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**evals:** Opus 5.5 judge baselines ([#4456](https://github.com/yonatangross/orchestkit/issues/4456)) ([c50a39f](https://github.com/yonatangross/orchestkit/commit/c50a39f7475f0e7cbaffd6cdb84a717ab3ab2f16))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.107",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107",

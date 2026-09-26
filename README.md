@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.108](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108)** · 2026-09-26
+
+- **evals:** Opus 5.5 judge baselines (#4456)
+
 **[v10.0.0-beta.107](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107)** · 2026-09-26
 
 - **lesson-cards:** draw the lesson once, in the card (#4453)
@@ -660,13 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **promote-lights:** cap the band at five problem lines (#4445)
 - **lesson-cards:** keep a stopped call to one short line (#4442)
 - **secrets-veil:** keep masking linear on long lines (#4441)
-
-**[v10.0.0-beta.100](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.99...v10.0.0-beta.100)** · 2026-09-25
-
-- **promote-lights:** compact band, one line per failing check (#4440)
-- **lab:** commit missing coderabbit-runnable-examples page (#4439)
-- **evals:** move eval judges and holdout grader to claude-opus-5-5 (#4443)
-- **skills:** retire testing-patterns stub, disambiguate memory cluster (#4428)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
