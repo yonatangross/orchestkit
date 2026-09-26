@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.111",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.110...v10.0.0-beta.111",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**evals:** judge via SDK, price cache tokens, require ORK_EVALS_API_KEY ([#4466](https://github.com/yonatangross/orchestkit/issues/4466)) ([fe3148b](https://github.com/yonatangross/orchestkit/commit/fe3148b5e39ebc952a2bfe27f7a97cf0fd517178))",
+          "**lesson-cards:** plain cancel deny, no Error or Fix ([#4468](https://github.com/yonatangross/orchestkit/issues/4468)) ([26ae33e](https://github.com/yonatangross/orchestkit/commit/26ae33e496c4528b75022a2da7bfff612c16e506))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.110",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.109...v10.0.0-beta.110",
