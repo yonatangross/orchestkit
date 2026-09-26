@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.117",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.116...v10.0.0-beta.117",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**analytics:** spell the curl flag plainly in the gateway source ([#4484](https://github.com/yonatangross/orchestkit/issues/4484)) ([0e814a0](https://github.com/yonatangross/orchestkit/commit/0e814a0390d4397af6f30d20f7868f891927e07a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.116",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.115...v10.0.0-beta.116",

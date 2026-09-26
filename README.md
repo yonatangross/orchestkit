@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.117](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.116...v10.0.0-beta.117)** · 2026-09-26
+
+- **analytics:** spell the curl flag plainly in the gateway source (#4484)
+
 **[v10.0.0-beta.116](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.115...v10.0.0-beta.116)** · 2026-09-26
 
 - **analytics:** add an OTEL gateway source (Loki + Prometheus) (#4479)
@@ -661,10 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.110](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.109...v10.0.0-beta.110)** · 2026-09-26
 
 - **promote-lights:** a rejected status clear keeps the lights (#4464)
-
-**[v10.0.0-beta.109](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.108...v10.0.0-beta.109)** · 2026-09-26
-
-- **lesson-cards:** read the real Escape throw as cancelled by you (#4462)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
