@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.113](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.112...v10.0.0-beta.113)** · 2026-09-26
+
+- **tests:** isolate pre-push Test 12 from the real tree's hooks install (#4473)
+
 **[v10.0.0-beta.112](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.111...v10.0.0-beta.112)** · 2026-09-26
 
 - **lesson-cards:** 1.0.7 Cancelled: by you; Waiting text (#4470)
@@ -658,10 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.106](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.105...v10.0.0-beta.106)** · 2026-09-26
 
 - **site:** polish after [#4414](https://github.com/yonatangross/orchestkit/issues/4414): chat gap, host order, card border (#4452)
-
-**[v10.0.0-beta.105](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.104...v10.0.0-beta.105)** · 2026-09-26
-
-- **promote-lights:** draw the lights once, in the band (#4454)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
