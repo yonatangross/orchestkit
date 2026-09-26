@@ -104,8 +104,16 @@ trap cleanup_all EXIT
 # as empty/unparseable stdout, which every caller below treats as a failure.
 raw_hook() { # raw_hook <hook-key> <json> [env assignments...]
   local key="$1" input="$2"; shift 2
+  local input_file rc=0
+  input_file=$(mktemp "${TMPDIR:-/tmp}/ork-security-input.XXXXXX") || return 1
+  if ! printf '%s' "$input" >"$input_file"; then
+    rm -f "$input_file"
+    return 1
+  fi
   # silent: best-effort
-  printf '%s' "$input" | env "$@" node "$RUNNER" "$key" 2>/dev/null
+  env "$@" node "$RUNNER" "$key" <"$input_file" 2>/dev/null || rc=$?
+  rm -f "$input_file"
+  return "$rc"
 }
 
 # Permission verdict, four-valued: allow | ask | deny | passthrough (| ERROR).
@@ -126,9 +134,19 @@ raw_hook() { # raw_hook <hook-key> <json> [env assignments...]
 # added here, since that file is shared with other in-flight work).
 permission_verdict() { # permission_verdict <hook-key> <json> [env assignments...]
   local key="$1" input="$2"; shift 2
-  local out
+  local out input_file
+  input_file=$(mktemp "${TMPDIR:-/tmp}/ork-security-input.XXXXXX") || {
+    echo "ERROR"
+    return 0
+  }
+  if ! printf '%s' "$input" >"$input_file"; then
+    rm -f "$input_file"
+    echo "ERROR"
+    return 0
+  fi
   # silent: best-effort
-  out="$(printf '%s' "$input" | env "$@" node "$RUNNER" "$key" 2>/dev/null || true)"
+  out="$(env "$@" node "$RUNNER" "$key" <"$input_file" 2>/dev/null || true)"
+  rm -f "$input_file"
   if [[ -z "$out" ]] || ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
     echo "ERROR"
     return 0

@@ -425,9 +425,22 @@ hook_decision() {
   # exactly the failure the warning exists to announce. Sending it to /dev/null
   # discarded the only signal separating "measured nothing" from "measured and
   # declined to decide".
-  local err_file rc=0
+  local err_file input_file rc=0
   err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-stderr.XXXXXX")
-  out=$(printf '%s' "$input" | ork_run_with_budget "$ORK_HOOK_BUDGET" node "$runner" "$hook_key" 2>"$err_file") || rc=$?
+  input_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-input.XXXXXX") || {
+    rm -f "$err_file"
+    echo "ERROR"
+    echo "hook '$hook_key' could not create a payload file" >&2
+    return 0
+  }
+  if ! printf '%s' "$input" >"$input_file"; then
+    rm -f "$err_file" "$input_file"
+    echo "ERROR"
+    echo "hook '$hook_key' could not write its payload" >&2
+    return 0
+  fi
+  out=$(ork_run_with_budget "$ORK_HOOK_BUDGET" node "$runner" "$hook_key" <"$input_file" 2>"$err_file") || rc=$?
+  rm -f "$input_file"
 
   # A hook the budget had to kill produced no verdict. Reporting ERROR with
   # the cause is what keeps a loaded machine from reading as a regression

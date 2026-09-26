@@ -109,4 +109,11 @@ if ! grep -qvE "$TEST_FILE_RE" <<< "$FILES"; then
   finish false "test-only diff, no playground required"
 fi
 
+# A combination of exempt paths remains exempt. Testing inert workflow
+# changes does not create a user-facing surface. Any source or unknown
+# path still fails this union and requires a playground.
+if ! grep -qvE "($INERT)|($TEST_FILE_RE)" <<< "$FILES"; then
+  finish false "Skipping playground check: every changed file is inert or a test"
+fi
+
 finish true "Playground required (PR touches user-facing paths)"

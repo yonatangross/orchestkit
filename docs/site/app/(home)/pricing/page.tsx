@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 	// Shared with /pricing.md's frontmatter so the HTML head and the Markdown
 	// twin cannot describe this page differently.
 	description: PAGE_SUMMARY.pricing,
-	alternates: { canonical: `${SITE.domain}/pricing` },
+	alternates: {
+		canonical: `${SITE.domain}/pricing`,
+		types: { "text/markdown": `${SITE.domain}/pricing.md` },
+	},
 };
 
 export default function PricingPage() {

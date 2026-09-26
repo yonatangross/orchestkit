@@ -22,22 +22,22 @@ const cliPkg = JSON.parse(
 	readFileSync(resolve(__dirname, "../../../packages/cli/package.json"), "utf8"),
 ) as { name: string; bin?: Record<string, string> };
 
+const publishedCliUrl = `https://www.npmjs.com/package/${cliPkg.name}`;
+
 const llmsTxt = readFileSync(
 	resolve(__dirname, "../app/llms.txt/route.ts"),
 	"utf8",
 );
 
 describe("the site's CLI claim matches the package that ships", () => {
-	const entry = DEVELOPER_RESOURCES.find((r) =>
-		r.href.includes("npmjs.com/package/"),
-	);
+	const entry = DEVELOPER_RESOURCES.find((r) => r.title === "CLI (npm)");
 
 	it("the developer hub links the CLI on npm", () => {
 		expect(entry, "no npm package entry in DEVELOPER_RESOURCES").toBeDefined();
 	});
 
 	it("links the exact package name from packages/cli/package.json", () => {
-		expect(entry?.href).toBe(`https://www.npmjs.com/package/${cliPkg.name}`);
+		expect(entry?.href).toBe(publishedCliUrl);
 	});
 
 	it("only advertises command names the package actually declares", () => {
