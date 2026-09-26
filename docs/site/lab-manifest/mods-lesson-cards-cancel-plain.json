@@ -1,8 +1,8 @@
 {
   "slug": "mods-lesson-cards-cancel-plain",
-  "source": "docs/fix--lesson-cards-cancel-plain-no-dup/index.html",
+  "source": "docs/fix--lesson-cards-cancel-waiting-1.0.8/index.html",
   "title": "lesson-cards: a cancel drops the Fix",
-  "description": "Cancel and Escape deny keep Cancelled: so CC leaves them alone, say by you once, and drop Fix.",
+  "description": "Cancel and Escape deny keep Cancelled: head and Waiting text; lesson-cards 1.0.8.",
   "tags": [
     "claude-code",
     "mods",
