@@ -470,7 +470,7 @@ describe("register behavior (mutant-killing)", () => {
 
     expect($.clock.every).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith(
-      "lights:yonatangross/orchestkit",
+      KEY,
       expect.objectContaining({ prNumber: 4500, head: "abc123def4567", passing: true })
     );
   });
@@ -509,6 +509,15 @@ describe("register behavior (mutant-killing)", () => {
     expect($.ui.status).toHaveBeenCalledWith(
       expect.stringContaining("head query failed")
     );
+    // The degradation persists: the snapshot records it and the tick's
+    // status line keeps saying so after the warning is overwritten.
+    expect($.store.set).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ prNumber: 4418, degraded: true })
+    );
+    expect($.ui.status).toHaveBeenCalledWith(
+      expect.stringContaining("DEGRADED")
+    );
   });
 
   test("session.start tracks a non dev head carrying the promote label", async () => {
@@ -546,6 +555,18 @@ describe("register behavior (mutant-killing)", () => {
       KEY,
       expect.objectContaining({ prNumber: 4419 })
     );
+    // The configured head must reach the list argv, not just the match:
+    // without it the test would pass if the head query never ran.
+    const listArgvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls
+      .map((c) => c[0] as readonly string[])
+      .filter((argv) => argv[1] === "pr" && argv[2] === "list");
+    expect(
+      listArgvs.some(
+        (argv) =>
+          argv.includes("--head") &&
+          argv[argv.indexOf("--head") + 1] === "release"
+      )
+    ).toBe(true);
   });
 
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
