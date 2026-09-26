@@ -23,11 +23,19 @@ describe('shortFix', () => {
 });
 
 describe('denyLine', () => {
-  test('one line with the reason, the id and a short Fix, never the message', () => {
-    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Cancelled by you; not run.');
-    expect(line).toBe('Cancelled by you; not run. [lesson:l1] Fix: new()');
+  test('a real block keeps the reason, the id and a short Fix, never the message', () => {
+    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Not run: no "Proceed anyway".');
+    expect(line).toBe('Not run: no "Proceed anyway". [lesson:l1] Fix: new()');
     expect(line).not.toContain('First sentence');
     expect(line).not.toContain('\n');
+  });
+
+  test('a user cancel is plain: Cancelled: head, lesson id, no Fix, no Error:', () => {
+    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Cancelled by you; not run.');
+    expect(line).toBe('Cancelled: Cancelled by you; not run. [lesson:l1]');
+    expect(line).not.toContain('Fix:');
+    expect(line).not.toMatch(/^Error:/);
+    expect(line.startsWith('Cancelled: ')).toBe(true);
   });
 
   test('no fix, no Fix label', () => {
@@ -47,8 +55,15 @@ describe('denyLine', () => {
     expect(cutCodePoints('abc', 10)).toBe('abc');
   });
 
-  test('a long message never reaches the line, the Fix stays whole', () => {
+  test('a long message never reaches a cancel line (no Fix to keep)', () => {
     const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled by you; not run.');
+    expect(line).not.toContain('www');
+    expect(line).not.toContain('Fix:');
+    expect(line.startsWith('Cancelled: ')).toBe(true);
+  });
+
+  test('a long message on a real block keeps the Fix whole', () => {
+    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Not run: no "Proceed anyway".');
     expect(line).not.toContain('www');
     expect(line.endsWith(' Fix: use_the_safe_call()')).toBe(true);
   });
