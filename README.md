@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.104](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.103...v10.0.0-beta.104)** · 2026-09-26
+
+- **secrets-veil:** opt-in copy of a masked value to the clipboard (#4437)
+
 **[v10.0.0-beta.103](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.102...v10.0.0-beta.103)** · 2026-09-26
 
 - **promote-lights:** find promote PR past first 30 open PRs (#4435)
@@ -665,11 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97)** · 2026-09-25
 
 - **secrets-veil:** show a toast with masked value and byte counts (#4431)
-
-**[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
-
-- **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
-- **readme:** skills.sh badge and measured starter 12 (#4426)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
