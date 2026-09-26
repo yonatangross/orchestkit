@@ -134,7 +134,8 @@ export function buildBand(
   lights: ClassifiedLight[],
   headSha: string,
   mergeStateStatus: string,
-  hold: boolean
+  hold: boolean,
+  degraded = false
 ): unknown {
   const { Box, Text } = els;
   const count = (color: string) => lights.filter((l) => l.color === color).length;
@@ -154,6 +155,7 @@ export function buildBand(
   if (cancelled > 0) {
     runs.push(Text({ color: "yellow", children: `  ${cancelled} ${LIGHT_SYMBOLS.cancelled}` }));
   }
+  if (degraded) runs.push(Text({ dimColor: true, children: "  DEGRADED" }));
 
   const lines: unknown[] = [Text({ children: runs })];
   const problems = problemLights(lights);

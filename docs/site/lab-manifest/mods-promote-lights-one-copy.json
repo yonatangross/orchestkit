@@ -1,0 +1,13 @@
+{
+  "slug": "mods-promote-lights-one-copy",
+  "source": "docs/fix--promote-lights-one-copy/index.html",
+  "title": "promote-lights: the lights are drawn once, in the band",
+  "description": "Every tick drew the PR state twice, in the band and in the status line. Now the band is the only copy: the tick clears the status line and the band shows DEGRADED; /lights answers the line on demand.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights"
+  ],
+  "date": "2026-09-26"
+}

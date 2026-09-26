@@ -509,15 +509,16 @@ describe("register behavior (mutant-killing)", () => {
     expect($.ui.status).toHaveBeenCalledWith(
       expect.stringContaining("head query failed")
     );
-    // The degradation persists: the snapshot records it and the tick's
-    // status line keeps saying so after the warning is overwritten.
-    expect($.store.set).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ prNumber: 4418, degraded: true })
-    );
-    expect($.ui.status).toHaveBeenCalledWith(
-      expect.stringContaining("DEGRADED")
-    );
+    // The degradation persists: the snapshot records it and the band says
+    // DEGRADED after the tick clears the warning.
+    const degraded = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => (c[1] as { degraded?: boolean }).degraded === true
+    )?.[1];
+    expect(degraded).toEqual(expect.objectContaining({ prNumber: 4418, degraded: true }));
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(degraded);
+    const band = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(null));
+    expect(JSON.stringify(band)).toContain("DEGRADED");
+    expect(($.ui.status as ReturnType<typeof vi.fn>).mock.calls.at(-1)).toEqual([undefined]);
   });
 
   test("session.start tracks a non dev head carrying the promote label", async () => {
@@ -610,6 +611,7 @@ describe("register behavior (mutant-killing)", () => {
       })
     );
     expect($.ui.status).toHaveBeenCalledTimes(1);
+    expect($.ui.status).toHaveBeenCalledWith(undefined);
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
 
@@ -710,7 +712,7 @@ describe("register behavior (mutant-killing)", () => {
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
 
-  test("/lights refresh runs a fresh tick and publishes a status line", async () => {
+  test("/lights refresh runs a fresh tick and clears the status line", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
     const $ = createFake$();
@@ -730,6 +732,7 @@ describe("register behavior (mutant-killing)", () => {
       ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length
     ).toBeGreaterThan(callsAfterStart);
     expect($.ui.status).toHaveBeenCalledTimes(1);
+    expect($.ui.status).toHaveBeenCalledWith(undefined);
   });
 
   test("/lights with no args reports the tracked PR status line", async () => {
@@ -904,6 +907,32 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
   });
 });
 
+describe("the lights are drawn once: the band, never the status line too", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  test("after a tick, the PR state shows in the band and in no status line", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    const snapshot = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => (c[1] as { lights?: unknown }).lights !== undefined
+    )?.[1];
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(snapshot);
+    const band = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(null));
+
+    const copies = (text: string): number => text.split("#4165").length - 1;
+    const statusTexts = ($.ui.status as ReturnType<typeof vi.fn>).mock.calls
+      .map((c) => c[0])
+      .filter((t): t is string => typeof t === "string");
+    expect(copies(JSON.stringify(band))).toBe(1);
+    expect(statusTexts.map(copies).reduce((a, b) => a + b, 0)).toBe(0);
+    expect(statusTexts.filter((t) => /green|yellow|red/.test(t))).toEqual([]);
+  });
+});
+
 const WATCH_VIEW = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED" });
 const MIXED_RUNS = JSON.stringify({
   total_count: 4,
@@ -921,7 +950,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     vi.resetModules();
   });
 
-  test("/lights watch owner/repo#N tracks that PR, falls back to every check run, and pins a status line", async () => {
+  test("/lights watch owner/repo#N tracks that PR, falls back to every check run, and answers with the status line", async () => {
     const handlers = captureHandlers(await loadRegister());
     // Unprotected watched repo: protection and rulesets give an empty union.
     const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
@@ -948,7 +977,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
     expect(out.text).toContain("watch acme/widgets#77");
     expect(out.text).toContain("1 green");
     expect(out.text).toContain("1 red");
-    expect($.ui.status).toHaveBeenCalledWith(expect.stringContaining("watch acme/widgets#77"));
+    expect($.ui.status).toHaveBeenCalledWith(undefined);
     expect($.clock.every).toHaveBeenCalledWith(60000, expect.any(Function));
   });
 

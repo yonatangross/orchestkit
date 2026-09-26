@@ -15,6 +15,7 @@ Shows CI status lights above the prompt while a promote PR (base `main`) is open
 - Polls one REST page per minute, only while the PR is open
 - Stops automatically when the PR merges, closes, or the head moves
 - Shows `HOLD` in red when the latest PR comment starts with `HOLD*`
+- The band is the only place the lights are drawn: each tick clears the plugin status line instead of repeating the band in it, and a degraded promote search shows as `DEGRADED` in the band. Claude Code gives a mod no signal when the band is collapsed (ctrl+x ctrl+a), so `/lights` answers the one-line status on demand
 - Draws a one-line dim `lights: <reason>` band when it cannot show lights (no required contexts, gh failed, head moved), so a failure is never a blank space
 - Demo mode: `/lights watch owner/repo#N` shows lights for any open PR in any repo, no promote PR needed
 
