@@ -566,7 +566,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/getting-started/installation",
-    "title": "Installation",
+    "title": "OrchestKit Installation and Setup",
     "headings": [
       "Choose your host",
       "After you install",
@@ -1651,7 +1651,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/agents",
-    "title": "Agents Reference",
+    "title": "OrchestKit Agents Reference",
     "headings": []
   },
   {
@@ -2101,7 +2101,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/hooks",
-    "title": "Hooks Reference",
+    "title": "OrchestKit Hooks Reference",
     "headings": []
   },
   {
@@ -2306,7 +2306,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference",
-    "title": "Reference",
+    "title": "OrchestKit Reference",
     "headings": [
       "Browse by type",
       "Demo Compositions"
@@ -2681,7 +2681,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Dashboard Layout & Widgets",
       "Configure Recharts with ResponsiveContainer and animation control for stable rendering: HIGH",
       "Recharts Chart Components",
-      "References (6)",
+      "References (7)",
       "Cost Estimation",
       "Pricing Table (Sep 2026)",
       "Cost Formula",
@@ -2725,6 +2725,11 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Graceful fallback",
       "When to use",
       "Related",
+      "Otel Gateway Source",
+      "Step 1: discover the real names (do not guess)",
+      "Step 2: queries",
+      "Output",
+      "Graceful fallback",
       "Session Replay",
       "Usage",
       "Step 1: Locate the Session File",
@@ -7622,7 +7627,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills",
-    "title": "Skills Reference",
+    "title": "OrchestKit Skills Reference",
     "headings": []
   },
   {

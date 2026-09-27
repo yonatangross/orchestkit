@@ -1,5 +1,8 @@
 import { SITE } from "@/lib/constants";
-import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
+import {
+	DEVELOPER_RESOURCES,
+	developerResourceLines,
+} from "@/lib/developer-resources";
 
 export const revalidate = false;
 
@@ -12,12 +15,9 @@ export function GET() {
 		"",
 		"## Named landing pages",
 		"",
-		`- [OrchestKit OpenAPI specification](${d}/openapi)`,
-		`- [OrchestKit MCP server](${d}/docs/mcp)`,
-		`- [OrchestKit SDK packages](${d}/docs/sdk)`,
+		...developerResourceLines(d),
 		`- [OrchestKit llms.txt](${d}/llms.txt)`,
 		`- [OrchestKit llms-full.txt](${d}/llms-full.txt)`,
-		`- [Developer hub](${d}/developers) · [Markdown](${d}/developers.md)`,
 		"",
 		"## Machine-readable",
 		"",

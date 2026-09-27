@@ -158,7 +158,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 9
     },
     "/docs/getting-started/installation": {
-      "title": "Installation",
+      "title": "OrchestKit Installation and Setup",
       "inbound": 5
     },
     "/docs/getting-started/muse": {
@@ -274,11 +274,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 7
     },
     "/docs/reference": {
-      "title": "Reference",
+      "title": "OrchestKit Reference",
       "inbound": 0
     },
     "/docs/reference/agents": {
-      "title": "Agents Reference",
+      "title": "OrchestKit Agents Reference",
       "inbound": 1
     },
     "/docs/reference/agents/accessibility-specialist": {
@@ -426,7 +426,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/hooks": {
-      "title": "Hooks Reference",
+      "title": "OrchestKit Hooks Reference",
       "inbound": 1
     },
     "/docs/reference/hooks/config-change": {
@@ -578,7 +578,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 1
     },
     "/docs/reference/skills": {
-      "title": "Skills Reference",
+      "title": "OrchestKit Skills Reference",
       "inbound": 3
     },
     "/docs/reference/skills/accessibility": {

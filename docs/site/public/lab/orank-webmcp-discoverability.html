@@ -1,0 +1,83 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>orank: WebMCP the scanner can see, and developer resources found by name</title>
+<meta name="description" content="Why orank saw only the declarative WebMCP form on a site that registers four tools imperatively, and how the docs site now lists its developer resources by name and type.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="WebMCP the scanner can see, and developer resources found by name"><meta property="og:description" content="Why orank saw only the declarative WebMCP form, and how the docs site now lists its developer resources by name and type."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/orank-webmcp-discoverability.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="WebMCP the scanner can see, and developer resources found by name"><meta name="twitter:description" content="Why orank saw only the declarative WebMCP form, and how the docs site now lists its developer resources by name and type."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body>
+
+<h1>orank: WebMCP the scanner can see, and developer resources found by name</h1>
+<p class="lede">orchestkit.yonyon.ai scored 96/100 (A+) on the 2026-09-27 scan. Two checks lost points: WebMCP support (1 of 5) and Developer resource discoverability (1 of 3). This page shows what each check reads, what the site served, and what this PR changes.</p>
+
+<p class="verdict"><b>Verdict.</b> The WebMCP tools from #4107 were live, but their registration minified to <code>i=e.modelContext</code>. orank looks for <code>document.modelContext</code> in the bundles, so it found only the hidden declarative form. The fix reads the global, so the literal survives minification. The developer resources existed, but the site never listed them by name and type. They now have one typed list, a section in llms.txt, OrchestKit in their titles and H1s, and predictable alias URLs.</p>
+
+<div class="kpis">
+<div class="kpi"><b>4</b><span>WebMCP tools registered (unchanged)</span></div>
+<div class="kpi"><b>0 → 1</b><span><code>document.modelContext.registerTool(</code> literals in the eager source</span></div>
+<div class="kpi"><b>7</b><span>resource types in the typed list</span></div>
+<div class="kpi"><b>13</b><span>alias URLs, each to an existing page</span></div>
+<div class="kpi"><b>5</b><span>titles and H1s that now name OrchestKit</span></div>
+</div>
+
+<h2>1. WebMCP: what orank reads</h2>
+<p>From the methodology JSON at ora.ai/methodology, check <code>webmcp</code> (5 pts): it parses HTML for WebMCP form attributes (toolname, tooldescription) and scans inline scripts and same-origin JS bundles for <code>document.modelContext</code> registrations, treating navigator.modelContext as the deprecated alias.</p>
+<div class="cols">
+<div class="card before"><h3>Before (live layout chunk, fetched 2026-09-27)</h3>
+<pre>...s=r.filter(e=&gt;!n.has(e.name)),i=e.modelContext;
+if("function"==typeof i?.registerTool){for(let e of s)
+l(`registerTool(${e.name})`,()=&gt;i.registerTool?.(e));</pre>
+<p class="mut">The helper took <code>doc</code> as a parameter, so no bundle carried the text <code>document.modelContext</code>. It appeared only in homepage prose. orank's result: "Declarative WebMCP preview detected (1 form(s)...)".</p></div>
+<div class="card after"><h3>After (lib/webmcp-tools.ts)</h3>
+<pre>function registerOnDocument(tool) {
+  return typeof document.modelContext?.registerTool === "function"
+    ? document.modelContext.registerTool(tool)
+    : undefined;
+}</pre>
+<p class="mut">It reads the global, and the minifier keeps global property access. The navigator fallback and the provideContext last resort from #4107 stay in the same order. A test pins the literal, and a planted control that reintroduces the alias fails it.</p></div>
+</div>
+<p>One runtime fix comes along with it. Per the spec, <code>registerTool</code> returns a Promise that <i>rejects</i> on a duplicate name, an empty name or description, or an invalid schema. The #4107 guard caught only synchronous throws, so a rejection would have gone unhandled. The guard now also catches the returned promise.</p>
+<p class="warn"><b>Not confirmed here.</b> orank's exact matcher is not public, so the score change is unverified until the rescan after merge. Separately, the site serves no Chrome origin-trial token, so ordinary Chrome 149 to 156 visitors never get <code>document.modelContext</code>. Registering a token is an account action at the Chrome origin-trials console, left to the operator.</p>
+
+<h2>2. Developer resource discoverability</h2>
+<p>From the same methodology, check <code>agentic-search-specific</code> (3 pts): search for the product by name and check its developer resources (API docs, OpenAPI specs, MCP server, auth docs, developer portal, SDK documentation). Any one recognized type earns full marks. The scan said: "Agent found 3 pages by name but no recognizable developer-resource type". orank marks this "one search sample", so the fix improves what a name search sees rather than any single page.</p>
+<table>
+<tr><th>Resource</th><th>Type label</th><th>URL</th><th>Change</th></tr>
+<tr><td>OrchestKit developer portal</td><td>Developer portal</td><td>/developers</td><td>first line of the new llms.txt section</td></tr>
+<tr><td>OrchestKit OpenAPI specification</td><td>OpenAPI spec</td><td>/openapi</td><td>typed</td></tr>
+<tr><td>OrchestKit API docs (OpenAPI 3.1 JSON)</td><td>API docs</td><td>/api/openapi</td><td>renamed from "OpenAPI specification"</td></tr>
+<tr><td>OrchestKit MCP server</td><td>MCP server</td><td>/docs/mcp</td><td>typed</td></tr>
+<tr><td>OrchestKit SDK packages</td><td>SDK documentation</td><td>/docs/sdk</td><td>typed</td></tr>
+<tr><td>OrchestKit auth docs</td><td>Auth docs</td><td>/auth.md</td><td>renamed from "Authentication policy"</td></tr>
+<tr><td>OrchestKit plugin install and setup</td><td>Install guide</td><td>/docs/getting-started/installation</td><td>was "Documentation"; page title now "OrchestKit Installation and Setup"</td></tr>
+<tr><td>OrchestKit skills / agents / hooks reference</td><td>Reference docs</td><td>/docs/reference/{skills,agents,hooks}</td><td>new entries; titles and H1s now "OrchestKit Skills Reference" and so on (generator updated too)</td></tr>
+</table>
+<p>One list, <code>lib/developer-resources.ts</code>, now feeds all of these: the /developers page, /developers.md, /developers/llms.txt, a new <b>Developer resources</b> section in /llms.txt (placed above Documentation), and the same section, with absolute URLs, at the top of /llms-full.txt.</p>
+<h3>Predictable aliases (temporary redirects, no page moves)</h3>
+<pre>/docs/api, /docs/api-reference, /api-docs, /api-reference  →  /openapi
+/docs/developers, /developer                               →  /developers
+/install, /docs/install, /docs/installation                →  /docs/getting-started/installation
+/docs/mcp-server                                           →  /docs/mcp
+/docs/skills-reference, /docs/agents-reference, /docs/hooks-reference  →  /docs/reference/…</pre>
+<p class="mut">A test checks that every destination is a real page and that no source shadows one. <code>/mcp</code> stays the MCP transport rewrite.</p>
+
+<h2>3. Proof</h2>
+<table>
+<tr><th>Run</th><th>Result</th></tr>
+<tr><td>webmcp-tools + developer-discoverability tests</td><td>52 passed</td></tr>
+<tr><td>Control A: drop <code>get_skill</code> from the tool list</td><td>5 failed ("expected [ 'get_page', 'list_skills', …(1) ] to deeply equal …")</td></tr>
+<tr><td>Control B: registration through an alias again</td><td>1 failed (bundle-literal test)</td></tr>
+<tr><td>Control C: remove the llms.txt Developer resources section</td><td>1 failed</td></tr>
+<tr><td>Control D: alias to a page that does not exist</td><td>1 failed ("/docs/api -&gt; /openapi-typo")</td></tr>
+<tr><td>Reference generator vs committed mdx</td><td>skills, agents, hooks index identical</td></tr>
+</table>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

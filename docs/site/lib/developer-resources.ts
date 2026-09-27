@@ -13,11 +13,27 @@
 
 import { COUNTS } from "@/lib/constants";
 
+// The resource types orank's "Developer resource discoverability" check
+// recognizes (methodology, 2026-09-27: "API docs, OpenAPI specs, MCP server,
+// auth docs, developer portal, SDK documentation"), plus the plugin's own
+// install guide and reference, which are what a developer searches for first.
+export type DeveloperResourceKind =
+	| "API docs"
+	| "OpenAPI spec"
+	| "MCP server"
+	| "SDK documentation"
+	| "Auth docs"
+	| "Install guide"
+	| "Reference docs";
+
 export type DeveloperResource = {
 	title: string;
 	desc: string;
 	href: string;
 	external?: boolean;
+	/** Set on the named, product-titled landing pages. These feed the
+	 * "Developer resources" section of /llms.txt and /llms-full.txt. */
+	kind?: DeveloperResourceKind;
 };
 
 export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
@@ -25,26 +41,49 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		title: "OrchestKit OpenAPI specification",
 		desc: "Human page for the OpenAPI 3.1 docs API spec. Machine copy at /openapi.json.",
 		href: "/openapi",
+		kind: "OpenAPI spec",
 	},
 	{
 		title: "OrchestKit MCP server",
 		desc: "How to connect the hosted Streamable HTTP server and the Docker stdio image. Transport stays at /api/mcp and /mcp.",
 		href: "/docs/mcp",
+		kind: "MCP server",
 	},
 	{
 		title: "OrchestKit SDK packages",
 		desc: "Official clients: npm CLI, PyPI orchestkit, Go module github.com/yonatangross/orchestkit/sdk.",
 		href: "/docs/sdk",
+		kind: "SDK documentation",
 	},
 	{
-		title: "Documentation",
-		desc: `Install guides, concepts, and reference for all ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} hooks.`,
+		title: "OrchestKit plugin install and setup",
+		desc: "Install the plugin on Claude Code, Cursor, Codex, Devin, OpenCode, Muse Code, Pi or Antigravity, then configure it.",
 		href: "/docs/getting-started/installation",
+		kind: "Install guide",
 	},
 	{
-		title: "OpenAPI specification",
+		title: "OrchestKit skills reference",
+		desc: `Reference page for each of the ${COUNTS.skills} skills: triggers, arguments, and the files each one ships.`,
+		href: "/docs/reference/skills",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit agents reference",
+		desc: `Reference page for each of the ${COUNTS.agents} agents: model, tools, skills, and when to use it.`,
+		href: "/docs/reference/agents",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit hooks reference",
+		desc: "Every global lifecycle hook entry, grouped by Claude Code event, with what it checks.",
+		href: "/docs/reference/hooks",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit API docs (OpenAPI 3.1 JSON)",
 		desc: "OpenAPI 3.1 description of the public, read-only docs API: search, Markdown fetch, batch, async jobs.",
 		href: "/api/openapi",
+		kind: "API docs",
 	},
 	{
 		title: "MCP server (hosted, Streamable HTTP)",
@@ -75,9 +114,10 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		external: true,
 	},
 	{
-		title: "Authentication policy",
+		title: "OrchestKit auth docs",
 		desc: "The API is public and anonymous-only; auth.md states it in the WorkOS auth.md shape, with RFC 9728 PRM.",
 		href: "/auth.md",
+		kind: "Auth docs",
 	},
 	{
 		title: "API versioning & deprecation policy",
@@ -107,3 +147,20 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		external: true,
 	},
 ];
+
+/** The named landing pages, in list order: one per recognized resource type
+ * (plus the three reference indexes). Each title carries the product name. */
+export const NAMED_DEVELOPER_RESOURCES = DEVELOPER_RESOURCES.filter(
+	(r): r is DeveloperResource & { kind: DeveloperResourceKind } => r.kind !== undefined,
+);
+
+/** "- [title](href): kind. desc" lines for llms.txt-style indexes. `base`
+ * makes site-relative hrefs absolute (llms-full.txt is often read detached). */
+export function developerResourceLines(base = ""): string[] {
+	return [
+		`- [OrchestKit developer portal](${base}/developers): Developer portal. One page linking every resource below; Markdown twin at ${base}/developers.md.`,
+		...NAMED_DEVELOPER_RESOURCES.map(
+			(r) => `- [${r.title}](${r.external ? r.href : `${base}${r.href}`}): ${r.kind}. ${r.desc}`,
+		),
+	];
+}

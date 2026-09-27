@@ -183,6 +183,13 @@ jobs:
         working-directory: docs/site
         run: npm run build
 
+      # orank's WebMCP check scans the built bundles for document.modelContext
+      # registrations; only the minified chunk proves the literal survived
+      # (the #4107 helper minified to `e.modelContext`, invisible to the scan).
+      - name: Check WebMCP registration in built chunks
+        working-directory: docs/site
+        run: node scripts/check-webmcp-bundle.mjs
+
       # #2969: the docs-site vitest suite (vitest.site.config.ts — search golden
       # queries, nav-structure guards) was wired into NO workflow, so it gated
       # nothing. A test that failed under the full suite merged green in #2963
