@@ -6281,7 +6281,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load orchestration guidance: Read(\"references/orchestration-mode-selection.md\")",
+            "does": "Default: Workflow (star, workflows/review-fanout.js runs Phases 3 and 4.5). Choose Agent Teams (mesh, reviewers cross-reference findings) or the plain Agent tool when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): Read(\"references/orchestration-mode-selection.md\").",
             "out": null,
             "tag": null
           }
@@ -6306,44 +6306,44 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
-            "num": "3",
-            "label": "Parallel Code Review",
-            "does": "",
+            "num": "2.5",
+            "label": "/ultrareview Gate",
+            "does": "The shell owns every question, so the /ultrareview ask happens here, before Phase 3, never inside the workflow. Load the gate: Read(\"references/ultrareview-gate.md\"): triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the ORK_DISABLE_ULTRAREVIEW opt-out. If no trigger fires, skip silently. A \"Yes\" runs /ultrareview alongside Phase 3; its findings merge in Phase 5 labelled \"Ultrareview:\".",
             "out": null,
             "tag": null
           },
           {
-            "num": "3.5",
-            "label": "/ultrareview Gate",
-            "does": "CC 2.1.111's built-in /ultrareview (parallel multi-agent deep review; Pro/Max get 3 free per month) overlaps Phase 3 but goes deeper. Never fire it by default, only when a trigger justifies the cost, and always ask first.",
+            "num": "3",
+            "label": "Parallel Code Review",
+            "does": "Do NOT hand-roll the reviewers. Start Phase 4 validation in the background, then run the executor:",
             "out": null,
             "tag": null
           },
           {
             "num": "4",
             "label": "Run Validation",
-            "does": "Load validation commands: Read(\"references/validation-commands.md\")",
+            "does": "Load validation commands: Read(\"references/validation-commands.md\"). Run them in the background while Phase 3 runs. Failing required checks known before the call go in as failingChecks; a red found after it caps both verdicts at request-changes here in the shell. Ground truth is never refuted.",
             "out": null,
             "tag": null
           },
           {
             "num": "4.5",
             "label": "Adversarial Refutation",
-            "does": "A separate blind refuter verifies decision-bearing findings before they reach the",
+            "does": "A separate blind refuter verifies decision-bearing findings before they reach the Phase 5 verdict, the structural fix for self-preferential bias. low/medium skip it; high runs single advisory refuters (no auto-flip); xhigh runs the engine's quorum (3 for a request-changes blocker, 2 for HIGH). On the Workflow path the script already ran it; the shell finishes it:",
             "out": null,
             "tag": null
           },
           {
             "num": "5",
             "label": "Synthesize Review",
-            "does": "Combine all agent feedback into a structured report. Load template: Read(\"references/review-report-template.md\")",
+            "does": "Combine the workflow result (and any \"Ultrareview:\" findings) into a structured report. Load template: Read(\"references/review-report-template.md\"). Show the producer-basis verdict as the headline and the postRefutationVerdict as a separately labelled view, each finding with its postSeverity, and the reasons behind every floor. If reviewerDisagreement is true and the Phase 2.5 gate never asked, the shell may offer /ultrareview now.",
             "out": null,
             "tag": null
           },
           {
             "num": "6",
             "label": "Submit Review",
-            "does": "",
+            "does": "Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis verdict unless the user confirmed the post-refutation one in Phase 4.5.",
             "out": null,
             "tag": null
           },

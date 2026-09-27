@@ -11,7 +11,7 @@ version: 1.9.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__add_observations, ToolSearch, Monitor]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__add_observations, ToolSearch, Monitor]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 persuasion-type: discipline
@@ -91,11 +91,11 @@ AskUserQuestion(
 )
 ```
 
-**Based on answer, adjust workflow:**
-- **Full review**: All 6-7 parallel agents
-- **Security focus**: Prioritize security-auditor, reduce other agents
-- **Performance focus**: Add frontend-performance-engineer agent
-- **Quick review**: Single code-quality-reviewer agent only
+**The answer becomes the `focus` arg of the Phase 3 Workflow call** (the script picks the reviewers):
+- **Full review** → `"full"`: security, two code-quality passes, tests, plus backend / frontend / llm-integrator for the domains in the diff
+- **Security focus** → `"security"`: security-auditor plus one code-quality reviewer
+- **Performance focus** → `"performance"`: the full set plus frontend-performance-engineer
+- **Quick review** → `"quick"`: a single code-quality reviewer
 
 ### "Ultra" mode → defer to `claude ultrareview` (CC 2.1.120+, #1542)
 
@@ -115,7 +115,7 @@ This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit s
 
 ## STEP 0b: Select Orchestration Mode
 
-Load orchestration guidance: `Read("references/orchestration-mode-selection.md")`
+Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`.
 
 ---
 
@@ -216,7 +216,7 @@ When gathering PR context, run independent operations in parallel:
 - `gh pr view` (PR metadata), `gh pr diff` (changed files), `gh pr checks` (CI status)
 
 Spawn all three in ONE message. This cuts context-gathering time by 60%.
-For agent-based review (Phase 3), all 6 agents are independent -- launch them together.
+Phase 3 runs as one Workflow call; only the Agent tool fallback launches the reviewers together by hand.
 </use_parallel_tool_calls>
 
 ## Phase 2: Skills Auto-Loading
@@ -229,15 +229,27 @@ Relevant skills activated automatically:
 - `type-safety-validation` -- Zod, TypeScript strict
 - `testing-unit`, `testing-e2e`, `testing-integration` -- Test adequacy, coverage gaps, rule matching
 
-## Phase 3: Parallel Code Review (6 Agents)
+## Phase 2.5: /ultrareview Gate (asked BEFORE the review call)
 
-> **Fork pattern (CC 2.1.89 #1227; explicit since CC 2.1.232; ~60% cost cut):** the 6 review agents are spawned together
-> with no per-agent `model=` override and no worktree isolation, so CC forks them off the
-> lead's cached prefix instead of re-sending it 6x. Since CC 2.1.232 forking is on by default and
-> `subagent_type: "fork"` selects it explicitly. A fork subagent inherits the full conversation and prompt cache
-> and always runs on the parent model; other types start fresh. The eligibility conditions matter only for ordinary
-> `Agent()` calls. **Do NOT add `model=` to these Agent() calls or wrap them in `isolation: "worktree"`**.
-> Either one breaks fork eligibility on ordinary calls. See `chain-patterns/references/fork-pattern.md`.
+The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" runs `/ultrareview` alongside Phase 3; its findings merge in Phase 5 labelled "Ultrareview:".
+
+## Phase 3: Parallel Code Review (Workflow)
+
+Do NOT hand-roll the reviewers. Start Phase 4 validation in the background, then run the executor:
+
+```python
+Workflow(
+  scriptPath="${CLAUDE_SKILL_DIR}/workflows/review-fanout.js",
+  args={"target": "PR #<PR_NUMBER> (or the resolved range)", "effort": EFFORT, "focus": FOCUS,
+        "domains": {"backend": HAS_BACKEND, "frontend": HAS_FRONTEND, "ai": HAS_AI},
+        "changedFiles": CHANGED_FILES, "projectContext": PROJECT_CONTEXT,
+        "failingChecks": <failing required checks from gh pr checks>, "modelOverride": MODEL_OVERRIDE}
+)   # FOCUS from STEP 0; EFFORT is the session effort (low/medium/high/xhigh)
+```
+
+**The script owns the mechanics, not the prose.** It picks the reviewers from `focus` and the domain flags (security first), gives each the findings schema below, and streams every decision-bearing finding (a request-changes blocker, or HIGH) to blind refuters as soon as its reviewer returns: none at low/medium, one advisory vote at high, a 3-vote quorum for a blocker and 2 for HIGH at xhigh. It dedups to root cause, never refutes ground truth, and enforces the engine section 8 ceiling of 24 refuter spawns, 6 at high (overflow comes back in `manualReview`, never dropped). It returns `verdict` (producer basis), `postRefutationVerdict`, `confirmationNeeded`, `manualReview`, `advisory`, `reviewerDisagreement`, `findings`, `ledger` and `reasons`. A dead or BLOCKED reviewer keeps approve off the table. **It never posts and never asks**: those stay in this shell. The fork does not end its turn until the call returns (#3892).
+
+> **Trade-off:** the Workflow path gives up the fork prefix cache (CC 2.1.89 #1227, ~60% cost cut) that same-message `Agent()` spawns get. The Agent tool fallback keeps it: `Read("rules/agent-prompts-task-tool.md")`, and do NOT add `model=` or `isolation: "worktree"` there (`chain-patterns/references/fork-pattern.md`).
 
 ### Project Context Injection
 
@@ -249,7 +261,7 @@ Before spawning agents, load project-specific review context from memory:
 PROJECT_CONTEXT = Read("${MEMORY_DIR}/review-pr-context.md")  # Falls back gracefully if missing
 ```
 
-All agent prompts receive `${PROJECT_CONTEXT}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
+Pass it as `projectContext`: every reviewer prompt carries it, so reviewers know project conventions, security patterns, and known weaknesses from prior reviews.
 
 ### Structured Output
 
@@ -279,7 +291,7 @@ All agents MUST include a status field per `Read("../../shared/status-protocol.m
 
 ### Domain-Aware Agent Selection
 
-Only spawn agents relevant to the PR's changed domains:
+The script enforces this table from the `domains` arg; the fallback modes follow it by hand:
 
 | Domain Detected | Agents to Spawn |
 |----------------|-----------------|
@@ -288,89 +300,44 @@ Only spawn agents relevant to the PR's changed domains:
 | Full-stack | All 6 agents |
 | AI/LLM code | All 6 + optional llm-integrator (7th) |
 
-Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
+Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs. Missing domain flags run both backend and frontend reviewers.
 
-### Progressive Output (CC 2.1.76+)
-
-Output each agent's findings **as they complete** — don't batch until synthesis.
-
-> **Focus mode (CC 2.1.101):** In focus mode, the user only sees your final message. Include the full review verdict, all findings by severity, and the approve/request-changes recommendation — don't assume they saw per-agent outputs.
-
-- **Security findings** → show blockers and critical issues first
-- **Code quality** → show pattern violations, complexity hotspots
-- **Test coverage gaps** → show missing test cases
-
-This lets the PR author start addressing blocking issues while remaining agents are still analyzing. Only the final synthesis (Phase 5) requires all agents to have completed.
-
-**Partial results (CC 2.1.98):** If a review agent fails mid-analysis, synthesize partial findings:
-
-```python
-for agent_result in review_results:
-    if "[PARTIAL RESULT]" in agent_result.output:
-        # A security agent that found 2 issues before crashing > no security review
-        findings.extend(parse_findings(agent_result.output))
-        findings[-1]["partial"] = True  # Flag in synthesis
-        # Do NOT re-spawn — partial findings are still valuable
-```
-
-A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
-
-**Monitor for CI streaming (CC 2.1.98):** Stream CI check output in Phase 4:
-
-```python
-Bash(command="gh pr checks $PR_NUMBER --watch 2>&1", run_in_background=true)
-Monitor(pid=ci_watch_id)  # Each status change → notification
-```
-
-See [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
-
-See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
-
-See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th LLM agent.
-
-## Phase 3.5: /ultrareview Gate (CC 2.1.111+, optional)
-
-CC 2.1.111's built-in `/ultrareview` (parallel multi-agent deep review; Pro/Max get 3 free per month) overlaps Phase 3 but goes deeper. **Never fire it by default** — only when a trigger justifies the cost, and always ask first.
-
-Load the gate: `Read("references/ultrareview-gate.md")` — trigger evaluation (large diff / sensitive path / reviewer disagreement / high-stakes label), the voice-friendly prompt + session-skip state, after-response handling, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently to Phase 4.
+Fallback modes only: progressive output, partial results and CI streaming, `Read("references/progressive-and-partial-results.md")`. Prompts: [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md), [Agent Prompts, Agent Teams Mode](rules/agent-prompts-agent-teams.md), and the optional 7th [AI Code Review Agent](rules/ai-code-review-agent.md).
 
 ## Phase 4: Run Validation
 
-Load validation commands: `Read("references/validation-commands.md")`
+Load validation commands: `Read("references/validation-commands.md")`. Run them in the background while Phase 3 runs. Failing required checks known before the call go in as `failingChecks`; a red found after it caps both verdicts at request-changes here in the shell. Ground truth is never refuted.
 
 ## Phase 4.5: Adversarial Refutation (effort-gated)
 
-A separate **blind refuter** verifies decision-bearing findings before they reach the
-Phase 5 verdict — the structural fix for self-preferential bias (the agent that raised a
-finding can't be its own fair judge). `low`/`medium` skip this phase; `high` runs single
-advisory refuters (no auto-flip); `xhigh` runs the engine's quorum (3 for a request-changes
-blocker, 2 for HIGH).
+A separate **blind refuter** verifies decision-bearing findings before they reach the Phase 5 verdict, the structural fix for self-preferential bias. `low`/`medium` skip it; `high` runs single advisory refuters (no auto-flip); `xhigh` runs the engine's quorum (3 for a request-changes blocker, 2 for HIGH). On the Workflow path the script already ran it; the shell finishes it:
 
-Load the protocol + review-pr bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `../../shared/rules/adversarial-refutation.md`).
-Producer findings must first pass the evidence-replay gate before entering any verdict or report: `Read("../../shared/rules/evidence-replay.md")`.
+1. Write the returned `ledger` as `refutation-ledger.json` in the review job dir (`$CLAUDE_JOB_DIR`), engine section 10, so wrong KEEPs and wrong KILLs stay auditable cross-session.
+2. For each `confirmationNeeded` entry, re-open every cited `file:line` (engine section 3). A citation that does not hold keeps the blocker.
+3. Only then `AskUserQuestion` whether to adopt `postRefutationVerdict`. Refutation alone never flips `request-changes` to `approve` (engine section 7).
+4. List `manualReview` findings in the report as "not independently refuted, manual review required", and surface every `advisory` overturn at high effort.
+
+Protocol and review-pr bindings, and the fallback path that spawns refuters by hand: `Read("references/adversarial-refutation.md")` (loads the shared engine `../../shared/rules/adversarial-refutation.md`). Producer findings must first pass the evidence-replay gate before entering any verdict or report: `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
 By default refuters are same-model Claude — variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress — it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("references/cross-model-refuter.md")`.
 
-Runs after Phase 3 findings (and any Phase 3.5 ultrareview merge) and Phase 4 validation,
-before the Phase 5 synthesis and Phase 6 verdict. Refuters are ALWAYS isolated `Agent(...)`
-spawns with no `team_name`. Refutation alone may demote a finding's bucket but may **NOT**
-flip `request-changes`→`approve` without explicit user confirmation, and ground truth
-(failing CI/tests/lint, npm-audit/CVSS) is never refuted. The ledger
-(`refutation-ledger.json`) records survived/killed/downgraded so wrong calls — wrong KEEPs
-and wrong KILLs — are auditable cross-session.
+The workflow does not run this lane. When the user wants it, choose the Agent tool fallback at STEP 0b, before Phase 3, and run Phases 3 and 4.5 there. Never add it after the workflow: a blocker would get a second quorum.
+
+Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (failing CI/tests/lint, npm-audit/CVSS) is never refuted.
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. Load template: `Read("references/review-report-template.md")`
+Combine the workflow result (and any "Ultrareview:" findings) into a structured report. Load template: `Read("references/review-report-template.md")`. Show the producer-basis `verdict` as the headline and the `postRefutationVerdict` as a separately labelled view, each finding with its `postSeverity`, and the `reasons` behind every floor. If `reviewerDisagreement` is true and the Phase 2.5 gate never asked, the shell may offer `/ultrareview` now.
 
 ### Memory Persistence
 
 After synthesis, persist critical/high findings to the memory graph for cross-session learning. The Phase 8c verdict writeback (below) handles this automatically when `yg-mcp-core>=0.3.0` is installed; for interactive sessions, see `references/memory-persistence.md` for the manual `mcp__memory__create_entities` + `mcp__memory__add_observations` pattern.
 
 ## Phase 6: Submit Review
+
+Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5.
 
 ```bash
 # Approve
@@ -462,6 +429,7 @@ Done means all of these hold:
 - each request-changes blocker names the specific diff line and the fix that clears it
 - only domains present in the diff were reviewed; agents skipped for absent domains are named
 - CI/test/lint ground truth is checked not refuted; a red required check caps the verdict at request-changes
+- a refuted blocker changes the posted verdict only after its citations were re-opened and the user confirmed
 
 ## Related Skills
 - `ork:commit`: Create commits after review
@@ -484,7 +452,8 @@ Load on demand with `Read("references/<file>")`:
 | `review-report-template.md` | Structured review report |
 | `adversarial-refutation.md` | Blind-refuter bindings (Phase 4.5) — loads the shared engine |
 | `cross-model-refuter.md` | Optional non-Claude refuter lane (provenance + cost gate) |
-| `ultrareview-gate.md` | Phase 3.5 /ultrareview trigger eval, prompt, opt-out |
+| `ultrareview-gate.md` | Phase 2.5 /ultrareview trigger eval, prompt, opt-out |
+| `progressive-and-partial-results.md` | Progressive output, partial results, CI streaming (fallback modes) |
 | `orchestration-mode-selection.md` | Agent tool vs Agent Teams |
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |

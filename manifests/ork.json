@@ -26,6 +26,7 @@
     "skills/audit-full/workflows/audit-full-mapreduce.js",
     "skills/bare-eval/workflows/skill-fitness.js",
     "skills/cover/workflows/heal-loop.js",
+    "skills/review-pr/workflows/review-fanout.js",
     "skills/verify/workflows/verify-dispatch.js"
   ],
   "userConfig": {
