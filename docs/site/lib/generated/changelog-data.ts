@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.119",
+    "date": "2026-09-27",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.118...v10.0.0-beta.119",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**evals:** lane suite for triage, review, promote, ci-debug ([#4488](https://github.com/yonatangross/orchestkit/issues/4488)) ([0d0d438](https://github.com/yonatangross/orchestkit/commit/0d0d438e6587ade2ffc6db8b7ec0c71edddcaa44))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.118",
     "date": "2026-09-27",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.117...v10.0.0-beta.118",
