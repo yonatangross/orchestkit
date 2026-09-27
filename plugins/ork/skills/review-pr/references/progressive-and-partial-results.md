@@ -20,8 +20,9 @@ This lets the PR author start addressing blocking issues while remaining agents 
 for agent_result in review_results:
     if "[PARTIAL RESULT]" in agent_result.output:
         # A security agent that found 2 issues before crashing > no security review
-        findings.extend(parse_findings(agent_result.output))
-        findings[-1]["partial"] = True  # Flag in synthesis
+        for finding in parse_findings(agent_result.output):  # may be empty
+            finding["partial"] = True  # Flag each one in synthesis
+            findings.append(finding)
         # Do NOT re-spawn: partial findings are still valuable
 ```
 

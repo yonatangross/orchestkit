@@ -94,7 +94,7 @@ This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit s
 
 ## STEP 0b: Select Orchestration Mode
 
-Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable: `Read("references/orchestration-mode-selection.md")`.
+Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`.
 
 ---
 
@@ -302,7 +302,7 @@ Protocol and review-pr bindings, and the fallback path that spawns refuters by h
 
 By default refuters are same-model Claude, variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress, it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("references/cross-model-refuter.md")`.
 
-The workflow does not run this lane yet: when it is configured and wanted, run Phase 4.5 on the fallback path.
+The workflow does not run this lane. When the user wants it, choose the Agent tool fallback at STEP 0b, before Phase 3, and run Phases 3 and 4.5 there. Never add it after the workflow: a blocker would get a second quorum.
 
 Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (failing CI/tests/lint, npm-audit/CVSS) is never refuted.
 
@@ -1240,8 +1240,9 @@ This lets the PR author start addressing blocking issues while remaining agents 
 for agent_result in review_results:
     if "[PARTIAL RESULT]" in agent_result.output:
         # A security agent that found 2 issues before crashing > no security review
-        findings.extend(parse_findings(agent_result.output))
-        findings[-1]["partial"] = True  # Flag in synthesis
+        for finding in parse_findings(agent_result.output):  # may be empty
+            finding["partial"] = True  # Flag each one in synthesis
+            findings.append(finding)
         # Do NOT re-spawn: partial findings are still valuable
 ```
 
@@ -1459,7 +1460,7 @@ If `triggers` is empty → **skip** the gate entirely and proceed to Phase 3. Ne
 
 ## When triggers fire: voice-friendly prompt
 
-Read session state: `Read(".claude/state/ultrareview-usage.json")` (may not exist). If `month == currentMonth()` and `skip_session == true`, **skip the prompt** and proceed to Phase 4. Otherwise:
+Read session state: `Read(".claude/state/ultrareview-usage.json")` (may not exist). If `month == currentMonth()` and `skip_session == true`, **skip the prompt** and proceed to Phase 3. Otherwise:
 
 ```python
 AskUserQuestion(questions=[{
@@ -1470,7 +1471,7 @@ AskUserQuestion(questions=[{
     {"label": "Yes, run ultrareview",
      "description": "Invoke built-in /ultrareview as a final deep pass. Adds 5–10 min."},
     {"label": "No, skip it",
-     "description": "Continue with Phase 4 using existing agent results."},
+     "description": "Continue with the Phase 3 review without it."},
     {"label": "Skip for this session",
      "description": "Don't ask again until this session ends."}
   ]
@@ -1482,12 +1483,12 @@ Why `AskUserQuestion` and not a `--ultra` flag: the user relies on voice, so "ye
 ## After user response
 
 - **Yes** → invoke `/ultrareview` on the working tree. Merge its findings with Phase 3 agent results in Phase 5 synthesis (label them as "Ultrareview:").
-- **No** → proceed to Phase 4 unchanged.
+- **No** → proceed to Phase 3 unchanged.
 - **Skip for this session** → write `.claude/state/ultrareview-usage.json`:
   ```json
   { "month": "2026-04", "session_skip": true, "last_asked": "<iso>" }
   ```
-  Then proceed to Phase 4.
+  Then proceed to Phase 3.
 
 On every run where the user said "Yes", increment the month counter so we advise against a third ask in the same month:
 

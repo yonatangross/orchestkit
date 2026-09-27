@@ -89,7 +89,7 @@ This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit s
 
 ## STEP 0b: Select Orchestration Mode
 
-Default: **Workflow** (star, `skills/review-pr/workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable: `Read("skills/review-pr/references/orchestration-mode-selection.md")`.
+Default: **Workflow** (star, `skills/review-pr/workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("skills/review-pr/references/orchestration-mode-selection.md")`.
 
 
 ## MCP Probe (CC 2.1.71)
@@ -294,7 +294,7 @@ Protocol and review-pr bindings, and the fallback path that spawns refuters by h
 
 By default refuters are same-model Claude — variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress — it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("skills/review-pr/references/cross-model-refuter.md")`.
 
-The workflow does not run this lane yet: when it is configured and wanted, run Phase 4.5 on the fallback path.
+The workflow does not run this lane. When the user wants it, choose the Agent tool fallback at STEP 0b, before Phase 3, and run Phases 3 and 4.5 there. Never add it after the workflow: a blocker would get a second quorum.
 
 Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (failing CI/tests/lint, npm-audit/CVSS) is never refuted.
 

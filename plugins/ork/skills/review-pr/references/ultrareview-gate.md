@@ -25,7 +25,7 @@ If `triggers` is empty → **skip** the gate entirely and proceed to Phase 3. Ne
 
 ## When triggers fire: voice-friendly prompt
 
-Read session state: `Read(".claude/state/ultrareview-usage.json")` (may not exist). If `month == currentMonth()` and `skip_session == true`, **skip the prompt** and proceed to Phase 4. Otherwise:
+Read session state: `Read(".claude/state/ultrareview-usage.json")` (may not exist). If `month == currentMonth()` and `skip_session == true`, **skip the prompt** and proceed to Phase 3. Otherwise:
 
 ```python
 AskUserQuestion(questions=[{
@@ -36,7 +36,7 @@ AskUserQuestion(questions=[{
     {"label": "Yes, run ultrareview",
      "description": "Invoke built-in /ultrareview as a final deep pass. Adds 5–10 min."},
     {"label": "No, skip it",
-     "description": "Continue with Phase 4 using existing agent results."},
+     "description": "Continue with the Phase 3 review without it."},
     {"label": "Skip for this session",
      "description": "Don't ask again until this session ends."}
   ]
@@ -48,12 +48,12 @@ Why `AskUserQuestion` and not a `--ultra` flag: the user relies on voice, so "ye
 ## After user response
 
 - **Yes** → invoke `/ultrareview` on the working tree. Merge its findings with Phase 3 agent results in Phase 5 synthesis (label them as "Ultrareview:").
-- **No** → proceed to Phase 4 unchanged.
+- **No** → proceed to Phase 3 unchanged.
 - **Skip for this session** → write `.claude/state/ultrareview-usage.json`:
   ```json
   { "month": "2026-04", "session_skip": true, "last_asked": "<iso>" }
   ```
-  Then proceed to Phase 4.
+  Then proceed to Phase 3.
 
 On every run where the user said "Yes", increment the month counter so we advise against a third ask in the same month:
 

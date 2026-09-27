@@ -6281,7 +6281,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Default: Workflow (star, workflows/review-fanout.js runs Phases 3 and 4.5). Choose Agent Teams (mesh, reviewers cross-reference findings) or the plain Agent tool when the Workflow tool is unavailable: Read(\"references/orchestration-mode-selection.md\").",
+            "does": "Default: Workflow (star, workflows/review-fanout.js runs Phases 3 and 4.5). Choose Agent Teams (mesh, reviewers cross-reference findings) or the plain Agent tool when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): Read(\"references/orchestration-mode-selection.md\").",
             "out": null,
             "tag": null
           }
