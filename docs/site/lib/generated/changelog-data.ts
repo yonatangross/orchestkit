@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.120",
+    "date": "2026-09-27",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**review-pr:** Phases 3 and 4.5 run as a Workflow script ([#4494](https://github.com/yonatangross/orchestkit/issues/4494)) ([9be3e7f](https://github.com/yonatangross/orchestkit/commit/9be3e7f6a55f6b4c3a3e3348181a45db4457d287))",
+          "**site:** name developer resources, expose WebMCP registration ([#4497](https://github.com/yonatangross/orchestkit/issues/4497)) ([abdf05f](https://github.com/yonatangross/orchestkit/commit/abdf05f5775f432705dd3a94db64442693083345))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**skills:** finish Wave 1 leftovers from the 2026-09-25 Opus 5.5 audit ([#4495](https://github.com/yonatangross/orchestkit/issues/4495)) ([a89a746](https://github.com/yonatangross/orchestkit/commit/a89a74636fe720896ad6b17f1cbe37f6c9c1a5e5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.119",
     "date": "2026-09-27",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.118...v10.0.0-beta.119",
