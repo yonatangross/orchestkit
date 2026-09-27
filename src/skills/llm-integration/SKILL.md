@@ -178,7 +178,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 | Decision | Recommendation |
 |----------|----------------|
 | Tool schema mode | `strict: true` (2026 best practice) |
-| Tool count | 5-15 max per request |
+| Tool count | Load roughly 5-15 up front; defer the rest behind a non-deferred tool search tool |
 | Streaming protocol | SSE for web, WebSocket for bidirectional |
 | Buffer size | 50-200 tokens |
 | Local model (reasoning) | `deepseek-r1:70b` |
