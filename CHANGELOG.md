@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.120](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120) (2026-09-27)
+
+
+### Features
+
+* **review-pr:** Phases 3 and 4.5 run as a Workflow script ([#4494](https://github.com/yonatangross/orchestkit/issues/4494)) ([9be3e7f](https://github.com/yonatangross/orchestkit/commit/9be3e7f6a55f6b4c3a3e3348181a45db4457d287))
+* **site:** name developer resources, expose WebMCP registration ([#4497](https://github.com/yonatangross/orchestkit/issues/4497)) ([abdf05f](https://github.com/yonatangross/orchestkit/commit/abdf05f5775f432705dd3a94db64442693083345))
+
+
+### Bug Fixes
+
+* **skills:** finish Wave 1 leftovers from the 2026-09-25 Opus 5.5 audit ([#4495](https://github.com/yonatangross/orchestkit/issues/4495)) ([a89a746](https://github.com/yonatangross/orchestkit/commit/a89a74636fe720896ad6b17f1cbe37f6c9c1a5e5))
+
 ## [10.0.0-beta.119](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.118...v10.0.0-beta.119) (2026-09-27)
 
 
