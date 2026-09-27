@@ -11,13 +11,9 @@ on:
       - "src/agents/**"
       - "src/hooks/hooks.json"
       - "docs/site/**"
+      - ".github/workflows/docs.yml"
   pull_request:
     branches: [main, dev]
-    paths:
-      - "src/skills/**"
-      - "src/agents/**"
-      - "src/hooks/hooks.json"
-      - "docs/site/**"
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -26,7 +22,34 @@ concurrency:
 permissions: {}
 
 jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: github.event_name == 'push'
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            docs:
+              - 'src/skills/**'
+              - 'src/agents/**'
+              - 'src/hooks/hooks.json'
+              - 'docs/site/**'
+              - '.github/workflows/docs.yml'
+
   validate:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -78,10 +101,21 @@ jobs:
     name: Docs Site Build
     permissions:
       contents: read
-    needs: validate
+    needs: [changes, validate]
+    # Report upstream failures as red instead of a successful skipped check.
+    if: always() && (needs.changes.result != 'success' || needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Require successful docs detection and validation
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+        run: |
+          if [[ "$CHANGES_RESULT" != success || "$VALIDATE_RESULT" != success ]]; then
+            echo "::error::Docs detection or validation did not succeed."
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
@@ -121,9 +155,9 @@ jobs:
           fi
 
           if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
-            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub and regenerating lockfile"
-            # Deterministic fallback: swap the dep to the local file: stub, drop
-            # the bumped lockfile, then regenerate with --package-lock-only.
+            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit): reconciling the local stub with the existing lockfile"
+            # Keep the locked dependency graph when replacing analytics with
+            # the local stub, as the MDX compile guard already does.
             # Once analytics points at a file: path, no @yonatan-hq registry
             # lookups happen — so the .npmrc auth requirement no longer applies
             # and `npm install` succeeds without NPM_TOKEN. `--ignore-scripts`
@@ -134,12 +168,12 @@ jobs:
             # pattern, which trapped every dependabot bump because the
             # committed stub diverged whenever a dep version moved (#1630).
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-            rm -f package-lock.json
             npm install --no-audit --no-fund --package-lock-only --ignore-scripts
             npm ci --no-audit --no-fund
+            npm ls mdast-util-to-markdown
           else
             echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
-            exit $npm_exit
+            exit "$npm_exit"
           fi
         env:
           # Gated to `push` (#2536): NEVER present on a pull_request run, fork OR
