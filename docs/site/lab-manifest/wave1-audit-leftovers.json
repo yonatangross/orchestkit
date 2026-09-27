@@ -1,0 +1,8 @@
+{
+  "slug": "wave1-audit-leftovers",
+  "source": "docs/fix--w1-leftovers/index.html",
+  "title": "Wave 1 leftovers: three Opus 5.5 skill fixes",
+  "description": "Before/after for the three files this PR fixes from the 2026-09-25 Opus 5.5 skills audit.",
+  "tags": ["skills", "opus-5-5", "tool-use"],
+  "date": "2026-09-27"
+}
