@@ -312,7 +312,7 @@ Load validation commands: `Read("references/validation-commands.md")`. Run them 
 
 A separate **blind refuter** verifies decision-bearing findings before they reach the Phase 5 verdict, the structural fix for self-preferential bias. `low`/`medium` skip it; `high` runs single advisory refuters (no auto-flip); `xhigh` runs the engine's quorum (3 for a request-changes blocker, 2 for HIGH). On the Workflow path the script already ran it; the shell finishes it:
 
-1. Write the returned `ledger` to `$CLAUDE_JOB_DIR/refutation-ledger.json` (engine section 10), so wrong KEEPs and wrong KILLs stay auditable cross-session.
+1. Write the returned `ledger` as `refutation-ledger.json` in the review job dir (`$CLAUDE_JOB_DIR`), engine section 10, so wrong KEEPs and wrong KILLs stay auditable cross-session.
 2. For each `confirmationNeeded` entry, re-open every cited `file:line` (engine section 3). A citation that does not hold keeps the blocker.
 3. Only then `AskUserQuestion` whether to adopt `postRefutationVerdict`. Refutation alone never flips `request-changes` to `approve` (engine section 7).
 4. List `manualReview` findings in the report as "not independently refuted, manual review required", and surface every `advisory` overturn at high effort.
