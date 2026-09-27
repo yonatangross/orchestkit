@@ -170,6 +170,7 @@ jobs:
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
             npm install --no-audit --no-fund --package-lock-only --ignore-scripts
             npm ci --no-audit --no-fund
+            npm ls mdast-util-to-markdown
           else
             echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
             exit "$npm_exit"
