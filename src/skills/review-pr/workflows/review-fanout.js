@@ -333,7 +333,8 @@ function admit(batch) {
 		}
 		const room = tier === "blocker" ? budget : budget - reserveFor;
 		if (room < planned) {
-			f.refutation = { outcome: "unrefuted-ceiling", planned };
+			// A finding whose tier was raised by a later duplicate gets its own outcome.
+			f.refutation = { outcome: f.promotedBy ? "unrefuted-late-tier" : "unrefuted-ceiling", planned };
 			log(`refuter ceiling ${MAX_REFUTERS} reached, ${f.key} not independently refuted`);
 			continue;
 		}
@@ -353,25 +354,39 @@ const reviews = await pipeline(
 		const status = res && typeof res.status === "string" ? res.status : null;
 		if (!res || !Array.isArray(res.findings) || status === "BLOCKED" || status === "NEEDS_CONTEXT") return { role: r.role, agentType: r.agentType, outcome: "NOT-REVIEWED", status, verdict: null, findings: 0 };
 		const fresh = [];
+		const promoted = new Set();
 		for (const raw of res.findings) {
 			const f = normalize(raw, r);
 			f.key = `${f.file || "nofile"}:${f.line === null ? "" : f.line}:${f.category}`;
 			const prev = byKey.get(f.key);
 			if (prev) {
+				// Merge: highest severity wins; an `issue` from any reviewer wins the
+				// comment type, because it is what makes a HIGH a request-changes blocker.
+				const tierBefore = tierOf(prev);
 				prev.raisedBy.push(r.role);
-				if (SRANK[f.severity] > SRANK[prev.severity]) {
-					prev.severity = f.severity;
-					prev.conventional_comment = f.conventional_comment;
-				}
-				if (!isBlocker(prev.severity, prev.conventional_comment) && isBlocker(f.severity, f.conventional_comment)) prev.conventional_comment = f.conventional_comment;
+				const cc = prev.conventional_comment === "issue" || f.conventional_comment === "issue" ? "issue" : SRANK[f.severity] > SRANK[prev.severity] ? f.conventional_comment : prev.conventional_comment;
+				if (SRANK[f.severity] > SRANK[prev.severity]) prev.severity = f.severity;
+				prev.conventional_comment = cc;
 				prev.groundTruth = prev.groundTruth || f.groundTruth;
+				// A merge that gives the entry a tier it did not have when it was admitted
+				// must be refuted now (same budget and reserve rules), or flagged. An entry
+				// already refuted at a lower tier goes through the retier check at the gate.
+				const tierAfter = tierOf(prev);
+				if (tierAfter && tierAfter !== tierBefore && !prev.refutation && !fresh.includes(prev)) {
+					prev.promotedBy = r.role;
+					promoted.add(prev);
+				}
 				continue;
 			}
 			byKey.set(f.key, f);
 			order.push(f.key);
 			fresh.push(f);
 		}
-		await admit(fresh);
+		for (const f of promoted) {
+			reasons.push(`note: ${f.key} rose to the ${tierOf(f)} tier on a duplicate from ${f.promotedBy}; admitted for refutation`);
+			log(`${f.key} rose to the ${tierOf(f)} tier on a duplicate from ${f.promotedBy}`);
+		}
+		await admit([...fresh, ...promoted]);
 		const verdict = ["approve", "request-changes", "comment-only"].includes(res.verdict) ? res.verdict : null;
 		return { role: r.role, agentType: r.agentType, outcome: "REVIEWED", status, verdict, findings: res.findings.length };
 	},
@@ -424,7 +439,7 @@ const demoted = findings.filter((f) => isBlocker(f.severity, f.conventional_comm
 const confirmationNeeded = VRANK[postRefutationVerdict] < VRANK[verdict] ? demoted.map((f) => ({ key: f.key, id: f.id, outcome: f.refutation.outcome, severity: f.severity, downgradeTo: f.refutation.downgradeTo, citations: f.refutation.citations })) : [];
 if (confirmationNeeded.length) reasons.push(`confirm: ${confirmationNeeded.length} refuted blocker(s) would move the verdict from ${verdict} to ${postRefutationVerdict}; re-open each citation, then ask the user (engine sections 3 and 7)`);
 
-const manualReview = findings.filter((f) => f.refutation && ["unrefuted-ceiling", "unrefuted-no-location", "unrefuted-retiered"].includes(f.refutation.outcome)).map((f) => ({ key: f.key, id: f.id, outcome: f.refutation.outcome, note: "not independently refuted, manual review required" }));
+const manualReview = findings.filter((f) => f.refutation && ["unrefuted-ceiling", "unrefuted-late-tier", "unrefuted-no-location", "unrefuted-retiered"].includes(f.refutation.outcome)).map((f) => ({ key: f.key, id: f.id, outcome: f.refutation.outcome, note: "not independently refuted, manual review required", ...(f.promotedBy ? { reason: `tier raised by a duplicate from ${f.promotedBy}` } : {}) }));
 if (manualReview.length) reasons.push(`manual: ${manualReview.length} decision-bearing finding(s) not independently refuted`);
 const advisory = findings.filter((f) => f.refutation && String(f.refutation.outcome).startsWith("advisory-")).map((f) => ({ key: f.key, id: f.id, outcome: f.refutation.outcome, citations: f.refutation.citations }));
 

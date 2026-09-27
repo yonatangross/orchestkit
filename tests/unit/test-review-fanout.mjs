@@ -369,6 +369,49 @@ await test('a duplicate that raises the tier after refutation voids the kill (fa
   assert.equal(result.confirmationNeeded.length, 0);
 });
 
+// 5b. late tier: a duplicate that raises an unrefuted entry's tier (SEC-003, wf_13264988-13c)
+const LATER = { tests: () => new Promise((r) => setTimeout(r, 20)) };
+const LOWQ = F({ id: 'SEC-003', severity: 'low', conventional_comment: 'question', file: 'api/auth.py', line: 5 });
+const HIGHISSUE = F({ id: 'TEST-7', severity: 'high', conventional_comment: 'issue', file: 'api/auth.py', line: 5 });
+const K5 = 'api/auth.py:5:security';
+await test('late tier: a low finding raised to high/issue by a later duplicate is refuted', async () => {
+  const { result, refuters } = await run({ review: { security: WITH(LOWQ), tests: WITH(HIGHISSUE) }, gate: LATER, refute: [UP, UP, UP] });
+  const f = find(result, K5);
+  assert.equal(f.severity, 'high');
+  assert.equal(f.conventional_comment, 'issue');
+  assert.equal(refuters.length, 3, 'blocker quorum at xhigh');
+  assert.ok(refuters.every((r) => r.opts.label === `refute:${K5}`));
+  assert.equal(f.refutation.outcome, 'survived');
+  assert.equal(f.refutation.tier, 'blocker');
+  assert.equal(result.manualReview.length, 0);
+  assert.match(why(result), /rose to the blocker tier on a duplicate from tests/);
+});
+await test('late tier: with the budget exhausted the entry lands in manualReview as unrefuted-late-tier', async () => {
+  const { result, refuters } = await run({ args: { maxRefuters: 3 }, review: { security: WITH(F(), LOWQ), tests: WITH(HIGHISSUE) }, gate: LATER, refute: [UP, UP, UP] });
+  assert.equal(refuters.length, 3, 'only the first blocker is refuted');
+  assert.deepEqual(result.manualReview, [{ key: K5, id: 'SEC-003', outcome: 'unrefuted-late-tier', note: 'not independently refuted, manual review required', reason: 'tier raised by a duplicate from tests' }]);
+  assert.equal(result.postRefutationVerdict, 'request-changes');
+});
+await test('late tier: a HIGH raised late cannot take the reserved blocker slots', async () => {
+  const { result, refuters } = await run({ args: { maxRefuters: 4 }, review: { security: WITH(LOWQ), tests: WITH({ ...HIGHISSUE, conventional_comment: 'suggestion' }) }, gate: LATER });
+  assert.equal(refuters.length, 0, '4 minus the 3-vote reserve leaves 1, a HIGH needs 2');
+  assert.equal(find(result, K5).refutation.outcome, 'unrefuted-late-tier');
+});
+await test('late tier: a key already refuted is not refuted again, and the retier rule voids its kill', async () => {
+  const hi = F({ id: 'SEC-4', severity: 'high', conventional_comment: 'suggestion', file: 'api/auth.py', line: 5 });
+  const { result, refuters } = await run({ review: { security: WITH(hi), tests: WITH({ ...HIGHISSUE, severity: 'critical' }) }, gate: LATER, refute: [KILL('api/auth.py:5'), KILL('api/auth.py:5'), UP] });
+  assert.equal(refuters.length, 2, 'only the original HIGH quorum ran');
+  assert.equal(find(result, K5).refutation.outcome, 'unrefuted-retiered');
+  assert.equal(result.postRefutationVerdict, 'request-changes');
+});
+await test('late tier: an issue from any reviewer wins the comment type over a higher-severity question', async () => {
+  const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH({ ...LOWQ, severity: 'high' }), tests: WITH({ ...HIGHISSUE, severity: 'medium' }) }, gate: LATER });
+  const f = find(result, K5);
+  assert.equal(f.severity, 'high');
+  assert.equal(f.conventional_comment, 'issue');
+  assert.equal(result.verdict, 'request-changes', 'high + issue is a blocker');
+});
+
 // 6. reviewers that fail
 await test('a dead reviewer keeps approve off the table', async () => {
   for (const dead of [null, new Error('crash'), { status: 'BLOCKED', verdict: 'approve', findings: [] }, { status: 'NEEDS_CONTEXT', verdict: 'approve', findings: [] }]) {
