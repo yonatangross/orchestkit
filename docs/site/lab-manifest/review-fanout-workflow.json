@@ -1,0 +1,12 @@
+{
+  "slug": "review-fanout-workflow",
+  "source": "docs/feat--review-pr-workflow/index.html",
+  "title": "review-pr Phases 3 and 4.5 as a Workflow script",
+  "description": "Every source and test file this PR changes, before and after.",
+  "tags": [
+    "skills",
+    "opus-5-5",
+    "workflow"
+  ],
+  "date": "2026-09-27"
+}

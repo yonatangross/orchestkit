@@ -4,9 +4,9 @@ Claude Code 2.1.111 ships a built-in `/ultrareview` — parallel multi-agent dee
 
 Reliability note (CC 2.1.212): `/ultrareview <PR#>` PR references parse correctly, branch fetch works for branches not checked out locally, and billing no longer misfires after `/clear`.
 
-## Trigger evaluation (automatic, after Phase 3)
+## Trigger evaluation (automatic, Phase 2.5, BEFORE the review call)
 
-Compute whether `/ultrareview` is warranted from the already-collected PR metadata + agent results:
+The shell owns every question to the user, so the ask happens before the `workflows/review-fanout.js` call, from the PR metadata Phase 1 already collected:
 
 ```python
 triggers = []
@@ -15,13 +15,13 @@ if diff_loc_changed > 500:
 if any(path.startswith(p) for path in changed_files
        for p in ["auth/", "migrations/", "hooks/", "crypto/", "security/", "payments/"]):
     triggers.append("sensitive_path")
-if reviewer_verdicts_disagree(phase_3_results):
-    triggers.append("reviewer_disagreement")
 if any(label in pr_labels for label in ["release", "hotfix"]):
     triggers.append("high_stakes_label")
 ```
 
-If `triggers` is empty → **skip** the gate entirely and proceed to Phase 4. Never mention `/ultrareview` to the user.
+`reviewer_disagreement` needs the reviewers' verdicts, so it cannot fire before the call. The workflow returns it as `reviewerDisagreement`; if it is true and this gate did not ask earlier in the run, the shell may ask in Phase 5 with the same prompt and reason `reviewer_disagreement`.
+
+If `triggers` is empty → **skip** the gate entirely and proceed to Phase 3. Never mention `/ultrareview` to the user.
 
 ## When triggers fire: voice-friendly prompt
 
