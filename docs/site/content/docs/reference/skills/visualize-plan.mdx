@@ -190,6 +190,7 @@ For architecture-level understanding **and the default before/after section [0]*
 Agent(
   subagent_type="Explore",
   prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree, to avoid conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the glyph skill for diagrams.",
+  model="haiku",
   max_turns=15
 )
 ```
