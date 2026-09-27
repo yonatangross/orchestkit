@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Does OrchestKit earn its keep? Plugin eval, 2026-09-27 | OrchestKit Lab</title>
+  <meta name="description" content="claude plugin eval ran 14 lane cases with and without OrchestKit: the Skill tool fired on 0 of 9 fire cases, the mean delta was -0.2 points, and the with-plugin arm cost 45 percent more.">
+  <style>
+    :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #f6f3ec; color: #1d232b; }
+    :root.dark { color-scheme: dark; background: #14181e; color: #e6ebf0; }
+    body { max-width: 900px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.1; margin: 8px 0 16px; }
+    h2 { font-size: 1.15rem; margin-top: 36px; letter-spacing: .02em; }
+    .eyebrow { color: #8a5a00; letter-spacing: .08em; font-size: 14px; }
+    .dark .eyebrow { color: #f0b54a; }
+    .verdict { background: #1d232b; color: #f6f3ec; border-radius: 12px; padding: 20px 24px; font-size: 1.1rem; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
+    .kpi { border: 1px solid #d6cfc2; border-radius: 12px; padding: 14px 16px; }
+    .dark .kpi, .dark td, .dark th { border-color: #3a4552; }
+    .kpi b { display: block; font-size: 1.8rem; }
+    .kpi span { font-size: 13px; color: #5b6572; }
+    .dark .kpi span { color: #aab4bf; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    td, th { border: 1px solid #d6cfc2; padding: 5px 8px; text-align: left; }
+    .gain { color: #0a7a33; font-weight: 600; }
+    .loss { color: #b3261e; font-weight: 600; }
+    code { background: rgba(0,0,0,.06); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+    .dark code { background: rgba(255,255,255,.08); }
+    li { margin: 6px 0; }
+    button { float: right; font: inherit; font-size: 13px; border-radius: 999px; border: 1px solid #d6cfc2; background: transparent; color: inherit; padding: 4px 12px; cursor: pointer; }
+    footer { margin-top: 40px; font-size: 13px; color: #5b6572; }
+  </style>
+</head>
+<body>
+  <main>
+    <button type="button" onclick="document.documentElement.classList.toggle('dark')">dark mode</button>
+    <p class="eyebrow">ORCHESTKIT LAB · PLUGIN EVAL · 2026-09-27</p>
+    <h1>Does OrchestKit earn its keep on lane work?</h1>
+    <p class="verdict">Not yet. On 14 cases from real lane work (triage, review, promote, ci-debug), the
+    Skill tool never fired, so the with-plugin arm answered like the base model and cost 45 percent more.
+    The fix is triggering, not skill content.</p>
+
+    <div class="kpis">
+      <div class="kpi"><b>0 / 9</b><span>fire cases where a skill was called</span></div>
+      <div class="kpi"><b>-0.2</b><span>fire-case mean delta, points</span></div>
+      <div class="kpi"><b>0</b><span>delta on 5 of 5 negative and control cases</span></div>
+      <div class="kpi"><b>$5.93 / $4.08</b><span>suite cost with / without, list price</span></div>
+    </div>
+
+    <h2>01 · Per case: with, without, delta, cost per run</h2>
+    <table>
+      <thead><tr><th>Case</th><th>Kind</th><th>With</th><th>Without</th><th>Delta</th><th>$/run with</th><th>$/run without</th></tr></thead>
+      <tbody>
+        <tr><td><code>40-triage-root-cause-from-report</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.456</td><td>$0.321</td></tr>
+        <tr><td><code>41-triage-regression-window</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.230</td><td>$0.147</td></tr>
+        <tr><td><code>42-triage-should-not-fire</code></td><td>negative</td><td>100%</td><td>100%</td><td>0</td><td>$0.163</td><td>$0.076</td></tr>
+        <tr><td><code>50-review-sql-injection</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.206</td><td>$0.172</td></tr>
+        <tr><td><code>51-review-unawaited-foreach</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.214</td><td>$0.222</td></tr>
+        <tr><td><code>52-review-should-not-fire</code></td><td>negative</td><td>100%</td><td>100%</td><td>0</td><td>$0.127</td><td>$0.073</td></tr>
+        <tr><td><code>60-promote-pr-title-body</code></td><td>fire</td><td>75%</td><td>62%</td><td class="gain">+12</td><td>$0.272</td><td>$0.267</td></tr>
+        <tr><td><code>61-promote-hotfix-path</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.199</td><td>$0.106</td></tr>
+        <tr><td><code>70-ci-debug-lockfile-drift</code></td><td>fire</td><td>71%</td><td>86%</td><td class="loss">-14</td><td>$0.247</td><td>$0.188</td></tr>
+        <tr><td><code>71-ci-debug-startup-billing</code></td><td>fire</td><td>100%</td><td>100%</td><td>0</td><td>$0.144</td><td>$0.094</td></tr>
+        <tr><td><code>72-ci-debug-vercel-pending</code></td><td>fire</td><td>50%</td><td>50%</td><td>0</td><td>$0.323</td><td>$0.194</td></tr>
+        <tr><td><code>73-ci-debug-should-not-fire</code></td><td>negative</td><td>100%</td><td>100%</td><td>0</td><td>$0.149</td><td>$0.087</td></tr>
+        <tr><td><code>90-control-plain-conversion</code></td><td>control</td><td>100%</td><td>100%</td><td>0</td><td>$0.129</td><td>$0.047</td></tr>
+        <tr><td><code>91-control-plain-code</code></td><td>control</td><td>100%</td><td>100%</td><td>0</td><td>$0.106</td><td>$0.047</td></tr>
+      </tbody>
+    </table>
+
+    <h2>02 · What the numbers say</h2>
+    <ul>
+      <li><b>Natural triggering is the gap.</b> The with-arm lists <code>ork:ci-debug</code>, <code>ork:review-pr</code>,
+      <code>ork:fix-issue</code> and <code>ork:create-pr</code> among its skills and never calls the Skill tool on prompts that do not name one.</li>
+      <li><b>No over-triggering.</b> Every should-not-fire and control case held at 0 delta. The control cost gap
+      (about $0.06 to $0.08 more per run) is the always-on context tax.</li>
+      <li><b>Two runs per arm is noise level.</b> A re-run of case 72 reversed its result. Treat any single-case
+      delta under about 30 points as unconfirmed.</li>
+    </ul>
+
+    <h2>03 · Caveats</h2>
+    <ul>
+      <li>Agent <code>claude-sonnet-5</code>, judge <code>claude-opus-5-5</code>, Claude Code 2.1.283, 2 runs per arm, run 20260927T105239Z, not published.</li>
+      <li>Ablation is whole-plugin: a delta is plugin versus no plugin, never one skill versus none.</li>
+      <li>Dollar figures are list price. Source table: <code>evals/calibration/lane-matrix-2026-09-27.md</code>.</li>
+    </ul>
+  </main>
+  <footer>OrchestKit Lab · suite in <code>evals/40-*</code> to <code>evals/91-*</code> · method in <code>docs/plugin-evals.md</code></footer>
+</body>
+</html>
