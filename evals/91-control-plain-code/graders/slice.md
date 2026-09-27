@@ -5,4 +5,4 @@ match: contains
 flags: mi
 weight: 1
 ---
-s\[::-1\]
+(?<!["'\w])s\[::-1\](?!["'])

@@ -42,7 +42,7 @@ stay on Max OAuth; the wrapper does not export the evals key into
 
 ```bash
 export ORK_EVALS_API_KEY=sk-ant-...   # dedicated evals key with a spend cap
-bash scripts/run-plugin-eval.sh                      # pilot: 1 run per case, $3 ceiling
+bash scripts/run-plugin-eval.sh                      # pilot: 1 run per case, $3 ceiling (23 cases, 46 agent runs: scope it)
 bash scripts/run-plugin-eval.sh --runs 3 --max-cost-usd 10
 bash scripts/run-plugin-eval.sh --case '2*'          # one skill's cases
 ```
@@ -52,11 +52,14 @@ be scoped without knowing the numeric prefixes:
 
 ```bash
 bash scripts/run-plugin-eval.sh --tag commit       # the 3 commit cases
-bash scripts/run-plugin-eval.sh --tag negative     # the 3 should-NOT-fire cases
+bash scripts/run-plugin-eval.sh --tag negative     # the 8 should-NOT-fire and control cases
 ```
 
 Both filters were confirmed against a real run's `run.json`, selecting exactly
-three cases each.
+three cases each, before the lane suite (2026-09-27) raised the `negative` set
+to 8. The unfiltered suite is 23 cases, 46 agent runs per pass; the 14-case lane
+run cost $10.01 at 2 runs, so a full pilot overruns the $3 ceiling (an estimate
+of about $8, not measured). Scope it with `--tag` or `--case`.
 
 Raw reports land in `evals/results/<timestamp>/` as `run.json`, `report.html`,
 and `aggregate-result.json`. `scripts/summarise-eval-run.mjs` turns the newest

@@ -5,4 +5,4 @@ match: contains
 flags: mi
 weight: 1
 ---
-22\.2
+(?<![\d.])22\.2+(?!\d)
