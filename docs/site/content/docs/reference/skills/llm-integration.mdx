@@ -374,7 +374,7 @@ Anthropic uses `input_schema` instead of `function.parameters` and has no
 - Vague tool descriptions (LLM will not know when to use the tool)
 - Missing `additionalProperties: false` in strict mode
 - Using `default` values with strict mode (not supported)
-- Loading every tool up front past about 15 (defer the rest with `defer_loading: true` behind a tool search tool)
+- Loading every tool up front past about 15 (defer the rest with `defer_loading: true` behind a non-deferred tool search tool)
 
 **Incorrect, invalid strict mode schema with optional parameters:**
 ```python
