@@ -882,7 +882,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     # Write index page
     index_lines = [
         "---",
-        "title: Skills Reference",
+        "title: OrchestKit Skills Reference",
         f'description: "Complete reference for all {count} OrchestKit skills."',
         "---",
         "",
@@ -890,7 +890,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         "",
         "<SkillAtlas />",
         "",
-        "# Skills Reference",
+        "# OrchestKit Skills Reference",
         "",
         f"OrchestKit includes **{count} skills** \u2014 reusable knowledge modules "
         "that provide patterns, frameworks, and workflows.",
@@ -1110,11 +1110,11 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     # Write index page
     index_lines = [
         "---",
-        "title: Agents Reference",
+        "title: OrchestKit Agents Reference",
         f'description: "Complete reference for all {count} OrchestKit agents."',
         "---",
         "",
-        "# Agents Reference",
+        "# OrchestKit Agents Reference",
         "",
         f"OrchestKit includes **{count} specialized agents** \u2014 AI personas "
         "with curated tools, skills, and behavioral directives.",
@@ -1433,12 +1433,12 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     # Index page
     index_lines = [
         "---",
-        "title: Hooks Reference",
+        "title: OrchestKit Hooks Reference",
         f'description: "Complete reference for all {total_hooks} global lifecycle '
         f'hook entries across {len(categories)} event categories."',
         "---",
         "",
-        "# Hooks Reference",
+        "# OrchestKit Hooks Reference",
         "",
         f"OrchestKit includes **{total_hooks} global lifecycle hook entries** across "
         f"**{len(categories)} lifecycle event categories**, listed below by event. "

@@ -32,8 +32,6 @@ export type WebMcpSurface =
 	| "navigator.provideContext"
 	| "none";
 
-type HasModelContext = { modelContext?: ModelContext };
-
 function text(value: string): WebMcpToolResult {
 	return { content: [{ type: "text", text: value }] };
 }
@@ -208,42 +206,68 @@ export function declaredToolNames(doc: object): Set<string> {
 
 /** Log a failed registration without letting it escape. This runs from a
  * layout-level effect, and docs/site/app has no error.tsx, so a throwing
- * browser API would otherwise take the whole page to the Next error screen. */
+ * browser API would otherwise take the whole page to the Next error screen.
+ * Per the spec, registerTool returns a Promise that REJECTS on a duplicate
+ * name, an empty name or description, or an invalid inputSchema, so a
+ * thenable result gets a catch too; a sync try/catch alone never sees it. */
 function guarded(what: string, fn: () => unknown): void {
+	const warn = (err: unknown) => console.warn(`[webmcp] ${what} failed`, err);
 	try {
-		fn();
+		const result = fn();
+		if (result && typeof (result as PromiseLike<unknown>).then === "function") {
+			Promise.resolve(result).catch(warn);
+		}
 	} catch (err) {
-		console.warn(`[webmcp] ${what} failed`, err);
+		warn(err);
 	}
 }
 
-/** Register `tools` on the first WebMCP surface the browser exposes.
- * Feature-detected at every step, so it is a no-op (returns "none") in a
- * browser without the API. Tools already declared on the page through a
- * `<form toolname>` are skipped so each name is declared exactly once. */
+// The registration calls below read the `document` and `navigator` globals
+// directly, never a parameter. orank's WebMCP check scans same-origin JS
+// bundles for `document.modelContext` registrations; when this helper took
+// `doc` as an argument the minified layout chunk read `i=e.modelContext`, and
+// the 2026-09-27 scan reported only the declarative form. The test file pins
+// these literals.
+function registerOnDocument(tool: WebMcpTool): unknown {
+	return typeof document.modelContext?.registerTool === "function"
+		? document.modelContext.registerTool(tool)
+		: undefined;
+}
+
+function registerOnNavigator(tool: WebMcpTool): unknown {
+	return typeof navigator.modelContext?.registerTool === "function"
+		? navigator.modelContext.registerTool(tool)
+		: undefined;
+}
+
+/** Register `tools` on the first WebMCP surface the browser exposes:
+ * document.modelContext.registerTool, then navigator.modelContext.registerTool,
+ * then navigator.modelContext.provideContext. Feature-detected at every step,
+ * so it is a no-op (returns "none") in a browser without the API or during
+ * SSR. Tools already declared on the page through a `<form toolname>` are
+ * skipped so each name is declared exactly once. */
 export function registerWebMcpTools(
-	doc: object,
-	nav: object,
 	tools: WebMcpTool[] = WEBMCP_TOOLS,
 ): WebMcpSurface {
-	// `object` rather than HasModelContext: every field there is optional, so
-	// TS's weak-type check would reject the real `document` and `navigator`.
-	const declared = declaredToolNames(doc);
+	if (typeof document === "undefined" || typeof navigator === "undefined") {
+		return "none";
+	}
+	const declared = declaredToolNames(document);
 	const pending = tools.filter((t) => !declared.has(t.name));
-	const docCtx = (doc as HasModelContext).modelContext;
-	if (typeof docCtx?.registerTool === "function") {
+	if (typeof document.modelContext?.registerTool === "function") {
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => docCtx.registerTool?.(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnDocument(tool));
 		return "document.registerTool";
 	}
-	const navCtx = (nav as HasModelContext).modelContext;
-	if (typeof navCtx?.registerTool === "function") {
+	if (typeof navigator.modelContext?.registerTool === "function") {
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => navCtx.registerTool?.(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnNavigator(tool));
 		return "navigator.registerTool";
 	}
-	if (typeof navCtx?.provideContext === "function") {
-		guarded("provideContext", () => navCtx.provideContext?.({ tools: pending }));
+	if (typeof navigator.modelContext?.provideContext === "function") {
+		guarded("provideContext", () =>
+			navigator.modelContext?.provideContext?.({ tools: pending }),
+		);
 		return "navigator.provideContext";
 	}
 	return "none";

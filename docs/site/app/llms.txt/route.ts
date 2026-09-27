@@ -1,4 +1,5 @@
 import { COUNTS, SITE, YONYON } from "@/lib/constants";
+import { developerResourceLines } from "@/lib/developer-resources";
 import { SECTION_ORDER, orderedPages } from "@/lib/docs-content";
 
 // /llms.txt — lean navigation index (kept well under the 30,000-char
@@ -86,6 +87,14 @@ export function GET() {
 		"- Every API response carries IETF `RateLimit-*` headers (120 req/min per IP per endpoint); a `429` also carries `Retry-After`. Pace yourself from the headers rather than probing for the ceiling.",
 		"- An unknown path returns a real `404` (never a `200` shell) whose body lists where to look next, Markdown with `Accept: text/markdown`, RFC 9457 JSON otherwise.",
 		"",
+		// orank "Developer resource discoverability": an agent that knows the
+		// product name must find a recognizable resource type (API docs, OpenAPI
+		// spec, MCP server, auth docs, developer portal, SDK docs). Each line
+		// names the product AND the type, from lib/developer-resources.ts.
+		"## Developer resources",
+		"",
+		...developerResourceLines(),
+		"",
 		"## Documentation",
 		"",
 		...sectionLines,
@@ -102,9 +111,6 @@ export function GET() {
 		`- [${SITE.name} NLWeb /ask endpoint: POST a natural-language query; supports SSE streaming](/ask)`,
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
-		`- [${SITE.name} OpenAPI specification](/openapi) · [spec JSON](/openapi.json)`,
-		`- [${SITE.name} MCP server](/docs/mcp) · [transport](/api/mcp)`,
-		`- [${SITE.name} SDK packages](/docs/sdk)`,
 		`- [${SITE.name} llms.txt navigation index](/llms.txt)`,
 		`- [${SITE.name} llms-full.txt full docs dump](/llms-full.txt)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
@@ -114,7 +120,6 @@ export function GET() {
 		`- [${SITE.name} API catalog (RFC 9727)](/.well-known/api-catalog)`,
 		"- [Changelog](/changelog) · [RSS](/rss.xml)",
 		"- [Pricing](/pricing.md)",
-		"- [Authentication](/auth.md)",
 		`- [${SITE.name} API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)`,
 		// registry.npmjs.org, not www.npmjs.com: the www host is behind a
 		// Cloudflare bot challenge and answers any non-browser client with a 403

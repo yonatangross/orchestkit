@@ -1,4 +1,5 @@
 import { createMDX } from "fumadocs-mdx/next";
+import { DEVELOPER_ALIASES } from "./lib/developer-aliases.mjs";
 
 const withMDX = createMDX();
 
@@ -193,6 +194,17 @@ const config = {
 			destination: "/docs/showcase/lab",
 			permanent: false,
 		},
+		// Predictable aliases for the developer resources (orank "Developer
+		// resource discoverability": use predictable URLs). Each lands on the
+		// existing product-titled page; no page moves. Temporary for the same
+		// reason as /lab: a cached 308 would outlive a real page at that path.
+		// The list lives in lib/developer-aliases.mjs so a test can check every
+		// destination is a real page and no source shadows one.
+		...DEVELOPER_ALIASES.map(([source, destination]) => ({
+			source,
+			destination,
+			permanent: false,
+		})),
 		{
 			// A bare URL wrapped in Markdown bold (**https://.../lab/x.html**, as in
 			// the #3746 PR body) keeps its asterisks when a non-GitHub autolinker

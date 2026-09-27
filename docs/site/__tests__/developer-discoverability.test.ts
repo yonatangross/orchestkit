@@ -13,11 +13,16 @@
 // So these tests pin two things: the twins exist and carry the names a
 // name-based query uses, and the HTML pages keep naming the product + studio.
 
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { SERVED_EXACT } from "@/lib/agent-404";
-import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
+import { DEVELOPER_ALIASES } from "@/lib/developer-aliases.mjs";
+import {
+	DEVELOPER_RESOURCES,
+	NAMED_DEVELOPER_RESOURCES,
+	developerResourceLines,
+} from "@/lib/developer-resources";
 import {
 	MARKDOWN_TWIN_SLUGS,
 	hasMarkdownTwin,
@@ -190,6 +195,130 @@ describe("named resource landing pages", () => {
 			expect(src).toContain(`title: "${phrase}"`);
 			expect(src).toContain(`title="${phrase}"`);
 			expect(src).toContain(`canonical: \`\${SITE.domain}/docs/${dir}\``);
+		}
+	});
+});
+
+// orank "Developer resource discoverability" (scan 2026-09-27: "Agent found 3
+// pages by name but no recognizable developer-resource type"). The check
+// searches by product name and wants a recognizable type: API docs, OpenAPI
+// spec, MCP server, auth docs, developer portal, SDK docs. Its recommendation:
+// predictable URLs, llms.txt links, the product name in titles and headings.
+const CONTENT = resolve(__dirname, "../content/docs");
+
+/** True when a site path is served by a real page (docs mdx or an app page). */
+function isRealPage(path: string): boolean {
+	if (path.startsWith("/docs/")) {
+		const slug = path.slice("/docs/".length);
+		if (
+			existsSync(resolve(CONTENT, `${slug}.mdx`)) ||
+			existsSync(resolve(CONTENT, slug, "index.mdx"))
+		) {
+			return true;
+		}
+		return existsSync(resolve(APP, "docs", slug, "page.tsx"));
+	}
+	return existsSync(resolve(APP, "(home)", path.slice(1), "page.tsx"));
+}
+
+describe("developer resources are typed, named, and indexed", () => {
+	it("covers every resource type the check recognizes", () => {
+		const kinds = new Set(NAMED_DEVELOPER_RESOURCES.map((r) => r.kind));
+		for (const kind of [
+			"API docs",
+			"OpenAPI spec",
+			"MCP server",
+			"SDK documentation",
+			"Auth docs",
+			"Install guide",
+			"Reference docs",
+		]) {
+			expect(kinds, kind).toContain(kind);
+		}
+	});
+
+	it("names the product in every typed resource title", () => {
+		for (const r of NAMED_DEVELOPER_RESOURCES) {
+			expect(r.title, r.href).toMatch(/^OrchestKit /);
+		}
+	});
+
+	it("points each typed resource at a page that exists", () => {
+		for (const r of NAMED_DEVELOPER_RESOURCES) {
+			if (r.href.endsWith(".md") || r.href.startsWith("/api/")) continue;
+			expect(isRealPage(r.href), r.href).toBe(true);
+		}
+	});
+
+	it("renders one llms.txt line per resource, product + type in each", () => {
+		const lines = developerResourceLines();
+		expect(lines[0]).toContain("[OrchestKit developer portal](/developers)");
+		expect(lines).toHaveLength(NAMED_DEVELOPER_RESOURCES.length + 1);
+		for (const [i, r] of NAMED_DEVELOPER_RESOURCES.entries()) {
+			expect(lines[i + 1]).toBe(`- [${r.title}](${r.href}): ${r.kind}. ${r.desc}`);
+		}
+		for (const line of developerResourceLines("https://orchestkit.yonyon.ai")) {
+			expect(line).toMatch(/\]\(https:\/\/orchestkit\.yonyon\.ai\//);
+		}
+	});
+
+	it("llms.txt and llms-full.txt both carry the Developer resources section", () => {
+		for (const route of ["llms.txt/route.ts", "llms-full.txt/route.ts"]) {
+			const src = readFileSync(resolve(APP, route), "utf8");
+			expect(src, route).toContain('"## Developer resources"');
+			expect(src, route).toContain("...developerResourceLines(");
+		}
+		const llms = readFileSync(resolve(APP, "llms.txt/route.ts"), "utf8");
+		expect(llms.indexOf('"## Developer resources"')).toBeLessThan(
+			llms.indexOf('"## Documentation"'),
+		);
+	});
+});
+
+describe("predictable developer URLs", () => {
+	it("every alias lands on a real page", () => {
+		expect(DEVELOPER_ALIASES.length).toBeGreaterThan(5);
+		for (const [source, destination] of DEVELOPER_ALIASES) {
+			expect(isRealPage(destination), `${source} -> ${destination}`).toBe(true);
+		}
+	});
+
+	it("no alias shadows a page that already exists", () => {
+		for (const [source] of DEVELOPER_ALIASES) {
+			expect(isRealPage(source), source).toBe(false);
+		}
+		// /mcp is the MCP transport rewrite; an alias there would break clients.
+		expect(DEVELOPER_ALIASES.map(([s]) => s)).not.toContain("/mcp");
+	});
+
+	it("next.config.mjs wires the aliases as redirects", () => {
+		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
+		const redirects = cfg.slice(cfg.indexOf("redirects:"), cfg.indexOf("headers:"));
+		expect(redirects).toContain("...DEVELOPER_ALIASES.map(");
+	});
+});
+
+describe("reference and install pages name the product in title and H1", () => {
+	it.each([
+		["getting-started/installation.mdx", "OrchestKit Installation and Setup"],
+		["reference/index.mdx", "OrchestKit Reference"],
+		["reference/skills/index.mdx", "OrchestKit Skills Reference"],
+		["reference/agents/index.mdx", "OrchestKit Agents Reference"],
+		["reference/hooks/index.mdx", "OrchestKit Hooks Reference"],
+	])("%s", (file, title) => {
+		// Fumadocs renders the frontmatter title as the page H1 and <title>.
+		const src = readFileSync(resolve(CONTENT, file), "utf8");
+		expect(src).toContain(`\ntitle: ${title}\n`);
+	});
+
+	it("the reference generator emits the same titles (drift gate)", () => {
+		const gen = readFileSync(
+			resolve(__dirname, "../../../scripts/_build-docs-generate.py"),
+			"utf8",
+		);
+		for (const kind of ["Skills", "Agents", "Hooks"]) {
+			expect(gen).toContain(`"title: OrchestKit ${kind} Reference",`);
+			expect(gen).toContain(`"# OrchestKit ${kind} Reference",`);
 		}
 	});
 });

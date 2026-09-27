@@ -1,0 +1,12 @@
+{
+  "slug": "orank-webmcp-discoverability",
+  "source": "docs/feat--orank-webmcp-discoverability/index.html",
+  "title": "WebMCP the scanner can see, and developer resources found by name",
+  "description": "Why orank saw only the declarative WebMCP form, and how the docs site now lists its developer resources by name and type.",
+  "tags": [
+    "agent-readiness",
+    "webmcp",
+    "llms-txt"
+  ],
+  "date": "2026-09-28"
+}

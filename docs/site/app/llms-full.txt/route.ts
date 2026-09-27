@@ -2,6 +2,7 @@
 // Created: 2026-06-07
 
 import { COUNTS, SITE } from "@/lib/constants";
+import { developerResourceLines } from "@/lib/developer-resources";
 import { orderedPages, readDocBody } from "@/lib/docs-content";
 
 // /llms-full.txt — the entire documentation as one Markdown file so an agent can
@@ -25,6 +26,10 @@ function header(): string {
 		`1. Install Claude Code ${SITE.ccVersion}.`,
 		`2. Run \`${SITE.installCommand}\`.`,
 		"3. Invoke any skill with `/ork:<skill>` (e.g. `/ork:implement`, `/ork:review-pr`).",
+		"",
+		"## Developer resources",
+		"",
+		...developerResourceLines(SITE.domain),
 		"",
 		"## API",
 		"",

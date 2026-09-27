@@ -192,7 +192,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/getting-started/installation",
-    "title": "Installation",
+    "title": "OrchestKit Installation and Setup",
     "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, OpenCode (and other skills.sh clients), Muse Code, Pi or Antigravity."
   },
   {
@@ -447,7 +447,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/agents",
-    "title": "Agents Reference",
+    "title": "OrchestKit Agents Reference",
     "description": "Complete reference for all 36 OrchestKit agents."
   },
   {
@@ -552,7 +552,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/hooks",
-    "title": "Hooks Reference",
+    "title": "OrchestKit Hooks Reference",
     "description": "Complete reference for all 152 global lifecycle hook entries across 32 event categories."
   },
   {
@@ -712,7 +712,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference",
-    "title": "Reference",
+    "title": "OrchestKit Reference",
     "description": "Complete reference for every OrchestKit skill, agent, and hook, generated from source."
   },
   {
@@ -1152,7 +1152,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills",
-    "title": "Skills Reference",
+    "title": "OrchestKit Skills Reference",
     "description": "Complete reference for all 107 OrchestKit skills."
   },
   {

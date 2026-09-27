@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
@@ -13,55 +15,91 @@ import {
 const byName = (tools: WebMcpTool[]) =>
 	Object.fromEntries(tools.map((t) => [t.name, t]));
 
+// Removing a registration (or a tool) fails the first test: the planted control.
+const EXPECTED_TOOLS = ["get_page", "get_skill", "list_skills", "search_docs"];
+
+/** Install a fake ModelContext on the real document / navigator globals, the
+ * way Chrome's origin trial exposes it. registerWebMcpTools reads the globals
+ * (see the bundle-evidence test below), so the stub has to live there too. */
+function stubModelContext(host: "document" | "navigator", ctx: object) {
+	Object.defineProperty(host === "document" ? document : navigator, "modelContext", {
+		configurable: true,
+		get: () => ctx,
+	});
+}
+
+const names = (fn: { mock: { calls: unknown[][] } }) =>
+	fn.mock.calls.map(([t]) => (t as WebMcpTool).name).sort();
+
 afterEach(() => {
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
+	for (const host of [document, navigator]) {
+		if (Object.getOwnPropertyDescriptor(host, "modelContext")) {
+			delete (host as { modelContext?: unknown }).modelContext;
+		}
+	}
 });
 
 describe("registerWebMcpTools", () => {
-	it("registers search_docs and get_page on document.modelContext first", () => {
-		const registerTool = vi.fn();
+	it("registers every tool on document.modelContext first, with a valid schema", () => {
+		const registerTool = vi.fn(async () => undefined);
 		const navRegister = vi.fn();
-		const surface = registerWebMcpTools(
-			{ modelContext: { registerTool } },
-			{ modelContext: { registerTool: navRegister, provideContext: vi.fn() } },
-		);
+		stubModelContext("document", { registerTool });
+		stubModelContext("navigator", { registerTool: navRegister, provideContext: vi.fn() });
 
-		expect(surface).toBe("document.registerTool");
+		expect(registerWebMcpTools()).toBe("document.registerTool");
 		expect(navRegister).not.toHaveBeenCalled();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
 
-		const registered = byName(
-			registerTool.mock.calls.map(([tool]) => tool as WebMcpTool),
-		);
-		for (const name of ["search_docs", "get_page"]) {
-			expect(registered[name], name).toBeDefined();
-			expect(registered[name].description.length).toBeGreaterThan(20);
-			expect(registered[name].inputSchema).toMatchObject({ type: "object" });
-			expect(typeof registered[name].execute).toBe("function");
+		for (const [tool] of registerTool.mock.calls as unknown as [WebMcpTool][]) {
+			// Spec: registerTool rejects an empty name or description, or an
+			// invalid inputSchema (it is serialized with JSON.stringify).
+			expect(tool.name).toMatch(/^[a-z][a-z0-9_]{2,63}$/);
+			expect(tool.description.length, tool.name).toBeGreaterThan(20);
+			expect(typeof tool.execute).toBe("function");
+			const schema = tool.inputSchema as {
+				type: string;
+				properties: Record<string, { type: string }>;
+				required?: string[];
+			};
+			expect(JSON.parse(JSON.stringify(schema))).toEqual(schema);
+			expect(schema.type, tool.name).toBe("object");
+			for (const prop of Object.values(schema.properties)) {
+				expect(prop.type, tool.name).toBe("string");
+			}
+			for (const key of schema.required ?? []) {
+				expect(Object.keys(schema.properties), tool.name).toContain(key);
+			}
 		}
-		expect(registered.search_docs.inputSchema).toMatchObject({
-			required: ["query"],
-		});
 	});
 
 	it("falls back to navigator.modelContext.registerTool when document lacks it", () => {
 		const registerTool = vi.fn();
-		const surface = registerWebMcpTools(
-			{},
-			{ modelContext: { registerTool } },
-		);
-		expect(surface).toBe("navigator.registerTool");
-		expect(registerTool).toHaveBeenCalledTimes(WEBMCP_TOOLS.length);
+		stubModelContext("navigator", { registerTool });
+		expect(registerWebMcpTools()).toBe("navigator.registerTool");
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
 	});
 
 	it("falls back to provideContext as the last resort", () => {
 		const provideContext = vi.fn();
-		const surface = registerWebMcpTools({}, { modelContext: { provideContext } });
-		expect(surface).toBe("navigator.provideContext");
+		stubModelContext("navigator", { provideContext });
+		expect(registerWebMcpTools()).toBe("navigator.provideContext");
 		expect(provideContext).toHaveBeenCalledWith({ tools: WEBMCP_TOOLS });
 	});
 
 	it("is a no-op without the API", () => {
-		expect(registerWebMcpTools({}, {})).toBe("none");
+		expect(registerWebMcpTools()).toBe("none");
+	});
+
+	it("reads document.modelContext on the global, so the bundle carries the literal", () => {
+		// orank scans same-origin JS bundles for document.modelContext
+		// registrations. A helper that took `doc` as a parameter minified to
+		// `i=e.modelContext`, and the 2026-09-27 scan saw only the form.
+		const src = readFileSync(resolve(__dirname, "../lib/webmcp-tools.ts"), "utf8");
+		expect(src).toContain("? document.modelContext.registerTool(tool)");
+		expect(src).toContain("? navigator.modelContext.registerTool(tool)");
+		expect(src).not.toMatch(/\(\s*doc\s+as\s+HasModelContext\s*\)/);
 	});
 });
 
@@ -179,38 +217,44 @@ describe("registration is guarded and declares each name once", () => {
 		const registerTool = vi.fn((tool: WebMcpTool) => {
 			if (tool.name === "search_docs") throw new Error("boom");
 		});
-		expect(() =>
-			registerWebMcpTools({ modelContext: { registerTool } }, {}),
-		).not.toThrow();
+		stubModelContext("document", { registerTool });
+		expect(() => registerWebMcpTools()).not.toThrow();
 		expect(registerTool).toHaveBeenCalledTimes(WEBMCP_TOOLS.length);
 		expect(warn).toHaveBeenCalledWith(
 			"[webmcp] registerTool(search_docs) failed",
 			expect.any(Error),
 		);
-		warn.mockRestore();
+	});
+
+	it("a rejected registerTool promise is caught and logged, never unhandled", async () => {
+		// Spec: registerTool returns a Promise that rejects on a duplicate name.
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: (tool: WebMcpTool) =>
+				tool.name === "get_page"
+					? Promise.reject(new DOMException("duplicate", "InvalidStateError"))
+					: Promise.resolve(),
+		});
+		expect(() => registerWebMcpTools()).not.toThrow();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(warn).toHaveBeenCalledWith(
+			"[webmcp] registerTool(get_page) failed",
+			expect.any(DOMException),
+		);
 	});
 
 	it("skips a tool the page already declares through <form toolname>", () => {
-		const registerTool = vi.fn();
 		const doc = {
-			modelContext: { registerTool },
 			querySelectorAll: () => [{ getAttribute: () => "search_docs" }],
 		};
 		expect(declaredToolNames(doc)).toEqual(new Set(["search_docs"]));
-		registerWebMcpTools(doc, {});
-		const names = registerTool.mock.calls.map(([t]) => (t as WebMcpTool).name);
-		expect(names).not.toContain("search_docs");
-		expect(names).toContain("get_page");
-	});
-
-	it("registers search_docs when no declarative form is present", () => {
+		render(<WebMcpSearchForm />);
 		const registerTool = vi.fn();
-		registerWebMcpTools(
-			{ modelContext: { registerTool }, querySelectorAll: () => [] },
-			{},
+		stubModelContext("document", { registerTool });
+		registerWebMcpTools();
+		expect(names(registerTool)).toEqual(
+			EXPECTED_TOOLS.filter((n) => n !== "search_docs"),
 		);
-		const names = registerTool.mock.calls.map(([t]) => (t as WebMcpTool).name);
-		expect(names).toContain("search_docs");
 	});
 });
 
