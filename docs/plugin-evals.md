@@ -206,6 +206,24 @@ between runs. Unanimity is not robustness. So:
 | `31-glyph-comparison` | `glyph` | Aligned side-by-side comparison, not two paragraphs |
 | `32-glyph-should-not-fire` | `glyph` | A one-sentence factual answer needs no diagram |
 
+### Lane suite (tag `lane-0927`)
+
+Fourteen cases in five categories, added 2026-09-27. None of the prompts name a
+skill, so every fire case is a natural-trigger case. Results and caveats:
+`evals/calibration/lane-matrix-2026-09-27.md`.
+
+| Category | Cases | Target skill |
+|---|---|---|
+| triage | `40` root cause from a report, `41` regression window via bisect, `42` should-not-fire | `fix-issue` |
+| review | `50` SQL injection in a "refactor", `51` async `forEach` plus a vacuous test, `52` should-not-fire | `review-pr` |
+| promote | `60` PR title and body, `61` hotfix path around a weekly promote | `create-pr` |
+| ci-debug | `70` lockfile drift, `71` billing startup failure, `72` orphaned Vercel status, `73` should-not-fire | `ci-debug` |
+| control | `90` unit conversion, `91` one-line code | none: measures the always-on context cost |
+
+```bash
+bash scripts/run-plugin-eval.sh --tag lane-0927 --runs 2 --max-cost-usd 12
+```
+
 All three skills are `context: inherit` and `complexity: low`, so a run is a
 single agent turn rather than a subagent fan-out. That is deliberate: it keeps
 the suite cheap enough to run on every PR that touches a skill.
