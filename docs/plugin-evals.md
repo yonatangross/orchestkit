@@ -42,7 +42,7 @@ stay on Max OAuth; the wrapper does not export the evals key into
 
 ```bash
 export ORK_EVALS_API_KEY=sk-ant-...   # dedicated evals key with a spend cap
-bash scripts/run-plugin-eval.sh                      # pilot: 1 run per case, $3 ceiling
+bash scripts/run-plugin-eval.sh                      # pilot: 1 run per case, $3 ceiling (23 cases, 46 agent runs: scope it)
 bash scripts/run-plugin-eval.sh --runs 3 --max-cost-usd 10
 bash scripts/run-plugin-eval.sh --case '2*'          # one skill's cases
 ```
@@ -52,11 +52,14 @@ be scoped without knowing the numeric prefixes:
 
 ```bash
 bash scripts/run-plugin-eval.sh --tag commit       # the 3 commit cases
-bash scripts/run-plugin-eval.sh --tag negative     # the 3 should-NOT-fire cases
+bash scripts/run-plugin-eval.sh --tag negative     # the 8 should-NOT-fire and control cases
 ```
 
 Both filters were confirmed against a real run's `run.json`, selecting exactly
-three cases each.
+three cases each, before the lane suite (2026-09-27) raised the `negative` set
+to 8. The unfiltered suite is 23 cases, 46 agent runs per pass; the 14-case lane
+run cost $10.01 at 2 runs, so a full pilot overruns the $3 ceiling (an estimate
+of about $8, not measured). Scope it with `--tag` or `--case`.
 
 Raw reports land in `evals/results/<timestamp>/` as `run.json`, `report.html`,
 and `aggregate-result.json`. `scripts/summarise-eval-run.mjs` turns the newest
@@ -205,6 +208,24 @@ between runs. Unanimity is not robustness. So:
 | `30-glyph-status-render` | `glyph` | Four worker states drawn, failing distinguished from not-scheduled |
 | `31-glyph-comparison` | `glyph` | Aligned side-by-side comparison, not two paragraphs |
 | `32-glyph-should-not-fire` | `glyph` | A one-sentence factual answer needs no diagram |
+
+### Lane suite (tag `lane-0927`)
+
+Fourteen cases in five categories, added 2026-09-27. None of the prompts name a
+skill, so every fire case is a natural-trigger case. Results and caveats:
+`evals/calibration/lane-matrix-2026-09-27.md`.
+
+| Category | Cases | Target skill |
+|---|---|---|
+| triage | `40` root cause from a report, `41` regression window via bisect, `42` should-not-fire | `fix-issue` |
+| review | `50` SQL injection in a "refactor", `51` async `forEach` plus a vacuous test, `52` should-not-fire | `review-pr` |
+| promote | `60` PR title and body, `61` hotfix path around a weekly promote | `create-pr` |
+| ci-debug | `70` lockfile drift, `71` billing startup failure, `72` orphaned Vercel status, `73` should-not-fire | `ci-debug` |
+| control | `90` unit conversion, `91` one-line code | none: measures the always-on context cost |
+
+```bash
+bash scripts/run-plugin-eval.sh --tag lane-0927 --runs 2 --max-cost-usd 12
+```
 
 All three skills are `context: inherit` and `complexity: low`, so a run is a
 single agent turn rather than a subagent fan-out. That is deliberate: it keeps
