@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.127](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127) (2026-09-28)
+
+
+### Bug Fixes
+
+* **standards-gate:** skip head steps when the head predates the gate ([#4518](https://github.com/yonatangross/orchestkit/issues/4518)) ([89e8530](https://github.com/yonatangross/orchestkit/commit/89e853058e649f3a03714266d47ac949f5dcb136))
+
 ## [10.0.0-beta.126](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126) (2026-09-28)
 
 
