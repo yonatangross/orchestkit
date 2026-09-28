@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>m3 follow-up: quoted commas and validate before write (#4533)</title>
+<style>
+  :root { --bg:#faf8f3; --ink:#1c1b19; --mut:#6b6760; --line:#e4dfd4; --bad:#b42318; --good:#16794c; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#16151a; --ink:#ece9e2; --mut:#a09b91; --line:#2e2c33; --card:#1f1e24; --bad:#f97066; --good:#47cd89; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  p.lead { color:var(--mut); margin:0 0 22px; }
+  .tabs { display:flex; gap:8px; margin:0 0 14px; flex-wrap:wrap; }
+  .tabs button { border:1px solid var(--line); background:var(--card); color:var(--ink); padding:7px 14px; border-radius:999px; cursor:pointer; font:inherit; }
+  .tabs button[aria-pressed="true"] { border-color:var(--ink); font-weight:600; }
+  .case { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .case h2 { font-size:16px; margin:0 0 8px; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; overflow-x:auto; font:13px/1.45 ui-monospace, monospace; margin:6px 0 12px; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .cols > div { min-width:0; }
+  .cols pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+  @media (max-width:640px) { .cols { grid-template-columns:1fr; } }
+  .tag { font:600 12px ui-monospace, monospace; }
+  .bad { color:var(--bad); } .good { color:var(--good); }
+  .note { color:var(--mut); font-size:13px; margin-top:4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>m3 follow-up: two script fixes and one docs fix</h1>
+  <p class="lead">The m3 migration never hit either script bug (0 moved-value mismatches across 36 agents). These are planted inputs, run through the #4531 script and this PR's script in throwaway git repos.</p>
+
+  <div class="tabs" role="group" aria-label="Case">
+    <button type="button" data-case="comma" aria-pressed="true">Quoted comma</button>
+    <button type="button" data-case="refuse" aria-pressed="false">Late refusal</button>
+    <button type="button" data-case="docs" aria-pressed="false">Docs</button>
+  </div>
+
+  <section class="case" id="case-comma">
+    <h2>An example prompt that holds a comma</h2>
+    <pre>examplePrompts: ["Build a table, with sorting", "Build a form"]</pre>
+    <div class="cols">
+      <div><span class="tag bad">#4531 script</span>
+        <pre>examplePrompts: "Build a table | with sorting | Build a form"</pre>
+        <div class="note">A plain split on "," made 3 prompts out of 2.</div></div>
+      <div><span class="tag good">this PR</span>
+        <pre>examplePrompts: "Build a table, with sorting | Build a form"</pre>
+        <div class="note">split_flow() splits only on commas outside quotes.</div></div>
+    </div>
+  </section>
+
+  <section class="case" id="case-refuse" hidden>
+    <h2>a.md is valid, z.md has a duplicate key, run with --apply</h2>
+    <div class="cols">
+      <div><span class="tag bad">#4531 script</span>
+        <pre>wrote src/agents/a.md: move category, ...
+REFUSED src/agents/z.md: duplicate category
+exit 2   a.md changed: YES</pre>
+        <div class="note">A refused run left a half-migrated tree.</div></div>
+      <div><span class="tag good">this PR</span>
+        <pre>REFUSED src/agents/z.md: duplicate category
+exit 2   a.md changed: no</pre>
+        <div class="note">Every agent is migrated in memory first; files are written only when none refused.</div></div>
+    </div>
+  </section>
+
+  <section class="case" id="case-docs" hidden>
+    <h2>writing-agents.mdx: metadata moves to Required Fields</h2>
+    <div class="cols">
+      <div><span class="tag bad">before</span>
+        <pre>### Optional Fields
+| metadata | map of strings | none | ...</pre></div>
+      <div><span class="tag good">after</span>
+        <pre>### Required Fields
+| metadata | map of strings | Ork house keys,
+  required on every ork agent ...</pre></div>
+    </div>
+    <div class="note">test-agent-categories.sh fails an ork agent that has no metadata.category, so "optional" was wrong.</div>
+  </section>
+</main>
+<script>
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      ['comma', 'refuse', 'docs'].forEach(function (c) {
+        document.getElementById('case-' + c).hidden = c !== b.dataset.case;
+      });
+    });
+  });
+</script>
+</body>
+</html>
