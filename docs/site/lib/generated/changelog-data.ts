@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.125",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**assess:** Phases 2 and 2.5 run as a Workflow script ([#4513](https://github.com/yonatangross/orchestkit/issues/4513)) ([69809f8](https://github.com/yonatangross/orchestkit/commit/69809f8af09a69bd5f4cd2090460d2b4399f2fc5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.124",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.123...v10.0.0-beta.124",

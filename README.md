@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.125](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125)** · 2026-09-28
+
+- **assess:** Phases 2 and 2.5 run as a Workflow script (#4513)
+
 **[v10.0.0-beta.124](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.123...v10.0.0-beta.124)** · 2026-09-28
 
 - port G1 advisory frontmatter gate from hq-ext-plugin (#4514)
@@ -664,10 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.118](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.117...v10.0.0-beta.118)** · 2026-09-27
 
 - **ci:** report docs build on every pull request (#4486)
-
-**[v10.0.0-beta.117](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.116...v10.0.0-beta.117)** · 2026-09-26
-
-- **analytics:** spell the curl flag plainly in the gateway source (#4484)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
