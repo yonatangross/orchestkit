@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.124](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.123...v10.0.0-beta.124) (2026-09-28)
+
+
+### CI/CD
+
+* port G1 advisory frontmatter gate from hq-ext-plugin ([#4514](https://github.com/yonatangross/orchestkit/issues/4514)) ([10326db](https://github.com/yonatangross/orchestkit/commit/10326dbf61d244f9db1cfad487dca63f10ddba02))
+
 ## [10.0.0-beta.123](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.122...v10.0.0-beta.123) (2026-09-28)
 
 

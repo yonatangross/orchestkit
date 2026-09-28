@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.124",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.123...v10.0.0-beta.124",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "port G1 advisory frontmatter gate from hq-ext-plugin ([#4514](https://github.com/yonatangross/orchestkit/issues/4514)) ([10326db](https://github.com/yonatangross/orchestkit/commit/10326dbf61d244f9db1cfad487dca63f10ddba02))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.123",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.122...v10.0.0-beta.123",
