@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.129](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129) (2026-09-28)
+
+
+### Features
+
+* **mods:** memory-lens recalls related memories on each prompt ([#4530](https://github.com/yonatangross/orchestkit/issues/4530)) ([8371ff5](https://github.com/yonatangross/orchestkit/commit/8371ff50a5a918a4b40ab16dfef205a6fa2facde))
+
 ## [10.0.0-beta.128](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128) (2026-09-28)
 
 
