@@ -27,7 +27,7 @@ and the key can arrive through any of them:
 
 | Source | Where it lives | Readable from the device |
 |---|---|---|
-| File-based | `managed-settings.json` in `/Library/Application Support/ClaudeCode/` (macOS), `/etc/claude-code/` (Linux, WSL), `C:\Program Files\ClaudeCode\` (Windows) | yes |
+| File-based | `managed-settings.json` and every `managed-settings.d/*.json` (merged after it, alphabetically) in `/Library/Application Support/ClaudeCode/` (macOS), `/etc/claude-code/` (Linux, WSL), `C:\Program Files\ClaudeCode\` (Windows) | yes |
 | MDM or OS-level policy | macOS configuration profile in the `com.anthropic.claudecode` managed preferences domain; Windows `HKLM\SOFTWARE\Policies\ClaudeCode` value `Settings` (plus an `HKCU` fallback) | yes, if you query that domain or key |
 | Server-managed | claude.ai admin console, or a self-hosted Claude apps gateway; fetched at startup and polled hourly | no, not reliably |
 
@@ -35,8 +35,10 @@ Report one of three verdicts, never silence:
 
 - **affected**: `"allowManagedPermissionRulesOnly": true` found in a source you read. Report the
   skills below at info level and name the source.
-- **not set**: the key is absent or false in every source you read, and you read the file AND
-  the MDM domain or registry key for this OS. Say which sources you read.
+- **not set**: the key is absent or false in every source you read, and you read
+  `managed-settings.json` and every `managed-settings.d/*.json` AND the MDM domain or registry
+  key for this OS. A drop-in merges after the main file, so it can set the key the main file
+  leaves out. Say which sources you read.
 - **not observable**: you could not read one of those sources (no managed file, no MDM query run).
   Say it plainly, for example "not observable: MDM and server-managed not checked". A missing
   `managed-settings.json` does not mean the key is unset.
