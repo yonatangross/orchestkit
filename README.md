@@ -630,6 +630,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.132](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.131...v10.0.0-beta.132)** · 2026-09-28
+
+- **cc:** adopt CC 2.1.281 to 2.1.284 (#4545)
+- **models:** adopt Claude Sonnet 5.5 as the sonnet alias target (#4541)
+- **ci:** fetch the CC CHANGELOG raw, not base64 through execSync (#4546)
+
 **[v10.0.0-beta.131](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131)** · 2026-09-28
 
 - **agents:** m3 script keeps quoted commas and validates first (#4533) (#4535)
@@ -660,10 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.125](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125)** · 2026-09-28
 
 - **assess:** Phases 2 and 2.5 run as a Workflow script (#4513)
-
-**[v10.0.0-beta.124](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.123...v10.0.0-beta.124)** · 2026-09-28
-
-- port G1 advisory frontmatter gate from hq-ext-plugin (#4514)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
