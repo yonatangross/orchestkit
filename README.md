@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121)** · 2026-09-28
+
+- **skills:** pair defer_loading with tool search in llm-integration (#4498)
+
 **[v10.0.0-beta.120](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120)** · 2026-09-27
 
 - **review-pr:** Phases 3 and 4.5 run as a Workflow script (#4494)
@@ -662,10 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** preserve consumer file content in write-headers (#4475)
 - **hooks:** stop antipattern-warning overwriting tracked project rules (#4476)
-
-**[v10.0.0-beta.113](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.112...v10.0.0-beta.113)** · 2026-09-26
-
-- **tests:** isolate pre-push Test 12 from the real tree's hooks install (#4473)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
