@@ -95,7 +95,7 @@ model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
 
 ## Function Calling
 
-Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. On Claude keep the `tools` array stable across turns so the prompt cache holds; add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5) or `defer_loading` instead of swapping subsets (https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Limit to 5-15 tools per request (use `defer_loading` beyond that on Claude). Validate all inputs with Pydantic/Zod, and return errors as tool results.
+Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. On Claude keep the `tools` array stable across turns so the prompt cache holds; add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5) instead of swapping subsets (https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes). For large tool sets, use a non-deferred tool search tool with `defer_loading: true` on the rest, never `defer_loading` alone (a request cannot have every tool deferred). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Validate all inputs with Pydantic/Zod, and return errors as tool results.
 
 - `calling-tool-definition.md` -- Strict mode schemas, OpenAI/Anthropic formats, LangChain binding
 - `calling-parallel.md` -- Parallel tool execution, asyncio.gather, strict mode constraints
@@ -178,7 +178,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 | Decision | Recommendation |
 |----------|----------------|
 | Tool schema mode | `strict: true` (2026 best practice) |
-| Tool count | 5-15 max per request |
+| Tool count | Load roughly 5-15 up front; defer the rest behind a non-deferred tool search tool |
 | Streaming protocol | SSE for web, WebSocket for bidirectional |
 | Buffer size | 50-200 tokens |
 | Local model (reasoning) | `deepseek-r1:70b` |
