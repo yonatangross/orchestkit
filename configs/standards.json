@@ -1,0 +1,258 @@
+{
+  "_comment": "Agent standards registry for OrchestKit: one row per standard on each agent boundary, what we run today, where we are going, and the gate that holds it. Ported from hq-ext-plugin configs/standards.json (#1983 + #1990), scoped to this repo. The frontmatter block below is the single source of the src/**/SKILL.md and src/agents/*.md key allowlists read by scripts/check-frontmatter.py.",
+  "registry_version": 1,
+  "last_verified": "2026-09-28",
+  "level_scale": {
+    "0": "none",
+    "1": "a home-grown or proprietary equivalent exists",
+    "2": "partial, or one repo only",
+    "3": "adopted on the main path",
+    "4": "adopted plus a conformance test or gate"
+  },
+  "standards": [
+    {
+      "id": "agent-skills",
+      "boundary": "capabilities",
+      "standard": "Agent Skills (SKILL.md)",
+      "spec_version_seen": "unversioned (agentskills.io/specification, per hq-ext audit 2026-09-27)",
+      "our_level": 3,
+      "target_level": 4,
+      "recommend": "ADOPT-NOW",
+      "owner_repos": ["orchestkit"],
+      "gate": [
+        {
+          "repo": "orchestkit",
+          "path": "scripts/check-frontmatter.py",
+          "mode": "advisory"
+        },
+        {
+          "repo": "orchestkit",
+          "path": "tests/skills/structure/test-skill-md.sh",
+          "mode": "ci"
+        }
+      ],
+      "evidence": [
+        "orchestkit:src/skills/CONTRIBUTING-SKILLS.md",
+        "orchestkit:src/skills/commit/SKILL.md",
+        "orchestkit:tests/skills/structure/test-skill-md.sh"
+      ],
+      "upstream_watch": "https://agentskills.io/specification",
+      "last_verified": "2026-09-28",
+      "status": "CLAIMED",
+      "note": "107 SKILL.md under src/skills plus 7 under src/codex/ork-codex/skills. The advisory gate judges them against spec keys UNION the Claude Code skill keys in the frontmatter block; the ratchet baseline carries the existing house keys (tags, version, author, complexity, triggers, persuasion-type, ...) so only NEW non-spec keys report."
+    },
+    {
+      "id": "claude-code-subagents",
+      "boundary": "agents",
+      "standard": "Claude Code subagent frontmatter",
+      "spec_version_seen": "CC CHANGELOG copy of 2.1.283 (read by hq-ext 2026-09-27)",
+      "our_level": 3,
+      "target_level": 4,
+      "recommend": "ADOPT-NOW",
+      "owner_repos": ["orchestkit"],
+      "gate": [
+        {
+          "repo": "orchestkit",
+          "path": "scripts/check-frontmatter.py",
+          "mode": "advisory"
+        },
+        {
+          "repo": "orchestkit",
+          "path": "tests/agents/test-agent-frontmatter.sh",
+          "mode": "ci"
+        }
+      ],
+      "evidence": [
+        "orchestkit:src/agents/code-quality-reviewer.md",
+        "orchestkit:tests/agents/test-agent-frontmatter.sh",
+        "orchestkit:manifests/ork.json"
+      ],
+      "upstream_watch": "https://docs.claude.com/en/docs/claude-code/sub-agents",
+      "last_verified": "2026-09-28",
+      "status": "CLAIMED",
+      "note": "36 agents under src/agents. Each agent claude_code_keys entry carries the CC CHANGELOG version that shows Claude Code reads it. Ork house keys (category, taskTypes, keywords, examplePrompts, critical_system_reminder, required_mcp_servers) belong under metadata and are baselined at top level."
+    }
+  ],
+  "frontmatter": {
+    "standard_id": "agent-skills",
+    "_comment": "Allowlists for scripts/check-frontmatter.py. Allowed top-level keys = base_keys UNION claude_code_keys. For SKILL.md base_keys is the Agent Skills spec key set; src/agents/*.md are not Agent Skills files, so their base is name, description and metadata. House-only keys belong under metadata (a one-level string map). Every Claude Code key carries the CC CHANGELOG version that shows Claude Code reads it (copy of CC 2.1.283, read 2026-09-27 by hq-ext). house_keys beyond the hq-ext nine are the ork vocabulary observed in this tree (agent, persuasion-type, targets, path_patterns, invocation_hooks, tool-coverage, upstream-version-tested, critical_system_reminder, required_mcp_servers).",
+    "name_pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+    "limits": {
+      "name_max": 64,
+      "description_max": 1024,
+      "compatibility_max": 500
+    },
+    "spec_keys": [
+      "name",
+      "description",
+      "license",
+      "compatibility",
+      "metadata",
+      "allowed-tools"
+    ],
+    "house_keys": [
+      "tags",
+      "version",
+      "author",
+      "complexity",
+      "category",
+      "triggers",
+      "taskTypes",
+      "keywords",
+      "examplePrompts",
+      "agent",
+      "persuasion-type",
+      "targets",
+      "path_patterns",
+      "invocation_hooks",
+      "tool-coverage",
+      "upstream-version-tested",
+      "critical_system_reminder",
+      "required_mcp_servers"
+    ],
+    "skill": {
+      "required": [
+        "name",
+        "description"
+      ],
+      "base_keys": "spec_keys",
+      "name_equals_folder": true,
+      "claude_code_keys": [
+        {
+          "key": "user-invocable",
+          "evidence": "CC CHANGELOG 2.1.0: opt-out with user-invocable: false in frontmatter"
+        },
+        {
+          "key": "disable-model-invocation",
+          "evidence": "CC CHANGELOG 2.1.110, 2.1.222"
+        },
+        {
+          "key": "argument-hint",
+          "evidence": "CC CHANGELOG 1.0.54, 2.1.47"
+        },
+        {
+          "key": "model",
+          "evidence": "CC CHANGELOG 2.1.76, 2.1.259: frontmatter model: on skills"
+        },
+        {
+          "key": "effort",
+          "evidence": "CC CHANGELOG 2.1.80: effort frontmatter support for skills"
+        },
+        {
+          "key": "disallowed-tools",
+          "evidence": "CC CHANGELOG 2.1.152"
+        },
+        {
+          "key": "display-name",
+          "evidence": "CC CHANGELOG 2.1.186"
+        },
+        {
+          "key": "default-enabled",
+          "evidence": "CC CHANGELOG 2.1.186"
+        },
+        {
+          "key": "fallback",
+          "evidence": "CC CHANGELOG 2.1.186"
+        },
+        {
+          "key": "context",
+          "evidence": "CC CHANGELOG 2.1.0: context: fork in skill frontmatter"
+        },
+        {
+          "key": "allowed-tools",
+          "evidence": "CC CHANGELOG 2.1.0; also an Agent Skills spec key"
+        },
+        {
+          "key": "background",
+          "evidence": "CC CHANGELOG 2.1.218: opt out per skill with background: false"
+        },
+        {
+          "key": "hooks",
+          "evidence": "CC CHANGELOG 2.1.0: hooks support for skill frontmatter; 2.1.94 fix"
+        },
+        {
+          "key": "paths",
+          "evidence": "CC CHANGELOG 2.1.84: rules and skills paths: frontmatter"
+        }
+      ]
+    },
+    "agent": {
+      "required": [
+        "name",
+        "description"
+      ],
+      "base_keys": [
+        "name",
+        "description",
+        "metadata"
+      ],
+      "name_equals_folder": false,
+      "claude_code_keys": [
+        {
+          "key": "tools",
+          "evidence": "CC CHANGELOG 2.1.33, 2.1.119, 2.1.147"
+        },
+        {
+          "key": "disallowedTools",
+          "evidence": "CC CHANGELOG 2.1.78, 2.1.119"
+        },
+        {
+          "key": "model",
+          "evidence": "CC CHANGELOG 2.1.74: agent frontmatter model: field"
+        },
+        {
+          "key": "effort",
+          "evidence": "CC CHANGELOG 2.1.78"
+        },
+        {
+          "key": "permissionMode",
+          "evidence": "CC CHANGELOG 2.0.43"
+        },
+        {
+          "key": "memory",
+          "evidence": "CC CHANGELOG 2.1.33"
+        },
+        {
+          "key": "maxTurns",
+          "evidence": "CC CHANGELOG 2.1.78"
+        },
+        {
+          "key": "color",
+          "evidence": "operator brief 2026-09-27; no CHANGELOG line found in the 2.1.283 copy"
+        },
+        {
+          "key": "mcpServers",
+          "evidence": "CC CHANGELOG 2.1.117, 2.1.153"
+        },
+        {
+          "key": "skills",
+          "evidence": "CC CHANGELOG 2.0.43: skills frontmatter field for subagents"
+        },
+        {
+          "key": "hooks",
+          "evidence": "CC CHANGELOG 2.1.0: hooks support to agent frontmatter"
+        },
+        {
+          "key": "isolation",
+          "evidence": "CC CHANGELOG 2.1.49, 2.1.50"
+        },
+        {
+          "key": "background",
+          "evidence": "CC CHANGELOG 2.1.49: agent definitions support background: true"
+        },
+        {
+          "key": "initialPrompt",
+          "evidence": "CC CHANGELOG 2.1.83"
+        },
+        {
+          "key": "omitClaudeMd",
+          "evidence": "CC CHANGELOG 2.1.271"
+        },
+        {
+          "key": "experimental",
+          "evidence": "CC CHANGELOG 2.1.248: experimental.cacheTtl in agent frontmatter"
+        }
+      ]
+    }
+  }
+}
