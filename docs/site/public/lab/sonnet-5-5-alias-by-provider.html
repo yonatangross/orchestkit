@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonnet 5.5: where the sonnet alias lands | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  label { font-weight: 600; }
+  select { font: inherit; padding: 4px 8px; }
+  #out { margin-top: 16px; padding: 16px; border-left: 4px solid #2a6f97; background: #fff; }
+  table { border-collapse: collapse; margin-top: 24px; }
+  td, th { padding: 4px 12px; border-bottom: 1px solid #ddd; text-align: left; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Sonnet 5.5: where the sonnet alias lands"><meta property="og:description" content="Pick a provider and see which model a model: sonnet agent runs on Claude Code 2.1.284, read from the binary's baked catalog."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/sonnet-5-5-alias-by-provider.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Sonnet 5.5: where the sonnet alias lands"><meta name="twitter:description" content="Pick a provider and see which model a model: sonnet agent runs on Claude Code 2.1.284, read from the binary's baked catalog."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODELS · SONNET 5.5</p>
+<h1>Where does <code>sonnet</code> land on Claude Code 2.1.284?</h1>
+<p>Claude Code 2.1.284 maps the <code>sonnet</code> alias to Claude Sonnet 5.5 on the first-party API, but its baked catalog keeps older Sonnets on the cloud providers. Pick a provider to see what an agent with <code>model: sonnet</code> runs. The values are read from the 2.1.284 binary; the first-party row was also confirmed by a live run.</p>
+<label for="p">Provider</label>
+<select id="p">
+  <option value="first_party">Claude API (first party)</option>
+  <option value="bedrock">Amazon Bedrock</option>
+  <option value="vertex">Google Vertex</option>
+  <option value="foundry">Microsoft Foundry</option>
+  <option value="mantle">Mantle</option>
+  <option value="anthropic_aws">Claude Platform on AWS</option>
+</select>
+<div id="out"></div>
+<table>
+  <tr><th>Model</th><th>Input / MTok</th><th>Output / MTok</th><th>Cache read</th><th>5m cache write</th></tr>
+  <tr><td>claude-sonnet-5-5</td><td>$2.00</td><td>$10.00</td><td>$0.20</td><td>$2.50</td></tr>
+  <tr><td>claude-sonnet-5 (legacy)</td><td>$2.00</td><td>$10.00</td><td>$0.20</td><td>$2.50</td></tr>
+</table>
+<p>Prices from the platform pricing page, read 2026-09-28. OrchestKit's cost estimator now prices <code>sonnet</code> and unknown models from the Sonnet 5.5 row.</p>
+<script>
+  const MAP = {
+    first_party: ['claude-sonnet-5-5', 'Sonnet 5.5. Confirmed live: a claude -p --model sonnet run billed to claude-sonnet-5-5 (2.1.283 mapped it to claude-sonnet-5).'],
+    bedrock: ['claude-sonnet-4-5', 'Sonnet 4.5, from the per_provider override in the baked catalog.'],
+    vertex: ['claude-sonnet-4-5', 'Sonnet 4.5, from the per_provider override in the baked catalog.'],
+    foundry: ['claude-sonnet-4-5', 'Sonnet 4.5, from the per_provider override in the baked catalog.'],
+    mantle: ['claude-sonnet-4-5', 'Sonnet 4.5, from the per_provider override in the baked catalog.'],
+    anthropic_aws: ['claude-sonnet-4-6', 'Sonnet 4.6, from the per_provider override in the baked catalog.'],
+  };
+  const sel = document.getElementById('p');
+  const out = document.getElementById('out');
+  const show = () => { const [id, note] = MAP[sel.value]; out.innerHTML = '<code>sonnet</code> resolves to <code>' + id + '</code>. ' + note; };
+  sel.addEventListener('change', show);
+  show();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
