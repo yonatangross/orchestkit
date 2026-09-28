@@ -630,6 +630,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.122](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.121...v10.0.0-beta.122)** · 2026-09-28
+
+- **deps-dev:** bump @types/node in the npm-minor-patch group (#4502)
+- **deps-dev:** bump the npm-minor-patch group (#4504)
+- **deps:** bump the npm-minor-patch group (#4503)
+- **deps:** bump the npm-minor-patch group (#4505)
+- **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4507)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121)** · 2026-09-28
 
 - **skills:** pair defer_loading with tool search in llm-integration (#4498)
@@ -661,11 +670,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** reject untracked generated lab copies (#4480)
 - **docs:** validate npm hosts and advertise markdown twins (#4481)
 - **scripts:** require schema evidence for hook exemptions (#4478)
-
-**[v10.0.0-beta.114](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114)** · 2026-09-26
-
-- **hooks:** preserve consumer file content in write-headers (#4475)
-- **hooks:** stop antipattern-warning overwriting tracked project rules (#4476)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
