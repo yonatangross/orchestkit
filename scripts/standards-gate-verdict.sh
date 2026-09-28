@@ -29,12 +29,13 @@
 # not carry it yet (main before the gate is promoted) the trusted default branch
 # copy is the floor instead, and a notice says so. Neither source is PR-controlled.
 #
-# The mirror image holds on the head side, with one guard: a head that lacks
-# the configs AND the gate script predates the gate, so steps 2 and 4 skip
-# with a notice instead of failing rc=2 on a missing file. A head that has
-# the gate script but is missing a config deleted the file; that is not a
-# pre-gate head, it is an attack, and it fails (gate inputs may not be
-# deleted). Step 3 still judges the tree on the floor either way.
+# The mirror image holds on the head side, with one guard: whether an absent
+# head config means "predates the gate" or "deleted" is decided by the base.
+# A base that lacks the config belongs to a PR whose lineage predates the
+# gate, so steps 2 and 4 skip with a notice instead of failing rc=2 on a
+# missing file. A base that has it proves the head deleted the file, which
+# fails like a widening (gate inputs may not be deleted). Step 3 still
+# judges the tree on the floor either way.
 #
 # Exit: 0 pass, 1 a violation or a widening or a raised baseline, 2 cannot run.
 # Proven by tests/unit/test-standards-gate-base-trust.sh.
@@ -115,22 +116,21 @@ step() {
   fi
 }
 
-# 2. Allowlists may not widen versus the floor. A head that lacks both the
-# registry and the gate script predates the gate, so there is nothing to
-# widen. A head that has the gate but not the registry deleted it; gate
-# inputs may not be deleted.
+# 2. Allowlists may not widen versus the floor. If the base lacks the
+# registry the PR lineage predates the gate, so there is nothing to widen.
+# If the base has it, the head deleted it; gate inputs may not be deleted.
 if [ -f "$HEAD/$REGISTRY_REL" ]; then
   step "allowlists may not widen versus the base" \
     python3 -I "$GATE" ${GITHUB:+--github} \
     --registry "$HEAD/$REGISTRY_REL" --widening-from "$FLOOR_REGISTRY"
-elif [ ! -f "$HEAD/scripts/check-frontmatter.py" ]; then
+elif [ ! -f "$BASE/$REGISTRY_REL" ]; then
   echo
   echo "== allowlists may not widen versus the base"
   annotate notice "$REGISTRY_REL absent on the PR head; head predates the gate, nothing to widen"
 else
   echo
   echo "== allowlists may not widen versus the base"
-  annotate error "$REGISTRY_REL is missing on a head that carries the gate; gate inputs may not be deleted"
+  annotate error "$REGISTRY_REL is missing on the PR head but present on the base; gate inputs may not be deleted"
   if [ "$WORST" -lt 1 ]; then WORST=1; fi
 fi
 
@@ -140,21 +140,21 @@ step "head tree judged by base rules and base baseline" \
   --root "$HEAD" --registry "$FLOOR_REGISTRY" --baseline "$FLOOR_BASELINE"
 
 # 4. The head baseline may only fall versus the floor baseline. Same guard:
-# absent together with the gate script means pre-gate; absent alone means
-# deleted, and gate inputs may not be deleted.
+# absent on the base means a pre-gate lineage; absent on the head while the
+# base carries it means deleted, and gate inputs may not be deleted.
 if [ -f "$HEAD/$BASELINE_REL" ]; then
   step "head baseline may only fall versus the base" \
     python3 -I "$GATE" \
     --root "$HEAD" --registry "$FLOOR_REGISTRY" \
     --baseline "$HEAD/$BASELINE_REL" --base-baseline "$FLOOR_BASELINE"
-elif [ ! -f "$HEAD/scripts/check-frontmatter.py" ]; then
+elif [ ! -f "$BASE/$BASELINE_REL" ]; then
   echo
   echo "== head baseline may only fall versus the base"
   annotate notice "$BASELINE_REL absent on the PR head; head predates the gate, nothing to raise"
 else
   echo
   echo "== head baseline may only fall versus the base"
-  annotate error "$BASELINE_REL is missing on a head that carries the gate; gate inputs may not be deleted"
+  annotate error "$BASELINE_REL is missing on the PR head but present on the base; gate inputs may not be deleted"
   if [ "$WORST" -lt 1 ]; then WORST=1; fi
 fi
 
