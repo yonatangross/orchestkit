@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WebMCP in the served HTML: an inline registration hypothesis test</title>
+<meta name="description" content="ora.ai credits only the declarative WebMCP form on orchestkit.yonyon.ai. This change adds the same four tools as an inline script in the served HTML, to test whether the scanner reads only the page source.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:14px}th,td{border:1px solid #e3e1da;padding:6px 9px;text-align:left;vertical-align:top}th{background:#f2f1ec}
+.muted{color:#6b6a64;font-size:13px}
+@media(prefers-color-scheme:dark){body{background:#17171a;color:#e8e6e1}.card,.kpi,.verdict,table{background:#212126;border-color:#34343a}th,pre{background:#2a2a30}.muted,.lede,.kpi span{color:#a3a19b}}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="WebMCP in the served HTML: an inline registration hypothesis test"><meta property="og:description" content="Why the docs site now registers its four WebMCP tools in an inline script too, and how a rescan will tell whether ora.ai reads only the page source."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/webmcp-inline-registration.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="WebMCP in the served HTML: an inline registration hypothesis test"><meta name="twitter:description" content="Why the docs site now registers its four WebMCP tools in an inline script too, and how a rescan will tell whether ora.ai reads only the page source."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body>
+<h1>WebMCP in the served HTML: an inline registration hypothesis test</h1>
+<p class="lede">orchestkit.yonyon.ai registers four WebMCP tools, yet ora.ai scores it 1 of 5 and names only the declarative form. This change puts the same registration in the page source, where ora.ai keeps its own.</p>
+
+<div class="verdict"><b>Status: a hypothesis, not a fix.</b> Nothing here proves the scanner will credit it. A <code>force:true</code> rescan after deploy is the measurement. If the score does not move, the inline copy is a cheap, harmless fallback and the hypothesis is refuted.</div>
+
+<div class="kpis">
+<div class="kpi"><b>1 / 5</b><span>ora.ai webmcp score, 2026-09-28</span></div>
+<div class="kpi"><b>1</b><span>literal call in the layout chunk, not credited</span></div>
+<div class="kpi"><b>4</b><span>tools, now also inline in the HTML</span></div>
+<div class="kpi"><b>1</b><span>registerTool call per name in unit tests, both orders</span></div>
+</div>
+
+<h2>Where each registration lives</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<pre>GET /  (HTML)
+  &lt;form toolname="search_docs"&gt;   credited
+  &lt;script src="/_next/.../layout-*.js"&gt;
+GET layout-*.js
+  document.modelContext.registerTool(   not credited</pre></div>
+<div class="card after"><h3>After</h3>
+<pre>GET /  (HTML)
+  &lt;form toolname="search_docs"&gt;
+  &lt;script id="webmcp-inline"&gt;
+    document.modelContext.registerTool(tool)
+    navigator.modelContext (fallback only)
+  &lt;/script&gt;
+GET layout-*.js   unchanged, skips claimed names</pre></div>
+</div>
+
+<h2>Why the inline copy is the test</h2>
+<p>ora.ai's own homepage registers its tools in an inline script (<code>var mc = document.modelContext || navigator.modelContext; ... mc.registerTool(tool)</code>). The live layout chunk already carries <code>document.modelContext.registerTool(</code> once, and the scanner still did not credit it. Two readings fit: the scanner reads only inline scripts, or it never fetches that chunk. Both predict the inline copy gets credited.</p>
+
+<h2>No name is registered twice</h2>
+<table>
+<tr><th>Case</th><th>What happens</th></tr>
+<tr><td>Inline runs first (expected: it runs during HTML parse; not yet observed in a WebMCP browser)</td><td>It claims each name in <code>window.__orkWebMcpRegistered</code>; the chunk provider filters those out and registers nothing.</td></tr>
+<tr><td>Chunk hydrates first</td><td>The chunk claims the names; the inline script skips them.</td></tr>
+<tr><td>Page has <code>&lt;form toolname="search_docs"&gt;</code></td><td>Both paths skip <code>search_docs</code>. The script sits after the page content, so the form is already parsed.</td></tr>
+<tr><td>Browser rejects a duplicate anyway</td><td>The existing rejected-promise catch logs it; the page never breaks.</td></tr>
+<tr><td>No WebMCP API</td><td>The inline script claims nothing, so the chunk's <code>provideContext</code> fallback still gets the full set.</td></tr>
+</table>
+
+<h2>CSP</h2>
+<p><code>next.config.mjs</code> sets <code>script-src 'self' 'unsafe-inline'</code> with no nonce and no hash, and middleware sets no CSP. The inline script is allowed as is. The policy is unchanged; adding a nonce or hash would make browsers ignore <code>'unsafe-inline'</code> and block the site's other inline scripts.</p>
+
+<h2>Checks</h2>
+<ul>
+<li><code>scripts/check-webmcp-inline-html.mjs</code> (new, wired into docs.yml after the build): reads <code>.next/server/app/index.html</code> and requires the literal inside a <code>&lt;script&gt;</code> with no <code>src</code>. Next's RSC flight payload repeats the string, so flight scripts are skipped and do not count.</li>
+<li>Planted control: with <code>&lt;WebMcpInlineScript /&gt;</code> removed from the layout the check exits 1; restored, it exits 0.</li>
+<li>Unit tests run the script text against stubbed globals: registration order, the registry in both orders, the form skip, and a parity test that the inline execute functions fetch the same URLs and return the same results as the chunk tools, including the traversal refusals.</li>
+</ul>
+
+<h2>Measure</h2>
+<p>After deploy, rescan with <code>force:true</code>. Moved above 1 of 5: the scanner reads HTML only, keep both paths. Unchanged: refuted, and the next suspect is the declarative-first ranking in the scanner's own wording.</p>
+<p class="muted">Branch feat/webmcp-inline-registration. Source: docs/site/lib/webmcp-inline-script.ts, components/webmcp-inline-script.tsx.</p>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

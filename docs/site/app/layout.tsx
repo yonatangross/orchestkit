@@ -10,6 +10,7 @@ import { ClientErrorReporter } from "@/components/client-error-reporter";
 import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
 import { ThemeRevealOrigin } from "@/components/theme-reveal-origin";
+import { WebMcpInlineScript } from "@/components/webmcp-inline-script";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { BANNER_TEXT, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
@@ -107,6 +108,10 @@ export default function Layout({ children }: { children: ReactNode }) {
 				>
 					<div id="main-content">{children}</div>
 				</RootProvider>
+				{/* Inline WebMCP registration, readable in the served HTML. After the
+				    page content so a <form toolname> is parsed first; before the
+				    provider, whose chunk path skips the names this one claims. */}
+				<WebMcpInlineScript />
 				<HQAnalytics projectId="orchestkit" />
 				<WebVitalsReporter />
 				<ClientErrorReporter />

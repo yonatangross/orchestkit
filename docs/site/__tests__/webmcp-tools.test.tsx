@@ -3,11 +3,13 @@ import { resolve } from "node:path";
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
+import { buildWebMcpInlineScript, WEBMCP_INLINE_SCRIPT } from "@/lib/webmcp-inline-script";
 import {
 	declaredToolNames,
 	markdownRouteFor,
 	registerWebMcpTools,
 	skillRouteFor,
+	WEBMCP_REGISTRY_KEY,
 	WEBMCP_TOOLS,
 	type WebMcpTool,
 } from "@/lib/webmcp-tools";
@@ -39,6 +41,8 @@ afterEach(() => {
 			delete (host as { modelContext?: unknown }).modelContext;
 		}
 	}
+	delete window.__orkWebMcpRegistered;
+	document.body.innerHTML = "";
 });
 
 describe("registerWebMcpTools", () => {
@@ -266,5 +270,202 @@ describe("WebMcpSearchForm", () => {
 		expect(form?.getAttribute("tooldescription")).toContain("Full-text search");
 		expect(form?.getAttribute("action")).toBe("/api/search");
 		expect(form?.querySelector('input[name="query"]')).not.toBeNull();
+	});
+});
+
+/** Run the inline layout script the way the browser parser would: as plain
+ * script text against the page globals, with nothing imported. */
+function runInline(script: string = WEBMCP_INLINE_SCRIPT) {
+	new Function(script)();
+}
+
+describe("inline layout script (served HTML registration)", () => {
+	it("writes the document.modelContext.registerTool( literal, navigator only as a fallback, no imports", () => {
+		const docCall = WEBMCP_INLINE_SCRIPT.indexOf("document.modelContext.registerTool(");
+		const navCall = WEBMCP_INLINE_SCRIPT.indexOf("navigator.modelContext.registerTool(");
+		expect(docCall).toBeGreaterThan(-1);
+		expect(navCall).toBeGreaterThan(docCall);
+		expect(WEBMCP_INLINE_SCRIPT).not.toMatch(/\bimport\b|\brequire\(/);
+		expect(WEBMCP_INLINE_SCRIPT).toContain(`window["${WEBMCP_REGISTRY_KEY}"]`);
+	});
+
+	it("registers every tool on document.modelContext and marks each name inline", () => {
+		const registerTool = vi.fn(async () => undefined);
+		const navRegister = vi.fn();
+		stubModelContext("document", { registerTool });
+		stubModelContext("navigator", { registerTool: navRegister });
+		runInline();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
+		expect(navRegister).not.toHaveBeenCalled();
+		expect(window.__orkWebMcpRegistered).toEqual(
+			Object.fromEntries(EXPECTED_TOOLS.map((n) => [n, "inline"])),
+		);
+	});
+
+	it("falls back to navigator.modelContext.registerTool", () => {
+		const registerTool = vi.fn();
+		stubModelContext("navigator", { registerTool });
+		runInline();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
+	});
+
+	it("inline first, then the chunk provider: each name reaches registerTool once", () => {
+		const registerTool = vi.fn(async () => undefined);
+		stubModelContext("document", { registerTool });
+		runInline();
+		registerWebMcpTools();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
+	});
+
+	it("chunk provider first, then inline: still once per name", () => {
+		const registerTool = vi.fn(async () => undefined);
+		stubModelContext("document", { registerTool });
+		registerWebMcpTools();
+		runInline();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS);
+		expect(window.__orkWebMcpRegistered?.search_docs).toBe("chunk");
+	});
+
+	it("skips a name the page declares through <form toolname>, like the chunk path", () => {
+		render(<WebMcpSearchForm />);
+		const registerTool = vi.fn();
+		stubModelContext("document", { registerTool });
+		runInline();
+		registerWebMcpTools();
+		expect(names(registerTool)).toEqual(EXPECTED_TOOLS.filter((n) => n !== "search_docs"));
+	});
+
+	it("claims nothing without the API, so the chunk provideContext path keeps the full set", () => {
+		runInline();
+		expect(window.__orkWebMcpRegistered).toBeUndefined();
+		const provideContext = vi.fn();
+		stubModelContext("navigator", { provideContext });
+		registerWebMcpTools();
+		expect(provideContext).toHaveBeenCalledWith({ tools: WEBMCP_TOOLS });
+	});
+
+	it("a rejected inline registerTool is logged, never unhandled", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: (tool: WebMcpTool) =>
+				tool.name === "get_skill"
+					? Promise.reject(new DOMException("duplicate", "InvalidStateError"))
+					: Promise.resolve(),
+		});
+		expect(() => runInline()).not.toThrow();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(warn).toHaveBeenCalledWith(
+			"[webmcp] inline registerTool(get_skill) failed",
+			expect.any(DOMException),
+		);
+	});
+
+	it("a rejected inline registerTool releases the name, so the chunk path registers it", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		let failGetSkill = true;
+		const registerTool = vi.fn((tool: WebMcpTool) =>
+			tool.name === "get_skill" && failGetSkill
+				? Promise.reject(new DOMException("not ready", "InvalidStateError"))
+				: Promise.resolve(),
+		);
+		stubModelContext("document", { registerTool });
+		runInline();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(window.__orkWebMcpRegistered?.get_skill).toBeUndefined();
+		failGetSkill = false;
+		registerWebMcpTools();
+		// names() sorts, so the retry shows up as a second get_skill.
+		expect(names(registerTool)).toEqual([...EXPECTED_TOOLS, "get_skill"].sort());
+		expect(window.__orkWebMcpRegistered?.get_skill).toBe("chunk");
+	});
+
+	it("a sync throw in inline registerTool releases the name too", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: vi.fn(() => {
+				throw new TypeError("bad schema");
+			}),
+		});
+		runInline();
+		expect(window.__orkWebMcpRegistered).toEqual({});
+	});
+
+	it("a rejected chunk registerTool releases its claim as well", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: (tool: WebMcpTool) =>
+				tool.name === "list_skills" ? Promise.reject(new Error("boom")) : Promise.resolve(),
+		});
+		registerWebMcpTools();
+		expect(window.__orkWebMcpRegistered?.list_skills).toBe("chunk");
+		await new Promise((r) => setTimeout(r, 0));
+		expect(window.__orkWebMcpRegistered?.list_skills).toBeUndefined();
+		expect(window.__orkWebMcpRegistered?.get_page).toBe("chunk");
+	});
+
+	it("inline execute functions hit the same endpoints with the same results as the chunk tools", async () => {
+		const registerTool = vi.fn();
+		stubModelContext("document", { registerTool });
+		runInline();
+		const inline = byName(registerTool.mock.calls.map(([t]) => t as WebMcpTool));
+		const chunk = byName(WEBMCP_TOOLS);
+		const cases: Array<[string, Record<string, unknown>]> = [
+			["search_docs", { query: "install", tag: "skill" }],
+			["search_docs", { query: "  " }],
+			["get_page", { path: "/docs/foundations/overview" }],
+			["get_page", { path: "a/b.md" }],
+			["get_page", { path: "/" }],
+			["get_page", { path: "%2e%2e/%2e%2e/api/jobs/t" }],
+			["get_page", { path: "https://evil.example/x" }],
+			["list_skills", {}],
+			["get_skill", { name: " Assess " }],
+			["get_skill", { name: "..%2fadmin" }],
+			["get_skill", { name: "" }],
+		];
+		const body = JSON.stringify({ skills: [{ name: "assess", description: "Rate it" }] });
+		for (const [name, args] of cases) {
+			const runOne = async (tool: WebMcpTool) => {
+				const fetchMock = vi.fn(async () => new Response(body, { status: 200 }));
+				vi.stubGlobal("fetch", fetchMock);
+				const result = await tool.execute(args);
+				return { calls: fetchMock.mock.calls, result };
+			};
+			const want = await runOne(chunk[name]);
+			const got = await runOne(inline[name]);
+			expect(got, `${name} ${JSON.stringify(args)}`).toEqual(want);
+		}
+		const notFound = vi.fn(async () => new Response("", { status: 404 }));
+		vi.stubGlobal("fetch", notFound);
+		expect(await inline.get_skill.execute({ name: "nope" })).toEqual(
+			await chunk.get_skill.execute({ name: "nope" }),
+		);
+	});
+
+	it("serializes the same names, descriptions and schemas as WEBMCP_TOOLS", () => {
+		const registerTool = vi.fn();
+		stubModelContext("document", { registerTool });
+		runInline();
+		const strip = (t: WebMcpTool) => ({
+			name: t.name,
+			description: t.description,
+			inputSchema: t.inputSchema,
+		});
+		const got = registerTool.mock.calls.map(([t]) => strip(t as WebMcpTool));
+		expect(got).toEqual(WEBMCP_TOOLS.map(strip));
+	});
+
+	it("refuses to build when a tool has no inline executor", () => {
+		const extra: WebMcpTool = { ...WEBMCP_TOOLS[0], name: "new_tool" };
+		expect(() => buildWebMcpInlineScript([...WEBMCP_TOOLS, extra])).toThrow(/new_tool/);
+	});
+
+	it("cannot be closed early by a </script> inside tool data", () => {
+		const hostile: WebMcpTool = { ...WEBMCP_TOOLS[0], description: "x</script><b>y" };
+		expect(buildWebMcpInlineScript([hostile])).not.toMatch(/<\/script/i);
+	});
+
+	it("the Window registry property in webmcp.d.ts matches WEBMCP_REGISTRY_KEY", () => {
+		const dts = readFileSync(resolve(__dirname, "../webmcp.d.ts"), "utf8");
+		expect(dts).toContain(`${WEBMCP_REGISTRY_KEY}?:`);
 	});
 });

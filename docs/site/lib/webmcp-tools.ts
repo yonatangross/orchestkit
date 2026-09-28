@@ -49,7 +49,7 @@ export const GET_PAGE_DESCRIPTION =
 // request left for /api/jobs/<token> instead of /api/md/. Every real slug on
 // the site matches this (checked against all 277 docs files and every skill
 // directory), so nothing legitimate is lost.
-const SAFE_SEGMENT = /^[a-z0-9][a-z0-9._-]*$/;
+export const SAFE_SEGMENT = /^[a-z0-9][a-z0-9._-]*$/;
 
 /** Percent-decode once, then require every "/"-separated segment to be a
  * plain slug. Returns the decoded segments, or null when any segment fails
@@ -204,14 +204,30 @@ export function declaredToolNames(doc: object): Set<string> {
 	return names;
 }
 
+/** Window property shared by both registration paths: the inline script in
+ * the root layout HTML (lib/webmcp-inline-script.ts) and this chunk helper.
+ * Each maps a tool name to the path that registered it; whichever path runs
+ * first claims the name and the other skips it, so a name is never sent to
+ * registerTool twice. The guarded() catch below still covers a race the
+ * registry cannot see (a duplicate rejection from the browser itself). */
+export const WEBMCP_REGISTRY_KEY = "__orkWebMcpRegistered";
+
+function registry(): Record<string, string> {
+	window.__orkWebMcpRegistered ??= {};
+	return window.__orkWebMcpRegistered;
+}
+
 /** Log a failed registration without letting it escape. This runs from a
  * layout-level effect, and docs/site/app has no error.tsx, so a throwing
  * browser API would otherwise take the whole page to the Next error screen.
  * Per the spec, registerTool returns a Promise that REJECTS on a duplicate
  * name, an empty name or description, or an invalid inputSchema, so a
  * thenable result gets a catch too; a sync try/catch alone never sees it. */
-function guarded(what: string, fn: () => unknown): void {
-	const warn = (err: unknown) => console.warn(`[webmcp] ${what} failed`, err);
+function guarded(what: string, fn: () => unknown, onFail?: () => void): void {
+	const warn = (err: unknown) => {
+		console.warn(`[webmcp] ${what} failed`, err);
+		onFail?.();
+	};
 	try {
 		const result = fn();
 		if (result && typeof (result as PromiseLike<unknown>).then === "function") {
@@ -244,7 +260,8 @@ function registerOnNavigator(tool: WebMcpTool): unknown {
  * document.modelContext.registerTool, then navigator.modelContext.registerTool,
  * then navigator.modelContext.provideContext. Feature-detected at every step,
  * so it is a no-op (returns "none") in a browser without the API or during
- * SSR. Tools already declared on the page through a `<form toolname>` are
+ * SSR. Tools already declared on the page through a `<form toolname>`, and
+ * tools the inline layout script already registered (WEBMCP_REGISTRY_KEY), are
  * skipped so each name is declared exactly once. */
 export function registerWebMcpTools(
 	tools: WebMcpTool[] = WEBMCP_TOOLS,
@@ -253,20 +270,36 @@ export function registerWebMcpTools(
 		return "none";
 	}
 	const declared = declaredToolNames(document);
-	const pending = tools.filter((t) => !declared.has(t.name));
+	const claimed = registry();
+	const pending = tools.filter((t) => !declared.has(t.name) && !(t.name in claimed));
+	const claim = () => {
+		for (const tool of pending) claimed[tool.name] = "chunk";
+	};
+	// A failed registration gives the name back, once the call has settled
+	// (a sync throw or a rejection), so a later path can still register it.
+	const release = (name: string) => () => {
+		if (claimed[name] === "chunk") delete claimed[name];
+	};
 	if (typeof document.modelContext?.registerTool === "function") {
+		claim();
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => registerOnDocument(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnDocument(tool), release(tool.name));
 		return "document.registerTool";
 	}
 	if (typeof navigator.modelContext?.registerTool === "function") {
+		claim();
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => registerOnNavigator(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnNavigator(tool), release(tool.name));
 		return "navigator.registerTool";
 	}
 	if (typeof navigator.modelContext?.provideContext === "function") {
-		guarded("provideContext", () =>
-			navigator.modelContext?.provideContext?.({ tools: pending }),
+		claim();
+		guarded(
+			"provideContext",
+			() => navigator.modelContext?.provideContext?.({ tools: pending }),
+			() => {
+				for (const tool of pending) release(tool.name)();
+			},
 		);
 		return "navigator.provideContext";
 	}
