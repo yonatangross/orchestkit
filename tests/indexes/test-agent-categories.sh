@@ -26,19 +26,13 @@ fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 
 # Read one frontmatter field. Prints the value, or nothing when absent.
 #
-# Deliberately a single awk process rather than `sed -n '/^---$/,/^---$/p' | grep`.
-# That pipeline is wrong under the `set -o pipefail` on line 9: grep exits at the
-# first match, sed is then killed by SIGPIPE, and the pipeline reports 141 — so a
-# field that IS present reads as missing. It failed 33 of the 36 agents here while
-# only README.md (already skipped below) actually lacks the field, and it was
-# racy enough to stay green in CI while failing the local pre-commit gate.
+# Goes through the shared parser (scripts/lib/parse-frontmatter.js), because
+# category lives under metadata since m3 and only the parser lifts it back to
+# the top level. A raw `^category:` read would report every agent as missing.
+# One node process per call and no pipeline, so the SIGPIPE-under-pipefail
+# trap the old `sed | grep` read hit (exit 141 on a present field) cannot occur.
 frontmatter_value() {
-    awk -v key="$2" '
-        /^---$/          { fence++; if (fence >= 2) exit; next }
-        fence == 1 && index($0, key ":") == 1 {
-            sub("^" key ":[[:space:]]*", ""); print; exit
-        }
-    ' "$1"
+    node "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$1" "$2"
 }
 
 # Valid categories (must match generate-indexes.sh CATEGORY_ORDER)
@@ -137,7 +131,7 @@ for agent_md in "$SRC_AGENTS"/*.md; do
         README|INDEX|CONTRIBUTING) continue ;;
     esac
 
-    category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
+    category=$(frontmatter_value "$agent_md" category)
 
     if [[ -n "$category" ]]; then
         CATEGORY_COUNTS[$category]=$((${CATEGORY_COUNTS[$category]:-0} + 1))

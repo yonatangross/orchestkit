@@ -1,11 +1,9 @@
 ---
 name: monitoring-engineer
 description: Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.
-category: devops
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: orange
 memory: project
 background: true
@@ -46,20 +44,11 @@ skills:
   - remember
   - memory
 mcpServers: [tavily, context7]
-taskTypes:
-  - build
-  - design
-keywords:
-  - "monitoring"
-  - "prometheus"
-  - "grafana"
-  - "alerting"
-  - "tracing"
-  - "opentelemetry"
-  - "slo"
-examplePrompts:
-  - "Set up Prometheus metrics and Grafana dashboards for the API"
-  - "Define SLOs and create alerting rules for the payment service"
+metadata:
+  category: "devops"
+  taskTypes: "build, design"
+  keywords: "monitoring, prometheus, grafana, alerting, tracing, opentelemetry, slo"
+  examplePrompts: "Set up Prometheus metrics and Grafana dashboards for the API | Define SLOs and create alerting rules for the payment service"
 ---
 
 ## Directive

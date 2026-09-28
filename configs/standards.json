@@ -70,7 +70,7 @@
       "upstream_watch": "https://docs.claude.com/en/docs/claude-code/sub-agents",
       "last_verified": "2026-09-28",
       "status": "CLAIMED",
-      "note": "36 agents under src/agents. Each agent claude_code_keys entry carries the CC CHANGELOG version that shows Claude Code reads it. Ork house keys (category, taskTypes, keywords, examplePrompts, critical_system_reminder, required_mcp_servers) belong under metadata and are baselined at top level."
+      "note": "36 agents under src/agents. Each agent claude_code_keys entry carries the CC CHANGELOG version that shows Claude Code reads it. Ork house keys (category, taskTypes, keywords, examplePrompts, critical_system_reminder, required_mcp_servers) live under metadata since m3 (scripts/migrate-agent-frontmatter-m3.py); the shared parsers lift them back. context was dropped from all 36 agents in m3 (no CC evidence that a subagent reads it)."
     }
   ],
   "frontmatter": {

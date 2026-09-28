@@ -2,10 +2,8 @@
 name: frontend-ui-developer
 description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns."
 model: inherit
-category: frontend
 maxTurns: 30
 effort: medium
-context: fork
 isolation: worktree
 color: purple
 memory: project
@@ -61,22 +59,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7, 21st-dev-magic, storybook-mcp]
-taskTypes:
-  - build
-keywords:
-  - "react"
-  - "typescript"
-  - "component"
-  - "ui"
-  - "frontend"
-  - "zod"
-  - "tanstack"
-  - "suspense"
-  - "form"
-  - "dashboard"
-examplePrompts:
-  - "Build a data table component with sorting, filtering, and pagination"
-  - "Create a multi-step form with Zod validation and optimistic updates"
+metadata:
+  category: "frontend"
+  taskTypes: "build"
+  keywords: "react, typescript, component, ui, frontend, zod, tanstack, suspense, form, dashboard"
+  examplePrompts: "Build a data table component with sorting, filtering, and pagination | Create a multi-step form with Zod validation and optimistic updates"
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.

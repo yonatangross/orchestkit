@@ -2,8 +2,6 @@
 name: emulate-engineer
 description: "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks."
 model: haiku
-category: testing
-context: fork
 isolation: worktree
 maxTurns: 30
 effort: medium
@@ -28,22 +26,11 @@ skills:
   - testing-integration
   - testing-e2e
   - testing-unit
-taskTypes:
-  - test
-  - build
-keywords:
-  - "emulate"
-  - "api emulation"
-  - "stateful mock"
-  - "vercel emulate"
-  - "webhook"
-  - "seed"
-  - "stripe testing"
-  - "resend inbox"
-  - "okta emulator"
-examplePrompts:
-  - "Emulate Stripe hosted checkout with webhook delivery in our integration tests"
-  - "Capture outgoing Resend emails in a local /inbox for assertions"
+metadata:
+  category: "testing"
+  taskTypes: "test, build"
+  keywords: "emulate, api emulation, stateful mock, vercel emulate, webhook, seed, stripe testing, resend inbox, okta emulator"
+  examplePrompts: "Emulate Stripe hosted checkout with webhook delivery in our integration tests | Capture outgoing Resend emails in a local /inbox for assertions"
 ---
 ## Directive
 > emulate's provider set and version-specific flags are documented in the emulate-seed skill — the source of truth.

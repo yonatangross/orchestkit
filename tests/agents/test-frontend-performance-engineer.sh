@@ -110,20 +110,6 @@ for section in "${sections[@]}"; do
 done
 echo ""
 
-# Test 8: Context mode
-echo "Test 8: Context mode"
-if grep -q "^context:" "$AGENT_FILE"; then
-  context=$(grep "^context:" "$AGENT_FILE" | sed 's/context: *//')
-  if [[ "$context" == "fork" || "$context" == "inherit" || "$context" == "none" ]]; then
-    log_pass "Valid context mode: $context"
-  else
-    log_fail "Invalid context mode: $context"
-  fi
-else
-  log_fail "Missing context field"
-fi
-echo ""
-
 # Test 9: Anti-patterns section
 echo "Test 9: Anti-patterns documentation"
 if grep -q "Anti-Patterns" "$AGENT_FILE"; then

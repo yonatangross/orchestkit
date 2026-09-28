@@ -1,11 +1,9 @@
 ---
 name: security-layer-auditor
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection.
-category: security
 model: opus
 maxTurns: 60
 effort: medium
-context: fork
 color: red
 memory: local
 tools:
@@ -23,21 +21,13 @@ skills:
   - memory
 mcpServers: []
 background: true
-critical_system_reminder: "Verify all 8 security layers are addressed. Never skip a layer even if it seems redundant."
 initialPrompt: "Check TaskList for pending audit tasks. Identify the target feature and map its 8 defense-in-depth security layers."
-taskTypes:
-  - secure
-  - review
-keywords:
-  - "defense in depth"
-  - "security layer"
-  - "edge"
-  - "storage"
-  - "network"
-  - "application"
-examplePrompts:
-  - "Audit all 8 security layers before the production release"
-  - "Verify defense-in-depth coverage for the API gateway"
+metadata:
+  category: "security"
+  critical_system_reminder: "Verify all 8 security layers are addressed. Never skip a layer even if it seems redundant."
+  taskTypes: "secure, review"
+  keywords: "defense in depth, security layer, edge, storage, network, application"
+  examplePrompts: "Audit all 8 security layers before the production release | Verify defense-in-depth coverage for the API gateway"
 ---
 # Security Layer Auditor Agent
 

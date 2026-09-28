@@ -120,7 +120,8 @@ PYEOF
 is_operational_category() {
   local file="$1"
   local cat
-  cat=$(grep "^category:" "$file" | awk '{print $2}' || echo "")
+  # category lives under metadata (m3); read it through the shared parser.
+  cat=$(node "$REPO_ROOT/scripts/lib/parse-frontmatter.js" "$file" category)
   for op_cat in "${OPERATIONAL_CATEGORIES[@]}"; do
     if [[ "$cat" == "$op_cat" ]]; then
       return 0
@@ -157,7 +158,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
 
   # Has write tools — operational categories are exempt (writing is their job)
   if is_operational_category "$agent_file"; then
-    cat=$(grep "^category:" "$agent_file" | awk '{print $2}')
+    cat=$(node "$REPO_ROOT/scripts/lib/parse-frontmatter.js" "$agent_file" category)
     echo "PASS: $agent_name (haiku/$cat) — write tools expected for operational agent"
     continue
   fi

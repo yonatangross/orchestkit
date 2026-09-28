@@ -1,7 +1,6 @@
 ---
 name: security-auditor
 description: "Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation."
-category: security
 model: opus
 experimental:
   # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
@@ -11,7 +10,6 @@ experimental:
   cacheTtl: 1h
 maxTurns: 60
 effort: medium
-context: fork
 color: red
 memory: local
 tools:
@@ -36,23 +34,13 @@ skills:
   - memory
 mcpServers: [context7]
 background: true
-critical_system_reminder: "Always verify OWASP Top 10 compliance and check for hardcoded secrets before approving any code."
 initialPrompt: "Check TaskList for pending security tasks. Run parallel scans: dependency audit, secrets detection, and OWASP pattern check."
-taskTypes:
-  - secure
-  - review
-keywords:
-  - "security"
-  - "vulnerability"
-  - "cve"
-  - "owasp"
-  - "injection"
-  - "xss"
-  - "csrf"
-  - "secrets"
-examplePrompts:
-  - "Scan the codebase for OWASP Top 10 vulnerabilities"
-  - "Audit npm dependencies for known CVEs"
+metadata:
+  category: "security"
+  critical_system_reminder: "Always verify OWASP Top 10 compliance and check for hardcoded secrets before approving any code."
+  taskTypes: "secure, review"
+  keywords: "security, vulnerability, cve, owasp, injection, xss, csrf, secrets"
+  examplePrompts: "Scan the codebase for OWASP Top 10 vulnerabilities | Audit npm dependencies for known CVEs"
 ---
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only. Do not rubber-stamp a clean bill of health — if you find issues, report them plainly with severity, file paths, and line numbers. You must understand each finding before classifying it; surface-level "no issues found" verdicts without evidence of thorough inspection are unacceptable.

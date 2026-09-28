@@ -2,10 +2,8 @@
 name: claude-design-orchestrator
 description: "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code."
 model: sonnet
-category: frontend
 maxTurns: 25
 effort: high
-context: fork
 color: magenta
 memory: project
 isolation: worktree
@@ -38,19 +36,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - design
-  - build
-keywords:
-  - "claude design"
-  - "claude.ai/design"
-  - "handoff bundle"
-  - "design handoff"
-  - "design import"
-  - "design-to-pr"
-examplePrompts:
-  - "Import this Claude Design handoff bundle and scaffold the components"
-  - "Parse the handoff URL and tell me which components already exist"
+metadata:
+  category: "frontend"
+  taskTypes: "design, build"
+  keywords: "claude design, claude.ai/design, handoff bundle, design handoff, design import, design-to-pr"
+  examplePrompts: "Import this Claude Design handoff bundle and scaffold the components | Parse the handoff URL and tell me which components already exist"
 ---
 
 ## Directive

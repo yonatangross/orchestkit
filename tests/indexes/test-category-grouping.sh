@@ -184,7 +184,8 @@ for agent_name in "${!EXPECTED_CATEGORIES[@]}"; do
 
     [[ ! -f "$agent_md" ]] && continue
 
-    actual=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
+    # category lives under metadata (m3); read it through the shared parser.
+    actual=$(node "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$agent_md" category)
 
     if [[ "$actual" != "$expected" ]]; then
         fail "Agent '$agent_name' frontmatter has '$actual' (expected '$expected')"
@@ -250,7 +251,7 @@ for agent_md in "$SRC_AGENTS"/*.md; do
         README|INDEX|CONTRIBUTING) continue ;;
     esac
 
-    category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
+    category=$(node "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$agent_md" category)
 
     if [[ -z "$category" ]]; then
         fail "Agent '$agent_name' has no category in frontmatter"

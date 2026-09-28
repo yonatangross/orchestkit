@@ -2,10 +2,8 @@
 name: product-strategist
 description: "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go."
 model: inherit
-category: product
 maxTurns: 30
 effort: medium
-context: fork
 color: purple
 memory: local
 tools:
@@ -37,17 +35,11 @@ skills:
   - remember
   - memory
 mcpServers: [tavily]
-taskTypes:
-  - plan
-  - research
-keywords:
-  - "product strategy"
-  - "value proposition"
-  - "build/buy/partner"
-  - "go/no-go"
-examplePrompts:
-  - "Evaluate build vs buy for the notification system"
-  - "Validate the value proposition for the workflow builder"
+metadata:
+  category: "product"
+  taskTypes: "plan, research"
+  keywords: "product strategy, value proposition, build/buy/partner, go/no-go"
+  examplePrompts: "Evaluate build vs buy for the notification system | Validate the value proposition for the workflow builder"
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.
