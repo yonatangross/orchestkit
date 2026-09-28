@@ -1,13 +1,11 @@
 ---
 name: git-operations-engineer
 description: "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history."
-category: git
 model: sonnet
 maxTurns: 20
 effort: low
 isolation: worktree
 memory: project
-context: fork
 color: orange
 tools:
   - Bash
@@ -33,19 +31,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-keywords:
-  - "git"
-  - "branch"
-  - "rebase"
-  - "merge"
-  - "stacked pr"
-  - "recovery"
-  - "reflog"
-examplePrompts:
-  - "Rebase the feature branch onto main and resolve conflicts"
-  - "Set up stacked PRs for the 3-part authentication feature"
+metadata:
+  category: "git"
+  taskTypes: "build"
+  keywords: "git, branch, rebase, merge, stacked pr, recovery, reflog"
+  examplePrompts: "Rebase the feature branch onto main and resolve conflicts | Set up stacked PRs for the 3-part authentication feature"
 ---
 ## Directive
 Manage Git operations including branch management, commit workflows, rebasing, merging, stacked PRs, and disaster recovery. Ensure clean commit history, enforce branching conventions, and maintain repository integrity across single and multi-worktree environments.

@@ -24,9 +24,7 @@ The frontmatter defines the agent's identity and capabilities:
 ---
 name: my-new-agent
 description: Brief description of what the agent does. Activates for keyword1, keyword2, keyword3
-category: backend
 model: inherit
-context: fork
 color: blue
 memory: project
 tools:
@@ -41,6 +39,11 @@ skills:
   - relevant-skill-2
   - remember
   - memory
+metadata:
+  category: "backend"
+  taskTypes: "build"
+  keywords: "keyword1, keyword2, keyword3"
+  examplePrompts: "First example prompt | Second example prompt"
 ---
 ```
 
@@ -130,7 +133,7 @@ The test suite checks that:
 - The `name` field matches the filename
 - Required fields (`description`, `model`, `tools`, `skills`) are present
 - The `model` value is one of `opus`, `sonnet`, or `inherit`
-- The `context` value is one of `fork` or `inherit`
+- `metadata` carries `category`, `taskTypes`, `keywords` and exactly 2 `examplePrompts`
 - All referenced skills exist in `src/skills/`
 
 ## Frontmatter Reference
@@ -149,8 +152,7 @@ The test suite checks that:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `context` | string | `fork` | `fork` for isolation, `inherit` to share parent context |
-| `category` | string | none | Grouping: `backend`, `frontend`, `security`, `testing`, `devops`, `llm`, `product`, `design`, `docs`, `git`, `research` |
+| `metadata` | map of strings | none | Ork house keys. `category` groups the agent (`backend`, `frontend`, `security`, `testing`, `devops`, `llm`, `product`, `design`, `docs`, `git`, `research`); `taskTypes` and `keywords` are comma-joined; `examplePrompts` holds 2 prompts joined with ` \| `. Agents carry no `context` key. |
 | `color` | string | none | Visual color in task display |
 | `memory` | string | none | `project` for persistent memory, `local` for session-only |
 | `hooks` | object | none | Agent-scoped hook definitions |
@@ -343,9 +345,7 @@ Here is a complete, production-ready agent template:
 ---
 name: my-domain-specialist
 description: Domain specialist who handles specific-task-1, specific-task-2, and specific-task-3. Focuses on quality-1, quality-2, and quality-3. Activates for keyword1, keyword2, keyword3, keyword4, keyword5
-category: backend
 model: inherit
-context: fork
 color: blue
 memory: project
 tools:
@@ -363,6 +363,11 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+metadata:
+  category: "backend"
+  taskTypes: "build, review"
+  keywords: "keyword1, keyword2, keyword3"
+  examplePrompts: "First example prompt | Second example prompt"
 ---
 ## Directive
 Handle specific-domain tasks with focus on quality-1 and quality-2.
@@ -469,7 +474,7 @@ npm run test:agents
 # - name matches filename
 # - required fields present
 # - model is opus|sonnet|inherit
-# - context is fork|inherit
+# - metadata taskTypes, keywords and 2 examplePrompts are set
 # - referenced skills exist
 ```
 

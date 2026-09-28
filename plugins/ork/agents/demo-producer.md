@@ -1,12 +1,10 @@
 ---
 name: demo-producer
 description: Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition.
-category: design
 model: sonnet
 maxTurns: 30
 effort: medium
 isolation: worktree
-context: fork
 color: magenta
 memory: local
 tools:
@@ -35,19 +33,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - design
-  - document
-keywords:
-  - "demo"
-  - "video"
-  - "marketing"
-  - "showcase"
-  - "terminal recording"
-  - "remotion"
-examplePrompts:
-  - "Create a 60-second demo video for the /ork:implement skill"
-  - "Produce a marketing showcase for the new plugin features"
+metadata:
+  category: "design"
+  taskTypes: "design, document"
+  keywords: "demo, video, marketing, showcase, terminal recording, remotion"
+  examplePrompts: "Create a 60-second demo video for the /ork:implement skill | Produce a marketing showcase for the new plugin features"
 ---
 
 ## Directive

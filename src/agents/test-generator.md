@@ -2,11 +2,9 @@
 name: test-generator
 description: "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording."
 model: sonnet
-category: testing
 isolation: worktree
 maxTurns: 50
 effort: medium
-context: fork
 color: green
 memory: project
 tools:
@@ -40,20 +38,12 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
-taskTypes:
-  - test
-  - build
-keywords:
-  - "test"
-  - "coverage"
-  - "unit test"
-  - "integration test"
-  - "msw"
-  - "fixture"
-examplePrompts:
-  - "Generate unit tests for the auth service with 90% coverage"
-  - "Create integration tests for the payment API with MSW mocking"
+metadata:
+  category: "testing"
+  critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
+  taskTypes: "test, build"
+  keywords: "test, coverage, unit test, integration test, msw, fixture"
+  examplePrompts: "Generate unit tests for the auth service with 90% coverage | Create integration tests for the payment API with MSW mocking"
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.

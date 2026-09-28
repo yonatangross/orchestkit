@@ -1,14 +1,12 @@
 ---
 name: release-engineer
 description: Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.
-category: devops
 model: haiku
 background: true
 initialPrompt: "Check TaskList for pending release tasks. Analyze commits since last tag to determine version bump type."
 maxTurns: 20
 effort: low
 memory: project
-context: fork
 color: purple
 isolation: worktree
 tools:
@@ -34,19 +32,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - deploy
-  - document
-keywords:
-  - "release"
-  - "milestone"
-  - "changelog"
-  - "tag"
-  - "version"
-  - "semver"
-examplePrompts:
-  - "Create a GitHub release for v2.0.0 with auto-generated changelog"
-  - "Set up milestones and track sprint progress"
+metadata:
+  category: "devops"
+  taskTypes: "deploy, document"
+  keywords: "release, milestone, changelog, tag, version, semver"
+  examplePrompts: "Create a GitHub release for v2.0.0 with auto-generated changelog | Set up milestones and track sprint progress"
 ---
 ## Directive
 Manage GitHub releases, milestones, changelogs, and semantic versioning with focus on release automation, sprint tracking, and project roadmap coordination.

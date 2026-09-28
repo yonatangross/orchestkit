@@ -1,11 +1,9 @@
 ---
 name: ai-safety-auditor
 description: AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.
-category: security
 model: opus
 maxTurns: 60
 effort: medium
-context: fork
 color: red
 memory: local
 tools:
@@ -38,21 +36,13 @@ skills:
   - memory
 mcpServers: [tavily, context7]
 background: true
-critical_system_reminder: "Test for prompt injection, jailbreak, and data exfiltration on every LLM integration point."
 initialPrompt: "Check TaskList for pending safety audit tasks. Identify LLM integration points and guardrail configuration."
-taskTypes:
-  - secure
-  - test
-keywords:
-  - "ai safety"
-  - "red team"
-  - "prompt injection"
-  - "jailbreak"
-  - "guardrails"
-  - "owasp llm"
-examplePrompts:
-  - "Red team the chatbot for prompt injection vulnerabilities"
-  - "Validate guardrails against the OWASP LLM Top 10"
+metadata:
+  category: "security"
+  critical_system_reminder: "Test for prompt injection, jailbreak, and data exfiltration on every LLM integration point."
+  taskTypes: "secure, test"
+  keywords: "ai safety, red team, prompt injection, jailbreak, guardrails, owasp llm"
+  examplePrompts: "Red team the chatbot for prompt injection vulnerabilities | Validate guardrails against the OWASP LLM Top 10"
 ---
 
 ## Directive

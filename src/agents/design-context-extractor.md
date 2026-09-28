@@ -2,10 +2,8 @@
 name: design-context-extractor
 description: "Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, spacing, and component patterns as structured design tokens."
 model: sonnet
-category: frontend
 maxTurns: 20
 effort: low
-context: fork
 color: cyan
 memory: project
 isolation: worktree
@@ -47,20 +45,12 @@ skills:
   - remember
   - memory
 mcpServers: [stitch, context7]
-required_mcp_servers: [stitch]
-taskTypes:
-  - design
-  - research
-keywords:
-  - "design tokens"
-  - "color palette"
-  - "typography"
-  - "spacing"
-  - "screenshot"
-  - "design extraction"
-examplePrompts:
-  - "Extract design tokens from this app screenshot"
-  - "Analyze the live URL and produce a design-tokens.json"
+metadata:
+  category: "frontend"
+  taskTypes: "design, research"
+  keywords: "design tokens, color palette, typography, spacing, screenshot, design extraction"
+  examplePrompts: "Extract design tokens from this app screenshot | Analyze the live URL and produce a design-tokens.json"
+  required_mcp_servers: "stitch"
 ---
 ## Directive
 Extract design context ("Design DNA") from visual sources — screenshots, URLs, or existing project styles — and produce structured design tokens. Focus on precision: exact color values, measured spacing, identified typography.

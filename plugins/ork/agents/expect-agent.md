@@ -1,11 +1,9 @@
 ---
 name: expect-agent
 description: "Browser test execution: runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, and 6-category failure classification."
-category: testing
 model: sonnet
 maxTurns: 50
 effort: high
-context: fork
 color: green
 memory: none
 tools:
@@ -22,18 +20,11 @@ skills:
   - expect
   - testing-e2e
 mcpServers: []
-keywords:
-  - browser test
-  - expect
-  - test execution
-  - ARIA snapshot
-  - visual regression
-  - accessibility testing
-taskTypes:
-  - test
-examplePrompts:
-  - "Execute this test plan against localhost:3000 using agent-browser"
-  - "Run the login flow test and report pass/fail per step"
+metadata:
+  category: "testing"
+  taskTypes: "test"
+  keywords: "browser test, expect, test execution, ARIA snapshot, visual regression, accessibility testing"
+  examplePrompts: "Execute this test plan against localhost:3000 using agent-browser | Run the login flow test and report pass/fail per step"
 ---
 
 ## Directive

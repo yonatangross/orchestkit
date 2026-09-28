@@ -1,11 +1,9 @@
 ---
 name: event-driven-architect
 description: Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns.
-category: backend
 model: sonnet
 maxTurns: 60
 effort: medium
-context: fork
 color: purple
 memory: project
 isolation: worktree
@@ -36,21 +34,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - design
-  - build
-keywords:
-  - "event sourcing"
-  - "kafka"
-  - "rabbitmq"
-  - "cqrs"
-  - "saga"
-  - "outbox"
-  - "pub/sub"
-  - "message queue"
-examplePrompts:
-  - "Design an event-driven order processing pipeline with Kafka"
-  - "Implement the outbox pattern for reliable event publishing"
+metadata:
+  category: "backend"
+  taskTypes: "design, build"
+  keywords: "event sourcing, kafka, rabbitmq, cqrs, saga, outbox, pub/sub, message queue"
+  examplePrompts: "Design an event-driven order processing pipeline with Kafka | Implement the outbox pattern for reliable event publishing"
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.

@@ -2,10 +2,8 @@
 name: design-system-architect
 description: "Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pipelines, and design governance."
 model: sonnet
-category: frontend
 maxTurns: 30
 effort: medium
-context: fork
 isolation: worktree
 color: teal
 memory: project
@@ -53,19 +51,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7, stitch, storybook-mcp]
-taskTypes:
-  - design
-  - build
-keywords:
-  - "design system"
-  - "tokens"
-  - "theming"
-  - "component library"
-  - "figma"
-  - "design governance"
-examplePrompts:
-  - "Design a token hierarchy for the multi-brand design system"
-  - "Create a Figma-to-code pipeline for the component library"
+metadata:
+  category: "frontend"
+  taskTypes: "design, build"
+  keywords: "design system, tokens, theming, component library, figma, design governance"
+  examplePrompts: "Design a token hierarchy for the multi-brand design system | Create a Figma-to-code pipeline for the component library"
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.

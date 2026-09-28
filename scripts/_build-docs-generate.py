@@ -104,23 +104,38 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
     return meta, body
 
 
-# House keys the Agent Skills spec does not allow at top level live under
-# metadata as strings (m1, scripts/migrate-skill-frontmatter-m1.py). Lift them
-# back so callers keep reading meta["tags"] etc. A top-level value wins; tags
-# is "a, b" under metadata and a list to callers. Mirrors
-# scripts/lib/parse-frontmatter.js LIFTED_HOUSE_KEYS.
-LIFTED_HOUSE_KEYS = ("version", "author", "complexity", "tags")
+# House keys G1 does not allow at top level live under metadata as strings
+# (skills: m1, scripts/migrate-skill-frontmatter-m1.py; agents: m3,
+# scripts/migrate-agent-frontmatter-m3.py). Lift them back so callers keep
+# reading meta["tags"], meta["category"] etc. A top-level value wins. The value
+# here is the separator a list was joined with under metadata (the key is a
+# list to callers), or None for a plain string; examplePrompts joins on "|"
+# because a prompt may hold commas. Mirrors scripts/lib/parse-frontmatter.js
+# LIFT_SEPARATORS.
+LIFT_SEPARATORS: dict[str, str | None] = {
+    "version": None,
+    "author": None,
+    "complexity": None,
+    "tags": ",",
+    "category": None,
+    "critical_system_reminder": None,
+    "taskTypes": ",",
+    "keywords": ",",
+    "required_mcp_servers": ",",
+    "examplePrompts": "|",
+}
+LIFTED_HOUSE_KEYS = tuple(LIFT_SEPARATORS)
 
 
 def _lift_house_keys(meta: dict) -> None:
     md = meta.get("metadata")
     if not isinstance(md, dict):
         return
-    for key in LIFTED_HOUSE_KEYS:
+    for key, sep in LIFT_SEPARATORS.items():
         if key in meta or not isinstance(md.get(key), str):
             continue
         val = md[key]
-        meta[key] = [t.strip() for t in val.split(",") if t.strip()] if key == "tags" else val
+        meta[key] = [t.strip() for t in val.split(sep) if t.strip()] if sep else val
 
 
 def title_case(slug: str) -> str:

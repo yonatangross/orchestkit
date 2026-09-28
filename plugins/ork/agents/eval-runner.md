@@ -12,8 +12,6 @@ background: true
 initialPrompt: "Check TaskList for pending evaluation tasks. Load the most recent golden dataset configuration and baseline metrics."
 maxTurns: 20
 effort: low
-context: fork
-category: testing
 color: green
 memory: project
 isolation: worktree
@@ -45,21 +43,12 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-required_mcp_servers: [context7]
-taskTypes:
-  - test
-  - optimize
-keywords:
-  - "eval"
-  - "deepeval"
-  - "ragas"
-  - "langfuse"
-  - "golden dataset"
-  - "regression"
-  - "metrics"
-examplePrompts:
-  - "Run the eval dataset and report quality metrics vs baseline"
-  - "Track regression across model versions with Langfuse scoring"
+metadata:
+  category: "testing"
+  taskTypes: "test, optimize"
+  keywords: "eval, deepeval, ragas, langfuse, golden dataset, regression, metrics"
+  examplePrompts: "Run the eval dataset and report quality metrics vs baseline | Track regression across model versions with Langfuse scoring"
+  required_mcp_servers: "context7"
 ---
 
 ## Directive

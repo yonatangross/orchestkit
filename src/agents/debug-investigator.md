@@ -1,11 +1,9 @@
 ---
 name: debug-investigator
 description: "Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis."
-category: testing
 model: sonnet
 maxTurns: 30
 effort: medium
-context: inherit
 color: orange
 memory: local
 tools:
@@ -38,19 +36,11 @@ skills:
   - remember
   - memory
 mcpServers: [memory, context7]
-taskTypes:
-  - debug
-keywords:
-  - "bug"
-  - "error"
-  - "exception"
-  - "crash"
-  - "debugging"
-  - "regression"
-  - "flaky"
-examplePrompts:
-  - "Investigate why the checkout flow fails intermittently"
-  - "Find the root cause of the memory leak in production"
+metadata:
+  category: "testing"
+  taskTypes: "debug"
+  keywords: "bug, error, exception, crash, debugging, regression, flaky"
+  examplePrompts: "Investigate why the checkout flow fails intermittently | Find the root cause of the memory leak in production"
 ---
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.

@@ -1,11 +1,9 @@
 ---
 name: web-research-analyst
 description: "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon."
-category: research
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: cyan
 memory: local
 background: true
@@ -40,17 +38,11 @@ skills:
   - remember
   - memory
 mcpServers: [tavily, context7]
-taskTypes:
-  - research
-keywords:
-  - "web research"
-  - "scraping"
-  - "browser automation"
-  - "content extraction"
-  - "tavily"
-examplePrompts:
-  - "Research the latest React 19 patterns and document findings"
-  - "Capture competitor pricing pages and feature matrices"
+metadata:
+  category: "research"
+  taskTypes: "research"
+  keywords: "web research, scraping, browser automation, content extraction, tavily"
+  examplePrompts: "Research the latest React 19 patterns and document findings | Capture competitor pricing pages and feature matrices"
 ---
 
 ## Directive

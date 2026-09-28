@@ -1,7 +1,6 @@
 ---
 name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.
-category: design
 model: opus
 experimental:
   # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
@@ -11,7 +10,6 @@ experimental:
   cacheTtl: 1h
 maxTurns: 60
 effort: medium
-context: inherit
 color: cyan
 memory: project
 tools:
@@ -33,17 +31,11 @@ skills:
 mcpServers: []
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Read the implementation plan or PR under review against the 5-dimension framework."
-taskTypes:
-  - review
-  - design
-keywords:
-  - "system design"
-  - "architecture review"
-  - "scale"
-  - "implementation plan"
-examplePrompts:
-  - "Review the architecture plan for the multi-tenant migration"
-  - "Evaluate the implementation plan against 5 design dimensions"
+metadata:
+  category: "design"
+  taskTypes: "review, design"
+  keywords: "system design, architecture review, scale, implementation plan"
+  examplePrompts: "Review the architecture plan for the multi-tenant migration | Evaluate the implementation plan against 5 design dimensions"
 ---
 # System Design Reviewer Agent
 

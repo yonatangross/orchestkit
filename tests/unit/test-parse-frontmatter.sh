@@ -189,9 +189,52 @@ metadata:
 ---
 body' "version")
 [[ "$result" == "9.9.9" ]] && pass "top-level value wins over metadata" || fail "Expected 9.9.9, got '$result'"
+result=$(parse_field "$M1_DOC" "category")
+[[ "$result" == "workflow-automation" ]] && pass "metadata category lifts (m3)" || fail "Expected workflow-automation, got '$result'"
 # parse_field exits 1 with no output when the key is absent at top level.
-result=$(parse_field "$M1_DOC" "category" || echo "absent")
-[[ "$result" == "absent" ]] && pass "non-house metadata keys stay under metadata" || fail "category leaked to top level: '$result'"
+result=$(parse_field '---
+name: m1-skill
+metadata:
+  owner: "someone"
+---
+body' "owner" || echo "absent")
+[[ "$result" == "absent" ]] && pass "non-house metadata keys stay under metadata" || fail "owner leaked to top level: '$result'"
+
+# Test 12: agent house keys under metadata lift (m3 shape)
+echo "▶ Test 12: m3 agent metadata lift"
+# The first prompt holds commas (as src/agents/frontend-ui-developer.md does),
+# so examplePrompts must split on "|" and never on ",".
+M3_DOC='---
+name: m3-agent
+model: sonnet
+metadata:
+  category: "frontend"
+  critical_system_reminder: "Never skip a layer, even if it seems redundant."
+  taskTypes: "build, design"
+  keywords: "react, design system, ui"
+  examplePrompts: "Build a data table component with sorting, filtering, and pagination | Create a multi-step form"
+  required_mcp_servers: "21st-dev-magic, context7"
+---
+body'
+result=$(parse_field "$M3_DOC" "examplePrompts")
+[[ "$result" == '["Build a data table component with sorting, filtering, and pagination","Create a multi-step form"]' ]] \
+  && pass "comma-bearing examplePrompt round-trips as one item" || fail "examplePrompts split wrong: '$result'"
+result=$(parse_field "$M3_DOC" "taskTypes")
+[[ "$result" == '["build","design"]' ]] && pass "metadata taskTypes lift to an array" || fail "Expected taskTypes array, got '$result'"
+result=$(parse_field "$M3_DOC" "keywords")
+[[ "$result" == '["react","design system","ui"]' ]] && pass "metadata keywords lift to an array" || fail "Expected keywords array, got '$result'"
+result=$(parse_field "$M3_DOC" "required_mcp_servers")
+[[ "$result" == '["21st-dev-magic","context7"]' ]] && pass "metadata required_mcp_servers lift to an array" || fail "Expected servers array, got '$result'"
+result=$(parse_field "$M3_DOC" "critical_system_reminder")
+[[ "$result" == "Never skip a layer, even if it seems redundant." ]] && pass "metadata critical_system_reminder lifts as a string" || fail "Got '$result'"
+result=$(parse_field "$M3_DOC" "category")
+[[ "$result" == "frontend" ]] && pass "metadata category lifts as a string" || fail "Expected frontend, got '$result'"
+# The CLI entry the shell tests use prints the same lifted value.
+M3_FILE=$(mktemp "${TMPDIR:-/tmp}/m3-agent.XXXXXX")
+printf '%s\n' "$M3_DOC" > "$M3_FILE"
+result=$(node "$PARSER" "$M3_FILE" category)
+rm -f "$M3_FILE"
+[[ "$result" == "frontend" ]] && pass "parser CLI prints the lifted category" || fail "CLI printed '$result'"
 
 echo ""
 echo "============================================================================"

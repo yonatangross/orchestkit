@@ -1,11 +1,9 @@
 ---
 name: workflow-architect
 description: "Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration."
-category: llm
 model: opus
 maxTurns: 60
 effort: high
-context: fork
 color: blue
 memory: project
 isolation: worktree
@@ -33,20 +31,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - design
-  - build
-keywords:
-  - "langgraph"
-  - "workflow"
-  - "supervisor"
-  - "state"
-  - "checkpoint"
-  - "rag"
-  - "multi-agent"
-examplePrompts:
-  - "Design a LangGraph supervisor workflow for document processing"
-  - "Build a multi-agent RAG pipeline with checkpointing"
+metadata:
+  category: "llm"
+  taskTypes: "design, build"
+  keywords: "langgraph, workflow, supervisor, state, checkpoint, rag, multi-agent"
+  examplePrompts: "Design a LangGraph supervisor workflow for document processing | Build a multi-agent RAG pipeline with checkpointing"
 ---
 ## Directive
 Design LangGraph 1.2 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.

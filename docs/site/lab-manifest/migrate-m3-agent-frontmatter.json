@@ -1,0 +1,13 @@
+{
+  "slug": "migrate-m3-agent-frontmatter",
+  "source": "docs/feat--migrate-m3-agent-frontmatter/index.html",
+  "title": "m3: agent frontmatter moves house keys under metadata",
+  "description": "One script moves category, taskTypes, keywords, examplePrompts, critical_system_reminder and required_mcp_servers under metadata in all 36 agents and drops the unread context key; the shared parsers lift them back, so the generated agent docs do not change. G1 agent violations fall from 191 to 0.",
+  "tags": [
+    "frontmatter",
+    "agents",
+    "standards",
+    "migration"
+  ],
+  "date": "2026-09-28"
+}

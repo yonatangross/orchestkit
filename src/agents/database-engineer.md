@@ -1,11 +1,9 @@
 ---
 name: database-engineer
 description: "PostgreSQL specialist: schema design, migrations, query optimization, pgvector/full-text search, Alembic migrations."
-category: backend
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: green
 memory: project
 isolation: worktree
@@ -36,22 +34,12 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Always check for N+1 queries, missing indexes, and migration reversibility."
-taskTypes:
-  - build
-  - optimize
-keywords:
-  - "database"
-  - "schema"
-  - "migration"
-  - "postgresql"
-  - "pgvector"
-  - "sql"
-  - "alembic"
-  - "index"
-examplePrompts:
-  - "Design a normalized schema for multi-tenant SaaS"
-  - "Optimize slow queries with proper indexing strategy"
+metadata:
+  category: "backend"
+  critical_system_reminder: "Always check for N+1 queries, missing indexes, and migration reversibility."
+  taskTypes: "build, optimize"
+  keywords: "database, schema, migration, postgresql, pgvector, sql, alembic, index"
+  examplePrompts: "Design a normalized schema for multi-tenant SaaS | Optimize slow queries with proper indexing strategy"
 ---
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using PostgreSQL best practices.

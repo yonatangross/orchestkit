@@ -33,7 +33,6 @@ Here is a minimal example:
 name: my-agent
 description: What this agent does. Activates for keyword1, keyword2
 model: sonnet
-context: fork
 tools:
   - Read
   - Write
@@ -41,6 +40,11 @@ tools:
 skills:
   - relevant-skill-1
   - relevant-skill-2
+metadata:
+  category: "backend"
+  taskTypes: "build"
+  keywords: "keyword1, keyword2"
+  examplePrompts: "First example prompt | Second example prompt"
 ---
 
 ## Directive
@@ -91,10 +95,9 @@ Use the interactive selector to find the right specialist for your task.
 | `name` | Yes | kebab-case string | Unique identifier used in `subagent_type` |
 | `description` | Yes | String with keywords | Agent summary and auto-activation keywords |
 | `model` | Yes | `opus`, `sonnet`, `inherit` | LLM model assignment |
-| `context` | Yes | `fork`, `inherit` | `fork` = isolated context, `inherit` = shares parent |
 | `tools` | Yes | Array of tool names | Which Claude Code tools the agent can access |
 | `skills` | Yes | Array of skill names | Knowledge modules auto-injected at spawn |
-| `category` | No | `backend`, `frontend`, `security`, etc. | Organizational grouping |
+| `metadata` | Yes | One-level string map | Ork house keys: `category` (`backend`, `frontend`, `security`, etc.), `taskTypes`, `keywords`, `examplePrompts` |
 | `color` | No | CSS color name | Visual indicator in task display |
 | `memory` | No | `project`, `local` | Memory persistence scope |
 | `hooks` | No | Object with hook definitions | Agent-scoped hooks (e.g., block writes for read-only agents) |
@@ -108,12 +111,9 @@ The `model` field controls which LLM powers the agent:
 - **`haiku`**: Used for low-stakes, fast tasks. 7 agents use Haiku.
 - **`inherit`**: Uses whatever model the parent session is running. 13 agents inherit. This is the most flexible option and is recommended for most agents.
 
-### Context Isolation
+### Why No `context` Field
 
-The `context` field determines how the agent's context relates to the parent:
-
-- **`fork`**: The agent runs in an isolated context. It cannot see or modify the parent's state. This is the default for most agents and prevents unintended side effects.
-- **`inherit`**: The agent shares the parent's context. Used when the agent needs to see the current conversation state, such as the `debug-investigator` or `code-quality-reviewer`.
+Agents do not declare `context:`. It is a skill frontmatter key (`context: fork` runs a skill in a subagent), and nothing shows Claude Code reads it on a subagent definition, so it was dropped from every agent in m3. Every spawned agent already runs in its own context window.
 
 ## Agent Lifecycle
 
@@ -162,7 +162,7 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 
 ## The 36 Agents by Category
 
-Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
+Categories collapse the 11 raw `metadata.category` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
 
 ### Frontend & Design (11 agents)
 | Agent | Model | Purpose |

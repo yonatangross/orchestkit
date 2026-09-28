@@ -1,11 +1,9 @@
 ---
 name: market-intelligence
 description: "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis."
-category: product
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: violet
 memory: local
 background: true
@@ -35,18 +33,11 @@ skills:
   - remember
   - memory
 mcpServers: [tavily]
-taskTypes:
-  - research
-keywords:
-  - "competitor"
-  - "market research"
-  - "tam"
-  - "sam"
-  - "som"
-  - "competitive landscape"
-examplePrompts:
-  - "Analyze the competitive landscape for AI code assistants"
-  - "Size the TAM/SAM/SOM for the developer tools market"
+metadata:
+  category: "product"
+  taskTypes: "research"
+  keywords: "competitor, market research, tam, sam, som, competitive landscape"
+  examplePrompts: "Analyze the competitive landscape for AI code assistants | Size the TAM/SAM/SOM for the developer tools market"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.

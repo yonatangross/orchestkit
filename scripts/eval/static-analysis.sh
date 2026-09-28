@@ -135,7 +135,7 @@ header "Section B: Agent Permission Audit"
 # agent is inert. The real wiring is sync-bash-dispatcher plus the entries map.
 # Dropping it here means re-adding `hooks:` to an agent now warns instead of
 # passing silently. See #3461.
-KNOWN_AGENT_FIELDS="name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode"
+KNOWN_AGENT_FIELDS="name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode metadata"
 
 PERM_FAILS=0
 PERM_DETAILS=""
@@ -353,7 +353,7 @@ header "Section D: Unknown Frontmatter Fields"
 
 KNOWN_SKILL_FIELDS=" name description version tags user-invocable complexity context hooks references scripts license compatibility agent author metadata allowed-tools argument-hint skills "
 # `hooks` dropped here too — see the note on KNOWN_AGENT_FIELDS above (#3461).
-KNOWN_AGENT_FIELDS_D=" name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode "
+KNOWN_AGENT_FIELDS_D=" name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode metadata "
 UNK_WARNS=0
 UNK_DETAILS=""
 

@@ -1,11 +1,9 @@
 ---
 name: multimodal-specialist
 description: "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 5.5, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG."
-category: llm
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: magenta
 memory: project
 isolation: worktree
@@ -33,20 +31,11 @@ skills:
   - memory
   - remember
 mcpServers: [context7]
-taskTypes:
-  - build
-keywords:
-  - "vision"
-  - "image"
-  - "audio"
-  - "video"
-  - "multimodal"
-  - "whisper"
-  - "tts"
-  - "ocr"
-examplePrompts:
-  - "Build a document processing pipeline with OCR and vision models"
-  - "Implement audio transcription with speaker diarization"
+metadata:
+  category: "llm"
+  taskTypes: "build"
+  keywords: "vision, image, audio, video, multimodal, whisper, tts, ocr"
+  examplePrompts: "Build a document processing pipeline with OCR and vision models | Implement audio transcription with speaker diarization"
 ---
 
 ## Directive

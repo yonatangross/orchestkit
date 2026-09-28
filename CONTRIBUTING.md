@@ -426,15 +426,24 @@ npm run test:agents
 
 ### Agent Taxonomy Fields (for docs generation)
 
-All agents require these frontmatter fields for the auto-generated `agents-data.ts`:
+All agents require these fields for the auto-generated `agents-data.ts`. They are ork house keys, not Claude Code subagent keys, so they live under `metadata:` as quoted strings (m3, `scripts/migrate-agent-frontmatter-m3.py`); the shared parser (`scripts/lib/parse-frontmatter.js`) splits them back into lists:
 
-| Field | Type | Description |
+| Field (under `metadata`) | Stored as | Description |
 |-------|------|-------------|
-| `taskTypes` | string[] | What the agent does: `build`, `review`, `debug`, `test`, `deploy`, `design`, `research`, `document`, `optimize`, `secure`, `plan` |
-| `keywords` | string[] | Search terms for the agent selector (3-8 keywords) |
-| `examplePrompts` | string[] | Exactly 2 example prompts showing typical usage |
+| `category` | string | Agent index group, for example `backend` |
+| `taskTypes` | `"a, b"` | What the agent does: `build`, `review`, `debug`, `test`, `deploy`, `design`, `research`, `document`, `optimize`, `secure`, `plan` |
+| `keywords` | `"a, b, c"` | Search terms for the agent selector (3-8 keywords) |
+| `examplePrompts` | `"first \| second"` | Exactly 2 example prompts, joined with ` \| ` because a prompt may hold commas |
 
-These fields are validated by `tests/agents/test-agent-frontmatter.sh`.
+```yaml
+metadata:
+  category: "frontend"
+  taskTypes: "build"
+  keywords: "react, typescript, component"
+  examplePrompts: "Build a data table with sorting, filtering, and pagination | Create a multi-step form"
+```
+
+Agents carry no `context:` key (it is a skill key; nothing shows Claude Code reads it on a subagent). These fields are validated by `tests/agents/test-agent-frontmatter.sh`.
 
 ## Vendor Upstream Skills (Option E)
 

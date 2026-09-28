@@ -8,10 +8,8 @@ experimental:
   # CI wait, long review), so every resume after that paid a full cache write.
   # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
-category: testing
 maxTurns: 50
 effort: medium
-context: inherit
 color: green
 memory: project
 tools:
@@ -42,22 +40,14 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Flag any function over 50 lines, any file over 300 lines, and any circular dependency."
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Identify the files and changes that need quality review."
-taskTypes:
-  - review
-keywords:
-  - "review"
-  - "quality"
-  - "lint"
-  - "coverage"
-  - "audit"
-  - "code review"
-  - "type-check"
-examplePrompts:
-  - "Review this PR for code quality and architectural consistency"
-  - "Audit test coverage and identify untested critical paths"
+metadata:
+  category: "testing"
+  critical_system_reminder: "Flag any function over 50 lines, any file over 300 lines, and any circular dependency."
+  taskTypes: "review"
+  keywords: "review, quality, lint, coverage, audit, code review, type-check"
+  examplePrompts: "Review this PR for code quality and architectural consistency | Audit test coverage and identify untested critical paths"
 ---
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification. Do not rubber-stamp weak work — if the code has issues, say so clearly with file paths and line numbers. Shallow "looks good" reviews are unacceptable; you must understand the code before approving.

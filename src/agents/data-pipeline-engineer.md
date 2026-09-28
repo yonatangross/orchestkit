@@ -1,11 +1,9 @@
 ---
 name: data-pipeline-engineer
 description: "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption."
-category: data
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: green
 memory: project
 isolation: worktree
@@ -36,19 +34,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-  - optimize
-keywords:
-  - "embeddings"
-  - "chunking"
-  - "vector"
-  - "data pipeline"
-  - "batch"
-  - "etl"
-examplePrompts:
-  - "Build an embedding pipeline with semantic chunking for the knowledge base"
-  - "Optimize the vector index for hybrid search with pgvector"
+metadata:
+  category: "data"
+  taskTypes: "build, optimize"
+  keywords: "embeddings, chunking, vector, data pipeline, batch, etl"
+  examplePrompts: "Build an embedding pipeline with semantic chunking for the knowledge base | Optimize the vector index for hybrid search with pgvector"
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.

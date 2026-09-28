@@ -8,10 +8,8 @@ experimental:
   # CI wait, long review), so every resume after that paid a full cache write.
   # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
-category: devops
 maxTurns: 30
 effort: medium
-context: fork
 isolation: worktree
 color: orange
 memory: project
@@ -45,20 +43,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - deploy
-  - build
-keywords:
-  - "ci/cd"
-  - "pipeline"
-  - "github actions"
-  - "workflow"
-  - "build"
-  - "artifact"
-  - "cache"
-examplePrompts:
-  - "Set up a GitHub Actions CI pipeline with test matrix and caching"
-  - "Add security scanning and artifact publishing to the pipeline"
+metadata:
+  category: "devops"
+  taskTypes: "deploy, build"
+  keywords: "ci/cd, pipeline, github actions, workflow, build, artifact, cache"
+  examplePrompts: "Set up a GitHub Actions CI pipeline with test matrix and caching | Add security scanning and artifact publishing to the pipeline"
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.

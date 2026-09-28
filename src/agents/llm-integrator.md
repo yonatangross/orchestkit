@@ -1,11 +1,9 @@
 ---
 name: llm-integrator
 description: "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization."
-category: llm
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: orange
 memory: project
 isolation: worktree
@@ -36,19 +34,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-keywords:
-  - "llm"
-  - "openai"
-  - "anthropic"
-  - "ollama"
-  - "function calling"
-  - "streaming"
-  - "token"
-examplePrompts:
-  - "Integrate Claude API with function calling for the support bot"
-  - "Implement streaming responses with token cost tracking"
+metadata:
+  category: "llm"
+  taskTypes: "build"
+  keywords: "llm, openai, anthropic, ollama, function calling, streaming, token"
+  examplePrompts: "Integrate Claude API with function calling for the support bot | Implement streaming responses with token cost tracking"
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.

@@ -2,10 +2,8 @@
 name: component-curator
 description: "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency."
 model: sonnet
-category: frontend
 maxTurns: 25
 effort: low
-context: fork
 background: true
 initialPrompt: "Check TaskList for pending tasks. Inventory all React components and analyze usage patterns against design tokens."
 color: pink
@@ -47,21 +45,12 @@ skills:
   - remember
   - memory
 mcpServers: [storybook-mcp, context7]
-required_mcp_servers: [21st-dev-magic]
-taskTypes:
-  - review
-  - research
-keywords:
-  - "component"
-  - "library"
-  - "21st.dev"
-  - "design system"
-  - "audit"
-  - "freshness"
-  - "registry"
-examplePrompts:
-  - "Audit all React components and recommend 21st.dev alternatives"
-  - "Track component freshness and identify outdated patterns"
+metadata:
+  category: "frontend"
+  taskTypes: "review, research"
+  keywords: "component, library, 21st.dev, design system, audit, freshness, registry"
+  examplePrompts: "Audit all React components and recommend 21st.dev alternatives | Track component freshness and identify outdated patterns"
+  required_mcp_servers: "21st-dev-magic"
 ---
 ## Directive
 Audit and curate a project's component library. Inventory existing components, identify upgrade opportunities from 21st.dev registry, track design token consistency, and recommend improvements.

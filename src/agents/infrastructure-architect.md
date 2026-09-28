@@ -2,10 +2,8 @@
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.
 model: inherit
-category: devops
 maxTurns: 50
 effort: medium
-context: fork
 color: cyan
 memory: project
 isolation: worktree
@@ -37,22 +35,12 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Verify cost implications of every resource. Never provision without a budget tag."
-taskTypes:
-  - design
-  - build
-keywords:
-  - "terraform"
-  - "kubernetes"
-  - "aws"
-  - "gcp"
-  - "azure"
-  - "vpc"
-  - "eks"
-  - "iac"
-examplePrompts:
-  - "Design a Terraform module for the EKS cluster with auto-scaling"
-  - "Architect the VPC networking for multi-region deployment"
+metadata:
+  category: "devops"
+  critical_system_reminder: "Verify cost implications of every resource. Never provision without a budget tag."
+  taskTypes: "design, build"
+  keywords: "terraform, kubernetes, aws, gcp, azure, vpc, eks, iac"
+  examplePrompts: "Design a Terraform module for the EKS cluster with auto-scaling | Architect the VPC networking for multi-region deployment"
 ---
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.

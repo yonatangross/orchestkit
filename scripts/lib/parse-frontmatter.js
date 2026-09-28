@@ -152,23 +152,54 @@ function parseYamlFrontmatter(content) {
 }
 
 /**
- * House keys the Agent Skills spec does not allow at top level live under
- * `metadata:` as strings (m1, scripts/migrate-skill-frontmatter-m1.py). Lift
- * them back to the top level so every caller keeps reading `frontmatter.tags`
- * and friends unchanged. A top-level value, when present, wins. `tags` is a
- * comma-separated string under metadata and an array to callers.
+ * House keys that G1 does not allow at top level live under `metadata:` as
+ * strings: the skill keys from m1 (scripts/migrate-skill-frontmatter-m1.py)
+ * and the agent keys from m3 (scripts/migrate-agent-frontmatter-m3.py). Lift
+ * them back to the top level so every caller keeps reading `frontmatter.tags`,
+ * `frontmatter.category` and friends unchanged. A top-level value, when
+ * present, wins. The value is the separator a list was joined with under
+ * metadata (the key is an array to callers), or null for a plain string.
+ * examplePrompts joins on "|" because a prompt may itself hold commas.
  */
-const LIFTED_HOUSE_KEYS = ['version', 'author', 'complexity', 'tags'];
+const LIFT_SEPARATORS = {
+  version: null,
+  author: null,
+  complexity: null,
+  tags: ',',
+  category: null,
+  critical_system_reminder: null,
+  taskTypes: ',',
+  keywords: ',',
+  required_mcp_servers: ',',
+  examplePrompts: '|',
+};
+const LIFTED_HOUSE_KEYS = Object.keys(LIFT_SEPARATORS);
 
 function liftHouseKeys(frontmatter) {
   const meta = frontmatter.metadata;
   if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return;
   for (const key of LIFTED_HOUSE_KEYS) {
     if (frontmatter[key] !== undefined || typeof meta[key] !== 'string') continue;
-    frontmatter[key] = key === 'tags'
-      ? meta[key].split(',').map(s => s.trim()).filter(Boolean)
+    const sep = LIFT_SEPARATORS[key];
+    frontmatter[key] = sep
+      ? meta[key].split(sep).map(s => s.trim()).filter(Boolean)
       : meta[key];
   }
 }
 
 module.exports = { parseYamlFrontmatter, LIFTED_HOUSE_KEYS };
+
+// CLI for shell tests: `node parse-frontmatter.js <file> <key>` prints the
+// parsed value (strings as is, anything else as JSON) or nothing when absent.
+if (require.main === module) {
+  const [file, key] = process.argv.slice(2);
+  if (!file || !key) {
+    console.error('usage: parse-frontmatter.js <file> <key>');
+    process.exit(2);
+  }
+  const { frontmatter } = parseYamlFrontmatter(require('fs').readFileSync(file, 'utf-8'));
+  const val = frontmatter[key];
+  if (val !== undefined && val !== null && val !== '') {
+    process.stdout.write((typeof val === 'string' ? val : JSON.stringify(val)) + '\n');
+  }
+}

@@ -2,10 +2,8 @@
 name: backend-system-architect
 description: "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture."
 model: inherit
-category: backend
 maxTurns: 50
 effort: medium
-context: fork
 color: yellow
 memory: project
 isolation: worktree
@@ -43,22 +41,11 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-  - design
-keywords:
-  - "api"
-  - "rest"
-  - "graphql"
-  - "microservice"
-  - "endpoint"
-  - "authentication"
-  - "authorization"
-  - "middleware"
-  - "service layer"
-examplePrompts:
-  - "Design a REST API for user management with JWT auth"
-  - "Architect a microservice boundary for the payments domain"
+metadata:
+  category: "backend"
+  taskTypes: "build, design"
+  keywords: "api, rest, graphql, microservice, endpoint, authentication, authorization, middleware, service layer"
+  examplePrompts: "Design a REST API for user management with JWT auth | Architect a microservice boundary for the payments domain"
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.

@@ -17,8 +17,13 @@
 //   node scripts/list-invocable-agents.mjs --write       # update README
 
 import { readFile, writeFile, readdir } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// The shared parser lifts metadata.category (m3) back to the top level; a
+// local line scanner here would read every category as missing.
+const { parseYamlFrontmatter } = createRequire(import.meta.url)('./lib/parse-frontmatter.js');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
@@ -28,22 +33,10 @@ const README_PATH = join(PROJECT_ROOT, 'src/agents/README.md');
 const BEGIN = '<!-- BEGIN-GENERATED: list-invocable-agents -->';
 const END = '<!-- END-GENERATED: list-invocable-agents -->';
 
-// ─── parse YAML frontmatter (minimal, only the fields we need) ─────
+// ─── parse YAML frontmatter via the shared parser ─────────────────
 function parseFrontmatter(src) {
-  const m = src.match(/^---\n([\s\S]*?)\n---/);
-  if (!m) return null;
-  const out = {};
-  for (const line of m[1].split('\n')) {
-    const kv = line.match(/^(\w[\w-]*):\s*(.*)$/);
-    if (!kv) continue;
-    const [, k, vRaw] = kv;
-    let v = vRaw.trim();
-    // Strip surrounding quotes if any
-    if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
-    if (v.startsWith("'") && v.endsWith("'")) v = v.slice(1, -1);
-    out[k] = v;
-  }
-  return out;
+  const { frontmatter } = parseYamlFrontmatter(src);
+  return Object.keys(frontmatter).length ? frontmatter : null;
 }
 
 // ─── walk agents dir ───────────────────────────────────────────────
