@@ -18,6 +18,12 @@ declare global {
 	interface Navigator {
 		readonly modelContext?: import("./lib/webmcp-tools").ModelContext;
 	}
+	// Tool names already registered, keyed to the path that did it ("inline"
+	// or "chunk"). Name must equal WEBMCP_REGISTRY_KEY in lib/webmcp-tools.ts;
+	// a unit test pins the two together.
+	interface Window {
+		__orkWebMcpRegistered?: Record<string, string>;
+	}
 }
 
 declare module "react" {

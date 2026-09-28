@@ -190,6 +190,13 @@ jobs:
         working-directory: docs/site
         run: node scripts/check-webmcp-bundle.mjs
 
+      # The same registration, inline in the served HTML for "/". ora.ai
+      # registers its own tools in an inline script and credited none of ours
+      # from the chunk, so the inline copy is pinned here too.
+      - name: Check WebMCP inline registration in built HTML
+        working-directory: docs/site
+        run: node scripts/check-webmcp-inline-html.mjs
+
       # #2969: the docs-site vitest suite (vitest.site.config.ts — search golden
       # queries, nav-structure guards) was wired into NO workflow, so it gated
       # nothing. A test that failed under the full suite merged green in #2963
