@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>G1 registry: agent is a Claude Code skill key, not house debt</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:var(--a)}.warn{color:var(--b)}.no{color:var(--r)}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin:0 8px 8px 0}
+button.on{border-color:var(--a)}
+.tree{font:13px ui-monospace,Menlo,monospace;white-space:pre-wrap;color:var(--mut);background:#141821;border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0}
+.note{color:var(--mut);font-size:13px}
+</style></head><body><main>
+<h1>G1 registry: agent is a Claude Code skill key, not house debt</h1>
+<p class="lead">The G1 frontmatter gate (#4514) listed <code>agent</code> under <code>house_keys</code>, so all 49 skills that pair <code>agent:</code> with <code>context: fork</code> carried a <code>house-key:agent</code> code. Claude Code reads that key, so the registry was wrong, not the skills. Moving <code>agent</code> under <code>metadata</code>, as the house-key rule asks, would stop those skills from running as their named agent.</p>
+
+<h2>1. Evidence that Claude Code reads it</h2>
+<div class="card"><table><tbody>
+<tr><th>CC 2.1.0</th><td>CHANGELOG: support for the <code>agent</code> field in skills, to name the agent type that runs the skill</td></tr>
+<tr><th>CC 2.1.101</th><td>CHANGELOG: fixed skills not honoring <code>context: fork</code> and <code>agent</code> frontmatter fields</td></tr>
+<tr><th>ork build</th><td><code>scripts/build-plugins.sh</code> PASSTHROUGH_KEYS already forwards <code>agent</code> with <code>context</code>, <code>model</code> and <code>effort</code></td></tr>
+<tr><th>this tree</th><td>49 of 49 flagged SKILL.md files carry <code>context: fork</code></td></tr>
+</tbody></table></div>
+
+<h2>2. Press a view</h2>
+<div class="card">
+ <p><button class="on" data-f="A">A: gate on this head</button><button data-f="B">B: verdict (base floor)</button><button data-f="C">C: after the hand merge</button></p>
+ <div class="tree" id="log"></div>
+ <p class="note" id="why"></p>
+</div>
+
+<h2>3. The change</h2>
+<div class="card"><table><tbody>
+<tr><th>configs/standards.json</th><td><code>agent</code> joins <code>frontmatter.skill.claude_code_keys</code> with its CHANGELOG evidence, and leaves <code>house_keys</code> (the registry refuses a key that is both house-only and allowed)</td></tr>
+<tr><th>configs/frontmatter-baseline.json</th><td>977 to 928: removes the 49 <code>house-key:agent</code> codes, adds none; files with violations stay at 143</td></tr>
+<tr><th>agents</th><td>unchanged: no <code>src/agents/*.md</code> file uses a top-level <code>agent:</code> key</td></tr>
+</tbody></table></div>
+<p class="note">The advisory verdict is expected to go red on this PR, twice, for one reason. A looser allowlist needs the operator's hand merge, as the gate's own message says. Once merged, the new registry and the lowered baseline become the floor, and later PRs are judged clean against them.</p>
+<script>
+const D={
+A:['<span class="ok">$ python3 scripts/check-frontmatter.py --self-test\nself-test: ok (21 planted controls + 2 clean registries)</span>\n\nbefore: frontmatter gate: 150 files, 7 clean, 977 violation(s) now, 977 baselined, 0 NEW\n<span class="ok">after:  frontmatter gate: 150 files, 7 clean, 928 violation(s) now, 928 baselined, 0 NEW</span>\n\nbase ratchet: 0 file(s), 0 code(s) added to the baseline versus the base branch','The head copy of the gate, with the head registry and the lowered baseline: 49 codes fewer, nothing new, and the baseline only fell.'],
+B:['<span class="no">== allowlists may not widen versus the base\nWIDENED skill: top-level key newly allowed: agent\nWIDENED house key dropped (recodes the baseline): agent</span>\n\n== head tree judged by base rules and base baseline\n<span class="ok">frontmatter gate: 150 files, 977 baselined, 0 NEW</span>\n\n<span class="no">== head baseline may only fall versus the base\n977 violation(s) now, 928 baselined, 49 NEW\nbase ratchet: 0 file(s), 0 code(s) added</span>','Step 2 reports the widening by design. Step 4 judges the lowered head baseline with the BASE registry, which still calls agent a house key, so the 49 removed codes read as NEW. Both red steps are the one widening; no debt was added (step 3 is clean, the ratchet shows 0 codes added).'],
+C:['<span class="ok">== allowlists may not widen versus the base\nallowlist widening: 0 finding(s)\n\n== head tree judged by base rules and base baseline\nfrontmatter gate: 150 files, 928 baselined, 0 NEW\n\n== head baseline may only fall versus the base\nbase ratchet: 0 file(s), 0 code(s) added</span>','After the operator merges, the new registry and baseline are the floor. A later PR with no frontmatter change is judged against them and every step passes.']
+};
+function set(k){document.querySelectorAll('button[data-f]').forEach(b=>b.classList.toggle('on',b.dataset.f===k));const d=D[k];log.innerHTML=d[0];why.textContent=d[1];}
+document.querySelectorAll('button[data-f]').forEach(b=>b.onclick=()=>set(b.dataset.f));set('A');
+</script>
+</main></body></html>
