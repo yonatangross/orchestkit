@@ -22,29 +22,48 @@ background agent, `claude -p`) is denied.
 
 ## How to detect it
 
-Managed settings reach a machine three ways ([managed settings](https://code.claude.com/docs/en/managed-settings)),
-and the key can arrive through any of them:
+The verdict rests on the **effective** value of the key, not on any `true` found somewhere.
+`allowManagedPermissionRulesOnly` is not one of the "keys read from every admin source"
+([managed settings](https://code.claude.com/docs/en/managed-settings)), so a `true` in a source
+Claude Code did not select changes nothing.
 
-| Source | Where it lives | Readable from the device |
-|---|---|---|
-| File-based | `managed-settings.json` and every `managed-settings.d/*.json` (merged after it, alphabetically) in `/Library/Application Support/ClaudeCode/` (macOS), `/etc/claude-code/` (Linux, WSL), `C:\Program Files\ClaudeCode\` (Windows) | yes |
-| MDM or OS-level policy | macOS configuration profile in the `com.anthropic.claudecode` managed preferences domain; Windows `HKLM\SOFTWARE\Policies\ClaudeCode` value `Settings` (plus an `HKCU` fallback) | yes, if you query that domain or key |
-| Server-managed | claude.ai admin console, or a self-hosted Claude apps gateway; fetched at startup and polled hourly | no, not reliably |
+**Authoritative read: `/status`.** Its `Setting sources` line names the managed source Claude Code
+used and the ones it skipped. Prefer it over reading files; the steps below are the fallback when
+you cannot run it.
+
+Sources, highest rank first:
+
+| Rank | Source | Where it lives | Readable from the device |
+|---|---|---|---|
+| 1 | Remote (server-managed) | claude.ai admin console or a Claude apps gateway; fetched at startup, polled hourly | no, not reliably |
+| 2 | MDM or OS-level policy | macOS `com.anthropic.claudecode` managed preferences domain; Windows `HKLM\SOFTWARE\Policies\ClaudeCode` value `Settings` | yes, if you query that domain or key |
+| 3 | Managed settings files | `managed-settings.json`, then every `managed-settings.d/*.json` alphabetically, in `/Library/Application Support/ClaudeCode/` (macOS), `/etc/claude-code/` (Linux, WSL), `C:\Program Files\ClaudeCode\` (Windows) | yes |
+| 4 | HKCU registry (Windows) | read only when no source above delivers a policy key | yes |
+
+How the effective value is decided:
+
+1. **Inside the file source**, the files merge in order and the last one that sets the key wins:
+   a drop-in's `false` replaces an earlier `true`.
+2. **Under the default `managedSourcesBehavior: "first-wins"`**, only the highest-ranked source
+   that delivers any policy key applies; the key's value there is the effective value, and every
+   lower source is ignored even if it sets `true`.
+3. **Under `managedSourcesBehavior: "merge"`**, locks take the strictest value, so a `true` in
+   any admin source applies. Read `managedSourcesBehavior` from the highest-ranked source that
+   carries it or a policy key.
 
 Report one of three verdicts, never silence:
 
-- **affected**: `"allowManagedPermissionRulesOnly": true` found in a source you read. Report the
-  skills below at info level and name the source.
-- **not set**: the key is absent or false in every source you read, and you read
-  `managed-settings.json` and every `managed-settings.d/*.json` AND the MDM domain or registry
-  key for this OS. A drop-in merges after the main file, so it can set the key the main file
-  leaves out. Say which sources you read.
-- **not observable**: you could not read one of those sources (no managed file, no MDM query run).
-  Say it plainly, for example "not observable: MDM and server-managed not checked". A missing
-  `managed-settings.json` does not mean the key is unset.
+- **affected**: the effective value is `true`. Report the skills below at info level and name the
+  source it came from.
+- **not set**: the effective value is absent or `false`, and you read every device source that
+  could supply it. Say which sources you read.
+- **not observable**: you could not read a source that could change the effective value (no MDM
+  query run, `/status` not available). Say it plainly, for example "not observable: MDM and
+  server-managed not checked". A missing `managed-settings.json` does not mean the key is unset.
 
-Server-managed settings can never be ruled out from the device, so every verdict other than
-**affected** carries the note "server-managed settings not checked".
+Remote settings rank first and cannot be read reliably from the device, so every device-side
+verdict, **affected** included, carries the note "server-managed settings not checked": a remote
+source that delivers any policy key replaces the device sources under first-wins.
 
 ## Remedy (admin side, ork cannot ship it)
 
