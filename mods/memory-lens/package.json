@@ -1,0 +1,16 @@
+{
+  "name": "@orchestkit/mod-memory-lens",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Recalls the few memories related to each prompt: one line for the human, one context entry for the model.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "license": "MIT"
+}
