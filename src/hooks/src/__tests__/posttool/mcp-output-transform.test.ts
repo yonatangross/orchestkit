@@ -7,10 +7,11 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
+import { getSessionHeadroomDir, hashContent } from '../../lib/headroom-store.js';
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/tmp/test-project'),
@@ -360,19 +361,30 @@ describe('posttool/mcp-output-transform', () => {
       expect(existsSync(headroomDir())).toBe(false);
     });
 
-    test('secret-bearing output is NOT stashed — falls back to lossy (finding #1)', () => {
+    test('secret-bearing output goes to the 0600 session file, NOT the shared stash (#4510)', () => {
       // A fake token sits in the MIDDLE (the part the stash would persist).
       const secret = 'AKIAIOSFODNN7EXAMPLE';
+      const sessionId = `mcp-sec-rev-${Date.now()}`;
       const longOutput = `${'G'.repeat(6000)} ${secret} ${'H'.repeat(6000)}`;
-      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      try {
+        const result = mcpOutputTransform(
+          createInput({ tool_output: longOutput, session_id: sessionId }),
+          testCtx,
+        );
+        const output = result.hookSpecificOutput?.updatedToolOutput as string;
 
-      // No stash written, no pointer — degraded to the lossy notice.
-      expect(existsSync(headroomDir())).toBe(false);
-      expect(output).toContain('[Result truncated');
-      expect(output).not.toContain('Full output: Read ');
-      // And the token (in the discarded middle) is gone, not on disk.
-      expect(output).not.toContain(secret);
+        // The shared headroom stash is still off-limits for credentials.
+        expect(existsSync(headroomDir())).toBe(false);
+        // Instead the transcript carries a path under the session temp dir.
+        const sessionDir = getSessionHeadroomDir(sessionId);
+        expect(output).toContain(sessionDir);
+        expect(output).not.toContain(secret);
+        const files = readdirSync(sessionDir).filter((f) => f.endsWith('.txt'));
+        expect(files).toHaveLength(1);
+        expect(readFileSync(join(sessionDir, files[0]), 'utf8')).toBe(longOutput);
+      } finally {
+        rmSync(join(tmpdir(), `claude-session-${sessionId}`), { recursive: true, force: true });
+      }
     });
 
     test('benign output with token-ish-but-not words still stashes', () => {
@@ -381,6 +393,218 @@ describe('posttool/mcp-output-transform', () => {
       mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
       const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
       expect(files).toHaveLength(1); // not a false positive — stash happened
+    });
+  });
+
+  // ===========================================================================
+  // Secret-bearing results (#4510) — 0600 session file, path-only banner
+  // ===========================================================================
+
+  describe('secret-bearing results (#4510)', () => {
+    const madeSessions: string[] = [];
+
+    const runWithSession = (toolOutput: string) => {
+      const sessionId = `mcp-sec-${madeSessions.length}-${Date.now()}`;
+      madeSessions.push(sessionId);
+      return {
+        sessionId,
+        result: mcpOutputTransform(
+          createInput({ tool_output: toolOutput, session_id: sessionId }),
+          testCtx,
+        ),
+      };
+    };
+
+    afterEach(() => {
+      for (const sid of madeSessions.splice(0)) {
+        try {
+          rmSync(join(tmpdir(), `claude-session-${sid}`), { recursive: true, force: true });
+        } catch {
+          // best-effort cleanup
+        }
+      }
+    });
+
+    test('writes a 0600 file matching the original exactly; transcript has path, not token', () => {
+      const token = 'ASIAA1B2C3D4E5F6G7H8';
+      // >2000 chars, token sits in the discarded middle like X-Amz-Credential.
+      const original = `${'A'.repeat(1500)} cred=${token} ${'B'.repeat(1500)}`;
+      const { sessionId, result } = runWithSession(original);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      const dir = getSessionHeadroomDir(sessionId);
+      const files = readdirSync(dir).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1);
+      const stashPath = join(dir, files[0]);
+
+      // The banner carries the path, never the token, and is not the lossy notice.
+      expect(output).toContain(stashPath);
+      expect(output).not.toContain(token);
+      expect(output).not.toContain('[Result truncated');
+
+      // The file is byte-exact and readable only by the owner.
+      expect(readFileSync(stashPath, 'utf8')).toBe(original);
+      expect(statSync(stashPath).mode & 0o777).toBe(0o600);
+    });
+
+    test('a credential inside the kept head is masked in the transcript but intact in the file', () => {
+      const token = 'ASIAZ9Y8X7W6V5U4T3S2';
+      const original = `key=${token} ${'C'.repeat(4000)}`;
+      const { sessionId, result } = runWithSession(original);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      expect(output).not.toContain(token);
+      expect(output).toContain('[REDACTED:credential]');
+
+      const dir = getSessionHeadroomDir(sessionId);
+      const file = join(dir, readdirSync(dir).filter((f) => f.endsWith('.txt'))[0]);
+      expect(readFileSync(file, 'utf8')).toBe(original);
+    });
+
+    test('identical secret-bearing outputs in the SAME session dedup to one file', () => {
+      const token = 'ASIAQ1W2E3R4T5Y6U7I8';
+      const sessionId = `mcp-sec-dedup-${Date.now()}`;
+      madeSessions.push(sessionId);
+      const original = `${'D'.repeat(2500)} tok=${token}`;
+      const input = createInput({ tool_output: original, session_id: sessionId });
+
+      const firstOut = mcpOutputTransform(input, testCtx)
+        .hookSpecificOutput?.updatedToolOutput as string;
+      const dir = getSessionHeadroomDir(sessionId);
+      const file = join(dir, readdirSync(dir).filter((f) => f.endsWith('.txt'))[0]);
+      const mtime1 = statSync(file).mtimeMs;
+
+      const secondOut = mcpOutputTransform(input, testCtx)
+        .hookSpecificOutput?.updatedToolOutput as string;
+
+      // One file, same pointer in both banners, and no second write.
+      expect(readdirSync(dir).filter((f) => f.endsWith('.txt'))).toHaveLength(1);
+      expect(firstOut).toContain(file);
+      expect(secondOut).toContain(file);
+      expect(statSync(file).mtimeMs).toBe(mtime1);
+    });
+
+    test('presigned-URL credential values are masked in the transcript, not just the key id', () => {
+      // A realistic presigned S3 PUT: the security token and signature are
+      // the parts that authorize the request, and they do not match
+      // SECRET_PATTERNS' key-id shapes.
+      const cred = 'ASIAABCDEFGHIJKLMNOP';
+      const secToken = `FwoGZXIvYXdzE${'aB'.repeat(300)}`;
+      const sig = 'f'.repeat(64);
+      const url =
+        `https://s3.amazonaws.com/bucket/k?X-Amz-Credential=${cred}%2F20260928` +
+        `&X-Amz-Security-Token=${secToken}&X-Amz-Signature=${sig}`;
+      const original = `{"mediaId":"m1","uploadUrl":"${url}"}${'P'.repeat(3000)}`;
+
+      const { sessionId, result } = runWithSession(original);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      expect(output).not.toContain(secToken);
+      expect(output).not.toContain(sig);
+      expect(output).not.toContain(cred);
+      expect(output).toContain(getSessionHeadroomDir(sessionId));
+      // The file is still byte-exact, so the URL stays usable from disk.
+      const dir = getSessionHeadroomDir(sessionId);
+      const file = join(dir, readdirSync(dir).filter((f) => f.endsWith('.txt'))[0]);
+      expect(readFileSync(file, 'utf8')).toBe(original);
+    });
+
+    test('a credential straddling the 1200-char head boundary is still masked', () => {
+      const token = 'ASIAZZYYXXWWVVUUTTSS';
+      // Token starts at char 1191: the raw head slice would keep 9 chars of
+      // it, too short for the detector, leaking a partial key unmasked.
+      const original = `${'x'.repeat(1190)} ${token} ${'y'.repeat(3000)}`;
+
+      const { result } = runWithSession(original);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      expect(output).not.toContain(token);
+      expect(output).not.toContain(token.slice(0, 9)); // no partial leak
+      // The mask marker itself may be cut by the head slice, so only the
+      // token's absence is asserted here.
+    });
+
+    test('a symlink planted at the stash path is refused and falls back to lossy', () => {
+      const token = 'ASIATTTTSSSSRRRRQQQQ';
+      const original = `${'E'.repeat(2500)} tok=${token}`;
+      const sessionId = `mcp-sec-link-${Date.now()}`;
+      madeSessions.push(sessionId);
+
+      // Pre-plant a symlink at the exact content-addressed path.
+      const dir = getSessionHeadroomDir(sessionId);
+      mkdirSync(dir, { recursive: true });
+      const target = join(tmpdir(), `mcp-sec-target-${Date.now()}.txt`);
+      writeFileSync(target, 'do-not-touch');
+      symlinkSync(target, join(dir, `${hashContent(original)}.txt`));
+
+      try {
+        const result = mcpOutputTransform(
+          createInput({ tool_output: original, session_id: sessionId }),
+          testCtx,
+        );
+        const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+        // Refused the planted path and degraded to the lossy notice; the
+        // symlink target was never written through.
+        expect(output).toContain('[Result truncated');
+        expect(output).not.toContain(dir);
+        expect(readFileSync(target, 'utf8')).toBe('do-not-touch');
+      } finally {
+        rmSync(target, { force: true });
+      }
+    });
+
+    test('a group/world-accessible session dir is tightened to 0700 before the write', () => {
+      const token = 'ASIA1111222233334444';
+      const original = `${'G'.repeat(2500)} tok=${token}`;
+      const sessionId = `mcp-sec-mode-${Date.now()}`;
+      madeSessions.push(sessionId);
+
+      // Simulate a session dir another hook created with the process umask.
+      mkdirSync(join(tmpdir(), `claude-session-${sessionId}`), { recursive: true });
+      chmodSync(join(tmpdir(), `claude-session-${sessionId}`), 0o755);
+
+      const result = mcpOutputTransform(
+        createInput({ tool_output: original, session_id: sessionId }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      const dir = getSessionHeadroomDir(sessionId);
+      expect(output).toContain(dir);
+      expect(statSync(join(tmpdir(), `claude-session-${sessionId}`)).mode & 0o077).toBe(0);
+      expect(statSync(dir).mode & 0o077).toBe(0);
+      const file = join(dir, readdirSync(dir).filter((f) => f.endsWith('.txt'))[0]);
+      expect(statSync(file).mode & 0o777).toBe(0o600);
+    });
+
+    test('empty session_id refuses the shared invalid bucket and degrades to lossy', () => {
+      const token = 'ASIA9999888877776666';
+      const original = `${'F'.repeat(2500)} tok=${token}`;
+      // Count-based: the shared bucket may exist from unrelated runs, so
+      // assert no new file lands rather than that the dir is absent.
+      const invalidDir = join(tmpdir(), 'claude-session-invalid', 'headroom');
+      const before = existsSync(invalidDir) ? readdirSync(invalidDir).length : -1;
+
+      const result = mcpOutputTransform(
+        createInput({ tool_output: original, session_id: '' }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+
+      expect(output).toContain('[Result truncated');
+      expect(output).not.toContain('claude-session-invalid');
+      const after = existsSync(invalidDir) ? readdirSync(invalidDir).length : -1;
+      expect(after).toBe(before);
+    });
+
+    test('secret-bearing output under the threshold is untouched and writes nothing', () => {
+      const token = 'ASIAP1O2I3U4Y5T6R7E8';
+      const original = `short result with cred=${token}`;
+      const { sessionId, result } = runWithSession(original);
+
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+      expect(existsSync(getSessionHeadroomDir(sessionId))).toBe(false);
     });
   });
 
