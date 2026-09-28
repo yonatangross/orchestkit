@@ -223,8 +223,11 @@ function registry(): Record<string, string> {
  * Per the spec, registerTool returns a Promise that REJECTS on a duplicate
  * name, an empty name or description, or an invalid inputSchema, so a
  * thenable result gets a catch too; a sync try/catch alone never sees it. */
-function guarded(what: string, fn: () => unknown): void {
-	const warn = (err: unknown) => console.warn(`[webmcp] ${what} failed`, err);
+function guarded(what: string, fn: () => unknown, onFail?: () => void): void {
+	const warn = (err: unknown) => {
+		console.warn(`[webmcp] ${what} failed`, err);
+		onFail?.();
+	};
 	try {
 		const result = fn();
 		if (result && typeof (result as PromiseLike<unknown>).then === "function") {
@@ -272,22 +275,31 @@ export function registerWebMcpTools(
 	const claim = () => {
 		for (const tool of pending) claimed[tool.name] = "chunk";
 	};
+	// A failed registration gives the name back, once the call has settled
+	// (a sync throw or a rejection), so a later path can still register it.
+	const release = (name: string) => () => {
+		if (claimed[name] === "chunk") delete claimed[name];
+	};
 	if (typeof document.modelContext?.registerTool === "function") {
 		claim();
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => registerOnDocument(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnDocument(tool), release(tool.name));
 		return "document.registerTool";
 	}
 	if (typeof navigator.modelContext?.registerTool === "function") {
 		claim();
 		for (const tool of pending)
-			guarded(`registerTool(${tool.name})`, () => registerOnNavigator(tool));
+			guarded(`registerTool(${tool.name})`, () => registerOnNavigator(tool), release(tool.name));
 		return "navigator.registerTool";
 	}
 	if (typeof navigator.modelContext?.provideContext === "function") {
 		claim();
-		guarded("provideContext", () =>
-			navigator.modelContext?.provideContext?.({ tools: pending }),
+		guarded(
+			"provideContext",
+			() => navigator.modelContext?.provideContext?.({ tools: pending }),
+			() => {
+				for (const tool of pending) release(tool.name)();
+			},
 		);
 		return "navigator.provideContext";
 	}

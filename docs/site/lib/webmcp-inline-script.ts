@@ -141,13 +141,19 @@ ${executors}
     if (declared[m.name] || registry[m.name]) return;
     registry[m.name] = "inline";
     var tool = { name: m.name, description: m.description, inputSchema: m.inputSchema, execute: run[m.name] };
+    // A failed registration gives the name back once the call has settled, so
+    // the chunk path (which runs later, after hydration) can still register it.
+    function fail(err) {
+      warn(m.name, err);
+      if (registry[m.name] === "inline") delete registry[m.name];
+    }
     try {
       var result = register(tool);
       if (result && typeof result.then === "function") {
-        result.then(null, function (err) { warn(m.name, err); });
+        result.then(null, fail);
       }
     } catch (err) {
-      warn(m.name, err);
+      fail(err);
     }
   });
 })();`;

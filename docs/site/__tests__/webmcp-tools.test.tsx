@@ -360,6 +360,49 @@ describe("inline layout script (served HTML registration)", () => {
 		);
 	});
 
+	it("a rejected inline registerTool releases the name, so the chunk path registers it", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		let failGetSkill = true;
+		const registerTool = vi.fn((tool: WebMcpTool) =>
+			tool.name === "get_skill" && failGetSkill
+				? Promise.reject(new DOMException("not ready", "InvalidStateError"))
+				: Promise.resolve(),
+		);
+		stubModelContext("document", { registerTool });
+		runInline();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(window.__orkWebMcpRegistered?.get_skill).toBeUndefined();
+		failGetSkill = false;
+		registerWebMcpTools();
+		// names() sorts, so the retry shows up as a second get_skill.
+		expect(names(registerTool)).toEqual([...EXPECTED_TOOLS, "get_skill"].sort());
+		expect(window.__orkWebMcpRegistered?.get_skill).toBe("chunk");
+	});
+
+	it("a sync throw in inline registerTool releases the name too", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: vi.fn(() => {
+				throw new TypeError("bad schema");
+			}),
+		});
+		runInline();
+		expect(window.__orkWebMcpRegistered).toEqual({});
+	});
+
+	it("a rejected chunk registerTool releases its claim as well", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		stubModelContext("document", {
+			registerTool: (tool: WebMcpTool) =>
+				tool.name === "list_skills" ? Promise.reject(new Error("boom")) : Promise.resolve(),
+		});
+		registerWebMcpTools();
+		expect(window.__orkWebMcpRegistered?.list_skills).toBe("chunk");
+		await new Promise((r) => setTimeout(r, 0));
+		expect(window.__orkWebMcpRegistered?.list_skills).toBeUndefined();
+		expect(window.__orkWebMcpRegistered?.get_page).toBe("chunk");
+	});
+
 	it("inline execute functions hit the same endpoints with the same results as the chunk tools", async () => {
 		const registerTool = vi.fn();
 		stubModelContext("document", { registerTool });
