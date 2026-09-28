@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.123](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.122...v10.0.0-beta.123)** · 2026-09-28
+
+- **hooks:** stash secret-bearing MCP results to a 0600 session file (#4511)
+
 **[v10.0.0-beta.122](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.121...v10.0.0-beta.122)** · 2026-09-28
 
 - **deps-dev:** bump @types/node in the npm-minor-patch group (#4502)
@@ -664,12 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.116](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.115...v10.0.0-beta.116)** · 2026-09-26
 
 - **analytics:** add an OTEL gateway source (Loki + Prometheus) (#4479)
-
-**[v10.0.0-beta.115](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115)** · 2026-09-26
-
-- **ci:** reject untracked generated lab copies (#4480)
-- **docs:** validate npm hosts and advertise markdown twins (#4481)
-- **scripts:** require schema evidence for hook exemptions (#4478)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

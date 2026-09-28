@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.123",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.122...v10.0.0-beta.123",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** stash secret-bearing MCP results to a 0600 session file ([#4511](https://github.com/yonatangross/orchestkit/issues/4511)) ([d160302](https://github.com/yonatangross/orchestkit/commit/d1603023fd2728978271e8495778acd466dd22b3))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.122",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.121...v10.0.0-beta.122",
