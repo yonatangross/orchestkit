@@ -92,6 +92,7 @@ SYMLINK_DIRS=(
 # tests/config/ requires every tracked package.json to appear in one list or the
 # other, so a new workspace cannot be added silently.
 #   docs/stubs/analytics-stub                        build-time stub, no install
+#   mods/memory-lens                                 mod dev workspace, own vitest deps
 #   mods/promote-lights                              mod dev workspace, own vitest deps
 #   mods/secrets-veil                                mod dev workspace, own vitest deps
 #   packages/cli                                     published package, not installed here
@@ -103,6 +104,7 @@ SYMLINK_DIRS=(
 EXEMPT_ROOTS=(
     "docs/stubs/analytics-stub"
     "mods/lesson-cards"
+    "mods/memory-lens"
     "mods/promote-lights"
     "mods/secrets-veil"
     "packages/cli"

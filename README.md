@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.129](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129)** · 2026-09-28
+
+- **mods:** memory-lens recalls related memories on each prompt (#4530)
+
 **[v10.0.0-beta.128](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128)** · 2026-09-28
 
 - **ci:** Docs Site Build always reports so docs-data PRs can merge (#4529)
@@ -665,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the npm-minor-patch group (#4505)
 - **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4507)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121)** · 2026-09-28
-
-- **skills:** pair defer_loading with tool search in llm-integration (#4498)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
