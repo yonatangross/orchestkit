@@ -147,12 +147,12 @@ The test suite checks that:
 | `model` | string | `opus` for complex reasoning, `sonnet` for focused tasks, `inherit` for flexibility |
 | `tools` | string[] | Claude Code tools the agent can use |
 | `skills` | string[] | Knowledge modules to auto-inject |
+| `metadata` | map of strings | Ork house keys, required on every ork agent (`test-agent-categories.sh` fails an agent with no `metadata.category`). `category` groups the agent (`backend`, `frontend`, `security`, `testing`, `devops`, `llm`, `product`, `design`, `docs`, `git`, `research`); `taskTypes` and `keywords` are comma-joined; `examplePrompts` holds 2 prompts joined with ` \| `. Agents carry no `context` key. |
 
 ### Optional Fields
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `metadata` | map of strings | none | Ork house keys. `category` groups the agent (`backend`, `frontend`, `security`, `testing`, `devops`, `llm`, `product`, `design`, `docs`, `git`, `research`); `taskTypes` and `keywords` are comma-joined; `examplePrompts` holds 2 prompts joined with ` \| `. Agents carry no `context` key. |
 | `color` | string | none | Visual color in task display |
 | `memory` | string | none | `project` for persistent memory, `local` for session-only |
 | `hooks` | object | none | Agent-scoped hook definitions |

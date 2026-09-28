@@ -83,6 +83,41 @@ def scalar(key: str, raw: str) -> str:
     return raw
 
 
+def split_flow(key: str, inner: str) -> list[str]:
+    """Split a YAML flow list body on commas outside quotes.
+
+    A plain str.split(",") broke a quoted item that holds a comma into two
+    items (#4533). Each piece still goes through scalar(), so quoting rules
+    stay in one place.
+    """
+    parts: list[str] = []
+    buf: list[str] = []
+    quote = None
+    i = 0
+    while i < len(inner):
+        ch = inner[i]
+        buf.append(ch)
+        if quote == '"' and ch == "\\" and i + 1 < len(inner):
+            i += 1
+            buf.append(inner[i])
+        elif quote == "'" and ch == "'" and inner[i + 1 : i + 2] == "'":
+            i += 1
+            buf.append("'")
+        elif quote and ch == quote:
+            quote = None
+        elif not quote and ch in "\"'":
+            quote = ch
+        elif not quote and ch == ",":
+            buf.pop()
+            parts.append("".join(buf))
+            buf = []
+        i += 1
+    if quote:
+        raise Refuse(f"{key} has an unterminated quote: {inner!r}")
+    parts.append("".join(buf))
+    return [scalar(key, p) for p in parts if p.strip()]
+
+
 def items(key: str, raw: str, children: list[str]) -> list[str]:
     raw = raw.strip()
     if children:
@@ -90,7 +125,7 @@ def items(key: str, raw: str, children: list[str]) -> list[str]:
             raise Refuse(f"{key} has indented children of an unknown shape")
         return [scalar(key, c[2:]) for c in children]
     if raw.startswith("[") and raw.endswith("]"):
-        return [i.strip().strip("\"'") for i in raw[1:-1].split(",") if i.strip()]
+        return split_flow(key, raw[1:-1])
     raise Refuse(f"{key} is not a list: {raw!r}")
 
 
@@ -201,8 +236,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", default=str(ROOT))
     args = parser.parse_args(argv)
     root = Path(args.root)
-    pending = 0
     tally: dict[str, int] = {}
+    # Validate every agent before writing any, so a refusal on a later file
+    # never leaves an earlier one migrated (#4533).
+    plan: list[tuple[Path, str, list[str]]] = []
     for path in agent_files(root):
         rel = path.relative_to(root)
         text = path.read_text(encoding="utf-8")
@@ -211,14 +248,16 @@ def main(argv: list[str] | None = None) -> int:
         except Refuse as exc:
             print(f"REFUSED {rel}: {exc}")
             return 2
-        if new == text:
-            continue
-        pending += 1
+        if new != text:
+            plan.append((path, new, changes))
+    for path, new, changes in plan:
         for c in changes:
             tally[c] = tally.get(c, 0) + 1
         if args.apply:
             path.write_text(new, encoding="utf-8")
-        print(f"{'wrote' if args.apply else 'would change'} {rel}: {', '.join(changes)}")
+        verb = "wrote" if args.apply else "would change"
+        print(f"{verb} {path.relative_to(root)}: {', '.join(changes)}")
+    pending = len(plan)
     summary = ", ".join(f"{k} x{v}" for k, v in sorted(tally.items())) or "nothing to do"
     print(f"{'applied' if args.apply else 'dry run'}: {pending} file(s); {summary}")
     return 0 if (args.apply or pending == 0) else 1
