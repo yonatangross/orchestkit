@@ -245,6 +245,23 @@ check "base without the registry: a widening versus the trusted floor fails" 1 \
   "WIDENED limit raised: name_max" "$RC" "$OUT"
 BASE="$SAVED_BASE" TRUSTED="$SAVED_TRUSTED"
 
+# a head from before the gate carries no configs: steps 2 and 4 skip with a
+# notice instead of failing rc=2, and step 3 still judges the tree on the floor
+new_head absent-head
+rm -rf "$H/configs"
+git -C "$H" add -A
+verdict "$H"
+check "head without the gate configs passes on the floor" 0 "verdict: rc=0" "$RC" "$OUT"
+check "  ... and the skip notice is printed" 0 "head predates the gate" "$RC" "$OUT"
+
+new_head absent-head-debt
+rm -rf "$H/configs"
+skill "$H" eta "author: someone"
+git -C "$H" add -A
+verdict "$H"
+check "absent head configs do not hide new debt (step 3 still judges)" 1 \
+  "NEW  src/skills/eta/SKILL.md: house-key:author" "$RC" "$OUT"
+
 # vacuity controls: the suite can see each attack
 CONTROL="$TMP/control-head-script.sh"
 # shellcheck disable=SC2016  # the literal $TRUSTED / $HEAD text is what gets rewritten
@@ -260,7 +277,7 @@ CONTROL2="$TMP/control-no-widening.sh"
 python3 - "$TRUSTED/scripts/standards-gate-verdict.sh" "$CONTROL2" <<'PY'
 import re, sys
 src = open(sys.argv[1], encoding="utf-8").read()
-out, n = re.subn(r'step "allowlists may not widen versus the base".*?\n\n', "", src, flags=re.S)
+out, n = re.subn(r'if \[ -f "\$HEAD/\$REGISTRY_REL" \]; then\n.*?^fi\n', "", src, flags=re.S | re.M)
 if n != 1:
     sys.exit("widening step not found in the driver")
 open(sys.argv[2], "w", encoding="utf-8").write(out)
