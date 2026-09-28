@@ -44,11 +44,11 @@ describe('parseMemory', () => {
 
 describe('project keys', () => {
   test('encodes a cwd the way Claude Code names project folders', () => {
-    expect(projectKey('/Users/a/code/orchestkit/.worktrees/81983-lens')).toBe('-Users-a-code-orchestkit--worktrees-81983-lens');
+    expect(projectKey('/Users/me/code/orchestkit/.worktrees/81983-lens')).toBe('-Users-me-code-orchestkit--worktrees-81983-lens');
   });
   test('a worktree maps to its parent repo', () => {
-    expect(parentProjectKey('-Users-a-code-orchestkit--worktrees-81983-lens')).toBe('-Users-a-code-orchestkit');
-    expect(parentProjectKey('-Users-a-code-orchestkit')).toBe('-Users-a-code-orchestkit');
+    expect(parentProjectKey('-Users-me-code-orchestkit--worktrees-81983-lens')).toBe('-Users-me-code-orchestkit');
+    expect(parentProjectKey('-Users-me-code-orchestkit')).toBe('-Users-me-code-orchestkit');
   });
   test('index files are never recalled', () => {
     expect(isIndexFile('MEMORY.md')).toBe(true);
@@ -128,7 +128,7 @@ describe('format', () => {
     expect(lines[0]).toBe('1/1 [locked] client memory (title hidden)');
   });
   test('a memory in a clients- project is a client memory', () => {
-    expect(isClient(hit(doc('x', 'y', '', '/h/.claude/projects/-Users-a-coding-hq-clients-foo/memory/x.md')), { clientTerms: [] })).toBe(true);
+    expect(isClient(hit(doc('x', 'y', '', '/h/.claude/projects/-Users-me-coding-hq-clients-foo/memory/x.md')), { clientTerms: [] })).toBe(true);
   });
   test('secret-shaped text never reaches screen or context', () => {
     const s = doc('token_note', `key ${FAKE_KEY}`);
