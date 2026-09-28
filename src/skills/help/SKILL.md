@@ -5,17 +5,16 @@ compatibility: "Claude Code 2.1.277+."
 description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 argument-hint: "[category]"
 context: inherit
-version: 2.1.0
-author: OrchestKit
-tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "help, documentation, skills, discovery, meta"
 triggers:
   keywords: [help, "what skills", "skills can i", "available commands", "which skill", "show me skills", "ork commands", "what can", "whats ork", "skill for"]
   examples:

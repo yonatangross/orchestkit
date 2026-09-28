@@ -3,17 +3,16 @@ name: product-frameworks
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Product management frameworks for business cases, market analysis, strategy, prioritization, OKRs/KPIs, personas, requirements, and user research. Use when building ROI projections, competitive analysis, RICE scoring, OKR trees, user personas, PRDs, or usability testing plans.
-tags: [product, strategy, business-case, market-analysis, prioritization, okr, kpi, persona, requirements, user-research, rice, prd]
 context: fork
 agent: product-strategist
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: guidance
 metadata:
   category: document-asset-creation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "product, strategy, business-case, market-analysis, prioritization, okr, kpi, persona, requirements, user-research, rice, prd"
 allowed-tools:
   - Read
   - Glob

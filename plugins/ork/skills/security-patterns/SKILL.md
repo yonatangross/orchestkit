@@ -3,19 +3,18 @@ name: security-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.
-tags: [security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth]
 context: fork
 agent: security-auditor
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: high
-persuasion-type: discipline
 effort: high
 model: opus
 metadata:
   category: document-asset-creation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth"
 allowed-tools:
   - Read
   - Glob

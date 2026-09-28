@@ -78,9 +78,9 @@ for skill_name in "${skill_names[@]}"; do
     # Extract tags from frontmatter
     tags=$(awk '
         /^---$/ { in_fm = !in_fm; next }
-        in_fm && /^tags:/ {
-            sub(/^tags: */, "")
-            gsub(/[\[\]]/, "")
+        in_fm && /^[ \t]*tags:/ {
+            sub(/^[ \t]*tags: */, "")
+            gsub(/[\[\]"]/, "")
             print
             exit
         }

@@ -3,17 +3,16 @@ name: distributed-systems
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns.
-tags: [distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance, edge-computing, cloudflare-workers, vercel-edge, event-sourcing, cqrs, saga, outbox, message-queue, kafka]
 context: fork
 agent: backend-system-architect
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
   category: document-asset-creation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance, edge-computing, cloudflare-workers, vercel-edge, event-sourcing, cqrs, saga, outbox, message-queue, kafka"
 allowed-tools:
   - Read
   - Glob

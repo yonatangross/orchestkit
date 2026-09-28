@@ -7,18 +7,17 @@ argument-hint: "[title]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.7.0
-author: OrchestKit
-tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 skills: [review-pr, memory, chain-patterns]
-complexity: medium
-persuasion-type: guidance
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "2.7.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "git, github, pull-request, pr, code-review"
 ---
 
 # Create Pull Request

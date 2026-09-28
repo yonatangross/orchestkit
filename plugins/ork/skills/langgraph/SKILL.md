@@ -3,15 +3,10 @@ name: langgraph
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
-tags: [langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python]
 context: fork
 agent: workflow-architect
-version: 2.3.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: high
-persuasion-type: reference
 effort: high
 targets:
   # Python only. The JS package `@langchain/langgraph` is on its own faster line (1.4.x as of
@@ -22,6 +17,10 @@ targets:
 upstream-version-tested: "1.2.11"
 metadata:
   category: document-asset-creation
+  version: "2.3.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python"
 allowed-tools:
   - Read
   - Glob

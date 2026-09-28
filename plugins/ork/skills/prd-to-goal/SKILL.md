@@ -2,19 +2,18 @@
 name: prd-to-goal
 description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
 argument-hint: "[prd-text | issue#N | path/to/spec.md]"
-tags: [/goal, planning, prd, automation, cc-2.1.139]
-version: 0.1.0
-author: OrchestKit
 license: MIT
 compatibility: "Claude Code 2.1.277+ (uses GA `/goal` loop)."
 user-invocable: true
-complexity: low
 context: inherit
-persuasion-type: guidance
 allowed-tools: [Read, Write, Bash, Grep, Agent]
 metadata:
   category: planning
   milestone: M140
+  version: "0.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "/goal, planning, prd, automation, cc-2.1.139"
 ---
 
 # prd-to-goal — PRD → /goal Decomposition

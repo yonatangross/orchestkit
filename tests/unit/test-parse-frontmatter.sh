@@ -166,6 +166,33 @@ body' "description")
 len=${#result}
 [[ "$len" -gt 50 ]] && pass "Description length $len chars (not 2)" || fail "Description only $len chars — parser still broken"
 
+# Test 11: house keys under metadata lift to the top level (m1 spec shape)
+echo "▶ Test 11: metadata house keys lift"
+M1_DOC='---
+name: m1-skill
+metadata:
+  category: workflow-automation
+  version: "1.2.0"
+  complexity: "low"
+  tags: "git, commit, conventional-commits"
+---
+body'
+result=$(parse_field "$M1_DOC" "tags")
+[[ "$result" == '["git","commit","conventional-commits"]' ]] && pass "metadata tags lift to an array" || fail "Expected tags array, got '$result'"
+result=$(parse_field "$M1_DOC" "version")
+[[ "$result" == "1.2.0" ]] && pass "metadata version lifts" || fail "Expected 1.2.0, got '$result'"
+result=$(parse_field '---
+name: m1-skill
+version: 9.9.9
+metadata:
+  version: "1.2.0"
+---
+body' "version")
+[[ "$result" == "9.9.9" ]] && pass "top-level value wins over metadata" || fail "Expected 9.9.9, got '$result'"
+# parse_field exits 1 with no output when the key is absent at top level.
+result=$(parse_field "$M1_DOC" "category" || echo "absent")
+[[ "$result" == "absent" ]] && pass "non-house metadata keys stay under metadata" || fail "category leaked to top level: '$result'"
+
 echo ""
 echo "============================================================================"
 echo "  Results: $PASS passed, $FAIL failed"

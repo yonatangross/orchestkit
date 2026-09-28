@@ -5,15 +5,10 @@ compatibility: "Claude Code 2.1.277+."
 description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message. Do not invoke it for incidental git commits during other work; those stay a bare CLI call."
 argument-hint: "[message]"
 context: inherit
-version: 1.2.0
-author: OrchestKit
-tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 disable-model-invocation: false
 allowed-tools: [Bash, Read, Write, AskUserQuestion]
 skills: [chain-patterns]
-complexity: low
-persuasion-type: discipline
 effort: low
 hooks:
   PreToolUse:
@@ -22,6 +17,10 @@ hooks:
       once: true
 metadata:
   category: workflow-automation
+  version: "1.2.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "git, commit, version-control, conventional-commits"
 triggers:
   keywords: [commit, comit, "commit message", "stage and commit", "save progress", "save my progress", "wrap it up", "conventional commit"]
   examples:

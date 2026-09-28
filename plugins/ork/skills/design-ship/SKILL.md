@@ -4,15 +4,10 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires: design-import skill, claude-design-orchestrator agent. Composes: cover, expect, create-pr."
 description: "One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. Use when a design link should come back as a PR with no intermediate steps; if all you need is the components written to disk, run /ork:design-import instead."
 argument-hint: "<handoff-url | path-to-bundle.json>"
-tags: [claude-design, design-ship, end-to-end, pr, handoff, ship-it, frontend]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.0
-author: OrchestKit
 user-invocable: true
-complexity: complex
-persuasion-type: collaborative
 effort: high
 model: sonnet
 agent: claude-design-orchestrator
@@ -37,6 +32,10 @@ skills:
   - memory
 metadata:
   category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "complex"
+  tags: "claude-design, design-ship, end-to-end, pr, handoff, ship-it, frontend"
 paths:
   - "src/components/**/*.{tsx,css}"
   - "**/*.stories.{ts,tsx}"

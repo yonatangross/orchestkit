@@ -5,13 +5,8 @@ compatibility: "Claude Code 2.1.277+."
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
 context: fork
 agent: frontend-ui-developer
-version: 1.5.0
-author: OrchestKit
-tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack]
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: next.js
     version: ">=16.2.6"
@@ -19,6 +14,10 @@ targets:
     version: ">=19.2.6"
 metadata:
   category: document-asset-creation
+  version: "1.5.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack"
 allowed-tools:
   - Read
   - Glob

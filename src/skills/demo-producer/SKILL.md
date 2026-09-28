@@ -7,20 +7,19 @@ argument-hint: "[topic-or-feature]"
 user-invocable: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, PushNotification]
 context: inherit
-version: 1.1.0
-author: OrchestKit
-tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
 targets:
   - tool: "vhs"
     version: ">=0.11.0"
   - library: "remotion"
     version: ">=4.0.448"
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "demo, video, marketing, vhs, remotion, terminal, showcase, tutorial"
 ---
 
 # Demo Producer

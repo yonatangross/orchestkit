@@ -3,21 +3,20 @@ name: code-review-playbook
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.
-version: 2.0.0
-author: OrchestKit
-tags: [code-review, quality, collaboration, best-practices, testing]
 context: inherit
 user-invocable: false
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
-complexity: low
-persuasion-type: discipline
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "code-review, quality, collaboration, best-practices, testing"
 allowed-tools:
   - Read
   - Glob

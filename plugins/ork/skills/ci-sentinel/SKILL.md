@@ -7,18 +7,17 @@ argument-hint: "[install|status|enable|disable]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 0.1.0
 disable-model-invocation: false
-author: OrchestKit
-tags: [ci, sentinel, automation, github-actions, propose-dont-apply, autonomous]
 user-invocable: true
 allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
 skills: [github-operations, memory]
-complexity: medium
-persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
+  version: "0.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ci, sentinel, automation, github-actions, propose-dont-apply, autonomous"
 paths:
   - ".github/workflows/ci-sentinel.yml"
   - ".sentinel/**"

@@ -88,7 +88,7 @@ extract_skill_metadata() {
     # Extract frontmatter fields
     DEMO_NAME=$(grep "^name:" "$skill_path" | head -1 | cut -d: -f2- | xargs)
     DEMO_DESCRIPTION=$(grep "^description:" "$skill_path" | head -1 | cut -d: -f2- | xargs)
-    DEMO_TAGS=$(grep "^tags:" "$skill_path" | head -1 | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"' | xargs)
+    DEMO_TAGS=$(grep -E "^[[:space:]]*tags:" "$skill_path" | head -1 | sed -E 's/^[[:space:]]*tags: *\[?//' | sed 's/\]//' | tr -d '"' | xargs)
 
     # Extract related skills if any
     RELATED_SKILLS=""

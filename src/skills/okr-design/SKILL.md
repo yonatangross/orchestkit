@@ -2,17 +2,16 @@
 name: okr-design
 compatibility: "Claude Code 2.1.277+"
 description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails."
-tags: [okr, kpi, north-star, metrics, experiment, goal-setting, leading-lagging, instrumentation]
 context: fork
 agent: product-strategist
-version: 1.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "okr, kpi, north-star, metrics, experiment, goal-setting, leading-lagging, instrumentation"
 allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
 ---
 

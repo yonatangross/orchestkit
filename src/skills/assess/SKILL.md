@@ -6,15 +6,10 @@ description: "Assesses and rates quality 0-10 across multiple dimensions (correc
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.9.0
-author: OrchestKit
-tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
-complexity: high
-persuasion-type: guidance
 effort: high
 model: sonnet
 hooks:
@@ -25,6 +20,10 @@ hooks:
 metadata:
   category: document-asset-creation
   mcp-server: memory
+  version: "1.9.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "assessment, evaluation, quality, comparison, pros-cons, rating"
 triggers:
   keywords: [assess, asses, rate, evaluate, grade, score, compare, "how good", "how bad", "red flags", "trade-offs", "pros and cons", "good enough"]
   examples:

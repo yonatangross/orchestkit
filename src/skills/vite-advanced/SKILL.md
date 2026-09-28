@@ -2,22 +2,21 @@
 name: vite-advanced
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-author: OrchestKit
 description: Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.
 context: fork
 agent: frontend-ui-developer
-version: 2.0.0
-tags: [vite, vite8, rolldown, build, bundler, plugins, ssr, library-mode, environment-api, optimization, advancedchunks]
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 targets:
   - library: vite
     version: ">=8.0.0"
 metadata:
   category: document-asset-creation
   vite-version: "8.0"
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "vite, vite8, rolldown, build, bundler, plugins, ssr, library-mode, environment-api, optimization, advancedchunks"
 allowed-tools:
   - Read
   - Glob

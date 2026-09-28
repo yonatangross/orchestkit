@@ -147,7 +147,28 @@ function parseYamlFrontmatter(content) {
     }
   }
 
+  liftHouseKeys(frontmatter);
   return { frontmatter, body };
 }
 
-module.exports = { parseYamlFrontmatter };
+/**
+ * House keys the Agent Skills spec does not allow at top level live under
+ * `metadata:` as strings (m1, scripts/migrate-skill-frontmatter-m1.py). Lift
+ * them back to the top level so every caller keeps reading `frontmatter.tags`
+ * and friends unchanged. A top-level value, when present, wins. `tags` is a
+ * comma-separated string under metadata and an array to callers.
+ */
+const LIFTED_HOUSE_KEYS = ['version', 'author', 'complexity', 'tags'];
+
+function liftHouseKeys(frontmatter) {
+  const meta = frontmatter.metadata;
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return;
+  for (const key of LIFTED_HOUSE_KEYS) {
+    if (frontmatter[key] !== undefined || typeof meta[key] !== 'string') continue;
+    frontmatter[key] = key === 'tags'
+      ? meta[key].split(',').map(s => s.trim()).filter(Boolean)
+      : meta[key];
+  }
+}
+
+module.exports = { parseYamlFrontmatter, LIFTED_HOUSE_KEYS };

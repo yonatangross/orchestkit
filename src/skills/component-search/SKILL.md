@@ -4,15 +4,10 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Optional: 21st-dev-magic MCP server."
 description: "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks."
 argument-hint: "[component description]"
-tags: [components, 21st-dev, react, ui, search, registry, tailwind, shadcn]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.1.0
-author: OrchestKit
 user-invocable: true
-complexity: simple
-persuasion-type: collaborative
 effort: low
 model: sonnet
 allowed-tools:
@@ -39,6 +34,10 @@ allowed-tools:
 metadata:
   category: workflow-automation
   mcp-server: 21st-dev-magic
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "simple"
+  tags: "components, 21st-dev, react, ui, search, registry, tailwind, shadcn"
 triggers:
   keywords: ["component search", "find component", "search components", "ui component", "react component", "21st.dev"]
   examples:

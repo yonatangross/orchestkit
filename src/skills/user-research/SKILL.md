@@ -3,17 +3,16 @@ name: user-research
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done."
-tags: [persona, journey-map, user-interview, usability, jtbd, card-sort, empathy-map, research]
 context: fork
 agent: product-strategist
-version: 1.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: collaborative
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "persona, journey-map, user-interview, usability, jtbd, card-sort, empathy-map, research"
 allowed-tools:
   - Read
   - Glob

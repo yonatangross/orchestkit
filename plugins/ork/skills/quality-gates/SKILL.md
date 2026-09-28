@@ -5,14 +5,9 @@ compatibility: "Claude Code 2.1.277+."
 description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
-version: 1.3.0
-author: OrchestKit
-tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
 skills: [scope-appropriate-architecture]
 user-invocable: false
 disable-model-invocation: false
-complexity: max
-persuasion-type: discipline
 effort: high
 hooks:
   PreToolUse:
@@ -21,6 +16,10 @@ hooks:
       once: true
 metadata:
   category: document-asset-creation
+  version: "1.3.0"
+  author: "OrchestKit"
+  complexity: "max"
+  tags: "quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering"
 allowed-tools:
   - Read
   - Glob

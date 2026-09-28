@@ -4,16 +4,15 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
 context: fork
-version: 1.0.0
-author: OrchestKit
 agent: workflow-architect
-tags: [task-management, dependencies, orchestration, workflow, coordination]
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
   category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "task-management, dependencies, orchestration, workflow, coordination"
 allowed-tools:
   - Read
   - Glob

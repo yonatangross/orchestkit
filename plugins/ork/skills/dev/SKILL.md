@@ -3,18 +3,17 @@ name: dev
 compatibility: "Claude Code 2.1.277+"
 description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
-tags: [dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127]
-version: 1.1.0
-author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
-complexity: medium
 context: inherit
-persuasion-type: guidance
 metadata:
   category: devops
   milestone: M127
   upstream-packages: ["portless", "emulate", "agent-browser", "tailscale"]
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127"
 ---
 
 # dev — Lab-Stack Boot

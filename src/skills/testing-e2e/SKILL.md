@@ -3,20 +3,19 @@ name: testing-e2e
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.
-tags: [testing, e2e, playwright, accessibility, visual-regression, page-objects]
 context: fork
 agent: test-generator
-version: 2.1.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: "@playwright/test"
     version: ">=1.59.0"  # 1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()
 metadata:
   category: document-asset-creation
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "testing, e2e, playwright, accessibility, visual-regression, page-objects"
 allowed-tools:
   - Read
   - Glob

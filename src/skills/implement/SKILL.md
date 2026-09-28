@@ -7,15 +7,10 @@ argument-hint: "[feature-description]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.8.0
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
-author: OrchestKit
-tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
-complexity: medium
-persuasion-type: guidance
 model: sonnet
 hooks:
   PreToolUse:
@@ -31,6 +26,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
+  version: "2.8.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "implementation, feature, full-stack, parallel-agents, reflection, worktree"
 triggers:
   keywords: [implement, implment, build, create, add, make, scaffold, "set up", "file upload", "dark mode", "rate limiting"]
   examples:

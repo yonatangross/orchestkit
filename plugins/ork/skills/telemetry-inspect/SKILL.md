@@ -2,21 +2,20 @@
 name: telemetry-inspect
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-author: OrchestKit
 description: "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files."
 argument-hint: "[--session <id>] [--json]"
 context: inherit
-version: 1.0.0
-tags: [telemetry, observability, diagnostics, metrics, session, health, schema, inspection]
 user-invocable: true
 allowed-tools: [Bash, Read, Grep, Glob]
 disallowed-tools: [Write, Edit, MultiEdit, NotebookEdit]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: diagnostic
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "telemetry, observability, diagnostics, metrics, session, health, schema, inspection"
 ---
 
 # telemetry-inspect
