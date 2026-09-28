@@ -17,7 +17,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  # This agent declares `required_mcp_servers: [21st-dev-magic]` below, but
+  # This agent declares `metadata.required_mcp_servers` below, but
   # granted none of its tools — so every "recommend a 21st.dev alternative"
   # run fell through to WebFetch scraping. Read-only surface only; curating
   # never publishes to or deletes from the registry.
