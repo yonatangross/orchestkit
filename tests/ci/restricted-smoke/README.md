@@ -57,6 +57,12 @@ untested. Four outcomes, none of which is a silent pass:
 Exit 0 all proven, 1 REGRESSED (a shipped rule did not deny), 2
 could-not-observe or payload/case-map drift.
 
+Update 2026-09-29 (CC 2.1.282): upstream fixed "Bash permission rules with a
+mid-pattern `:*` being skipped in settings files", so the finding below holds
+only before 2.1.282. The floor is 2.1.277, so the shape stays banned:
+`payload-coverage.py` refuses any mid-pattern `:*` rule, pinned by
+`tests/ci/test-payload-colon-star.sh`.
+
 First run found two: `Bash(find:*-delete*)` and `Bash(find:*-fprint*)` matched
 nothing at all, measured identical to no rule. CC's colon form is a prefix
 separator that only works as `cmd:*`; text after the star kills the match. Both
