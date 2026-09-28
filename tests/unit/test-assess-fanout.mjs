@@ -218,6 +218,44 @@ await test('a score with no file:line evidence is noted', async () => {
   assert.match(why(result), /testability scored 6.5 with no file:line evidence/);
 });
 
+// 2b. live run wf_7b023867-8f9 (render-spec.mjs, high): the shapes real assessors returned
+const INVENTED = ['Core logic purity & determinism (validate/renderElement)', 'Dependency injection & seams (I/O boundary)'];
+await test('off-schema dimension names: the assigned dimension is recorded unscored with a visible reason, never silently dropped', async () => {
+  const testability = { status: 'DONE', dimensions: [DIM(INVENTED[0], 9), DIM(INVENTED[1], 3)] };
+  const { result } = await run({ rate: { testability } });
+  assert.deepEqual(result.unscored, ['testability']);
+  assert.deepEqual(result.rejectedDimensions, [{ group: 'testability', names: INVENTED }]);
+  assert.match(why(result), /testability returned off-schema dimension name\(s\) "Core logic purity[^\n]*; testability not scored, weight 0\.13 left out of the composite/);
+});
+await test('the rate schema makes dimension an enum of exactly the group dimensions, one entry each', async () => {
+  const { calls } = await run();
+  const items = (who) => calls.find((c) => c.who === who).opts.schema.properties.dimensions;
+  assert.deepEqual(items('testability').items.properties.dimension.enum, ['testability']);
+  assert.deepEqual(items('quality').items.properties.dimension.enum, ['correctness', 'maintainability', 'compliance']);
+  assert.equal(items('quality').minItems, 3);
+  assert.equal(items('quality').maxItems, 3);
+  assert.match(calls.find((c) => c.who === 'testability').prompt, /exactly one of: testability/);
+});
+await test('an UPPERCASE dimension whose evidence is path:line then prose is not flagged as missing evidence', async () => {
+  const quality = { status: 'DONE', dimensions: ['CORRECTNESS', 'MAINTAINABILITY', 'COMPLIANCE'].map((d) => DIM(d, 6.5, { evidence: ['api/db.py:36-37: the null check pushes an error but does not return', 'api/auth.py:47 CATALOG lookup resolves "constructor"'] })) };
+  const { result } = await run({ rate: { quality } });
+  assert.equal(dim(result, 'correctness').score, 6.5);
+  assert.equal(dim(result, 'correctness').evidenceMissing, false);
+  assert.doesNotMatch(why(result), /no file:line evidence/);
+});
+await test('an OWASP tag such as A06:2025 is not file:line evidence', async () => {
+  const testability = { status: 'DONE', dimensions: [DIM('testability', 6.5, { evidence: ['cycle overflows the stack. A10:2025 / A06:2025'] })] };
+  const { result } = await run({ rate: { testability } });
+  assert.equal(dim(result, 'testability').evidenceMissing, true);
+});
+await test('a refuter citation with an absolute path or bare basename and trailing prose is backed', async () => {
+  const abs = BAND(2, 4, '/Users/me/repo/api/db.py:40 (validate() at :52-56 never checks cycles)');
+  const base = BAND(2, 5, 'db.py:41 the same defect');
+  const { result } = await run({ refute: { security: [abs, base, NOOP] } });
+  assert.equal(dim(result, 'security').refutation.outcome, 'downgraded');
+  assert.equal(dim(result, 'security').postScore, 5);
+});
+
 // 3. gate
 await test('the composite is the weighted average over the scored dimensions and maps to a grade', async () => {
   const { result } = await run({ args: { effort: 'low' }, rate: { security: OK('security', 9), quality: OK('quality', 6) } });
