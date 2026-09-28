@@ -1,0 +1,13 @@
+{
+  "slug": "82305-ork-g1-absent-head",
+  "source": "docs/chore--dsp-82305-ork-g1-absent-head/index.html",
+  "title": "Who decides whether a missing file was ever there",
+  "description": "The G1 verdict driver (#4514) fell back when the base lacked the gate configs but not when the head did, so pre-gate branches failed rc=2 on FileNotFoundError. Steps 2 and 4 now key on the base: a missing head config on a base that carries it is a deletion (gate inputs may not be deleted); a base that lacks it too means the lineage predates the gate and the step skips. Step 3 still judges the tree on the floor.",
+  "tags": [
+    "ci",
+    "frontmatter",
+    "standards-gate",
+    "82305"
+  ],
+  "date": "2026-09-28"
+}

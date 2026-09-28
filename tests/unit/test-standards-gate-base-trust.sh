@@ -245,6 +245,54 @@ check "base without the registry: a widening versus the trusted floor fails" 1 \
   "WIDENED limit raised: name_max" "$RC" "$OUT"
 BASE="$SAVED_BASE" TRUSTED="$SAVED_TRUSTED"
 
+# a pre-gate PR: base and head alike lack the configs, so steps 2 and 4
+# skip with a notice and step 3 still judges the tree on the floor (the
+# trusted copy here stands in for the configs this PR lineage lacks)
+SAVED_BASE="$BASE" SAVED_TRUSTED="$TRUSTED"
+TRUSTED="$TMP/trusted-pristine"
+BASE="$TMP/pre-gate-base"; mkdir -p "$BASE"
+new_head absent-head
+rm -rf "$H/configs" "$H/scripts"
+git -C "$H" add -A
+verdict "$H"
+check "pre-gate PR (no configs on base or head) passes on the floor" 0 "verdict: rc=0" "$RC" "$OUT"
+check "  ... and the skip notice is printed" 0 "head predates the gate" "$RC" "$OUT"
+
+new_head absent-head-debt
+rm -rf "$H/configs" "$H/scripts"
+skill "$H" eta "author: someone"
+git -C "$H" add -A
+verdict "$H"
+check "pre-gate head with new debt still fails (step 3 still judges)" 1 \
+  "NEW  src/skills/eta/SKILL.md: house-key:author" "$RC" "$OUT"
+BASE="$SAVED_BASE" TRUSTED="$SAVED_TRUSTED"
+
+# deleting a gate input is an attack, not absence: the base carries the
+# configs, so a head without them deleted them. Merged, the deletion would
+# break the gate for every later PR.
+new_head del-registry
+rm "$H/configs/standards.json"
+git -C "$H" add -A
+verdict "$H"
+check "deleted standards.json on a gate-carrying head fails" 1 \
+  "gate inputs may not be deleted" "$RC" "$OUT"
+
+new_head del-baseline
+rm "$H/configs/frontmatter-baseline.json"
+git -C "$H" add -A
+verdict "$H"
+check "deleted frontmatter-baseline.json on a gate-carrying head fails" 1 \
+  "gate inputs may not be deleted" "$RC" "$OUT"
+
+# deleting the gate script alongside the configs changes nothing: the base
+# still carries them, so the head still deleted them
+new_head del-all
+rm -rf "$H/configs" "$H/scripts"
+git -C "$H" add -A
+verdict "$H"
+check "deleting configs AND the gate script still fails (base decides)" 1 \
+  "gate inputs may not be deleted" "$RC" "$OUT"
+
 # vacuity controls: the suite can see each attack
 CONTROL="$TMP/control-head-script.sh"
 # shellcheck disable=SC2016  # the literal $TRUSTED / $HEAD text is what gets rewritten
@@ -260,7 +308,7 @@ CONTROL2="$TMP/control-no-widening.sh"
 python3 - "$TRUSTED/scripts/standards-gate-verdict.sh" "$CONTROL2" <<'PY'
 import re, sys
 src = open(sys.argv[1], encoding="utf-8").read()
-out, n = re.subn(r'step "allowlists may not widen versus the base".*?\n\n', "", src, flags=re.S)
+out, n = re.subn(r'if \[ -f "\$HEAD/\$REGISTRY_REL" \]; then\n.*?^fi\n', "", src, flags=re.S | re.M)
 if n != 1:
     sys.exit("widening step not found in the driver")
 open(sys.argv[2], "w", encoding="utf-8").write(out)
