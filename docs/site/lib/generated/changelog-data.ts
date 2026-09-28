@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.130",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**agents:** move house frontmatter keys under metadata, drop context (m3) ([#4531](https://github.com/yonatangross/orchestkit/issues/4531)) ([bd09735](https://github.com/yonatangross/orchestkit/commit/bd0973501ad45edc34d511bfa44e087e8d9548a4))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.129",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129",
