@@ -18,6 +18,8 @@
   .case h2 { font-size:16px; margin:0 0 8px; }
   pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; overflow-x:auto; font:13px/1.45 ui-monospace, monospace; margin:6px 0 12px; }
   .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .cols > div { min-width:0; }
+  .cols pre { white-space:pre-wrap; overflow-wrap:anywhere; }
   @media (max-width:640px) { .cols { grid-template-columns:1fr; } }
   .tag { font:600 12px ui-monospace, monospace; }
   .bad { color:var(--bad); } .good { color:var(--good); }
