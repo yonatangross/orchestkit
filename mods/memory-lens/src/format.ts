@@ -22,6 +22,15 @@ export function looksSecret(text: string): boolean {
   return SECRET.test(text);
 }
 
+/**
+ * True when any field either surface prints is secret-shaped: name and
+ * description, and also the id, source and image path, which the screen line
+ * and the context print for mirrored and local memories alike.
+ */
+export function docLooksSecret(doc: Hit['doc']): boolean {
+  return looksSecret([doc.name, doc.desc, doc.id, doc.source, doc.image ?? ''].join(' '));
+}
+
 /** True when a hit must not show its title on screen. */
 export function isClient(hit: Hit, priv: LensPrivate): boolean {
   const hay = `${hit.doc.id} ${hit.doc.name} ${hit.doc.desc}`.toLowerCase();
@@ -52,7 +61,7 @@ function title(hit: Hit): string {
 export function screenLines(hits: Hit[], priv: LensPrivate, home = ''): string[] {
   return hits.slice(0, MAX_HITS).map((h, i) => {
     const n = `${i + 1}/${Math.min(hits.length, MAX_HITS)}`;
-    if (isClient(h, priv) || looksSecret(h.doc.name + h.doc.desc)) return `${n} [locked] client memory (title hidden)`;
+    if (isClient(h, priv) || docLooksSecret(h.doc)) return `${n} [locked] client memory (title hidden)`;
     // the file name on screen, the full path in the model's context
     const where = h.doc.source === 'local' ? (shortPath(h.doc.id, home).split('/').pop() ?? h.doc.id) : `${h.doc.source}: ${h.doc.id}`;
     const image = h.doc.image ? ` · image ${h.doc.image}` : '';
@@ -65,7 +74,7 @@ export function screenLines(hits: Hit[], priv: LensPrivate, home = ''): string[]
 export function contextText(hits: Hit[]): string | null {
   const lines: string[] = [];
   for (const h of hits.slice(0, MAX_HITS)) {
-    if (looksSecret(h.doc.name + ' ' + h.doc.desc)) continue;
+    if (docLooksSecret(h.doc)) continue;
     const desc = h.doc.desc.length > DESC_CHARS ? h.doc.desc.slice(0, DESC_CHARS - 3) + '...' : h.doc.desc;
     const where = h.doc.source === 'local' ? h.doc.id : `${h.doc.source} id ${h.doc.id} (fetch the body only if needed)`;
     lines.push(`- ${h.doc.name}: ${desc || '(no description)'} [${where}]`);

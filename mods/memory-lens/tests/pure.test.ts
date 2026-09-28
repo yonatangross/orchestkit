@@ -63,6 +63,14 @@ describe('parseMirror', () => {
     expect(docs).toHaveLength(1);
     expect(docs[0]).toMatchObject({ id: 'kb-1', name: 'Deploy runbook', source: 'kb', type: 'remote' });
   });
+  test('a mirror item with a secret-shaped id or source is dropped', () => {
+    const docs = parseMirror(JSON.stringify({ items: [
+      { id: FAKE_KEY, title: 'Harmless title', source: 'kb' },
+      { id: 'ok-1', title: 'Also harmless', source: `store ${FAKE_KEY}` },
+      { id: 'ok-2', title: 'Kept', source: 'kb' },
+    ] }), 'mirror');
+    expect(docs.map((d) => d.id)).toEqual(['ok-2']);
+  });
   test('malformed JSON yields nothing, never throws', () => {
     expect(parseMirror('{nope', 'mirror')).toEqual([]);
     expect(parseMirror('[]', 'mirror')).toEqual([]);
@@ -135,6 +143,14 @@ describe('format', () => {
     expect(looksSecret(s.desc)).toBe(true);
     expect(contextText([hit(s)])).toBeNull();
     expect(screenLines([hit(s)], { clientTerms: [] }).join('\n')).not.toContain(FAKE_KEY);
+  });
+  test('a secret-shaped id or source reaches neither surface, even past the mirror parser', () => {
+    const viaId: MemoryDoc = { id: FAKE_KEY, name: 'Harmless title', desc: 'benign', type: 'remote', body: '', source: 'kb' };
+    const viaSource: MemoryDoc = { id: 'ok-3', name: 'Harmless title', desc: 'benign', type: 'remote', body: '', source: FAKE_KEY };
+    for (const d of [viaId, viaSource]) {
+      expect(screenLines([hit(d)], { clientTerms: [] }).join(' ')).not.toContain(FAKE_KEY);
+      expect(contextText([hit(d)]) ?? '').not.toContain(FAKE_KEY);
+    }
   });
   test('context is capped near 600 tokens', () => {
     const long = Array.from({ length: 3 }, (_, i) => hit(doc(`m${i}`, 'x'.repeat(5000))));

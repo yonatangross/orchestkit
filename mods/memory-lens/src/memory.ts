@@ -3,6 +3,7 @@
  * Pure over strings; the hooks module owns every file read.
  */
 
+import { looksSecret } from './format.js';
 import type { MemoryDoc, MirrorItem } from './types.js';
 
 /** Body characters kept for matching. Past this, a memory is detail, not topic. */
@@ -68,13 +69,17 @@ export function parseMirror(text: string, fallbackSource: string): MemoryDoc[] {
   const out: MemoryDoc[] = [];
   for (const raw of items as MirrorItem[]) {
     if (!raw || typeof raw.id !== 'string' || typeof raw.title !== 'string' || !raw.title) continue;
+    const source = typeof raw.source === 'string' && raw.source ? raw.source : fallbackSource;
+    // the id and source are printed on screen and sent to the model: a
+    // credential-shaped one drops the whole item (review of #4530)
+    if (looksSecret(raw.id) || looksSecret(source)) continue;
     out.push({
       id: raw.id,
       name: raw.title,
       desc: typeof raw.summary === 'string' ? raw.summary : '',
       type: 'remote',
       body: '',
-      source: typeof raw.source === 'string' && raw.source ? raw.source : fallbackSource,
+      source,
     });
   }
   return out;
