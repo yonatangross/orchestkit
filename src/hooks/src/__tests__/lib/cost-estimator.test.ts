@@ -143,6 +143,34 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
   });
 
+  it('resolves `sonnet` alias to claude-sonnet-5-5 (alias table cannot silently flip)', () => {
+    // Advanced claude-sonnet-5 -> claude-sonnet-5-5 on 2026-09-28. Same $2/$10
+    // list price as Sonnet 5, so a total alone cannot tell the two apart; the
+    // key assertion is what catches a revert.
+    expect(resolveModelKey('sonnet')).toBe('claude-sonnet-5-5');
+    expect(calculateCost('sonnet', MTOK).total).toBeCloseTo(12.0, 5); // $2 + $10
+  });
+
+  it('prices claude-sonnet-5-5 at $2/$10 per MTok (cache 0.2/2.5)', () => {
+    // platform.claude.com pricing page, read 2026-09-28: $2 in, $10 out,
+    // $0.20 cache read, $2.50 5-minute cache write.
+    expect(getCostConfig().models['claude-sonnet-5-5']).toEqual({
+      input_per_mtok: 2.0,
+      output_per_mtok: 10.0,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 2.5,
+    });
+  });
+
+  it('prices claude-sonnet-5-5 on its own row, never through the unknown-model fallback', () => {
+    // Without a row, '-5' after 'claude-sonnet-5' is not a session label, so
+    // 5.5 would take the fallback. The fallback happens to carry the same
+    // price today, which is exactly why the row test above is the real pin.
+    expect(Object.keys(getCostConfig().models)).toContain('claude-sonnet-5-5');
+    expect(getPricing('claude-sonnet-5-5[1m]').output_per_mtok).toBe(10.0);
+    expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
+  });
+
   it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {
     expect(getCostConfig().models['claude-opus-5']).toEqual({
       input_per_mtok: 5.0,
@@ -191,6 +219,7 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     // caught. Do not relax the family tier to absorb a divergence.
     const OFF_TIER: Record<string, number> = {
       'claude-sonnet-5': 2.0,
+      'claude-sonnet-5-5': 2.0,
       // Opus 5.5 launched below the $5 Opus line at $4/$20 (CC 2.1.280).
       'claude-opus-5-5': 4.0,
     };
@@ -410,6 +439,14 @@ describe('managed modelPricing (#3878)', () => {
     expect(getPricing('my-gateway-model').output_per_mtok).toBe(40);
     // A different unknown model still takes the pinned fallback.
     expect(getPricing('zz-totally-unknown-model-9').input_per_mtok).toBe(2.0);
+  });
+
+  it('the unknown-model fallback reads the claude-sonnet-5-5 row first', () => {
+    // Sonnet 5 and 5.5 share a list price, so only an override on the 5.5 row
+    // can show which row the fallback reads. Repointed 2026-09-28.
+    setManaged({ modelPricing: { overrides: { 'claude-sonnet-5-5': CONTRACT_ROW } } });
+    expect(getPricing('zz-totally-unknown-model-9').input_per_mtok).toBe(8);
+    expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
   });
 
   it('override keys match case-insensitively and the earlier row wins a duplicate', () => {

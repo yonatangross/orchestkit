@@ -41,7 +41,7 @@ async def analyze(content: str):
     async def generate_analysis(context):
         response = await llm.generate(content)
         get_client().update_current_observation(
-            model="claude-sonnet-5",
+            model="claude-sonnet-5-5",
             usage={"input_tokens": 1500, "output_tokens": 1000},
         )
         return response

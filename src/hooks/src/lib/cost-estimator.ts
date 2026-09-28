@@ -313,9 +313,10 @@ function getPricing(modelName: string): ModelPricing {
 
   // Default to sonnet pricing as fallback
   return (
+    config.models['claude-sonnet-5-5'] ||
     config.models['claude-sonnet-5'] ||
     config.models['claude-sonnet-4-6'] ||
-    DEFAULT_PRICING.models['claude-sonnet-5']
+    DEFAULT_PRICING.models['claude-sonnet-5-5']
   );
 }
 

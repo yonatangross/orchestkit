@@ -262,7 +262,7 @@ histogram_quantile(0.95,
 {
   "event": "llm_call_completed",
   "level": "info",
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-5-5",
   "operation": "security_audit",
   "input_tokens": 1800,
   "output_tokens": 1200,

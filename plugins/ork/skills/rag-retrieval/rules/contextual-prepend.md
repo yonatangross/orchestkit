@@ -39,7 +39,7 @@ Answer only with the context, nothing else.
 
 def contextualize_chunk(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
         thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user",
@@ -52,7 +52,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
 ```python
 def contextualize_cached(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
         thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user", "content": [
@@ -76,7 +76,7 @@ def index_chunk(chunk: str) -> str:
 ```python
 def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
         thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user", "content": [

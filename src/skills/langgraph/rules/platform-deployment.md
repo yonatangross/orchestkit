@@ -48,13 +48,13 @@ client = get_client(url="http://localhost:2024")
 # Vary them through the prompt: claude-sonnet-5 returns 400 on a non-default temperature.
 creative = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5-5"}},
     name="creative-writer",
 )
 
 precise = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"system_prompt": "Be precise; state only what the data supports.", "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Be precise; state only what the data supports.", "model": "claude-sonnet-5-5"}},
     name="precise-analyst",
 )
 ```
