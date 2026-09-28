@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Two CI fixes: traffic snapshot App token, release-please guard skips release/* bases</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#fbfaf7;color:#1d1d1f;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:#5b5b60;margin-top:0}
+.card{border:1px solid #e3e0d8;background:#fff;border-radius:10px;padding:16px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #ece9e2;padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:#1f7a3a;font-weight:600}.no{color:#b3261e;font-weight:600}.warn{color:#9a6700;font-weight:600}
+code{background:#f1efe9;padding:1px 5px;border-radius:4px;font-size:13px}
+button{background:#fff;color:#1d1d1f;border:1px solid #d6d2c8;border-radius:6px;padding:6px 12px;cursor:pointer;margin:0 8px 8px 0}
+button.on{border-color:#1f7a3a;background:#eef7f0}
+input{font:14px ui-monospace,Menlo,monospace;padding:6px 8px;border:1px solid #d6d2c8;border-radius:6px;width:220px}
+.flow{font:13px ui-monospace,Menlo,monospace;white-space:pre-wrap;background:#f6f4ef;border:1px solid #e3e0d8;border-radius:8px;padding:12px;margin:8px 0}
+.note{color:#5b5b60;font-size:13px}
+.gate{border-left:4px solid #9a6700;padding:8px 12px;background:#fff8e6;margin:12px 0}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Traffic snapshot App token; release-please guard skips release/* bases"><meta property="og:description" content="The weekly traffic snapshot failed 3 of 3 runs with a 403 because GITHUB_TOKEN can never hold Administration: read. It now mints the Release Bot App token and preflights traffic/views with an error that names the missing permission. The release-please guard skips PRs based on release/*, which release-please never reads."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/traffic-token-and-rp-guard.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Traffic snapshot App token; release-please guard skips release/* bases"><meta name="twitter:description" content="The weekly traffic snapshot failed 3 of 3 runs with a 403 because GITHUB_TOKEN can never hold Administration: read. It now mints the Release Bot App token and preflights traffic/views with an error that names the missing permission. The release-please guard skips PRs based on release/*, which release-please never reads."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>Two CI fixes in one PR</h1>
+<p class="lead">1. The weekly traffic snapshot has failed every run (3 of 3 scheduled runs, 14, 21 and 28 September) with <code>HTTP 403 Resource not accessible by integration</code>. 2. The release-please guard fired on PRs whose base is a <code>release/*</code> branch, a branch release-please never reads.</p>
+
+<h2>1. Traffic snapshot: which token reads traffic</h2>
+<div class="card">
+<button id="b-before" class="on">Before (GITHUB_TOKEN)</button><button id="b-after">After (Release Bot App token)</button><button id="b-missing">After, App still lacks the permission</button>
+<div id="flow" class="flow"></div>
+<p class="note">The traffic endpoints need the repository permission Administration: read. GITHUB_TOKEN can never be granted it, whatever the workflow <code>permissions:</code> block says. A GitHub App installation token can, once the App has it.</p>
+</div>
+
+<h2>2. Release-please guard: which base does it guard</h2>
+<div class="card">
+<label>PR base branch <input id="base" value="release/9.x"></label>
+<label style="margin-left:12px"><input type="checkbox" id="bot" style="width:auto"> bot author</label>
+<p id="verdict"></p>
+<p class="note">release-please.yml runs on push to <code>main</code> only (plus its weekly cron and manual dispatch on main), so its state machine never reads a <code>release/*</code> branch. The guard now skips those bases with a notice. Every other base behaves exactly as before.</p>
+</div>
+
+<h2>3. What changed</h2>
+<div class="card"><table><tbody>
+<tr><th>traffic-snapshot.yml</th><td>Mints the Release Bot token (same App secrets and the same pinned <code>create-github-app-token</code> SHA as release-please.yml) scoped to administration:read, contents:write, pull-requests:write. A preflight step calls <code>gh api repos/OWNER/REPO/traffic/views</code> and fails with an error naming Administration: read. GITHUB_TOKEN drops to contents:read; the push and the PR use the App token, passed per command, never written to .git/config.</td></tr>
+<tr><th>release-please-guard.yml</th><td>The bot-check step exits with <code>skip=true</code> when <code>github.base_ref</code> starts with <code>release/</code>.</td></tr>
+<tr><th>Checks run</th><td>actionlint with the CI flags: clean. zizmor with the repo config: 0 low, 0 medium, 0 high. tests/ci/test-traffic-snapshot.sh: 27 of 27. tests/ci/test-workflow-step-fault-arms.sh: 28 of 28.</td></tr>
+</tbody></table></div>
+
+<div class="gate"><strong>One operator action.</strong> Grant the OrchestKit Release Bot App the repository permission Administration: Read-only, then accept the updated permissions on its installation. Until then the preflight step fails with that exact instruction instead of a bare 403.</div>
+
+<script>
+(function(){
+  var flows = {
+    before: "GITHUB_TOKEN (contents:write, pull-requests:write)\n  gh api repos/OWNER/REPO/traffic/views\n  -> HTTP 403 Resource not accessible by integration\n  -> run fails, no row, no PR (every run since the workflow landed)",
+    after: "Mint Release Bot token (administration:read, contents:write, pull-requests:write)\n  Preflight: gh api repos/OWNER/REPO/traffic/views -> 200\n  Build snapshot row with the App token -> row=written\n  Push traffic/snapshot-WEEK with the App token (header per command)\n  gh pr create with the App token -> PR checks run (App events trigger workflows)",
+    missing: "Mint Release Bot token (administration:read requested)\n  -> 422, the permission is not granted to this installation\n  Preflight: ::error title=Missing Administration read:: Grant the OrchestKit Release Bot\n  GitHub App the repository permission 'Administration: Read-only', then accept the\n  updated permissions on its installation.\n  -> run fails loudly, nothing written"
+  };
+  var ids = {before: "b-before", after: "b-after", missing: "b-missing"};
+  function show(k){
+    document.getElementById("flow").textContent = flows[k];
+    Object.keys(ids).forEach(function(n){ document.getElementById(ids[n]).className = (n === k) ? "on" : ""; });
+  }
+  Object.keys(ids).forEach(function(n){ document.getElementById(ids[n]).addEventListener("click", function(){ show(n); }); });
+  show("before");
+
+  function judge(){
+    var base = document.getElementById("base").value.trim();
+    var bot = document.getElementById("bot").checked;
+    var v = document.getElementById("verdict");
+    if (base.indexOf("release/") === 0) {
+      v.innerHTML = '<span class="ok">skip</span>: base <code></code> is a release/* branch, release-please does not govern it (new).';
+      v.querySelector("code").textContent = base;
+    } else if (bot) {
+      v.innerHTML = '<span class="ok">skip</span>: bot PR (unchanged).';
+    } else {
+      v.innerHTML = '<span class="warn">guard runs</span>: base <code></code>, governed files are checked (unchanged).';
+      v.querySelector("code").textContent = base || "(empty)";
+    }
+  }
+  document.getElementById("base").addEventListener("input", judge);
+  document.getElementById("bot").addEventListener("change", judge);
+  judge();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

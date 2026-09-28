@@ -18,6 +18,13 @@
 #
 # Idempotent: a week already recorded in the ledger makes the run exit 0
 # without any API call, so re-dispatching cannot duplicate a row or a PR.
+#
+# Token: the traffic endpoints need the Administration: read repository
+# permission, which GITHUB_TOKEN can never be granted, so every run since
+# #4075 returned 403. The job mints an OrchestKit Release Bot App token
+# (secrets.RELEASE_BOT_*, same App and pin as release-please.yml) scoped to
+# administration:read, contents:write, pull-requests:write, and a preflight
+# step fails loudly, naming the missing permission, before any other work.
 
 name: Traffic Snapshot
 
@@ -38,11 +45,50 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # GITHUB_TOKEN only checks out; the traffic reads, the branch push and the
+    # PR all use the Release Bot App token minted below.
     permissions:
-      contents: write       # push the snapshot branch
-      pull-requests: write  # gh pr create
+      contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1 # zizmor: ignore[artipacked] - persisted GITHUB_TOKEN is required for the git push in the Open PR step
+      # continue-on-error so the preflight below owns the failure message:
+      # a mint asking for a permission the App lacks dies with a bare 422
+      # that does not say which permission is missing.
+      - name: Mint Release Bot token (administration:read for traffic)
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          permission-administration: read
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Preflight, the token can read traffic (Administration read)
+        env:
+          MINT_OUTCOME: ${{ steps.app-token.outcome }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          FIX="Grant the OrchestKit Release Bot GitHub App the repository permission 'Administration: Read-only', then accept the updated permissions on its installation for ${GH_REPO}."
+          if [[ "$MINT_OUTCOME" != "success" || -z "$GH_TOKEN" ]]; then
+            echo "::error title=Missing Administration read::Could not mint a Release Bot token with administration:read (mint outcome: ${MINT_OUTCOME}). ${FIX}"
+            exit 1
+          fi
+          if ! err=$(gh api "repos/${GH_REPO}/traffic/views" 2>&1 >/dev/null); then
+            echo "::error title=Missing Administration read::gh api repos/${GH_REPO}/traffic/views failed with the Release Bot token: ${err}. ${FIX}"
+            exit 1
+          fi
+          echo "traffic/views is readable with the Release Bot token."
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # The push below authenticates explicitly with the App token, so no
+          # credential is written into .git/config.
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
@@ -51,7 +97,7 @@ jobs:
       - name: Build weekly snapshot row (fails closed on any API error)
         id: snapshot
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -87,14 +133,19 @@ jobs:
       - name: Open PR with the new row
         if: steps.snapshot.outputs.row == 'written'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           WEEK: ${{ steps.snapshot.outputs.week }}
         run: |
           set -euo pipefail
           BRANCH="traffic/snapshot-${WEEK}"
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "orchestkit-release-bot[bot]"
+          git config user.email "orchestkit-release-bot[bot]@users.noreply.github.com"
+          # Authenticate git with the App token for this step only, as an
+          # http header passed per command (never persisted to .git/config).
+          AUTH_B64=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')
+          echo "::add-mask::${AUTH_B64}"
+          GIT_AUTH=(-c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH_B64}")
           # -B (not -b): a prior run may have pushed this week's branch before
           # dying before or during PR creation; recreate it from current main.
           git checkout -B "$BRANCH"
@@ -102,9 +153,13 @@ jobs:
           git commit -m "chore(traffic): snapshot week of ${WEEK}"
           # --force-with-lease: same re-dispatch story as checkout -B; the
           # branch is bot-owned and carries exactly this one commit.
-          git push --force-with-lease -u origin "$BRANCH"
+          # The lease compares against origin/$BRANCH, which a depth-1 checkout
+          # of main never fetched; without it a re-dispatch after a pushed
+          # branch is rejected as stale. Fetch it when it exists.
+          git "${GIT_AUTH[@]}" fetch -q origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}" 2>/dev/null || true  # silent: absent branch is the normal first-run case
+          git "${GIT_AUTH[@]}" push --force-with-lease -u origin "$BRANCH"
 
-          if ! git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+          if ! git "${GIT_AUTH[@]}" ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
             echo "::error::push reported success but origin/$BRANCH does not exist"
             exit 1
           fi
