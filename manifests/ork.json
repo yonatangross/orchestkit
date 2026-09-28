@@ -23,6 +23,7 @@
   "agents": "all",
   "hooks": "all",
   "workflows": [
+    "skills/assess/workflows/assess-fanout.js",
     "skills/audit-full/workflows/audit-full-mapreduce.js",
     "skills/bare-eval/workflows/skill-fitness.js",
     "skills/cover/workflows/heal-loop.js",

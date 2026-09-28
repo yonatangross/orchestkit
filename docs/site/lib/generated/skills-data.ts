@@ -407,8 +407,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
-    "version": "1.8.0",
-    "sha256": "feade121abcfd1bd4673997562a9b4c5e8db74624de46662dd877a7d5b72f7f9",
+    "version": "1.9.0",
+    "sha256": "d38087c899db8849f25877dbbe6c7252cbd9d600764b81fb151abd2e8a41b314",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -427,6 +427,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep",
       "Glob",
       "Agent",
+      "Workflow",
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
