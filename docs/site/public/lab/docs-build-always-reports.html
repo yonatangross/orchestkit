@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Docs Site Build always reports</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#fbfaf7;color:#1d1d1f;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:#5b5b60;margin-top:0}
+.card{border:1px solid #e3e0d8;background:#fff;border-radius:10px;padding:16px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #ece9e2;padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:#1f7a3a;font-weight:600}.no{color:#b3261e;font-weight:600}.warn{color:#9a6700;font-weight:600}
+code{background:#f1efe9;padding:1px 5px;border-radius:4px;font-size:13px}
+label{margin-right:14px}
+.note{color:#5b5b60;font-size:13px}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Docs Site Build always reports"><meta property="og:description" content="Docs Site Build is a required check on main, but it was skipped when no docs-site input changed, and a skipped required check never reads as SUCCESS at the merge door. The job now always runs: red on a failed detection or validation, green with a notice when nothing relevant changed, the full build otherwise."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/docs-build-always-reports.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docs Site Build always reports"><meta name="twitter:description" content="Docs Site Build is a required check on main, but it was skipped when no docs-site input changed, and a skipped required check never reads as SUCCESS at the merge door. The job now always runs: red on a failed detection or validation, green with a notice when nothing relevant changed, the full build otherwise."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>Docs Site Build always reports</h1>
+<p class="lead"><code>Docs Site Build</code> is a required check on main. When a PR changed no docs-site input, the job was skipped, and a skipped required check never reads as SUCCESS at the merge door. Every weekly traffic-snapshot bot PR (one line in <code>docs/traffic/snapshots.jsonl</code>) was stuck on it.</p>
+
+<h2>What the check reports</h2>
+<div class="card">
+<label><input type="checkbox" id="det" checked> change detection succeeded</label>
+<label><input type="checkbox" id="docs"> a docs-site input changed</label>
+<label><input type="checkbox" id="val" checked> validation succeeded</label>
+<table><thead><tr><th></th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><th>Docs Site Build</th><td id="before"></td><td id="after"></td></tr>
+</tbody></table>
+<p class="note">The job now always runs. Its first step decides: red when detection or validation failed, green with a notice when nothing relevant changed, the full build otherwise. Fail-closed behavior is unchanged.</p>
+</div>
+
+<h2>What changed</h2>
+<div class="card"><table><tbody>
+<tr><th>.github/workflows/docs.yml</th><td>The build job's <code>if:</code> becomes <code>always()</code>. The first step (id <code>gate</code>) writes <code>run=true</code> or <code>run=false</code>; the 11 build steps after it run only when <code>run == 'true'</code>.</td></tr>
+<tr><th>Checks run</th><td>actionlint: clean.</td></tr>
+</tbody></table></div>
+
+<script>
+(function(){
+  function cell(el, cls, text){ el.innerHTML = '<span class="' + cls + '"></span>'; el.firstChild.textContent = text; }
+  function judge(){
+    var det = document.getElementById("det").checked;
+    var docs = document.getElementById("docs").checked;
+    var val = document.getElementById("val").checked;
+    var b = document.getElementById("before"), a = document.getElementById("after");
+    if (!det) { cell(b, "no", "red (failure)"); cell(a, "no", "red (failure)"); return; }
+    if (!docs) { cell(b, "warn", "skipped: never SUCCESS, PR blocked"); cell(a, "ok", "green, notice: build not needed"); return; }
+    if (!val) { cell(b, "no", "red (failure)"); cell(a, "no", "red (failure)"); return; }
+    cell(b, "ok", "green after full build"); cell(a, "ok", "green after full build");
+  }
+  ["det", "docs", "val"].forEach(function(id){ document.getElementById(id).addEventListener("change", judge); });
+  judge();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

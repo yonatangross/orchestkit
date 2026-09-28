@@ -1,0 +1,12 @@
+{
+  "slug": "docs-build-always-reports",
+  "source": "docs/fix--docs-build-always-reports/index.html",
+  "title": "Docs Site Build always reports",
+  "description": "Docs Site Build is a required check on main, but it was skipped when no docs-site input changed, and a skipped required check never reads as SUCCESS at the merge door. The job now always runs: red on a failed detection or validation, green with a notice when nothing relevant changed, the full build otherwise.",
+  "tags": [
+    "ci",
+    "github-actions",
+    "docs"
+  ],
+  "date": "2026-09-28"
+}
