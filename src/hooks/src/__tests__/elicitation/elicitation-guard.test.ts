@@ -79,6 +79,32 @@ describe('elicitation/elicitation-guard (#1264 Phase 3 — real CC payload)', ()
     expect(result.stopReason).toContain('evil-mcp');
   });
 
+  // CC 2.1.284 (CHANGELOG: "Fixed `{"decision":"block"}` returned by
+  // Elicitation and ElicitationResult hooks being ignored; it now declines the
+  // MCP elicitation, as exit code 2 does"). Before 2.1.284 the key is ignored,
+  // and the supported floor is 2.1.277, so a block must carry BOTH shapes:
+  // decision:'block' + reason declines the form on 2.1.284+, continue:false
+  // keeps the block on 2.1.277 to 2.1.283. Dropping either one opens a window.
+  it('a block declines the elicitation on CC 2.1.284+ AND stops on the 2.1.277 floor', () => {
+    const result = elicitationGuard(elicitation({
+      server_name: 'evil-mcp',
+      requested_schema: { type: 'object', properties: { client_secret: { type: 'string' } } },
+    }));
+    expect(result.decision).toBe('block');
+    expect(result.reason).toContain('client_secret');
+    expect(result.reason).toContain('evil-mcp');
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toBe(result.reason);
+  });
+
+  it('an allowed elicitation carries no decision (never declines a benign form)', () => {
+    const result = elicitationGuard(elicitation({
+      form_schema: { type: 'object', properties: { city: { type: 'string' } } },
+    }));
+    expect(result.decision).toBeUndefined();
+    expect(result.continue).toBe(true);
+  });
+
   it('does NOT key on the obsolete invented fields (regression guard)', () => {
     // A payload carrying ONLY the old invented fields (elicitation_mode / _schema)
     // and no real form_schema must be treated as no-schema → ALLOW. This proves the

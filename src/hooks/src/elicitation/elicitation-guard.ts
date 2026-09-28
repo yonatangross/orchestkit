@@ -67,10 +67,15 @@ export function elicitationGuard(input: HookInput, ctx: HookContext = NOOP_CTX):
     // hookEventName allowlist — restored in #4285 — so the documented
     // action:"decline" shape would now pass the guard, but continue:false stays
     // the robust block: it works even when the form payload is malformed.)
-    return outputBlock(
+    //
+    // CC 2.1.284 honours decision:'block' from Elicitation hooks and declines
+    // the MCP elicitation, as exit code 2 does; earlier versions ignore it.
+    // The floor is 2.1.277, so the block carries both shapes: decision+reason
+    // declines the form on 2.1.284+, continue:false still stops it below.
+    const reason =
       `Blocked: MCP server "${server}" attempted to collect "${secretField}" via an ` +
-      `elicitation form. Secrets must not be entered into form fields exposed to the LLM context.`
-    );
+      `elicitation form. Secrets must not be entered into form fields exposed to the LLM context.`;
+    return { ...outputBlock(reason), decision: 'block', reason };
   }
 
   ctx.log('elicitation-guard', `Allowed elicitation from ${server}`);
