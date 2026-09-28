@@ -40,6 +40,7 @@ function fake$() {
     },
     ui: { log: async (text: string, o?: { to?: string }) => void logs.push({ text, to: o?.to }) },
     command: { register: async () => undefined },
+    clock: { after: (ms: number, fn: () => void) => { const t = setTimeout(fn, ms); return { cancel: () => clearTimeout(t) }; } },
   };
   return { $, logs };
 }
@@ -137,6 +138,21 @@ describe('memory-lens hooks', () => {
     expect(stats.text).toMatch(/memory-lens: 33 memories/);
     const show = (await hooks['command.run'](f.$, { args: 'show 1' })) as { text: string };
     expect(show.text).toContain('project_acme_lane');
+  });
+
+  test('the first prompt waits for an index still building', async () => {
+    const h = capture();
+    const g = fake$();
+    await h['session.start'](g.$, { cwd: CWD }, async (e: unknown) => e);
+    // no stats call here: the build has not been awaited yet
+    const r = (await h['prompt.submit'](g.$, { text: 'why not do it yourself with agent-browser' }, async (e: unknown) => e)) as { context?: string[] };
+    expect(r.context?.[0]).toContain('feedback_portless');
+  });
+
+  test('the context travels down the chain before next() runs', async () => {
+    let seen: unknown;
+    await hooks['prompt.submit'](f.$, { text: 'agent-browser yourself' }, async (e: unknown) => { seen = e; return e; });
+    expect((seen as { context?: string[] }).context?.[0]).toContain('feedback_portless');
   });
 
   test('no memory folder: prompts pass through', async () => {

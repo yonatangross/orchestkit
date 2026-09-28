@@ -34,6 +34,7 @@ type Lens$ = {
   };
   ui: { log: (text: string, options?: { to?: 'transcript' | 'debug' }) => Promise<void> };
   command: { register: (spec: { name: string; description: string }) => Promise<unknown> };
+  clock: { after: (ms: number, fn: () => void) => { cancel?: () => void } };
 };
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
@@ -61,7 +62,13 @@ function join(...parts: string[]): string {
   return parts.join('/').replace(/\/+/g, '/');
 }
 
+/** Names in ~/.claude/memory-lens, listed first so a missing optional file is not read (and not logged as an error). */
+let lensFiles = new Set<string>();
+
 async function readPrivate($: Lens$): Promise<LensPrivate> {
+  const entries = (await $.fs.list(join(home, '.claude', 'memory-lens')).catch(() => null)) ?? [];
+  lensFiles = new Set(entries.map((x) => x.name));
+  if (!lensFiles.has('private.json')) return { clientTerms: [] };
   try {
     const raw = JSON.parse(await $.fs.read(join(home, '.claude', 'memory-lens', 'private.json'))) as { clientTerms?: unknown };
     const terms = Array.isArray(raw.clientTerms) ? raw.clientTerms.filter((t): t is string => typeof t === 'string') : [];
@@ -83,10 +90,12 @@ async function loadDocs($: Lens$): Promise<Map<string, MemoryDoc>> {
       // unreadable file: skip it, never fail the session
     }
   }
-  try {
-    for (const d of parseMirror(await $.fs.read(mirrorPath), 'mirror')) out.set(`mirror:${d.id}`, d);
-  } catch {
-    // no mirror file: local memory only
+  if (lensFiles.has(mirrorPath.split('/').pop() ?? '')) {
+    try {
+      for (const d of parseMirror(await $.fs.read(mirrorPath), 'mirror')) out.set(`mirror:${d.id}`, d);
+    } catch {
+      // unreadable mirror file: local memory only
+    }
   }
   return out;
 }
@@ -97,6 +106,26 @@ async function build($: Lens$): Promise<void> {
   docs = await loadDocs($);
   index = new LensIndex([...docs.values()]);
   await $.ui.log(`memory-lens: indexed ${index.size} memories in ${Date.now() - t0} ms (${memoryDir})`, { to: 'debug' }).catch(() => undefined);
+}
+
+/** Longest the first prompt waits for the index; later prompts never wait. */
+export const FIRST_WAIT_MS = 2000;
+
+/** Await p, or give up after ms using the engine clock (a mod has no ambient timers). */
+async function waitFor($: Lens$, p: Promise<void>, ms: number): Promise<void> {
+  let timer: { cancel?: () => void } | undefined;
+  const expired = new Promise<void>((resolve) => {
+    try {
+      timer = $.clock.after(ms, () => resolve());
+    } catch {
+      resolve();
+    }
+  });
+  try {
+    await Promise.race([p, expired]);
+  } finally {
+    timer?.cancel?.();
+  }
 }
 
 function timedQuery(text: string, k: number): Hit[] {
@@ -136,18 +165,34 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
   });
 
   on('prompt.submit', async ($: Lens$, e: PromptSubmitEvent, next: NextFn<PromptSubmitEvent>) => {
-    const result = (await next(e)) ?? e;
+    // Query BEFORE next(e) and hand the context down the chain. Measured on
+    // 2.1.283 (2026-09-28): the classic UserPromptSubmit hooks run inside
+    // next(e) for about 560 ms, and the turn started before an answer built
+    // after next(e) settled, so that context never reached the model.
+    let ev = e;
+    let ctx: string | null = null;
+    let hits: Hit[] = [];
+    // The first prompt can arrive while the index is still building (headless
+    // -p sends it at once): wait for the build, at most FIRST_WAIT_MS.
+    if (!index && building) await waitFor($, building, FIRST_WAIT_MS);
+    try {
+      if (index && typeof e?.text === 'string') {
+        hits = timedQuery(e.text, 3);
+        ctx = hits.length ? contextText(hits) : null;
+        if (ctx) ev = withContext(e, ctx) as PromptSubmitEvent;
+      }
+    } catch {
+      ctx = null;
+    }
+    const result = (await next(ev)) ?? ev;
     try {
       const r = result as PromptSubmitEvent & { drop?: unknown };
-      if (!index || typeof r.text !== 'string' || r.drop !== undefined) return result;
-      const hits = timedQuery(r.text, 3);
-      if (!hits.length) return result;
-      const ctx = contextText(hits);
-      if (!ctx) return result;
+      if (!ctx || typeof r.text !== 'string' || r.drop !== undefined) return result;
       lastHits = hits;
       for (const h of hits) recalled.add(h.doc.id);
       await $.ui.log(screenLines(hits, priv, home).join('\n')).catch(() => undefined);
-      return withContext(result, ctx);
+      const has = Array.isArray(r.context) && (r.context as unknown[]).includes(ctx);
+      return has ? result : withContext(result, ctx);
     } catch {
       return result;
     }
