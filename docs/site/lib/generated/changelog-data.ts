@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.129",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mods:** memory-lens recalls related memories on each prompt ([#4530](https://github.com/yonatangross/orchestkit/issues/4530)) ([8371ff5](https://github.com/yonatangross/orchestkit/commit/8371ff50a5a918a4b40ab16dfef205a6fa2facde))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.128",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128",
