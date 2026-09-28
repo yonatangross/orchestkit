@@ -1,6 +1,6 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 977,
+  "total_violations": 928,
   "files_with_violations": 143,
   "files": {
     "src/agents/accessibility-specialist.md": [
@@ -268,7 +268,6 @@
     ],
     "src/skills/accessibility/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -277,7 +276,6 @@
     ],
     "src/skills/agent-orchestration/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -286,7 +284,6 @@
     ],
     "src/skills/ai-ui-generation/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -303,7 +300,6 @@
     ],
     "src/skills/animation-motion-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -314,7 +310,6 @@
     ],
     "src/skills/api-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -324,7 +319,6 @@
     ],
     "src/skills/architecture-decision-record/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -333,7 +327,6 @@
     ],
     "src/skills/architecture-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -353,7 +346,6 @@
     ],
     "src/skills/async-jobs/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -405,7 +397,6 @@
     ],
     "src/skills/browser-tools/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -414,7 +405,6 @@
     ],
     "src/skills/business-case/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -471,7 +461,6 @@
     ],
     "src/skills/competitive-analysis/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -518,7 +507,6 @@
     ],
     "src/skills/database-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -538,7 +526,6 @@
     ],
     "src/skills/design-context-extract/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -549,7 +536,6 @@
     ],
     "src/skills/design-import/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -560,7 +546,6 @@
     ],
     "src/skills/design-ship/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -581,7 +566,6 @@
     ],
     "src/skills/design-system-tokens/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -609,7 +593,6 @@
     ],
     "src/skills/devops-deployment/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:invocation_hooks",
@@ -620,7 +603,6 @@
     ],
     "src/skills/distributed-systems/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -647,7 +629,6 @@
     ],
     "src/skills/domain-driven-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -711,7 +692,6 @@
     ],
     "src/skills/figma-design-handoff/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -748,7 +728,6 @@
     ],
     "src/skills/golden-dataset/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -786,7 +765,6 @@
     ],
     "src/skills/interaction-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -811,7 +789,6 @@
     ],
     "src/skills/langgraph/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -822,7 +799,6 @@
     ],
     "src/skills/llm-integration/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -831,7 +807,6 @@
     ],
     "src/skills/market-sizing/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -891,7 +866,6 @@
     ],
     "src/skills/multimodal-llm/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -900,7 +874,6 @@
     ],
     "src/skills/okr-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -923,7 +896,6 @@
     ],
     "src/skills/performance/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -948,7 +920,6 @@
     ],
     "src/skills/prioritization/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -957,7 +928,6 @@
     ],
     "src/skills/product-analytics/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -966,7 +936,6 @@
     ],
     "src/skills/product-frameworks/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -975,7 +944,6 @@
     ],
     "src/skills/python-backend/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -986,7 +954,6 @@
     ],
     "src/skills/quality-gates/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -996,7 +963,6 @@
     ],
     "src/skills/rag-retrieval/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1006,7 +972,6 @@
     ],
     "src/skills/react-server-components-framework/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1042,7 +1007,6 @@
     ],
     "src/skills/responsive-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1069,7 +1033,6 @@
     ],
     "src/skills/security-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1098,7 +1061,6 @@
     ],
     "src/skills/storybook-testing/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1119,7 +1081,6 @@
     ],
     "src/skills/task-dependency-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1137,7 +1098,6 @@
     ],
     "src/skills/testing-e2e/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1148,7 +1108,6 @@
     ],
     "src/skills/testing-integration/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1159,7 +1118,6 @@
     ],
     "src/skills/testing-llm/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1169,7 +1127,6 @@
     ],
     "src/skills/testing-perf/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1179,7 +1136,6 @@
     ],
     "src/skills/testing-unit/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1190,7 +1146,6 @@
     ],
     "src/skills/ui-components/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1199,7 +1154,6 @@
     ],
     "src/skills/user-research/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1218,7 +1172,6 @@
     ],
     "src/skills/visualize-plan/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
@@ -1229,7 +1182,6 @@
     ],
     "src/skills/vite-advanced/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:path_patterns",
@@ -1248,7 +1200,6 @@
     ],
     "src/skills/write-prd/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:author",
       "house-key:complexity",
       "house-key:persuasion-type",
