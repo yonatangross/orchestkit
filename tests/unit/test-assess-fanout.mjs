@@ -278,6 +278,31 @@ await test('rubric.json thresholds are honoured: a raised min_pass fails the sam
   assert.equal(result.composite, 6.5);
   assert.equal(result.verdict, 'fail');
 });
+const withRubric = (edit) => {
+  const r = JSON.parse(JSON.stringify(RUBRIC));
+  edit(r);
+  return r;
+};
+await test('a null rubric min_blocker is absent, not 0: the planted defect still fails on the default floor', async () => {
+  const rubric = withRubric((r) => (r.dimensions.find((d) => d.name === 'security').min_blocker = null));
+  const { result } = await run({ args: { effort: 'medium', rubric }, rate: { security: PLANTED, quality: OK('quality', 8.6), testability: OK('testability', 8.6) } });
+  assert.equal(result.verdict, 'fail');
+  assert.deepEqual(result.blockers.map((b) => b.dimension), ['security']);
+});
+await test('a null rubric weight or min_pass keeps the default, never 0', async () => {
+  const rubric = withRubric((r) => {
+    r.dimensions.find((d) => d.name === 'security').weight = null;
+    r.composite.min_pass = null;
+  });
+  const { result } = await run({ args: { rubric }, rate: { security: OK('security', 5), quality: OK('quality', 5), performance: OK('performance', 5), testability: OK('testability', 5) } });
+  assert.equal(dim(result, 'security').weight, 0.2);
+  assert.equal(result.verdict, 'fail', 'composite 5 is below the default min_pass 5.5');
+});
+await test('a non-numeric rubric value is ignored with a visible reason', async () => {
+  const rubric = withRubric((r) => (r.dimensions.find((d) => d.name === 'security').min_blocker = '4'));
+  const { result } = await run({ args: { rubric } });
+  assert.match(why(result), /rubric security\.min_blocker "4" is not a finite number, ignored/);
+});
 await test('security selected but not scored is a blocker (fail closed)', async () => {
   const { result } = await run({ rate: { security: null } });
   assert.equal(result.verdict, 'fail');

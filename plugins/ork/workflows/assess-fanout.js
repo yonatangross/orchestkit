@@ -68,15 +68,27 @@ const MIN_BLOCKER = { security: 4.0 };
 
 // The shell passes rubric.json. It encodes the default mode, so in comparison
 // mode only the thresholds are taken from it, never the weights.
+// A rubric number is read only when it is a finite number. null or undefined
+// means absent and keeps the default; Number(null) is 0, which would silently
+// turn a floor off or drop a dimension's weight. Anything else is ignored with
+// a visible reason.
+function rubricNumber(v, what) {
+	if (v === undefined || v === null) return undefined;
+	if (typeof v === "number" && Number.isFinite(v)) return v;
+	reasons.push(`note: rubric ${what} ${JSON.stringify(v)} is not a finite number, ignored (default kept)`);
+	return undefined;
+}
 const rubric = parseMaybeJson(cfg.rubric, "rubric");
 if (rubric && typeof rubric === "object") {
-	const mp = rubric.composite && Number(rubric.composite.min_pass);
-	if (Number.isFinite(mp)) MIN_PASS = mp;
+	const mp = rubricNumber(rubric.composite && rubric.composite.min_pass, "composite.min_pass");
+	if (mp !== undefined) MIN_PASS = mp;
 	for (const d of Array.isArray(rubric.dimensions) ? rubric.dimensions : []) {
-		const name = String(d && d.name || "").toLowerCase();
+		const name = String((d && d.name) || "").toLowerCase();
 		if (!name) continue;
-		if (MODE === "default" && Number.isFinite(Number(d.weight))) WEIGHTS[name] = Number(d.weight);
-		if (Number.isFinite(Number(d.min_blocker))) MIN_BLOCKER[name] = Number(d.min_blocker);
+		const w = rubricNumber(d.weight, `${name}.weight`);
+		if (MODE === "default" && w !== undefined) WEIGHTS[name] = w;
+		const mb = rubricNumber(d.min_blocker, `${name}.min_blocker`);
+		if (mb !== undefined) MIN_BLOCKER[name] = mb;
 	}
 }
 
