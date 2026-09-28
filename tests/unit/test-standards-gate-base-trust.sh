@@ -245,22 +245,40 @@ check "base without the registry: a widening versus the trusted floor fails" 1 \
   "WIDENED limit raised: name_max" "$RC" "$OUT"
 BASE="$SAVED_BASE" TRUSTED="$SAVED_TRUSTED"
 
-# a head from before the gate carries no configs: steps 2 and 4 skip with a
-# notice instead of failing rc=2, and step 3 still judges the tree on the floor
+# a head from before the gate carries neither the configs nor the gate
+# script: steps 2 and 4 skip with a notice instead of failing rc=2, and
+# step 3 still judges the tree on the floor
 new_head absent-head
-rm -rf "$H/configs"
+rm -rf "$H/configs" "$H/scripts"
 git -C "$H" add -A
 verdict "$H"
-check "head without the gate configs passes on the floor" 0 "verdict: rc=0" "$RC" "$OUT"
+check "pre-gate head (no configs, no gate script) passes on the floor" 0 "verdict: rc=0" "$RC" "$OUT"
 check "  ... and the skip notice is printed" 0 "head predates the gate" "$RC" "$OUT"
 
 new_head absent-head-debt
-rm -rf "$H/configs"
+rm -rf "$H/configs" "$H/scripts"
 skill "$H" eta "author: someone"
 git -C "$H" add -A
 verdict "$H"
 check "absent head configs do not hide new debt (step 3 still judges)" 1 \
   "NEW  src/skills/eta/SKILL.md: house-key:author" "$RC" "$OUT"
+
+# a head that HAS the gate script but not a config deleted it: that is an
+# attack on the gate, not a pre-gate head, and it must fail. Merged, the
+# deletion would break the gate for every later PR.
+new_head del-registry
+rm "$H/configs/standards.json"
+git -C "$H" add -A
+verdict "$H"
+check "deleted standards.json on a gate-carrying head fails" 1 \
+  "gate inputs may not be deleted" "$RC" "$OUT"
+
+new_head del-baseline
+rm "$H/configs/frontmatter-baseline.json"
+git -C "$H" add -A
+verdict "$H"
+check "deleted frontmatter-baseline.json on a gate-carrying head fails" 1 \
+  "gate inputs may not be deleted" "$RC" "$OUT"
 
 # vacuity controls: the suite can see each attack
 CONTROL="$TMP/control-head-script.sh"
