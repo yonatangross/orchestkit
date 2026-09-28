@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121) (2026-09-28)
+
+
+### Bug Fixes
+
+* **skills:** pair defer_loading with tool search in llm-integration ([#4498](https://github.com/yonatangross/orchestkit/issues/4498)) ([baa07a5](https://github.com/yonatangross/orchestkit/commit/baa07a570392dc00712a628ae7350d98949f21a6))
+
 ## [10.0.0-beta.120](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120) (2026-09-27)
 
 
