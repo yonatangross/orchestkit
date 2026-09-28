@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.131](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131) (2026-09-28)
+
+
+### Bug Fixes
+
+* **agents:** m3 script keeps quoted commas and validates first ([#4533](https://github.com/yonatangross/orchestkit/issues/4533)) ([#4535](https://github.com/yonatangross/orchestkit/issues/4535)) ([18ea67b](https://github.com/yonatangross/orchestkit/commit/18ea67bbc0b77308ecc4a458a2d588e48e1afd75))
+
 ## [10.0.0-beta.130](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130) (2026-09-28)
 
 
