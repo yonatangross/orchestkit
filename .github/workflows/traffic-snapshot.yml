@@ -17,7 +17,8 @@
 # control/fault arms for this contract live in tests/ci/test-traffic-snapshot.sh.
 #
 # Idempotent: a week already recorded in the ledger makes the run exit 0
-# without any API call, so re-dispatching cannot duplicate a row or a PR.
+# after the token preflight (one traffic/views read) and before any other
+# API call, so re-dispatching cannot duplicate a row or a PR.
 #
 # Token: the traffic endpoints need the Administration: read repository
 # permission, which GITHUB_TOKEN can never be granted, so every run since
