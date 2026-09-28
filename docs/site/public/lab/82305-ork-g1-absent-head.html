@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Who decides whether a missing file was ever there</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:var(--a)}.warn{color:var(--b)}.no{color:var(--r)}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin:0 8px 8px 0}
+button.on{border-color:var(--a)}
+.tree{font:13px ui-monospace,Menlo,monospace;white-space:pre-wrap;color:var(--mut);background:#141821;border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0}
+.note{color:var(--mut);font-size:13px}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Who decides whether a missing file was ever there"><meta property="og:description" content="The G1 verdict driver (#4514) fell back when the base lacked the gate configs but not when the head did, so pre-gate branches failed rc=2 on FileNotFoundError. Steps 2 and 4 now key on the base: a missing head config on a base that carries it is a deletion (gate inputs may not be deleted); a base that lacks it too means the lineage predates the gate and the step skips. Step 3 still judges the tree on the floor."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/82305-ork-g1-absent-head.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Who decides whether a missing file was ever there"><meta name="twitter:description" content="The G1 verdict driver (#4514) fell back when the base lacked the gate configs but not when the head did, so pre-gate branches failed rc=2 on FileNotFoundError. Steps 2 and 4 now key on the base: a missing head config on a base that carries it is a deletion (gate inputs may not be deleted); a base that lacks it too means the lineage predates the gate and the step skips. Step 3 still judges the tree on the floor."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>Who decides whether a missing file was ever there</h1>
+<p class="lead">#4518 taught the standards gate to skip steps 2 and 4 when a PR head lacks <code>configs/standards.json</code> or the baseline, keyed on whether the head also lacked the gate script. CodeRabbit caught the rest: delete all three files and the head still reads as pre-gate. The presence of the file must be proven somewhere the PR cannot touch.</p>
+
+<h2>1. The discriminator moves to the base</h2>
+<div class="tree">trusted/   base branch tip   the gate code, the only tree anything runs from
+base/      PR base commit   configs only: the floor, AND now the witness
+head/      PR head          DATA ONLY: read as text, never executed</div>
+<p class="note">A head file proves nothing either way: the PR wrote the head. The base (<code>pull_request.base.sha</code>) is not PR-controlled. If the base carries the config, a head without it deleted it. If the base lacks it too, the PR lineage predates the gate, like #4513 did.</p>
+
+<h2>2. Press a scenario</h2>
+<div class="card">
+ <p><button class="on" data-f="A">A: pre-gate PR (base lacks configs)</button><button data-f="B">B: deletes one config</button><button data-f="C">C: deletes configs + the gate script</button><button data-f="D">D: pre-gate head + new debt</button></p>
+ <div class="tree" id="log"></div>
+ <p class="note" id="why"></p>
+</div>
+
+<h2>3. The rule, one line</h2>
+<p>Each head-side step: <code>[ -f head/&lt;config&gt; ]</code> runs the check; else <code>[ ! -f base/&lt;config&gt; ]</code> skips with a notice (<code>head predates the gate, nothing to widen / raise</code>); else the verdict fails with <code>gate inputs may not be deleted</code>. Step 3 is untouched: the head tree is always judged by floor allowlists and floor baseline.</p>
+
+<h2>4. Why the base and not the head script</h2>
+<div class="card"><table><tbody>
+<tr><th>head-script test</th><td>delete <code>configs/*</code> AND <code>scripts/check-frontmatter.py</code> and the head still reads pre-gate; the merge then breaks the gate for every later run</td></tr>
+<tr><th>base test</th><td>the base is not writable by the PR; a present base config makes a missing head config a deletion no matter what else the head removes</td></tr>
+<tr><th>pre-gate stays open</th><td>#4513 proved a real pre-gate PR carries a pre-gate <code>base.sha</code>, so the skip still fires where it should</td></tr>
+<tr><th>bonus correctness</th><td>a stale PR that syncs its base onto post-gate main without carrying the configs now fails as a deletion, which is exactly what merging it would do to main</td></tr>
+</tbody></table></div>
+<script>
+const D={
+A:['<span class="warn">== allowlists may not widen versus the base\nnotice: configs/standards.json absent on the PR head; head predates the gate, nothing to widen</span>\n\n== head tree judged by base rules and base baseline\nfrontmatter gate: 150 files, 977 baselined, <span class="ok">0 NEW</span>\n\n<span class="warn">== head baseline may only fall versus the base\nnotice: configs/frontmatter-baseline.json absent on the PR head; head predates the gate, nothing to raise</span>\n\n<span class="ok">standards gate verdict: rc=0</span>','Base lacks the configs, so the PR lineage predates the gate. Steps skip with a notice; the tree is still judged on the trusted floor.'],
+B:['<span class="no">== allowlists may not widen versus the base\nerror: configs/standards.json is missing on the PR head but present on the base; gate inputs may not be deleted</span>\n\n== head tree judged by base rules and base baseline\nfrontmatter gate: 150 files, 977 baselined, <span class="ok">0 NEW</span>\n\n== head baseline may only fall versus the base\n1 unchanged file(s), 0 code(s) added\n\n<span class="no">standards gate verdict: rc=1</span>','The base carries standards.json, so a head without it deleted it. rc=1, same family as a widening or a raised baseline.'],
+C:['<span class="no">== allowlists may not widen versus the base\nerror: configs/standards.json is missing on the PR head but present on the base; gate inputs may not be deleted</span>\n\n== head tree judged by base rules and base baseline\nfrontmatter gate: 150 files, 977 baselined, <span class="ok">0 NEW</span>\n\n<span class="no">== head baseline may only fall versus the base\nerror: configs/frontmatter-baseline.json is missing on the PR head but present on the base; gate inputs may not be deleted</span>\n\n<span class="no">standards gate verdict: rc=1</span>','The hole CodeRabbit found: under the first fix this head (no configs, no gate script) still read as pre-gate. With the base as witness it fails on both head-side steps.'],
+D:['<span class="warn">== allowlists may not widen versus the base\nnotice: configs/standards.json absent on the PR head; head predates the gate, nothing to widen</span>\n\n== head tree judged by base rules and base baseline\n<span class="no">NEW  src/skills/eta/SKILL.md: house-key:author</span>\nerror: head tree judged by base rules and base baseline: failed (rc=1)\n\n<span class="warn">== head baseline may only fall versus the base\nnotice: configs/frontmatter-baseline.json absent on the PR head; head predates the gate, nothing to raise</span>\n\n<span class="no">standards gate verdict: rc=1</span>','The skip is not a loophole in the other direction either: new debt on a pre-gate head still fails, judged by step 3 under floor rules.']
+};
+function set(k){document.querySelectorAll('button[data-f]').forEach(b=>b.classList.toggle('on',b.dataset.f===k));const d=D[k];log.innerHTML=d[0];why.textContent=d[1];}
+document.querySelectorAll('button[data-f]').forEach(b=>b.onclick=()=>set(b.dataset.f));set('A');
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
