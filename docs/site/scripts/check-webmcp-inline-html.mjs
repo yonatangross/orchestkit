@@ -31,7 +31,8 @@ if (!existsSync(file)) {
 }
 
 const html = readFileSync(file, "utf8");
-const SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+// The end tag may carry whitespace or junk before ">" (`</script >`); HTML still closes on it.
+const SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 const isFlight = (body) => /^\s*\(?\s*self\.__next_f\b/.test(body);
 
 let inlineScripts = 0;
