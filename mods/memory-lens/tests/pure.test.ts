@@ -116,17 +116,16 @@ describe('format', () => {
   const hit = (d: MemoryDoc, why = ['agent-browser']): Hit => ({ doc: d, score: 10, why });
   const priv = { clientTerms: ['acme'] };
 
-  test('screen line: title, why, short path', () => {
+  test('screen row: one per memory, title, short path, why, no newline', () => {
     const lines = screenLines([hit(doc('feedback_x', 'Serve with portless, hand over the URL'))], priv, '/h');
-    expect(lines[0]).toBe('memory-lens · 1 related · matched agent-browser');
-    expect(lines[1]).toBe('1. Serve with portless, hand over the URL');
-    // the project folder shows without its leading dash, as in platform/memory/...
-    expect(lines[2].trim()).toBe('p/memory/feedback_x.md');
+    expect(lines).toEqual(['1/1 Serve with portless, hand over the URL (feedback_x.md) · agent-browser']);
+    expect(lines.every((l) => !l.includes('\n'))).toBe(true);
+    expect(lines[0]).not.toContain('memory-lens');
   });
   test('client memories hide their title and the client word', () => {
     const lines = screenLines([hit(doc('project_acme_roadmap', 'Acme roadmap and contact'), ['acme', 'roadmap'])], priv);
-    expect(lines.join('\n')).not.toMatch(/acme/i);
-    expect(lines[1]).toContain('client memory (title hidden)');
+    expect(lines.join(' ')).not.toMatch(/acme/i);
+    expect(lines[0]).toBe('1/1 [locked] client memory (title hidden)');
   });
   test('a memory in a clients- project is a client memory', () => {
     expect(isClient(hit(doc('x', 'y', '', '/h/.claude/projects/-Users-a-coding-hq-clients-foo/memory/x.md')), { clientTerms: [] })).toBe(true);

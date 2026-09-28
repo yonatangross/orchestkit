@@ -190,7 +190,14 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       if (!ctx || typeof r.text !== 'string' || r.drop !== undefined) return result;
       lastHits = hits;
       for (const h of hits) recalled.add(h.doc.id);
-      await $.ui.log(screenLines(hits, priv, home).join('\n')).catch(() => undefined);
+      // One call, rows joined on one line: measured in the 2.1.283 TUI, a
+      // newline inside a log call renders as a replacement glyph, and a second
+      // $.ui.log in the same hook call never drew (the hook settled at once).
+      try {
+        await $.ui.log(screenLines(hits, priv, home).join('  │  '));
+      } catch {
+        // no log surface: the context still went to the model
+      }
       const has = Array.isArray(r.context) && (r.context as unknown[]).includes(ctx);
       return has ? result : withContext(result, ctx);
     } catch {

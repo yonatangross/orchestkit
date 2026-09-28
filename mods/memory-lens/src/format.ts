@@ -43,23 +43,22 @@ function title(hit: Hit): string {
   return t.length > 90 ? t.slice(0, 87) + '...' : t;
 }
 
-/** The lines the human sees under the prompt. Empty when nothing matched. */
+/**
+ * The rows the human sees under the prompt, one per memory. Each row is one
+ * $.ui.log call: measured in the 2.1.283 TUI (2026-09-28), a newline inside a
+ * single log call renders as a replacement glyph, and Claude Code already
+ * prefixes every row with the plugin name, so rows carry neither.
+ */
 export function screenLines(hits: Hit[], priv: LensPrivate, home = ''): string[] {
-  const shown = hits.slice(0, MAX_HITS);
-  if (!shown.length) return [];
-  const words = [...new Set(shown.flatMap((h) => h.why.slice(0, 2)))].slice(0, 3);
-  const safeWords = shown.some((h) => isClient(h, priv)) ? words.filter((w) => !priv.clientTerms.some((t) => w.includes(t.toLowerCase()))) : words;
-  const out = [`memory-lens · ${shown.length} related${safeWords.length ? ' · matched ' + safeWords.join(', ') : ''}`];
-  shown.forEach((h, i) => {
-    if (isClient(h, priv) || looksSecret(h.doc.name + h.doc.desc)) {
-      out.push(`${i + 1}. [locked] client memory (title hidden)`);
-      return;
-    }
-    const where = h.doc.source === 'local' ? shortPath(h.doc.id, home) : `${h.doc.source}: ${h.doc.id}`;
-    out.push(`${i + 1}. ${title(h)}`);
-    out.push(`   ${where}${h.doc.image ? `  · image ${h.doc.image}` : ''}`);
+  return hits.slice(0, MAX_HITS).map((h, i) => {
+    const n = `${i + 1}/${Math.min(hits.length, MAX_HITS)}`;
+    if (isClient(h, priv) || looksSecret(h.doc.name + h.doc.desc)) return `${n} [locked] client memory (title hidden)`;
+    // the file name on screen, the full path in the model's context
+    const where = h.doc.source === 'local' ? (shortPath(h.doc.id, home).split('/').pop() ?? h.doc.id) : `${h.doc.source}: ${h.doc.id}`;
+    const image = h.doc.image ? ` · image ${h.doc.image}` : '';
+    const why = h.why.length ? ` · ${h.why.slice(0, 2).join(', ')}` : '';
+    return `${n} ${title(h)} (${where}${image})${why}`;
   });
-  return out;
 }
 
 /** The context entry the model gets, or null when nothing is safe to send. */

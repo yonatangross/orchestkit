@@ -79,7 +79,11 @@ describe('memory-lens hooks', () => {
     expect(r.context[0]).toContain('feedback_portless');
     expect(r.context[0]).not.toContain('MEMORY.md');
     const shown = f.logs.filter((l) => l.to !== 'debug').map((l) => l.text).join('\n');
-    expect(shown).toContain('memory-lens · 1 related');
+    expect(shown).toContain('1/1 ');
+    const rows = f.logs.filter((l) => l.to !== 'debug');
+    // one log call per prompt, no newline inside it (2.1.283 TUI draws only the first call)
+    expect(rows).toHaveLength(1);
+    expect(rows[0].text).not.toContain('\n');
   });
 
   test('context from an earlier hook is kept, not replaced', async () => {
