@@ -7,14 +7,9 @@ argument-hint: "[scope-or-feature]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.3.0
-author: OrchestKit
-tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, Workflow, CronCreate, CronDelete, Monitor, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
-complexity: high
-persuasion-type: discipline
 effort: high
 model: sonnet
 hooks:
@@ -25,6 +20,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
+  version: "1.3.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers"
 paths: ["src/**/*.test.{ts,tsx,js}", "**/.coveragerc", "vitest.config.*", "jest.config.*"]
 invocation_hooks:
   - "command -v vitest >/dev/null 2>&1 || command -v jest >/dev/null 2>&1 || echo 'Warning: no test runner found: run npm install first'"

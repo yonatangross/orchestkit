@@ -5,18 +5,17 @@ compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream."
 argument-hint: "[decision-or-pattern]"
 context: inherit
-version: 3.0.1
-author: OrchestKit
-tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "3.0.1"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "memory, decisions, patterns, best-practices, graph-memory"
 triggers:
   keywords: [remember, save, store, record, "best practice", "anti-pattern", "lets not forget", "mark this"]
   examples:

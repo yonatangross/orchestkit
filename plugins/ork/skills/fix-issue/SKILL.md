@@ -7,14 +7,9 @@ argument-hint: "[issue-number]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.6.0
-author: OrchestKit
-tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [explore, verify, memory, remember, chain-patterns]
-complexity: medium
-persuasion-type: guidance
 model: sonnet
 hooks:
   PreToolUse:
@@ -24,6 +19,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
+  version: "2.6.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "issue, bug-fix, github, debugging, rca, prevention"
 paths: ["src/**/*.{ts,tsx,js,jsx}", "package.json", "CLAUDE.md"]
 ---
 

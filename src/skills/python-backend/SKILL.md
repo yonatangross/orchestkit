@@ -3,15 +3,10 @@ name: python-backend
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract."
-tags: [python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql]
 context: fork
 agent: backend-system-architect
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: fastapi
     version: ">=0.100.0"
@@ -19,6 +14,10 @@ targets:
     version: ">=2.0.0"
 metadata:
   category: document-asset-creation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql"
 allowed-tools:
   - Read
   - Glob

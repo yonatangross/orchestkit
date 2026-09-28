@@ -7,14 +7,9 @@ argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <sl
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.2.0
-author: OrchestKit
-tags: [testing, browser, e2e, diff-aware, regression, visual, accessibility, ai-testing]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification, mcp__memory__search_nodes]
 skills: [testing-e2e, chain-patterns, memory]
-complexity: high
-persuasion-type: guidance
 effort: high
 model: sonnet
 metadata:
@@ -22,6 +17,10 @@ metadata:
   milestone: M99
   upstream-package: agent-browser
   upstream-version-tested: "0.38.1"
+  version: "1.2.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "testing, browser, e2e, diff-aware, regression, visual, accessibility, ai-testing"
 paths: [".expect/**", "**/*.test.{ts,tsx}", "agent-browser.json"]
 invocation_hooks:
   - "command -v agent-browser >/dev/null 2>&1 || echo 'Warning: agent-browser not installed — run npm install -g agent-browser'"

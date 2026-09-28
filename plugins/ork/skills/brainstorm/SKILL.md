@@ -4,18 +4,13 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
-tags: [planning, ideation, creativity, design]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 4.10.0
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
-author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, ExitWorktree, PushNotification, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
-complexity: medium
-persuasion-type: collaborative
 model: sonnet
 hooks:
   PreToolUse:
@@ -28,6 +23,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "4.10.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "planning, ideation, creativity, design"
 ---
 
 # Brainstorming Ideas Into Designs

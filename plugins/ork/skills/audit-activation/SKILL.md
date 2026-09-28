@@ -2,17 +2,12 @@
 name: audit-activation
 compatibility: "Claude Code 2.1.277+"
 description: Audits sub-agent activation from explicit consumer telemetry roots. It separates attempted, started, completed, and unattributed events, reports coverage, and identifies observed zero starts without making an estate-wide dormancy claim. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.
-tags: [audit, agents, activation, telemetry, orchestkit]
-version: 1.0.0
-author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
 argument-hint: "[--json]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-complexity: medium
-persuasion-type: discipline
 allowed-tools:
   - Read
   - Glob
@@ -21,6 +16,11 @@ allowed-tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+metadata:
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "audit, agents, activation, telemetry, orchestkit"
 ---
 
 # audit-activation

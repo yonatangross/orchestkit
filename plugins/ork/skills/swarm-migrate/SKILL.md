@@ -7,18 +7,17 @@ argument-hint: "<spec-file.yaml> [--dry-run] [--max-parallel=N]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 0.1.0
 disable-model-invocation: false
-author: OrchestKit
-tags: [migration, cross-repo, swarm, parallel-agents, worktree, ledger]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, Monitor]
 skills: [github-operations, verify, memory, explore]
-complexity: high
-persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
+  version: "0.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "migration, cross-repo, swarm, parallel-agents, worktree, ledger"
 paths:
   - ".swarm-state.json"
   - "swarm-specs/**/*.yaml"

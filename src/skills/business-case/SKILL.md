@@ -2,17 +2,16 @@
 name: business-case
 compatibility: "Claude Code 2.1.277+"
 description: "Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis."
-version: 1.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
-tags: [roi, npv, irr, tco, build-vs-buy, financial-analysis, cost-benefit]
 context: fork
 agent: product-strategist
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "roi, npv, irr, tco, build-vs-buy, financial-analysis, cost-benefit"
 allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
 ---
 

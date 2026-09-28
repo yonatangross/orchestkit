@@ -2,17 +2,16 @@
 name: prioritization
 compatibility: "Claude Code 2.1.277+"
 description: "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
-tags: [rice, wsjf, ice, moscow, prioritization, backlog, scoring, ranking]
 context: fork
 agent: product-strategist
-version: 1.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "rice, wsjf, ice, moscow, prioritization, backlog, scoring, ranking"
 allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
 ---
 

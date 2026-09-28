@@ -4,18 +4,17 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
 context: inherit
-version: 1.0.0
-author: OrchestKit
-tags: [git, github, issues, tracking, workflow]
 user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Bash]
-complexity: low
-persuasion-type: discipline
 effort: low
 model: haiku
 metadata:
   category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "git, github, issues, tracking, workflow"
 ---
 
 # Issue Progress Tracking

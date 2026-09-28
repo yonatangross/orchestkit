@@ -4,15 +4,10 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
 description: "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead."
 argument-hint: "<handoff-url | path-to-bundle.json>"
-tags: [claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.0
-author: OrchestKit
 user-invocable: true
-complexity: medium
-persuasion-type: collaborative
 effort: high
 model: sonnet
 agent: claude-design-orchestrator
@@ -39,6 +34,10 @@ skills:
 metadata:
   category: workflow-automation
   mcp-server: stitch, 21st-dev-magic, storybook-mcp
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend"
 paths:
   - "src/components/**/*.{tsx,css}"
   - ".claude/design-handoffs/**"

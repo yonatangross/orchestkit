@@ -5,16 +5,15 @@ compatibility: "Claude Code 2.1.277+."
 description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description."
 argument-hint: "[plain-english goal]"
 context: inherit
-version: 1.0.0
-author: OrchestKit
-tags: [router, intent, orchestration, discovery, meta, front-door]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Agent]
-complexity: medium
-persuasion-type: collaborative
 model: sonnet
 metadata:
   category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "router, intent, orchestration, discovery, meta, front-door"
 ---
 
 # auto — Intent Router

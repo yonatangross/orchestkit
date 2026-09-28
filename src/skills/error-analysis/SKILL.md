@@ -6,19 +6,18 @@ description: "Evals-first error analysis for LLM apps: clusters real Langfuse or
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.0
-author: OrchestKit
-tags: [error-analysis, evaluation, llm-testing, testing, langfuse, traces, failure-taxonomy, evals, debugging]
 user-invocable: false
 disable-model-invocation: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, WebFetch, WebSearch]
 skills: [testing-llm, memory]
-complexity: high
-persuasion-type: discipline
 effort: high
 model: sonnet
 metadata:
   category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "error-analysis, evaluation, llm-testing, testing, langfuse, traces, failure-taxonomy, evals, debugging"
 triggers:
   keywords: ["error analysis", "failure modes", "failure taxonomy", "open coding", "axial coding", "analyze traces", "langfuse traces", "evals first", "what to measure", "why does my agent fail"]
   examples:

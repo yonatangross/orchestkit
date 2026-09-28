@@ -5,15 +5,14 @@ compatibility: "Claude Code 2.1.277+."
 description: "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
 context: fork
 agent: backend-system-architect
-version: 1.0.0
-tags: [ddd, domain-modeling, entities, value-objects, bounded-contexts, python]
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ddd, domain-modeling, entities, value-objects, bounded-contexts, python"
 allowed-tools:
   - Read
   - Glob

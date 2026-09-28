@@ -3,15 +3,10 @@ name: zustand-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
-tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: inherit
-version: 1.0.0
 allowed-tools: [Read, Write, Grep, Glob]
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: low
-persuasion-type: reference
 effort: low
 targets:
   - library: zustand
@@ -19,6 +14,10 @@ targets:
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "zustand, state-management, react, immer, middleware, persistence, slices"
 path_patterns: ["**/store/**", "**/stores/**", "*.store.*", "*.zustand.*"]
 ---
 

@@ -5,18 +5,17 @@ compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Read-side memory operations on the knowledge graph: search past decisions and patterns, load session context, view decision timelines, render Mermaid graph visualizations. Subcommands: search, load, history, viz, status. Use when finding or reviewing what memory already holds. For storing new knowledge instead, invoke remember; for retrieval internals, memory-fabric; for cleanup, dream."
 argument-hint: "[subcommand] [query]"
 context: inherit
-version: 2.0.1
-author: OrchestKit
-tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: mcp-enhancement
   mcp-server: memory
+  version: "2.0.1"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "memory, graph, session, context, sync, visualization, history, search"
 triggers:
   keywords: [memory, recall, "search memory", "past decisions", "knowledge graph", "load context", "prior decisions", "what did we decide"]
   examples:

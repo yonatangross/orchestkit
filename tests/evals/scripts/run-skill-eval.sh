@@ -279,7 +279,7 @@ if [[ -n "$HOLDOUT_PROMOTE_SKILL" ]]; then
     fi
 
     # Champion frontmatter version (best-effort; null if absent).
-    HP_CHAMPION_VERSION="$(grep -m1 -E '^version:' "$HP_SKILL_MD" 2>/dev/null | sed -E 's/^version:[[:space:]]*//; s/[[:space:]]*$//')"  # silent: best-effort
+    HP_CHAMPION_VERSION="$(grep -m1 -E '^[[:space:]]*version:' "$HP_SKILL_MD" 2>/dev/null | sed -E 's/^[[:space:]]*version:[[:space:]]*//; s/[[:space:]]*$//; s/^"(.*)"$/\1/')"  # silent: best-effort
     HP_CHAMPION_VERSION="${HP_CHAMPION_VERSION:-null}"
 
     HP_GRADER_MODEL="${EVAL_GRADING_MODEL:-claude-opus-5-5[1m]}"

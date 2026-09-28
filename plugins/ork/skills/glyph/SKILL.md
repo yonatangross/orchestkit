@@ -3,19 +3,18 @@ name: glyph
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead."
-tags: [ascii, diagrams, visualization, box-drawing, terminal, quick]
-version: 3.0.0
-author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
 context: inherit
 allowed-tools: [Read, Grep, Glob]
 argument-hint: "[topic-to-render]"
-complexity: low
-persuasion-type: reference
 effort: low
 metadata:
   category: document-asset-creation
+  version: "3.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "ascii, diagrams, visualization, box-drawing, terminal, quick"
 ---
 
 # Glyph

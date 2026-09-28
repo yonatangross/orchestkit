@@ -2,18 +2,17 @@
 name: multi-surface-render
 compatibility: "Claude Code 2.1.277+"
 description: "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec."
-tags: [json-render, multi-surface, pdf, email, remotion, video, image, react, rendering, ink, nextjs]
-version: 1.1.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
 context: inherit
-persuasion-type: reference
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
   upstream-version-tested: "0.20.0"
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "json-render, multi-surface, pdf, email, remotion, video, image, react, rendering, ink, nextjs"
 ---
 
 # Multi-Surface Rendering with json-render

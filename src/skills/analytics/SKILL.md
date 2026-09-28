@@ -2,20 +2,19 @@
 name: analytics
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-author: OrchestKit
 description: "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
 context: inherit
-version: 2.1.0
-tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation]
 user-invocable: false
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation"
 ---
 
 # Cross-Project Analytics

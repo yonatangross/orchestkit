@@ -47,6 +47,17 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
         if not line.strip() or line.strip().startswith("#"):
             continue
 
+        # `metadata:` children are a one-level string map (Agent Skills spec).
+        if current_key == "metadata" and isinstance(meta.get("metadata"), (list, dict)):
+            child = re.match(r"^\s+([A-Za-z0-9_.-]+):\s*(.*)$", line)
+            if child and not meta["metadata"]:
+                meta["metadata"] = {}
+            if child and isinstance(meta["metadata"], dict):
+                meta["metadata"][child.group(1)] = child.group(2).strip().strip("\"'")
+                continue
+            if isinstance(meta["metadata"], dict) and re.match(r"^\s+-", line):
+                continue  # a list under a metadata child is not a string; skip it
+
         # Check if this is a list item (continuation of previous key)
         list_match = re.match(r"^(\s+)-\s+(.+)$", line)
         if list_match and current_key and current_list is not None:
@@ -89,7 +100,27 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
             current_key = key
             current_list = None
 
+    _lift_house_keys(meta)
     return meta, body
+
+
+# House keys the Agent Skills spec does not allow at top level live under
+# metadata as strings (m1, scripts/migrate-skill-frontmatter-m1.py). Lift them
+# back so callers keep reading meta["tags"] etc. A top-level value wins; tags
+# is "a, b" under metadata and a list to callers. Mirrors
+# scripts/lib/parse-frontmatter.js LIFTED_HOUSE_KEYS.
+LIFTED_HOUSE_KEYS = ("version", "author", "complexity", "tags")
+
+
+def _lift_house_keys(meta: dict) -> None:
+    md = meta.get("metadata")
+    if not isinstance(md, dict):
+        return
+    for key in LIFTED_HOUSE_KEYS:
+        if key in meta or not isinstance(md.get(key), str):
+            continue
+        val = md[key]
+        meta[key] = [t.strip() for t in val.split(",") if t.strip()] if key == "tags" else val
 
 
 def title_case(slug: str) -> str:
@@ -1755,9 +1786,7 @@ def generate_categories(skills_src: str, categories_out: str) -> int:
                 safe_desc = s["description"].replace("|", "\\|")
                 # House rule: no em/en dashes in generated docs text.
                 safe_desc = (
-                    safe_desc.replace("\u2014", ",")
-                    .replace("\u2013", ",")
-                    .replace(" ,", ",")
+                    safe_desc.replace("\u2014", ",").replace("\u2013", ",").replace(" ,", ",")
                 )
                 # Truncate long descriptions for the table
                 if len(safe_desc) > 120:

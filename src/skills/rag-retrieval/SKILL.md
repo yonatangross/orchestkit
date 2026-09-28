@@ -3,18 +3,17 @@ name: rag-retrieval
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.
-tags: [rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal]
 context: fork
 agent: data-pipeline-engineer
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: high
-persuasion-type: reference
 effort: high
 metadata:
   category: mcp-enhancement
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal"
 allowed-tools:
   - Read
   - Glob

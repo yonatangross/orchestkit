@@ -7,14 +7,9 @@ argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effor
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.6.0
-author: OrchestKit
-tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
 skills: [glyph, architecture-decision-record, memory, architecture-patterns, chain-patterns]
-complexity: high
-persuasion-type: guidance
 effort: high
 model: sonnet
 hooks:
@@ -25,6 +20,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "2.6.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "exploration, code-search, architecture, codebase, health-assessment"
 triggers:
   keywords: [explore, "how does", "walk me through", "big picture", architecture, "trace the", "where is", "find all files", codebase]
   examples:

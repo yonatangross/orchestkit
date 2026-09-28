@@ -4,15 +4,10 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Optional: stitch (official Google Stitch) MCP server."
 description: "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
 argument-hint: "[screenshot-path | video-path | url | 'current project']"
-tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.1
-author: OrchestKit
 user-invocable: true
-complexity: medium
-persuasion-type: collaborative
 model: sonnet
 agent: design-context-extractor
 allowed-tools:
@@ -46,6 +41,10 @@ skills:
 metadata:
   category: document-asset-creation
   mcp-server: stitch
+  version: "1.0.1"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity"
 ---
 
 # Design Context Extract

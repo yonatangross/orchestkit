@@ -7,15 +7,10 @@ argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.1.0
-author: OrchestKit
-tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
 disable-model-invocation: false
 allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
 skills: [configure, remember, explore, help]
-complexity: medium
-persuasion-type: collaborative
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -24,6 +19,10 @@ hooks:
 metadata:
   category: configuration
   mcp-server: memory
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets"
 ---
 
 # OrchestKit Setup Wizard

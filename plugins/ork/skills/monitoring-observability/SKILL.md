@@ -3,14 +3,9 @@ name: monitoring-observability
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
-tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
 context: fork
-version: 3.0.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 targets:
   # Python SDK. The JS/TS SDK is a separate line at 5.x (@langfuse/* packages) — see
   # references/langfuse-js-v5.md. The self-hosted platform is a third axis (v3) and is not an
@@ -20,6 +15,10 @@ targets:
 upstream-version-tested: "4.15.1"
 metadata:
   category: document-asset-creation
+  version: "3.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging"
 allowed-tools:
   - Read
   - Glob

@@ -7,19 +7,18 @@ argument-hint: "<PR-number | run-URL | job-URL>"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 0.2.0
 disable-model-invocation: false
-author: OrchestKit
-tags: [ci, github-actions, debugging, classification, propose-dont-apply]
 user-invocable: true
 allowed-tools: [Bash, Read, Grep, Glob]
 skills: [github-operations, memory]
-complexity: medium
-persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
   origin: "/insights audit 2026-05-11 — recurring CI-debug pattern across 12 sessions in 3 weeks"
+  version: "0.2.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ci, github-actions, debugging, classification, propose-dont-apply"
 paths:
   - ".github/workflows/**/*.yml"
 ---

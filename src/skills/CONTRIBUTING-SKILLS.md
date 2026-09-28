@@ -93,14 +93,22 @@ catches this regression. See PR #1399 for the original incident.
 ---
 name: my-skill
 description: What it does AND when to use it. Write in third person.
-tags: [tag1, tag2, tag3]
-version: 2.0.0
-author: OrchestKit
 user-invocable: false    # true for /slash-command skills
-complexity: low | medium | high
 effort: low | high              # CC 2.1.80+: override model effort level (omit for auto)
+metadata:                # ork house keys: quoted strings, never top level
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "low"      # low | medium | high
+  tags: "tag1, tag2, tag3"
 ---
 ```
+
+`version`, `author`, `complexity` and `tags` are ork house keys, not Agent Skills
+spec keys, so they live under `metadata:` as a one-level map of quoted strings
+(`tags` is comma-separated there). `scripts/check-frontmatter.py` (configs/standards.json)
+reports any of them at top level. The build and docs readers lift them back out
+of `metadata` through `scripts/lib/parse-frontmatter.js`, so read them through
+that parser rather than grepping for `^tags:`.
 
 The `description` is critical — Claude uses it to decide whether to load the skill. Include both **what** (capabilities) and **when** (trigger conditions). Max 1024 chars.
 

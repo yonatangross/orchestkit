@@ -7,14 +7,9 @@ argument-hint: "[feature-or-scope]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 4.7.0
-author: OrchestKit
-tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
-complexity: high
-persuasion-type: discipline
 effort: high
 model: sonnet
 hooks:
@@ -28,6 +23,10 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "4.7.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "verification, testing, quality, validation, parallel-agents, grading"
 triggers:
   keywords: [verify, verifiy, validate, verification, "ready for merge", "check everything", "security scan", "give me a score", "full verification", "grade my", "verified vs claimed", "what did you actually verify", "prove it"]
   examples:

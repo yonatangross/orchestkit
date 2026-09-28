@@ -3,18 +3,17 @@ name: page-serve
 compatibility: "Claude Code 2.1.277+"
 description: "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it, and tears it down on stop. Use when an agent produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, docs previews. Replaces ad hoc python http.server plus alias patterns that leave servers alive."
 argument-hint: "[path] [--name slug] [--screenshot|--no-screenshot] | stop [name|--all] | status [--json]"
-tags: [page-serve, portless, agent-browser, playground, glyph, dev-loop, m166]
-version: 1.0.0
-author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
-complexity: low
 context: inherit
-persuasion-type: guidance
 metadata:
   category: devops
   milestone: M166
   upstream-packages: ["portless", "agent-browser"]
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "page-serve, portless, agent-browser, playground, glyph, dev-loop, m166"
 ---
 
 # page-serve, give a human a URL

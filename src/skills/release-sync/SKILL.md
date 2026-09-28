@@ -2,14 +2,9 @@
 name: release-sync
 compatibility: "Claude Code 2.1.277+"
 description: "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge."
-version: 1.0.0
-author: OrchestKit
-tags: [release, notebooklm, knowledge-base, content-sync, automation]
 user-invocable: true
 argument-hint: "[version]"
-complexity: low
 context: inherit
-persuasion-type: collaborative
 triggers:
   keywords: [release-sync, sync release, update notebooklm, sync kb, push release content]
   examples:
@@ -20,6 +15,11 @@ triggers:
     - "create a release"
     - "tag a version"
     - "bump version"
+metadata:
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "release, notebooklm, knowledge-base, content-sync, automation"
 ---
 
 # Release Content Sync
