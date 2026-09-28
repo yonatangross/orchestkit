@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.126",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**standards:** list agent as a Claude Code skill key in G1 registry ([#4522](https://github.com/yonatangross/orchestkit/issues/4522)) ([6d0ef80](https://github.com/yonatangross/orchestkit/commit/6d0ef80a2e5f24d836d36f357596690215049c07))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.125",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125",
