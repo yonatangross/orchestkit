@@ -1,0 +1,13 @@
+{
+  "slug": "81983-ork-memory-lens",
+  "source": "docs/chore--dsp-81983-ork-memory-lens/index.html",
+  "title": "memory-lens: the few memories that matter, on every prompt",
+  "description": "A new mod indexes the project's Claude Code memory files at session start and, on each prompt, sends the top 3 matches above a score floor to the model as one context entry and draws one line for the human. Measured on Claude Code 2.1.283: the context reaches the model, the line draws in the terminal, query p95 3.4 ms. Try it on a made-up corpus.",
+  "tags": [
+    "mods",
+    "memory",
+    "context",
+    "81983"
+  ],
+  "date": "2026-09-28"
+}
