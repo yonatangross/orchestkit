@@ -19,7 +19,7 @@
  * Issue: #1486 (M130)
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, appendFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -65,9 +65,15 @@ function fetchChangelog() {
     return readFileSync(FIXTURE_PATH, 'utf8');
   }
   // Real: fetch via gh api so we re-use the workflow's GITHUB_TOKEN.
-  const cmd = 'gh api repos/anthropics/claude-code/contents/CHANGELOG.md --jq .content';
-  const b64 = execSync(cmd, { encoding: 'utf8' }).trim();
-  return Buffer.from(b64, 'base64').toString('utf8');
+  // Raw media type, not `--jq .content`: the contents API returns base64 only
+  // for files up to 1 MB, and the base64 of the 838 KB CHANGELOG (2026-09-29)
+  // already overflowed execSync's 1 MiB default maxBuffer (ENOBUFS). The raw
+  // type serves files up to 100 MB, so the buffer is sized to that.
+  return execFileSync(
+    'gh',
+    ['api', '-H', 'Accept: application/vnd.github.raw', 'repos/anthropics/claude-code/contents/CHANGELOG.md'],
+    { encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 },
+  );
 }
 
 function normalizeBullets(text) {
