@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.121",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**skills:** pair defer_loading with tool search in llm-integration ([#4498](https://github.com/yonatangross/orchestkit/issues/4498)) ([baa07a5](https://github.com/yonatangross/orchestkit/commit/baa07a570392dc00712a628ae7350d98949f21a6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.120",
     "date": "2026-09-27",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120",
