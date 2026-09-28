@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.130](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130)** · 2026-09-28
+
+- **agents:** move house frontmatter keys under metadata, drop context (m3) (#4531)
+
 **[v10.0.0-beta.129](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129)** · 2026-09-28
 
 - **mods:** memory-lens recalls related memories on each prompt (#4530)
@@ -660,15 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.123](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.122...v10.0.0-beta.123)** · 2026-09-28
 
 - **hooks:** stash secret-bearing MCP results to a 0600 session file (#4511)
-
-**[v10.0.0-beta.122](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.121...v10.0.0-beta.122)** · 2026-09-28
-
-- **deps-dev:** bump @types/node in the npm-minor-patch group (#4502)
-- **deps-dev:** bump the npm-minor-patch group (#4504)
-- **deps:** bump the npm-minor-patch group (#4503)
-- **deps:** bump the npm-minor-patch group (#4505)
-- **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4507)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
