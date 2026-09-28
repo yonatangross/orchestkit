@@ -245,6 +245,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 | `skills/doctor/references/memory-health.md` | Memory system integrity checks |
 | `skills/doctor/references/agent-memory-dir.md` | Per-agent agent-memory dir: orphans, staleness, 150-line warn, secrets |
 | `skills/doctor/references/permission-rules.md` | Permission rule detection |
+| `skills/doctor/references/skill-preapproval.md` | Skills whose `allowed-tools` pre-grant stops under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284), detection and admin remedy |
 | `skills/doctor/references/schema-validation.md` | JSON schema compliance |
 | `skills/doctor/references/report-format.md` | ASCII report templates and JSON CI output |
 | `skills/doctor/references/version-compatibility.md` | CC version and channel validation |

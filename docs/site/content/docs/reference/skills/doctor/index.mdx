@@ -245,6 +245,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 | `references/memory-health.md` | Memory system integrity checks |
 | `references/agent-memory-dir.md` | Per-agent agent-memory dir: orphans, staleness, 150-line warn, secrets |
 | `references/permission-rules.md` | Permission rule detection |
+| `references/skill-preapproval.md` | Skills whose `allowed-tools` pre-grant stops under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284), detection and admin remedy |
 | `references/schema-validation.md` | JSON schema compliance |
 | `references/report-format.md` | ASCII report templates and JSON CI output |
 | `references/version-compatibility.md` | CC version and channel validation |
@@ -257,7 +258,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 
 ## Companion pages
 
-This reference is split across 20 pages so each stays under the 25K-token page budget. The rules and reference material that used to sit at the bottom of this page now live at:
+This reference is split across 21 pages so each stays under the 25K-token page budget. The rules and reference material that used to sit at the bottom of this page now live at:
 
 - [Rules](/docs/reference/skills/doctor/rules): 2 rules for the Doctor skill: Diagnostic Checks; MCP Status Checks
 - [References: Per-agent memory directory](/docs/reference/skills/doctor/references/agent-memory-dir): memory: in agent frontmatter writes .claude/agent-memory/NAME/MEMORY.md.
@@ -273,6 +274,7 @@ This reference is split across 20 pages so each stays under the 25K-token page b
 - [References: Check 15: CC Bash-Sandbox Posture](/docs/reference/skills/doctor/references/sandbox-posture): OS sandbox is opt-in and Bash-only; doctor surfaces whether it's on and nudges it, but a session is healthy without it.
 - [References: Schema Validation](/docs/reference/skills/doctor/references/schema-validation): OrchestKit uses JSON schemas to validate configuration files.
 - [References: Check 16: Operator Settings Posture](/docs/reference/skills/doctor/references/settings-posture): a scope Claude Code actually reads.
+- [References: Skill pre-approval under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284)](/docs/reference/skills/doctor/references/skill-preapproval): A skill's allowed-tools pre-grants the listed tools while the skill runs, so they do not prompt.
 - [References: Skills Validation](/docs/reference/skills/doctor/references/skills-validation): OrchestKit includes 107 skills validated against frontmatter requirements and content standards.
 - [References: Version Compatibility: Overview](/docs/reference/skills/doctor/references/version-compatibility/00-overview): Version Compatibility for the Doctor skill, page 1 of 4: Overview.
 - [References: Version Compatibility: Feature Matrix (part 1 of 2)](/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1): Version Compatibility for the Doctor skill, page 2 of 4: Feature Matrix (part 1 of 2).

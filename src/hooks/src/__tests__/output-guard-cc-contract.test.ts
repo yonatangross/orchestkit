@@ -380,6 +380,21 @@ describe('the generated contract is internally coherent', () => {
     }
   });
 
+  it('passes a top-level decision:block through on Elicitation (CC 2.1.284 honours it)', () => {
+    // elicitation-guard declines secret forms with decision:'block' + reason.
+    // The guard only rewrites hookSpecificOutput, so the top-level keys must
+    // reach CC intact; stripping them would silently re-open the form.
+    const block = {
+      continue: false,
+      stopReason: 'Blocked: secret field',
+      decision: 'block',
+      reason: 'Blocked: secret field',
+    };
+    for (const event of ['Elicitation', 'ElicitationResult']) {
+      expect(sanitizeOutput(block, event), `${event} block must survive`).toEqual(block);
+    }
+  });
+
   it('never strips a key the spec marks UNVERIFIED', () => {
     // Unverified means "we do not know", and stripping on not-knowing is
     // exactly how Stop broke. The guard must leave these alone.

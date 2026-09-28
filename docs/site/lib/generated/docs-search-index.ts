@@ -1026,6 +1026,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "a scope Claude Code actually reads."
   },
   {
+    "url": "/docs/reference/skills/doctor/references/skill-preapproval",
+    "title": "Doctor: Skill pre-approval under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284)",
+    "description": "A skill's allowed-tools pre-grants the listed tools while the skill runs, so they do not prompt."
+  },
+  {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
     "description": "OrchestKit includes 107 skills validated against frontmatter requirements and content standards."
