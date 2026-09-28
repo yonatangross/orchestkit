@@ -211,11 +211,26 @@ await test('a dead, throwing or BLOCKED assessor is NOT-ASSESSED', async () => {
   assert.deepEqual(out, { security: 'ASSESSED', quality: 'NOT-ASSESSED', performance: 'NOT-ASSESSED', testability: 'NOT-ASSESSED' });
   assert.deepEqual(result.unscored.sort(), ['compliance', 'correctness', 'maintainability', 'performance', 'scalability', 'testability']);
 });
-await test('a score with no file:line evidence is noted', async () => {
+await test('a score with no file:line evidence counts as unscored with a visible reason', async () => {
   const testability = { status: 'DONE', dimensions: [DIM('testability', 6.5, { evidence: ['looks fine'] })] };
   const { result } = await run({ rate: { testability } });
-  assert.equal(dim(result, 'testability').evidenceMissing, true);
-  assert.match(why(result), /testability scored 6.5 with no file:line evidence/);
+  assert.equal(dim(result, 'testability'), undefined);
+  assert.deepEqual(result.unscored, ['testability']);
+  assert.match(why(result), /testability scored 6.5 with no file:line evidence, it counts as not scored/);
+});
+await test('an evidence-less security 8 cannot clear min_blocker: security fails closed as a blocker', async () => {
+  const security = { status: 'DONE', dimensions: [DIM('security', 8, { evidence: ['looks fine'] })] };
+  const { result } = await run({ args: { effort: 'medium' }, rate: { security, quality: OK('quality', 8.6), testability: OK('testability', 8.6) } });
+  assert.equal(result.verdict, 'fail');
+  assert.deepEqual(result.blockers.map((b) => [b.dimension, b.score]), [['security', null]]);
+});
+await test('a repeated dimension keeps its first entry, rejects the rest visibly, and every hidden assigned dimension is unscored with a reason', async () => {
+  const quality = { status: 'DONE', dimensions: [DIM('correctness', 6.5), DIM('CORRECTNESS', 7), DIM('correctness', 8)] };
+  const { result } = await run({ args: { effort: 'low' }, rate: { quality } });
+  assert.equal(dim(result, 'correctness').score, 6.5);
+  assert.deepEqual(result.unscored, ['maintainability', 'compliance']);
+  assert.deepEqual(result.rejectedDimensions, [{ group: 'quality', names: [], repeated: ['correctness x3, first kept'] }]);
+  assert.match(why(result), /quality returned repeated dimension\(s\) correctness x3, first kept; maintainability, compliance not scored, weight 0\.15 \+ 0\.15 left out of the composite/);
 });
 
 // 2b. live run wf_7b023867-8f9 (render-spec.mjs, high): the shapes real assessors returned
@@ -224,7 +239,7 @@ await test('off-schema dimension names: the assigned dimension is recorded unsco
   const testability = { status: 'DONE', dimensions: [DIM(INVENTED[0], 9), DIM(INVENTED[1], 3)] };
   const { result } = await run({ rate: { testability } });
   assert.deepEqual(result.unscored, ['testability']);
-  assert.deepEqual(result.rejectedDimensions, [{ group: 'testability', names: INVENTED }]);
+  assert.deepEqual(result.rejectedDimensions, [{ group: 'testability', names: INVENTED, repeated: [] }]);
   assert.match(why(result), /testability returned off-schema dimension name\(s\) "Core logic purity[^\n]*; testability not scored, weight 0\.13 left out of the composite/);
 });
 await test('the rate schema makes dimension an enum of exactly the group dimensions, one entry each', async () => {
@@ -246,7 +261,7 @@ await test('an UPPERCASE dimension whose evidence is path:line then prose is not
 await test('an OWASP tag such as A06:2025 is not file:line evidence', async () => {
   const testability = { status: 'DONE', dimensions: [DIM('testability', 6.5, { evidence: ['cycle overflows the stack. A10:2025 / A06:2025'] })] };
   const { result } = await run({ rate: { testability } });
-  assert.equal(dim(result, 'testability').evidenceMissing, true);
+  assert.deepEqual(result.unscored, ['testability']);
 });
 await test('a refuter citation with an absolute path or bare basename and trailing prose is backed', async () => {
   const abs = BAND(2, 4, '/Users/me/repo/api/db.py:40 (validate() at :52-56 never checks cycles)');

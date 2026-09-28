@@ -322,7 +322,10 @@ SELECTED.forEach((g, i) => {
 		assessors.push({ group: g.group, agentType: g.agentType, outcome: "NOT-ASSESSED", status, dimensions: g.dims });
 		return;
 	}
-	const seen = new Set();
+	// Collect by dimension first, so a repeat is seen before any entry is kept.
+	// The schema's enum plus minItems/maxItems still allows [a, a] for a two
+	// dimension group: that would leave the other dimension silently missing.
+	const byDim = new Map();
 	const offSchema = [];
 	for (const raw of res.dimensions) {
 		const d = normalizeDim(raw, g);
@@ -330,21 +333,31 @@ SELECTED.forEach((g, i) => {
 			offSchema.push(String((raw && raw.dimension) || ""));
 			continue;
 		}
-		if (seen.has(d.dimension)) continue;
-		seen.add(d.dimension);
+		byDim.set(d.dimension, [...(byDim.get(d.dimension) || []), d]);
+	}
+	const repeated = [...byDim].filter(([, list]) => list.length > 1).map(([dm, list]) => `${dm} x${list.length}, first kept`);
+	for (const [dm, list] of byDim) {
+		// The first entry for a dimension counts; any repeat is rejected below.
+		const d = list[0];
 		if (d.invalid) {
-			reasons.push(`note: ${g.group} returned an invalid score for ${d.dimension}, it counts as not scored`);
+			reasons.push(`note: ${g.group} returned an invalid score for ${dm}, it counts as not scored`);
 			continue;
 		}
-		if (d.evidenceMissing) reasons.push(`note: ${d.dimension} scored ${d.score} with no file:line evidence`);
+		// A score with no path:line evidence is a claim, not a measurement: it
+		// never enters the composite and never clears a min_blocker.
+		if (d.evidenceMissing) {
+			reasons.push(`note: ${dm} scored ${d.score} with no file:line evidence, it counts as not scored`);
+			continue;
+		}
 		dims.push(d);
 	}
-	// An off-schema name never stands in for an assigned dimension: the assigned
-	// one is recorded as unscored and the reason names what came back instead.
-	if (offSchema.length) {
-		rejectedDimensions.push({ group: g.group, names: offSchema });
-		const missing = g.dims.filter((dm) => !seen.has(dm));
-		reasons.push(`note: ${g.group} returned off-schema dimension name(s) ${offSchema.map((n) => JSON.stringify(n)).join(", ")}${missing.length ? `; ${missing.join(", ")} not scored, weight ${missing.map((dm) => WEIGHTS[dm] || 0).join(" + ")} left out of the composite` : ""}`);
+	// Off-schema names and repeats never stand in for an assigned dimension: the
+	// assigned one is recorded as unscored and the reason names what came back.
+	if (offSchema.length || repeated.length) {
+		rejectedDimensions.push({ group: g.group, names: offSchema, repeated });
+		const missing = g.dims.filter((dm) => !byDim.has(dm));
+		const got = [offSchema.length ? `off-schema dimension name(s) ${offSchema.map((n) => JSON.stringify(n)).join(", ")}` : "", repeated.length ? `repeated dimension(s) ${repeated.join(", ")}` : ""].filter(Boolean).join(" and ");
+		reasons.push(`note: ${g.group} returned ${got}${missing.length ? `; ${missing.join(", ")} not scored, weight ${missing.map((dm) => WEIGHTS[dm] || 0).join(" + ")} left out of the composite` : ""}`);
 	}
 	assessors.push({ group: g.group, agentType: g.agentType, outcome: "ASSESSED", status, dimensions: g.dims });
 });
