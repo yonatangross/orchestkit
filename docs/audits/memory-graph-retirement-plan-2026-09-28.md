@@ -10,7 +10,7 @@ OrchestKit adopted the MCP memory graph when Claude Code had no durable memory o
 
 Measured on 2026-09-28 at `origin/main`:
 
-- 72 files under `src/` reference `mcp__memory` (177 lines). 20 `SKILL.md` files list graph tools; 6 of them write (fix-issue, remember, review-pr, setup, visualize-plan, write-prd).
+- 69 tracked files under `src/` reference `mcp__memory`, 174 lines (`git grep -l mcp__memory -- src`, `git grep -c` summed; a filesystem grep also counts 3 gitignored build sourcemaps). 20 `SKILL.md` files list graph tools; 6 of them write (fix-issue, remember, review-pr, setup, visualize-plan, write-prd).
 - One agent grants graph tools (`debug-investigator`); six more mention the graph in prose.
 - One hook targets it (`pretool/mcp/memory-validator`, `src/hooks/hooks.json:112`), and the Stop hook `session-summary.ts:64-86` builds a `mcp__memory__create_entities` suggestion. No hook writes to the graph.
 - Three plugin settings files allow the tools (`ork`, `orkl`, `ork-creative`). Plugin `settings.json` permissions are not honoured by Claude Code, so these are cleanup, not behaviour.
