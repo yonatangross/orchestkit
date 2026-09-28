@@ -18,6 +18,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.128",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** Docs Site Build always reports so docs-data PRs can merge ([#4529](https://github.com/yonatangross/orchestkit/issues/4529)) ([0325ff1](https://github.com/yonatangross/orchestkit/commit/0325ff13275e9407160207b6274b7950a908f34e))",
+          "**ci:** traffic snapshot app token; release-please guard skips release/* bases ([#4525](https://github.com/yonatangross/orchestkit/issues/4525)) ([73f86d5](https://github.com/yonatangross/orchestkit/commit/73f86d5f9fc8bab77e0adcc0df34579cbd156b61))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**traffic:** snapshot week of 2026-09-21 ([#4526](https://github.com/yonatangross/orchestkit/issues/4526)) ([2bd7600](https://github.com/yonatangross/orchestkit/commit/2bd7600b4b23e60b5a166360e43a323f7d6a6781))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**skills:** move house frontmatter keys under metadata (m1) ([#4521](https://github.com/yonatangross/orchestkit/issues/4521)) ([220adb4](https://github.com/yonatangross/orchestkit/commit/220adb47f47443681a1dee815cddad388828a656))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.127",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127",
