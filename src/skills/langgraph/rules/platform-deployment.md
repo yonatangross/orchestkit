@@ -45,7 +45,7 @@ from langgraph_sdk import get_client
 client = get_client(url="http://localhost:2024")
 
 # Create assistants with different configs from the same graph.
-# Vary them through the prompt: claude-sonnet-5 returns 400 on a non-default temperature.
+# Vary them through the prompt: claude-sonnet-5-5 returns 400 on a non-default temperature.
 creative = await client.assistants.create(
     graph_id="my_agent",
     config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5-5"}},

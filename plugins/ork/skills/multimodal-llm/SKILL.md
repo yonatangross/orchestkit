@@ -30,7 +30,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 >
 > | Provider | Model IDs |
 > |----------|-----------|
-> | Anthropic | `claude-opus-5-5` (recommended, the default Opus since CC 2.1.280, same 2,576 px budget as Opus 5), `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
+> | Anthropic | `claude-opus-5-5` (recommended, the default Opus since CC 2.1.280, same 2,576 px budget as Opus 5), `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-5-5`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost, never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
 > | OpenAI    | `gpt-5.5` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |

@@ -202,7 +202,7 @@ content_analysis (2.3s, $0.045)
 +-- retrieval (0.1s)
 |   +-- metadata: {chunks_retrieved: 5}
 +-- generation (2.2s, $0.045)
-    +-- model: claude-sonnet-5
+    +── model: claude-sonnet-5-5
     +-- tokens: 1500 input, 1000 output
 ```
 
@@ -828,7 +828,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:
 
-- **Model**: Exact model ID (`claude-sonnet-5`)
+- **Model**: Exact model ID (`claude-sonnet-5-5`)
 - **Tokens**: Input/output/cache token counts
 - **Cost**: Per-request USD cost (Anthropic pricing)
 - **Latency**: Time-to-first-token, total duration
@@ -932,7 +932,7 @@ Result in Langfuse UI:
 ```
 evaluator:relevance_judge (0.8s, $0.01)
 ├── generation: judge_prompt → score: 0.85
-└── metadata: {criteria: "relevance", model: "claude-sonnet-5"}
+└── metadata: {criteria: "relevance", model: "claude-sonnet-5-5"}
 ```
 
 ## Score Analytics
@@ -2369,7 +2369,7 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 **Example Results:**
 | Model | Daily Cost | Monthly (Projected) |
 |-------|------------|---------------------|
-| claude-sonnet-5 | $5.20 | $156 |
+| claude-sonnet-5-5 | $5.20 | $156 |
 | gemini-3-flash-preview | $1.80 | $54 |
 | voyage-code-2 | $0.40 | $12 |
 | **Total** | **$7.40** | **$222** |

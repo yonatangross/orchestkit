@@ -70,7 +70,7 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 **Example Results:**
 | Model | Daily Cost | Monthly (Projected) |
 |-------|------------|---------------------|
-| claude-sonnet-5 | $5.20 | $156 |
+| claude-sonnet-5-5 | $5.20 | $156 |
 | gemini-3-flash-preview | $1.80 | $54 |
 | voyage-code-2 | $0.40 | $12 |
 | **Total** | **$7.40** | **$222** |

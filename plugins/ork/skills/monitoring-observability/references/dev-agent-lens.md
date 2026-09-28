@@ -111,7 +111,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:
 
-- **Model**: Exact model ID (`claude-sonnet-5`)
+- **Model**: Exact model ID (`claude-sonnet-5-5`)
 - **Tokens**: Input/output/cache token counts
 - **Cost**: Per-request USD cost (Anthropic pricing)
 - **Latency**: Time-to-first-token, total duration

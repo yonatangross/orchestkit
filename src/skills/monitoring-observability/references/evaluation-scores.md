@@ -67,7 +67,7 @@ Result in Langfuse UI:
 ```
 evaluator:relevance_judge (0.8s, $0.01)
 ├── generation: judge_prompt → score: 0.85
-└── metadata: {criteria: "relevance", model: "claude-sonnet-5"}
+└── metadata: {criteria: "relevance", model: "claude-sonnet-5-5"}
 ```
 
 ## Score Analytics

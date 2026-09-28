@@ -41,7 +41,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
     response = client.messages.create(
         model="claude-sonnet-5-5",
         max_tokens=150,
-        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user",
                    "content": CONTEXT_PROMPT.format(document=document, chunk=chunk)}]
     )
@@ -54,7 +54,7 @@ def contextualize_cached(document: str, chunk: str) -> str:
     response = client.messages.create(
         model="claude-sonnet-5-5",
         max_tokens=150,
-        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},
@@ -78,7 +78,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
         model="claude-sonnet-5-5",
         max_tokens=150,
-        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},  # Cache for 90% cost reduction

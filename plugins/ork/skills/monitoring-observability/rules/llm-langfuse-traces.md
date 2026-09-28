@@ -56,7 +56,7 @@ content_analysis (2.3s, $0.045)
 +-- retrieval (0.1s)
 |   +-- metadata: {chunks_retrieved: 5}
 +-- generation (2.2s, $0.045)
-    +-- model: claude-sonnet-5
+    +── model: claude-sonnet-5-5
     +-- tokens: 1500 input, 1000 output
 ```
 
