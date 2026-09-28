@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.126](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126) (2026-09-28)
+
+
+### Bug Fixes
+
+* **standards:** list agent as a Claude Code skill key in G1 registry ([#4522](https://github.com/yonatangross/orchestkit/issues/4522)) ([6d0ef80](https://github.com/yonatangross/orchestkit/commit/6d0ef80a2e5f24d836d36f357596690215049c07))
+
 ## [10.0.0-beta.125](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125) (2026-09-28)
 
 
