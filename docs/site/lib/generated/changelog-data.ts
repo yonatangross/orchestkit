@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.131",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**agents:** m3 script keeps quoted commas and validates first ([#4533](https://github.com/yonatangross/orchestkit/issues/4533)) ([#4535](https://github.com/yonatangross/orchestkit/issues/4535)) ([18ea67b](https://github.com/yonatangross/orchestkit/commit/18ea67bbc0b77308ecc4a458a2d588e48e1afd75))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.130",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130",
