@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.122](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.121...v10.0.0-beta.122) (2026-09-28)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node in the npm-minor-patch group ([#4502](https://github.com/yonatangross/orchestkit/issues/4502)) ([901aeac](https://github.com/yonatangross/orchestkit/commit/901aeac8fc70623e96265e36b7646227235b92dc))
+* **deps-dev:** bump the npm-minor-patch group ([#4504](https://github.com/yonatangross/orchestkit/issues/4504)) ([fb931c0](https://github.com/yonatangross/orchestkit/commit/fb931c06f83219c5e4462ab04f965d8fe007b588))
+* **deps:** bump the npm-minor-patch group ([#4503](https://github.com/yonatangross/orchestkit/issues/4503)) ([d162455](https://github.com/yonatangross/orchestkit/commit/d162455066dd8c1c423ba58466244ad677322eaa))
+* **deps:** bump the npm-minor-patch group ([#4505](https://github.com/yonatangross/orchestkit/issues/4505)) ([a3ec5f6](https://github.com/yonatangross/orchestkit/commit/a3ec5f6b6ab886d1ed4ef3c574c4785c13a0e717))
+* **deps:** bump the npm-minor-patch group across 1 directory with 11 updates ([#4507](https://github.com/yonatangross/orchestkit/issues/4507)) ([09b786f](https://github.com/yonatangross/orchestkit/commit/09b786ffae89d4d8dbd81ab784276e2c638060cc))
+* **deps:** bump the remotion group ([#4506](https://github.com/yonatangross/orchestkit/issues/4506)) ([83d04f0](https://github.com/yonatangross/orchestkit/commit/83d04f00ff1dd09a2eab5905fd254d7da03f59cf))
+
+
+### CI/CD
+
+* bump the github-actions group with 6 updates ([#4508](https://github.com/yonatangross/orchestkit/issues/4508)) ([d0624f5](https://github.com/yonatangross/orchestkit/commit/d0624f58f70a4b4ed2ddf957f36a039defdec0a6))
+
 ## [10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121) (2026-09-28)
 
 
