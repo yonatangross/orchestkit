@@ -2,6 +2,11 @@
 
 Dimension-to-agent mapping and spawn patterns for Phase 2.
 
+> **Fallback only.** Phase 2 runs `workflows/assess-fanout.js` by default, which holds the same
+> mapping in code (compliance and, in comparison mode, simplicity go to the code-quality
+> assessor). Use the spawns below when the Workflow tool is unavailable,
+> `ORCHESTKIT_FORCE_TASK_TOOL=1` is set, or the cross-model refuter lane is wanted.
+
 ## Agent Tool Mode (Default)
 
 For each dimension, spawn a background agent with **scope constraints**:

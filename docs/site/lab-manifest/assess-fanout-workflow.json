@@ -1,0 +1,12 @@
+{
+  "slug": "assess-fanout-workflow",
+  "source": "docs/feat--assess-workflow/index.html",
+  "title": "assess Phases 2 and 2.5 as a Workflow script",
+  "description": "Every source and test file this PR changes, before and after.",
+  "tags": [
+    "skills",
+    "opus-5-5",
+    "workflow"
+  ],
+  "date": "2026-09-28"
+}
