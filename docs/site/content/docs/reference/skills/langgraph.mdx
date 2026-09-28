@@ -1159,16 +1159,16 @@ from langgraph_sdk import get_client
 client = get_client(url="http://localhost:2024")
 
 # Create assistants with different configs from the same graph.
-# Vary them through the prompt: claude-sonnet-5 returns 400 on a non-default temperature.
+# Vary them through the prompt: claude-sonnet-5-5 returns 400 on a non-default temperature.
 creative = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5-5"}},
     name="creative-writer",
 )
 
 precise = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"system_prompt": "Be precise; state only what the data supports.", "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Be precise; state only what the data supports.", "model": "claude-sonnet-5-5"}},
     name="precise-analyst",
 )
 ```
@@ -2474,7 +2474,7 @@ for msg, meta in graph.stream(inputs, stream_mode="messages"):
 
 **Filtered by tags (more flexible):**
 ```python
-model = init_chat_model("claude-sonnet-5", tags=["main_response"])
+model = init_chat_model("claude-sonnet-5-5", tags=["main_response"])
 
 for msg, meta in graph.stream(inputs, stream_mode="messages"):
     if "main_response" in meta.get("tags", []):
@@ -2961,7 +2961,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email sent to {to}"
 
 tools = [search_database, send_email]
-model = ChatAnthropic(model="claude-sonnet-5")
+model = ChatAnthropic(model="claude-sonnet-5-5")
 model_with_tools = model.bind_tools(tools)
 
 def agent_node(state):
@@ -2996,7 +2996,7 @@ Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/con
 
 When you have many tools, select the most relevant subset per query using embeddings.
 
-> **Claude prompt cache (2026-09):** a different `bind_tools()` subset each turn rewrites the top-level `tools` array and breaks the cached prefix; on Opus 5.5 and Fable 5.1 a tools change also invalidates later thinking blocks. On Claude, keep `tools` stable and either mark rarely used tools `defer_loading: true` with tool search, or add a tool mid-conversation with a `tool_addition` block in a mid-conversation system message (beta header `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5). Keep per-query subsets for providers without prompt caching. See https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes
+> **Claude prompt cache (2026-09):** a different `bind_tools()` subset each turn rewrites the top-level `tools` array and breaks the cached prefix; on Opus 5.5, Sonnet 5.5 and Fable 5.1 a tools change also invalidates later thinking blocks. On Claude, keep `tools` stable and either mark rarely used tools `defer_loading: true` with tool search, or add a tool mid-conversation with a `tool_addition` block in a mid-conversation system message (beta header `inline-tools-2026-09-15`, Claude API only, available on Sonnet 5.5 but not on Sonnet 5). Keep per-query subsets for providers without prompt caching. See https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes 
 
 **Incorrect, all tools always bound:**
 ```python

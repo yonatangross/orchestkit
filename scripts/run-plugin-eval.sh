@@ -38,7 +38,7 @@ MAX_COST=3
 # model (self-preference). Judging is ~2% of spend, so the bigger judge is
 # cheap. A sonnet agent can overstate the delta for users on a stronger model;
 # the docs say so. Flip with --model / --judge-model.
-AGENT_MODEL=claude-sonnet-5
+AGENT_MODEL=claude-sonnet-5-5
 JUDGE_MODEL=claude-opus-5-5
 EXTRA=()
 

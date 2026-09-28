@@ -2942,7 +2942,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
     "version": "2.0.0",
-    "sha256": "1f9262a033f009ea7cea9c63a9f19093526912714e1296c958ca631309c27d09",
+    "sha256": "449d5167ab8ad07d71dc289220a814244db9074a20b60c6dce6e1d8d837008cc",
     "author": "OrchestKit",
     "tags": [
       "llm",
@@ -3327,7 +3327,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "a7b8e0199d1ccc63af2a2cbdf0c9e3924015759048af72dc84e0f67a756b0095",
+    "sha256": "cf701eca851b96e5aa859213a66ac9e066b5b92c0717dcd9a4c486dc9f6a633d",
     "author": "OrchestKit",
     "tags": [
       "vision",
