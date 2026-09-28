@@ -105,7 +105,9 @@ def split_flow(key: str, inner: str) -> list[str]:
             buf.append("'")
         elif quote and ch == quote:
             quote = None
-        elif not quote and ch in "\"'":
+        elif not quote and ch in "\"'" and not "".join(buf[:-1]).strip():
+            # A quote opens only as the first non-space char of an item; an
+            # apostrophe inside a plain item (don't, can't) is literal.
             quote = ch
         elif not quote and ch == ",":
             buf.pop()
