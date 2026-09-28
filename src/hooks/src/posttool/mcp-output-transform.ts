@@ -193,9 +193,22 @@ export function looksSecretBearing(text: string): boolean {
 }
 
 /**
- * Remove every secret-shaped span from text (#4510). Used on the head/tail
- * that reaches the transcript for a secret-bearing result, so a credential
- * that lands inside the kept 1200+600 chars is masked instead of leaked.
+ * Credential-bearing `name=value` / `name: "value"` pairs (#4510 reviewer
+ * pass): SECRET_PATTERNS anchors on key ids and token prefixes, but the
+ * VALUE of `X-Amz-Security-Token` or `X-Amz-Signature` is itself the
+ * credential, and presigned URLs carry them verbatim. This list is wider
+ * than the detection list on purpose: it only ever runs inside
+ * scrubSecrets, which is reached exclusively on output already classified
+ * secret-bearing, so a wider net cannot mask benign traffic. Group 1 is
+ * the key plus its separator and is kept; only the value is masked.
+ */
+const CREDENTIAL_PARAM_RE =
+  /\b((?:x-amz-security-token|x-amz-signature|x-amz-credential|x-amz-content-sha256|x-goog-security-token|x-goog-signature|x-goog-credential|security[_-]?token|session[_-]?token|access[_-]?token|signature|sig)["']?\s*[=:]\s*["']?)[^\s"'&},]+/gi;
+
+/**
+ * Remove every secret-shaped span from text (#4510). Runs on the WHOLE
+ * secret-bearing result before head/tail are sliced, so a credential that
+ * straddles the 1200-char or tail boundary cannot leak a partial match.
  * The full verbatim result lives in the 0600 session file; the transcript
  * only ever sees this scrubbed view.
  */
@@ -205,7 +218,7 @@ function scrubSecrets(text: string): string {
     const flags = re.flags.includes('g') ? re.flags : `${re.flags}g`;
     out = out.replace(new RegExp(re.source, flags), '[REDACTED:credential]');
   }
-  return out;
+  return out.replace(CREDENTIAL_PARAM_RE, '$1[REDACTED:credential]');
 }
 
 // -----------------------------------------------------------------------------
@@ -303,8 +316,12 @@ function truncateOutput(
         keptLen: truncatedLength,
         path,
       });
+      // Scrub the WHOLE result before slicing: a credential straddling the
+      // head or tail boundary would otherwise survive as an unmasked
+      // fragment (#4510 reviewer pass).
+      const scrubbed = scrubSecrets(text);
       return {
-        text: scrubSecrets(`${head}\n\n${pointer}\n\n${tail}`),
+        text: `${scrubbed.slice(0, HEAD_CHARS)}\n\n${pointer}\n\n${scrubbed.slice(-TAIL_CHARS)}`,
         originalLength,
         truncated: true,
         stashHash: hash,

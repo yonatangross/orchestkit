@@ -25,6 +25,7 @@
 import {
   chmodSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readdirSync,
   renameSync,
@@ -32,12 +33,13 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { atomicWriteSync } from './atomic-write.js';
 import { stateRootDir } from './session-state.js';
 import { getSessionTempDir } from './paths.js';
+import { looksLikeIdentifier } from './safe-fs.js';
 
 /** Length of the content-address hash prefix (hex chars). */
 export const HASH_LEN = 12;
@@ -123,6 +125,28 @@ export function getSessionHeadroomDir(sessionId: string): string {
 }
 
 /**
+ * Fail-closed check that `dir` is a real, owner-private directory (#4510).
+ * A symlink or a dir owned by another uid throws. A dir that is group- or
+ * world-accessible but owned by us gets tightened to 0700 rather than
+ * refused: other hooks create claude-session-<sid> with the process umask,
+ * so a hard refuse would silently disable the recovery path on real
+ * sessions. Throws propagate to the caller's catch, which degrades to
+ * lossy truncation instead of writing a credential somewhere unsafe.
+ */
+function ensurePrivateDir(dir: string): void {
+  const st = lstatSync(dir);
+  if (st.isSymbolicLink() || !st.isDirectory()) {
+    throw new Error(`headroom path is not a real directory: ${dir}`);
+  }
+  if (typeof process.getuid === 'function' && st.uid !== process.getuid()) {
+    throw new Error(`headroom dir not owned by current uid: ${dir}`);
+  }
+  if ((st.mode & 0o077) !== 0) {
+    chmodSync(dir, 0o700);
+  }
+}
+
+/**
  * Stash a secret-bearing tool result verbatim where only this session can
  * read it (#4510).
  *
@@ -138,7 +162,9 @@ export function getSessionHeadroomDir(sessionId: string): string {
  * byte-exactness is the point, since even PII redaction could mangle a
  * URL. The 0600 mode plus session-temp location is the containment.
  *
- * Crash-safe via tmp-file + rename (rename preserves the tmp file's mode).
+ * Crash-safe via unpredictable tmp-file + exclusive 'wx' create + rename
+ * (rename preserves the tmp inode's 0600 mode and replaces a planted link
+ * at the final path rather than writing through it).
  * Best-effort by contract: callers wrap in try/catch and degrade to lossy
  * truncation on any throw.
  */
@@ -146,25 +172,51 @@ export function stashSecretResult(
   fullText: string,
   sessionId: string,
 ): StashResult {
+  // #4510 hardening: an empty or corrupt session id must not collapse into
+  // the shared 'invalid' bucket getSessionTempDir falls back to. On /tmp
+  // that bucket is writable by any process that knows the name, so refuse
+  // and let the caller degrade to lossy truncation.
+  if (!looksLikeIdentifier(sessionId)) {
+    throw new Error('refusing secret stash for invalid session id');
+  }
+
   const hash = hashContent(fullText);
-  const dir = getSessionHeadroomDir(sessionId);
+  const sessionDir = getSessionTempDir(sessionId);
+  const dir = join(sessionDir, 'headroom');
   const path = join(dir, `${hash}.txt`);
 
+  // Create-missing then enforce privacy on both levels. mkdirSync applies
+  // its mode only to dirs it actually creates, so the stat pass below is
+  // what covers pre-existing 0755 session dirs.
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  ensurePrivateDir(sessionDir);
+  ensurePrivateDir(dir);
+
   if (existsSync(path)) {
-    // Dedup hit: still enforce the mode in case the file was left behind by
-    // a version that wrote it differently.
-    try {
+    // Dedup hit, but never through a symlink or a foreign-owned file: lstat
+    // does not follow links, so a planted link is refused rather than
+    // chmodded or treated as ours.
+    const st = lstatSync(path);
+    if (st.isSymbolicLink() || !st.isFile()) {
+      throw new Error(`refusing non-regular stash path: ${path}`);
+    }
+    if (typeof process.getuid === 'function' && st.uid !== process.getuid()) {
+      throw new Error(`stash file not owned by current uid: ${path}`);
+    }
+    if ((st.mode & 0o077) !== 0) {
       chmodSync(path, 0o600);
-    } catch {
-      // best-effort
     }
     return { hash, path, written: false };
   }
 
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
-  const tmpPath = `${path}.tmp.${process.pid}`;
+  // Unpredictable tmp name + exclusive create ('wx'): a pre-planted file or
+  // symlink at a guessed name cannot be followed or clobbered. rename
+  // preserves the tmp inode's 0600 mode and, if a link is planted at the
+  // final path meanwhile, replaces the link itself rather than writing
+  // through it.
+  const tmpPath = `${path}.tmp.${randomBytes(8).toString('hex')}`;
   try {
-    writeFileSync(tmpPath, fullText, { encoding: 'utf8', mode: 0o600 });
+    writeFileSync(tmpPath, fullText, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
     renameSync(tmpPath, path);
   } catch (err) {
     try {
