@@ -102,24 +102,41 @@ jobs:
     permissions:
       contents: read
     needs: [changes, validate]
-    # Report upstream failures as red instead of a successful skipped check.
-    if: always() && (needs.changes.result != 'success' || needs.changes.outputs.docs == 'true')
+    # Always runs, so the required context always reports: red when detection
+    # or validation failed, green with a notice when no docs-site input changed
+    # (a skipped required check never reads as SUCCESS at the merge door, which
+    # blocked every weekly traffic-snapshot bot PR), full build otherwise.
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - name: Require successful docs detection and validation
+        id: gate
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
+          DOCS_CHANGED: ${{ needs.changes.outputs.docs }}
           VALIDATE_RESULT: ${{ needs.validate.result }}
         run: |
-          if [[ "$CHANGES_RESULT" != success || "$VALIDATE_RESULT" != success ]]; then
-            echo "::error::Docs detection or validation did not succeed."
+          if [[ "$CHANGES_RESULT" != success ]]; then
+            echo "::error::Docs change detection did not succeed."
             exit 1
           fi
+          if [[ "$DOCS_CHANGED" != true ]]; then
+            echo "::notice::No docs-site input changed; the site build is not needed."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$VALIDATE_RESULT" != success ]]; then
+            echo "::error::Docs validation did not succeed."
+            exit 1
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: steps.gate.outputs.run == 'true'
         with:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -127,8 +144,11 @@ jobs:
             package-lock.json
             docs/site/package-lock.json
       - run: npm ci
+        if: steps.gate.outputs.run == 'true'
       - run: npm run build
+        if: steps.gate.outputs.run == 'true'
       - name: Install docs dependencies
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         shell: bash
         # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages, so it is
@@ -180,6 +200,7 @@ jobs:
           # same-repo. On PRs this resolves to '' → npm ci hits 401 → stub fallback.
           NPM_TOKEN: ${{ github.event_name == 'push' && secrets.NPM_TOKEN || '' }}
       - name: Build docs site
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npm run build
 
@@ -187,6 +208,7 @@ jobs:
       # registrations; only the minified chunk proves the literal survived
       # (the #4107 helper minified to `e.modelContext`, invisible to the scan).
       - name: Check WebMCP registration in built chunks
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: node scripts/check-webmcp-bundle.mjs
 
@@ -194,6 +216,7 @@ jobs:
       # registers its own tools in an inline script and credited none of ours
       # from the chunk, so the inline copy is pinned here too.
       - name: Check WebMCP inline registration in built HTML
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: node scripts/check-webmcp-inline-html.mjs
 
@@ -205,6 +228,7 @@ jobs:
       # Runs in this job rather than a new one so it reuses the node_modules
       # installed above, and runs AFTER the build so generated data exists.
       - name: Run docs-site tests
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npm test
 
@@ -214,9 +238,11 @@ jobs:
       # Landing titles and the VT describe so both files stay in CI (#4384).
       # site-qa.spec covers the 2026-09-25 QA regressions (nav, commands).
       - name: Install Playwright Chromium
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npx playwright install --with-deps chromium
       - name: Run docs-site Playwright e2e
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts e2e/site-qa.spec.ts --project=chromium-desktop --grep "Landing|View transition abort guard|Site QA"
         env:
