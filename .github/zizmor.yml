@@ -19,6 +19,17 @@ rules:
   dangerous-triggers:
     ignore:
       - dependabot-automerge.yml
+      # standards-gate.yml uses pull_request_target so the PR being judged
+      # cannot weaken the gate judging it (ported from hq-ext-plugin #1983 +
+      # #1990). The safety model is enforced by
+      # tests/unit/test-standards-gate-base-trust.sh: top-level permissions:
+      # {}, job contents: read, no secrets referenced, every checkout with
+      # persist-credentials: false, and the PR head is checked out as DATA
+      # ONLY (nothing under head/ is executed, sourced, installed or used as
+      # a working directory; the trusted reader runs from the base branch tip
+      # and the base commit supplies the floor configs). Fork PRs are refused
+      # before any checkout of head data.
+      - standards-gate.yml
 
   # Same workflow: the `github.actor == 'dependabot[bot]'` gate. zizmor flags actor
   # checks as spoofable in general, but github.actor on pull_request_target is set

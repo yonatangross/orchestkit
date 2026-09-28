@@ -1,0 +1,65 @@
+# Standards gate, head self-tests (companion). ADVISORY, and must never become
+# a required context: it runs the PR's OWN code, so a PR controls it.
+#
+# The verdict lives in standards-gate.yml (pull_request_target), which runs the
+# base branch copy of the gate and reads the PR head only as data. That
+# workflow cannot exercise a PR's changes to the gate before they merge, so
+# this one does: a PR that edits the gate proves here that its new code works.
+#
+#   1. scripts/check-frontmatter.py --self-test: planted controls prove every
+#      rule fires (the frontmatter rules and each allowlist-widening family)
+#      and that clean files and registries pass.
+#   2. tests/unit/test-frontmatter-base-ratchet.sh: the baseline may only fall.
+#   3. tests/unit/test-standards-gate-base-trust.sh: the verdict driver runs
+#      trusted code on head data, a loosened allowlist fails, and the verdict
+#      workflow keeps its pull_request_target shape.
+name: Standards gate head self-tests (advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'src/**/SKILL.md'
+      - 'src/agents/*.md'
+      - 'configs/standards.json'
+      - 'configs/frontmatter-baseline.json'
+      - 'scripts/check-frontmatter.py'
+      - 'scripts/standards-gate-verdict.sh'
+      - 'tests/unit/test-frontmatter-base-ratchet.sh'
+      - 'tests/unit/test-standards-gate-base-trust.sh'
+      - '.github/workflows/standards-gate.yml'
+      - '.github/workflows/standards-gate-head.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  standards-head:
+    name: standards self-tests (head code, advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true  # advisory: reports, never blocks
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Frontmatter gate self-test (planted controls)
+        run: python3 scripts/check-frontmatter.py --self-test
+
+      - name: Frontmatter gate on this tree (against its own baseline)
+        run: python3 scripts/check-frontmatter.py --root .
+
+      - name: Base ratchet test (raise fails, lower passes, absent base passes)
+        run: bash tests/unit/test-frontmatter-base-ratchet.sh
+
+      - name: Base trust test (head script ignored, widening fails, lower passes)
+        run: bash tests/unit/test-standards-gate-base-trust.sh

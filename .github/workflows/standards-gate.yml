@@ -1,0 +1,116 @@
+# Standards gate VERDICT (ported from hq-ext-plugin #1983 + #1990). A PR cannot
+# weaken the gate that judges it.
+#
+# Trigger is pull_request_target, so this YAML and every program it runs come
+# from the BASE branch, never from the PR. Three checkouts, none of which
+# persists credentials:
+#   trusted  github.sha, the base branch tip (the same commit as this YAML):
+#            the gate scripts and the only tree anything is installed into.
+#   base     pull_request.base.sha, configs only: the FLOOR. The allowlists and
+#            the baseline a PR is judged by.
+#   head     pull_request.head.sha, full tree: DATA ONLY. Read as text by the
+#            trusted reader. Nothing in it is executed, sourced or installed,
+#            and no step uses it as a working directory (a sparse tree would
+#            break the reader, which lists files with git ls-files).
+# No secrets are used, the token is contents: read, and the runner is hosted
+# and ephemeral (a pull_request_target job must never run on the shared
+# self-hosted pool). The first step refuses forks explicitly, so a fork can
+# never read as a skipped (green) check.
+#
+# What the verdict fails on: a head violation not in the BASE baseline, head
+# allowlists looser than base (configs/standards.json), a head baseline that
+# gained a code, or a symlinked gate input. Editing the gate's scripts, the
+# allowlists or the baseline in the PR changes nothing about the verdict.
+#
+# The PR's own copy of the gate runs its self-tests in
+# standards-gate-head.yml (pull_request, advisory, never required).
+#
+# ADVISORY: continue-on-error means a red verdict surfaces as annotations and
+# a job summary, never as a blocking check, and this job is not a required
+# context. No paths filter on purpose: if this ever becomes required, a
+# paths-skipped check would sit at "Expected" forever. Baselined debt passes,
+# so debt is not what blocks requiring it later.
+name: Standards gate verdict (advisory)
+
+# zizmor dangerous-triggers: accepted by design. The PR head is checked out as
+# data only, nothing from it runs, the token is contents: read and no secret
+# is referenced (tests/unit/test-standards-gate-base-trust.sh enforces the
+# shape). Also ignored in .github/zizmor.yml, the file this repo's
+# validate-workflows gate reads.
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, dev]
+
+permissions: {}
+
+concurrency:
+  group: standards-gate-verdict-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verdict:
+    name: standards gate (base scripts, head as data)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true  # advisory: a red verdict reports, it never blocks
+    permissions:
+      contents: read
+    steps:
+      - name: Refuse fork pull requests (fail, never skip)
+        env:
+          HEAD_REPO_ID: ${{ github.event.pull_request.head.repo.id }}
+          BASE_REPO_ID: ${{ github.event.pull_request.base.repo.id }}
+        run: |
+          set -euo pipefail
+          if [ "${HEAD_REPO_ID}" != "${BASE_REPO_ID}" ]; then
+            echo "::error title=standards gate::a fork pull request cannot be judged here; run scripts/standards-gate-verdict.sh locally and paste the report"
+            exit 1
+          fi
+
+      - name: Trusted gate code (base branch tip, same commit as this YAML)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Floor (PR base commit, configs only)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          sparse-checkout: configs
+          persist-credentials: false
+
+      - name: PR head as data (full tree, never executed)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Refuse symlinked gate configs in the head (before anything reads them)
+        run: |
+          set -euo pipefail
+          for rel in configs/standards.json configs/frontmatter-baseline.json; do
+            if [ -L "head/${rel}" ]; then
+              echo "::error title=standards gate::${rel} is a symlink in the PR head; the gate reads only regular files"
+              exit 1
+            fi
+          done
+
+      - name: Trusted self-tests (planted controls)
+        working-directory: trusted
+        run: python3 scripts/check-frontmatter.py --self-test
+
+      - name: Verdict (trusted reader, base floor, head as data)
+        run: >-
+          bash trusted/scripts/standards-gate-verdict.sh --github
+          --trusted "$GITHUB_WORKSPACE/trusted"
+          --base "$GITHUB_WORKSPACE/base"
+          --head "$GITHUB_WORKSPACE/head"

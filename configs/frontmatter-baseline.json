@@ -1,0 +1,1270 @@
+{
+  "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
+  "total_violations": 977,
+  "files_with_violations": 143,
+  "files": {
+    "src/agents/accessibility-specialist.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/ai-safety-auditor.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/backend-system-architect.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/ci-cd-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/claude-design-orchestrator.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/code-quality-reviewer.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/component-curator.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:required_mcp_servers",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/data-pipeline-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/database-engineer.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/debug-investigator.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/demo-producer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/deployment-manager.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/design-context-extractor.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:required_mcp_servers",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/design-system-architect.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/emulate-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/eval-runner.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:required_mcp_servers",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/event-driven-architect.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/expect-agent.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/frontend-performance-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/frontend-ui-developer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/genui-architect.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/git-operations-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/infrastructure-architect.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/llm-integrator.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/market-intelligence.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/monitoring-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/multimodal-specialist.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/product-strategist.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/python-performance-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/release-engineer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/security-auditor.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/security-layer-auditor.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/system-design-reviewer.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/test-generator.md": [
+      "house-key:category",
+      "house-key:critical_system_reminder",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/web-research-analyst.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/agents/workflow-architect.md": [
+      "house-key:category",
+      "house-key:examplePrompts",
+      "house-key:keywords",
+      "house-key:taskTypes",
+      "unknown-key:context"
+    ],
+    "src/skills/accessibility/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/agent-orchestration/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/ai-ui-generation/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/analytics/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/animation-motion-design/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/api-design/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/architecture-decision-record/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/architecture-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/assess/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/async-jobs/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/audit-activation/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/audit-full/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/auto/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/bare-eval/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/brainstorm/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/browser-tools/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/business-case/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/chain-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:tool-coverage",
+      "house-key:version"
+    ],
+    "src/skills/ci-debug/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/ci-sentinel/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/code-review-playbook/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/commit/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:invocation_hooks",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/competitive-analysis/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/component-search/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/configure/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/cover/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:invocation_hooks",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/create-pr/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/database-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/demo-producer/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/design-context-extract/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-import/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-ship/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-stylecards/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-system-tokens/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/design-to-code/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/dev/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "metadata-not-string-map:upstream-packages"
+    ],
+    "src/skills/devops-deployment/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:invocation_hooks",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/distributed-systems/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/doctor/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/documentation-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/domain-driven-design/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/dream/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/emulate-seed/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/error-analysis/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/errors/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/expect/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:invocation_hooks",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/explore/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/figma-design-handoff/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version",
+      "metadata-not-string-map:figma-mcp-tool-count"
+    ],
+    "src/skills/fix-issue/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/github-operations/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/glyph/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/golden-dataset/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/help/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/i18n-date-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/implement/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/interaction-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/issue-progress-tracking/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/json-render-catalog/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "metadata-not-string-map:shadcn-component-count"
+    ],
+    "src/skills/langgraph/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:upstream-version-tested",
+      "house-key:version"
+    ],
+    "src/skills/llm-integration/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/market-sizing/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/mcp-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/mcp-visual-output/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/memory-fabric/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/memory/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/monitoring-observability/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:upstream-version-tested",
+      "house-key:version"
+    ],
+    "src/skills/multi-surface-render/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/multimodal-llm/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/okr-design/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/page-serve/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "metadata-not-string-map:upstream-packages"
+    ],
+    "src/skills/paired-probe/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/performance/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/portless/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/prd-to-goal/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/prioritization/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/product-analytics/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/product-frameworks/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/python-backend/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/quality-gates/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/rag-retrieval/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/react-server-components-framework/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/release-management/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/release-sync/SKILL.md": [
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/remember/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/responsive-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/review-pr/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/scope-appropriate-architecture/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/security-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/setup/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/storybook-mcp-integration/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/storybook-testing/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:tool-coverage",
+      "house-key:version"
+    ],
+    "src/skills/swarm-migrate/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/task-dependency-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:tool-coverage",
+      "house-key:version"
+    ],
+    "src/skills/telemetry-inspect/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/testing-e2e/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/testing-integration/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/testing-llm/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/testing-perf/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/testing-unit/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/ui-components/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/user-research/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/verify/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/visualize-plan/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version",
+      "unknown-key:skills"
+    ],
+    "src/skills/vite-advanced/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ],
+    "src/skills/web-research-workflow/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:version"
+    ],
+    "src/skills/write-prd/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:agent",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:triggers",
+      "house-key:version"
+    ],
+    "src/skills/zustand-patterns/SKILL.md": [
+      "allowed-tools-not-string",
+      "house-key:author",
+      "house-key:complexity",
+      "house-key:path_patterns",
+      "house-key:persuasion-type",
+      "house-key:tags",
+      "house-key:targets",
+      "house-key:version"
+    ]
+  }
+}
