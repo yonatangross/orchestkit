@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.127",
+    "date": "2026-09-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**standards-gate:** skip head steps when the head predates the gate ([#4518](https://github.com/yonatangross/orchestkit/issues/4518)) ([89e8530](https://github.com/yonatangross/orchestkit/commit/89e853058e649f3a03714266d47ac949f5dcb136))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.126",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126",

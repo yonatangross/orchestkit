@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.127](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127)** · 2026-09-28
+
+- **standards-gate:** skip head steps when the head predates the gate (#4518)
+
 **[v10.0.0-beta.126](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126)** · 2026-09-28
 
 - **standards:** list agent as a Claude Code skill key in G1 registry (#4522)
@@ -664,10 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **review-pr:** Phases 3 and 4.5 run as a Workflow script (#4494)
 - **site:** name developer resources, expose WebMCP registration (#4497)
 - **skills:** finish Wave 1 leftovers from the 2026-09-25 Opus 5.5 audit (#4495)
-
-**[v10.0.0-beta.119](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.118...v10.0.0-beta.119)** · 2026-09-27
-
-- **evals:** lane suite for triage, review, promote, ci-debug (#4488)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
