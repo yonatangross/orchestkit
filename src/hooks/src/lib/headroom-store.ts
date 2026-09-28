@@ -22,12 +22,22 @@
  * the pointer path IS the retrieve mechanism. No new tool/MCP server required.
  */
 
-import { existsSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  renameSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { atomicWriteSync } from './atomic-write.js';
 import { stateRootDir } from './session-state.js';
+import { getSessionTempDir } from './paths.js';
 
 /** Length of the content-address hash prefix (hex chars). */
 export const HASH_LEN = 12;
@@ -99,6 +109,92 @@ export function buildPointer(opts: {
   return (
     `[Truncated ${originalLen.toLocaleString()}→${keptLen.toLocaleString()} chars. ` +
     `Full output: Read ${path} for the ${between.toLocaleString()} chars between.]`
+  );
+}
+
+/**
+ * Session-scoped stash dir for secret-bearing results (#4510).
+ * Lives under the per-session temp dir (tmpdir()/claude-session-<id>/headroom),
+ * NOT the shared ~/.claude headroom root: the files below hold live
+ * credentials, so they stay inside the session bucket with 0600 files.
+ */
+export function getSessionHeadroomDir(sessionId: string): string {
+  return join(getSessionTempDir(sessionId), 'headroom');
+}
+
+/**
+ * Stash a secret-bearing tool result verbatim where only this session can
+ * read it (#4510).
+ *
+ * Why a separate path from stashOriginal: lossy truncation destroys
+ * credential-carrying results (a presigned S3 PUT URL is cut mid
+ * X-Amz-Security-Token, and the second URL field is lost entirely), while
+ * the regular headroom stash writes credentials under a default-umask dir.
+ * This stores the FULL result byte-exact at mode 0600 under the session
+ * temp dir, so the next tool call can still `curl -T <file> "$(jq -r
+ * .uploadUrl <stash>)"` without the token ever entering the transcript.
+ *
+ * Unlike stashOriginal this writes the PRE-redaction text on purpose:
+ * byte-exactness is the point, since even PII redaction could mangle a
+ * URL. The 0600 mode plus session-temp location is the containment.
+ *
+ * Crash-safe via tmp-file + rename (rename preserves the tmp file's mode).
+ * Best-effort by contract: callers wrap in try/catch and degrade to lossy
+ * truncation on any throw.
+ */
+export function stashSecretResult(
+  fullText: string,
+  sessionId: string,
+): StashResult {
+  const hash = hashContent(fullText);
+  const dir = getSessionHeadroomDir(sessionId);
+  const path = join(dir, `${hash}.txt`);
+
+  if (existsSync(path)) {
+    // Dedup hit: still enforce the mode in case the file was left behind by
+    // a version that wrote it differently.
+    try {
+      chmodSync(path, 0o600);
+    } catch {
+      // best-effort
+    }
+    return { hash, path, written: false };
+  }
+
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const tmpPath = `${path}.tmp.${process.pid}`;
+  try {
+    writeFileSync(tmpPath, fullText, { encoding: 'utf8', mode: 0o600 });
+    renameSync(tmpPath, path);
+  } catch (err) {
+    try {
+      unlinkSync(tmpPath);
+    } catch {
+      // ignore
+    }
+    throw err;
+  }
+  return { hash, path, written: true };
+}
+
+/**
+ * Build the pointer for a secret-bearing stash (#4510). Same shape as
+ * buildPointer but names the containment (0600 file) and warns against
+ * echoing the file into the transcript. Carries the path only, never any
+ * of the stashed content.
+ */
+export function buildSecretPointer(opts: {
+  originalLen: number;
+  keptLen: number;
+  path: string;
+}): string {
+  const { originalLen, keptLen, path } = opts;
+  const between = Math.max(0, originalLen - keptLen);
+  return (
+    `[Truncated ${originalLen.toLocaleString()}→${keptLen.toLocaleString()} chars. ` +
+    `Result matches a credential pattern; full output saved to ${path} (mode 0600). ` +
+    `Read or curl from that file for the ${between.toLocaleString()} chars between; ` +
+    `do not paste its contents into the transcript.]`
   );
 }
 

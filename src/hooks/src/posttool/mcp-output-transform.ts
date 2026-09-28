@@ -24,6 +24,10 @@
  * 1. Token-saving truncation: large results are head+tail truncated
  * 2. PII redaction: emails and phone numbers replaced with [REDACTED],
  *    skippable per tool via ORK_MCP_REDACT_EXEMPT_TOOLS (#3951)
+ * 3. Credential-bearing truncated results (#4510): the FULL result is
+ *    stashed to a 0600 file under the session temp dir and the banner
+ *    carries only the path, so presigned URLs etc. stay usable without a
+ *    secret entering the transcript
  *
  * CC 2.1.91 integration — "Trust CC's decision" heuristic:
  * CC strips _meta from tool_output before passing to hooks, so we can't
@@ -49,7 +53,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
-import { stashOriginal, buildPointer } from '../lib/headroom-store.js';
+import { stashOriginal, buildPointer, stashSecretResult, buildSecretPointer } from '../lib/headroom-store.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -155,17 +159,18 @@ const PHONE_RE =
   /(?<!\d)(?:\+\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4}|\d{3}[-.\s]\d{3}[-.\s]\d{4})\b/g;
 
 // -----------------------------------------------------------------------------
-// Secret heuristics (#2264 finding #1 — gate the reversible stash, NOT redaction)
+// Secret heuristics (#2264 finding #1, extended by #4510: credential-bearing
+// results go to a 0600 session file, never to the default-perms stash)
 // -----------------------------------------------------------------------------
 
 /**
- * High-confidence secret shapes. Used ONLY to decide whether to stash the full
- * original to disk in reversible mode — if any match, we skip the stash and fall
- * back to lossy truncation so a token in the discarded middle never lands on disk.
+ * High-confidence secret shapes. A match routes the FULL result to a 0600
+ * file under the session temp dir (#4510) instead of lossy truncation or
+ * the default-umask headroom stash, and scrubs the head/tail that reaches
+ * the transcript via `scrubSecrets`.
  *
  * Deliberately narrow (distinctive prefixes / structures) to avoid false
- * positives that would needlessly disable reversibility on benign output.
- * `redactPII` is unchanged — this does not redact, it gates persistence.
+ * positives that would detour benign output into the credential path.
  */
 const SECRET_PATTERNS: readonly RegExp[] = [
   /\bAKIA[0-9A-Z]{16}\b/,                                  // AWS access key id
@@ -180,11 +185,27 @@ const SECRET_PATTERNS: readonly RegExp[] = [
 
 /**
  * True if the text contains anything that looks like a credential. Conservative:
- * a false negative (miss a weird secret) degrades to today's behaviour; a false
- * positive only disables the disk stash for that one output (still truncated).
+ * a false negative (miss a weird secret) degrades to the old lossy behaviour;
+ * a false positive only detours that one output to the 0600 session file.
  */
 export function looksSecretBearing(text: string): boolean {
   return SECRET_PATTERNS.some((re) => re.test(text));
+}
+
+/**
+ * Remove every secret-shaped span from text (#4510). Used on the head/tail
+ * that reaches the transcript for a secret-bearing result, so a credential
+ * that lands inside the kept 1200+600 chars is masked instead of leaked.
+ * The full verbatim result lives in the 0600 session file; the transcript
+ * only ever sees this scrubbed view.
+ */
+function scrubSecrets(text: string): string {
+  let out = text;
+  for (const re of SECRET_PATTERNS) {
+    const flags = re.flags.includes('g') ? re.flags : `${re.flags}g`;
+    out = out.replace(new RegExp(re.source, flags), '[REDACTED:credential]');
+  }
+  return out;
 }
 
 // -----------------------------------------------------------------------------
@@ -244,8 +265,16 @@ function extractMetaResultSize(output: unknown): number | null {
 
 /**
  * Truncate text preserving head and tail with a truncation notice.
+ *
+ * `fullText` is the pre-redaction result, used only for the #4510
+ * secret-bearing stash, which must be byte-exact to stay usable (a PII
+ * rewrite inside a presigned URL would break it).
  */
-function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean; stashHash?: string } {
+function truncateOutput(
+  text: string,
+  sessionId: string,
+  fullText: string = text,
+): { text: string; originalLength: number; truncated: boolean; stashHash?: string } {
   const originalLength = text.length;
 
   if (originalLength <= DEFAULT_TRUNCATION_THRESHOLD) {
@@ -256,15 +285,44 @@ function truncateOutput(text: string): { text: string; originalLength: number; t
   const tail = text.slice(-TAIL_CHARS);
   const truncatedLength = HEAD_CHARS + TAIL_CHARS;
 
+  // #4510 (secret-bearing results): lossy truncation destroys credential-
+  // carrying output (a presigned S3 URL is cut mid X-Amz-Security-Token and
+  // any field below the cut is lost), and the headroom stash must not hold
+  // credentials under a default-umask dir. Instead the FULL original goes
+  // to a 0600 file under the session temp dir and the banner carries only
+  // the path. The emitted head/tail is scrubbed so no credential fragment
+  // reaches the transcript. Runs unconditionally, flag-independent: the
+  // stash file is the recovery path, so it cannot wait on
+  // ORK_HEADROOM_REVERSIBLE. Best-effort: a failed write falls through to
+  // the reversible/lossy paths below.
+  if (looksSecretBearing(text)) {
+    try {
+      const { hash, path } = stashSecretResult(fullText, sessionId);
+      const pointer = buildSecretPointer({
+        originalLen: originalLength,
+        keptLen: truncatedLength,
+        path,
+      });
+      return {
+        text: scrubSecrets(`${head}\n\n${pointer}\n\n${tail}`),
+        originalLength,
+        truncated: true,
+        stashHash: hash,
+      };
+    } catch {
+      // fall through to reversible/lossy handling
+    }
+  }
+
   // #2264: reversible mode — stash the full (already-redacted) original and emit
   // a `Read` pointer instead of discarding the middle. Best-effort: if the stash
   // write throws (disk full, perms), fall through to lossy truncation rather than
   // failing the hook — a result is always returned.
   //
-  // Finding #1 (secret-at-rest): redactPII only covers email/phone. If the output
-  // carries a credential-shaped token, skip the stash and discard the middle the
-  // old (lossy) way — a token in the dropped middle must never be persisted to
-  // disk, even locally. The head/tail Claude sees is unchanged from today.
+  // Secret-bearing results never reach this branch: the #4510 path above
+  // already handled them, and the looksSecretBearing guard stays as
+  // defence-in-depth so a failed 0600 write degrades to lossy, never to the
+  // default-perms stash.
   if (headroomReversibleEnabled() && !looksSecretBearing(text)) {
     try {
       const { hash, path } = stashOriginal(text);
@@ -384,7 +442,11 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
     originalLength = redacted.length;
     truncated = false;
   } else {
-    ({ text: final, originalLength, truncated, stashHash } = truncateOutput(redacted));
+    ({ text: final, originalLength, truncated, stashHash } = truncateOutput(
+      redacted,
+      input.session_id || '',
+      outputStr,
+    ));
   }
 
   // Skip if no transformation was applied
