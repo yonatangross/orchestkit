@@ -630,6 +630,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.128](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128)** · 2026-09-28
+
+- **ci:** Docs Site Build always reports so docs-data PRs can merge (#4529)
+- **ci:** traffic snapshot app token; release-please guard skips release/* bases (#4525)
+- **traffic:** snapshot week of 2026-09-21 (#4526)
+- **skills:** move house frontmatter keys under metadata (m1) (#4521)
+
 **[v10.0.0-beta.127](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127)** · 2026-09-28
 
 - **standards-gate:** skip head steps when the head predates the gate (#4518)
@@ -662,12 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.121](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.120...v10.0.0-beta.121)** · 2026-09-28
 
 - **skills:** pair defer_loading with tool search in llm-integration (#4498)
-
-**[v10.0.0-beta.120](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.119...v10.0.0-beta.120)** · 2026-09-27
-
-- **review-pr:** Phases 3 and 4.5 run as a Workflow script (#4494)
-- **site:** name developer resources, expose WebMCP registration (#4497)
-- **skills:** finish Wave 1 leftovers from the 2026-09-25 Opus 5.5 audit (#4495)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
