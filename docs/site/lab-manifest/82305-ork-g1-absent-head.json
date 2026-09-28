@@ -1,0 +1,13 @@
+{
+  "slug": "82305-ork-g1-absent-head",
+  "source": "docs/chore--dsp-82305-ork-g1-absent-head/index.html",
+  "title": "The gate that rejected every PR older than itself",
+  "description": "The G1 verdict driver (#4514) fell back when the base lacked the gate configs but not when the head did, so pre-gate branches failed rc=2 on FileNotFoundError. Steps 2 and 4 now skip with a notice on an absent head; step 3 still judges the tree on the floor, so the skip cannot hide debt.",
+  "tags": [
+    "ci",
+    "frontmatter",
+    "standards-gate",
+    "82305"
+  ],
+  "date": "2026-09-28"
+}
