@@ -44,12 +44,23 @@ jobs:
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
           PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
           # Override label: maintainers can apply `release-please-override` for
           # legitimate exceptions (drift fixes, config schema changes, etc.).
           if echo "$PR_LABELS" | grep -q '"release-please-override"'; then
             echo "::notice::PR carries 'release-please-override' label — skipping guard"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # release-please runs only on push to main (release-please.yml `on:
+          # push: branches: [main]`), so its state machine never reads a
+          # release/* branch. A version bump on a release/* line is the
+          # maintainer's job there, not a desync, so the guard does not apply.
+          if [[ "$BASE_REF" == release/* ]]; then
+            echo "::notice::Base is ${BASE_REF}; release-please runs only on main, so it does not govern this base. Skipping guard."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
