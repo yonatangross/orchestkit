@@ -75,7 +75,7 @@
   ],
   "frontmatter": {
     "standard_id": "agent-skills",
-    "_comment": "Allowlists for scripts/check-frontmatter.py. Allowed top-level keys = base_keys UNION claude_code_keys. For SKILL.md base_keys is the Agent Skills spec key set; src/agents/*.md are not Agent Skills files, so their base is name, description and metadata. House-only keys belong under metadata (a one-level string map). Every Claude Code key carries the CC CHANGELOG version that shows Claude Code reads it (copy of CC 2.1.283, read 2026-09-27 by hq-ext). house_keys beyond the hq-ext nine are the ork vocabulary observed in this tree (agent, persuasion-type, targets, path_patterns, invocation_hooks, tool-coverage, upstream-version-tested, critical_system_reminder, required_mcp_servers).",
+    "_comment": "Allowlists for scripts/check-frontmatter.py. Allowed top-level keys = base_keys UNION claude_code_keys. For SKILL.md base_keys is the Agent Skills spec key set; src/agents/*.md are not Agent Skills files, so their base is name, description and metadata. House-only keys belong under metadata (a one-level string map). Every Claude Code key carries the CC CHANGELOG version that shows Claude Code reads it (copy of CC 2.1.283, read 2026-09-27 by hq-ext). house_keys beyond the hq-ext nine are the ork vocabulary observed in this tree (persuasion-type, targets, path_patterns, invocation_hooks, tool-coverage, upstream-version-tested, critical_system_reminder, required_mcp_servers).",
     "name_pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
     "limits": {
       "name_max": 64,
@@ -100,7 +100,6 @@
       "taskTypes",
       "keywords",
       "examplePrompts",
-      "agent",
       "persuasion-type",
       "targets",
       "path_patterns",
@@ -157,6 +156,10 @@
         {
           "key": "context",
           "evidence": "CC CHANGELOG 2.1.0: context: fork in skill frontmatter"
+        },
+        {
+          "key": "agent",
+          "evidence": "CC CHANGELOG 2.1.0: agent field in skills specifies the agent type for execution; 2.1.101: fixed skills not honoring context: fork and agent frontmatter fields; also forwarded by scripts/build-plugins.sh PASSTHROUGH_KEYS"
         },
         {
           "key": "allowed-tools",

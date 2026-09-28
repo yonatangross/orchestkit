@@ -1,6 +1,6 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 443,
+  "total_violations": 394,
   "files_with_violations": 137,
   "files": {
     "src/agents/accessibility-specialist.md": [
@@ -267,38 +267,31 @@
       "unknown-key:context"
     ],
     "src/skills/accessibility/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/agent-orchestration/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/ai-ui-generation/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/analytics/SKILL.md": [
       "allowed-tools-not-string"
     ],
     "src/skills/animation-motion-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/api-design/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns"
     ],
     "src/skills/architecture-decision-record/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/architecture-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "unknown-key:skills"
     ],
     "src/skills/assess/SKILL.md": [
@@ -307,8 +300,7 @@
       "unknown-key:skills"
     ],
     "src/skills/async-jobs/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/audit-activation/SKILL.md": [
       "allowed-tools-not-string"
@@ -327,12 +319,10 @@
       "unknown-key:skills"
     ],
     "src/skills/browser-tools/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/business-case/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/chain-patterns/SKILL.md": [
       "allowed-tools-not-string",
@@ -358,8 +348,7 @@
       "unknown-key:skills"
     ],
     "src/skills/competitive-analysis/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/component-search/SKILL.md": [
       "allowed-tools-not-string",
@@ -381,7 +370,6 @@
     ],
     "src/skills/database-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
@@ -391,19 +379,16 @@
     ],
     "src/skills/design-context-extract/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-import/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-ship/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:triggers",
       "unknown-key:skills"
     ],
@@ -414,7 +399,6 @@
     ],
     "src/skills/design-system-tokens/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets"
     ],
     "src/skills/design-to-code/SKILL.md": [
@@ -427,13 +411,11 @@
     ],
     "src/skills/devops-deployment/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:invocation_hooks",
       "house-key:path_patterns"
     ],
     "src/skills/distributed-systems/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/doctor/SKILL.md": [
       "allowed-tools-not-string",
@@ -444,8 +426,7 @@
       "allowed-tools-not-string"
     ],
     "src/skills/domain-driven-design/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/dream/SKILL.md": [
       "allowed-tools-not-string",
@@ -472,7 +453,6 @@
     ],
     "src/skills/figma-design-handoff/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets",
       "metadata-not-string-map:figma-mcp-tool-count"
     ],
@@ -488,8 +468,7 @@
       "allowed-tools-not-string"
     ],
     "src/skills/golden-dataset/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/help/SKILL.md": [
       "allowed-tools-not-string",
@@ -506,8 +485,7 @@
       "unknown-key:skills"
     ],
     "src/skills/interaction-patterns/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/issue-progress-tracking/SKILL.md": [
       "allowed-tools-not-string"
@@ -517,17 +495,14 @@
     ],
     "src/skills/langgraph/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets",
       "house-key:upstream-version-tested"
     ],
     "src/skills/llm-integration/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/market-sizing/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/mcp-patterns/SKILL.md": [
       "allowed-tools-not-string",
@@ -547,55 +522,45 @@
       "house-key:upstream-version-tested"
     ],
     "src/skills/multimodal-llm/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/okr-design/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/page-serve/SKILL.md": [
       "metadata-not-string-map:upstream-packages"
     ],
     "src/skills/performance/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/prd-to-goal/SKILL.md": [
       "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/prioritization/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/product-analytics/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/product-frameworks/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/python-backend/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/quality-gates/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "unknown-key:skills"
     ],
     "src/skills/rag-retrieval/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns"
     ],
     "src/skills/react-server-components-framework/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
@@ -610,8 +575,7 @@
       "house-key:triggers"
     ],
     "src/skills/responsive-patterns/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/review-pr/SKILL.md": [
       "allowed-tools-not-string",
@@ -623,7 +587,6 @@
     ],
     "src/skills/security-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns"
     ],
     "src/skills/setup/SKILL.md": [
@@ -637,7 +600,6 @@
     ],
     "src/skills/storybook-testing/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets",
       "house-key:tool-coverage"
     ],
@@ -648,7 +610,6 @@
     ],
     "src/skills/task-dependency-patterns/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:tool-coverage"
     ],
     "src/skills/telemetry-inspect/SKILL.md": [
@@ -656,39 +617,32 @@
     ],
     "src/skills/testing-e2e/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/testing-integration/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/testing-llm/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets"
     ],
     "src/skills/testing-perf/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:targets"
     ],
     "src/skills/testing-unit/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/ui-components/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/user-research/SKILL.md": [
-      "allowed-tools-not-string",
-      "house-key:agent"
+      "allowed-tools-not-string"
     ],
     "src/skills/verify/SKILL.md": [
       "allowed-tools-not-string",
@@ -697,13 +651,11 @@
     ],
     "src/skills/visualize-plan/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/vite-advanced/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:path_patterns",
       "house-key:targets"
     ],
@@ -712,7 +664,6 @@
     ],
     "src/skills/write-prd/SKILL.md": [
       "allowed-tools-not-string",
-      "house-key:agent",
       "house-key:triggers"
     ],
     "src/skills/zustand-patterns/SKILL.md": [
