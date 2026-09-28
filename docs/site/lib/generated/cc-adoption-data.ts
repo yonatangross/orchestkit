@@ -16,6 +16,173 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.284",
+    "features": [
+      {
+        "slug": "elicitation_decision_block_honoured",
+        "category": "fix",
+        "description": "{\"decision\":\"block\"} from Elicitation and ElicitationResult hooks now declines the MCP elicitation, as exit code 2 does.",
+        "gapScore": 2,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "marketplace_plugin_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Marketplace, claude.ai and npm plugins lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly unless the source is official or vouched for.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sonnet_5_5_default",
+        "category": "new_attr",
+        "description": "claude-sonnet-5-5 is the default Sonnet on the Anthropic API: 1M context, $2/$10, cache reads $0.20.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "auto_mode_default_everywhere",
+        "category": "changed_default",
+        "description": "Interactive terminal and VS Code sessions start in auto mode when no permission mode is configured.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "mcp_reconnect_all",
+        "category": "new_command",
+        "description": "/mcp reconnect all retries every failed or unauthenticated MCP server.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.283",
+    "features": [
+      {
+        "slug": "denied_models_available_models_match",
+        "category": "new_attr",
+        "description": "Managed deniedModels and availableModelsMatch:\"exact\" block specific models or unlisted versions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "doctor_prompt_audit",
+        "category": "new_command",
+        "description": "/doctor prompt-audit audits CLAUDE.md, skills, agents and commands for prompting patterns written for older models.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "otel_tool_output_mcp_webfetch",
+        "category": "new_attr",
+        "description": "MCP, WebFetch and WebSearch outputs join the tool.output OTel span event under OTEL_LOG_TOOL_CONTENT=1.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "plugin_dir_load_failure_path",
+        "category": "new_attr",
+        "description": "--plugin-dir load failures in stream-json plugin_errors now carry path.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.282",
+    "features": [
+      {
+        "slug": "skill_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Repo, user and --add-dir skills lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_mid_pattern_colon_star",
+        "category": "breaking",
+        "description": "Bash rules with a mid-pattern :* were skipped in settings files; now applied from every source with a startup warning.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "setup",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "project_settings_ignore_otel_export",
+        "category": "breaking",
+        "description": "Project and local settings ignore OTEL variables that turn on export, set the endpoint or capture content.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "max_prose_width",
+        "category": "new_attr",
+        "description": "maxProseWidth caps prose width in wide terminals.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.281",
+    "features": [
+      {
+        "slug": "mcp_tool_hooks_wait_for_connecting_server",
+        "category": "fix",
+        "description": "mcp_tool hooks on blocking events now wait for a connecting MCP server instead of being skipped.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "attribution_false",
+        "category": "new_attr",
+        "description": "settings.json accepts \"attribution\": false to hide commit and PR attribution; older CLIs skip a file holding it.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "commit"
+        ]
+      },
+      {
+        "slug": "plugin_validate_mcp_checks",
+        "category": "new_command",
+        "description": "claude plugin validate reports .mcp.json entries dropped at load, undeclared user_config refs and insecure URLs.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.280",
     "features": [
       {
@@ -3488,10 +3655,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.277",
-  latestKnown: "2.1.280",
+  latestKnown: "2.1.284",
   supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "c1cc23488d22" as const;
+export const SOURCE_DIGEST = "1e80bc518f8f" as const;

@@ -1,5 +1,244 @@
 [
   {
+    "version": "2.1.281",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "mcp_tool_hooks_wait_for_connecting_server",
+        "category": "fix",
+        "description": "mcp_tool hooks on blocking events now wait for a connecting MCP server instead of being skipped.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `mcp_tool` hooks on blocking events (PreToolUse and similar) being skipped while their MCP server was still connecting; they now wait for it, up to the MCP connect timeout",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships only type:command hooks (0 mcp_tool hooks in src/hooks/hooks.json), so nothing was being skipped."
+      },
+      {
+        "feature_slug": "attribution_false",
+        "category": "new_attr",
+        "description": "settings.json accepts \"attribution\": false to hide commit and PR attribution; older CLIs skip a file holding it.",
+        "gap_score": 10,
+        "affected_skills": [
+          "configure",
+          "commit"
+        ],
+        "reference_changelog_line": "Added `\"attribution\": false` in `settings.json` to hide all commit and PR attribution; older CLI versions skip a settings file that holds it, so keep the object form in files shared across versions",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "ork ships no attribution setting; the object form stays the portable choice below 2.1.281."
+      },
+      {
+        "feature_slug": "plugin_validate_mcp_checks",
+        "category": "new_command",
+        "description": "claude plugin validate reports .mcp.json entries dropped at load, undeclared user_config refs and insecure URLs.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added MCP server checks to `claude plugin validate`: it reports `.mcp.json` entries that would be silently dropped at load, undeclared `${user_config.*}` references, and insecure URLs",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free extra coverage for the CC Plugin Validate CI job; ork ships no .mcp.json in the plugin."
+      }
+    ],
+    "raw_bullets_count": 177
+  },
+  {
+    "version": "2.1.282",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "skill_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Repo, user and --add-dir skills lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly.",
+        "gap_score": 3,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed repository, user and `--add-dir` skills, commands and skills-directory plugin manifests pre-approving their own tools via `allowed-tools` under managed `allowManagedPermissionRulesOnly`",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Only managed orgs. Inventory in doctor/references/skill-preapproval.md (93 of 107 skills pre-grant a prompt-gated tool), CI drift gate tests/skills/structure/test-skill-preapproval-inventory.mjs."
+      },
+      {
+        "feature_slug": "bash_mid_pattern_colon_star",
+        "category": "breaking",
+        "description": "Bash rules with a mid-pattern :* were skipped in settings files; now applied from every source with a startup warning.",
+        "gap_score": 3,
+        "affected_skills": [
+          "setup",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed Bash permission rules with a mid-pattern `:*` being skipped in settings files while `--allowedTools` honored them; they now work from every source, with a startup warning on how they match",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Shipped operator payload has no mid-pattern :* rule (space form since v3, #3849). payload-coverage.py now refuses the shape because the 2.1.277 floor still skips it; pinned by tests/ci/test-payload-colon-star.sh."
+      },
+      {
+        "feature_slug": "project_settings_ignore_otel_export",
+        "category": "breaking",
+        "description": "Project and local settings ignore OTEL variables that turn on export, set the endpoint or capture content.",
+        "gap_score": 15,
+        "affected_skills": [
+          "monitoring-observability"
+        ],
+        "reference_changelog_line": "Changed project and local settings to ignore OpenTelemetry variables that turn on export, set its endpoint, or capture content, like `CLAUDE_CODE_ENABLE_TELEMETRY` and `OTEL_LOG_*`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no OTEL settings."
+      },
+      {
+        "feature_slug": "max_prose_width",
+        "category": "new_attr",
+        "description": "maxProseWidth caps prose width in wide terminals.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added a `maxProseWidth` setting that caps the width of Claude's prose in wide terminals while tables and code blocks keep the full width",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Operator preference; nothing for ork to ship."
+      }
+    ],
+    "raw_bullets_count": 86
+  },
+  {
+    "version": "2.1.283",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "denied_models_available_models_match",
+        "category": "new_attr",
+        "description": "Managed deniedModels and availableModelsMatch:\"exact\" block specific models or unlisted versions.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `deniedModels` managed setting to block specific models, even when `availableModels` allows them",
+        "relevance": "end-user",
+        "disposition": "watch",
+        "ork_disposition_note": "ork agents pin model aliases (#4541 sonnet row); under availableModelsMatch exact a new alias target is blocked until listed. Documented in the matrix row, no code."
+      },
+      {
+        "feature_slug": "doctor_prompt_audit",
+        "category": "new_command",
+        "description": "/doctor prompt-audit audits CLAUDE.md, skills, agents and commands for prompting patterns written for older models.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `/doctor prompt-audit` (also `/checkup prompt-audit`) to audit your CLAUDE.md files, skills, agents and commands for prompting patterns written for older models",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Candidate input for ork skill hygiene; not wired."
+      },
+      {
+        "feature_slug": "otel_tool_output_mcp_webfetch",
+        "category": "new_attr",
+        "description": "MCP, WebFetch and WebSearch outputs join the tool.output OTel span event under OTEL_LOG_TOOL_CONTENT=1.",
+        "gap_score": 20,
+        "affected_skills": [
+          "monitoring-observability"
+        ],
+        "reference_changelog_line": "Added MCP tool, WebFetch and WebSearch outputs to the `tool.output` OpenTelemetry span event when `OTEL_LOG_TOOL_CONTENT=1`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no OTEL config."
+      },
+      {
+        "feature_slug": "plugin_dir_load_failure_path",
+        "category": "new_attr",
+        "description": "--plugin-dir load failures in stream-json plugin_errors now carry path.",
+        "gap_score": 20,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `path` to `--plugin-dir` load-failure entries in the stream-json `system/init` `plugin_errors`, naming the directory that did not load",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free for headless harnesses reading plugin_errors."
+      }
+    ],
+    "raw_bullets_count": 94
+  },
+  {
+    "version": "2.1.284",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "elicitation_decision_block_honoured",
+        "category": "fix",
+        "description": "{\"decision\":\"block\"} from Elicitation and ElicitationResult hooks now declines the MCP elicitation, as exit code 2 does.",
+        "gap_score": 2,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `{\"decision\":\"block\"}` returned by Elicitation and ElicitationResult hooks being ignored; it now declines the MCP elicitation, as exit code 2 does",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "elicitation/elicitation-guard now returns decision:block + reason alongside continue:false (the floor 2.1.277 ignores decision). Tests: elicitation-guard.test.ts, output-guard-cc-contract.test.ts."
+      },
+      {
+        "feature_slug": "marketplace_plugin_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Marketplace, claude.ai and npm plugins lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly unless the source is official or vouched for.",
+        "gap_score": 3,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed plugins from marketplaces, claude.ai and npm pre-approving their own tools via `allowed-tools` under managed `allowManagedPermissionRulesOnly`; only plugins from an official Anthropic source or a source that managed settings vouch for keep that pre-approval",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "ork is a marketplace plugin. Same inventory as 2.1.282. The managed key that vouches for a source is not named in the docs (unconfirmed)."
+      },
+      {
+        "feature_slug": "sonnet_5_5_default",
+        "category": "new_attr",
+        "description": "claude-sonnet-5-5 is the default Sonnet on the Anthropic API: 1M context, $2/$10, cache reads $0.20.",
+        "gap_score": 5,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added Claude Sonnet 5.5 (`claude-sonnet-5-5`), now the default Sonnet model on the Anthropic API — 1M context, $2/$10 per Mtok with $0.20/Mtok cache reads",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Adopted in orchestkit#4541 (models.vocab.json sonnet row and matrix row \"Sonnet 5.5 default model\")."
+      },
+      {
+        "feature_slug": "auto_mode_default_everywhere",
+        "category": "changed_default",
+        "description": "Interactive terminal and VS Code sessions start in auto mode when no permission mode is configured.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Changed interactive terminal and VS Code sessions to start in auto mode when no permission mode is configured, on every plan and provider; `permissions.defaultMode` still overrides it",
+        "relevance": "end-user",
+        "disposition": "watch",
+        "ork_disposition_note": "Changes when ork PreToolUse guards see a prompt vs a classifier verdict; permissions.defaultMode still overrides."
+      },
+      {
+        "feature_slug": "mcp_reconnect_all",
+        "category": "new_command",
+        "description": "/mcp reconnect all retries every failed or unauthenticated MCP server.",
+        "gap_score": 20,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `/mcp reconnect all` in the interactive terminal to retry every MCP server that failed to connect or needs authentication at once",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Name in doctor MCP remediation later."
+      }
+    ],
+    "raw_bullets_count": 100
+  },
+  {
     "version": "2.1.280",
     "parse_failed": false,
     "features": [
