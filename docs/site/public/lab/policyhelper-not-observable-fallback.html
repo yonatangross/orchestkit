@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>policyHelper makes file fallback not observable | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.55 "IBM Plex Sans", "Segoe UI", sans-serif; background: #eef2f6; color: #15202b; }
+  body { max-width: 820px; margin: 0 auto; padding: 48px 24px 72px; }
+  h1 { font-size: clamp(1.7rem, 4.5vw, 2.35rem); line-height: 1.2; }
+  .eyebrow { font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: #3d5a80; text-transform: uppercase; }
+  label { display: block; font-weight: 600; margin-top: 1rem; }
+  select { font: inherit; padding: 0.4rem 0.55rem; border: 1px solid #9bb0c7; background: #fff; }
+  #out { margin-top: 1rem; padding: 1rem 1.1rem; background: #fff; border-left: 4px solid #3d5a80; min-height: 3.5rem; }
+  .ok { color: #1f6b3a; font-weight: 700; }
+  .obs { color: #8a5a00; font-weight: 700; }
+  .dim { color: #5a6570; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="policyHelper makes file fallback not observable"><meta property="og:description" content="When the selected managed source sets policyHelper, doctor must report not observable and point at /status instead of trusting managed-settings.json."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/policyhelper-not-observable-fallback.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="policyHelper makes file fallback not observable"><meta name="twitter:description" content="When the selected managed source sets policyHelper, doctor must report not observable and point at /status instead of trusting managed-settings.json."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p class="eyebrow">OrchestKit Lab · Doctor · #4547</p>
+<h1>When a source names <code>policyHelper</code>, the file fallback is blind</h1>
+<p>
+  Doctor's preferred read is <code>/status</code>. The file and MDM fallback only works when the
+  selected managed source's values are what the session uses. If that source sets
+  <code>policyHelper</code>, the helper's emitted <code>managedSettings</code> object is the only
+  managed settings for the session. Reading <code>managed-settings.json</code> then reports a
+  value the session may not use.
+</p>
+<label for="src">Selected managed source shape</label>
+<select id="src">
+  <option value="file">managed-settings.json only (no helper)</option>
+  <option value="helper">selected source sets policyHelper</option>
+  <option value="status">/status available</option>
+</select>
+<div id="out" aria-live="polite"></div>
+<script>
+const src = document.getElementById("src");
+const out = document.getElementById("out");
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function show() {
+  out.replaceChildren();
+  if (src.value === "status") {
+    out.appendChild(el("span", "ok", "Authoritative"));
+    out.appendChild(document.createTextNode(" Read Setting sources from /status. That line names the managed source Claude Code used, including a helper when one ran."));
+  } else if (src.value === "helper") {
+    out.appendChild(el("span", "obs", "not observable"));
+    out.appendChild(document.createTextNode(" File and MDM values are not the effective value. Report not observable and point to /status. (#4547)"));
+  } else {
+    out.appendChild(el("span", "ok", "Fallback OK"));
+    out.appendChild(document.createTextNode(" Read managed-settings.json and managed-settings.d drop-ins; last writer of the key wins inside the file source."));
+  }
+}
+src.addEventListener("change", show);
+show();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
