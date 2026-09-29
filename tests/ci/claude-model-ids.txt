@@ -46,6 +46,9 @@ claude-sonnet-4-5
 claude-sonnet-4-5-20250929
 
 # ---- Deprecated: still servable, but pin something newer ----
+# claude-opus-4-0 and claude-sonnet-4-0 stay DEPRECATED with retirement TBD:
+# they are not separate rows on Anthropic's model deprecations page (read
+# 2026-09-29), so no retirement date is recorded here until one is published.
 claude-opus-4-0  # DEPRECATED: retirement TBD
 claude-sonnet-4-0  # DEPRECATED: retirement TBD
 
@@ -60,7 +63,7 @@ claude-sonnet-4-0  # DEPRECATED: retirement TBD
 # Keep the IDs listed so they stay recognized (an unlisted ID fails with the
 # wrong message, "unknown model ID"); the RETIRED marker is what fails them.
 # claude-opus-4-20250514 and claude-sonnet-4-20250514 retired 2026-06-15 on
-# Anthropic-operated platforms (still on Bedrock / Google Cloud only).
+# Anthropic-operated platforms (Claude API, Claude Platform on AWS, Foundry).
 claude-opus-4-20250514  # RETIRED 2026-06-15: use claude-opus-5-5
 claude-sonnet-4-20250514  # RETIRED 2026-06-15: use claude-sonnet-5-5
 claude-opus-4-1  # RETIRED 2026-08-05: use claude-opus-5
