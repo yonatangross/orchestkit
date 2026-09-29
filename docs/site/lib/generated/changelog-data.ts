@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.8.1",
+    "date": "2026-09-28",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** remove three matcher-group `if` keys Claude Code reports as unknown and ignores ([#4515](https://github.com/yonatangross/orchestkit/issues/4515)), backporting the [#4062](https://github.com/yonatangross/orchestkit/pull/4062) fix from main"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.8.0",
     "date": "2026-08-07",
     "compareUrl": "",
