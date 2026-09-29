@@ -25,12 +25,14 @@
 # The PR's own copy of the gate runs its self-tests in
 # standards-gate-head.yml (pull_request, advisory, never required).
 #
-# ADVISORY: continue-on-error means a red verdict surfaces as annotations and
-# a job summary, never as a blocking check, and this job is not a required
-# context. No paths filter on purpose: if this ever becomes required, a
-# paths-skipped check would sit at "Expected" forever. Baselined debt passes,
-# so debt is not what blocks requiring it later.
-name: Standards gate verdict (advisory)
+# REQUIRED on main since 2026-09-29 (required context "standards gate (base
+# scripts, head as data)"). The check run attaches to the PR head SHA. It
+# carries no paths filter on purpose: a required check skipped by a paths
+# filter stays "Expected" forever. Baselined debt passes. A PR that edits the
+# gate's own registry fails until merged (base-trusted), so it goes by the
+# operator's hand merge. Never rename the job without updating the required
+# context in the same PR.
+name: Standards gate verdict
 
 # zizmor dangerous-triggers: accepted by design. The PR head is checked out as
 # data only, nothing from it runs, the token is contents: read and no secret
@@ -53,7 +55,6 @@ jobs:
     name: standards gate (base scripts, head as data)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true  # advisory: a red verdict reports, it never blocks
     permissions:
       contents: read
     steps:
