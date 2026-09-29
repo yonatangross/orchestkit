@@ -20,7 +20,7 @@
 # Never append a date suffix to an alias. `claude-sonnet-5` is complete as
 # written; `claude-sonnet-5-20260101` is not a real ID.
 #
-# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog; claude-opus-5-5 (and the missing claude-opus-5) added 2026-09-22 from the CC 2.1.280 changelog; claude-sonnet-5-5 added 2026-09-28 from the platform models overview (Sonnet 5 moved to Legacy); Haiku 4.5 re-checked 2026-09-28 against the model deprecations page: Active, deprecation N/A, retirement not sooner than 2026-10-15
+# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog; claude-opus-5-5 (and the missing claude-opus-5) added 2026-09-22 from the CC 2.1.280 changelog; claude-sonnet-5-5 added 2026-09-28 from the platform models overview (Sonnet 5 moved to Legacy); Haiku 4.5 re-checked 2026-09-28 against the model deprecations page: Active, deprecation N/A, retirement not sooner than 2026-10-15; claude-opus-4-20250514 and claude-sonnet-4-20250514 moved Deprecated->Retired 2026-09-29 (#4543): deprecations page retired both on 2026-06-15
 
 # ---- Current ----
 claude-fable-5-1
@@ -47,9 +47,7 @@ claude-sonnet-4-5-20250929
 
 # ---- Deprecated: still servable, but pin something newer ----
 claude-opus-4-0  # DEPRECATED: retirement TBD
-claude-opus-4-20250514  # DEPRECATED: retirement TBD
 claude-sonnet-4-0  # DEPRECATED: retirement TBD
-claude-sonnet-4-20250514  # DEPRECATED: retirement TBD
 
 # ---- Retired: the API returns an error, pinning one is a build break ----
 # RETIRED is a distinct tier from DEPRECATED on purpose. A deprecated model
@@ -61,6 +59,10 @@ claude-sonnet-4-20250514  # DEPRECATED: retirement TBD
 # retired 2026-04-19, and the gate would still have waved a pin through.
 # Keep the IDs listed so they stay recognized (an unlisted ID fails with the
 # wrong message, "unknown model ID"); the RETIRED marker is what fails them.
+# claude-opus-4-20250514 and claude-sonnet-4-20250514 retired 2026-06-15 on
+# Anthropic-operated platforms (still on Bedrock / Google Cloud only).
+claude-opus-4-20250514  # RETIRED 2026-06-15: use claude-opus-5-5
+claude-sonnet-4-20250514  # RETIRED 2026-06-15: use claude-sonnet-5-5
 claude-opus-4-1  # RETIRED 2026-08-05: use claude-opus-5
 claude-opus-4-1-20250805  # RETIRED 2026-08-05: use claude-opus-5
 claude-3-haiku-20240307  # RETIRED 2026-04-19: use claude-haiku-4-5
