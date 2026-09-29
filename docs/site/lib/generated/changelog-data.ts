@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.135",
+    "date": "2026-09-29",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.134...v10.0.0-beta.135",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**ci:** make the G1 standards gate a required main check ([#4559](https://github.com/yonatangross/orchestkit/issues/4559)) ([f6e5fa0](https://github.com/yonatangross/orchestkit/commit/f6e5fa096adfc0824ddf6af721c49839c691f311))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.134",
     "date": "2026-09-29",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.133...v10.0.0-beta.134",
