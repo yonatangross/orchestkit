@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stable Channel Pin: v9.8.0 to v9.8.1 | OrchestKit Lab</title>
+  <meta name="description" content="Moves the pinned stable ork channel to v9.8.1, the patch release that clears the CC 2.1.283 hook warning.">
+  <style>
+    :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+    .card { border: 1px solid #d9d3c7; border-radius: 12px; padding: 16px 20px; margin: 16px 0; background: #fff; }
+    .pins { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; text-align: center; }
+    .pin { border-radius: 10px; padding: 14px; font-family: ui-monospace, monospace; font-size: 15px; }
+    .old { background: #f1efe9; color: #6b6557; }
+    .new { background: #e3f1e8; color: #1f5f3a; font-weight: 600; }
+    .arrow { font-size: 1.6rem; color: #2a6f97; }
+    code { background: #efeae0; border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    .proof { font-family: ui-monospace, monospace; background: #f1efe9; border-radius: 8px; padding: 12px 16px; white-space: pre-wrap; font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">ORCHESTKIT LAB / STABLE CHANNEL</p>
+  <h1>Stable users move to v9.8.1</h1>
+  <p>The <code>ork</code> entry in <code>.claude-plugin/marketplace.json</code> is the pinned stable channel. This change points it at the new patch tag. The <code>ork-alpha</code> channel, which tracks main, is not touched.</p>
+
+  <div class="card">
+    <h2>The pin</h2>
+    <div class="pins">
+      <div class="pin old">version 9.8.0<br>ref v9.8.0</div>
+      <div class="arrow" aria-hidden="true">&rarr;</div>
+      <div class="pin new">version 9.8.1<br>ref v9.8.1</div>
+    </div>
+    <p>Both fields move in one write, made by <code>scripts/bump-stable-pin.sh 9.8.1</code>, so they cannot disagree.</p>
+  </div>
+
+  <div class="card">
+    <h2>What 9.8.1 fixes</h2>
+    <p>Claude Code 2.1.283 warns at startup about <code>if</code> keys on hook matcher groups. Claude Code never read those keys, so removing them changes no hook behavior on any version. It only clears the warning. The fix is #4062 on main, backported to the 9.8 line in #4517 and tagged <code>v9.8.1</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Why this PR is manual</h2>
+    <p>On main, <code>release.yml</code> opens this pin PR by itself for every stable tag. The <code>v9.8.1</code> tag was cut from <code>release/9.8.x</code>, whose older <code>release.yml</code> has no pin job, so nothing opened it.</p>
+    <p class="proof">tests/schemas/test-alpha-channel.sh: 15 passed, 0 failed</p>
+  </div>
+</main>
+</body>
+</html>
