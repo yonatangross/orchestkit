@@ -6,7 +6,7 @@ description: "Interactive wizard for OrchestKit settings: MCP servers, hook perm
 argument-hint: "[preset-name]"
 context: inherit
 user-invocable: false
-allowed-tools: [Bash, Read, Grep, Glob, Edit, Write, AskUserQuestion]
+allowed-tools: "Bash Read Grep Glob Edit Write AskUserQuestion"
 effort: low
 model: haiku
 metadata:

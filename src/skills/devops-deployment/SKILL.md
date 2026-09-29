@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "devops, ci-cd, docker, kubernetes, terraform"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: [".github/workflows/**", "Dockerfile*", "docker-compose*", "**/k8s/**", "**/terraform/**"]
 path_patterns: ["*.tf", "*.tfvars", "**/k8s/**", "**/helm/**", "Dockerfile*", ".github/workflows/*"]
 invocation_hooks:

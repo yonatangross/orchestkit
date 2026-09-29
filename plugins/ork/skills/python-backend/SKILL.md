@@ -18,12 +18,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.py", "**/requirements*.txt", "**/pyproject.toml", "**/Pipfile"]
 ---
 

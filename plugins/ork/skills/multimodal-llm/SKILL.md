@@ -14,12 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "vision, audio, video, multimodal, image, speech, transcription, tts, kling, sora, veo, video-generation"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Multimodal LLM Patterns

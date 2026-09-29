@@ -16,12 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "animation, motion, framer-motion, view-transitions, micro-interactions, gestures, layout-animation, AnimatePresence, prefers-reduced-motion, spring-physics"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/animation/**", "**/motion/**", "*.motion.*", "*.framer.*"]
 ---
 

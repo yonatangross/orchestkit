@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
 context: inherit
-allowed-tools: [Read, Write, Grep, Glob]
+allowed-tools: "Read Write Grep Glob"
 user-invocable: false
 disable-model-invocation: true
 effort: low

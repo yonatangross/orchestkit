@@ -6,7 +6,7 @@ description: "Inspects the OrchestKit telemetry pipeline for the current project
 argument-hint: "[--session <id>] [--json]"
 context: inherit
 user-invocable: true
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: "Bash Read Grep Glob"
 disallowed-tools: [Write, Edit, MultiEdit, NotebookEdit]
 effort: low
 model: haiku

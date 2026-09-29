@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "async, jobs, celery, background-tasks, scheduling, queues"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Async Jobs

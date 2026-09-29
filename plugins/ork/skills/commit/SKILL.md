@@ -7,7 +7,7 @@ argument-hint: "[message]"
 context: inherit
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Bash, Read, Write, AskUserQuestion]
+allowed-tools: "Bash Read Write AskUserQuestion"
 skills: [chain-patterns]
 effort: low
 hooks:

@@ -6,7 +6,7 @@ description: "Memory retrieval internals: knowledge graph orchestration with ent
 context: fork
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [Read, Bash, mcp__memory__search_nodes]
+allowed-tools: "Read Bash mcp__memory__search_nodes"
 effort: high
 metadata:
   category: mcp-enhancement

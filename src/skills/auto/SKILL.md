@@ -6,7 +6,7 @@ description: "Intent-classified router, the front door to OrchestKit and the DEF
 argument-hint: "[plain-english goal]"
 context: inherit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Agent]
+allowed-tools: "AskUserQuestion Read Grep Glob Skill Agent"
 model: sonnet
 metadata:
   category: workflow-automation

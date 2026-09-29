@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: verify
 background: false
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
 ---
 
 # Auto-generated from skills/verify/SKILL.md

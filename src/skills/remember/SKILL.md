@@ -6,7 +6,7 @@ description: "Write-side memory: stores decisions, patterns, and outcomes in the
 argument-hint: "[decision-or-pattern]"
 context: inherit
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
+allowed-tools: "Read Grep Glob Bash AskUserQuestion mcp__memory__create_entities mcp__memory__create_relations mcp__memory__add_observations mcp__memory__search_nodes"
 effort: low
 model: haiku
 metadata:

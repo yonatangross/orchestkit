@@ -15,12 +15,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering, context-aware"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["src/**", "package.json", "tsconfig.json"]
 ---
 

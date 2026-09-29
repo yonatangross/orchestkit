@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "persona, journey-map, user-interview, usability, jtbd, card-sort, empathy-map, research"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # User Research

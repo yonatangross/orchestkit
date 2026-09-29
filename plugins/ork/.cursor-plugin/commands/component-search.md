@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: component-search
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Glob Grep WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate mcp__21st-dev-magic__search_picker mcp__21st-dev-magic__search mcp__21st-dev-magic__get_component mcp__21st-dev-magic__get_theme mcp__21st-dev-magic__search_logo mcp__21st-dev-magic__get_usage TaskList"
 ---
 
 # Auto-generated from skills/component-search/SKILL.md

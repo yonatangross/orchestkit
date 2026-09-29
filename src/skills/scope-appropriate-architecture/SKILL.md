@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "low"
   tags: "architecture, yagni, over-engineering, scope, patterns"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Scope-Appropriate Architecture

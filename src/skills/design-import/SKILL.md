@@ -11,19 +11,7 @@ user-invocable: true
 effort: high
 model: sonnet
 agent: claude-design-orchestrator
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - AskUserQuestion
-  - Agent
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch AskUserQuestion Agent TaskCreate TaskUpdate TaskList"
 skills:
   - design-to-code
   - component-search

@@ -18,12 +18,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.tsx", "*.jsx", "**/next.config.*", "**/app/**/*.tsx"]
 ---
 

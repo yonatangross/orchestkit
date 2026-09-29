@@ -7,7 +7,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 effort: high

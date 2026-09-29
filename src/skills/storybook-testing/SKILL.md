@@ -20,12 +20,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "storybook, vitest, csf3, chromatic, turbosnap, visual-regression, play-functions, component-testing, a11y-testing, autodocs, esm-only, module-automocking"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Storybook Testing — Storybook 10

@@ -18,12 +18,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "testing, performance, k6, locust, pytest, load-testing, benchmarking"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Performance & Load Testing Patterns

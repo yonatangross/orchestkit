@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: design-to-code
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch WebSearch AskUserQuestion Agent TaskCreate TaskUpdate TaskList mcp__21st-dev-magic__search mcp__21st-dev-magic__search_picker mcp__21st-dev-magic__get_component mcp__21st-dev-magic__get_theme mcp__21st-dev-magic__get_usage mcp__stitch__list_projects mcp__plugin_hq-ext_stitch__list_projects mcp__stitch__get_project mcp__plugin_hq-ext_stitch__get_project mcp__stitch__list_screens mcp__plugin_hq-ext_stitch__list_screens mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text mcp__storybook-mcp__list-all-documentation mcp__storybook-mcp__get-documentation mcp__storybook-mcp__preview-stories mcp__storybook-mcp__run-story-tests"
 ---
 
 # Auto-generated from skills/design-to-code/SKILL.md

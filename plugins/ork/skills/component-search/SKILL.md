@@ -10,27 +10,12 @@ background: false
 user-invocable: true
 effort: low
 model: sonnet
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
+allowed-tools: "Read Glob Grep WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate mcp__21st-dev-magic__search_picker mcp__21st-dev-magic__search mcp__21st-dev-magic__get_component mcp__21st-dev-magic__get_theme mcp__21st-dev-magic__search_logo mcp__21st-dev-magic__get_usage TaskList"
   # 21st-dev-magic MCP. Without these the skill CANNOT reach the server it is
   # named after and silently degrades to the WebSearch/WebFetch scrape below.
   # Read-only surface by design: the catalog-mutating tools (submit_component,
   # edit_component, delete_*, bookmark writes) are deliberately NOT granted —
   # a search skill has no business publishing to or deleting from the registry.
-  - mcp__21st-dev-magic__search_picker
-  - mcp__21st-dev-magic__search
-  - mcp__21st-dev-magic__get_component
-  - mcp__21st-dev-magic__get_theme
-  - mcp__21st-dev-magic__search_logo
-  - mcp__21st-dev-magic__get_usage
-  - TaskList
 metadata:
   category: workflow-automation
   mcp-server: 21st-dev-magic

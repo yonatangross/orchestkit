@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: swarm-migrate
 background: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, Monitor]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch Monitor"
 ---
 
 # Auto-generated from skills/swarm-migrate/SKILL.md

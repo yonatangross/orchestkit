@@ -10,30 +10,10 @@ background: false
 user-invocable: true
 model: sonnet
 agent: design-context-extractor
-allowed-tools:
-  - Read
-  - Write
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+allowed-tools: "Read Write Glob Grep Bash WebFetch AskUserQuestion TaskCreate TaskUpdate TaskList mcp__stitch__list_projects mcp__plugin_hq-ext_stitch__list_projects mcp__stitch__get_project mcp__plugin_hq-ext_stitch__get_project mcp__stitch__list_screens mcp__plugin_hq-ext_stitch__list_screens mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text"
   # Stitch: body names these five (live stitch.googleapis.com/mcp roster).
   # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
   # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
-  - mcp__stitch__list_projects
-  - mcp__plugin_hq-ext_stitch__list_projects
-  - mcp__stitch__get_project
-  - mcp__plugin_hq-ext_stitch__get_project
-  - mcp__stitch__list_screens
-  - mcp__plugin_hq-ext_stitch__list_screens
-  - mcp__stitch__get_screen
-  - mcp__plugin_hq-ext_stitch__get_screen
-  - mcp__stitch__generate_screen_from_text
-  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
 skills:
   - design-system-tokens
   - remember

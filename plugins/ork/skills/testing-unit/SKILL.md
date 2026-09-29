@@ -16,12 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "testing, unit, mocking, msw, vcr, fixtures, factories, vitest-4, aroundEach"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.test.*", "*.spec.*", "**/vitest.config.*", "**/jest.config.*"]
 ---
 

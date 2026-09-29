@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "product, strategy, business-case, market-analysis, prioritization, okr, kpi, persona, requirements, user-research, rice, prd"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Product Frameworks

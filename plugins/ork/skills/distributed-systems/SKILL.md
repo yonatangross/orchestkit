@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance, edge-computing, cloudflare-workers, vercel-edge, event-sourcing, cqrs, saga, outbox, message-queue, kafka"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Distributed Systems Patterns

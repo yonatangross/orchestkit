@@ -9,7 +9,7 @@ context: fork
 background: false
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
 skills: [configure, remember, explore, help]
 hooks:
   PreToolUse:

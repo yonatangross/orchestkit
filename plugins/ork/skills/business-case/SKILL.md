@@ -12,7 +12,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "roi, npv, irr, tco, build-vs-buy, financial-analysis, cost-benefit"
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Business Case

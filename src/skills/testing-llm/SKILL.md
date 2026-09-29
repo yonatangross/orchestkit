@@ -18,12 +18,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "testing, llm, ai, deepeval, ragas, evaluation, mocking"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # LLM & AI Testing Patterns

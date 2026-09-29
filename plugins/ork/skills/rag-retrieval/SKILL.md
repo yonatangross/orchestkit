@@ -14,12 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/rag/**", "**/retrieval/**", "**/embeddings/**", "**/vector/**"]
 ---
 

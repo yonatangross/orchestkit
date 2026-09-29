@@ -14,12 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates, sustainability, carbon-footprint, page-weight"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Performance

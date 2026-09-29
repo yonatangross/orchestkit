@@ -9,7 +9,7 @@ context: fork
 background: false
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__memory__search_nodes]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch WebFetch EnterWorktree ExitWorktree CronCreate CronDelete Monitor PushNotification mcp__context7__resolve-library-id mcp__context7__query-docs mcp__memory__search_nodes"
 skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
 model: sonnet
 hooks:

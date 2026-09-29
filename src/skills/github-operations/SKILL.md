@@ -11,16 +11,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "github, gh, cli, issues, pr, milestones, projects, api"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
-  - Write
-  - Edit
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+allowed-tools: "Read Glob Grep Bash Write Edit TaskCreate TaskUpdate TaskList"
 ---
 
 # GitHub Operations

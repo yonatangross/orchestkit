@@ -6,7 +6,7 @@ context: fork
 user-invocable: true
 name: audit-activation
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Glob Grep Bash TaskCreate TaskUpdate TaskList"
 ---
 
 # Auto-generated from skills/audit-activation/SKILL.md

@@ -1,0 +1,12 @@
+{
+  "slug": "allowed-tools-normalised",
+  "source": "docs/chore--dsp-84948-ork-g1-burndown/index.html",
+  "title": "allowed-tools, normalised in 97 skills",
+  "description": "Frontmatter ratchet burndown: 97 allowed-tools values become one space-separated string, baseline violations 203 to 106, and the docs generator splits them back into a list.",
+  "tags": [
+    "frontmatter",
+    "ratchet",
+    "burndown"
+  ],
+  "date": "2026-09-29"
+}

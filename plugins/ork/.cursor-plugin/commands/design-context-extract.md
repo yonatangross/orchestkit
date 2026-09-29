@@ -7,7 +7,7 @@ agent: design-context-extractor
 user-invocable: true
 name: design-context-extract
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Write Glob Grep Bash WebFetch AskUserQuestion TaskCreate TaskUpdate TaskList mcp__stitch__list_projects mcp__plugin_hq-ext_stitch__list_projects mcp__stitch__get_project mcp__plugin_hq-ext_stitch__get_project mcp__stitch__list_screens mcp__plugin_hq-ext_stitch__list_screens mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text"
 ---
 
 # Auto-generated from skills/design-context-extract/SKILL.md

@@ -6,7 +6,7 @@ description: "OrchestKit help directory with categorized skill listings. Use whe
 argument-hint: "[category]"
 context: inherit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob]
+allowed-tools: "AskUserQuestion Read Grep Glob"
 effort: low
 model: haiku
 metadata:

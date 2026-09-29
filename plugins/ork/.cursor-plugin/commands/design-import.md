@@ -8,7 +8,7 @@ agent: claude-design-orchestrator
 user-invocable: true
 name: design-import
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch AskUserQuestion Agent TaskCreate TaskUpdate TaskList"
 ---
 
 # Auto-generated from skills/design-import/SKILL.md

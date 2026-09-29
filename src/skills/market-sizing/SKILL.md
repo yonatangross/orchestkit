@@ -12,7 +12,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "tam, sam, som, market-size, addressable-market, opportunity-sizing"
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Market Sizing

@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: ci-sentinel
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
+allowed-tools: "Bash Read Write Edit Grep Glob"
 ---
 
 # Auto-generated from skills/ci-sentinel/SKILL.md

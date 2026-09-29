@@ -12,7 +12,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "rice, wsjf, ice, moscow, prioritization, backlog, scoring, ranking"
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Prioritization Frameworks

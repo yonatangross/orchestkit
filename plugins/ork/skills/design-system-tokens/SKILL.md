@@ -16,12 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Design System Tokens

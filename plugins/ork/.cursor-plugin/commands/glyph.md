@@ -6,7 +6,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: glyph
-allowed-tools: [Read, Grep, Glob]
+allowed-tools: "Read Grep Glob"
 ---
 
 # Auto-generated from skills/glyph/SKILL.md

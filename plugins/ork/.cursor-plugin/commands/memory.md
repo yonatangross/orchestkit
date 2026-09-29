@@ -6,7 +6,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: memory
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
+allowed-tools: "Read Grep Glob Bash AskUserQuestion mcp__memory__search_nodes mcp__memory__read_graph"
 ---
 
 # Auto-generated from skills/memory/SKILL.md

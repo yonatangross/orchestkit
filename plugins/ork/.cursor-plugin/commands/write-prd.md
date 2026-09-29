@@ -7,7 +7,7 @@ agent: product-strategist
 user-invocable: true
 name: write-prd
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate Agent mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations mcp__memory__create_relations"
 ---
 
 # Auto-generated from skills/write-prd/SKILL.md

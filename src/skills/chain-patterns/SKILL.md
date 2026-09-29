@@ -4,7 +4,7 @@ compatibility: "Claude Code 2.1.277+"
 description: "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill."
 user-invocable: false
 context: inherit
-allowed-tools: [Read, ToolSearch]
+allowed-tools: "Read ToolSearch"
 model: haiku
 # Reference skill: fenced calls below teach a pattern, they are not calls this
 # skill makes. Widening allowed-tools to satisfy the coverage gate would grant real

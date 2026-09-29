@@ -18,12 +18,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "testing, integration, contract, pact, property, zod, api"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/integration/**", "**/testcontainers/**", "docker-compose.test.*"]
 ---
 

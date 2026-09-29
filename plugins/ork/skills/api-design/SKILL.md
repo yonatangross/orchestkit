@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "api-design, rest, graphql, versioning, error-handling, rfc9457, openapi, problem-details"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/routes/**", "**/api/**", "**/endpoints/**", "openapi.*", "swagger.*"]
 ---
 

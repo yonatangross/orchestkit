@@ -6,7 +6,7 @@ context: fork
 user-invocable: true
 name: create-pr
 background: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+allowed-tools: "AskUserQuestion Bash Read Write Agent TaskCreate TaskUpdate Skill mcp__memory__search_nodes CronCreate CronDelete"
 ---
 
 # Auto-generated from skills/create-pr/SKILL.md

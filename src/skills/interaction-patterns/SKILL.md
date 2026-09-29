@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "interaction-design, skeleton-loading, infinite-scroll, progressive-disclosure, modal, drawer, drag-drop, tabs, toast, ux-patterns"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Interaction Patterns

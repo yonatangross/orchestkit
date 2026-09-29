@@ -19,12 +19,7 @@ metadata:
   author: "Yonatan Gross"
   complexity: "low"
   tags: "i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans, react"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/i18n/**", "**/locales/**", "**/translations/**", "*.locale.*"]
 ---
 
