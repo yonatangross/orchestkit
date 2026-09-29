@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.132](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.131...v10.0.0-beta.132) (2026-09-28)
+
+
+### Features
+
+* **cc:** adopt CC 2.1.281 to 2.1.284 ([#4545](https://github.com/yonatangross/orchestkit/issues/4545)) ([91aa9ee](https://github.com/yonatangross/orchestkit/commit/91aa9eeaf7931237a25ec4bd8de22cbd20c54731))
+* **models:** adopt Claude Sonnet 5.5 as the sonnet alias target ([#4541](https://github.com/yonatangross/orchestkit/issues/4541)) ([7784b90](https://github.com/yonatangross/orchestkit/commit/7784b90c058c9b6abd9d0b5ff6f36f1fcef6ea2e))
+
+
+### Bug Fixes
+
+* **ci:** fetch the CC CHANGELOG raw, not base64 through execSync ([#4546](https://github.com/yonatangross/orchestkit/issues/4546)) ([2cafd20](https://github.com/yonatangross/orchestkit/commit/2cafd20d81c6abdd6cef2aa9bb4a0a4d727d1098))
+
 ## [10.0.0-beta.131](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131) (2026-09-28)
 
 
