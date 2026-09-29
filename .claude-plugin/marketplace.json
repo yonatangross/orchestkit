@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "9.8.0",
+      "version": "9.8.1",
       "description": "Complete AI development toolkit with 105 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 218 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
@@ -25,7 +25,7 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
-        "ref": "v9.8.0"
+        "ref": "v9.8.1"
       }
     },
     {

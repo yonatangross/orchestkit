@@ -1,0 +1,8 @@
+{
+  "slug": "policyhelper-not-observable-fallback",
+  "source": "docs/chore--dsp-68009-ork-policyhelper/index.html",
+  "title": "policyHelper makes file fallback not observable",
+  "description": "When the selected managed source sets policyHelper, doctor must report not observable and point at /status instead of trusting managed-settings.json.",
+  "tags": ["doctor", "managed-settings", "cc-adoption"],
+  "date": "2026-09-29"
+}

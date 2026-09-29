@@ -1,0 +1,12 @@
+{
+  "slug": "chore--stable-pin-v9-8-1",
+  "source": "docs/chore--stable-pin-v9.8.1/index.html",
+  "title": "Stable Channel Pin: v9.8.0 to v9.8.1",
+  "description": "Moves the pinned stable ork channel to v9.8.1, the patch release that clears the Claude Code 2.1.283 hook warning.",
+  "tags": [
+    "release",
+    "stable-channel",
+    "hooks"
+  ],
+  "date": "2026-09-29"
+}
