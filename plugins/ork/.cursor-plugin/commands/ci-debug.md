@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: ci-debug
 background: false
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: "Bash Read Grep Glob"
 ---
 
 # Auto-generated from skills/ci-debug/SKILL.md

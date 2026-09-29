@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "task-management, dependencies, orchestration, workflow, coordination"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 # Reference skill: fenced calls below teach a pattern, they are not calls this
 # skill makes. Widening allowed-tools to satisfy the coverage gate would grant real
 # permissions (Agent, CronCreate) to something that never acts.

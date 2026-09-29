@@ -6,7 +6,7 @@ context: fork
 user-invocable: true
 name: design-stylecards
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Grep Glob Edit Write"
 ---
 
 # Auto-generated from skills/design-stylecards/SKILL.md

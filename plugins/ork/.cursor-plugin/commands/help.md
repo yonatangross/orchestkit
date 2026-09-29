@@ -6,7 +6,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: help
-allowed-tools: [AskUserQuestion, Read, Grep, Glob]
+allowed-tools: "AskUserQuestion Read Grep Glob"
 ---
 
 # Auto-generated from skills/help/SKILL.md

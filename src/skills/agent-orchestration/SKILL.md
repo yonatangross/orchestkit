@@ -14,12 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Agent Orchestration

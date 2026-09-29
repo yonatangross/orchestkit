@@ -8,7 +8,7 @@ context: fork
 background: false
 user-invocable: false
 disable-model-invocation: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, WebFetch, WebSearch]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskGet TaskStop WebFetch WebSearch"
 skills: [testing-llm, memory]
 effort: high
 model: sonnet

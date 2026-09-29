@@ -19,12 +19,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/metrics/**", "**/tracing/**", "prometheus.*", "grafana/**"]
 ---
 

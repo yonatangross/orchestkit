@@ -1,145 +1,87 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 203,
-  "files_with_violations": 101,
+  "total_violations": 106,
+  "files_with_violations": 64,
   "files": {
-    "src/skills/accessibility/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/agent-orchestration/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/ai-ui-generation/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/analytics/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/animation-motion-design/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/api-design/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns"
     ],
-    "src/skills/architecture-decision-record/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/architecture-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "unknown-key:skills"
     ],
     "src/skills/assess/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/async-jobs/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/audit-activation/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/audit-full/SKILL.md": [
-      "allowed-tools-not-string",
       "unknown-key:skills"
     ],
     "src/skills/auto/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/brainstorm/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/browser-tools/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/business-case/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/chain-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:tool-coverage"
     ],
     "src/skills/ci-debug/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/ci-sentinel/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/code-review-playbook/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/commit/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:invocation_hooks",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/competitive-analysis/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/component-search/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
-    "src/skills/configure/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/cover/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:invocation_hooks",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/create-pr/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/database-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/demo-producer/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
     "src/skills/design-context-extract/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-import/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-ship/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-stylecards/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/design-system-tokens/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
     "src/skills/design-to-code/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
@@ -147,264 +89,151 @@
       "metadata-not-string-map:upstream-packages"
     ],
     "src/skills/devops-deployment/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:invocation_hooks",
       "house-key:path_patterns"
     ],
-    "src/skills/distributed-systems/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/doctor/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/documentation-patterns/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/domain-driven-design/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/dream/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/error-analysis/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/errors/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/expect/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:invocation_hooks",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/explore/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/figma-design-handoff/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets",
       "metadata-not-string-map:figma-mcp-tool-count"
     ],
     "src/skills/fix-issue/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/github-operations/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/glyph/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/golden-dataset/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/help/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/i18n-date-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/implement/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
-    ],
-    "src/skills/interaction-patterns/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/issue-progress-tracking/SKILL.md": [
-      "allowed-tools-not-string"
     ],
     "src/skills/json-render-catalog/SKILL.md": [
       "metadata-not-string-map:shadcn-component-count"
     ],
     "src/skills/langgraph/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets",
       "house-key:upstream-version-tested"
     ],
-    "src/skills/llm-integration/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/market-sizing/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/mcp-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
-    "src/skills/memory-fabric/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/memory/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/monitoring-observability/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets",
       "house-key:upstream-version-tested"
-    ],
-    "src/skills/multimodal-llm/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/okr-design/SKILL.md": [
-      "allowed-tools-not-string"
     ],
     "src/skills/page-serve/SKILL.md": [
       "metadata-not-string-map:upstream-packages"
     ],
-    "src/skills/performance/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/prd-to-goal/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
-    "src/skills/prioritization/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/product-analytics/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/product-frameworks/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/python-backend/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/quality-gates/SKILL.md": [
-      "allowed-tools-not-string",
       "unknown-key:skills"
     ],
     "src/skills/rag-retrieval/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns"
     ],
     "src/skills/react-server-components-framework/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
-    ],
-    "src/skills/release-management/SKILL.md": [
-      "allowed-tools-not-string"
     ],
     "src/skills/release-sync/SKILL.md": [
       "house-key:triggers"
     ],
     "src/skills/remember/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
-    "src/skills/responsive-patterns/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/review-pr/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/scope-appropriate-architecture/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/security-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns"
     ],
     "src/skills/setup/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/storybook-mcp-integration/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
     "src/skills/storybook-testing/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets",
       "house-key:tool-coverage"
     ],
     "src/skills/swarm-migrate/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/task-dependency-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:tool-coverage"
     ],
-    "src/skills/telemetry-inspect/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/testing-e2e/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/testing-integration/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
     "src/skills/testing-llm/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
     "src/skills/testing-perf/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:targets"
     ],
     "src/skills/testing-unit/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
-    "src/skills/ui-components/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
-    "src/skills/user-research/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/verify/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/visualize-plan/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers",
       "unknown-key:skills"
     ],
     "src/skills/vite-advanced/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ],
-    "src/skills/web-research-workflow/SKILL.md": [
-      "allowed-tools-not-string"
-    ],
     "src/skills/write-prd/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:triggers"
     ],
     "src/skills/zustand-patterns/SKILL.md": [
-      "allowed-tools-not-string",
       "house-key:path_patterns",
       "house-key:targets"
     ]

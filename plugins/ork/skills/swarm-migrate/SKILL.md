@@ -9,7 +9,7 @@ context: fork
 background: false
 disable-model-invocation: false
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, Monitor]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch Monitor"
 skills: [github-operations, verify, memory, explore]
 model: sonnet
 metadata:

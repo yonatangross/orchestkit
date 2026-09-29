@@ -21,12 +21,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # LangGraph Workflow Patterns

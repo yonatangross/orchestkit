@@ -6,7 +6,7 @@ description: "GitHub issue workflow ceremony using gh CLI — labels issues as i
 context: inherit
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [Bash]
+allowed-tools: "Bash"
 effort: low
 model: haiku
 metadata:

@@ -17,12 +17,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "vite, vite8, rolldown, build, bundler, plugins, ssr, library-mode, environment-api, optimization, advancedchunks"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["vite.config.*", "**/vite/**"]
 ---
 

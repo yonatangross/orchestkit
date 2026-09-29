@@ -13,19 +13,10 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "ai-ui, json-render, v0, v0-app, stitch, bolt, bolt-cloud, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen"
   # Stitch: body names generate_screen_from_text and get_screen.
   # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
   # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
-  - mcp__stitch__generate_screen_from_text
-  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
-  - mcp__stitch__get_screen
-  - mcp__plugin_hq-ext_stitch__get_screen
 ---
 
 # AI UI Generation

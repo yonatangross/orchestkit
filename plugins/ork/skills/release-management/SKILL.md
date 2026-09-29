@@ -14,16 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "low"
   tags: "git, github, releases, versioning, changelog, automation"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
-  - Write
-  - Edit
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+allowed-tools: "Read Glob Grep Bash Write Edit TaskCreate TaskUpdate TaskList"
 ---
 
 # Release Management

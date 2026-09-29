@@ -16,19 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "storybook, mcp, component-discovery, story-preview, component-testing, a11y, design-system, react"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
-  - ToolSearch
-  - mcp__storybook-mcp__get-storybook-story-instructions
-  - mcp__storybook-mcp__preview-stories
-  - mcp__storybook-mcp__list-all-documentation
-  - mcp__storybook-mcp__get-documentation
-  - mcp__storybook-mcp__get-documentation-for-story
-  - mcp__storybook-mcp__run-story-tests
+allowed-tools: "Read Glob Grep WebFetch WebSearch ToolSearch mcp__storybook-mcp__get-storybook-story-instructions mcp__storybook-mcp__preview-stories mcp__storybook-mcp__list-all-documentation mcp__storybook-mcp__get-documentation mcp__storybook-mcp__get-documentation-for-story mcp__storybook-mcp__run-story-tests"
 paths:
   - ".storybook/**"
   - "src/**/*.stories.{ts,tsx}"

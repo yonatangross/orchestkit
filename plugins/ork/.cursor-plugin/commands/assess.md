@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: assess
 background: false
-allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 ---
 
 # Auto-generated from skills/assess/SKILL.md

@@ -7,7 +7,7 @@ argument-hint: "[--verbose]"
 context: inherit
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion, Write]
+allowed-tools: "Bash Read Grep Glob AskUserQuestion Write"
 skills: [configure]
 effort: low
 model: haiku

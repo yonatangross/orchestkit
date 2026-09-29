@@ -6,7 +6,7 @@ description: "Read-side memory operations on the knowledge graph: search past de
 argument-hint: "[subcommand] [query]"
 context: inherit
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
+allowed-tools: "Read Grep Glob Bash AskUserQuestion mcp__memory__search_nodes mcp__memory__read_graph"
 effort: low
 model: haiku
 metadata:

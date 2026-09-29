@@ -6,7 +6,7 @@ description: "Queries local analytics across OrchestKit projects for agent usage
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
 context: inherit
 user-invocable: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
+allowed-tools: "Bash Read Grep Glob AskUserQuestion"
 effort: low
 model: haiku
 metadata:

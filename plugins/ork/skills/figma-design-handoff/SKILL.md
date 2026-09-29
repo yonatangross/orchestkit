@@ -17,12 +17,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "figma, design-handoff, design-to-code, figma-variables, dev-mode, auto-layout, component-specs, visual-regression, applitools, design-tokens"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Figma Design Handoff

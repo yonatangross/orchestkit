@@ -6,7 +6,7 @@ description: Unified decision tree for web research and competitive monitoring. 
 context: inherit
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [Bash, Read, Write, WebFetch]
+allowed-tools: "Bash Read Write WebFetch"
 effort: low
 model: haiku
 metadata:

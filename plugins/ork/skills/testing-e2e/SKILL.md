@@ -16,12 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "testing, e2e, playwright, accessibility, visual-regression, page-objects"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/e2e/**", "**/playwright/**", "**/cypress/**", "playwright.config.*"]
 ---
 

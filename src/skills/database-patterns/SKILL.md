@@ -16,12 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "database, migrations, alembic, schema-design, versioning, postgresql, sql, nosql"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["**/migrations/**", "**/models/**", "alembic.ini", "**/schema*"]
 path_patterns: ["*.sql", "**/migrations/**", "**/alembic/**", "**/prisma/**"]
 ---

@@ -9,7 +9,7 @@ context: fork
 background: false
 disable-model-invocation: false
 user-invocable: true
-allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
+allowed-tools: "Bash Read Write Edit Grep Glob"
 skills: [github-operations, memory]
 model: sonnet
 metadata:

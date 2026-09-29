@@ -9,12 +9,7 @@ context: fork
 background: false
 user-invocable: true
 model: sonnet
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Edit
-  - Write
+allowed-tools: "Read Grep Glob Edit Write"
 skills:
   - design-system-tokens
 metadata:

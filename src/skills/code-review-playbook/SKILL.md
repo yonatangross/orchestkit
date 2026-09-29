@@ -17,12 +17,7 @@ metadata:
   author: "OrchestKit"
   complexity: "low"
   tags: "code-review, quality, collaboration, best-practices, testing"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Code Review Playbook

@@ -8,7 +8,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, Workflow, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__add_observations, ToolSearch, Monitor]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 hooks:
   PreToolUse:

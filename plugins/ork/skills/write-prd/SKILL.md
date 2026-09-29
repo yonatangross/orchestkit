@@ -16,23 +16,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go"
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - WebSearch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
-  - Agent
-  - mcp__memory__search_nodes
-  - mcp__memory__create_entities
-  - mcp__memory__add_observations
-  - mcp__memory__create_relations
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate Agent mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations mcp__memory__create_relations"
 ---
 
 # PRD — Product Requirements Document

@@ -12,7 +12,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "okr, kpi, north-star, metrics, experiment, goal-setting, leading-lagging, instrumentation"
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # OKR Design & Metrics Framework

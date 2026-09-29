@@ -6,7 +6,7 @@ description: "Single-pass codebase analysis leveraging a 1M-token context window
 argument-hint: "[scope]"
 context: fork
 user-invocable: false
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Agent, TaskCreate, TaskUpdate, TaskList, Workflow, PushNotification, mcp__memory__search_nodes]
+allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"
 skills: [security-patterns, architecture-patterns, quality-gates]
 effort: high
 model: opus

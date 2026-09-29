@@ -297,6 +297,14 @@ function extractSkillFlow(body) {
 }
 
 /**
+ * allowed-tools as a list: a space-separated string splits on whitespace,
+ * a YAML list passes through, anything missing becomes [].
+ */
+function toolList(value) {
+  return typeof value === 'string' ? value.split(/\s+/).filter(Boolean) : value || [];
+}
+
+/**
  * Extract skill metadata from SKILL.md
  */
 function extractSkillMetadata(skillName, skillPath) {
@@ -331,7 +339,9 @@ function extractSkillMetadata(skillName, skillPath) {
     tags: frontmatter.tags || [],
     userInvocable: frontmatter['user-invocable'] === true,
     context: frontmatter.context || 'fork',
-    allowedTools: frontmatter['allowed-tools'] || [],
+    // Frontmatter allows a space-separated string (the normalised form) or a
+    // YAML list; the generated field is always string[].
+    allowedTools: toolList(frontmatter['allowed-tools']),
     skills: frontmatter.skills || [],
     agent: frontmatter.agent || null,
     complexity: frontmatter.complexity || 'low',

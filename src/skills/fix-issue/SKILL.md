@@ -8,7 +8,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Agent TaskCreate TaskUpdate TaskStop Grep Glob ToolSearch ExitWorktree CronCreate CronDelete PushNotification mcp__memory__search_nodes mcp__memory__create_entities mcp__context7__resolve-library-id mcp__context7__query-docs"
 skills: [explore, verify, memory, remember, chain-patterns]
 model: sonnet
 hooks:

@@ -12,12 +12,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "architecture, documentation, decision-making, backend"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Architecture Decision Records

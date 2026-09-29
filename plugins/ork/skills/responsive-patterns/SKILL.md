@@ -13,12 +13,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints, pwa, service-worker, workbox, offline-first, animation, motion, framer-motion, scroll-driven, view-transitions, subgrid, intrinsic-layout, foldable, dual-screen, safe-area"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Responsive Patterns

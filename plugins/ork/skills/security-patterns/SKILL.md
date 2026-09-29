@@ -15,12 +15,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["src/**/auth/**", "src/**/middleware/**", "**/*security*"]
 path_patterns: ["**/auth/**", "**/middleware/**", "**/security/**", ".env*"]
 ---

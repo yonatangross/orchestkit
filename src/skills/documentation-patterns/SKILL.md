@@ -7,10 +7,7 @@ user-invocable: false
 disable-model-invocation: true
 context: inherit
 effort: low
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
+allowed-tools: "Read Glob Grep"
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

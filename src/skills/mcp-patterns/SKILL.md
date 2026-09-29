@@ -24,12 +24,7 @@ metadata:
   author: "OrchestKit"
   complexity: "high"
   tags: "mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps, fastmcp"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths:
   - ".mcp.json"
   - "**/*.mcp.json"

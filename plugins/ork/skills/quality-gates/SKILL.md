@@ -20,12 +20,7 @@ metadata:
   author: "OrchestKit"
   complexity: "max"
   tags: "quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Quality Gates

@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: explore
 background: false
-allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
+allowed-tools: "AskUserQuestion Read Write Grep Glob Agent TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes Bash ToolSearch"
 ---
 
 # Auto-generated from skills/explore/SKILL.md

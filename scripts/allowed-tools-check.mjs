@@ -113,9 +113,13 @@ function parseFrontmatter(text) {
   const body = m[1];
   const inline = /^allowed-tools:[ \t]*(.+)$/m.exec(body);
   if (inline) {
+    // Inline list `[A, B]` or the normalised string `"A B"`: split on commas
+    // and on whitespace outside parentheses, so `Bash(npm run x)` stays whole.
     return inline[1]
+      .trim()
       .replace(/^\[|\]$/g, '')
-      .split(',')
+      .replace(/^["']|["']$/g, '')
+      .split(/,\s*|\s+(?![^()]*\))/)
       .map((s) => s.trim().replace(/^["']|["']$/g, ''))
       .filter(Boolean);
   }

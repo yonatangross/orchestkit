@@ -14,12 +14,7 @@ metadata:
   author: "OrchestKit"
   complexity: "medium"
   tags: "browser, automation, security, rate-limiting, scraping-ethics"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Browser Tools — Security Wrapper

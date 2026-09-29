@@ -6,7 +6,7 @@ license: MIT
 compatibility: "Claude Code 2.1.277+ (uses GA `/goal` loop)."
 user-invocable: true
 context: inherit
-allowed-tools: [Read, Write, Bash, Grep, Agent]
+allowed-tools: "Read Write Bash Grep Agent"
 metadata:
   category: planning
   milestone: M140

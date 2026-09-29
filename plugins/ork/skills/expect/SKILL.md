@@ -8,7 +8,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification, mcp__memory__search_nodes]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList ToolSearch WebFetch Monitor PushNotification mcp__memory__search_nodes"
 skills: [testing-e2e, chain-patterns, memory]
 effort: high
 model: sonnet

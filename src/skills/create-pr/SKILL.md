@@ -9,7 +9,7 @@ context: fork
 background: false
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+allowed-tools: "AskUserQuestion Bash Read Write Agent TaskCreate TaskUpdate Skill mcp__memory__search_nodes CronCreate CronDelete"
 skills: [review-pr, memory, chain-patterns]
 metadata:
   category: workflow-automation
