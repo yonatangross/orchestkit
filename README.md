@@ -630,6 +630,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.133](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.132...v10.0.0-beta.133)** · 2026-09-29
+
+- **models:** mark Opus 4 / Sonnet 4 dated IDs retired (2026-06-15) (#4550)
+- **deps:** bump ip-address from 10.4.0 to 10.7.2 in /src/mcp-server (#4548)
+- **release:** pin stable channel to v9.8.1 (#4552)
+- **doctor:** treat policyHelper sources as not observable in fallback (#4551)
+- **triage:** read the triage model from a repo variable (#4555)
+
 **[v10.0.0-beta.132](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.131...v10.0.0-beta.132)** · 2026-09-28
 
 - **cc:** adopt CC 2.1.281 to 2.1.284 (#4545)
@@ -662,10 +670,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.126](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126)** · 2026-09-28
 
 - **standards:** list agent as a Claude Code skill key in G1 registry (#4522)
-
-**[v10.0.0-beta.125](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.124...v10.0.0-beta.125)** · 2026-09-28
-
-- **assess:** Phases 2 and 2.5 run as a Workflow script (#4513)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
