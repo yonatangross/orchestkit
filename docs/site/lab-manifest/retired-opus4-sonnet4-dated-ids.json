@@ -1,0 +1,8 @@
+{
+  "slug": "retired-opus4-sonnet4-dated-ids",
+  "source": "docs/chore--dsp-68009-ork-retired-ids/index.html",
+  "title": "Retired Opus 4 / Sonnet 4 dated IDs",
+  "description": "Pin checker showing claude-opus-4-20250514 and claude-sonnet-4-20250514 moved from DEPRECATED retirement TBD to RETIRED 2026-06-15 so the workflow gate fails pins that 404 at the API.",
+  "tags": ["models", "ci", "retirement"],
+  "date": "2026-09-29"
+}

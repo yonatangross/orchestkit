@@ -103,10 +103,12 @@ That is precisely the hole #3627 was built to close, and it paid for itself on t
 // Output is assembled from nodes; user text never reaches innerHTML.
 const RETIRED = { "claude-opus-4-1": "RETIRED 2026-08-05: use claude-opus-5",
                   "claude-opus-4-1-20250805": "RETIRED 2026-08-05: use claude-opus-5",
-                  "claude-3-haiku-20240307": "RETIRED 2026-04-19: use claude-haiku-4-5" };
-const DEPRECATED = { "claude-opus-4-0": "retirement TBD", "claude-opus-4-20250514": "retirement TBD",
-                     "claude-sonnet-4-0": "retirement TBD", "claude-sonnet-4-20250514": "retirement TBD" };
-const KNOWN = ["claude-fable-5","claude-opus-5","claude-opus-4-8","claude-sonnet-5","claude-sonnet-4-6","claude-haiku-4-5"];
+                  "claude-3-haiku-20240307": "RETIRED 2026-04-19: use claude-haiku-4-5",
+                  "claude-opus-4-20250514": "RETIRED 2026-06-15: use claude-opus-5-5",
+                  "claude-sonnet-4-20250514": "RETIRED 2026-06-15: use claude-sonnet-5-5" };
+const DEPRECATED = { "claude-opus-4-0": "retirement TBD",
+                     "claude-sonnet-4-0": "retirement TBD" };
+const KNOWN = ["claude-fable-5","claude-opus-5-5","claude-opus-5","claude-opus-4-8","claude-sonnet-5-5","claude-sonnet-5","claude-sonnet-4-6","claude-haiku-4-5","claude-haiku-4-5-20251001"];
 
 const fmt = n => "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 const tok = document.getElementById("tok");
