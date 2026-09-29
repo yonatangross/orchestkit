@@ -98,7 +98,9 @@ jobs:
           # from an attacker-influenceable issue body -- precisely the threat this
           # allowlist exists to contain. An earlier version of this comment claimed
           # the list held "nothing that can mutate the repo"; that was false.
+          # Model: repo variable CLAUDE_TRIAGE_MODEL when set, else Haiku 4.5, so the
+          # Haiku 4.5 retirement is a variable edit, not a workflow change (#4540).
           claude_args: >-
             --max-turns 3
-            --model claude-haiku-4-5-20251001
+            --model ${{ vars.CLAUDE_TRIAGE_MODEL || 'claude-haiku-4-5-20251001' }}
             --allowedTools "Read,Grep,Glob,Bash(gh label list),Bash(gh api repos/:owner/:repo/milestones)"
