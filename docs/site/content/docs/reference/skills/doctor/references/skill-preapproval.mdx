@@ -55,6 +55,10 @@ How the effective value is decided:
 3. **Under `managedSourcesBehavior: "merge"`**, locks take the strictest value, so a `true` in
    any admin source applies. Read `managedSourcesBehavior` from the highest-ranked source that
    carries it or a policy key.
+4. **If the selected source sets `policyHelper`**, the helper's emitted `managedSettings` object
+   is the only managed settings for the session
+   ([managed settings](https://code.claude.com/docs/en/managed-settings)). File and MDM values
+   on disk are then not the effective value: report **not observable** and point to `/status`.
 
 Report one of three verdicts, never silence:
 
