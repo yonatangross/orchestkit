@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.134](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.133...v10.0.0-beta.134)** · 2026-09-29
+
+- **frontmatter:** normalize allowed-tools values (#4556)
+
 **[v10.0.0-beta.133](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.132...v10.0.0-beta.133)** · 2026-09-29
 
 - **models:** mark Opus 4 / Sonnet 4 dated IDs retired (2026-06-15) (#4550)
@@ -666,10 +670,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.127](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.126...v10.0.0-beta.127)** · 2026-09-28
 
 - **standards-gate:** skip head steps when the head predates the gate (#4518)
-
-**[v10.0.0-beta.126](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.125...v10.0.0-beta.126)** · 2026-09-28
-
-- **standards:** list agent as a Claude Code skill key in G1 registry (#4522)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
