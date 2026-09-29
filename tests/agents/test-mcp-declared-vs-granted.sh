@@ -354,6 +354,13 @@ check_skill_body_grants() {
           if (m) allowed.add(m[1]);
         }
       }
+      // Normalised form: one space-separated string, quoted or bare.
+      const str = fm.match(/^allowed-tools:[ \\t]*[\"']?([^\\[\\n\"'][^\\n\"']*?)[\"']?[ \\t]*$/m);
+      if (str) {
+        for (const t of str[1].trim().split(/\\s+/)) {
+          if (t) allowed.add(t);
+        }
+      }
 
       const needed = new Set();
 
