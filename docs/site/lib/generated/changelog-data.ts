@@ -18,6 +18,42 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.133",
+    "date": "2026-09-29",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.132...v10.0.0-beta.133",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**models:** mark Opus 4 / Sonnet 4 dated IDs retired (2026-06-15) ([#4550](https://github.com/yonatangross/orchestkit/issues/4550)) ([62a32ad](https://github.com/yonatangross/orchestkit/commit/62a32adc5e5fece65f8dae86cc225950bb4ad35c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump ip-address from 10.4.0 to 10.7.2 in /src/mcp-server ([#4548](https://github.com/yonatangross/orchestkit/issues/4548)) ([62d2efa](https://github.com/yonatangross/orchestkit/commit/62d2efac253cbb805cfd614bfc03db265e140b61))",
+          "**release:** pin stable channel to v9.8.1 ([#4552](https://github.com/yonatangross/orchestkit/issues/4552)) ([5533e53](https://github.com/yonatangross/orchestkit/commit/5533e53d8d273752d6ebd03ff9f6b84cf0f3270f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**doctor:** treat policyHelper sources as not observable in fallback ([#4551](https://github.com/yonatangross/orchestkit/issues/4551)) ([59a1df7](https://github.com/yonatangross/orchestkit/commit/59a1df769517bfcbccfa6f523516d2674c056daa))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "**triage:** read the triage model from a repo variable ([#4555](https://github.com/yonatangross/orchestkit/issues/4555)) ([2b98f2c](https://github.com/yonatangross/orchestkit/commit/2b98f2c2abe4b78f54f80a0ce08d3ae509fd1c78))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.132",
     "date": "2026-09-28",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.131...v10.0.0-beta.132",
