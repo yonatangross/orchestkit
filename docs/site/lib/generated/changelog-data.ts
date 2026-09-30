@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.137",
+    "date": "2026-09-30",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**evals:** tag run-evals claude launch as headless-ok ([#4564](https://github.com/yonatangross/orchestkit/issues/4564)) ([aaf1e22](https://github.com/yonatangross/orchestkit/commit/aaf1e223032f7eaf85e2aa4a34d036c5169536c0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.136",
     "date": "2026-09-30",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136",

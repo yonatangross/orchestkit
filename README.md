@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.137](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137)** · 2026-09-30
+
+- **evals:** tag run-evals claude launch as headless-ok (#4564)
+
 **[v10.0.0-beta.136](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136)** · 2026-09-30
 
 - **deps:** bump drifted upstream pins (#3537) (#4562)
@@ -663,10 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.130](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130)** · 2026-09-28
 
 - **agents:** move house frontmatter keys under metadata, drop context (m3) (#4531)
-
-**[v10.0.0-beta.129](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129)** · 2026-09-28
-
-- **mods:** memory-lens recalls related memories on each prompt (#4530)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
