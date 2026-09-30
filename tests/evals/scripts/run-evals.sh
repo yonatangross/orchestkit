@@ -178,6 +178,7 @@ run_test() {
 
     if command -v claude &> /dev/null; then
         cd "$output_dir"
+        # headless-ok: eval scaffold run needs no permission prompts; bounded by timeout in a temp dir
         timeout "${timeout}s" claude --print --dangerously-skip-permissions "$prompt" \
             > "$claude_output" 2>&1 || true
         cd - > /dev/null
