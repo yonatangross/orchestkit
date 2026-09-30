@@ -11,7 +11,7 @@ targets:
   - library: "k6"
     version: ">=1.0.0"
   - library: "locust"
-    version: ">=2.40.0"
+    version: ">=2.46.6"
 metadata:
   category: document-asset-creation
   version: "2.1.0"

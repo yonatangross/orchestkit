@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: "@playwright/test"
-    version: ">=1.59.0"  # 1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()
+    version: ">=1.63.0"  # 1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()
 metadata:
   category: document-asset-creation
   version: "2.1.0"

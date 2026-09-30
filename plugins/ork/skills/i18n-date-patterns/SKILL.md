@@ -9,7 +9,7 @@ disable-model-invocation: true
 effort: low
 targets:
   - library: react-i18next
-    version: ">=13.0.0"
+    version: ">=17.0.15"
   - library: dayjs
     version: ">=1.11.0"
 model: haiku

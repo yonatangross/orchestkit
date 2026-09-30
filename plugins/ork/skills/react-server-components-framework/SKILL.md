@@ -9,9 +9,9 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: next.js
-    version: ">=16.2.6"
+    version: ">=16.3.7"
   - library: react
-    version: ">=19.2.6"
+    version: ">=19.3.0"
 metadata:
   category: document-asset-creation
   version: "1.5.0"

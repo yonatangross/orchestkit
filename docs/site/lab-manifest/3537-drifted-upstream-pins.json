@@ -1,0 +1,13 @@
+{
+  "slug": "3537-drifted-upstream-pins",
+  "source": "docs/chore--bump-drifted-pins-3537/index.html",
+  "title": "#3537 drifted upstream pins: 6 pins, 16 floors, 2 rescued gates",
+  "description": "The labs-version check flagged skill pins behind upstream releases. Interactive table of every bump, the deliberate holds (Python MCP ceiling, k6 exemption), and the two unrelated gate failures fixed on the same branch.",
+  "tags": [
+    "dependencies",
+    "skills",
+    "changelog",
+    "3537"
+  ],
+  "date": "2026-09-30"
+}

@@ -8,12 +8,14 @@ context: inherit
 metadata:
   category: testing
   upstream-package: emulate
-  upstream-version-tested: "0.10.0"
+  upstream-version-tested: "0.12.0"
   version: "1.3.0"
   author: "OrchestKit"
   complexity: "medium"
   tags: "emulate, testing, api-emulation, github, vercel, google, stripe, resend, okta, clerk, mongodb, seed, ci, stateful-testing"
 ---
+
+Upstream version reference: `emulate` 0.12.0 (2026-09-30).
 
 # Emulate Seed Configs
 

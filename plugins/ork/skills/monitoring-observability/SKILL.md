@@ -11,8 +11,8 @@ targets:
   # references/langfuse-js-v5.md. The self-hosted platform is a third axis (v3) and is not an
   # SDK version.
   - library: langfuse
-    version: ">=4.0.0"
-upstream-version-tested: "4.15.1"
+    version: ">=4.16.0"
+upstream-version-tested: "4.16.0"
 metadata:
   category: document-asset-creation
   version: "3.0.0"

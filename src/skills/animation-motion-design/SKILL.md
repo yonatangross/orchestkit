@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: true
 targets:
   - library: motion
-    version: ">=12.0.0"
+    version: ">=13.4.6"
 metadata:
   category: document-asset-creation
   version: "1.0.0"

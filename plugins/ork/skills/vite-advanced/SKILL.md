@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: true
 targets:
   - library: vite
-    version: ">=8.0.0"
+    version: ">=8.3.1"
 metadata:
   category: document-asset-creation
   vite-version: "8.0"

@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: true
 targets:
   - library: "style-dictionary"
-    version: ">=5.3.0"
+    version: ">=5.5.5"
 metadata:
   category: document-asset-creation
   figma-mcp-tool-count: 16
