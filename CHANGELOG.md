@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.137](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137) (2026-09-30)
+
+
+### Miscellaneous
+
+* **evals:** tag run-evals claude launch as headless-ok ([#4564](https://github.com/yonatangross/orchestkit/issues/4564)) ([aaf1e22](https://github.com/yonatangross/orchestkit/commit/aaf1e223032f7eaf85e2aa4a34d036c5169536c0))
+
 ## [10.0.0-beta.136](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136) (2026-09-30)
 
 
