@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.136](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136)** · 2026-09-30
+
+- **deps:** bump drifted upstream pins (#3537) (#4562)
+
 **[v10.0.0-beta.135](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.134...v10.0.0-beta.135)** · 2026-09-29
 
 - **ci:** make the G1 standards gate a required main check (#4559)
@@ -663,13 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.129](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.128...v10.0.0-beta.129)** · 2026-09-28
 
 - **mods:** memory-lens recalls related memories on each prompt (#4530)
-
-**[v10.0.0-beta.128](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.127...v10.0.0-beta.128)** · 2026-09-28
-
-- **ci:** Docs Site Build always reports so docs-data PRs can merge (#4529)
-- **ci:** traffic snapshot app token; release-please guard skips release/* bases (#4525)
-- **traffic:** snapshot week of 2026-09-21 (#4526)
-- **skills:** move house frontmatter keys under metadata (m1) (#4521)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

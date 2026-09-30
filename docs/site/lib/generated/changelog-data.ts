@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.136",
+    "date": "2026-09-30",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump drifted upstream pins ([#3537](https://github.com/yonatangross/orchestkit/issues/3537)) ([#4562](https://github.com/yonatangross/orchestkit/issues/4562)) ([e533cd5](https://github.com/yonatangross/orchestkit/commit/e533cd579d7e365099683bfefcbb9cc5882a1843))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.135",
     "date": "2026-09-29",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.134...v10.0.0-beta.135",
