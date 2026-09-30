@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drifted upstream pins: 6 pins, 16 floors, 2 rescued gates</title>
+<meta name="description" content="Issue #3537. The labs-version check flagged skill pins that drifted behind upstream releases. This page shows what moved, what stayed pinned on purpose, and the two unrelated gate failures the same branch had to fix before it could ship.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:#0f1117;color:#e8eaf2;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.3rem;margin:0 0 .3rem}
+  .sub{color:#9aa3b8;margin:0 0 2rem;font-size:.85rem}
+  section{background:#161922;border:1px solid #272b38;border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:#7dd3fc;text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{text-align:start;padding:.35rem .5rem;border-bottom:1px solid #272b38;vertical-align:top}
+  th{color:#9aa3b8;font-weight:600}
+  code{background:#0b0d13;border:1px solid #272b38;border-radius:5px;padding:0 4px}
+  .ok{color:#4ade80} .bad{color:#f87171} .warn{color:#fbbf24} .dim{color:#9aa3b8}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0}
+  button{background:#0b0d13;color:#e8eaf2;border:1px solid #272b38;border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:#7dd3fc;color:#7dd3fc}
+  p{font-size:.85rem;margin:.4rem 0}
+  tr.hide{display:none}
+  .pill{font-size:.7rem;border:1px solid #272b38;border-radius:99px;padding:0 .5rem;color:#9aa3b8}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#3537 drifted upstream pins: 6 pins, 16 floors, 2 rescued gates"><meta property="og:description" content="The labs-version check flagged skill pins behind upstream releases. Interactive table of every bump, the deliberate holds (Python MCP ceiling, k6 exemption), and the two unrelated gate failures fixed on the same branch."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/3537-drifted-upstream-pins.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#3537 drifted upstream pins: 6 pins, 16 floors, 2 rescued gates"><meta name="twitter:description" content="The labs-version check flagged skill pins behind upstream releases. Interactive table of every bump, the deliberate holds (Python MCP ceiling, k6 exemption), and the two unrelated gate failures fixed on the same branch."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Drifted upstream pins: 6 pins, 16 floors, 2 rescued gates</h1>
+<p class="sub">Issue #3537, branch <code>chore/bump-drifted-pins-3537</code>. Every row below was verified against the live npm or PyPI registry on 2026-09-30, not the issue snapshot.</p>
+
+<section>
+<h2>What moved</h2>
+<p>Filter the change set. Pins are <code>upstream-version-tested</code> stamps (what the skill was verified against); floors are <code>targets[].version</code> advisory minimums; audit rows are lockfile fixes for newly published CVEs.</p>
+<div class="controls" role="group" aria-label="filter change set">
+  <button data-k="all" aria-pressed="true">all</button>
+  <button data-k="pin" aria-pressed="false">pins</button>
+  <button data-k="floor" aria-pressed="false">floors</button>
+  <button data-k="audit" aria-pressed="false">audit fixes</button>
+  <button data-k="held" aria-pressed="false">held back</button>
+</div>
+<table id="t">
+<thead><tr><th>package</th><th>was</th><th>now</th><th>kind</th><th>where</th></tr></thead>
+<tbody>
+<tr data-k="pin"><td><code>emulate</code></td><td class="dim">0.10.0</td><td class="ok">0.12.0</td><td><span class="pill">pin</span></td><td>emulate-seed</td></tr>
+<tr data-k="pin"><td><code>@json-render/core</code></td><td class="dim">0.20.0</td><td class="ok">0.21.0</td><td><span class="pill">pin</span></td><td>json-render-catalog, multi-surface-render</td></tr>
+<tr data-k="pin"><td><code>@json-render/mcp</code></td><td class="dim">0.20.0</td><td class="ok">0.21.0</td><td><span class="pill">pin</span></td><td>mcp-visual-output</td></tr>
+<tr data-k="pin"><td><code>langgraph</code></td><td class="dim">1.2.11</td><td class="ok">1.2.12</td><td><span class="pill">pin</span></td><td>langgraph</td></tr>
+<tr data-k="pin"><td><code>langfuse</code></td><td class="dim">4.15.1</td><td class="ok">4.16.0</td><td><span class="pill">pin</span></td><td>monitoring-observability</td></tr>
+<tr data-k="floor"><td><code>vitest</code></td><td class="dim">&gt;=4.1.0</td><td class="ok">&gt;=5.0.3</td><td><span class="pill">floor</span></td><td>testing-unit</td></tr>
+<tr data-k="floor"><td><code>@playwright/test</code></td><td class="dim">&gt;=1.59.0</td><td class="ok">&gt;=1.63.0</td><td><span class="pill">floor</span></td><td>testing-e2e</td></tr>
+<tr data-k="floor"><td><code>@pact-foundation/pact</code></td><td class="dim">&gt;=16.0.0</td><td class="ok">&gt;=17.1.4</td><td><span class="pill">floor</span></td><td>testing-integration</td></tr>
+<tr data-k="floor"><td><code>testcontainers</code></td><td class="dim">&gt;=11.0.0</td><td class="ok">&gt;=12.2.0</td><td><span class="pill">floor</span></td><td>testing-integration</td></tr>
+<tr data-k="floor"><td><code>deepeval</code></td><td class="dim">&gt;=4.0.0</td><td class="ok">&gt;=4.2.7</td><td><span class="pill">floor</span></td><td>testing-llm</td></tr>
+<tr data-k="floor"><td><code>locust</code></td><td class="dim">&gt;=2.40.0</td><td class="ok">&gt;=2.46.6</td><td><span class="pill">floor</span></td><td>testing-perf</td></tr>
+<tr data-k="floor"><td><code>vite</code></td><td class="dim">&gt;=8.0.0</td><td class="ok">&gt;=8.3.1</td><td><span class="pill">floor</span></td><td>vite-advanced</td></tr>
+<tr data-k="floor"><td><code>motion</code></td><td class="dim">&gt;=12.0.0</td><td class="ok">&gt;=13.4.6</td><td><span class="pill">floor</span></td><td>animation-motion-design</td></tr>
+<tr data-k="floor"><td><code>sqlalchemy</code></td><td class="dim">&gt;=2.0.0</td><td class="ok">&gt;=2.1.1</td><td><span class="pill">floor</span></td><td>database-patterns, python-backend</td></tr>
+<tr data-k="floor"><td><code>style-dictionary</code></td><td class="dim">&gt;=5.3.0</td><td class="ok">&gt;=5.5.5</td><td><span class="pill">floor</span></td><td>design-system-tokens, figma-design-handoff</td></tr>
+<tr data-k="floor"><td><code>react-i18next</code></td><td class="dim">&gt;=13.0.0</td><td class="ok">&gt;=17.0.15</td><td><span class="pill">floor</span></td><td>i18n-date-patterns</td></tr>
+<tr data-k="floor"><td><code>@modelcontextprotocol/sdk</code></td><td class="dim">&gt;=1.29.0</td><td class="ok">&gt;=1.31.0</td><td><span class="pill">floor</span></td><td>mcp-patterns</td></tr>
+<tr data-k="floor"><td><code>fastapi</code></td><td class="dim">&gt;=0.100.0</td><td class="ok">&gt;=0.142.2</td><td><span class="pill">floor</span></td><td>python-backend</td></tr>
+<tr data-k="floor"><td><code>next.js / react</code></td><td class="dim">&gt;=16.2.6 / &gt;=19.2.6</td><td class="ok">&gt;=16.3.7 / &gt;=19.3.0</td><td><span class="pill">floor</span></td><td>react-server-components-framework</td></tr>
+<tr data-k="floor"><td><code>storybook</code></td><td class="dim">&gt;=10.3.0</td><td class="ok">&gt;=10.6.1</td><td><span class="pill">floor</span></td><td>storybook-mcp-integration, storybook-testing</td></tr>
+<tr data-k="audit"><td><code>fast-uri</code></td><td class="dim">3.1.7</td><td class="ok">3.1.8</td><td><span class="pill">audit</span></td><td>src/mcp-server, orchestkit-demos lockfiles</td></tr>
+<tr data-k="audit"><td><code>brace-expansion</code></td><td class="dim">2.1.4 / 5.0.9</td><td class="ok">2.1.7 / 5.0.12</td><td><span class="pill">audit</span></td><td>orchestkit-demos lockfile</td></tr>
+<tr data-k="held"><td><code>mcp</code> (python)</td><td class="dim">ceiling &lt;2.0.0</td><td class="warn">held at &gt;=1.28.0,&lt;2.0.0</td><td><span class="pill">held</span></td><td>mcp-patterns, deliberate ceiling</td></tr>
+<tr data-k="held"><td><code>k6</code></td><td class="dim">unresolvable</td><td class="warn">exempt</td><td><span class="pill">held</span></td><td>testing-perf, Go binary, no registry pin</td></tr>
+<tr data-k="held"><td><code>agent-browser / portless</code></td><td class="dim">0.38.1 / 0.15.6</td><td class="warn">already current</td><td><span class="pill">held</span></td><td>no change needed</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>The two gates that went red</h2>
+<p>The first lane finished the bumps but could not ship: two checks failed. Neither was caused by the pins.</p>
+<table>
+<thead><tr><th>gate</th><th>symptom</th><th>root cause</th><th>fix</th></tr></thead>
+<tbody>
+<tr><td><code>test-glyph-triage-template.sh</code></td><td class="bad">"mode=encoded produced no DOM"</td><td>headless Chrome could not render under the lane sandbox; environmental</td><td class="ok">re-ran on this host: passes before and after the patch</td></tr>
+<tr><td><code>npm audit</code></td><td class="bad">8 findings not in allowlist</td><td>new advisories for fast-uri and brace-expansion landed after the lockfiles were written</td><td class="ok">npm audit fix, lockfile-only bumps</td></tr>
+</tbody>
+</table>
+<p class="dim">Verdict after fixes: version check 0 DRIFT, unit 7/7 categories, security 22/22, build byte-identical.</p>
+</section>
+</main>
+<script>
+const rows=document.querySelectorAll('#t tbody tr');
+document.querySelectorAll('button[data-k]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('button[data-k]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  const k=b.dataset.k;
+  rows.forEach(r=>r.classList.toggle('hide',k!=='all'&&r.dataset.k!==k));
+}));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
