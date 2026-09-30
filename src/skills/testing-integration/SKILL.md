@@ -9,9 +9,9 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: "@pact-foundation/pact"
-    version: ">=16.0.0"
+    version: ">=17.1.4"
   - library: "testcontainers"
-    version: ">=11.0.0"
+    version: ">=12.2.0"
 metadata:
   category: document-asset-creation
   version: "2.1.0"

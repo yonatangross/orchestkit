@@ -203,7 +203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "animation-motion-design",
     "description": "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.",
     "version": "1.0.0",
-    "sha256": "69315c433750f7945b8646c625bdac7d78964f50a1c7c411339879b800d9778d",
+    "sha256": "e13f3647abd4c02ab5dbe21947587bb1843f14d87a2bb5a37945127a18855a9e",
     "author": "OrchestKit",
     "tags": [
       "animation",
@@ -1324,7 +1324,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "database-patterns",
     "description": "Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.",
     "version": "2.0.0",
-    "sha256": "740c5671ab4e06b0f5ba516fbd0fc066a648ad2c0132ee46d30cb89a24f71eeb",
+    "sha256": "e8cc0ad428027638d42fbb38a31001565fa6c9de54d6c6fdf02861e90ca0135b",
     "author": "OrchestKit",
     "tags": [
       "database",
@@ -1629,7 +1629,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-system-tokens",
     "description": "Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines.",
     "version": "1.1.0",
-    "sha256": "5a00347340688c62646b256b204d10bfb6259aab48d80c64ede0270779953f98",
+    "sha256": "f17c8a95f1c2f4a43fc3d1e90714220dadbb5115ba32d3be8d5c7fa300bea91b",
     "author": "OrchestKit",
     "tags": [
       "design-tokens",
@@ -2085,7 +2085,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs, full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "e613c9181f14d260ec5f5fc22730f8c9d3c1ab3a3801650978eee7c10a0aa385",
+    "sha256": "52334dbc0c2692e8b6a6b2e7b40f32318b7761bf51e964781d5637b2e01ad26d",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2363,7 +2363,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "figma-design-handoff",
     "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
     "version": "1.1.0",
-    "sha256": "81779b2d43d02a5e4325a11e5aa7c48c516b7cbfece715aef3e23f22340b7d55",
+    "sha256": "4e060a84068d9c031746a765ed27d83f33a466a2f08685621d87dce584611ec9",
     "author": "OrchestKit",
     "tags": [
       "figma",
@@ -2652,7 +2652,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
     "version": "1.2.0",
-    "sha256": "f28d6e350b8287d0b0538e99c1abe35a6aff1c7479a3f25fb598d6b2f915e584",
+    "sha256": "e59200d4abcc4e82d4a526520e61a444dd1617ee6b9db333bddd13a3ea369052",
     "author": "Yonatan Gross",
     "tags": [
       "i18n",
@@ -2860,7 +2860,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.0",
-    "sha256": "aa435dcd87376b8ccdac5f8083a1ff8e7b10342cc7da0743f3e2d98123c2437a",
+    "sha256": "5ddabc022744a8dd7bf4ac2feb3a096b948166ad5da4d9a32b4622a5379f4e75",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2900,7 +2900,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.3.0",
-    "sha256": "e3fb00630d360300e72e9d40e5f2804552da65962820e39f0f4311e7b8d754a9",
+    "sha256": "02286333a8e99a01d8a526e83d7c349d1f5c763a146258617768cf79318df3da",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -3030,7 +3030,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.",
     "version": "3.1.0",
-    "sha256": "9e1b3755601192f0299dd73d6a93f79e8057b0964f81d7cf7356d83c07a4e66d",
+    "sha256": "208dba320c80a9fbf9d38a50fac7064f10dfa555240cb8e72a7b47ca22d657ac",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3075,7 +3075,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns.",
     "version": "1.1.0",
-    "sha256": "ffcebdcf0a1e00d96065f63a15eb2eaacb51c9f9e6553aa8d12bb825d01c9368",
+    "sha256": "285d44557b1874b315656def1d3e023636e976440f62d5ecf8403a2d097fb5bb",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3231,7 +3231,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "monitoring-observability",
     "description": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.",
     "version": "3.0.0",
-    "sha256": "4d42ab860b3b30cfaf90bf91fcf775c87b38d6adb64abe41de87ee4912a9da29",
+    "sha256": "962f6db26c42f8d6cfd4930f6bbd4a25eecae290e54c2ceceb30d81c1e88db77",
     "author": "OrchestKit",
     "tags": [
       "monitoring",
@@ -3287,7 +3287,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render, one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
-    "sha256": "5f3f16246cdfaf6b4b700ad8363b6fb8f08e0cd11f62f2b24848fe0bd8d71a35",
+    "sha256": "55f2bbfa2c70f62f550f23adcd4887015f970e0e8738e00f0839ac3ceed96c6b",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3768,7 +3768,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "python-backend",
     "description": "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract.",
     "version": "2.0.0",
-    "sha256": "0ca28fa1fd3b28a44f572cb79b76dfb003f2e9ef6806fc850164b508e73cc5fe",
+    "sha256": "834b7de8f58522de5e41ab57843a5d0e3014f47437824927946c0e5e9e8c3568",
     "author": "OrchestKit",
     "tags": [
       "python",
@@ -3917,7 +3917,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "react-server-components-framework",
     "description": "Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.",
     "version": "1.5.0",
-    "sha256": "1af58f0413c6702b7130eb5440f524e0c70b39c52a4b80db84ffd99c5b7e58dd",
+    "sha256": "7bcfdd47f10b6dd0fa6e86c7d3a69bf1d068c4c677b6d121a1227c2e5da6488f",
     "author": "OrchestKit",
     "tags": [
       "frontend",
@@ -4416,7 +4416,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "storybook-mcp-integration",
     "description": "Reference for the Storybook MCP server itself (@storybook/addon-mcp): 6 tools across 3 toolsets (dev, docs, testing), availability detection, and per-agent toolset filtering. Use when setting up the server or calling these tools directly against components that already exist. For the end-to-end pipeline that turns a mockup into a new component and consumes these tools as one stage, use design-to-code.",
     "version": "1.0.0",
-    "sha256": "0126e46150fa13ea24694db3f9815e8361f52bf6d6bd42313aa74a33f8c52911",
+    "sha256": "dc5938e3e7d590203b9972b2b4d6d8a62f0105f83dd1cb062249dc55dc292cc3",
     "author": "OrchestKit",
     "tags": [
       "storybook",
@@ -4461,7 +4461,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "storybook-testing",
     "description": "Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9.",
     "version": "2.0.0",
-    "sha256": "7987005b55c7ccc2df60cbf98173cdf9b74e22554382da004aacdff0d1fa2805",
+    "sha256": "fd0571008718780dfae3d261ade297bc069b0a0a70b3d1d159eaf920cebb239f",
     "author": "OrchestKit",
     "tags": [
       "storybook",
@@ -4633,7 +4633,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-e2e",
     "description": "End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
     "version": "2.1.0",
-    "sha256": "99515aadbb286c2cb9db55c0666a7e045c10fe3123af82b643b1a980044f4121",
+    "sha256": "15952d3cdfb6852cfb26d877dba096fdb2d07726123e226495f7f0f0ade5fe39",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4685,7 +4685,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-integration",
     "description": "Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
     "version": "2.1.0",
-    "sha256": "968873fb524e7efd57e673dbaaa81dd7c4df9e8e1b233be57cc57cd8e294cfc7",
+    "sha256": "17e642521217c5f4f715709ad73a8f776fdeeefe12b37d4a2edd2b8b6d323b97",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4737,7 +4737,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-llm",
     "description": "LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
     "version": "2.1.0",
-    "sha256": "9a4bcfcba40647934f3baf48af622ccb747971b619cbf9dd8be967236477eefa",
+    "sha256": "7dde3bc71f64f4ea56bb63747b19b4d20ae9f7ddae17840656fccfc96524e28f",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4782,7 +4782,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-perf",
     "description": "Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
     "version": "2.1.0",
-    "sha256": "63edf85f3f9220cb3e9e0fb4628e726a0831edcca3a589482f6d899671cb1dba",
+    "sha256": "2935b4034997800b8e2cac4db569a6c42c31ef9ab531487e014eda02529ed384",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4832,7 +4832,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-unit",
     "description": "Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.",
     "version": "2.1.0",
-    "sha256": "80134fc5fb6cfa37a54db57a18ba247126d890695d6e0e977ce2d4961d5a4b0f",
+    "sha256": "4adbea75ceb342e86f7790e616ab4f947626b792633a281f7a3ec386ced26cd7",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -5147,7 +5147,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "vite-advanced",
     "description": "Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
     "version": "2.0.0",
-    "sha256": "881165ef2bd968998af834d22d0b1e67a76f64c6dd663535e2158f2c85694b87",
+    "sha256": "dd95b633d16e9408cbd78287d12e8c76f4d428baa5320c382b576bc8e8323620",
     "author": "OrchestKit",
     "tags": [
       "vite",

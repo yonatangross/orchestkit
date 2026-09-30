@@ -9,7 +9,7 @@ context: fork
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"
-    version: ">=1.29.0"
+    version: ">=1.31.0"
   # Upper bound is deliberate, not a lag. `pip install mcp` now resolves to 2.x,
   # and the 2.0 README says to keep a `<2` bound until you have migrated. Every
   # Python snippet in this skill is v1 (`from mcp.server.fastmcp import FastMCP`),

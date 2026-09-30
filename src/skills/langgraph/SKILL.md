@@ -14,7 +14,7 @@ targets:
   # does not have. Re-add it only alongside real TypeScript rules.
   - library: "langgraph"
     version: ">=1.2.0"
-upstream-version-tested: "1.2.11"
+upstream-version-tested: "1.2.12"
 metadata:
   category: document-asset-creation
   version: "2.3.0"

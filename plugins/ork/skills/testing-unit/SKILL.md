@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: vitest
-    version: ">=4.1.0"
+    version: ">=5.0.3"
 metadata:
   category: document-asset-creation
   version: "2.1.0"

@@ -8,13 +8,15 @@ context: inherit
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.20.0"
+  upstream-version-tested: "0.21.0"
   shadcn-component-count: 36
   version: "1.3.0"
   author: "OrchestKit"
   complexity: "medium"
   tags: "json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel"
 ---
+
+Upstream version reference: `@json-render/core` 0.21.0 (2026-09-30).
 
 # json-render Component Catalogs
 

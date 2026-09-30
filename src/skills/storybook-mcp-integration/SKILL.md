@@ -8,7 +8,7 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: storybook
-    version: ">=10.3.0"
+    version: ">=10.6.1"
 metadata:
   category: document-asset-creation
   mcp-server: storybook-mcp

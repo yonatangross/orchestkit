@@ -9,7 +9,7 @@ user-invocable: false
 disable-model-invocation: false
 targets:
   - library: "deepeval"
-    version: ">=4.0.0"
+    version: ">=4.2.7"
   - library: "ragas"
     version: ">=0.4.0"
 metadata:

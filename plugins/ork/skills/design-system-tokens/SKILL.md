@@ -8,7 +8,7 @@ agent: frontend-ui-developer
 user-invocable: false
 targets:
   - library: "style-dictionary"
-    version: ">=5.3.0"
+    version: ">=5.5.5"
 metadata:
   category: document-asset-creation
   dtcg-version: "v2025.10"

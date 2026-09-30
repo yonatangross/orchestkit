@@ -8,12 +8,14 @@ context: inherit
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.20.0"
+  upstream-version-tested: "0.21.0"
   version: "1.1.0"
   author: "OrchestKit"
   complexity: "medium"
   tags: "json-render, multi-surface, pdf, email, remotion, video, image, react, rendering, ink, nextjs"
 ---
+
+Upstream version reference: `@json-render/core` 0.21.0 (2026-09-30).
 
 # Multi-Surface Rendering with json-render
 
