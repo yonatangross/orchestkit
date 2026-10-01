@@ -20,12 +20,6 @@ metadata:
   author: "OrchestKit"
   complexity: "low"
   tags: "careful, guard, safety, destructive-commands, hooks, skill-scoped-hooks, production"
-triggers:
-  keywords: [careful, "careful mode", "be careful", "touching prod", production, "no destructive", "no force push"]
-  examples:
-    - "/ork:careful"
-    - "turn on careful mode before we touch the prod database"
-  anti-triggers: [freeze, review, commit, deploy]
 ---
 
 # careful, block destructive commands for this session

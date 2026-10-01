@@ -864,7 +864,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "careful",
     "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform destroy, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "faf43f749d36aa500ac950253aa65da2e9cc215675ef6f65dcf3fb97446b5921",
+    "sha256": "ca7c87c431af940168667739571607d18155bef3bb6f7d96fafcf500dbcf4227",
     "author": "OrchestKit",
     "tags": [
       "careful",
@@ -2520,7 +2520,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "4dab0cde8ba135f34288b25a62ceaaefb1002fd592ee38e6f382c923373534cf",
+    "sha256": "3ca3e42283767018dfe2e2ba9c790b7ead91668b48149d454f877f5ad713e57d",
     "author": "OrchestKit",
     "tags": [
       "freeze",

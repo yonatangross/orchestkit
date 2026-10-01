@@ -20,12 +20,6 @@ metadata:
   author: "OrchestKit"
   complexity: "low"
   tags: "freeze, guard, scope, edit-fence, hooks, skill-scoped-hooks, symlink"
-triggers:
-  keywords: [freeze, "only edit", "stay inside", "limit edits", "edit fence", "do not touch other"]
-  examples:
-    - "/ork:freeze src/hooks"
-    - "/ork:freeze off"
-  anti-triggers: [careful, worktree, review, commit]
 ---
 
 # freeze, keep edits inside one directory
