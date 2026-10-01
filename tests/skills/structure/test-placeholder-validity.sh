@@ -10,6 +10,9 @@
 #
 #     ${CLAUDE_PLUGIN_ROOT}  ${CLAUDE_PLUGIN_DATA}  ${CLAUDE_PROJECT_DIR}  ${CLAUDE_SKILL_DIR}
 #
+# plus two value substitutions, ${CLAUDE_SESSION_ID} and ${CLAUDE_EFFORT}
+# (accepted 2026-10-01, see VALID below).
+#
 # Anything else of the form ${CLAUDE_*} is delivered to the model as a LITERAL
 # string. It fails silently: no error, no warning, just an instruction the model
 # cannot act on.
@@ -62,7 +65,13 @@ cd "$REPO_ROOT"
 RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'
 BLUE=$'\033[0;34m'; BOLD=$'\033[1m'; NC=$'\033[0m'
 
-VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR CLAUDE_SKILL_DIR"
+# 2026-10-01: code.claude.com/docs/en/skills, table "Available string
+# substitutions", also lists ${CLAUDE_SESSION_ID} ("The current session ID.
+# Useful for logging, creating session-specific files...") and ${CLAUDE_EFFORT}
+# ("The current effort level"), both substituted in skill content. Read
+# 2026-10-01 for orchestkit #4576 (freeze keys its fence by session id). Every
+# other ${CLAUDE_*} still fails this gate.
+VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR CLAUDE_SKILL_DIR CLAUDE_SESSION_ID CLAUDE_EFFORT"
 fail=0
 
 echo "${BLUE}${BOLD}Placeholder validity (only CC-documented substitutions)${NC}"

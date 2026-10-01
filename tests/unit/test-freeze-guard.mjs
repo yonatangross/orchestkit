@@ -20,11 +20,11 @@
 // ============================================================================
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, readdirSync, symlinkSync, realpathSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, realpathSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkFrozenPath, statePath, pendingDir, PENDING_TTL_MS } from '../../src/skills/freeze/scripts/freeze-guard.mjs';
+import { checkFrozenPath, statePath } from '../../src/skills/freeze/scripts/freeze-guard.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CLI = path.join(ROOT, 'src', 'skills', 'freeze', 'scripts', 'freeze-guard.mjs');
@@ -74,47 +74,27 @@ check('dangling symlink escape', inside(path.join(frozen, 'dangling.ts')), false
 check('empty path is not inside', inside(''), false);
 
 // --- CLI: arm, hook, off ---------------------------------------------------------
-// arm prints a nonce and writes a pending arm; the hook binds it to the session
-// whose transcript contains that nonce (the skill body lands there).
 const SESSION = 'test-session-1';
 const env = { ...process.env, CLAUDE_PROJECT_DIR: project };
-const transcript = path.join(base, 'session-1.jsonl');
-const otherTranscript = path.join(base, 'session-2.jsonl');
-writeFileSync(transcript, '{"type":"user"}\n');
-writeFileSync(otherTranscript, '{"type":"user"}\n');
 const cli = (args, input) =>
   spawnSync(process.execPath, [CLI, ...args], { input: input ?? '', encoding: 'utf8', env });
-const armInto = (tx, dir) => {
-  const r = cli(['arm', project, dir]);
-  appendFileSync(tx, `${JSON.stringify({ type: 'user', isMeta: true, message: { content: r.stdout } })}\n`);
-  return r;
-};
-const hook = (tool_name, tool_input, session_id = SESSION, transcript_path = transcript) =>
-  cli([], JSON.stringify({ session_id, transcript_path, cwd: project, hook_event_name: 'PreToolUse', tool_name, tool_input }));
+const hook = (tool_name, tool_input, session_id = SESSION) =>
+  cli([], JSON.stringify({ session_id, cwd: project, hook_event_name: 'PreToolUse', tool_name, tool_input }));
 
 {
-  const r = armInto(transcript, 'src/feature');
+  const r = cli(['arm', project, SESSION, 'src/feature']);
   check('arm exit code', r.status, 0);
-  check('arm prints a nonce', /freeze arm [0-9a-f]{32}:/.test(r.stdout), true);
+  check('arm writes state', existsSync(statePath(project, SESSION)), true);
   check('arm reports the real dir', r.stdout.includes(frozen), true);
-  check('arm writes one pending file', readdirSync(pendingDir(project)).length, 1);
-  check('arm binds nothing by itself', existsSync(statePath(project, SESSION)), false);
 }
 {
-  const r = hook('Write', { file_path: path.join(sibling, 'b.ts'), content: 'y' }, 'other-session', otherTranscript);
-  check('another session is not fenced', r.status, 0);
-  check('another session does not claim the arm', readdirSync(pendingDir(project)).length, 1);
+  const r = cli(['arm', project, SESSION, 'src/missing']);
+  check('arm refuses a missing dir', r.status, 1);
+  check('failed arm keeps the previous freeze', existsSync(statePath(project, SESSION)), true);
 }
 {
   const r = hook('Edit', { file_path: path.join(frozen, 'a.ts'), old_string: 'x', new_string: 'y' });
   check('hook allows Edit inside', r.status, 0);
-  check('first hook call binds the session', existsSync(statePath(project, SESSION)), true);
-  check('bound arm leaves the pending dir', readdirSync(pendingDir(project)).length, 0);
-}
-{
-  const r = cli(['arm', project, 'src/missing']);
-  check('arm refuses a missing dir', r.status, 1);
-  check('refused arm writes no pending file', readdirSync(pendingDir(project)).length, 0);
 }
 {
   const r = hook('Write', { file_path: path.join(sibling, 'b.ts'), content: 'y' });
@@ -139,26 +119,23 @@ const hook = (tool_name, tool_input, session_id = SESSION, transcript_path = tra
   check('hook denies a call with no path', r.status, 2);
 }
 {
+  const r = hook('Write', { file_path: path.join(sibling, 'b.ts'), content: 'y' }, 'other-session');
+  check('another session is not frozen', r.status, 0);
+}
+{
   const r = cli([], 'not json');
   check('unreadable hook input fails closed', r.status, 2);
 }
 {
-  const stale = path.join(pendingDir(project), `${'a'.repeat(32)}.json`);
-  writeFileSync(stale, JSON.stringify({ nonce: 'a'.repeat(32), dir: sibling, armedAt: Date.now() - PENDING_TTL_MS - 1000 }));
-  appendFileSync(transcript, `${'a'.repeat(32)}\n`);
-  const r = hook('Write', { file_path: path.join(sibling, 'b.ts'), content: 'y' });
-  check('a stale arm is not claimed', r.status, 2);
-  check('a stale arm is pruned', existsSync(stale), false);
-}
-{
-  const r = armInto(transcript, 'off');
+  const r = cli(['arm', project, SESSION, 'off']);
   check('off exit code', r.status, 0);
+  check('off removes state', existsSync(statePath(project, SESSION)), false);
   const after = hook('Write', { file_path: path.join(sibling, 'b.ts'), content: 'y' });
   check('hook allows outside after off', after.status, 0);
 }
 {
-  const r = cli(['arm', 'relative/project', 'src/feature']);
-  check('arm refuses a relative project dir', r.status, 1);
+  const r = cli(['arm', project, '../escape', 'src/feature']);
+  check('arm refuses an unsafe session id', r.status, 1);
 }
 
 rmSync(base, { recursive: true, force: true });

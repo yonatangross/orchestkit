@@ -4,28 +4,23 @@
 // ============================================================================
 // WHAT THIS GUARDS
 //
-//   test-freeze-guard.mjs calls the guard's own CLI directly. That passed while
-//   the real skill could never apply a fence: the SKILL.md `!` line passed
-//   ${CLAUDE_SESSION_ID}, which is not one of the substitutions this repo's
-//   placeholder gate accepts, so the arm step got an empty session id and the
-//   hook, which looks the fence up by the session_id on its stdin, never found
-//   one. Every edit was allowed.
-//
-//   This test drives the path Claude Code takes instead of the script's API:
-//     1. take the `!` line from src/skills/freeze/SKILL.md and expand ONLY the
-//        placeholders the repo treats as documented (${CLAUDE_SKILL_DIR},
-//        ${CLAUDE_PROJECT_DIR}) plus $ARGUMENTS; anything else reaches the
-//        shell as written, as it would in a session;
-//     2. run it with sh, and put its output into a session transcript the way
-//        the expanded skill body lands in the conversation;
+//   test-freeze-guard.mjs calls the guard's CLI with a session id it chose
+//   itself, so it cannot see whether the SKILL itself delivers one. This test
+//   drives the path Claude Code takes:
+//     1. take the `!` line from src/skills/freeze/SKILL.md and expand the
+//        substitutions code.claude.com/docs/en/skills documents for skill
+//        content (${CLAUDE_SKILL_DIR}, ${CLAUDE_PROJECT_DIR},
+//        ${CLAUDE_SESSION_ID}, $ARGUMENTS); anything else reaches the shell as
+//        written, as it would in a session;
+//     2. run it with sh in an environment with no CLAUDE_* variables;
 //     3. take the hook command from the SKILL.md frontmatter and feed it a
-//        PreToolUse payload with a session_id and that transcript_path.
-//   An edit outside the frozen dir must be denied, and a second session in the
-//   same project must neither be fenced nor able to claim the arm.
+//        PreToolUse payload carrying the SAME session_id, as Claude Code does.
+//   An edit outside the frozen dir must be denied in that session, and a fence
+//   armed under session X must not apply to session Y.
 // ============================================================================
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,23 +54,21 @@ mkdirSync(sibling, { recursive: true });
 // A session environment without any CLAUDE_* variable the shell could fill in.
 const shellEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('CLAUDE_')));
 
-/** Run the skill invocation for `args` and append the expanded body to the transcript. */
-function invokeSkill(transcript, args) {
+/** Run the skill's `!` line as Claude Code does when `sessionId` invokes it with `args`. */
+function invokeSkill(sessionId, args) {
   const cmd = bangLine.slice(2, -1)
     .replaceAll('${CLAUDE_SKILL_DIR}', SKILL_DIR)
     .replaceAll('${CLAUDE_PROJECT_DIR}', project)
+    .replaceAll('${CLAUDE_SESSION_ID}', sessionId)
     .replaceAll('$ARGUMENTS', args);
-  const r = spawnSync('sh', ['-c', cmd], { cwd: project, encoding: 'utf8', env: shellEnv });
-  const body = skillText.replace(bangLine, r.stdout.trim());
-  appendFileSync(transcript, `${JSON.stringify({ type: 'user', isMeta: true, message: { role: 'user', content: [{ type: 'text', text: body }] } })}\n`);
-  return r;
+  return spawnSync('sh', ['-c', cmd], { cwd: project, encoding: 'utf8', env: shellEnv });
 }
 
 /** Run the frontmatter hook command for one edit in one session. */
-function edit(sessionId, transcript, filePath) {
+function edit(sessionId, filePath) {
   const payload = {
     session_id: sessionId,
-    transcript_path: transcript,
+    transcript_path: path.join(base, `${sessionId}.jsonl`),
     cwd: project,
     hook_event_name: 'PreToolUse',
     tool_name: 'Write',
@@ -88,27 +81,25 @@ function edit(sessionId, transcript, filePath) {
   }).status;
 }
 
-const txA = path.join(base, 'session-a.jsonl');
-const txB = path.join(base, 'session-b.jsonl');
-writeFileSync(txA, `${JSON.stringify({ type: 'user', message: { role: 'user', content: 'start' } })}\n`);
-writeFileSync(txB, `${JSON.stringify({ type: 'user', message: { role: 'user', content: 'other work' } })}\n`);
+const X = 'b1f0c3a2-7d4e-4c55-9a0e-2f6d8c1e9b7a';
+const Y = '5e2a9d10-3c7b-4f81-8b6e-0d4f2a7c9e13';
 
-const armed = invokeSkill(txA, 'src/feature');
+const armed = invokeSkill(X, 'src/feature');
 check('arm step exits 0', armed.status, 0);
+check('arm step reports the fence', armed.stdout.includes(frozen), true);
 
-check('session B is not fenced by A\'s arm', edit('session-b', txB, path.join(sibling, 'b.ts')), 0);
-check('session A: outside write denied', edit('session-a', txA, path.join(sibling, 'b.ts')), 2);
-check('session A: inside write allowed', edit('session-a', txA, path.join(frozen, 'a.ts')), 0);
-check('session A: still denied on a later call', edit('session-a', txA, path.join(sibling, 'c.ts')), 2);
-check('session B still not fenced after A bound', edit('session-b', txB, path.join(sibling, 'b.ts')), 0);
+check('session X: outside write denied', edit(X, path.join(sibling, 'b.ts')), 2);
+check('session X: inside write allowed', edit(X, path.join(frozen, 'a.ts')), 0);
+check('session X: new file inside allowed', edit(X, path.join(frozen, 'new', 'c.ts')), 0);
+check('session Y: fence armed under X does not apply', edit(Y, path.join(sibling, 'b.ts')), 0);
 
-const refused = invokeSkill(txA, 'src/missing');
+const refused = invokeSkill(X, 'src/missing');
 check('arm of a missing dir is refused', refused.status, 1);
-check('refused arm keeps the fence', edit('session-a', txA, path.join(sibling, 'b.ts')), 2);
+check('refused arm keeps the fence', edit(X, path.join(sibling, 'b.ts')), 2);
 
-const off = invokeSkill(txA, 'off');
+const off = invokeSkill(X, 'off');
 check('off exits 0', off.status, 0);
-check('session A: outside write allowed after off', edit('session-a', txA, path.join(sibling, 'b.ts')), 0);
+check('session X: outside write allowed after off', edit(X, path.join(sibling, 'b.ts')), 0);
 
 rmSync(base, { recursive: true, force: true });
 

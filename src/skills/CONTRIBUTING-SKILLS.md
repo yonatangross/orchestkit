@@ -160,7 +160,7 @@ keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
 
 ### Skill-Scoped Hooks
 
-Skills can declare hooks in frontmatter. These run only while the skill is active:
+Skills can declare hooks in frontmatter. Claude Code registers them when the skill is invoked and keeps them for the rest of the session (see Lifetime below):
 
 ```yaml
 hooks:

@@ -16,16 +16,12 @@ allowed-tools: "Bash(node *freeze-guard.mjs arm *) Read"
 
 State for this session:
 
-!`node "skills/freeze/scripts/freeze-guard.mjs" arm "${CLAUDE_PROJECT_DIR}" "$ARGUMENTS"`
+!`node "skills/freeze/scripts/freeze-guard.mjs" arm "${CLAUDE_PROJECT_DIR}" "${CLAUDE_SESSION_ID}" "$ARGUMENTS"`
 
 The line above ran when the skill was invoked: it resolved the argument against the
-project dir, followed symlinks, and wrote a pending arm keyed by the nonce it printed.
-The arm step cannot tell which session invoked it, so the hook binds it: on this
-session's next edit call it finds that nonce in this session's transcript and records
-the fence in `.claude/state/freeze/<session-id>.json`. Another session in the same
-project never sees the nonce, so it is neither fenced nor able to claim the arm.
-Report the line to the operator as it reads. If it says NOT changed, the fence did not
-move; say so and stop.
+project dir, followed symlinks, and recorded the real path for this session in
+`.claude/state/freeze/<session-id>.json`. Report that line to the operator as it
+reads. If it says NOT changed, the freeze did not move; say so and stop.
 
 ## How it works
 
@@ -48,6 +44,7 @@ outside the frozen dir:
 
 ```
 /ork:freeze src/hooks        # fence edits to src/hooks
+/ork:freeze                  # show the current fence
 /ork:freeze off              # lift it
 ```
 
@@ -65,11 +62,8 @@ defeats the reason it was turned on.
 
 - Edit tools only. Bash, MCP tools and subprocesses can still write anywhere. Pair
   with careful for destructive shell commands, or with a worktree for real isolation.
-- One fence per session, stored under the project's `.claude/state/freeze/`. An arm not
-  claimed within 30 minutes is discarded; invoke the skill again.
-- The binding relies on the expanded skill body being in the session transcript by the
-  next edit call. If it is not, the arm stays unclaimed and the edit is allowed.
-- If the hook cannot read its input it blocks rather than guess.
+- One fence per session, stored under the project's `.claude/state/freeze/`.
+- If the hook cannot read its input or the state file it blocks rather than guess.
 
 The fence is `skills/freeze/scripts/freeze-guard.mjs` (Node, no dependencies); its cases live in
 `tests/unit/test-freeze-guard.mjs`.

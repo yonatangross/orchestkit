@@ -2520,7 +2520,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "5e9b6ce1790ca7213bf3444fb3b7d2609987c4f9ff4d28f3aec08c0bc13b526c",
+    "sha256": "3ca3e42283767018dfe2e2ba9c790b7ead91668b48149d454f877f5ad713e57d",
     "author": "OrchestKit",
     "tags": [
       "freeze",
