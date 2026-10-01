@@ -1,0 +1,13 @@
+{
+  "slug": "4576-careful-freeze-guard-hooks",
+  "source": "docs/feat--careful-freeze-skills/index.html",
+  "title": "#4576: careful and freeze, guard hooks that switch on with a skill",
+  "description": "Type a Bash command to see the real careful matcher's verdict (rm -rf, force push, reset --hard, DROP, kubectl delete, terraform destroy), and try a freeze fence against a symlink escape.",
+  "tags": [
+    "skills",
+    "hooks",
+    "safety",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}
