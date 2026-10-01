@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "7f5cd0207f2bc2ec9f01e2cce20c240572a3472fc0513a881fbab91a4c2404cf",
+    "sha256": "a12dfc4a18ed18c0c3cf38832feb94bd89d58cdc0e8dfc11a06826a324f38b43",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -853,6 +853,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "build-buy-partner-decision.md",
         "roi-calculation-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "careful": {
+    "name": "careful",
+    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform destroy, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster.",
+    "version": "1.0.0",
+    "sha256": "faf43f749d36aa500ac950253aa65da2e9cc215675ef6f65dcf3fb97446b5921",
+    "author": "OrchestKit",
+    "tags": [
+      "careful",
+      "guard",
+      "safety",
+      "destructive-commands",
+      "hooks",
+      "skill-scoped-hooks",
+      "production"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "careful-guard.mjs"
       ]
     },
     "plugins": [
@@ -2482,6 +2515,43 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "debug-investigator"
     ]
+  },
+  "freeze": {
+    "name": "freeze",
+    "description": "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree.",
+    "version": "1.0.0",
+    "sha256": "4dab0cde8ba135f34288b25a62ceaaefb1002fd592ee38e6f382c923373534cf",
+    "author": "OrchestKit",
+    "tags": [
+      "freeze",
+      "guard",
+      "scope",
+      "edit-fence",
+      "hooks",
+      "skill-scoped-hooks",
+      "symlink"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Bash(node",
+      "*freeze-guard.mjs",
+      "arm",
+      "*)",
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "freeze-guard.mjs"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "github-operations": {
     "name": "github-operations",

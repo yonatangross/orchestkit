@@ -43,6 +43,10 @@ const STANDALONE_ALLOWLIST = {
   // Add entries as: 'skill-name': 'why it is intentionally direct-only',
   'audit-activation':
     'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork:audit-activation is the only intended trigger',
+  careful:
+    'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
+  freeze:
+    'operator guard: invoking it registers a session-long edit fence and takes the dir as a typed argument; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----
