@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.141",
+    "date": "2026-10-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**skills:** careful and freeze, on-demand guard hooks in a skill ([#4576](https://github.com/yonatangross/orchestkit/issues/4576)) ([7ce7810](https://github.com/yonatangross/orchestkit/commit/7ce7810319979fcdd61a5830035b1390991cbe37))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.140",
     "date": "2026-10-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140",
