@@ -30,9 +30,9 @@ a{color:var(--accent)}
   <p class="meta">Forced <code>tool_choice</code> (<code>any</code> or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1. And CC loads <code>.claude/rules</code> from every ancestor dir, so one session loaded four identical <code>antipatterns.md</code> copies.</p>
 </header>
 <section>
-  <h2>tool_choice for a model</h2>
+  <h2>tool_choice for a model (rule scoped by model after review)</h2>
   <label for="m">model</label>
-  <select id="m"><option>claude-sonnet-5-5</option><option>claude-opus-5-5</option><option>claude-fable-5-1</option><option>claude-haiku-4-5</option></select>
+  <select id="m"><option>claude-sonnet-5-5</option><option>claude-opus-5-5</option><option>claude-fable-5-1</option><option>claude-sonnet-5 (pre-5.5)</option><option>claude-haiku-4-5 (pre-5.5)</option><option>another provider</option></select>
   <pre id="code"></pre>
 </section>
 <section>
@@ -58,9 +58,10 @@ Tests  1 failed | 16 passed (17)</span>
 <script>
 const FIVE5=['claude-sonnet-5-5','claude-opus-5-5','claude-fable-5-1'];
 const sel=document.getElementById('m'),code=document.getElementById('code');
-function render(){const strictOnly=FIVE5.includes(sel.value);
-  code.innerHTML=(strictOnly?'<span class="bad">tool_choice="any"  # 400 on this model</span>\n':'tool_choice="any"  # accepted, but auto + strict works everywhere\n')+
-  '<span class="ok">model.bind_tools(tools, tool_choice="auto", strict=True)\n# system: "Look the answer up with search_database before you reply."\n# then check response.tool_calls</span>';}
+function render(){
+  code.innerHTML=FIVE5.includes(sel.value)
+    ?'<span class="bad">tool_choice="any"  # 400 on this model</span>\n<span class="ok">model.bind_tools(tools, tool_choice="auto", strict=True)\n# system: "Look the answer up with search_database before you reply."\n# then check response.tool_calls</span>'
+    :'<span class="ok">model.bind_tools(tools, tool_choice="any")              # at least one tool\nmodel.bind_tools(tools, tool_choice="search_database")  # a specific tool</span>\n# forced tool_choice still works here; the examples stay in the rule under this label';}
 sel.addEventListener('change',render);render();
 </script>
 </body>
