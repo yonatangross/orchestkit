@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4568: auto tool_choice on Claude 5.5, one antipatterns copy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:20px;max-width:72ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+input,select{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Two Claude 5.5 leftovers: forced <code>tool_choice</code> and a rules file loaded four times</h1>
+  <p class="meta">Forced <code>tool_choice</code> (<code>any</code> or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1. And CC loads <code>.claude/rules</code> from every ancestor dir, so one session loaded four identical <code>antipatterns.md</code> copies.</p>
+</header>
+<section>
+  <h2>tool_choice for a model</h2>
+  <label for="m">model</label>
+  <select id="m"><option>claude-sonnet-5-5</option><option>claude-opus-5-5</option><option>claude-fable-5-1</option><option>claude-haiku-4-5</option></select>
+  <pre id="code"></pre>
+</section>
+<section>
+  <h2>antipatterns.md seeding</h2>
+  <table>
+    <thead><tr><th>where an identical copy already exists</th><th>origin/main</th><th>this PR</th></tr></thead>
+    <tbody>
+      <tr><td>user-global <code>~/.claude/rules</code></td><td class="ok">skip</td><td class="ok">skip</td></tr>
+      <tr><td>an ancestor dir, for example the repo root above a worktree</td><td class="bad">write a second copy</td><td class="ok">skip</td></tr>
+      <tr><td>a sibling dir only</td><td>write</td><td>write</td></tr>
+      <tr><td>an ancestor with different content</td><td>write</td><td>write</td></tr>
+    </tbody>
+  </table>
+  <pre><span class="bad">x skips project write when an ancestor .claude/rules copy is identical
+Tests  1 failed | 16 passed (17)</span>
+<span class="ok">Tests  17 passed (17)</span></pre>
+  <p class="meta">"Think step by step" in the agent workflow template was already removed by #4363; no change needed here.</p>
+</section>
+<section>
+  <h2>Source</h2>
+  <p class="meta">claude.dev, <a href="https://claude.dev/blog/building-with-claude-sonnet-5-5/">Building with Claude Sonnet 5.5</a></p>
+</section>
+<script>
+const FIVE5=['claude-sonnet-5-5','claude-opus-5-5','claude-fable-5-1'];
+const sel=document.getElementById('m'),code=document.getElementById('code');
+function render(){const strictOnly=FIVE5.includes(sel.value);
+  code.innerHTML=(strictOnly?'<span class="bad">tool_choice="any"  # 400 on this model</span>\n':'tool_choice="any"  # accepted, but auto + strict works everywhere\n')+
+  '<span class="ok">model.bind_tools(tools, tool_choice="auto", strict=True)\n# system: "Look the answer up with search_database before you reply."\n# then check response.tool_calls</span>';}
+sel.addEventListener('change',render);render();
+</script>
+</body>
+</html>

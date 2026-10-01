@@ -1,0 +1,13 @@
+{
+  "slug": "4568-claude-5-5-api-shape-leftovers",
+  "source": "docs/fix--claude-5-5-api-shape-leftovers/index.html",
+  "title": "#4568: auto tool_choice on Claude 5.5, one antipatterns copy",
+  "description": "The langgraph tools-bind rule teaches auto tool_choice with strict tools instead of forcing a call, Sonnet 5.5 joins the 400 list, and the antipatterns rules file is not seeded under an ancestor that already has it.",
+  "tags": [
+    "skills",
+    "hooks",
+    "claude-api",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}
