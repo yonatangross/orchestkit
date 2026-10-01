@@ -86,9 +86,9 @@ function recacheWarning(sw: ModelSwitchPayload): string | null {
   // unknown, the re-cache write on the new model is the cost, and a handoff
   // is the only way to skip it.
   if (fromTier > 0 && toTier > fromTier) {
-    return head + `Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;
+    return `${head}Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;
   }
-  return head + `To skip that write, hand the next step to a subagent or a fresh session with a short plan.`;
+  return `${head}To skip that write, hand the next step to a subagent or a fresh session with a short plan.`;
 }
 
 /** Allow the switch, with the re-cache warning when one applies. */
