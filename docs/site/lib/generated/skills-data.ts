@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "7f5cd0207f2bc2ec9f01e2cce20c240572a3472fc0513a881fbab91a4c2404cf",
+    "sha256": "a12dfc4a18ed18c0c3cf38832feb94bd89d58cdc0e8dfc11a06826a324f38b43",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -853,6 +853,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "build-buy-partner-decision.md",
         "roi-calculation-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "careful": {
+    "name": "careful",
+    "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
+    "version": "1.0.0",
+    "sha256": "2a4bff743d74a1e5fa1801d5e3832f2ff94215dcd238354376b82345fc87352a",
+    "author": "OrchestKit",
+    "tags": [
+      "careful",
+      "guard",
+      "safety",
+      "destructive-commands",
+      "hooks",
+      "skill-scoped-hooks",
+      "production"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "careful-guard.mjs"
       ]
     },
     "plugins": [
@@ -2482,6 +2515,43 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "debug-investigator"
     ]
+  },
+  "freeze": {
+    "name": "freeze",
+    "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
+    "version": "1.0.0",
+    "sha256": "00868bc99cb1974d5c1977c4d4316ad0669c7cdb6547490b80f0509e3a2c81f5",
+    "author": "OrchestKit",
+    "tags": [
+      "freeze",
+      "guard",
+      "scope",
+      "edit-fence",
+      "hooks",
+      "skill-scoped-hooks",
+      "symlink"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Bash(node",
+      "*freeze-guard.mjs",
+      "arm",
+      "*)",
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "freeze-guard.mjs"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "github-operations": {
     "name": "github-operations",

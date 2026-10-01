@@ -1,0 +1,32 @@
+{
+  "skill": "freeze",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "trigger-dir",
+      "rule": null,
+      "query": "/ork:freeze src/hooks",
+      "expectedBehavior": [
+        "The invocation line records the real path of src/hooks for this session",
+        "Reports the freeze line as printed, including NOT changed when the dir is missing"
+      ]
+    },
+    {
+      "id": "blocked-outside",
+      "rule": null,
+      "query": "freeze is on src/hooks; also update README.md",
+      "expectedBehavior": [
+        "The hook denies the Edit with exit 2 and names the frozen dir",
+        "Claude asks the operator to widen or lift the freeze and does not fall back to Bash writes"
+      ]
+    },
+    {
+      "id": "trigger-off",
+      "rule": null,
+      "query": "/ork:freeze off",
+      "expectedBehavior": [
+        "Deletes the session state; edits outside the old dir are allowed again"
+      ]
+    }
+  ]
+}

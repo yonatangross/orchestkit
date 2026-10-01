@@ -1,6 +1,6 @@
 ---
 title: OrchestKit Skills Reference
-description: "Complete reference for all 107 OrchestKit skills."
+description: "Complete reference for all 109 OrchestKit skills."
 ---
 
 import { SkillAtlas } from '@/components/world/skill-atlas';
@@ -9,7 +9,7 @@ import { SkillAtlas } from '@/components/world/skill-atlas';
 
 # OrchestKit Skills Reference
 
-OrchestKit includes **107 skills**, reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **109 skills**, reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -30,6 +30,7 @@ OrchestKit includes **107 skills**, reusable knowledge modules that provide patt
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. |
 | [Browser Tools](/docs/reference/skills/browser-tools) | Reference | medium | Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits. |
 | [Business Case](/docs/reference/skills/business-case) | Reference | medium | Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis. |
+| [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster. |
 | [Chain Patterns](/docs/reference/skills/chain-patterns) | Reference | medium | Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill. |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command, but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific). |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply, NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over. |
@@ -62,6 +63,7 @@ OrchestKit includes **107 skills**, reusable knowledge modules that provide patt
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns. |
 | [Figma Design Handoff](/docs/reference/skills/figma-design-handoff) | Reference | medium | Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs. |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues. |
+| [Freeze](/docs/reference/skills/freeze) | Command | low | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree. |
 | [Github Operations](/docs/reference/skills/github-operations) | Reference | medium | GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh. |
 | [Glyph](/docs/reference/skills/glyph) | Command | low | Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead. |
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines. |

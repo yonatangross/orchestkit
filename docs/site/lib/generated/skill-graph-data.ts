@@ -175,6 +175,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "careful",
+    "label": "Careful",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "chain-patterns",
     "label": "Chain Patterns",
     "type": "reference",
@@ -492,6 +502,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 5,
+    "usedByCount": 0
+  },
+  {
+    "id": "freeze",
+    "label": "Freeze",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4576: careful and freeze, guard hooks that switch on with a skill</title>
+<meta name="description" content="Type a Bash command to see the real careful matcher's verdict, and try a freeze fence against symlink escapes.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:960px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:12px;max-width:76ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+textarea,input{width:100%;background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:var(--mono);font-size:12px}
+textarea{height:70px}
+label{font-size:12px;color:var(--muted);display:block;margin:8px 0 4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+button{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:14px;padding:4px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.verdict{margin-top:10px;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border);white-space:pre-wrap;font-family:var(--mono)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1><code>/ork:careful</code> and <code>/ork:freeze</code>: hooks that switch on with a skill</h1>
+  <p class="meta">claude.dev, "Lessons from building Claude Code: how we use skills": skills can include hooks that are only activated when the skill is called. Invoking either skill registers a PreToolUse hook that Claude Code keeps for the rest of the session. Section 1 runs the real careful matcher, copied from <code>src/skills/careful/scripts/careful-guard.mjs</code> when this page was generated.</p>
+</header>
+
+<section>
+  <h2>1. careful: would this Bash command run?</h2>
+  <label for="cmd">Bash command (the hook sees exactly this string)</label>
+  <textarea id="cmd">git push --force-with-lease origin main</textarea>
+  <div class="chips" id="presets"></div>
+  <div class="verdict" id="cverdict"></div>
+</section>
+
+<section>
+  <h2>2. freeze: does this edit land inside the fence?</h2>
+  <p class="meta">The real hook follows symlinks on disk. This page has no disk, so declare links below (one per line, <code>link -&gt; target</code>, project-relative) and see why a lexical prefix check is not enough.</p>
+  <label for="fdir">frozen dir</label><input id="fdir" value="src/feature">
+  <label for="ftarget">edit target</label><input id="ftarget" value="src/feature/escape/b.ts">
+  <label for="flinks">symlinks</label><textarea id="flinks">src/feature/escape -&gt; src/other</textarea>
+  <table><thead><tr><th>check</th><th>verdict</th><th>path compared</th></tr></thead><tbody id="frows"></tbody></table>
+</section>
+
+<section>
+  <h2>3. What is blocked, what is not</h2>
+  <table><thead><tr><th>rule</th><th>blocks</th><th>still allowed</th></tr></thead><tbody id="rules"></tbody></table>
+</section>
+
+<section>
+  <h2>Fail without the change</h2>
+  <pre><span class="bad">node tests/unit/test-careful-guard.mjs   (before the scripts existed)
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
+node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
+<span class="ok">careful-guard: 256 passed
+freeze-guard: 31 passed
+freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
+  <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
+</section>
+
+<script>
+// Browser stand-ins for the node:path and node:fs calls the matcher makes.
+const isAbsolute=(p)=>p.startsWith('/');
+const resolve=(p)=>{const out=[];for(const s of p.split('/')){if(s===''||s==='.')continue;if(s==='..')out.pop();else out.push(s);}return '/'+out.join('/');};
+// No filesystem here, so no links: every path lands where it is written. The
+// real hook follows symlinks (resolveLanding); this page cannot show that.
+const realpathSync=(p)=>p;
+const dirname=(p)=>{const i=p.replace(/\/+$/,'').lastIndexOf('/');return i<=0?'/':p.slice(0,i);};
+const basename=(p)=>p.replace(/\/+$/,'').split('/').pop();
+const join=(...a)=>resolve(a.join('/'));
+const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
+const SQL_CLIENT = /\b(psql|pgcli|mysql|mariadb|mycli|sqlite3|duckdb|clickhouse(-client)?|cockroach|sqlcmd|snowsql|usql)\b/i;
+const MAX_DEPTH = 4;
+
+/**
+ * Split a command into segments of shell words. Quotes are removed from the
+ * words they delimit; $( ) is kept whole inside its word so the caller can
+ * see that a target is computed.
+ */
+function tokenize(command) {
+  const segments = [];
+  let words = [];
+  let word = '';
+  let inWord = false;
+  const endWord = () => {
+    if (inWord) words.push(word);
+    word = '';
+    inWord = false;
+  };
+  const endSegment = () => {
+    endWord();
+    if (words.length > 0) segments.push(words);
+    words = [];
+  };
+
+  for (let i = 0; i < command.length; i++) {
+    const c = command[i];
+    if (c === '\\' && i + 1 < command.length) {
+      if (command[i + 1] !== '\n') {
+        word += command[i + 1];
+        inWord = true;
+      }
+      i++;
+    } else if (c === "'") {
+      const end = command.indexOf("'", i + 1);
+      const stop = end === -1 ? command.length : end;
+      word += command.slice(i + 1, stop);
+      inWord = true;
+      i = stop;
+    } else if (c === '"') {
+      inWord = true;
+      let j = i + 1;
+      while (j < command.length && command[j] !== '"') {
+        if (command[j] === '\\' && j + 1 < command.length) {
+          word += command[j + 1];
+          j += 2;
+        } else {
+          word += command[j];
+          j++;
+        }
+      }
+      i = j;
+    } else if (c === '$' && command[i + 1] === '(') {
+      let depth = 0;
+      let j = i + 1;
+      for (; j < command.length; j++) {
+        if (command[j] === '(') depth++;
+        else if (command[j] === ')' && --depth === 0) break;
+      }
+      word += command.slice(i, j + 1);
+      inWord = true;
+      i = j;
+    } else if (c === ' ' || c === '\t') {
+      endWord();
+    } else if (c === '\n' || c === ';' || c === '&' || c === '|' || c === '(' || c === ')') {
+      endSegment();
+    } else {
+      word += c;
+      inWord = true;
+    }
+  }
+  endSegment();
+  return segments;
+}
+
+const base = (w) => w.slice(w.lastIndexOf('/') + 1);
+const isShortCluster = (w) => /^-[a-zA-Z]+$/.test(w);
+
+// Characters that let the shell, not the text, decide the path: parameter and
+// command substitution, globs, brace and tilde expansion.
+const SHELL_DECIDES = /[$`*?[\]{}~]/;
+
+/**
+ * Where a path really lands: realpath of its deepest existing ancestor, with
+ * the not-yet-existing tail re-appended. Links anywhere on the path, chains
+ * included, are followed. null when an ancestor exists but cannot be resolved
+ * (EACCES, ELOOP, ENOTDIR and the like): the caller must treat that as unsafe.
+ */
+function resolveLanding(p) {
+  const missing = [];
+  let cursor = resolve(p);
+  for (;;) {
+    try {
+      const real = realpathSync(cursor);
+      return missing.length === 0 ? real : join(real, ...missing.reverse());
+    } catch (err) {
+      if (err?.code !== 'ENOENT') return null;
+      const parent = dirname(cursor);
+      if (parent === cursor) return null;
+      missing.push(basename(cursor));
+      cursor = parent;
+    }
+  }
+}
+
+/**
+ * Is `target` a literal absolute path strictly inside a validated temp root,
+ * both as written and where it really lands?
+ *
+ * Only literal text counts. A command can reassign TMPDIR before using it
+ * (`TMPDIR=/ ; rm -rf $TMPDIR/usr`), unset it, or build it in eval, so no
+ * variable, substitution or expansion in a target is ever trusted, $TMPDIR
+ * included. A literal path can still run through an existing symlink
+ * (`<tmp>/link/local` with link -> /usr), so the landing spot from
+ * resolveLanding must also be strictly inside a root's own landing spot. If
+ * the target cannot be resolved it is not temp.
+ */
+function isTempTarget(target, tmpRoots) {
+  if (SHELL_DECIDES.test(target)) return false;
+  if (target.split('/').includes('..')) return false;
+  const inside = (path, root) => {
+    const prefix = `${root.replace(/\/+$/, '')}/`;
+    return path.startsWith(prefix) && path.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+  };
+  if (!tmpRoots.some((root) => inside(target, root))) return false;
+  const landing = resolveLanding(target);
+  if (landing === null) return false;
+  return tmpRoots.some((root) => {
+    const rootLanding = resolveLanding(root);
+    return rootLanding !== null && inside(landing, rootLanding);
+  });
+}
+
+const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length >= 2;
+
+/**
+ * The single gate every temp-root candidate passes before it is used as a
+ * literal prefix. Returns the accepted spellings (normalised path, plus its
+ * realpath when that differs), or [] to drop the candidate.
+ *
+ * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
+ * path at least two components deep, the one exception being /tmp itself. Where
+ * it really lands (resolveLanding: links followed, an absent tail re-appended)
+ * must pass the same test, so a deep-looking link to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
+ * refused.
+ *
+ * What this does NOT judge: whether a path two or more levels deep is really a
+ * temp dir. A configured TMPDIR such as /Users/me (a home dir) passes and is
+ * then trusted as a literal root, so literal paths under it are allowed. That
+ * value comes from the session's own environment, not from the command.
+ */
+function validateTempRoot(p) {
+  if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
+  const resolved = resolve(p);
+  if (!isRootShaped(resolved)) return [];
+  // Where the root really lands, links on its ancestors included (an absent
+  // TMPDIR under a link to / would otherwise pass as two components deep).
+  const real = resolveLanding(resolved);
+  if (real === null || !isRootShaped(real)) return [];
+  return real === resolved ? [resolved] : [resolved, real];
+}
+
+function checkRm(args, tmpRoots) {
+  let recursive = false;
+  let force = false;
+  const targets = [];
+  let flagsDone = false;
+  for (const a of args) {
+    if (!flagsDone && a === '--') {
+      flagsDone = true;
+    } else if (!flagsDone && a === '--recursive') {
+      recursive = true;
+    } else if (!flagsDone && a === '--force') {
+      force = true;
+    } else if (!flagsDone && isShortCluster(a)) {
+      if (/[rR]/.test(a)) recursive = true;
+      if (a.includes('f')) force = true;
+    } else if (!flagsDone && a.startsWith('--')) {
+      // other long options (--verbose, --one-file-system) change nothing here
+    } else {
+      targets.push(a);
+    }
+  }
+  if (!recursive || !force) return null;
+  if (targets.length > 0 && targets.every((t) => isTempTarget(t, tmpRoots))) return null;
+  return {
+    rule: 'rm-rf',
+    detail: targets.length === 0
+      ? 'recursive force delete with targets from stdin or none visible'
+      : `recursive force delete of ${targets.join(' ')}${targets.some((t) => SHELL_DECIDES.test(t))
+        ? ' (a target the shell expands is never treated as temp: write the literal absolute path, for example /tmp/<dir>, instead of $TMPDIR or another variable)'
+        : ''}`,
+  };
+}
+
+const GIT_OPTS_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--exec-path', '--config-env', '--super-prefix']);
+
+function checkGit(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-')) j += GIT_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  const sub = args[j];
+  const rest = args.slice(j + 1);
+  if (sub === 'push') {
+    const forced = rest.find((a) =>
+      a === '--force' ||
+      a === '--force-with-lease' ||
+      a.startsWith('--force-with-lease=') ||
+      (isShortCluster(a) && a.includes('f')) ||
+      (a.startsWith('+') && a.length > 1));
+    if (forced) return { rule: 'git-push-force', detail: `git push with ${forced}` };
+    const deleted = rest.find((a) =>
+      a === '--delete' ||
+      (isShortCluster(a) && a.includes('d')) ||
+      (a.startsWith(':') && a.length > 1));
+    if (deleted) return { rule: 'git-push-delete', detail: `git push with ${deleted} deletes a remote branch` };
+  }
+  if (sub === 'reset' && rest.includes('--hard')) {
+    return { rule: 'git-reset-hard', detail: 'git reset --hard discards uncommitted work' };
+  }
+  return null;
+}
+
+const SSH_OPTS_WITH_VALUE = new Set(['-B', '-b', '-c', '-D', '-E', '-e', '-F', '-I', '-i', '-J', '-L', '-l', '-m', '-O', '-o', '-P', '-p', '-Q', '-R', '-S', '-W', '-w']);
+
+/** The command string ssh runs on the remote host, or null when there is none. */
+function sshRemoteCommand(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-') && args[j] !== '--') {
+    j += SSH_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  }
+  if (args[j] === '--') j++;
+  j++; // the destination
+  if (args[j] === '--') j++;
+  const remote = args.slice(j);
+  return remote.length > 0 ? remote.join(' ') : null;
+}
+
+function checkSegment(words, tmpRoots, depth) {
+  for (let i = 0; i < words.length; i++) {
+    const cmd = base(words[i]);
+    const args = words.slice(i + 1);
+    let hit = null;
+    if (cmd === 'rm') hit = checkRm(args, tmpRoots);
+    else if (cmd === 'git') hit = checkGit(args);
+    else if (cmd === 'kubectl' && args.includes('delete')) {
+      hit = { rule: 'kubectl-delete', detail: 'kubectl delete removes cluster resources' };
+    } else if ((cmd === 'terraform' || cmd === 'tofu') && (args.includes('destroy') ||
+      (args.includes('apply') && (args.includes('-destroy') || args.includes('--destroy'))))) {
+      hit = { rule: 'terraform-destroy', detail: 'terraform destroy tears down managed infrastructure' };
+    } else if (SHELLS.has(cmd) && depth < MAX_DEPTH) {
+      const c = args.findIndex((a) => isShortCluster(a) && a.includes('c'));
+      if (c !== -1 && args[c + 1] !== undefined) hit = scan(args[c + 1], tmpRoots, depth + 1);
+    } else if (cmd === 'eval' && depth < MAX_DEPTH) {
+      hit = scan(args.join(' '), tmpRoots, depth + 1);
+    } else if (cmd === 'ssh' && depth < MAX_DEPTH) {
+      const remote = sshRemoteCommand(args);
+      if (remote !== null) hit = scan(remote, tmpRoots, depth + 1);
+    }
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function checkSql(command) {
+  const drop = command.match(/\bDROP\s+(TABLE|DATABASE|SCHEMA)\b/i);
+  if (drop) return { rule: 'sql-drop', detail: `DROP ${drop[1].toUpperCase()}` };
+  if (/\bTRUNCATE\s+TABLE\b/i.test(command) ||
+    (SQL_CLIENT.test(command) && /(^|[;"'\n])\s*TRUNCATE\s+[A-Za-z_"`]/i.test(command))) {
+    return { rule: 'sql-truncate', detail: 'TRUNCATE empties a table' };
+  }
+  return null;
+}
+
+function scan(command, tmpRoots, depth) {
+  for (const words of tokenize(command)) {
+    const hit = checkSegment(words, tmpRoots, depth);
+    if (hit) return hit;
+  }
+  if (depth < MAX_DEPTH) {
+    for (const m of command.matchAll(/\$\(([^()]*)\)|`([^`]*)`/g)) {
+      const hit = scan(m[1] ?? m[2] ?? '', tmpRoots, depth + 1);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+/**
+ * Return the first destructive pattern in a Bash command, or null.
+ * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR); opts.osTmpdir
+ * overrides os.'/var/folders/xx/T' for tests. Both pass validateTempRoot and then serve only
+ * as literal roots.
+ */
+function findDestructive(command, opts = {}) {
+  if (typeof command !== 'string' || command.trim() === '') return null;
+  // Literal roots only, each through validateTempRoot: the fixed /tmp and
+  // /private/tmp, the TMPDIR the hook passes, and os.'/var/folders/xx/T' (which falls back
+  // to TMP and TEMP). `$TMPDIR`, `$TMP` and `$TEMP` in a command are never
+  // roots: isTempTarget refuses any target the shell expands.
+  const tmpRoots = [];
+  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? '/var/folders/xx/T', opts.tmpdir]) {
+    tmpRoots.push(...validateTempRoot(candidate));
+  }
+  return checkSql(command) ?? scan(command, tmpRoots, 0);
+}
+
+
+const PRESETS=['rm -rf /tmp/build','rm -rf $TMPDIR/x','TMPDIR=/ ; rm -rf $TMPDIR/usr','rm -rf build','git push origin feat/x','git push -uf origin feat/x','git reset --hard','psql -c "SELECT * FROM t WHERE action = \'drop\'"','psql -c "DROP TABLE users"','kubectl -n prod delete pod web-1','terraform apply -destroy','git commit -m "never git push --force"',"ssh host 'rm -rf /srv/app'",'git push origin --delete feat/x','tofu destroy'];
+const cmd=document.getElementById('cmd');
+const pre=document.getElementById('presets');
+for(const p of PRESETS){const b=document.createElement('button');b.type='button';b.textContent=p;b.addEventListener('click',()=>{cmd.value=p;renderCareful();});pre.appendChild(b);}
+function renderCareful(){
+  const hit=findDestructive(cmd.value,{tmpdir:'/var/folders/xx/T'});
+  const box=document.getElementById('cverdict');
+  if(hit){box.textContent=`exit 2, denied by rule ${hit.rule}: ${hit.detail}.\nClaude is told to ask the operator, not to rephrase the command.`;box.className='verdict bad';}
+  else{box.textContent='exit 0, the command runs.';box.className='verdict ok';}
+}
+cmd.addEventListener('input',renderCareful);
+
+function norm(p){const out=[];for(const s of p.split('/')){if(s===''||s==='.')continue;if(s==='..')out.pop();else out.push(s);}return out;}
+function parseLinks(text){const m=new Map();for(const line of text.split('\n')){const i=line.indexOf('->');if(i<0)continue;const a=norm(line.slice(0,i).trim()).join('/');const b=norm(line.slice(i+2).trim()).join('/');if(a&&b)m.set(a,b);}return m;}
+function realpath(p,links){let parts=norm(p);for(let hop=0;hop<40;hop++){let changed=false;for(let i=parts.length;i>0;i--){const head=parts.slice(0,i).join('/');if(links.has(head)){parts=norm(links.get(head)+'/'+parts.slice(i).join('/'));changed=true;break;}}if(!changed)return parts.join('/');}return null;}
+const within=(t,d)=>t!==null&&(t===d||t.startsWith(d+'/'));
+function renderFreeze(){
+  const links=parseLinks(document.getElementById('flinks').value);
+  const dirRaw=document.getElementById('fdir').value;const tRaw=document.getElementById('ftarget').value;
+  const lexDir=norm(dirRaw).join('/');const realDir=realpath(dirRaw,links);const realT=realpath(tRaw,links);
+  const rows=[
+    ['naive startsWith (no normalising)',tRaw.startsWith(dirRaw),tRaw],
+    ['lexical, .. resolved, segment boundary',within(norm(tRaw).join('/'),lexDir),norm(tRaw).join('/')],
+    ['freeze hook: real path, symlinks followed',within(realT,realDir),realT??'(unresolvable, denied)'],
+  ];
+  const tb=document.getElementById('frows');
+  tb.replaceChildren(...rows.map(([name,inside,path],i)=>{const tr=document.createElement('tr');const a=document.createElement('td');a.textContent=name;const b=document.createElement('td');b.textContent=inside?'allow':'deny (exit 2)';b.className=inside?(i===2?'ok':'warn'):'bad';const c=document.createElement('td');c.textContent=path;tr.append(a,b,c);return tr;}));
+}
+for(const id of ['fdir','ftarget','flinks'])document.getElementById(id).addEventListener('input',renderFreeze);
+
+const RULES=[
+  ['rm-rf','rm with recursive and force flags, xargs rm -rf, any target the shell expands ($TMPDIR, $TMP, $X, $( ), globs, ~)','a literal absolute path inside /tmp, /private/tmp or a TMPDIR two or more levels deep; rm -r; rm -f file'],
+  ['git-push-force','--force, -f (also in -uf), --force-with-lease, +branch refspec','git push, git push -u origin <branch>'],
+  ['git-push-delete','git push --delete / -d <b>, git push origin :<b>','git push origin <b>:<b>'],
+  ['git-reset-hard','git reset --hard','git reset --soft, git reset HEAD <file>'],
+  ['sql-drop','DROP TABLE / DATABASE / SCHEMA anywhere, heredocs included','a SELECT that mentions drop'],
+  ['sql-truncate','TRUNCATE TABLE, or TRUNCATE <name> sent to a SQL client','truncate -s 0 app.log'],
+  ['kubectl-delete','kubectl ... delete','kubectl get, kubectl logs'],
+  ['terraform-destroy','terraform or tofu destroy, apply -destroy','terraform plan, terraform apply'],
+];
+document.getElementById('rules').replaceChildren(...RULES.map((r)=>{const tr=document.createElement('tr');for(const v of r){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}return tr;}));
+renderCareful();renderFreeze();
+</script>
+</body>
+</html>

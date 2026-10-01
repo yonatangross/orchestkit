@@ -1424,6 +1424,38 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
+  "careful": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "What it blocks",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "When a command is blocked",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Limits",
+            "does": "",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
   "chain-patterns": {
     "tier": "sections",
     "lanes": [
@@ -3687,6 +3719,45 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "label": "Commit and PR",
             "does": "Create PR with fix",
             "out": "Merged PR",
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
+  "freeze": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "How it works",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Usage",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "When an edit is blocked",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Limits",
+            "does": "",
+            "out": null,
             "tag": null
           }
         ]

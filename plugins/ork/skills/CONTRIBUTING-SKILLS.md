@@ -160,7 +160,7 @@ keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
 
 ### Skill-Scoped Hooks
 
-Skills can declare hooks in frontmatter. These run only while the skill is active:
+Skills can declare hooks in frontmatter. Claude Code registers them when the skill is invoked and keeps them for the rest of the session (see Lifetime below):
 
 ```yaml
 hooks:
@@ -171,6 +171,19 @@ hooks:
 ```
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
+Lifetime: Claude Code registers a skill's hooks when the skill is invoked and keeps running them for the rest of the session, not only during the skill's own turn (https://code.claude.com/docs/en/hooks, "Hooks in skills and agents"). That is what makes an on-demand guard possible: `careful` and `freeze` register a PreToolUse hook that stays on once the operator invokes them. A guard like that ships as a self-contained script in the skill's own `scripts/` (Node stdlib, deny with exit 2 and the reason on stderr, fail closed on unreadable input) and uses the documented nested shape:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/careful/scripts/careful-guard.mjs"'
+```
+
+It does not go through `run-hook.mjs`, which fails open on a bundle error and depends on the release-built `hooks/dist`.
 
 > **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating the context loaders across OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
 >

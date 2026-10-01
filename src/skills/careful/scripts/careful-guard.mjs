@@ -1,0 +1,378 @@
+#!/usr/bin/env node
+/**
+ * PreToolUse Bash guard for the careful skill.
+ *
+ * The skill registers this script from its frontmatter, so Claude Code runs it
+ * on every Bash call for the rest of the session once careful is invoked. It
+ * denies, with exit 2 and a stderr reason naming the rule:
+ *
+ *   rm-rf              rm with both recursive and force flags, unless every target is
+ *                      a LITERAL absolute path that lands (existing symlinks followed,
+ *                      resolveLanding) strictly inside a root that passed
+ *                      validateTempRoot (/tmp, /private/tmp, a configured TMPDIR two or
+ *                      more levels deep); a target with $VAR, $( ), a glob, braces or ~
+ *                      is never temp, $TMPDIR included, since the command can reassign it
+ *   git-push-force     git push --force, -f (alone or in a cluster), --force-with-lease, +refspec
+ *   git-push-delete    git push --delete / -d / :branch (remote branch delete)
+ *   git-reset-hard     git reset --hard
+ *   sql-drop           DROP TABLE, DROP DATABASE, DROP SCHEMA anywhere in the command text
+ *   sql-truncate       TRUNCATE TABLE anywhere, or a bare TRUNCATE <name> statement
+ *                      when a SQL client is named in the command
+ *   kubectl-delete     kubectl ... delete
+ *   terraform-destroy  terraform or tofu destroy, apply -destroy
+ *
+ * Matching is on shell words, not substrings: quoted text is one word, so a
+ * commit message or a grep pattern that mentions "git push --force" is not a
+ * push. Compound commands are split on ; & | and newlines, and the bodies of
+ * `bash -c`, `eval`, $( ) and an ssh remote command are checked too.
+ *
+ * Input that cannot be read fails closed (exit 2): a guard that cannot see the
+ * command cannot say it is safe. Node stdlib only.
+ *
+ * Usage (as a hook): node careful-guard.mjs < PreToolUse-payload.json
+ * Exit: 0 allow · 2 deny (reason on stderr)
+ */
+import { readFileSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
+const SQL_CLIENT = /\b(psql|pgcli|mysql|mariadb|mycli|sqlite3|duckdb|clickhouse(-client)?|cockroach|sqlcmd|snowsql|usql)\b/i;
+const MAX_DEPTH = 4;
+
+/**
+ * Split a command into segments of shell words. Quotes are removed from the
+ * words they delimit; $( ) is kept whole inside its word so the caller can
+ * see that a target is computed.
+ */
+export function tokenize(command) {
+  const segments = [];
+  let words = [];
+  let word = '';
+  let inWord = false;
+  const endWord = () => {
+    if (inWord) words.push(word);
+    word = '';
+    inWord = false;
+  };
+  const endSegment = () => {
+    endWord();
+    if (words.length > 0) segments.push(words);
+    words = [];
+  };
+
+  for (let i = 0; i < command.length; i++) {
+    const c = command[i];
+    if (c === '\\' && i + 1 < command.length) {
+      if (command[i + 1] !== '\n') {
+        word += command[i + 1];
+        inWord = true;
+      }
+      i++;
+    } else if (c === "'") {
+      const end = command.indexOf("'", i + 1);
+      const stop = end === -1 ? command.length : end;
+      word += command.slice(i + 1, stop);
+      inWord = true;
+      i = stop;
+    } else if (c === '"') {
+      inWord = true;
+      let j = i + 1;
+      while (j < command.length && command[j] !== '"') {
+        if (command[j] === '\\' && j + 1 < command.length) {
+          word += command[j + 1];
+          j += 2;
+        } else {
+          word += command[j];
+          j++;
+        }
+      }
+      i = j;
+    } else if (c === '$' && command[i + 1] === '(') {
+      let depth = 0;
+      let j = i + 1;
+      for (; j < command.length; j++) {
+        if (command[j] === '(') depth++;
+        else if (command[j] === ')' && --depth === 0) break;
+      }
+      word += command.slice(i, j + 1);
+      inWord = true;
+      i = j;
+    } else if (c === ' ' || c === '\t') {
+      endWord();
+    } else if (c === '\n' || c === ';' || c === '&' || c === '|' || c === '(' || c === ')') {
+      endSegment();
+    } else {
+      word += c;
+      inWord = true;
+    }
+  }
+  endSegment();
+  return segments;
+}
+
+const base = (w) => w.slice(w.lastIndexOf('/') + 1);
+const isShortCluster = (w) => /^-[a-zA-Z]+$/.test(w);
+
+// Characters that let the shell, not the text, decide the path: parameter and
+// command substitution, globs, brace and tilde expansion.
+const SHELL_DECIDES = /[$`*?[\]{}~]/;
+
+/**
+ * Where a path really lands: realpath of its deepest existing ancestor, with
+ * the not-yet-existing tail re-appended. Links anywhere on the path, chains
+ * included, are followed. null when an ancestor exists but cannot be resolved
+ * (EACCES, ELOOP, ENOTDIR and the like): the caller must treat that as unsafe.
+ */
+export function resolveLanding(p) {
+  const missing = [];
+  let cursor = resolve(p);
+  for (;;) {
+    try {
+      const real = realpathSync(cursor);
+      return missing.length === 0 ? real : join(real, ...missing.reverse());
+    } catch (err) {
+      if (err?.code !== 'ENOENT') return null;
+      const parent = dirname(cursor);
+      if (parent === cursor) return null;
+      missing.push(basename(cursor));
+      cursor = parent;
+    }
+  }
+}
+
+/**
+ * Is `target` a literal absolute path strictly inside a validated temp root,
+ * both as written and where it really lands?
+ *
+ * Only literal text counts. A command can reassign TMPDIR before using it
+ * (`TMPDIR=/ ; rm -rf $TMPDIR/usr`), unset it, or build it in eval, so no
+ * variable, substitution or expansion in a target is ever trusted, $TMPDIR
+ * included. A literal path can still run through an existing symlink
+ * (`<tmp>/link/local` with link -> /usr), so the landing spot from
+ * resolveLanding must also be strictly inside a root's own landing spot. If
+ * the target cannot be resolved it is not temp.
+ */
+function isTempTarget(target, tmpRoots) {
+  if (SHELL_DECIDES.test(target)) return false;
+  if (target.split('/').includes('..')) return false;
+  const inside = (path, root) => {
+    const prefix = `${root.replace(/\/+$/, '')}/`;
+    return path.startsWith(prefix) && path.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+  };
+  if (!tmpRoots.some((root) => inside(target, root))) return false;
+  const landing = resolveLanding(target);
+  if (landing === null) return false;
+  return tmpRoots.some((root) => {
+    const rootLanding = resolveLanding(root);
+    return rootLanding !== null && inside(landing, rootLanding);
+  });
+}
+
+const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length >= 2;
+
+/**
+ * The single gate every temp-root candidate passes before it is used as a
+ * literal prefix. Returns the accepted spellings (normalised path, plus its
+ * realpath when that differs), or [] to drop the candidate.
+ *
+ * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
+ * path at least two components deep, the one exception being /tmp itself. Where
+ * it really lands (resolveLanding: links followed, an absent tail re-appended)
+ * must pass the same test, so a deep-looking link to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
+ * refused.
+ *
+ * What this does NOT judge: whether a path two or more levels deep is really a
+ * temp dir. A configured TMPDIR such as /Users/me (a home dir) passes and is
+ * then trusted as a literal root, so literal paths under it are allowed. That
+ * value comes from the session's own environment, not from the command.
+ */
+export function validateTempRoot(p) {
+  if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
+  const resolved = resolve(p);
+  if (!isRootShaped(resolved)) return [];
+  // Where the root really lands, links on its ancestors included (an absent
+  // TMPDIR under a link to / would otherwise pass as two components deep).
+  const real = resolveLanding(resolved);
+  if (real === null || !isRootShaped(real)) return [];
+  return real === resolved ? [resolved] : [resolved, real];
+}
+
+function checkRm(args, tmpRoots) {
+  let recursive = false;
+  let force = false;
+  const targets = [];
+  let flagsDone = false;
+  for (const a of args) {
+    if (!flagsDone && a === '--') {
+      flagsDone = true;
+    } else if (!flagsDone && a === '--recursive') {
+      recursive = true;
+    } else if (!flagsDone && a === '--force') {
+      force = true;
+    } else if (!flagsDone && isShortCluster(a)) {
+      if (/[rR]/.test(a)) recursive = true;
+      if (a.includes('f')) force = true;
+    } else if (!flagsDone && a.startsWith('--')) {
+      // other long options (--verbose, --one-file-system) change nothing here
+    } else {
+      targets.push(a);
+    }
+  }
+  if (!recursive || !force) return null;
+  if (targets.length > 0 && targets.every((t) => isTempTarget(t, tmpRoots))) return null;
+  return {
+    rule: 'rm-rf',
+    detail: targets.length === 0
+      ? 'recursive force delete with targets from stdin or none visible'
+      : `recursive force delete of ${targets.join(' ')}${targets.some((t) => SHELL_DECIDES.test(t))
+        ? ' (a target the shell expands is never treated as temp: write the literal absolute path, for example /tmp/<dir>, instead of $TMPDIR or another variable)'
+        : ''}`,
+  };
+}
+
+const GIT_OPTS_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--exec-path', '--config-env', '--super-prefix']);
+
+function checkGit(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-')) j += GIT_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  const sub = args[j];
+  const rest = args.slice(j + 1);
+  if (sub === 'push') {
+    const forced = rest.find((a) =>
+      a === '--force' ||
+      a === '--force-with-lease' ||
+      a.startsWith('--force-with-lease=') ||
+      (isShortCluster(a) && a.includes('f')) ||
+      (a.startsWith('+') && a.length > 1));
+    if (forced) return { rule: 'git-push-force', detail: `git push with ${forced}` };
+    const deleted = rest.find((a) =>
+      a === '--delete' ||
+      (isShortCluster(a) && a.includes('d')) ||
+      (a.startsWith(':') && a.length > 1));
+    if (deleted) return { rule: 'git-push-delete', detail: `git push with ${deleted} deletes a remote branch` };
+  }
+  if (sub === 'reset' && rest.includes('--hard')) {
+    return { rule: 'git-reset-hard', detail: 'git reset --hard discards uncommitted work' };
+  }
+  return null;
+}
+
+const SSH_OPTS_WITH_VALUE = new Set(['-B', '-b', '-c', '-D', '-E', '-e', '-F', '-I', '-i', '-J', '-L', '-l', '-m', '-O', '-o', '-P', '-p', '-Q', '-R', '-S', '-W', '-w']);
+
+/** The command string ssh runs on the remote host, or null when there is none. */
+function sshRemoteCommand(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-') && args[j] !== '--') {
+    j += SSH_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  }
+  if (args[j] === '--') j++;
+  j++; // the destination
+  if (args[j] === '--') j++;
+  const remote = args.slice(j);
+  return remote.length > 0 ? remote.join(' ') : null;
+}
+
+function checkSegment(words, tmpRoots, depth) {
+  for (let i = 0; i < words.length; i++) {
+    const cmd = base(words[i]);
+    const args = words.slice(i + 1);
+    let hit = null;
+    if (cmd === 'rm') hit = checkRm(args, tmpRoots);
+    else if (cmd === 'git') hit = checkGit(args);
+    else if (cmd === 'kubectl' && args.includes('delete')) {
+      hit = { rule: 'kubectl-delete', detail: 'kubectl delete removes cluster resources' };
+    } else if ((cmd === 'terraform' || cmd === 'tofu') && (args.includes('destroy') ||
+      (args.includes('apply') && (args.includes('-destroy') || args.includes('--destroy'))))) {
+      hit = { rule: 'terraform-destroy', detail: 'terraform destroy tears down managed infrastructure' };
+    } else if (SHELLS.has(cmd) && depth < MAX_DEPTH) {
+      const c = args.findIndex((a) => isShortCluster(a) && a.includes('c'));
+      if (c !== -1 && args[c + 1] !== undefined) hit = scan(args[c + 1], tmpRoots, depth + 1);
+    } else if (cmd === 'eval' && depth < MAX_DEPTH) {
+      hit = scan(args.join(' '), tmpRoots, depth + 1);
+    } else if (cmd === 'ssh' && depth < MAX_DEPTH) {
+      const remote = sshRemoteCommand(args);
+      if (remote !== null) hit = scan(remote, tmpRoots, depth + 1);
+    }
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function checkSql(command) {
+  const drop = command.match(/\bDROP\s+(TABLE|DATABASE|SCHEMA)\b/i);
+  if (drop) return { rule: 'sql-drop', detail: `DROP ${drop[1].toUpperCase()}` };
+  if (/\bTRUNCATE\s+TABLE\b/i.test(command) ||
+    (SQL_CLIENT.test(command) && /(^|[;"'\n])\s*TRUNCATE\s+[A-Za-z_"`]/i.test(command))) {
+    return { rule: 'sql-truncate', detail: 'TRUNCATE empties a table' };
+  }
+  return null;
+}
+
+function scan(command, tmpRoots, depth) {
+  for (const words of tokenize(command)) {
+    const hit = checkSegment(words, tmpRoots, depth);
+    if (hit) return hit;
+  }
+  if (depth < MAX_DEPTH) {
+    for (const m of command.matchAll(/\$\(([^()]*)\)|`([^`]*)`/g)) {
+      const hit = scan(m[1] ?? m[2] ?? '', tmpRoots, depth + 1);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+/**
+ * Return the first destructive pattern in a Bash command, or null.
+ * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR); opts.osTmpdir
+ * overrides os.tmpdir() for tests. Both pass validateTempRoot and then serve only
+ * as literal roots.
+ */
+export function findDestructive(command, opts = {}) {
+  if (typeof command !== 'string' || command.trim() === '') return null;
+  // Literal roots only, each through validateTempRoot: the fixed /tmp and
+  // /private/tmp, the TMPDIR the hook passes, and os.tmpdir() (which falls back
+  // to TMP and TEMP). `$TMPDIR`, `$TMP` and `$TEMP` in a command are never
+  // roots: isTempTarget refuses any target the shell expands.
+  const tmpRoots = [];
+  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? tmpdir(), opts.tmpdir]) {
+    tmpRoots.push(...validateTempRoot(candidate));
+  }
+  return checkSql(command) ?? scan(command, tmpRoots, 0);
+}
+
+export function denyMessage(hit) {
+  return [
+    `[ork:careful] blocked by rule ${hit.rule}: ${hit.detail}.`,
+    'careful mode is on for this session, so destructive commands do not run unattended.',
+    'To proceed, ask the operator: they can run the command themselves, or confirm it and run it outside careful mode.',
+    'Do not rephrase the command to get past this guard.',
+  ].join('\n');
+}
+
+function main() {
+  let payload;
+  try {
+    payload = JSON.parse(readFileSync(0, 'utf8'));
+  } catch (err) {
+    process.stderr.write(`[ork:careful] could not read the hook input (${err.message}); blocking because the command cannot be checked.\n`);
+    return 2;
+  }
+  if (payload?.tool_name !== 'Bash') return 0;
+  const hit = findDestructive(payload.tool_input?.command, { tmpdir: process.env.TMPDIR });
+  if (!hit) return 0;
+  process.stderr.write(`${denyMessage(hit)}\n`);
+  return 2;
+}
+
+function isEntryPoint() {
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint()) process.exitCode = main();

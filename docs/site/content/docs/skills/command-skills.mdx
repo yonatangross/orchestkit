@@ -1,5 +1,5 @@
 ---
-title: "36 Commands You Can Invoke"
+title: "38 Commands You Can Invoke"
 description: "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
 ---
 
@@ -7,7 +7,7 @@ description: "Every /ork: command skill in OrchestKit, grouped by task, with wha
 
 ## What Are Command Skills?
 
-Command skills are the **36 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
+Command skills are the **38 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
 
 Command skills differ from reference skills in three ways:
 
@@ -113,6 +113,17 @@ Set up, diagnose, and inspect OrchestKit itself.
 | [`/ork:help`](/docs/reference/skills/help) | OrchestKit help directory with categorized skill listings. | low | `/ork:help [category]` |
 | [`/ork:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from explicit consumer telemetry roots. | medium | `/ork:audit-activation [--json]` |
 | [`/ork:telemetry-inspect`](/docs/reference/skills/telemetry-inspect) | Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. | low | `/ork:telemetry-inspect [--session <id>] [--json]` |
+
+---
+
+## More Commands
+
+Commands not yet filed under a task above.
+
+| Command | What it does | Complexity | Usage |
+|---------|--------------|------------|-------|
+| [`/ork:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork:careful` |
+| [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
 
 ---
 
