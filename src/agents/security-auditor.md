@@ -9,7 +9,7 @@ experimental:
   # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
 maxTurns: 60
-effort: medium
+effort: high
 color: red
 memory: local
 tools:
