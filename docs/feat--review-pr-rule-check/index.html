@@ -168,14 +168,14 @@ function splitRules(path, text) {
 const SAMPLE = "# Project rules\n\nThis file says what the repo is.\n\n## Writing\n- Never use the em-dash in any output.\n- Prefer plain words over jargon, and\n  stop when the point is made.\n  - nested: folds into the parent\n- Shorter replies read better.\n\nAlways respond in English unless asked otherwise.\n\n```bash\n# never a rule: code sample\n```\n\n## Gotchas\n| Gotcha | Why |\n|--------|-----|\n| Never push to main without approval | protected branch |\n| The wrapper eats exit 2 | historical note |\n";
 const md=document.getElementById('md'),cap=document.getElementById('cap');
 md.value=SAMPLE;
-const esc=(s)=>s.replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function renderSplit(){
   const all=splitRules('pasted.md',md.value).filter((r)=>r.text);
   const rules=all.filter((r)=>DIRECTIVE.test(r.text)), skipped=all.filter((r)=>!DIRECTIVE.test(r.text));
   const max=Math.max(1,Math.min(24,Math.floor(Number(cap.value)||12)));
   const per=[];
   if(rules.length<=max) rules.forEach((_,i)=>per.push(i+1)); else {const b=Math.floor(rules.length/max),x=rules.length%max;let k=0;for(let v=0;v<max;v++){const n=b+(v<x?1:0);for(let j=0;j<n;j++)per[k++]=v+1;}}
-  document.getElementById('rules').innerHTML=rules.map((r,i)=>`<tr><td>R${i+1}</td><td>${r.line}</td><td>${r.kind}</td><td>${esc(r.text)}</td><td>#${per[i]}</td></tr>`).join('');
+  const tb=document.getElementById('rules');tb.replaceChildren(...rules.map((r,i)=>{const tr=document.createElement('tr');
+    for(const v of [`R${i+1}`,String(r.line),r.kind,r.text,`#${per[i]}`]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}return tr;}));
   const nv=Math.min(rules.length,max);
   document.getElementById('summary').textContent=`${rules.length} rule(s) over ${nv} verifier(s) at effort low${rules.length>max?', batched, none dropped':''}`;
   document.getElementById('skipped').textContent=skipped.length?`Skipped (no directive word), reported not dropped: ${skipped.map((s)=>`line ${s.line} "${s.text}"`).join('; ')}`:'Nothing skipped.';
@@ -191,7 +191,7 @@ function renderOutcome(){
   else{const m=/^(.+):(\d+)(?:-\d+)?$/.exec(cit);const f=m?m[1]:null;const inScope=f!==null&&(f==='src/api.ts'||CHANGED.includes(f));
     if(inScope&&why){out=`REFUTED: cited ${cit}, reported in the refuted list`;cls='ok';}
     else{out=`SURVIVES as "unbacked refutation": ${!m?'citation is not file:line':!inScope?'citation is outside the diff':'no reason given'}`;cls='bad';}}
-  document.getElementById('outcome').innerHTML=`<span class="${cls}">${out}</span>`;
+  const box=document.getElementById('outcome');box.textContent=out;box.className=`verdict ${cls}`;
 }
 ['ref','cit','why'].forEach((id)=>document.getElementById(id).addEventListener('input',renderOutcome));renderOutcome();
 </script>
