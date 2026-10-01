@@ -23,6 +23,21 @@
  *     gate, so one env var covers both doors).
  *   - anything else   -> allow silently.
  *
+ * Re-cache warning (claude.dev "Prompt caching is everything"): a mid-session
+ * switch on a warm, large context rewrites the whole prompt cache on the new
+ * model. Measured in model-switch.jsonl: 113 switches from 2026-08-29 to
+ * 2026-09-29, 102 of them above 100k context, about $592 of estimated cache
+ * writes. When the cache is warm and context_tokens exceeds
+ * WARM_CONTEXT_WARN_TOKENS, every allowed switch carries one systemMessage line
+ * naming the estimated cost and the way to avoid it. Switching UP a price tier
+ * (haiku < sonnet < opus < fable/mythos), finishing on the current model is
+ * cheaper, so the line says so; switching down, sideways or between unknown
+ * models it only suggests a handoff through a subagent or a fresh session with
+ * a short plan. It never asks or denies. The premium-tier ask already quotes
+ * the cost in its reason, so that path adds no second line. This lives here, not in the
+ * PostModelSwitch telemetry hook, because that hook is async: CC delivers an
+ * async systemMessage on the NEXT turn, after the cache was already paid for.
+ *
  * DELIBERATELY NOT gated on isBypassMode(), for the same reason the spawn gate
  * is not: `--dangerously-skip-permissions` turns off permission prompts, and
  * this is spend consent, not a permission. ORK_FABLE_OK=1 is the explicit
@@ -34,27 +49,73 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
-import { outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess, outputWarning } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { isPremiumTierModel, readModelSwitch } from '../lib/session-staleness.js';
+import type { ModelSwitchPayload } from '../lib/session-staleness.js';
 
 const HOOK_NAME = 'model-switch-consent';
+
+/** Above this many context tokens on a warm cache, a switch gets a re-cache warning. */
+export const WARM_CONTEXT_WARN_TOKENS = 100_000;
+
+/**
+ * Price tier by model family: haiku < sonnet < opus < fable/mythos. Matches short
+ * ids, full ids and the [1m] suffix. 0 means unknown, so no direction is claimed.
+ */
+function priceTier(model: string): number {
+  const m = model.toLowerCase();
+  if (isPremiumTierModel(m)) return 4;
+  if (m.includes('opus')) return 3;
+  if (m.includes('sonnet')) return 2;
+  if (m.includes('haiku')) return 1;
+  return 0;
+}
+
+function recacheWarning(sw: ModelSwitchPayload): string | null {
+  if (!sw.promptCacheWarm || sw.contextTokens <= WARM_CONTEXT_WARN_TOKENS) {
+    return null;
+  }
+  const from = sw.fromModel || 'the current model';
+  const cost =
+    sw.estimatedCacheWriteUsd > 0 ? `, estimated $${sw.estimatedCacheWriteUsd.toFixed(2)} (${sw.pricing || 'catalog'} pricing)` : '';
+  const head = `Switching ${from} -> ${sw.toModel} re-caches a warm ${sw.contextTokens.toLocaleString('en-US')}-token context${cost}. `;
+  const fromTier = priceTier(sw.fromModel);
+  const toTier = priceTier(sw.toModel);
+  // Only a switch UP makes staying put the cheaper option. Down, sideways or
+  // unknown, the re-cache write on the new model is the cost, and a handoff
+  // is the only way to skip it.
+  if (fromTier > 0 && toTier > fromTier) {
+    return `${head}Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;
+  }
+  return `${head}To skip that write, hand the next step to a subagent or a fresh session with a short plan.`;
+}
+
+/** Allow the switch, with the re-cache warning when one applies. */
+function allow(sw: ModelSwitchPayload): HookResult {
+  const warning = recacheWarning(sw);
+  return warning ? outputWarning(warning) : outputSilentSuccess();
+}
 
 export function modelSwitchConsent(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const sw = readModelSwitch(input);
 
-  if (!sw.toModel || !isPremiumTierModel(sw.toModel)) {
+  if (!sw.toModel) {
     return outputSilentSuccess();
+  }
+
+  if (!isPremiumTierModel(sw.toModel)) {
+    return allow(sw);
   }
 
   if (isPremiumTierModel(sw.fromModel)) {
     ctx.log(HOOK_NAME, `premium-tier switch within tier allowed: ${sw.fromModel} -> ${sw.toModel}`);
-    return outputSilentSuccess();
+    return allow(sw);
   }
 
   if (process.env.ORK_FABLE_OK === '1') {
     ctx.log(HOOK_NAME, `premium-tier switch allowed (ORK_FABLE_OK=1): ${sw.fromModel} -> ${sw.toModel}`);
-    return outputSilentSuccess();
+    return allow(sw);
   }
 
   const costClause =
