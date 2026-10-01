@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "1bd8aae2c205c1730f28b4aea7671ad170cfbafef38005005e6acc1c7b2bab32",
+    "sha256": "02af7e628fb758ec0280c2e9f2f7ac7f2881f41704f3727b44748d719294e18a",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -708,6 +708,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [
       "AskUserQuestion",
       "Agent",
+      "Workflow",
       "Read",
       "Grep",
       "Glob",
@@ -2698,7 +2699,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "661e702be80c09ca2af0561af95cbe95b81ab78d7d9869049aca31e2828db138",
+    "sha256": "09e6527b0797ab617d869612ce9bb1324fbfba66267de59cee2d8cd94f9db20f",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2759,6 +2760,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "cc-enhancements.md",
         "claude-code.md",
         "e2e-verification.md",
+        "effort-ladder.md",
         "feedback-loop.md",
         "interview-mode.md",
         "manual-worktree-pattern.md",
