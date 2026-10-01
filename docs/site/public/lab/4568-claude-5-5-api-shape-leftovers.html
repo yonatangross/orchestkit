@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4568: auto tool_choice on Claude 5.5, one antipatterns copy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:20px;max-width:72ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+input,select{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+a{color:var(--accent)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4568: auto tool_choice on Claude 5.5, one antipatterns copy"><meta property="og:description" content="The langgraph tools-bind rule teaches auto tool_choice with strict tools instead of forcing a call, Sonnet 5.5 joins the 400 list, and the antipatterns rules file is not seeded under an ancestor that already has it."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4568-claude-5-5-api-shape-leftovers.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4568: auto tool_choice on Claude 5.5, one antipatterns copy"><meta name="twitter:description" content="The langgraph tools-bind rule teaches auto tool_choice with strict tools instead of forcing a call, Sonnet 5.5 joins the 400 list, and the antipatterns rules file is not seeded under an ancestor that already has it."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1>Two Claude 5.5 leftovers: forced <code>tool_choice</code> and a rules file loaded four times</h1>
+  <p class="meta">Forced <code>tool_choice</code> (<code>any</code> or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1. And CC loads <code>.claude/rules</code> from every ancestor dir, so one session loaded four identical <code>antipatterns.md</code> copies.</p>
+</header>
+<section>
+  <h2>tool_choice for a model (rule scoped by model after review)</h2>
+  <label for="m">model</label>
+  <select id="m"><option>claude-sonnet-5-5</option><option>claude-opus-5-5</option><option>claude-fable-5-1</option><option>claude-sonnet-5 (pre-5.5)</option><option>claude-haiku-4-5 (pre-5.5)</option><option>another provider</option></select>
+  <pre id="code"></pre>
+</section>
+<section>
+  <h2>antipatterns.md seeding</h2>
+  <table>
+    <thead><tr><th>where an identical copy already exists</th><th>origin/main</th><th>this PR</th></tr></thead>
+    <tbody>
+      <tr><td>user-global <code>~/.claude/rules</code></td><td class="ok">skip</td><td class="ok">skip</td></tr>
+      <tr><td>an ancestor dir, for example the repo root above a worktree</td><td class="bad">write a second copy</td><td class="ok">skip</td></tr>
+      <tr><td>a sibling dir only</td><td>write</td><td>write</td></tr>
+      <tr><td>an ancestor with different content</td><td>write</td><td>write</td></tr>
+    </tbody>
+  </table>
+  <pre><span class="bad">x skips project write when an ancestor .claude/rules copy is identical
+Tests  1 failed | 16 passed (17)</span>
+<span class="ok">Tests  17 passed (17)</span></pre>
+  <p class="meta">"Think step by step" in the agent workflow template was already removed by #4363; no change needed here.</p>
+</section>
+<section>
+  <h2>Source</h2>
+  <p class="meta">claude.dev, <a href="https://claude.dev/blog/building-with-claude-sonnet-5-5/">Building with Claude Sonnet 5.5</a></p>
+</section>
+<script>
+const FIVE5=['claude-sonnet-5-5','claude-opus-5-5','claude-fable-5-1'];
+const sel=document.getElementById('m'),code=document.getElementById('code');
+function render(){
+  code.innerHTML=FIVE5.includes(sel.value)
+    ?'<span class="bad">tool_choice="any"  # 400 on this model</span>\n<span class="ok">model.bind_tools(tools, tool_choice="auto", strict=True)\n# system: "Look the answer up with search_database before you reply."\n# then check response.tool_calls</span>'
+    :'<span class="ok">model.bind_tools(tools, tool_choice="any")              # at least one tool\nmodel.bind_tools(tools, tool_choice="search_database")  # a specific tool</span>\n# forced tool_choice still works here; the examples stay in the rule under this label';}
+sel.addEventListener('change',render);render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

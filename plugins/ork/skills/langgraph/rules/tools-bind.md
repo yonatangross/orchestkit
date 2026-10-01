@@ -46,13 +46,22 @@ def agent_node(state):
     return {"messages": [response]}
 ```
 
-**Require a tool call:**
+**Require a tool call on Claude Sonnet 5.5, Opus 5.5, Fable 5.1 or Mythos 5.1:**
 ```python
-# Opus 5.5, Fable 5.1 and Mythos 5.1: forced tool_choice ("any" or a named tool) returns a 400.
-# Use auto (best effort, not a guarantee) with strict tools and name the required tool in the prompt:
-model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
+# These models return a 400 on forced tool_choice ("any" or a named tool).
+# Use auto with strict tools, and name the tool in the prompt:
+model_with_tools = model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
 
-# Other providers and other Claude models:
+def agent_node(state):
+    prompt = [("system", "Look the answer up with search_database before you reply.")]
+    response = model_with_tools.invoke(prompt + state["messages"])
+    if not response.tool_calls:
+        ...  # auto is best effort: retry once or route to a fallback, never assume the call happened
+    return {"messages": [response]}
+```
+
+**Require a tool call on other providers and pre-5.5 Claude models (for example Sonnet 5, Haiku 4.5):**
+```python
 model.bind_tools(tools, tool_choice="any")              # At least one tool
 model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 ```
@@ -61,6 +70,7 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 - Always `bind_tools()` before invoking the model
 - Use descriptive `@tool` docstrings — LLM uses them to decide which tool to call
 - Keep 5-10 tools max per agent (use dynamic selection for more)
-- Use `tool_choice` when a specific tool is required, except on Opus 5.5, Fable 5.1 or Mythos 5.1 (400): there use `auto` plus `strict` tools and a prompt that names the tool
+- On Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1, forced `tool_choice` returns a 400: use `tool_choice="auto"` with `strict` tools and a prompt line that names the tool, then check `response.tool_calls`, since `auto` lets the model answer in text instead
+- On other providers and pre-5.5 Claude models, `tool_choice="any"` or a named tool still forces the call
 
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)

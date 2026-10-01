@@ -2943,7 +2943,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
     "version": "2.0.0",
-    "sha256": "d7c7970e577ee99e7f15a92efc552a106121308d7cd4920f3b6384a6d03ef803",
+    "sha256": "f113dba7e862160cfd3f7e3ea1ac6371f2cfab7c6eb3aaefa5decfa515c71130",
     "author": "OrchestKit",
     "tags": [
       "llm",
