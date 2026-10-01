@@ -7,8 +7,9 @@
  * denies, with exit 2 and a stderr reason naming the rule:
  *
  *   rm-rf              rm with both recursive and force flags, unless every target is
- *                      strictly inside a temp dir (/tmp, the runtime tmpdir, or $TMPDIR
- *                      when TMPDIR is set to a real absolute path)
+ *                      strictly inside /tmp, /private/tmp or $TMPDIR (only when the real
+ *                      TMPDIR is absolute and not /) and names something even with
+ *                      its variables empty; $TMP, $TEMP, ~ and relative paths never count
  *   git-push-force     git push --force, -f (alone or in a cluster), --force-with-lease, +refspec
  *   git-push-delete    git push --delete / -d / :branch (remote branch delete)
  *   git-reset-hard     git reset --hard
@@ -30,8 +31,7 @@
  * Exit: 0 allow · 2 deny (reason on stderr)
  */
 import { readFileSync, realpathSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
@@ -117,11 +117,25 @@ function isTempTarget(target, tmpRoots) {
   if (target.split('/').includes('..')) return false;
   for (const root of tmpRoots) {
     const prefix = `${root.replace(/\/+$/, '')}/`;
-    if (target.startsWith(prefix) && target.slice(prefix.length).replace(/\/+/g, '') !== '') {
-      return true;
-    }
+    if (!target.startsWith(prefix)) continue;
+    // What is left must name something even if every variable in it is empty:
+    // `/tmp/$X` with X unset is `rm -rf /tmp/`. A glob or literal text counts.
+    const literal = target.slice(prefix.length)
+      .replace(/\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*|\$[0-9@*#?$!-]/g, '')
+      .replace(/\/+/g, '');
+    if (literal !== '') return true;
   }
   return false;
+}
+
+/**
+ * The real TMPDIR as a temp root, or null. It must be absolute and must not
+ * resolve to / (TMPDIR=/ or /var/.. would make every absolute path "temp").
+ */
+function safeTmpRoot(value) {
+  if (typeof value !== 'string' || !isAbsolute(value)) return null;
+  const resolved = resolve(value);
+  return resolved === '/' ? null : resolved;
 }
 
 function checkRm(args, tmpRoots) {
@@ -255,13 +269,13 @@ function scan(command, tmpRoots, depth) {
  */
 export function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  const tmpRoots = ['/tmp', '/private/tmp', tmpdir()];
-  // `$TMPDIR` in the command is only a temp root when TMPDIR really is one: unset
-  // or empty, the shell turns `rm -rf $TMPDIR/*` into `rm -rf /*`.
-  const t = opts.tmpdir;
-  if (typeof t === 'string' && isAbsolute(t) && t.replace(/\/+$/, '') !== '') {
-    tmpRoots.push(t, '$TMPDIR', '${TMPDIR}');
-  }
+  // Fixed roots plus the real TMPDIR. os.tmpdir() is not used: it reads TMPDIR
+  // unvalidated, so TMPDIR=/ would make it return /. `$TMPDIR` in the command
+  // counts only when TMPDIR is a safe root; unset or empty, the shell turns
+  // `rm -rf $TMPDIR/*` into `rm -rf /*`. $TMP, $TEMP and ~ never count.
+  const tmpRoots = ['/tmp', '/private/tmp'];
+  const real = safeTmpRoot(opts.tmpdir);
+  if (real !== null) tmpRoots.push(real, '$TMPDIR', '${TMPDIR}');
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 

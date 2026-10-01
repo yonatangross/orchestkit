@@ -149,6 +149,30 @@ for (const command of TMP_ALIAS.filter((c) => c !== 'rm -rf "$TMPDIR"')) {
   check(`TMPDIR set: allow ${command}`, findDestructive(command, { tmpdir: '/var/folders/zz/abc/T' })?.rule ?? null, null);
 }
 
+// --- sweep: other temp-root aliases of the same class (review round 3) -------
+// Only /tmp, /private/tmp and a validated TMPDIR are temp roots. Every other
+// spelling, and any target that is nothing but a variable under a root, is
+// denied whatever TMPDIR holds.
+const REAL = '/var/folders/zz/abc/T';
+const SWEEP_DENY = [
+  'rm -rf $TMP/x', 'rm -rf ${TMP}/x', 'rm -rf $TEMP/x', 'rm -rf ${TEMP}/x',
+  'rm -rf ~/tmp/x', 'rm -rf ~/x', 'rm -rf "~/tmp/x"',
+  'rm -rf tmp/x', 'rm -rf ./tmp/x', 'rm -rf T/x',
+  `rm -rf ${SYS_TMP}/$X`, `rm -rf ${SYS_TMP}/\${X}/`, 'rm -rf $TMPDIR/$X', 'rm -rf $TMPDIR/"$X"',
+  `rm -rf ${SYS_TMP}/$(echo)`,
+];
+for (const command of SWEEP_DENY) {
+  for (const [label, tmpdir] of [['set', REAL], ['unset', undefined], ['relative', 'T'], ['root', '/']]) {
+    check(`sweep TMPDIR ${label}: deny ${command}`, findDestructive(command, { tmpdir })?.rule ?? null, 'rm-rf');
+  }
+}
+for (const command of [`rm -rf ${SYS_TMP}/build-$ID`, `rm -rf ${SYS_TMP}/*`, 'rm -rf $TMPDIR/cache-${RUN}']) {
+  check(`sweep allow: ${command}`, findDestructive(command, { tmpdir: REAL })?.rule ?? null, null);
+}
+for (const [label, tmpdir] of [['root', '/'], ['dotdot to root', '/var/..'], ['relative', 'tmp']]) {
+  check(`TMPDIR ${label} grants nothing: rm -rf /etc/x`, findDestructive('rm -rf /etc/x', { tmpdir })?.rule ?? null, 'rm-rf');
+}
+
 // --- CLI contract: exit 2 + stderr naming the rule, exit 0 on allow ----------
 function runHook(payload, env = {}) {
   return spawnSync(process.execPath, [CLI], {
@@ -184,6 +208,15 @@ const bash = (command) => ({
 {
   const r = runHook(bash('rm -rf $TMPDIR/*'), { TMPDIR: undefined });
   check('cli TMPDIR unset: rm -rf $TMPDIR/* denied', r.status, 2);
+}
+{
+  // os.tmpdir() reads TMPDIR too; TMPDIR=/ must not turn every path into a temp path
+  const r = runHook(bash('rm -rf /etc/x'), { TMPDIR: '/' });
+  check('cli TMPDIR=/: rm -rf /etc/x denied', r.status, 2);
+}
+{
+  const r = runHook(bash('rm -rf tmp/x'), { TMPDIR: 'tmp' });
+  check('cli TMPDIR relative: rm -rf tmp/x denied', r.status, 2);
 }
 {
   const r = runHook({ ...bash('rm -rf /'), tool_name: 'Read' });

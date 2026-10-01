@@ -63,7 +63,7 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 103 passed
+<span class="ok">careful-guard: 171 passed
 freeze-guard: 31 passed
 freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
@@ -154,11 +154,25 @@ function isTempTarget(target, tmpRoots) {
   if (target.split('/').includes('..')) return false;
   for (const root of tmpRoots) {
     const prefix = `${root.replace(/\/+$/, '')}/`;
-    if (target.startsWith(prefix) && target.slice(prefix.length).replace(/\/+/g, '') !== '') {
-      return true;
-    }
+    if (!target.startsWith(prefix)) continue;
+    // What is left must name something even if every variable in it is empty:
+    // `/tmp/$X` with X unset is `rm -rf /tmp/`. A glob or literal text counts.
+    const literal = target.slice(prefix.length)
+      .replace(/\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*|\$[0-9@*#?$!-]/g, '')
+      .replace(/\/+/g, '');
+    if (literal !== '') return true;
   }
   return false;
+}
+
+/**
+ * The real TMPDIR as a temp root, or null. It must be absolute and must not
+ * resolve to / (TMPDIR=/ or /var/.. would make every absolute path "temp").
+ */
+function safeTmpRoot(value) {
+  if (typeof value !== 'string' || !isAbsolute(value)) return null;
+  const resolved = resolve(value);
+  return resolved === '/' ? null : resolved;
 }
 
 function checkRm(args, tmpRoots) {
@@ -292,13 +306,13 @@ function scan(command, tmpRoots, depth) {
  */
 function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  const tmpRoots = ['/tmp', '/private/tmp', '/var/folders/xx/T'];
-  // `$TMPDIR` in the command is only a temp root when TMPDIR really is one: unset
-  // or empty, the shell turns `rm -rf $TMPDIR/*` into `rm -rf /*`.
-  const t = opts.tmpdir;
-  if (typeof t === 'string' && isAbsolute(t) && t.replace(/\/+$/, '') !== '') {
-    tmpRoots.push(t, '$TMPDIR', '${TMPDIR}');
-  }
+  // Fixed roots plus the real TMPDIR. os.'/var/folders/xx/T' is not used: it reads TMPDIR
+  // unvalidated, so TMPDIR=/ would make it return /. `$TMPDIR` in the command
+  // counts only when TMPDIR is a safe root; unset or empty, the shell turns
+  // `rm -rf $TMPDIR/*` into `rm -rf /*`. $TMP, $TEMP and ~ never count.
+  const tmpRoots = ['/tmp', '/private/tmp'];
+  const real = safeTmpRoot(opts.tmpdir);
+  if (real !== null) tmpRoots.push(real, '$TMPDIR', '${TMPDIR}');
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 
@@ -334,7 +348,7 @@ function renderFreeze(){
 for(const id of ['fdir','ftarget','flinks'])document.getElementById(id).addEventListener('input',renderFreeze);
 
 const RULES=[
-  ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside $TMPDIR, /tmp or the runtime temp dir; rm -r; rm -f file'],
+  ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside /tmp or a real $TMPDIR, naming something even with variables empty; never $TMP, $TEMP, ~ or relative; rm -r; rm -f file'],
   ['git-push-force','--force, -f (also in -uf), --force-with-lease, +branch refspec','git push, git push -u origin <branch>'],
   ['git-push-delete','git push --delete / -d <b>, git push origin :<b>','git push origin <b>:<b>'],
   ['git-reset-hard','git reset --hard','git reset --soft, git reset HEAD <file>'],

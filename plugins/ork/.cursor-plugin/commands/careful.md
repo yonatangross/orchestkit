@@ -23,7 +23,7 @@ start a new session to work without it.
 
 | Rule | Blocks | Still allowed |
 |------|--------|---------------|
-| `rm-rf` | `rm` with recursive and force flags (`-rf`, `-fr`, `-r -f`, `--recursive --force`), `xargs rm -rf`, a computed target like `"$(pwd)"` | the same command when every target is strictly inside `/tmp`, the runtime temp dir, or `$TMPDIR` (only when TMPDIR is set to a real absolute path; unset, `rm -rf $TMPDIR/*` would be `rm -rf /*`); `rm -r`; `rm -f file` |
+| `rm-rf` | `rm` with recursive and force flags (`-rf`, `-fr`, `-r -f`, `--recursive --force`), `xargs rm -rf`, a computed target like `"$(pwd)"` | the same command when every target is strictly inside `/tmp`, `/private/tmp` or `$TMPDIR`, and names something even with its variables empty (`/tmp/build-$ID` yes, `/tmp/$X` no); `$TMPDIR` counts only when TMPDIR is an absolute path other than `/` (unset, `rm -rf $TMPDIR/*` is `rm -rf /*`); `$TMP`, `$TEMP`, `~` and relative paths never count; `rm -r`; `rm -f file` |
 | `git-push-force` | `git push --force`, `-f` (also inside `-uf`), `--force-with-lease[=...]`, a `+branch` refspec, to any branch | `git push`, `git push -u origin <branch>` |
 | `git-push-delete` | `git push origin --delete <b>`, `-d <b>`, `:<b>` | `git push origin <b>:<b>` |
 | `git-reset-hard` | `git reset --hard` | `git reset --soft`, `git reset HEAD <file>` |
