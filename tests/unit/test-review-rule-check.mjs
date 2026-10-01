@@ -416,6 +416,79 @@ await test('import fix: an in-repo .md is followed', async () => {
   }
 });
 
+// Re-read fix (estate-29 on #4573): the repo's OWN rule files are PR-controlled
+// paths too. A committed CLAUDE.md, .claude/CLAUDE.md or .claude/rules entry that
+// is a symlink leaving the repo is skipped, never opened; ~/.claude stays exempt
+// because the operator's dotfiles symlinks live there.
+function rootFixture() {
+  const root = mkdtempSync(path.join(tmpdir(), 'rule-check-root-'));
+  const repo = path.join(root, 'repo');
+  const home = path.join(root, 'home');
+  const outside = path.join(root, 'outside');
+  const dotfiles = path.join(root, 'dotfiles');
+  mkdirSync(path.join(repo, '.claude', 'rules'), { recursive: true });
+  mkdirSync(path.join(home, '.claude', 'rules'), { recursive: true });
+  mkdirSync(path.join(outside, 'ruledir'), { recursive: true });
+  mkdirSync(dotfiles, { recursive: true });
+  writeFileSync(path.join(outside, 'creds.md'), '- Never reveal SECRET-ROOT-4573.\n');
+  writeFileSync(path.join(outside, 'rule.md'), '- Never reveal SECRET-RULE-4573.\n');
+  writeFileSync(path.join(outside, 'ruledir', 'deep.md'), '- Never reveal SECRET-DIR-4573.\n');
+  writeFileSync(path.join(outside, 'secret.txt'), 'SECRET-TXT-4573\n');
+  symlinkSync(path.join(outside, 'creds.md'), path.join(repo, 'CLAUDE.md'));
+  symlinkSync(path.join(outside, 'secret.txt'), path.join(repo, '.claude', 'CLAUDE.md'));
+  symlinkSync(path.join(outside, 'rule.md'), path.join(repo, '.claude', 'rules', 'linked.md'));
+  symlinkSync(path.join(outside, 'ruledir'), path.join(repo, '.claude', 'rules', 'linkdir'));
+  writeFileSync(path.join(repo, '.claude', 'rules', 'own.md'), '- Always keep this repo rule.\n');
+  writeFileSync(path.join(dotfiles, 'CLAUDE.md'), '- Prefer the operator dotfiles rule.\n');
+  writeFileSync(path.join(dotfiles, 'style.md'), '- Avoid the operator dotfiles anti-pattern.\n');
+  symlinkSync(path.join(dotfiles, 'CLAUDE.md'), path.join(home, '.claude', 'CLAUDE.md'));
+  symlinkSync(path.join(dotfiles, 'style.md'), path.join(home, '.claude', 'rules', 'style.md'));
+  const out = JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home], { encoding: 'utf8' }));
+  return { root, out };
+}
+const fileReason = (out, file) => ((out.skipped || []).find((x) => x.file === file) || {}).reason;
+
+await test('root fix: a repo CLAUDE.md symlinked outside is skipped and never reaches a prompt', async () => {
+  const { root, out } = rootFixture();
+  try {
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-ROOT-4573'), 'outside file behind the repo CLAUDE.md symlink was read');
+    assert.equal(fileReason(out, 'CLAUDE.md'), 'symlink-escape', `skipped: ${JSON.stringify(out.skipped || null)}`);
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-TXT-4573'), 'outside non-.md behind .claude/CLAUDE.md was read');
+    assert.equal(fileReason(out, '.claude/CLAUDE.md'), 'symlink-escape');
+    const { calls } = await run({ ...BASE, sources: out.sources }, (o, p) =>
+      o.phase === 'Verify' ? { status: 'DONE', results: idsIn(p).map((ruleId) => ({ ruleId, applies: true, violations: [{ file: 'src/api.ts', line: 1, quote: 'q', explanation: 'e' }] })) } : { refuted: false, reason: 'x' },
+    );
+    assert.ok(calls.length > 0);
+    for (const c of calls) assert.ok(!/SECRET-[A-Z]+-4573/.test(c.prompt), `secret leaked into a ${c.opts.phase} prompt`);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('root fix: repo rules symlinked outside (file or directory) are skipped, the directory is not walked', async () => {
+  const { root, out } = rootFixture();
+  try {
+    assert.equal(fileReason(out, '.claude/rules/linked.md'), 'symlink-escape', `skipped: ${JSON.stringify(out.skipped || null)}`);
+    assert.equal(fileReason(out, '.claude/rules/linkdir'), 'symlink-escape');
+    assert.ok(!JSON.stringify(out).includes('SECRET-RULE-4573') && !JSON.stringify(out).includes('deep.md'));
+    assert.ok(out.sources.some((x) => x.path === '.claude/rules/own.md'), 'a regular in-repo rule is still read');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('root fix: ~/.claude/CLAUDE.md and ~/.claude/rules symlinked into a dotfiles dir are still followed', async () => {
+  const { root, out } = rootFixture();
+  try {
+    const home = out.sources.find((x) => x.path === '~/.claude/CLAUDE.md');
+    assert.ok(home && home.text.includes('operator dotfiles rule'), `sources: ${out.sources.map((x) => x.path).join(', ')}`);
+    const rule = out.sources.find((x) => x.path === '~/.claude/rules/style.md');
+    assert.ok(rule && rule.text.includes('dotfiles anti-pattern'), 'a symlinked ~/.claude/rules entry is followed');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // --------------------------------------------------------------------------
 // 6. Determinism
 // --------------------------------------------------------------------------
