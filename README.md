@@ -630,6 +630,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.138](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.137...v10.0.0-beta.138)** · 2026-10-01
+
+- **hooks:** warn before a model switch re-caches a warm large context (#4567)
+- **agents:** raise security and code review agents to effort high (#4566)
+- **skills:** teach auto tool_choice on Claude 5.5, dedup antipatterns (#4568)
+
 **[v10.0.0-beta.137](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137)** · 2026-09-30
 
 - **evals:** tag run-evals claude launch as headless-ok (#4564)
@@ -663,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.131](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131)** · 2026-09-28
 
 - **agents:** m3 script keeps quoted commas and validates first (#4533) (#4535)
-
-**[v10.0.0-beta.130](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.129...v10.0.0-beta.130)** · 2026-09-28
-
-- **agents:** move house frontmatter keys under metadata, drop context (m3) (#4531)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

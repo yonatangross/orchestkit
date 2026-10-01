@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.138",
+    "date": "2026-10-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.137...v10.0.0-beta.138",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** warn before a model switch re-caches a warm large context ([#4567](https://github.com/yonatangross/orchestkit/issues/4567)) ([3078407](https://github.com/yonatangross/orchestkit/commit/3078407aa0ff9606ab6d291cb0851f3f14d1093b))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**agents:** raise security and code review agents to effort high ([#4566](https://github.com/yonatangross/orchestkit/issues/4566)) ([8287954](https://github.com/yonatangross/orchestkit/commit/82879547e14868d014d5b831010526782782e1b5))",
+          "**skills:** teach auto tool_choice on Claude 5.5, dedup antipatterns ([#4568](https://github.com/yonatangross/orchestkit/issues/4568)) ([f7f0856](https://github.com/yonatangross/orchestkit/commit/f7f0856de05f7cda0abf36e43d4f18a3ff84c863))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.137",
     "date": "2026-09-30",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137",
