@@ -157,6 +157,59 @@ await test('exactly one top-up, it names existing titles, short is reported', as
   assert.ok(result.reasons.some((r) => r.startsWith('short:')));
 });
 
+// Review fix (estate-29 on #4572, CodeRabbit): the operator brainstorms in Hebrew.
+const HE_A = 'תור הודעות'; // "message queue"
+const HE_B = 'שליחה מרוכזת'; // "batched send"
+const ONLY = (byType) => (o) => byType[o.agentType] || { status: 'DONE', ideas: [] };
+
+await test('Hebrew: two different Hebrew titles stay distinct, with their own sketches', async () => {
+  const { result } = await run({ ...BASE, minIdeas: 1 }, ONLY({ 'ork:workflow-architect': { status: 'DONE', ideas: [{ title: HE_A, sketch: 'sketch A' }, { title: HE_B, sketch: 'sketch B' }] } }));
+  const titles = result.ideas.map((i) => i.title);
+  assert.deepEqual(titles, [HE_A, HE_B]);
+  assert.deepEqual(result.ideas.map((i) => i.sketch), ['sketch A', 'sketch B']);
+});
+
+await test('Hebrew: the same Hebrew title twice dedups to one idea', async () => {
+  const { result } = await run({ ...BASE, minIdeas: 1 }, ONLY({
+    'ork:workflow-architect': { status: 'DONE', ideas: [{ title: HE_A, sketch: 'first' }] },
+    'ork:test-generator': { status: 'DONE', ideas: [{ title: ` ${HE_A}! `, sketch: 'second' }] },
+  }));
+  const a = result.ideas.filter((i) => i.sketch === 'first' || i.sketch === 'second');
+  assert.equal(a.length, 1);
+  assert.deepEqual(a[0].raisedBy, ['ork:workflow-architect', 'ork:test-generator']);
+});
+
+await test('Hebrew: a mixed Hebrew and English title keys on both scripts', async () => {
+  const { result } = await run({ ...BASE, minIdeas: 1 }, ONLY({ 'ork:workflow-architect': { status: 'DONE', ideas: [
+    { title: `Redis ${HE_A}`, sketch: 'x' },
+    { title: `Redis ${HE_B}`, sketch: 'y' },
+    { title: `redis  ${HE_A}`, sketch: 'z' },
+  ] } }));
+  assert.deepEqual(result.ideas.map((i) => i.sketch), ['x', 'y']);
+});
+
+await test('empty DONE: an empty or all-untitled DONE list is NO-IDEAS and named in missing:', async () => {
+  const { result } = await run({ ...BASE, minIdeas: 1 }, ONLY({
+    'ork:workflow-architect': IDEAS(3, 'wa'),
+    'ork:test-generator': { status: 'DONE', ideas: [] },
+    'ork:backend-system-architect': { status: 'DONE', ideas: [{ title: '', sketch: 'a' }, { title: '  ', sketch: 'b' }, { title: '!!', sketch: 'c' }] },
+  }));
+  const none = result.perspectives.filter((p) => p.outcome === 'NO-IDEAS').map((p) => p.perspective).sort();
+  assert.deepEqual(none, ['ork:backend-system-architect', 'ork:test-generator']);
+  const missing = result.reasons.find((r) => r.startsWith('missing:')) || '';
+  assert.match(missing, /ork:test-generator/);
+  assert.match(missing, /ork:backend-system-architect/);
+});
+
+await test('all duplicates: a generator whose ideas were all in the pool gets its own reason, not missing:', async () => {
+  const same = { status: 'DONE', ideas: [{ title: 'Use a queue', sketch: 'a' }] };
+  const { result } = await run({ topic: 't', agents: [], minIdeas: 1 }, ONLY({ 'ork:workflow-architect': same, 'ork:test-generator': same }));
+  const dup = result.perspectives.filter((p) => p.outcome === 'ALL-DUPLICATES').map((p) => p.perspective);
+  assert.equal(dup.length, 1);
+  assert.ok(result.reasons.some((r) => r.startsWith('duplicates:') && r.includes(dup[0])), result.reasons.join(' | '));
+  assert.ok(!result.reasons.some((r) => r.startsWith('missing:')), 'a duplicate-only generator is not missing');
+});
+
 await test('missing topic throws', async () => {
   await assert.rejects(run({}, () => IDEAS(1, 'x')), /topic is required/);
 });

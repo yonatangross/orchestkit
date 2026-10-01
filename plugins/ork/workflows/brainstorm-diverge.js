@@ -121,7 +121,9 @@ function divergePrompt(perspective, existing) {
 		.join("\n");
 }
 
-const norm = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+// Dedup key: NFKC, lowercase, letters and digits in ANY script. An ASCII-only key
+// turned every Hebrew title into "", merging all of them into the first one.
+const norm = (t) => String(t).normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const pool = new Map();
 const perspectives = [];
 
@@ -132,10 +134,12 @@ function absorb(res, perspective, round) {
 		return;
 	}
 	let fresh = 0;
+	let titled = 0;
 	for (const raw of res.ideas) {
 		const title = raw && typeof raw.title === "string" ? raw.title.trim() : "";
-		if (!title) continue;
 		const key = norm(title);
+		if (!key) continue; // untitled, or punctuation only
+		titled += 1;
 		const prev = pool.get(key);
 		if (prev) {
 			if (!prev.raisedBy.includes(perspective)) prev.raisedBy.push(perspective);
@@ -151,7 +155,11 @@ function absorb(res, perspective, round) {
 		});
 		fresh += 1;
 	}
-	perspectives.push({ perspective, round, outcome: status === "PARTIAL" ? "PARTIAL" : "DONE", status, ideas: fresh });
+	// DONE with an empty or all-untitled list produced nothing: it is NO-IDEAS and
+	// gets named in missing:. Titled ideas that were all already in the pool are a
+	// different case (the generator worked, the pool had them) with its own reason.
+	const outcome = titled === 0 ? "NO-IDEAS" : fresh === 0 ? "ALL-DUPLICATES" : status === "PARTIAL" ? "PARTIAL" : "DONE";
+	perspectives.push({ perspective, round, outcome, status, ideas: fresh });
 }
 
 log(`topic="${TOPIC}", ${PERSPECTIVES.length} perspective(s) at effort ${DIVERGE_EFFORT}, target ${MIN_IDEAS} ideas`);
@@ -187,6 +195,8 @@ const short = ideas.length < MIN_IDEAS;
 if (short) reasons.push(`short: ${ideas.length} of ${MIN_IDEAS} ideas after ${toppedUp ? "one top-up round" : "the first round"}; tell the user before Phase 3`);
 const silent = perspectives.filter((p) => p.round === 1 && p.outcome === "NO-IDEAS").map((p) => p.perspective);
 if (silent.length) reasons.push(`missing: ${silent.join(", ")} returned no ideas`);
+const dupes = perspectives.filter((p) => p.outcome === "ALL-DUPLICATES").map((p) => `${p.perspective}${p.round > 1 ? " (top-up)" : ""}`);
+if (dupes.length) reasons.push(`duplicates: ${dupes.join(", ")} returned only ideas already in the pool`);
 const partial = ideas.filter((i) => i.partial).length;
 if (partial) reasons.push(`partial: ${partial} idea(s) came from a PARTIAL generator, give them extra scrutiny in Phase 3`);
 

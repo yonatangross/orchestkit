@@ -59,8 +59,9 @@ FAIL: implement/references/effort-ladder.md missing
 FAIL: implement SKILL.md does not reference references/effort-ladder.md
 rc=1   (test-brainstorm-diverge.mjs: ENOENT, rc=1)</span>
 <span class="ok">test-skill-effort-ladder.sh: 10 PASS, rc=0
-test-brainstorm-diverge.mjs: 12 passed, 0 failed
-planted control (effort removed from opts): 10 passed, 2 failed</span></pre>
+test-brainstorm-diverge.mjs: 17 passed, 0 failed
+planted control (effort removed from opts): 15 passed, 2 failed</span></pre>
+  <p class="meta">Review fix (estate-29, CodeRabbit): the idea dedup key keeps letters and digits in any script (NFKC, <code>\p{L}\p{N}</code>), so Hebrew titles no longer collapse into one; a generator that answers DONE with no titled idea is reported as missing, and one whose ideas were all already in the pool gets its own <code>duplicates:</code> reason. On b56897b41 the new cases give 13 passed, 4 failed.</p>
   <p class="meta">Gates: <code>npm run test:skills</code> rc=0, <code>test-skill-length.sh</code> 0 over 520, <code>test-skill-cc-features.sh</code> 9/9, <code>npm run test:manifests</code> rc=0, <code>bin/validate-counts.sh</code> PASSED.</p>
 </section>
 

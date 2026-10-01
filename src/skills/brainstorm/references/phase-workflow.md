@@ -89,7 +89,7 @@ Workflow(
 )
 # Returns {ideas[], perspectives[], short, toppedUp, reasons[]}. Every generator ran at
 # effort low; no idea carries a score. Show the ideas, relay every reason line
-# (short pool, missing perspective, partial ideas), then go to Phase 3 at the session effort.
+# (short pool, missing perspective, duplicate-only perspective, partial ideas), then go to Phase 3 at the session effort.
 ```
 
 **Fallback (Workflow tool unavailable, or Agent Teams debate mode):** launch the generators with the Agent tool, all in ONE message. These run at each agent's own frontmatter effort, because the Agent tool has no per-call effort; say so in the Phase 2 output.
