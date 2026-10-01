@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.139](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139) (2026-10-01)
+
+
+### Features
+
+* **skills:** brainstorm diverges at effort low, implement effort ladder ([#4572](https://github.com/yonatangross/orchestkit/issues/4572)) ([d90788d](https://github.com/yonatangross/orchestkit/commit/d90788df7a75a7a97978cafd7289e6a0cc360920))
+
 ## [10.0.0-beta.138](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.137...v10.0.0-beta.138) (2026-10-01)
 
 

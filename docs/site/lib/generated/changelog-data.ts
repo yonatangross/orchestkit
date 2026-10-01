@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.139",
+    "date": "2026-10-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**skills:** brainstorm diverges at effort low, implement effort ladder ([#4572](https://github.com/yonatangross/orchestkit/issues/4572)) ([d90788d](https://github.com/yonatangross/orchestkit/commit/d90788df7a75a7a97978cafd7289e6a0cc360920))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.138",
     "date": "2026-10-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.137...v10.0.0-beta.138",
