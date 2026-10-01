@@ -107,9 +107,6 @@ for (const [command, expected] of DENY) check(`deny: ${command}`, rule(command),
 
 // --- allowed: the near misses ------------------------------------------------
 const ALLOW = [
-  'rm -rf $TMPDIR/x',
-  'rm -rf "$TMPDIR/build-cache"',
-  'rm -rf ${TMPDIR}/x',
   `rm -rf ${SYS_TMP}/ork-test-123`,
   'rm -rf /var/folders/zz/abc/T/scratch',
   'rm file.txt',
@@ -133,7 +130,7 @@ const ALLOW = [
   'echo done',
   'ssh host ls /srv',
   "ssh host 'git push origin feat/x'",
-  "ssh host 'rm -rf $TMPDIR/x'",
+  `ssh host 'rm -rf ${SYS_TMP}/build'`,
   'git push origin feat/x:feat/x',
   'tofu plan',
 ];
@@ -148,8 +145,10 @@ for (const [label, tmpdir] of [['unset', undefined], ['empty', ''], ['root', '/'
     check(`TMPDIR ${label}: deny ${command}`, findDestructive(command, { tmpdir })?.rule ?? null, 'rm-rf');
   }
 }
-for (const command of TMP_ALIAS.filter((c) => c !== 'rm -rf "$TMPDIR"')) {
-  check(`TMPDIR set: allow ${command}`, findDestructive(command, { tmpdir: '/var/folders/zz/abc/T' })?.rule ?? null, null);
+// Review round 5: the aliases are gone entirely. A command can reassign TMPDIR
+// before using it, so even with a valid TMPDIR they are denied.
+for (const command of TMP_ALIAS) {
+  check(`TMPDIR set: deny ${command}`, findDestructive(command, { tmpdir: '/var/folders/zz/abc/T' })?.rule ?? null, 'rm-rf');
 }
 
 // --- sweep: other temp-root aliases of the same class (review round 3) -------
@@ -169,8 +168,14 @@ for (const command of SWEEP_DENY) {
     check(`sweep TMPDIR ${label}: deny ${command}`, findDestructive(command, { tmpdir })?.rule ?? null, 'rm-rf');
   }
 }
-for (const command of [`rm -rf ${SYS_TMP}/build-$ID`, `rm -rf ${SYS_TMP}/*`, 'rm -rf $TMPDIR/cache-${RUN}']) {
-  check(`sweep allow: ${command}`, findDestructive(command, { tmpdir: REAL })?.rule ?? null, null);
+// Only a literal path counts: any variable, substitution, glob, brace or tilde
+// in the target means the shell decides the path, so it is never temp.
+for (const command of [`rm -rf ${SYS_TMP}/build-$ID`, `rm -rf ${SYS_TMP}/*`, 'rm -rf $TMPDIR/cache-${RUN}',
+  `rm -rf ${SYS_TMP}/{a,b}`, `rm -rf ${SYS_TMP}/x?`, `rm -rf ${SYS_TMP}/[ab]`]) {
+  check(`literal only: deny ${command}`, findDestructive(command, { tmpdir: REAL })?.rule ?? null, 'rm-rf');
+}
+for (const command of [`rm -rf ${SYS_TMP}/build`, 'rm -rf /private/tmp/q/x', `rm -rf ${REAL}/x`]) {
+  check(`literal only: allow ${command}`, findDestructive(command, { tmpdir: REAL })?.rule ?? null, null);
 }
 for (const [label, tmpdir] of [['root', '/'], ['dotdot to root', '/var/..'], ['relative', 'tmp']]) {
   check(`TMPDIR ${label} grants nothing: rm -rf /etc/x`, findDestructive('rm -rf /etc/x', { tmpdir })?.rule ?? null, 'rm-rf');
@@ -206,7 +211,8 @@ const bash = (command) => ({
 }
 {
   const r = runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: tmpdir() });
-  check('cli tmpdir allow exit code', r.status, 0);
+  check('cli valid TMPDIR: rm -rf $TMPDIR/x denied', r.status, 2);
+  check('cli deny reason asks for the literal path', /literal/i.test(r.stderr), true);
 }
 {
   const r = runHook(bash('rm -rf $TMPDIR/*'), { TMPDIR: undefined });
@@ -263,13 +269,38 @@ for (const [env, command] of [
 ]) {
   check(`cli TMPDIR=${env.TMPDIR}: deny ${command}`, runHook(bash(command), env).status, 2);
 }
-check('cli TMPDIR=/private/tmp/q: allow rm -rf $TMPDIR/x',
-  runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: '/private/tmp/q' }).status, 0);
+check('cli TMPDIR=/private/tmp/q: allow the literal rm -rf /private/tmp/q/x',
+  runHook(bash('rm -rf /private/tmp/q/x'), { TMPDIR: '/private/tmp/q' }).status, 0);
+check('cli TMPDIR=/private/tmp/q: deny rm -rf $TMPDIR/x',
+  runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: '/private/tmp/q' }).status, 2);
+
+// --- review round 5 (estate-31 HOLD 5936735483): reassignment before use ----
+// With a VALID hook TMPDIR each of these ran rc=0, because the guard read
+// `$TMPDIR` as the hook's value while the command had reassigned it. Every row,
+// and its bash -c and sh -c forms, must be denied.
+const REASSIGN = [
+  'export TMPDIR=$HOME; rm -rf $TMPDIR/x',
+  'TMPDIR=$HOME; rm -rf $TMPDIR/x',
+  'TMPDIR=/ ; rm -rf $TMPDIR/usr',
+  'TMPDIR=/usr && rm -rf ${TMPDIR}/local',
+  'unset TMPDIR; rm -rf $TMPDIR/x',
+  "eval 'TMPDIR=/'; rm -rf $TMPDIR/usr",
+];
+const VALID_ENV = { TMPDIR: '/private/tmp/q' };
+for (const row of REASSIGN) {
+  for (const form of [row, `bash -c ${JSON.stringify(row)}`, `sh -c ${JSON.stringify(row)}`]) {
+    check(`reassign: deny ${form}`, runHook(bash(form), VALID_ENV).status, 2);
+  }
+}
+// $TMP and $TEMP were never trusted; pin it with them set to a valid temp dir.
+for (const command of ['rm -rf $TMP/x', 'rm -rf ${TEMP}/x']) {
+  check(`never trusted: deny ${command}`, runHook(bash(command), { TMP: '/private/tmp/q', TEMP: '/private/tmp/q', ...VALID_ENV }).status, 2);
+}
 
 {
   const realTmp = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-root-`));
   const r = runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: realTmp });
-  check('cli real TMPDIR: allow rm -rf $TMPDIR/x', r.status, 0);
+  check('cli real TMPDIR: deny rm -rf $TMPDIR/x (use the literal path)', r.status, 2);
   check('cli real TMPDIR: allow its literal path', runHook(bash(`rm -rf ${realTmp}/x`), { TMPDIR: realTmp }).status, 0);
   check('cli real TMPDIR: still deny rm -rf /usr', runHook(bash('rm -rf /usr'), { TMPDIR: realTmp }).status, 2);
   rmSync(realTmp, { recursive: true, force: true });

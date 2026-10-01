@@ -7,10 +7,10 @@
  * denies, with exit 2 and a stderr reason naming the rule:
  *
  *   rm-rf              rm with both recursive and force flags, unless every target is
- *                      strictly inside a root that passed validateTempRoot (/tmp,
- *                      /private/tmp, a real TMPDIR at least two components deep) and
- *                      names something even with its variables empty; $TMP, $TEMP,
- *                      ~ and relative paths never count
+ *                      a LITERAL absolute path strictly inside a root that passed
+ *                      validateTempRoot (/tmp, /private/tmp, a configured TMPDIR two or
+ *                      more levels deep); a target with $VAR, $( ), a glob, braces or ~
+ *                      is never temp, $TMPDIR included, since the command can reassign it
  *   git-push-force     git push --force, -f (alone or in a cluster), --force-with-lease, +refspec
  *   git-push-delete    git push --delete / -d / :branch (remote branch delete)
  *   git-reset-hard     git reset --hard
@@ -114,35 +114,43 @@ export function tokenize(command) {
 const base = (w) => w.slice(w.lastIndexOf('/') + 1);
 const isShortCluster = (w) => /^-[a-zA-Z]+$/.test(w);
 
+// Characters that let the shell, not the text, decide the path: parameter and
+// command substitution, globs, brace and tilde expansion.
+const SHELL_DECIDES = /[$`*?[\]{}~]/;
+
+/**
+ * Is `target` a literal absolute path strictly inside a validated temp root?
+ * Only literal text counts. A command can reassign TMPDIR before using it
+ * (`TMPDIR=/ ; rm -rf $TMPDIR/usr`), unset it, or build it in eval, so no
+ * variable, substitution or expansion in a target is ever trusted, $TMPDIR
+ * included. Use the literal path instead.
+ */
 function isTempTarget(target, tmpRoots) {
-  if (target.includes('$(') || target.includes('`')) return false;
+  if (SHELL_DECIDES.test(target)) return false;
   if (target.split('/').includes('..')) return false;
-  for (const root of tmpRoots) {
+  return tmpRoots.some((root) => {
     const prefix = `${root.replace(/\/+$/, '')}/`;
-    if (!target.startsWith(prefix)) continue;
-    // What is left must name something even if every variable in it is empty:
-    // `/tmp/$X` with X unset is `rm -rf /tmp/`. A glob or literal text counts.
-    const literal = target.slice(prefix.length)
-      .replace(/\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*|\$[0-9@*#?$!-]/g, '')
-      .replace(/\/+/g, '');
-    if (literal !== '') return true;
-  }
-  return false;
+    return target.startsWith(prefix) && target.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+  });
 }
 
 const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length >= 2;
 
 /**
  * The single gate every temp-root candidate passes before it is used as a
- * prefix. Returns the accepted spellings (normalised path, plus its realpath
- * when that differs), or [] to drop the candidate.
+ * literal prefix. Returns the accepted spellings (normalised path, plus its
+ * realpath when that differs), or [] to drop the candidate.
  *
  * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
- * path that is not / and is at least two components deep, the one exception
- * being /tmp itself. When the path exists its realpath must pass the same test,
- * so a deep-looking link to / or /usr is dropped too. /usr, /home, /Users and
- * relative values are refused: a temp root there would make
- * `rm -rf /usr/...` look temporary.
+ * path at least two components deep, the one exception being /tmp itself. When
+ * the path exists its realpath must pass the same test, so a deep-looking link
+ * to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
+ * refused.
+ *
+ * What this does NOT judge: whether a path two or more levels deep is really a
+ * temp dir. A configured TMPDIR such as /Users/me (a home dir) passes and is
+ * then trusted as a literal root, so literal paths under it are allowed. That
+ * value comes from the session's own environment, not from the command.
  */
 export function validateTempRoot(p) {
   if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
@@ -183,9 +191,11 @@ function checkRm(args, tmpRoots) {
   if (targets.length > 0 && targets.every((t) => isTempTarget(t, tmpRoots))) return null;
   return {
     rule: 'rm-rf',
-    detail: targets.length > 0
-      ? `recursive force delete of ${targets.join(' ')}`
-      : 'recursive force delete with targets from stdin or none visible',
+    detail: targets.length === 0
+      ? 'recursive force delete with targets from stdin or none visible'
+      : `recursive force delete of ${targets.join(' ')}${targets.some((t) => SHELL_DECIDES.test(t))
+        ? ' (a target the shell expands is never treated as temp: write the literal absolute path, for example /tmp/<dir>, instead of $TMPDIR or another variable)'
+        : ''}`,
   };
 }
 
@@ -284,21 +294,19 @@ function scan(command, tmpRoots, depth) {
 /**
  * Return the first destructive pattern in a Bash command, or null.
  * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR); opts.osTmpdir
- * overrides os.tmpdir() for tests. Both pass validateTempRoot before use.
+ * overrides os.tmpdir() for tests. Both pass validateTempRoot and then serve only
+ * as literal roots.
  */
 export function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  // Every candidate goes through validateTempRoot: the fixed /tmp and
+  // Literal roots only, each through validateTempRoot: the fixed /tmp and
   // /private/tmp, the TMPDIR the hook passes, and os.tmpdir() (which falls back
-  // to TMP and TEMP). `$TMPDIR` in the command counts only when TMPDIR itself
-  // validates; unset or invalid, the shell would expand it to something else.
-  // `$TMP` and `$TEMP` never count: the hook does not pass their values.
+  // to TMP and TEMP). `$TMPDIR`, `$TMP` and `$TEMP` in a command are never
+  // roots: isTempTarget refuses any target the shell expands.
   const tmpRoots = [];
-  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? tmpdir()]) {
+  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? tmpdir(), opts.tmpdir]) {
     tmpRoots.push(...validateTempRoot(candidate));
   }
-  const fromTmpdir = validateTempRoot(opts.tmpdir);
-  if (fromTmpdir.length > 0) tmpRoots.push(...fromTmpdir, '$TMPDIR', '${TMPDIR}');
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 

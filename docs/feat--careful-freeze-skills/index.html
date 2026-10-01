@@ -63,7 +63,7 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 217 passed
+<span class="ok">careful-guard: 250 passed
 freeze-guard: 31 passed
 freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
@@ -152,35 +152,43 @@ function tokenize(command) {
 const base = (w) => w.slice(w.lastIndexOf('/') + 1);
 const isShortCluster = (w) => /^-[a-zA-Z]+$/.test(w);
 
+// Characters that let the shell, not the text, decide the path: parameter and
+// command substitution, globs, brace and tilde expansion.
+const SHELL_DECIDES = /[$`*?[\]{}~]/;
+
+/**
+ * Is `target` a literal absolute path strictly inside a validated temp root?
+ * Only literal text counts. A command can reassign TMPDIR before using it
+ * (`TMPDIR=/ ; rm -rf $TMPDIR/usr`), unset it, or build it in eval, so no
+ * variable, substitution or expansion in a target is ever trusted, $TMPDIR
+ * included. Use the literal path instead.
+ */
 function isTempTarget(target, tmpRoots) {
-  if (target.includes('$(') || target.includes('`')) return false;
+  if (SHELL_DECIDES.test(target)) return false;
   if (target.split('/').includes('..')) return false;
-  for (const root of tmpRoots) {
+  return tmpRoots.some((root) => {
     const prefix = `${root.replace(/\/+$/, '')}/`;
-    if (!target.startsWith(prefix)) continue;
-    // What is left must name something even if every variable in it is empty:
-    // `/tmp/$X` with X unset is `rm -rf /tmp/`. A glob or literal text counts.
-    const literal = target.slice(prefix.length)
-      .replace(/\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*|\$[0-9@*#?$!-]/g, '')
-      .replace(/\/+/g, '');
-    if (literal !== '') return true;
-  }
-  return false;
+    return target.startsWith(prefix) && target.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+  });
 }
 
 const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length >= 2;
 
 /**
  * The single gate every temp-root candidate passes before it is used as a
- * prefix. Returns the accepted spellings (normalised path, plus its realpath
- * when that differs), or [] to drop the candidate.
+ * literal prefix. Returns the accepted spellings (normalised path, plus its
+ * realpath when that differs), or [] to drop the candidate.
  *
  * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
- * path that is not / and is at least two components deep, the one exception
- * being /tmp itself. When the path exists its realpath must pass the same test,
- * so a deep-looking link to / or /usr is dropped too. /usr, /home, /Users and
- * relative values are refused: a temp root there would make
- * `rm -rf /usr/...` look temporary.
+ * path at least two components deep, the one exception being /tmp itself. When
+ * the path exists its realpath must pass the same test, so a deep-looking link
+ * to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
+ * refused.
+ *
+ * What this does NOT judge: whether a path two or more levels deep is really a
+ * temp dir. A configured TMPDIR such as /Users/me (a home dir) passes and is
+ * then trusted as a literal root, so literal paths under it are allowed. That
+ * value comes from the session's own environment, not from the command.
  */
 function validateTempRoot(p) {
   if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
@@ -221,9 +229,11 @@ function checkRm(args, tmpRoots) {
   if (targets.length > 0 && targets.every((t) => isTempTarget(t, tmpRoots))) return null;
   return {
     rule: 'rm-rf',
-    detail: targets.length > 0
-      ? `recursive force delete of ${targets.join(' ')}`
-      : 'recursive force delete with targets from stdin or none visible',
+    detail: targets.length === 0
+      ? 'recursive force delete with targets from stdin or none visible'
+      : `recursive force delete of ${targets.join(' ')}${targets.some((t) => SHELL_DECIDES.test(t))
+        ? ' (a target the shell expands is never treated as temp: write the literal absolute path, for example /tmp/<dir>, instead of $TMPDIR or another variable)'
+        : ''}`,
   };
 }
 
@@ -322,26 +332,24 @@ function scan(command, tmpRoots, depth) {
 /**
  * Return the first destructive pattern in a Bash command, or null.
  * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR); opts.osTmpdir
- * overrides os.'/var/folders/xx/T' for tests. Both pass validateTempRoot before use.
+ * overrides os.'/var/folders/xx/T' for tests. Both pass validateTempRoot and then serve only
+ * as literal roots.
  */
 function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  // Every candidate goes through validateTempRoot: the fixed /tmp and
+  // Literal roots only, each through validateTempRoot: the fixed /tmp and
   // /private/tmp, the TMPDIR the hook passes, and os.'/var/folders/xx/T' (which falls back
-  // to TMP and TEMP). `$TMPDIR` in the command counts only when TMPDIR itself
-  // validates; unset or invalid, the shell would expand it to something else.
-  // `$TMP` and `$TEMP` never count: the hook does not pass their values.
+  // to TMP and TEMP). `$TMPDIR`, `$TMP` and `$TEMP` in a command are never
+  // roots: isTempTarget refuses any target the shell expands.
   const tmpRoots = [];
-  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? '/var/folders/xx/T']) {
+  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? '/var/folders/xx/T', opts.tmpdir]) {
     tmpRoots.push(...validateTempRoot(candidate));
   }
-  const fromTmpdir = validateTempRoot(opts.tmpdir);
-  if (fromTmpdir.length > 0) tmpRoots.push(...fromTmpdir, '$TMPDIR', '${TMPDIR}');
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 
 
-const PRESETS=['rm -rf $TMPDIR/x','rm -rf build','git push origin feat/x','git push -uf origin feat/x','git reset --hard','psql -c "SELECT * FROM t WHERE action = \'drop\'"','psql -c "DROP TABLE users"','kubectl -n prod delete pod web-1','terraform apply -destroy','git commit -m "never git push --force"',"ssh host 'rm -rf /srv/app'",'git push origin --delete feat/x','tofu destroy'];
+const PRESETS=['rm -rf /tmp/build','rm -rf $TMPDIR/x','TMPDIR=/ ; rm -rf $TMPDIR/usr','rm -rf build','git push origin feat/x','git push -uf origin feat/x','git reset --hard','psql -c "SELECT * FROM t WHERE action = \'drop\'"','psql -c "DROP TABLE users"','kubectl -n prod delete pod web-1','terraform apply -destroy','git commit -m "never git push --force"',"ssh host 'rm -rf /srv/app'",'git push origin --delete feat/x','tofu destroy'];
 const cmd=document.getElementById('cmd');
 const pre=document.getElementById('presets');
 for(const p of PRESETS){const b=document.createElement('button');b.type='button';b.textContent=p;b.addEventListener('click',()=>{cmd.value=p;renderCareful();});pre.appendChild(b);}
@@ -372,7 +380,7 @@ function renderFreeze(){
 for(const id of ['fdir','ftarget','flinks'])document.getElementById(id).addEventListener('input',renderFreeze);
 
 const RULES=[
-  ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside /tmp or a real $TMPDIR, naming something even with variables empty; never $TMP, $TEMP, ~ or relative; a TMPDIR of /, /usr or anything shallower than two components is ignored; rm -r; rm -f file'],
+  ['rm-rf','rm with recursive and force flags, xargs rm -rf, any target the shell expands ($TMPDIR, $TMP, $X, $( ), globs, ~)','a literal absolute path inside /tmp, /private/tmp or a TMPDIR two or more levels deep; rm -r; rm -f file'],
   ['git-push-force','--force, -f (also in -uf), --force-with-lease, +branch refspec','git push, git push -u origin <branch>'],
   ['git-push-delete','git push --delete / -d <b>, git push origin :<b>','git push origin <b>:<b>'],
   ['git-reset-hard','git reset --hard','git reset --soft, git reset HEAD <file>'],
