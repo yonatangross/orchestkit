@@ -864,7 +864,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "careful",
     "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "103a51bc86c4c3e69a78162ddc6b4a5f2d6c1d428475d4c6105cea2c1c2be776",
+    "sha256": "9617f207ee9e9a5052129a163eb644feb5f402b820b0e293ae1ea489dcc84e81",
     "author": "OrchestKit",
     "tags": [
       "careful",

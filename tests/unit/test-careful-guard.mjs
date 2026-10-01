@@ -23,9 +23,12 @@
 
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findDestructive } from '../../src/skills/careful/scripts/careful-guard.mjs';
+import * as guard from '../../src/skills/careful/scripts/careful-guard.mjs';
+
+const { findDestructive } = guard;
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CLI = path.join(ROOT, 'src', 'skills', 'careful', 'scripts', 'careful-guard.mjs');
@@ -225,6 +228,47 @@ const bash = (command) => ({
 {
   const r = runHook('not json');
   check('cli unreadable input fails closed', r.status, 2);
+}
+
+// --- one validator for every temp root (review round 4, estate-31) -----------
+// A root is used as a prefix only after validateTempRoot: path.resolve
+// normalised, absolute, not /, at least 2 components deep (the one exception is
+// /tmp itself), and its realpath must pass too when it exists. Node's
+// os.tmpdir() falls back to TMP and TEMP, so those are covered as well.
+const BAD_ENVS = [
+  ['TMPDIR=/', { TMPDIR: '/' }],
+  ['TMPDIR=//', { TMPDIR: '//' }],
+  ['TMPDIR=/./', { TMPDIR: '/./' }],
+  ['TMPDIR=/tmp/..', { TMPDIR: '/tmp/..' }],
+  ['TMPDIR=/usr', { TMPDIR: '/usr' }],
+  ['TMP=/, TMPDIR unset', { TMPDIR: undefined, TMP: '/' }],
+  ['TEMP=/, TMPDIR and TMP unset', { TMPDIR: undefined, TMP: undefined, TEMP: '/' }],
+];
+for (const [label, env] of BAD_ENVS) {
+  for (const command of ['rm -rf /usr', 'rm -rf /Users/x', 'rm -rf /usr/local/x']) {
+    check(`cli ${label}: deny ${command}`, runHook(bash(command), env).status, 2);
+  }
+  check(`cli ${label}: deny rm -rf $TMPDIR/x`, runHook(bash('rm -rf $TMPDIR/x'), env).status, 2);
+}
+{
+  const realTmp = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-root-`));
+  const r = runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: realTmp });
+  check('cli real TMPDIR: allow rm -rf $TMPDIR/x', r.status, 0);
+  check('cli real TMPDIR: allow its literal path', runHook(bash(`rm -rf ${realTmp}/x`), { TMPDIR: realTmp }).status, 0);
+  check('cli real TMPDIR: still deny rm -rf /usr', runHook(bash('rm -rf /usr'), { TMPDIR: realTmp }).status, 2);
+  rmSync(realTmp, { recursive: true, force: true });
+}
+{
+  const v = guard.validateTempRoot;
+  check('validateTempRoot is exported', typeof v, 'function');
+  if (typeof v === 'function') {
+    for (const bad of ['/', '//', '/./', '/tmp/..', '/usr', '/home', '/Users', 'tmp', '', undefined, '/var/..']) {
+      check(`validateTempRoot rejects ${JSON.stringify(bad)}`, v(bad), []);
+    }
+    check('validateTempRoot keeps /tmp', v('/tmp').includes('/tmp'), true);
+    check('validateTempRoot normalises /tmp/x/../y', v('/tmp/x/../y').includes('/tmp/y'), true);
+    check('validateTempRoot keeps a deep absent path', v('/no/such/ork-dir'), ['/no/such/ork-dir']);
+  }
 }
 
 // --- report -------------------------------------------------------------------

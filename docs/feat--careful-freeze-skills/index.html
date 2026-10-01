@@ -63,14 +63,17 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 171 passed
+<span class="ok">careful-guard: 217 passed
 freeze-guard: 31 passed
 freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
 </section>
 
 <script>
+// Browser stand-ins for the node:path and node:fs calls the matcher makes.
 const isAbsolute=(p)=>p.startsWith('/');
+const resolve=(p)=>{const out=[];for(const s of p.split('/')){if(s===''||s==='.')continue;if(s==='..')out.pop();else out.push(s);}return '/'+out.join('/');};
+const realpathSync=()=>{throw new Error('no filesystem in the browser');};
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
 const SQL_CLIENT = /\b(psql|pgcli|mysql|mariadb|mycli|sqlite3|duckdb|clickhouse(-client)?|cockroach|sqlcmd|snowsql|usql)\b/i;
 const MAX_DEPTH = 4;
@@ -165,14 +168,32 @@ function isTempTarget(target, tmpRoots) {
   return false;
 }
 
+const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length >= 2;
+
 /**
- * The real TMPDIR as a temp root, or null. It must be absolute and must not
- * resolve to / (TMPDIR=/ or /var/.. would make every absolute path "temp").
+ * The single gate every temp-root candidate passes before it is used as a
+ * prefix. Returns the accepted spellings (normalised path, plus its realpath
+ * when that differs), or [] to drop the candidate.
+ *
+ * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
+ * path that is not / and is at least two components deep, the one exception
+ * being /tmp itself. When the path exists its realpath must pass the same test,
+ * so a deep-looking link to / or /usr is dropped too. /usr, /home, /Users and
+ * relative values are refused: a temp root there would make
+ * `rm -rf /usr/...` look temporary.
  */
-function safeTmpRoot(value) {
-  if (typeof value !== 'string' || !isAbsolute(value)) return null;
-  const resolved = resolve(value);
-  return resolved === '/' ? null : resolved;
+function validateTempRoot(p) {
+  if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
+  const resolved = resolve(p);
+  if (!isRootShaped(resolved)) return [];
+  let real = null;
+  try {
+    real = realpathSync(resolved);
+  } catch {
+    // absent: the normalised path is all there is to judge
+  }
+  if (real === null || real === resolved) return [resolved];
+  return isRootShaped(real) ? [resolved, real] : [];
 }
 
 function checkRm(args, tmpRoots) {
@@ -300,19 +321,22 @@ function scan(command, tmpRoots, depth) {
 
 /**
  * Return the first destructive pattern in a Bash command, or null.
- * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR). Only when
- * it is a non-empty absolute path other than / do `$TMPDIR` and `${TMPDIR}` in
- * the command count as temp roots.
+ * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR); opts.osTmpdir
+ * overrides os.'/var/folders/xx/T' for tests. Both pass validateTempRoot before use.
  */
 function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  // Fixed roots plus the real TMPDIR. os.'/var/folders/xx/T' is not used: it reads TMPDIR
-  // unvalidated, so TMPDIR=/ would make it return /. `$TMPDIR` in the command
-  // counts only when TMPDIR is a safe root; unset or empty, the shell turns
-  // `rm -rf $TMPDIR/*` into `rm -rf /*`. $TMP, $TEMP and ~ never count.
-  const tmpRoots = ['/tmp', '/private/tmp'];
-  const real = safeTmpRoot(opts.tmpdir);
-  if (real !== null) tmpRoots.push(real, '$TMPDIR', '${TMPDIR}');
+  // Every candidate goes through validateTempRoot: the fixed /tmp and
+  // /private/tmp, the TMPDIR the hook passes, and os.'/var/folders/xx/T' (which falls back
+  // to TMP and TEMP). `$TMPDIR` in the command counts only when TMPDIR itself
+  // validates; unset or invalid, the shell would expand it to something else.
+  // `$TMP` and `$TEMP` never count: the hook does not pass their values.
+  const tmpRoots = [];
+  for (const candidate of ['/tmp', '/private/tmp', opts.osTmpdir ?? '/var/folders/xx/T']) {
+    tmpRoots.push(...validateTempRoot(candidate));
+  }
+  const fromTmpdir = validateTempRoot(opts.tmpdir);
+  if (fromTmpdir.length > 0) tmpRoots.push(...fromTmpdir, '$TMPDIR', '${TMPDIR}');
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 
@@ -348,7 +372,7 @@ function renderFreeze(){
 for(const id of ['fdir','ftarget','flinks'])document.getElementById(id).addEventListener('input',renderFreeze);
 
 const RULES=[
-  ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside /tmp or a real $TMPDIR, naming something even with variables empty; never $TMP, $TEMP, ~ or relative; rm -r; rm -f file'],
+  ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside /tmp or a real $TMPDIR, naming something even with variables empty; never $TMP, $TEMP, ~ or relative; a TMPDIR of /, /usr or anything shallower than two components is ignored; rm -r; rm -f file'],
   ['git-push-force','--force, -f (also in -uf), --force-with-lease, +branch refspec','git push, git push -u origin <branch>'],
   ['git-push-delete','git push --delete / -d <b>, git push origin :<b>','git push origin <b>:<b>'],
   ['git-reset-hard','git reset --hard','git reset --soft, git reset HEAD <file>'],
