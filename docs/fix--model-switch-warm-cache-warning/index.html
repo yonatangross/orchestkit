@@ -43,7 +43,8 @@ a{color:var(--accent)}
   <table>
     <thead><tr><th>case</th><th>origin/main</th><th>this PR</th></tr></thead>
     <tbody>
-      <tr><td>warm, over 100k</td><td class="bad">silent (telemetry only)</td><td class="ok">one warning line, switch allowed</td></tr>
+      <tr><td>warm, over 100k, switching up a tier</td><td class="bad">silent (telemetry only)</td><td class="ok">one line: finish here is cheaper, or hand off</td></tr>
+      <tr><td>warm, over 100k, switching down or sideways</td><td class="bad">silent (telemetry only)</td><td class="ok">one line: hand off to skip the write, no cheaper claim</td></tr>
       <tr><td>cold cache or at most 100k</td><td>silent</td><td>silent</td></tr>
       <tr><td>onto Fable or Mythos, no consent</td><td>ask, reason quotes cost</td><td>same ask, no second line</td></tr>
     </tbody>
@@ -51,8 +52,9 @@ a{color:var(--accent)}
 </section>
 <section>
   <h2>Fail without the change</h2>
-  <pre><span class="bad">Tests  3 failed | 12 passed (15)</span>
-<span class="ok">Tests  19 passed (19)</span></pre>
+  <pre><span class="bad">Tests  3 failed | 12 passed (15)</span>   first commit, before the warning
+<span class="bad">Tests  2 failed | 16 passed (18)</span>   review round, before direction-aware advice
+<span class="ok">Tests  18 passed (18)</span></pre>
   <p class="meta">Why not the telemetry hook: it is async on PostModelSwitch, and CC delivers an async <code>systemMessage</code> on the next turn, after the cache was paid for.</p>
 </section>
 <section>
@@ -61,10 +63,13 @@ a{color:var(--accent)}
 </section>
 <script>
 const WARN=100000,$=id=>document.getElementById(id);
+function tier(m){m=m.toLowerCase();if(/fable|mythos/.test(m))return 4;if(m.includes('opus'))return 3;if(m.includes('sonnet'))return 2;if(m.includes('haiku'))return 1;return 0;}
 function render(){const t=+$('tok').value,u=+$('usd').value,from=$('from').value||'the current model',to=$('to').value;
   if(!$('warm').checked||t<=WARN){$('out').innerHTML='<span class="ok">silent, switch proceeds</span>';return;}
   const cost=u>0?`, estimated $${u.toFixed(2)} (catalog pricing)`:'';
-  $('out').textContent=`\u26a0 Switching ${from} -> ${to} re-caches a warm ${t.toLocaleString('en-US')}-token context${cost}. Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;}
+  const ft=tier($('from').value),tt=tier(to),up=ft>0&&tt>ft;
+  const tail=up?`Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`:'To skip that write, hand the next step to a subagent or a fresh session with a short plan.';
+  $('out').textContent=`\u26a0 Switching ${from} -> ${to} re-caches a warm ${t.toLocaleString('en-US')}-token context${cost}. ${tail}`;}
 ['from','to','tok','usd','warm'].forEach(i=>$(i).addEventListener('input',render));render();
 </script>
 </body>

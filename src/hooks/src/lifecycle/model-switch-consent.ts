@@ -29,10 +29,12 @@
  * 2026-09-29, 102 of them above 100k context, about $592 of estimated cache
  * writes. When the cache is warm and context_tokens exceeds
  * WARM_CONTEXT_WARN_TOKENS, every allowed switch carries one systemMessage line
- * naming the estimated cost and the cheaper path (finish on the current model,
- * or hand off through a subagent or a fresh session with a short plan). It
- * never asks or denies. The premium-tier ask already quotes the cost in its
- * reason, so that path adds no second line. This lives here, not in the
+ * naming the estimated cost and the way to avoid it. Switching UP a price tier
+ * (haiku < sonnet < opus < fable/mythos), finishing on the current model is
+ * cheaper, so the line says so; switching down, sideways or between unknown
+ * models it only suggests a handoff through a subagent or a fresh session with
+ * a short plan. It never asks or denies. The premium-tier ask already quotes
+ * the cost in its reason, so that path adds no second line. This lives here, not in the
  * PostModelSwitch telemetry hook, because that hook is async: CC delivers an
  * async systemMessage on the NEXT turn, after the cache was already paid for.
  *
@@ -57,6 +59,19 @@ const HOOK_NAME = 'model-switch-consent';
 /** Above this many context tokens on a warm cache, a switch gets a re-cache warning. */
 export const WARM_CONTEXT_WARN_TOKENS = 100_000;
 
+/**
+ * Price tier by model family: haiku < sonnet < opus < fable/mythos. Matches short
+ * ids, full ids and the [1m] suffix. 0 means unknown, so no direction is claimed.
+ */
+function priceTier(model: string): number {
+  const m = model.toLowerCase();
+  if (isPremiumTierModel(m)) return 4;
+  if (m.includes('opus')) return 3;
+  if (m.includes('sonnet')) return 2;
+  if (m.includes('haiku')) return 1;
+  return 0;
+}
+
 function recacheWarning(sw: ModelSwitchPayload): string | null {
   if (!sw.promptCacheWarm || sw.contextTokens <= WARM_CONTEXT_WARN_TOKENS) {
     return null;
@@ -64,10 +79,16 @@ function recacheWarning(sw: ModelSwitchPayload): string | null {
   const from = sw.fromModel || 'the current model';
   const cost =
     sw.estimatedCacheWriteUsd > 0 ? `, estimated $${sw.estimatedCacheWriteUsd.toFixed(2)} (${sw.pricing || 'catalog'} pricing)` : '';
-  return (
-    `Switching ${from} -> ${sw.toModel} re-caches a warm ${sw.contextTokens.toLocaleString('en-US')}-token context${cost}. ` +
-    `Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`
-  );
+  const head = `Switching ${from} -> ${sw.toModel} re-caches a warm ${sw.contextTokens.toLocaleString('en-US')}-token context${cost}. `;
+  const fromTier = priceTier(sw.fromModel);
+  const toTier = priceTier(sw.toModel);
+  // Only a switch UP makes staying put the cheaper option. Down, sideways or
+  // unknown, the re-cache write on the new model is the cost, and a handoff
+  // is the only way to skip it.
+  if (fromTier > 0 && toTier > fromTier) {
+    return head + `Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;
+  }
+  return head + `To skip that write, hand the next step to a subagent or a fresh session with a short plan.`;
 }
 
 /** Allow the switch, with the re-cache warning when one applies. */

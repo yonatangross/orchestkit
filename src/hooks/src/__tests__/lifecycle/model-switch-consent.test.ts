@@ -136,6 +136,30 @@ describe('model-switch-consent: warm large-context re-cache warning', () => {
     expect(r.systemMessage ?? '').not.toContain('$');
   });
 
+  test('a switch up a price tier says finishing on the current model is cheaper', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, from_model: 'claude-sonnet-5-5', to_model: 'claude-opus-5-5' }));
+    const msg = r.systemMessage ?? '';
+    expect(msg).toContain('Cheaper: finish this task on claude-sonnet-5-5');
+    expect(msg).toContain('subagent');
+  });
+
+  test('a switch down a price tier suggests a handoff and makes no cheaper claim', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, from_model: 'claude-fable-5-1', to_model: 'claude-opus-5-5' }));
+    const msg = r.systemMessage ?? '';
+    expect(msg).toContain('re-caches a warm 123,705-token context');
+    expect(msg).toContain('subagent or a fresh session with a short plan');
+    expect(msg).not.toMatch(/cheaper/i);
+    expect(msg).not.toContain('finish this task on');
+  });
+
+  test('a switch within a tier or between unknown models makes no cheaper claim', () => {
+    for (const [from, to] of [['claude-opus-5', 'claude-opus-5-5'], ['some-model', 'claude-opus-5-5'], ['opus', 'haiku']]) {
+      const msg = modelSwitchConsent(payload({ ...warmLarge, from_model: from, to_model: to })).systemMessage ?? '';
+      expect(msg, `${from} -> ${to}`).toContain('subagent');
+      expect(msg, `${from} -> ${to}`).not.toMatch(/cheaper/i);
+    }
+  });
+
   test('a cold cache is silent even on a large context', () => {
     const r = modelSwitchConsent(payload({ ...warmLarge, prompt_cache_warm: false }));
     expect(r.systemMessage).toBeUndefined();
