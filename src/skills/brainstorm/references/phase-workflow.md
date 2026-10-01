@@ -77,8 +77,24 @@ Glob(pattern="**/*{topic}*")
 
 **CRITICAL:** Generate 10+ ideas WITHOUT filtering. Quantity over quality.
 
+**Default: the Workflow at effort low.** Phase 2 is the one phase that runs at `low` (claude.dev "Spending your effort": low for in-the-loop brainstorming). Only a Workflow `agent()` call takes a per-call effort, so the generators run there:
+
 ```python
-# Launch ALL agents in ONE message
+Workflow(
+  scriptPath="${CLAUDE_SKILL_DIR}/workflows/brainstorm-diverge.js",
+  args={"topic": TOPIC, "tier": tier_name, "ceiling": ceiling_description,
+        "agents": selected_agents,          # Phase 0 Step 2; workflow-architect + test-generator are added if missing
+        "constraints": constraints_answer,  # STEP 0a Q2
+        "minIdeas": 10, "modelOverride": None}
+)
+# Returns {ideas[], perspectives[], short, toppedUp, reasons[]}. Every generator ran at
+# effort low; no idea carries a score. Show the ideas, relay every reason line
+# (short pool, missing perspective, duplicate-only perspective, partial ideas), then go to Phase 3 at the session effort.
+```
+
+**Fallback (Workflow tool unavailable, or Agent Teams debate mode):** launch the generators with the Agent tool, all in ONE message. These run at each agent's own frontmatter effort, because the Agent tool has no per-call effort; say so in the Phase 2 output.
+
+```python
 Agent(subagent_type="ork:workflow-architect", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)

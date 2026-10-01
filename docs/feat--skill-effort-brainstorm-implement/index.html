@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4572: brainstorm diverges at effort low, implement effort ladder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:12px;max-width:72ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+label{display:block;font-size:13px;margin:6px 0}
+select{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Brainstorm diverges at <code>effort: low</code>; implement gets an effort ladder</h1>
+  <p class="meta">claude.dev says low effort suits in-the-loop brainstorming and sketches, and the feature loop is: spec, implement on low, review, then verify and test on high. Skill frontmatter cannot scope effort to one phase, so brainstorm's divergent phase moves into a Workflow whose every <code>agent()</code> call passes <code>effort: "low"</code>.</p>
+</header>
+
+<section>
+  <h2>Brainstorm: effort per phase</h2>
+  <label for="when">Show</label>
+  <select id="when"><option value="before">before (origin/main)</option><option value="after" selected>after (this PR)</option><option value="naive">rejected: effort: low in frontmatter</option></select>
+  <table style="margin-top:10px">
+    <thead><tr><th>phase</th><th>runs as</th><th>effort</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="meta" id="note" style="margin-top:8px"></p>
+</section>
+
+<section>
+  <h2>Implement: which effort for this run?</h2>
+  <p class="meta">The conditions from <code>src/skills/implement/references/effort-ladder.md</code>. Low needs all of the first five; any of the last two sends it up.</p>
+  <div id="checks"></div>
+  <div class="verdict" id="pick"></div>
+</section>
+
+<section>
+  <h2>Fail without the change</h2>
+  <p class="meta">The new tests against an <code>origin/main</code> export, then on this branch:</p>
+  <pre><span class="bad">FAIL: brainstorm-diverge.js not found
+FAIL: manifests/ork.json does not list skills/brainstorm/workflows/brainstorm-diverge.js
+FAIL: references/phase-workflow.md Phase 2 does not call brainstorm-diverge.js
+FAIL: brainstorm allowed-tools lacks Workflow
+FAIL: implement/references/effort-ladder.md missing
+FAIL: implement SKILL.md does not reference references/effort-ladder.md
+rc=1   (test-brainstorm-diverge.mjs: ENOENT, rc=1)</span>
+<span class="ok">test-skill-effort-ladder.sh: 10 PASS, rc=0
+test-brainstorm-diverge.mjs: 17 passed, 0 failed
+planted control (effort removed from opts): 15 passed, 2 failed</span></pre>
+  <p class="meta">Review fix (estate-29, CodeRabbit): the idea dedup key keeps letters and digits in any script (NFKC, <code>\p{L}\p{N}</code>), so Hebrew titles no longer collapse into one; a generator that answers DONE with no titled idea is reported as missing, and one whose ideas were all already in the pool gets its own <code>duplicates:</code> reason. On b56897b41 the new cases give 13 passed, 4 failed.</p>
+  <p class="meta">Gates: <code>npm run test:skills</code> rc=0, <code>test-skill-length.sh</code> 0 over 520, <code>test-skill-cc-features.sh</code> 9/9, <code>npm run test:manifests</code> rc=0, <code>bin/validate-counts.sh</code> PASSED.</p>
+</section>
+
+<section>
+  <h2>Source</h2>
+  <p class="meta">claude.dev, <a href="https://claude.dev/blog/spending-your-effort/">Spending your effort</a></p>
+</section>
+
+<script>
+const PHASES={
+  before:[["2. Divergent","Agent tool, one per perspective","agent frontmatter (workflow-architect: high)","warn"],["3 to 6. Gate, score, synthesize","skill fork","session","ok"]],
+  after:[["2. Divergent","workflows/brainstorm-diverge.js agent()","low on every call","ok"],["3 to 6. Gate, score, synthesize","skill fork","session","ok"]],
+  naive:[["2. Divergent","skill fork","low","ok"],["3 to 6. Gate, score, synthesize","skill fork","low (scoring degraded)","bad"]]};
+const NOTES={before:"No effort guidance: generators inherit whatever their agent definition says.",
+  after:"Only a Workflow agent() call takes a per-call effort. Scoring keeps the session effort.",
+  naive:"Skill effort covers the whole fork, so it would lower devil's-advocate scoring too. Not done."};
+const sel=document.getElementById('when'),rows=document.getElementById('rows'),note=document.getElementById('note');
+function render(){const k=sel.value;rows.innerHTML=PHASES[k].map(([p,r,e,c])=>`<tr><td>${p}</td><td><code>${r}</code></td><td class="${c}">${e}</td></tr>`).join('');note.textContent=NOTES[k];}
+sel.addEventListener('change',render);render();
+
+const LOW=["Acceptance criteria written and checkable","Files or modules named, or one existing pattern to follow","No open schema, migration, auth or API question","The work is mechanical (wire, port, rename, extend a table)","verify and cover will run after it, at high"];
+const UP=["A design question is still open","Edge-case-heavy: concurrency, security path, data migration, money"];
+const box=document.getElementById('checks'),pick=document.getElementById('pick');
+box.innerHTML=[...LOW.map((t,i)=>`<label><input type="checkbox" data-k="low" data-i="${i}"> ${t}</label>`),...UP.map((t,i)=>`<label><input type="checkbox" data-k="up" data-i="${i}"> ${t}</label>`)].join('');
+function decide(){const c=[...box.querySelectorAll('input')];const low=c.filter(x=>x.dataset.k==='low'&&x.checked).length;
+  const open=c.find(x=>x.dataset.k==='up'&&x.dataset.i==='0').checked,edge=c.find(x=>x.dataset.k==='up'&&x.dataset.i==='1').checked;
+  let v,cls;if(edge){v="high for implement: design the edge cases in";cls="warn";}else if(open||low<LOW.length){v=`medium (the default): ${LOW.length-low} low condition(s) unmet${open?', design still open':''}`;cls="";}else{v="low: /effort low, then /ork:verify at high";cls="ok";}
+  pick.innerHTML=`<span class="${cls}">${v}</span>`;}
+box.addEventListener('change',decide);decide();
+</script>
+</body>
+</html>

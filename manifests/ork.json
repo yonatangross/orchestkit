@@ -26,6 +26,7 @@
     "skills/assess/workflows/assess-fanout.js",
     "skills/audit-full/workflows/audit-full-mapreduce.js",
     "skills/bare-eval/workflows/skill-fitness.js",
+    "skills/brainstorm/workflows/brainstorm-diverge.js",
     "skills/cover/workflows/heal-loop.js",
     "skills/review-pr/workflows/review-fanout.js",
     "skills/verify/workflows/verify-dispatch.js"

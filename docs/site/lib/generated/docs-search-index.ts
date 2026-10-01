@@ -1148,7 +1148,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/implement/references",
     "title": "Implement: References",
-    "description": "19 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
+    "description": "20 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
   },
   {
     "url": "/docs/reference/skills/implement/rules",

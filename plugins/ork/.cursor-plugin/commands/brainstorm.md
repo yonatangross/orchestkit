@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: brainstorm
 background: false
-allowed-tools: "AskUserQuestion Agent Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md
@@ -195,6 +195,8 @@ Choose **Agent Teams** (mesh, agents debate and challenge ideas) or **Agent tool
 Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/5 only, `high` (default) runs all 7, `xhigh` adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.
 
 Full level table + detection rules: `Read("skills/brainstorm/references/effort-scaling.md")`
+
+**Phase 2 always runs at effort `low`**, whatever the level above: in-the-loop ideation is where low effort pays, scoring is not. The skill has no `effort:` frontmatter on purpose (it would lower Phase 4 too); `skills/brainstorm/workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator instead. Details in the same reference.
 
 
 **Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
