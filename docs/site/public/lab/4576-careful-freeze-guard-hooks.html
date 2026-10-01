@@ -63,7 +63,7 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 68 passed
+<span class="ok">careful-guard: 83 passed
 freeze-guard: 31 passed</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
 </section>
@@ -205,11 +205,31 @@ function checkGit(args) {
       (isShortCluster(a) && a.includes('f')) ||
       (a.startsWith('+') && a.length > 1));
     if (forced) return { rule: 'git-push-force', detail: `git push with ${forced}` };
+    const deleted = rest.find((a) =>
+      a === '--delete' ||
+      (isShortCluster(a) && a.includes('d')) ||
+      (a.startsWith(':') && a.length > 1));
+    if (deleted) return { rule: 'git-push-delete', detail: `git push with ${deleted} deletes a remote branch` };
   }
   if (sub === 'reset' && rest.includes('--hard')) {
     return { rule: 'git-reset-hard', detail: 'git reset --hard discards uncommitted work' };
   }
   return null;
+}
+
+const SSH_OPTS_WITH_VALUE = new Set(['-B', '-b', '-c', '-D', '-E', '-e', '-F', '-I', '-i', '-J', '-L', '-l', '-m', '-O', '-o', '-P', '-p', '-Q', '-R', '-S', '-W', '-w']);
+
+/** The command string ssh runs on the remote host, or null when there is none. */
+function sshRemoteCommand(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-') && args[j] !== '--') {
+    j += SSH_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  }
+  if (args[j] === '--') j++;
+  j++; // the destination
+  if (args[j] === '--') j++;
+  const remote = args.slice(j);
+  return remote.length > 0 ? remote.join(' ') : null;
 }
 
 function checkSegment(words, tmpRoots, depth) {
@@ -221,7 +241,7 @@ function checkSegment(words, tmpRoots, depth) {
     else if (cmd === 'git') hit = checkGit(args);
     else if (cmd === 'kubectl' && args.includes('delete')) {
       hit = { rule: 'kubectl-delete', detail: 'kubectl delete removes cluster resources' };
-    } else if (cmd === 'terraform' && (args.includes('destroy') ||
+    } else if ((cmd === 'terraform' || cmd === 'tofu') && (args.includes('destroy') ||
       (args.includes('apply') && (args.includes('-destroy') || args.includes('--destroy'))))) {
       hit = { rule: 'terraform-destroy', detail: 'terraform destroy tears down managed infrastructure' };
     } else if (SHELLS.has(cmd) && depth < MAX_DEPTH) {
@@ -229,6 +249,9 @@ function checkSegment(words, tmpRoots, depth) {
       if (c !== -1 && args[c + 1] !== undefined) hit = scan(args[c + 1], tmpRoots, depth + 1);
     } else if (cmd === 'eval' && depth < MAX_DEPTH) {
       hit = scan(args.join(' '), tmpRoots, depth + 1);
+    } else if (cmd === 'ssh' && depth < MAX_DEPTH) {
+      const remote = sshRemoteCommand(args);
+      if (remote !== null) hit = scan(remote, tmpRoots, depth + 1);
     }
     if (hit) return hit;
   }
@@ -271,7 +294,7 @@ function findDestructive(command, opts = {}) {
 }
 
 
-const PRESETS=['rm -rf $TMPDIR/x','rm -rf build','git push origin feat/x','git push -uf origin feat/x','git reset --hard','psql -c "SELECT * FROM t WHERE action = \'drop\'"','psql -c "DROP TABLE users"','kubectl -n prod delete pod web-1','terraform apply -destroy','git commit -m "never git push --force"'];
+const PRESETS=['rm -rf $TMPDIR/x','rm -rf build','git push origin feat/x','git push -uf origin feat/x','git reset --hard','psql -c "SELECT * FROM t WHERE action = \'drop\'"','psql -c "DROP TABLE users"','kubectl -n prod delete pod web-1','terraform apply -destroy','git commit -m "never git push --force"',"ssh host 'rm -rf /srv/app'",'git push origin --delete feat/x','tofu destroy'];
 const cmd=document.getElementById('cmd');
 const pre=document.getElementById('presets');
 for(const p of PRESETS){const b=document.createElement('button');b.type='button';b.textContent=p;b.addEventListener('click',()=>{cmd.value=p;renderCareful();});pre.appendChild(b);}
@@ -304,11 +327,12 @@ for(const id of ['fdir','ftarget','flinks'])document.getElementById(id).addEvent
 const RULES=[
   ['rm-rf','rm with recursive and force flags, xargs rm -rf, computed targets','every target strictly inside $TMPDIR, /tmp or the runtime temp dir; rm -r; rm -f file'],
   ['git-push-force','--force, -f (also in -uf), --force-with-lease, +branch refspec','git push, git push -u origin <branch>'],
+  ['git-push-delete','git push --delete / -d <b>, git push origin :<b>','git push origin <b>:<b>'],
   ['git-reset-hard','git reset --hard','git reset --soft, git reset HEAD <file>'],
   ['sql-drop','DROP TABLE / DATABASE / SCHEMA anywhere, heredocs included','a SELECT that mentions drop'],
   ['sql-truncate','TRUNCATE TABLE, or TRUNCATE <name> sent to a SQL client','truncate -s 0 app.log'],
   ['kubectl-delete','kubectl ... delete','kubectl get, kubectl logs'],
-  ['terraform-destroy','terraform destroy, terraform apply -destroy','terraform plan, terraform apply'],
+  ['terraform-destroy','terraform or tofu destroy, apply -destroy','terraform plan, terraform apply'],
 ];
 document.getElementById('rules').replaceChildren(...RULES.map((r)=>{const tr=document.createElement('tr');for(const v of r){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}return tr;}));
 renderCareful();renderFreeze();

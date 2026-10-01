@@ -823,7 +823,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/careful",
     "title": "Careful",
-    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform destroy, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster."
+    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster."
   },
   {
     "url": "/docs/reference/skills/chain-patterns",

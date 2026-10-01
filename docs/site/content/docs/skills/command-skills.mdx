@@ -122,7 +122,7 @@ Commands not yet filed under a task above.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:careful`](/docs/reference/skills/careful) | Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform destroy, and tells Claude to ask the operator instead. | low | `/ork:careful` |
+| [`/ork:careful`](/docs/reference/skills/careful) | Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. | low | `/ork:careful` |
 | [`/ork:freeze`](/docs/reference/skills/freeze) | Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
 
 ---

@@ -9,17 +9,18 @@
  *   rm-rf              rm with both recursive and force flags, unless every target is
  *                      strictly inside a temp dir ($TMPDIR, /tmp, the runtime tmpdir)
  *   git-push-force     git push --force, -f (alone or in a cluster), --force-with-lease, +refspec
+ *   git-push-delete    git push --delete / -d / :branch (remote branch delete)
  *   git-reset-hard     git reset --hard
  *   sql-drop           DROP TABLE, DROP DATABASE, DROP SCHEMA anywhere in the command text
  *   sql-truncate       TRUNCATE TABLE anywhere, or a bare TRUNCATE <name> statement
  *                      when a SQL client is named in the command
  *   kubectl-delete     kubectl ... delete
- *   terraform-destroy  terraform destroy, terraform apply -destroy
+ *   terraform-destroy  terraform or tofu destroy, apply -destroy
  *
  * Matching is on shell words, not substrings: quoted text is one word, so a
  * commit message or a grep pattern that mentions "git push --force" is not a
  * push. Compound commands are split on ; & | and newlines, and the bodies of
- * `bash -c`, `eval` and $( ) are checked too.
+ * `bash -c`, `eval`, $( ) and an ssh remote command are checked too.
  *
  * Input that cannot be read fails closed (exit 2): a guard that cannot see the
  * command cannot say it is safe. Node stdlib only.
@@ -167,11 +168,31 @@ function checkGit(args) {
       (isShortCluster(a) && a.includes('f')) ||
       (a.startsWith('+') && a.length > 1));
     if (forced) return { rule: 'git-push-force', detail: `git push with ${forced}` };
+    const deleted = rest.find((a) =>
+      a === '--delete' ||
+      (isShortCluster(a) && a.includes('d')) ||
+      (a.startsWith(':') && a.length > 1));
+    if (deleted) return { rule: 'git-push-delete', detail: `git push with ${deleted} deletes a remote branch` };
   }
   if (sub === 'reset' && rest.includes('--hard')) {
     return { rule: 'git-reset-hard', detail: 'git reset --hard discards uncommitted work' };
   }
   return null;
+}
+
+const SSH_OPTS_WITH_VALUE = new Set(['-B', '-b', '-c', '-D', '-E', '-e', '-F', '-I', '-i', '-J', '-L', '-l', '-m', '-O', '-o', '-P', '-p', '-Q', '-R', '-S', '-W', '-w']);
+
+/** The command string ssh runs on the remote host, or null when there is none. */
+function sshRemoteCommand(args) {
+  let j = 0;
+  while (j < args.length && args[j].startsWith('-') && args[j] !== '--') {
+    j += SSH_OPTS_WITH_VALUE.has(args[j]) ? 2 : 1;
+  }
+  if (args[j] === '--') j++;
+  j++; // the destination
+  if (args[j] === '--') j++;
+  const remote = args.slice(j);
+  return remote.length > 0 ? remote.join(' ') : null;
 }
 
 function checkSegment(words, tmpRoots, depth) {
@@ -183,7 +204,7 @@ function checkSegment(words, tmpRoots, depth) {
     else if (cmd === 'git') hit = checkGit(args);
     else if (cmd === 'kubectl' && args.includes('delete')) {
       hit = { rule: 'kubectl-delete', detail: 'kubectl delete removes cluster resources' };
-    } else if (cmd === 'terraform' && (args.includes('destroy') ||
+    } else if ((cmd === 'terraform' || cmd === 'tofu') && (args.includes('destroy') ||
       (args.includes('apply') && (args.includes('-destroy') || args.includes('--destroy'))))) {
       hit = { rule: 'terraform-destroy', detail: 'terraform destroy tears down managed infrastructure' };
     } else if (SHELLS.has(cmd) && depth < MAX_DEPTH) {
@@ -191,6 +212,9 @@ function checkSegment(words, tmpRoots, depth) {
       if (c !== -1 && args[c + 1] !== undefined) hit = scan(args[c + 1], tmpRoots, depth + 1);
     } else if (cmd === 'eval' && depth < MAX_DEPTH) {
       hit = scan(args.join(' '), tmpRoots, depth + 1);
+    } else if (cmd === 'ssh' && depth < MAX_DEPTH) {
+      const remote = sshRemoteCommand(args);
+      if (remote !== null) hit = scan(remote, tmpRoots, depth + 1);
     }
     if (hit) return hit;
   }

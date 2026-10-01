@@ -862,9 +862,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "careful": {
     "name": "careful",
-    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform destroy, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster.",
+    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "ca7c87c431af940168667739571607d18155bef3bb6f7d96fafcf500dbcf4227",
+    "sha256": "d593c86ed3164aa945cd72b04ecd6852117473970c80ce2b8ad259a988424cb2",
     "author": "OrchestKit",
     "tags": [
       "careful",

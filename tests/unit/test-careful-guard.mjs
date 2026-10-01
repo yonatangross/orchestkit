@@ -82,6 +82,17 @@ const DENY = [
   ['terraform destroy', 'terraform-destroy'],
   ['terraform destroy -auto-approve', 'terraform-destroy'],
   ['terraform apply -destroy', 'terraform-destroy'],
+  // review round 1 (estate-30 on #4576): ssh remote commands, remote branch delete, OpenTofu
+  ["ssh host 'rm -rf /x'", 'rm-rf'],
+  ['ssh -p 2222 -i ~/.ssh/k deploy@host "rm -rf /srv/app"', 'rm-rf'],
+  ['ssh host -- git push --force', 'git-push-force'],
+  ["ssh -o StrictHostKeyChecking=no host 'cd /repo && git reset --hard'", 'git-reset-hard'],
+  ["ssh host 'kubectl delete ns prod'", 'kubectl-delete'],
+  ['git push origin --delete feat/x', 'git-push-delete'],
+  ['git push origin -d feat/x', 'git-push-delete'],
+  ['git push origin :feat/x', 'git-push-delete'],
+  ['tofu destroy', 'terraform-destroy'],
+  ['tofu apply -destroy', 'terraform-destroy'],
 ];
 
 for (const [command, expected] of DENY) check(`deny: ${command}`, rule(command), expected);
@@ -112,6 +123,11 @@ const ALLOW = [
   'terraform plan',
   'terraform apply',
   'echo done',
+  'ssh host ls /srv',
+  "ssh host 'git push origin feat/x'",
+  "ssh host 'rm -rf $TMPDIR/x'",
+  'git push origin feat/x:feat/x',
+  'tofu plan',
 ];
 
 for (const command of ALLOW) check(`allow: ${command}`, rule(command), null);
