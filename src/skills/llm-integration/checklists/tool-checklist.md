@@ -16,7 +16,7 @@
 - [ ] On Claude, keep `tools` fixed as first sent; a changed top-level array breaks the cached prefix (and, on Opus 5.5, Sonnet 5.5 and Fable 5.1, invalidates later thinking blocks)
 - [ ] Add tools mid-conversation with the inline `tool_addition` pattern (beta header `inline-tools-2026-09-15`; available on Sonnet 5.5, not on Sonnet 5) instead of rewriting the array <!-- model-recency-ok: per-model contrast, Sonnet 5 lacks what Sonnet 5.5 has (platform docs 2026-09-28) -->
 - [ ] For large tool sets, use a non-deferred tool search tool with `defer_loading: true`, or add tools with `tool_addition`, rather than a per-request subset
-- [ ] No forced `tool_choice` (`any` or named) on Opus 5.5, Fable 5.1, or Mythos 5.1 (400); use `auto` plus `strict: true`, or structured outputs
+- [ ] No forced `tool_choice` (`any` or named) on Sonnet 5.5, Opus 5.5, Fable 5.1, or Mythos 5.1 (400); use `auto` plus `strict: true`, or structured outputs
 
 ## Tool Execution
 

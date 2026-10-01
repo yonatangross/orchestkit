@@ -161,6 +161,37 @@ describe('prompt/antipattern-warning', () => {
       expect(existsSync(projectRulesFile())).toBe(false);
     });
 
+    test('skips project write when an ancestor .claude/rules copy is identical', () => {
+      // CC loads .claude/rules from every ancestor of the project dir, so a
+      // worktree or subproject under a seeded root would load the text twice.
+      mkdirSync(join(tempDir, '.claude', 'rules'), { recursive: true });
+      writeFileSync(projectRulesFile(), buildAntipatternsContent());
+      const nested = join(tempDir, 'repo', '.worktrees', 'task');
+      mkdirSync(nested, { recursive: true });
+      materializeAntipatternRules(nested);
+      expect(existsSync(join(nested, '.claude', 'rules', 'antipatterns.md'))).toBe(false);
+    });
+
+    test('writes project file when the ancestor copy differs', () => {
+      writeFileSync(projectRulesFile(), '# different content\n');
+      const nested = join(tempDir, 'repo');
+      mkdirSync(nested, { recursive: true });
+      materializeAntipatternRules(nested);
+      expect(readFileSync(join(nested, '.claude', 'rules', 'antipatterns.md'), 'utf8')).toBe(
+        buildAntipatternsContent(),
+      );
+    });
+
+    test('an identical copy in a sibling dir does not count', () => {
+      const sibling = join(tempDir, 'sibling', '.claude', 'rules');
+      mkdirSync(sibling, { recursive: true });
+      writeFileSync(join(sibling, 'antipatterns.md'), buildAntipatternsContent());
+      const nested = join(tempDir, 'repo');
+      mkdirSync(nested, { recursive: true });
+      materializeAntipatternRules(nested);
+      expect(existsSync(join(nested, '.claude', 'rules', 'antipatterns.md'))).toBe(true);
+    });
+
     test('honors CLAUDE_CONFIG_DIR for the global rules lookup', () => {
       // An identical file outside the configured global dir does not count.
       const stray = join(tempDir, 'elsewhere', 'rules');
