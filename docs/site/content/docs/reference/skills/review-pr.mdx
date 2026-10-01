@@ -36,7 +36,9 @@ review-pr feature-branch
 Resolve the target with the script first, then review exactly that target (#3892):
 
 ```bash
-TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $ARGUMENTS)  # one JSON object
+RULES_MODE=false; REST=""  # --rules is the opt-in for Phase 4.6; strip it before resolving
+for a in $ARGUMENTS; do if [ "$a" = "--rules" ]; then RULES_MODE=true; else REST="$REST $a"; fi; done
+TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $REST)  # one JSON object
 ```
 
 | `kind` | Comes from | Review source |
@@ -305,6 +307,19 @@ By default refuters are same-model Claude, variance reduction, not bias correcti
 The workflow does not run this lane. When the user wants it, choose the Agent tool fallback at STEP 0b, before Phase 3, and run Phases 3 and 4.5 there. Never add it after the workflow: a blocker would get a second quorum.
 
 Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (failing CI/tests/lint, npm-audit/CVSS) is never refuted.
+
+## Phase 4.6: Rule-check Mode (opt-in, `--rules`)
+
+Runs only when `RULES_MODE` is true or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:
+
+```python
+SOURCES = Bash("node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)")  # project + ~/.claude CLAUDE.md and rules/*.md
+Workflow(scriptPath="${CLAUDE_SKILL_DIR}/workflows/rule-check.js",
+         args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff base...head)",
+               "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
+```
+
+Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", and `skipped` only as a count. Protocol, ceilings and the survivor filter: `Read("references/rule-check-mode.md")`.
 
 ## Phase 5: Synthesize Review
 
@@ -940,7 +955,7 @@ if pr_contains_llm_code:
 
 ---
 
-## References (11)
+## References (12)
 
 ### Adversarial Refutation
 
@@ -1407,6 +1422,52 @@ issue: This SQL query is vulnerable to injection - use parameterized queries ins
 
 question: Is there a reason we're not using the existing `UserService` here?
 ```
+
+### Rule Check Mode
+
+# Rule-check Mode (opt-in)
+
+Source: claude.dev, "A harness for every task". Rule adherence is a harness, not a reviewer's afterthought: one verifier agent per rule against the diff, then a skeptic agent that filters false positives, and only the survivors are reported. A single reviewer holding every CLAUDE.md rule at once skims them; a verifier holding one rule does not.
+
+Off by default. It runs when `/ork:review-pr` gets `--rules`, or when the user asks to check a change against their CLAUDE.md, rules files or "my rules".
+
+## Pipeline
+
+| Step | Who | What |
+|------|-----|------|
+| Collect | `scripts/collect-rules.mjs` | Reads `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md` in the repo, then `~/.claude/CLAUDE.md` and `~/.claude/rules/**/*.md`, plus whole-line `@path` imports one level deep. `--no-user` keeps it to the project. A file reached twice is read once. |
+| Split | `workflows/rule-check.js`, plain code | Top-level list items (nested items and continuation lines fold in), table data rows, directive paragraphs and quotes become rules. Code fences, YAML frontmatter, HTML comments and table headers never do. Text without a directive word (must, never, always, do not, avoid, prefer, should, only, required, ...) is skipped and listed in `skipped`. A rule copied into several files is checked once; `alsoIn` names the copies. |
+| Verify | one agent per rule, effort `low` | Reads the diff itself (`diffCommand`), answers `applies` and lists violations on ADDED or changed lines only, each with file, line and the quoted line. |
+| Skeptic | one agent per violation, session effort | Gets the rule, the location and the quoted line, not the verifier's explanation, and is told to refute it. |
+| Report | plain code | `survivors`, `refuted`, `outOfScope`, `unverified`, `unchecked`, `notApplicable`, `skipped`, `reasons`. |
+
+## Ceilings
+
+- Verifiers: 12 by default (`maxVerifiers`, lowerable, never above 24). With more rules than that, rules share verifiers in contiguous batches of near-equal size, each rule still answered on its own row. The `reasons` line says so; no rule is dropped.
+- Skeptics: 12 by default (`maxSkeptics`, same bounds). Violations past the ceiling go to `unverified` with the reason, never silently into `survivors`.
+
+## The survivor filter
+
+A violation is **refuted** only when the skeptic answers `refuted=true` AND cites a `file:line` in the violation's file or another changed file AND gives a reason. Anything less leaves it standing:
+
+| Skeptic answer | Outcome |
+|----------------|---------|
+| `refuted=true`, in-diff `file:line`, reason | refuted (listed with the citation) |
+| `refuted=true` without a citation, outside the diff, or no line | survives, `skeptic: "unbacked refutation"` |
+| `refuted=false` | survives, `skeptic: "upheld"` |
+| dead or throwing skeptic | survives, `confidence: "low"` |
+
+Before any skeptic runs: a violation in a file outside `changedFiles` is `outOfScope` (rule check is diff-scoped), and one with no file goes to `unverified`. A dead, BLOCKED or silent verifier leaves its rules in `unchecked`.
+
+## In the report
+
+- Each survivor is an `issue (rule)` finding: the rule text with its `source:line`, the violating `file:line`, the quoted line. Any survivor floors the verdict at `comment`; rule findings never raise it to `request-changes` on their own.
+- `unverified` and `unchecked` are listed as "not checked, manual review required".
+- `skipped` is a count, plus the list on request.
+- `refuted` is listed in a collapsed section with each citation, so a wrong kill is auditable.
+
+Tests: `tests/unit/test-review-rule-check.mjs` (splitting fixtures, fan-out and batching, the survivor filter, the collector), no live agent runs.
+
 
 ### Task Metrics Template
 
