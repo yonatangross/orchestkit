@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140)** · 2026-10-01
+
+- **review-pr:** opt-in rule-check mode, one verifier per rule (#4573)
+
 **[v10.0.0-beta.139](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139)** · 2026-10-01
 
 - **skills:** brainstorm diverges at effort low, implement effort ladder (#4572)
@@ -663,12 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **release:** pin stable channel to v9.8.1 (#4552)
 - **doctor:** treat policyHelper sources as not observable in fallback (#4551)
 - **triage:** read the triage model from a repo variable (#4555)
-
-**[v10.0.0-beta.132](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.131...v10.0.0-beta.132)** · 2026-09-28
-
-- **cc:** adopt CC 2.1.281 to 2.1.284 (#4545)
-- **models:** adopt Claude Sonnet 5.5 as the sonnet alias target (#4541)
-- **ci:** fetch the CC CHANGELOG raw, not base64 through execSync (#4546)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
