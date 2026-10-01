@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4567: warn before a model switch re-caches a warm context</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:20px;max-width:72ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+input,select{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>A mid-session model switch on a warm, large context now says what it costs</h1>
+  <p class="meta">113 switches from 2026-08-29 to 2026-09-29, 102 of them above 100k context, about $592 of estimated cache writes. The telemetry hook only recorded them. <code>model-switch-consent</code> (sync PreModelSwitch) now prints one line, and never asks or denies.</p>
+</header>
+<section>
+  <h2>Try a switch</h2>
+  <label for="from">from_model</label><input id="from" value="claude-sonnet-5-5">
+  <label for="to">to_model</label><input id="to" value="claude-opus-5-5">
+  <label for="tok">context_tokens</label><input id="tok" type="number" value="123705" step="1000">
+  <label for="usd">estimated_cache_write_usd</label><input id="usd" type="number" value="5.81" step="0.01">
+  <label><input id="warm" type="checkbox" checked> prompt_cache_warm</label>
+  <div class="verdict" id="out"></div>
+</section>
+<section>
+  <h2>Before and after</h2>
+  <table>
+    <thead><tr><th>case</th><th>origin/main</th><th>this PR</th></tr></thead>
+    <tbody>
+      <tr><td>warm, over 100k</td><td class="bad">silent (telemetry only)</td><td class="ok">one warning line, switch allowed</td></tr>
+      <tr><td>cold cache or at most 100k</td><td>silent</td><td>silent</td></tr>
+      <tr><td>onto Fable or Mythos, no consent</td><td>ask, reason quotes cost</td><td>same ask, no second line</td></tr>
+    </tbody>
+  </table>
+</section>
+<section>
+  <h2>Fail without the change</h2>
+  <pre><span class="bad">Tests  3 failed | 12 passed (15)</span>
+<span class="ok">Tests  19 passed (19)</span></pre>
+  <p class="meta">Why not the telemetry hook: it is async on PostModelSwitch, and CC delivers an async <code>systemMessage</code> on the next turn, after the cache was paid for.</p>
+</section>
+<section>
+  <h2>Source</h2>
+  <p class="meta">claude.dev, <a href="https://claude.dev/blog/lessons-from-building-claude-code-prompt-caching-is-everything/">Lessons from building Claude Code: prompt caching is everything</a></p>
+</section>
+<script>
+const WARN=100000,$=id=>document.getElementById(id);
+function render(){const t=+$('tok').value,u=+$('usd').value,from=$('from').value||'the current model',to=$('to').value;
+  if(!$('warm').checked||t<=WARN){$('out').innerHTML='<span class="ok">silent, switch proceeds</span>';return;}
+  const cost=u>0?`, estimated $${u.toFixed(2)} (catalog pricing)`:'';
+  $('out').textContent=`\u26a0 Switching ${from} -> ${to} re-caches a warm ${t.toLocaleString('en-US')}-token context${cost}. Cheaper: finish this task on ${from}, or hand the next step to a subagent or a fresh session with a short plan.`;}
+['from','to','tok','usd','warm'].forEach(i=>$(i).addEventListener('input',render));render();
+</script>
+</body>
+</html>
