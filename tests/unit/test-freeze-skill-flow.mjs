@@ -60,7 +60,10 @@ function invokeSkill(sessionId, args) {
     .replaceAll('${CLAUDE_SKILL_DIR}', SKILL_DIR)
     .replaceAll('${CLAUDE_PROJECT_DIR}', project)
     .replaceAll('${CLAUDE_SESSION_ID}', sessionId)
-    .replaceAll('$ARGUMENTS', args);
+    .replaceAll('$ARGUMENTS', () => args); // a function, so a `$` in args is not a replace pattern
+  // A shell string on purpose: Claude Code runs the `!` line through a shell, and
+  // how that shell treats the quoting (spaces, `$`) is what this test checks. The
+  // inputs are this repo's SKILL.md and paths under a mkdtemp dir, not user data.
   return spawnSync('sh', ['-c', cmd], { cwd: project, encoding: 'utf8', env: shellEnv });
 }
 
@@ -96,6 +99,17 @@ check('session Y: fence armed under X does not apply', edit(Y, path.join(sibling
 const refused = invokeSkill(X, 'src/missing');
 check('arm of a missing dir is refused', refused.status, 1);
 check('refused arm keeps the fence', edit(X, path.join(sibling, 'b.ts')), 2);
+
+// A dir name with a space and a literal `$` must reach the guard as typed:
+// the shell may neither split it nor expand `$HOME` (review round 3).
+const oddRel = 'src/odd dir $HOME x';
+const odd = path.join(project, oddRel);
+mkdirSync(odd, { recursive: true });
+const oddArm = invokeSkill(X, oddRel);
+check('arm of a dir with a space and $ exits 0', oddArm.status, 0);
+check('arm reports the literal dir', oddArm.stdout.includes(odd), true);
+check('session X: write inside the odd dir allowed', edit(X, path.join(odd, 'a.ts')), 0);
+check('session X: write in the old fence now denied', edit(X, path.join(frozen, 'a.ts')), 2);
 
 const off = invokeSkill(X, 'off');
 check('off exits 0', off.status, 0);

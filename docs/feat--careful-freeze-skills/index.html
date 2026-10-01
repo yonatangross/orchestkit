@@ -63,13 +63,14 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 83 passed
+<span class="ok">careful-guard: 103 passed
 freeze-guard: 31 passed
 freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
 </section>
 
 <script>
+const isAbsolute=(p)=>p.startsWith('/');
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
 const SQL_CLIENT = /\b(psql|pgcli|mysql|mariadb|mycli|sqlite3|duckdb|clickhouse(-client)?|cockroach|sqlcmd|snowsql|usql)\b/i;
 const MAX_DEPTH = 4;
@@ -285,12 +286,19 @@ function scan(command, tmpRoots, depth) {
 
 /**
  * Return the first destructive pattern in a Bash command, or null.
- * opts.tmpdir adds a runtime temp root (the hook passes $TMPDIR).
+ * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR). Only when
+ * it is a non-empty absolute path other than / do `$TMPDIR` and `${TMPDIR}` in
+ * the command count as temp roots.
  */
 function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  const tmpRoots = ['$TMPDIR', '${TMPDIR}', '/tmp', '/private/tmp', '/var/folders/xx/T'];
-  if (opts.tmpdir) tmpRoots.push(opts.tmpdir);
+  const tmpRoots = ['/tmp', '/private/tmp', '/var/folders/xx/T'];
+  // `$TMPDIR` in the command is only a temp root when TMPDIR really is one: unset
+  // or empty, the shell turns `rm -rf $TMPDIR/*` into `rm -rf /*`.
+  const t = opts.tmpdir;
+  if (typeof t === 'string' && isAbsolute(t) && t.replace(/\/+$/, '') !== '') {
+    tmpRoots.push(t, '$TMPDIR', '${TMPDIR}');
+  }
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 
@@ -300,7 +308,7 @@ const cmd=document.getElementById('cmd');
 const pre=document.getElementById('presets');
 for(const p of PRESETS){const b=document.createElement('button');b.type='button';b.textContent=p;b.addEventListener('click',()=>{cmd.value=p;renderCareful();});pre.appendChild(b);}
 function renderCareful(){
-  const hit=findDestructive(cmd.value);
+  const hit=findDestructive(cmd.value,{tmpdir:'/var/folders/xx/T'});
   const box=document.getElementById('cverdict');
   if(hit){box.textContent=`exit 2, denied by rule ${hit.rule}: ${hit.detail}.\nClaude is told to ask the operator, not to rephrase the command.`;box.className='verdict bad';}
   else{box.textContent='exit 0, the command runs.';box.className='verdict ok';}

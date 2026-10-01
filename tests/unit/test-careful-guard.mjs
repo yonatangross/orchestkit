@@ -22,6 +22,7 @@
 // ============================================================================
 
 import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findDestructive } from '../../src/skills/careful/scripts/careful-guard.mjs';
@@ -136,12 +137,25 @@ const ALLOW = [
 
 for (const command of ALLOW) check(`allow: ${command}`, rule(command), null);
 
+// --- $TMPDIR is only a temp root when TMPDIR really is one (review round 3) ----
+// With TMPDIR unset or empty the shell expands `rm -rf $TMPDIR/*` to `rm -rf /*`.
+const TMP_ALIAS = ['rm -rf $TMPDIR/*', 'rm -rf ${TMPDIR}/x', 'rm -rf "$TMPDIR"', 'rm -rf "$TMPDIR/build-cache"'];
+for (const [label, tmpdir] of [['unset', undefined], ['empty', ''], ['root', '/'], ['relative', 'tmp']]) {
+  for (const command of TMP_ALIAS) {
+    check(`TMPDIR ${label}: deny ${command}`, findDestructive(command, { tmpdir })?.rule ?? null, 'rm-rf');
+  }
+}
+for (const command of TMP_ALIAS.filter((c) => c !== 'rm -rf "$TMPDIR"')) {
+  check(`TMPDIR set: allow ${command}`, findDestructive(command, { tmpdir: '/var/folders/zz/abc/T' })?.rule ?? null, null);
+}
+
 // --- CLI contract: exit 2 + stderr naming the rule, exit 0 on allow ----------
 function runHook(payload, env = {}) {
   return spawnSync(process.execPath, [CLI], {
     input: typeof payload === 'string' ? payload : JSON.stringify(payload),
     encoding: 'utf8',
-    env: { ...process.env, ...env },
+    // a key set to undefined is removed from the child environment
+    env: Object.fromEntries(Object.entries({ ...process.env, ...env }).filter(([, v]) => v !== undefined)),
   });
 }
 
@@ -164,8 +178,12 @@ const bash = (command) => ({
   check('cli allow stderr empty', r.stderr, '');
 }
 {
-  const r = runHook(bash('rm -rf $TMPDIR/x'));
+  const r = runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: tmpdir() });
   check('cli tmpdir allow exit code', r.status, 0);
+}
+{
+  const r = runHook(bash('rm -rf $TMPDIR/*'), { TMPDIR: undefined });
+  check('cli TMPDIR unset: rm -rf $TMPDIR/* denied', r.status, 2);
 }
 {
   const r = runHook({ ...bash('rm -rf /'), tool_name: 'Read' });

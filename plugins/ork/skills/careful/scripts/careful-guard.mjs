@@ -7,7 +7,8 @@
  * denies, with exit 2 and a stderr reason naming the rule:
  *
  *   rm-rf              rm with both recursive and force flags, unless every target is
- *                      strictly inside a temp dir ($TMPDIR, /tmp, the runtime tmpdir)
+ *                      strictly inside a temp dir (/tmp, the runtime tmpdir, or $TMPDIR
+ *                      when TMPDIR is set to a real absolute path)
  *   git-push-force     git push --force, -f (alone or in a cluster), --force-with-lease, +refspec
  *   git-push-delete    git push --delete / -d / :branch (remote branch delete)
  *   git-reset-hard     git reset --hard
@@ -30,6 +31,7 @@
  */
 import { readFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
@@ -247,12 +249,19 @@ function scan(command, tmpRoots, depth) {
 
 /**
  * Return the first destructive pattern in a Bash command, or null.
- * opts.tmpdir adds a runtime temp root (the hook passes $TMPDIR).
+ * opts.tmpdir is the real TMPDIR (the hook passes process.env.TMPDIR). Only when
+ * it is a non-empty absolute path other than / do `$TMPDIR` and `${TMPDIR}` in
+ * the command count as temp roots.
  */
 export function findDestructive(command, opts = {}) {
   if (typeof command !== 'string' || command.trim() === '') return null;
-  const tmpRoots = ['$TMPDIR', '${TMPDIR}', '/tmp', '/private/tmp', tmpdir()];
-  if (opts.tmpdir) tmpRoots.push(opts.tmpdir);
+  const tmpRoots = ['/tmp', '/private/tmp', tmpdir()];
+  // `$TMPDIR` in the command is only a temp root when TMPDIR really is one: unset
+  // or empty, the shell turns `rm -rf $TMPDIR/*` into `rm -rf /*`.
+  const t = opts.tmpdir;
+  if (typeof t === 'string' && isAbsolute(t) && t.replace(/\/+$/, '') !== '') {
+    tmpRoots.push(t, '$TMPDIR', '${TMPDIR}');
+  }
   return checkSql(command) ?? scan(command, tmpRoots, 0);
 }
 

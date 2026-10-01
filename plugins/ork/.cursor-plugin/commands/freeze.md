@@ -16,12 +16,14 @@ allowed-tools: "Bash(node *freeze-guard.mjs arm *) Read"
 
 State for this session:
 
-!`node "skills/freeze/scripts/freeze-guard.mjs" arm "${CLAUDE_PROJECT_DIR}" "${CLAUDE_SESSION_ID}" "$ARGUMENTS"`
+!`node "skills/freeze/scripts/freeze-guard.mjs" arm "${CLAUDE_PROJECT_DIR}" "${CLAUDE_SESSION_ID}" '$ARGUMENTS'`
 
 The line above ran when the skill was invoked: it resolved the argument against the
 project dir, followed symlinks, and recorded the real path for this session in
-`.claude/state/freeze/<session-id>.json`. Report that line to the operator as it
-reads. If it says NOT changed, the freeze did not move; say so and stop.
+`.claude/state/freeze/<session-id>.json`. The argument is single-quoted so the shell
+passes it as typed, spaces and `$` included; a dir name containing a single quote is
+not supported. Report that line to the operator as it reads. If it says NOT changed,
+the freeze did not move; say so and stop.
 
 ## How it works
 

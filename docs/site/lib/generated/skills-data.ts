@@ -864,7 +864,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "careful",
     "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "d20738a4d8cba5e31f146afef909dff5fa489798dc868cdb9416e78953239fa4",
+    "sha256": "7b108b3840ede310d3054d7681897106ea0a152a521fad9db187e1728dd28070",
     "author": "OrchestKit",
     "tags": [
       "careful",
@@ -2520,7 +2520,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "729460fd26a90413d64e05c6294c10763540f0e7fa34fc1104a90e09b8bbfb5f",
+    "sha256": "e9cdcedf63c9467a31b8b7fe93f7916ba4722eca7f486b29d3f255aa43feb9b8",
     "author": "OrchestKit",
     "tags": [
       "freeze",
