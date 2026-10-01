@@ -16,13 +16,14 @@
 //
 // Paths the reviewed PR controls are confined (see "Confinement" below): the
 // repo's own CLAUDE.md files and rules are read only when their realpath is a
-// .md inside the repo root, and an @import only when its realpath is a .md
-// inside the repo root or ~/.claude (both roots realpath'd). ~/.claude/CLAUDE.md
+// .md inside the repo root, and so is an @import made from one of them; an
+// @import made from ~/.claude/CLAUDE.md or ~/.claude/rules may also reach a .md
+// inside ~/.claude (both roots realpath'd). ~/.claude/CLAUDE.md
 // and ~/.claude/rules are exempt: they are the operator's, often symlinked into
 // a dotfiles repo. A refused file is listed in `skipped` with a reason, and
 // never opened:
 //   missing         the target does not exist
-//   outside-root    the target is outside both roots
+//   outside-root    the target is outside every root allowed for it
 //   symlink-escape  the path sits inside a root but its realpath leaves it
 //   not-md          the target is not a .md file
 //
@@ -78,8 +79,10 @@ function mdUnder(dir, fence = null, refused = [], walked = new Set()) {
 //   - the repo's own CLAUDE.md, .claude/CLAUDE.md and .claude/rules/** may be
 //     symlinks committed by the PR; each is read only when its realpath is a
 //     .md inside the repo root;
-//   - an @import may point anywhere; it is followed only when its realpath is a
-//     .md inside the repo root or inside ~/.claude.
+//   - an @import may point anywhere. From a repo file it is followed only when
+//     its realpath is a .md inside the repo root (a PR's CLAUDE.md must not pull
+//     ~/.claude/projects/*/memory/*.md into a prompt, and rule text reaches the
+//     review comment); from a ~/.claude file, inside the repo root or ~/.claude.
 // ~/.claude/CLAUDE.md and ~/.claude/rules/** are the operator's own files and
 // often symlinks into a dotfiles repo, so they are exempt (never PR-controlled).
 // A refused file is listed in `skipped` with a reason and never opened.
@@ -141,7 +144,7 @@ for (const [root, confined] of roots) {
   for (const m of text.matchAll(/^@(\S+)\s*$/gm)) {
     const ref = m[1];
     const target = ref.startsWith('~/') ? path.join(HOME, ref.slice(2)) : path.resolve(path.dirname(root), ref);
-    const reason = confine(target, IMPORT_ROOTS);
+    const reason = confine(target, confined ? REPO_ROOTS : IMPORT_ROOTS);
     if (reason) {
       skipped.push({ import: `@${ref}`, from: display(root), reason });
       continue;

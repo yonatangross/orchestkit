@@ -489,6 +489,33 @@ await test('root fix: ~/.claude/CLAUDE.md and ~/.claude/rules symlinked into a d
   }
 });
 
+// Re-read fix (estate-30 on #4573): an @import made from a repo file may not
+// reach ~/.claude (operator memory would land in a public review comment); an
+// @import made from ~/.claude/CLAUDE.md still may.
+await test('import fix: a repo CLAUDE.md import into ~/.claude is skipped, a home import into ~/.claude is read', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'rule-check-home-import-'));
+  try {
+    const repo = path.join(root, 'repo');
+    const home = path.join(root, 'home');
+    const mem = path.join(home, '.claude', 'projects', 'p', 'memory');
+    mkdirSync(repo, { recursive: true });
+    mkdirSync(mem, { recursive: true });
+    mkdirSync(path.join(home, '.claude', 'notes'), { recursive: true });
+    writeFileSync(path.join(mem, 'note.md'), '- Never reveal SECRET-MEM-4573.\n');
+    writeFileSync(path.join(home, '.claude', 'notes', 'ok.md'), '- Prefer the home-imported rule.\n');
+    writeFileSync(path.join(repo, 'CLAUDE.md'), '- Always keep the repo rule.\n@~/.claude/projects/p/memory/note.md\n');
+    writeFileSync(path.join(home, '.claude', 'CLAUDE.md'), '- Prefer the home rule.\n@notes/ok.md\n');
+    const out = JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home], { encoding: 'utf8' }));
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-MEM-4573'), 'operator memory read through a repo import');
+    const s = (out.skipped || []).find((x) => x.import === '@~/.claude/projects/p/memory/note.md');
+    assert.ok(s && s.from === 'CLAUDE.md' && s.reason === 'outside-root', `skipped: ${JSON.stringify(out.skipped || null)}`);
+    const ok = out.sources.find((x) => x.path === '~/.claude/notes/ok.md');
+    assert.ok(ok && ok.text.includes('home-imported rule'), `sources: ${out.sources.map((x) => x.path).join(', ')}`);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // --------------------------------------------------------------------------
 // 6. Determinism
 // --------------------------------------------------------------------------
