@@ -1,5 +1,5 @@
 ---
-description: "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster."
+description: "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster."
 argument-hint: ""
 disable-model-invocation: true
 context: inherit

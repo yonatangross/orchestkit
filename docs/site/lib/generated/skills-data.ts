@@ -862,9 +862,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "careful": {
     "name": "careful",
-    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster.",
+    "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "d593c86ed3164aa945cd72b04ecd6852117473970c80ce2b8ad259a988424cb2",
+    "sha256": "d20738a4d8cba5e31f146afef909dff5fa489798dc868cdb9416e78953239fa4",
     "author": "OrchestKit",
     "tags": [
       "careful",
@@ -2518,9 +2518,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "freeze": {
     "name": "freeze",
-    "description": "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree.",
+    "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "3ca3e42283767018dfe2e2ba9c790b7ead91668b48149d454f877f5ad713e57d",
+    "sha256": "729460fd26a90413d64e05c6294c10763540f0e7fa34fc1104a90e09b8bbfb5f",
     "author": "OrchestKit",
     "tags": [
       "freeze",

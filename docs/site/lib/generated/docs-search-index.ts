@@ -823,7 +823,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/careful",
     "title": "Careful",
-    "description": "Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dirs, git push --force (also -f, --force-with-lease, +refspec), remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, also inside an ssh remote command, and tells Claude to ask the operator instead. Use before working against production, a shared branch, a live database or a cluster."
+    "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster."
   },
   {
     "url": "/docs/reference/skills/chain-patterns",
@@ -1118,7 +1118,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/freeze",
     "title": "Freeze",
-    "description": "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree."
+    "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree."
   },
   {
     "url": "/docs/reference/skills/github-operations",

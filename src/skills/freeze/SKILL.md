@@ -2,7 +2,7 @@
 name: freeze
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit on any path whose real location (symlinks followed) is outside the frozen dir. Pass the dir as the argument, or off to lift it. Use when a change must stay inside one package, module or worktree."
+description: "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree."
 argument-hint: "<dir> | off"
 context: inherit
 user-invocable: true

@@ -13,7 +13,7 @@ description: "User-invocable commands for common development workflows."
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from explicit consumer telemetry roots. It separates attempted, started, completed, and u... |
 | [Auto](/docs/reference/skills/auto) | Command | medium | Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Class... |
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideatio... |
-| [Careful](/docs/reference/skills/careful) | Command | low | Turns on careful mode for the rest of the session: a skill-scoped PreToolUse Bash hook blocks rm -rf outside temp dir... |
+| [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attr... |
@@ -32,7 +32,7 @@ description: "User-invocable commands for common development workflows."
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targ... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, a... |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
-| [Freeze](/docs/reference/skills/freeze) | Command | low | Fences file edits to one directory for the rest of the session: a skill-scoped PreToolUse hook denies Edit, Write, Mu... |
+| [Freeze](/docs/reference/skills/freeze) | Command | low | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path w... |
 | [Glyph](/docs/reference/skills/glyph) | Command | low | Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict firs... |
 | [Help](/docs/reference/skills/help) | Command | low | OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right ... |
 | [Implement](/docs/reference/skills/implement) | Command | medium | Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktre... |
