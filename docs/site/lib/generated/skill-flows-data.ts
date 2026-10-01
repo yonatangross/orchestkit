@@ -6334,6 +6334,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
+            "num": "4.6",
+            "label": "Rule-check Mode",
+            "does": "Runs only when RULES_MODE is true or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:",
+            "out": null,
+            "tag": null
+          },
+          {
             "num": "5",
             "label": "Synthesize Review",
             "does": "Combine the workflow result (and any \"Ultrareview:\" findings) into a structured report. Load template: Read(\"references/review-report-template.md\"). Show the producer-basis verdict as the headline and the postRefutationVerdict as a separately labelled view, each finding with its postSeverity, and the reasons behind every floor. If reviewerDisagreement is true and the Phase 2.5 gate never asked, the shell may offer /ultrareview now.",

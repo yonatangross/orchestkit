@@ -29,6 +29,7 @@
     "skills/brainstorm/workflows/brainstorm-diverge.js",
     "skills/cover/workflows/heal-loop.js",
     "skills/review-pr/workflows/review-fanout.js",
+    "skills/review-pr/workflows/rule-check.js",
     "skills/verify/workflows/verify-dispatch.js"
   ],
   "userConfig": {

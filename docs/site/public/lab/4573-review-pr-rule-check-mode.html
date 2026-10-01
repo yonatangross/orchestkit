@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4573: review-pr rule-check mode, one verifier per rule</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:960px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:12px;max-width:76ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+pre{font-family:var(--mono);font-size:12px;background:#0a0712;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+textarea{width:100%;height:220px;background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px}
+select,input{background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-family:var(--mono);font-size:12px}
+label{font-size:12px;color:var(--muted);margin-right:6px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.verdict{margin-top:10px;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+a{color:var(--accent)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4573: review-pr rule-check mode, one verifier per rule"><meta property="og:description" content="Opt-in /ork:review-pr --rules splits CLAUDE.md and rules files into rules, runs one low-effort verifier per rule over the diff, then a skeptic per violation that must cite the diff to refute it. Paste a rules file to see the real splitter."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4573-review-pr-rule-check-mode.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4573: review-pr rule-check mode, one verifier per rule"><meta name="twitter:description" content="Opt-in /ork:review-pr --rules splits CLAUDE.md and rules files into rules, runs one low-effort verifier per rule over the diff, then a skeptic per violation that must cite the diff to refute it. Paste a rules file to see the real splitter."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1><code>/ork:review-pr --rules</code>: one verifier per rule, then a skeptic</h1>
+  <p class="meta">claude.dev: check rule adherence with one verifier agent per rule against the diff, then a skeptic that filters false positives, and report only the survivors. This page runs the real splitter (copied from <code>workflows/rule-check.js</code>) on whatever you paste, and simulates the survivor filter.</p>
+</header>
+
+<section>
+  <h2>1. Split: paste a CLAUDE.md or rules file</h2>
+  <textarea id="md"></textarea>
+  <div class="row"><label for="cap">verifier ceiling</label><input id="cap" type="number" min="1" max="24" value="12" style="width:70px"><span id="summary" class="meta" style="margin:0"></span></div>
+  <table><thead><tr><th>id</th><th>line</th><th>kind</th><th>rule</th><th>verifier</th></tr></thead><tbody id="rules"></tbody></table>
+  <p class="meta" style="margin-top:8px" id="skipped"></p>
+</section>
+
+<section>
+  <h2>2. Survivor filter: what does the skeptic answer?</h2>
+  <p class="meta">Claim: the diff breaks "Never use the em-dash in any output." at <code>src/api.ts:10</code>. Changed files: <code>src/api.ts</code>, <code>README.md</code>.</p>
+  <div class="row">
+    <label for="ref">refuted</label><select id="ref"><option value="true">true</option><option value="false">false</option><option value="dead">skeptic died</option></select>
+    <label for="cit">citation</label><input id="cit" value="src/api.ts:10" style="width:180px">
+    <label for="why">reason</label><input id="why" value="line 10 is unchanged context" style="width:220px">
+  </div>
+  <div class="verdict" id="outcome"></div>
+</section>
+
+<section>
+  <h2>Fail without the change</h2>
+  <pre><span class="bad">node tests/unit/test-review-rule-check.mjs   (origin/main export)
+Error: ENOENT ... src/skills/review-pr/workflows/rule-check.js
+rc=1</span>
+<span class="ok">19 passed, 0 failed
+planted control (a stub splitter that reports nothing): 3 passed, 16 failed</span></pre>
+  <p class="meta">Gates: <code>npm run test:skills</code> rc=0, <code>test-skill-length.sh</code> 0 over 520, <code>test-skill-cc-features.sh</code> 9/9, <code>npm run test:manifests</code> rc=0, <code>bin/validate-counts.sh</code> PASSED, <code>test-review-fanout.mjs</code> 58/58.</p>
+</section>
+
+<section>
+  <h2>Source</h2>
+  <p class="meta">claude.dev, <a href="https://claude.dev/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code/">A harness for every task: dynamic workflows in Claude Code</a></p>
+</section>
+
+<script>
+const DIRECTIVE = /\b(must|never|always|do not|don't|dont|avoid|prefer|should|shall|required|requires|forbidden|only|instead of)\b/i;
+const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
+const TABLE_ROW = /^\s*\|.*\|\s*$/;
+const TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+
+function splitRules(path, text) {
+	const lines = text.replace(/\r\n/g, "\n").split("\n");
+	const out = [];
+	let i = 0;
+	// YAML frontmatter at the very top is metadata, not instruction.
+	if (lines[0] && lines[0].trim() === "---") {
+		const end = lines.indexOf("---", 1);
+		if (end > 0) i = end + 1;
+	}
+	let heading = "";
+	let cur = null; // { kind, line, parts[] }
+	let fence = null;
+	let comment = false;
+	const flush = () => {
+		if (cur) out.push({ source: path, line: cur.line, heading, kind: cur.kind, text: cur.parts.join(" ").replace(/\s+/g, " ").trim() });
+		cur = null;
+	};
+	for (; i < lines.length; i++) {
+		const raw = lines[i];
+		const t = raw.trim();
+		if (fence) {
+			if (t.startsWith(fence)) fence = null;
+			continue;
+		}
+		const f = /^(```+|~~~+)/.exec(t);
+		if (f) {
+			flush();
+			fence = f[1];
+			continue;
+		}
+		if (comment) {
+			if (t.includes("-->")) comment = false;
+			continue;
+		}
+		if (t.startsWith("<!--")) {
+			flush();
+			if (!t.includes("-->")) comment = true;
+			continue;
+		}
+		const h = /^#{1,6}\s+(.*)$/.exec(t);
+		if (h) {
+			flush();
+			heading = h[1].trim();
+			continue;
+		}
+		if (!t) {
+			flush();
+			continue;
+		}
+		if (TABLE_ROW.test(raw)) {
+			flush();
+			if (TABLE_SEP.test(raw)) continue;
+			// A header row is the row directly above a separator row.
+			if (lines[i + 1] !== undefined && TABLE_SEP.test(lines[i + 1])) continue;
+			const cells = t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim()).filter(Boolean);
+			out.push({ source: path, line: i + 1, heading, kind: "table-row", text: cells.join(" | ") });
+			continue;
+		}
+		const li = LIST_ITEM.exec(raw);
+		if (li) {
+			// A nested item folds into its parent rule; a top-level item starts a new one.
+			if (li[1].length > 0 && cur && cur.kind === "list-item") {
+				cur.parts.push(li[3]);
+				continue;
+			}
+			flush();
+			cur = { kind: "list-item", line: i + 1, parts: [li[3]] };
+			continue;
+		}
+		// Indented or lazy continuation lines belong to the open list item.
+		if (cur && cur.kind === "list-item") {
+			cur.parts.push(t);
+			continue;
+		}
+		if (t.startsWith(">")) {
+			if (!cur || cur.kind !== "quote") {
+				flush();
+				cur = { kind: "quote", line: i + 1, parts: [] };
+			}
+			cur.parts.push(t.replace(/^>\s?/, ""));
+			continue;
+		}
+		if (!cur || cur.kind !== "paragraph") {
+			flush();
+			cur = { kind: "paragraph", line: i + 1, parts: [] };
+		}
+		cur.parts.push(t);
+	}
+	flush();
+	return out;
+}
+
+
+const SAMPLE = "# Project rules\n\nThis file says what the repo is.\n\n## Writing\n- Never use the em-dash in any output.\n- Prefer plain words over jargon, and\n  stop when the point is made.\n  - nested: folds into the parent\n- Shorter replies read better.\n\nAlways respond in English unless asked otherwise.\n\n```bash\n# never a rule: code sample\n```\n\n## Gotchas\n| Gotcha | Why |\n|--------|-----|\n| Never push to main without approval | protected branch |\n| The wrapper eats exit 2 | historical note |\n";
+const md=document.getElementById('md'),cap=document.getElementById('cap');
+md.value=SAMPLE;
+function renderSplit(){
+  const all=splitRules('pasted.md',md.value).filter((r)=>r.text);
+  const rules=all.filter((r)=>DIRECTIVE.test(r.text)), skipped=all.filter((r)=>!DIRECTIVE.test(r.text));
+  const max=Math.max(1,Math.min(24,Math.floor(Number(cap.value)||12)));
+  const per=[];
+  if(rules.length<=max) rules.forEach((_,i)=>per.push(i+1)); else {const b=Math.floor(rules.length/max),x=rules.length%max;let k=0;for(let v=0;v<max;v++){const n=b+(v<x?1:0);for(let j=0;j<n;j++)per[k++]=v+1;}}
+  const tb=document.getElementById('rules');tb.replaceChildren(...rules.map((r,i)=>{const tr=document.createElement('tr');
+    for(const v of [`R${i+1}`,String(r.line),r.kind,r.text,`#${per[i]}`]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}return tr;}));
+  const nv=Math.min(rules.length,max);
+  document.getElementById('summary').textContent=`${rules.length} rule(s) over ${nv} verifier(s) at effort low${rules.length>max?', batched, none dropped':''}`;
+  document.getElementById('skipped').textContent=skipped.length?`Skipped (no directive word), reported not dropped: ${skipped.map((s)=>`line ${s.line} "${s.text}"`).join('; ')}`:'Nothing skipped.';
+}
+md.addEventListener('input',renderSplit);cap.addEventListener('input',renderSplit);renderSplit();
+
+const CHANGED=['src/api.ts','README.md'];
+function renderOutcome(){
+  const ref=document.getElementById('ref').value,cit=document.getElementById('cit').value.trim(),why=document.getElementById('why').value.trim();
+  let out,cls;
+  if(ref==='dead'){out='SURVIVES, confidence low: no skeptic answer';cls='warn';}
+  else if(ref==='false'){out='SURVIVES: skeptic upheld it';cls='bad';}
+  else{const m=/^(.+):(\d+)(?:-\d+)?$/.exec(cit);const f=m?m[1]:null;const inScope=f!==null&&(f==='src/api.ts'||CHANGED.includes(f));
+    if(inScope&&why){out=`REFUTED: cited ${cit}, reported in the refuted list`;cls='ok';}
+    else{out=`SURVIVES as "unbacked refutation": ${!m?'citation is not file:line':!inScope?'citation is outside the diff':'no reason given'}`;cls='bad';}}
+  const box=document.getElementById('outcome');box.textContent=out;box.className=`verdict ${cls}`;
+}
+['ref','cit','why'].forEach((id)=>document.getElementById(id).addEventListener('input',renderOutcome));renderOutcome();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
