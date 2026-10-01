@@ -330,6 +330,8 @@ export function spawnIdentityGenerator(
   projectDir: string | undefined,
   ctx?: HookContext,
 ): boolean {
+  if (process.env.VITEST !== undefined || process.env.NODE_ENV === 'test') return false;
+
   try {
     const language = readEffectiveLanguage(projectDir);
     const outFd = openSync(rawOutPath, 'w');
