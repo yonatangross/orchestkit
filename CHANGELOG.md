@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141) (2026-10-01)
+
+
+### Features
+
+* **skills:** careful and freeze, on-demand guard hooks in a skill ([#4576](https://github.com/yonatangross/orchestkit/issues/4576)) ([7ce7810](https://github.com/yonatangross/orchestkit/commit/7ce7810319979fcdd61a5830035b1390991cbe37))
+
 ## [10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140) (2026-10-01)
 
 
