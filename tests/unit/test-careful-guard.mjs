@@ -245,7 +245,7 @@ const BAD_ENVS = [
   ['TEMP=/, TMPDIR and TMP unset', { TMPDIR: undefined, TMP: undefined, TEMP: '/' }],
 ];
 for (const [label, env] of BAD_ENVS) {
-  for (const command of ['rm -rf /usr', 'rm -rf /Users/x', 'rm -rf /usr/local/x']) {
+  for (const command of ['rm -rf /usr', 'rm -rf /Users/me', 'rm -rf /usr/local/x']) {
     check(`cli ${label}: deny ${command}`, runHook(bash(command), env).status, 2);
   }
   check(`cli ${label}: deny rm -rf $TMPDIR/x`, runHook(bash('rm -rf $TMPDIR/x'), env).status, 2);
