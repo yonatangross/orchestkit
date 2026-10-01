@@ -12,7 +12,7 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({}));
 
-import { modelSwitchConsent } from '../../lifecycle/model-switch-consent.js';
+import { modelSwitchConsent, WARM_CONTEXT_WARN_TOKENS } from '../../lifecycle/model-switch-consent.js';
 import type { HookInput } from '../../types.js';
 
 /** Verbatim shape of the 2.1.251 PreModelSwitch payload (paths elided). */
@@ -96,5 +96,66 @@ describe('model-switch-consent (PreModelSwitch)', () => {
     const r = modelSwitchConsent({ hook_event_name: 'PreModelSwitch', session_id: 's' } as unknown as HookInput);
     expect(r.continue).toBe(true);
     expect(r.hookSpecificOutput).toBeUndefined();
+  });
+});
+
+describe('model-switch-consent: warm large-context re-cache warning', () => {
+  const env = { ...process.env };
+  beforeEach(() => { delete process.env.ORK_FABLE_OK; });
+  afterEach(() => { process.env = { ...env }; });
+
+  const warmLarge = {
+    context_tokens: WARM_CONTEXT_WARN_TOKENS + 23705,
+    prompt_cache_warm: true,
+    estimated_cache_write_usd: 5.8125,
+  };
+
+  test('a warm context above the threshold gets one warning line naming the cost and the alternative', () => {
+    const r = modelSwitchConsent(payload(warmLarge));
+    expect(r.continue).toBe(true);
+    expect(r.hookSpecificOutput).toBeUndefined();
+    const msg = r.systemMessage ?? '';
+    expect(msg).not.toContain('\n');
+    expect(msg).toContain('claude-sonnet-5');
+    expect(msg).toContain('claude-opus-5');
+    expect(msg).toContain('123,705');
+    expect(msg).toContain('$5.81');
+    expect(msg).toContain('subagent');
+    expect(msg).toContain('fresh session');
+  });
+
+  test('the warning never blocks or asks', () => {
+    const r = modelSwitchConsent(payload(warmLarge));
+    expect(r.continue).toBe(true);
+    expect(r.hookSpecificOutput?.permissionDecision).toBeUndefined();
+  });
+
+  test('without a cost estimate the warning still fires, without a dollar figure', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, estimated_cache_write_usd: 0 }));
+    expect(r.systemMessage ?? '').toContain('123,705');
+    expect(r.systemMessage ?? '').not.toContain('$');
+  });
+
+  test('a cold cache is silent even on a large context', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, prompt_cache_warm: false }));
+    expect(r.systemMessage).toBeUndefined();
+  });
+
+  test('a warm cache at or below the threshold is silent', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, context_tokens: WARM_CONTEXT_WARN_TOKENS }));
+    expect(r.systemMessage).toBeUndefined();
+  });
+
+  test('a premium-tier ask keeps its own reason and adds no second warning', () => {
+    const r = modelSwitchConsent(payload({ ...warmLarge, to_model: 'claude-fable-5', requested_model: 'claude-fable-5' }));
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
+    expect(r.systemMessage).toBeUndefined();
+  });
+
+  test('a pre-consented premium switch on a warm large context still warns', () => {
+    process.env.ORK_FABLE_OK = '1';
+    const r = modelSwitchConsent(payload({ ...warmLarge, to_model: 'claude-fable-5', requested_model: 'claude-fable-5' }));
+    expect(r.hookSpecificOutput).toBeUndefined();
+    expect(r.systemMessage ?? '').toContain('claude-fable-5');
   });
 });
