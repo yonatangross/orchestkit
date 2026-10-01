@@ -250,6 +250,22 @@ for (const [label, env] of BAD_ENVS) {
   }
   check(`cli ${label}: deny rm -rf $TMPDIR/x`, runHook(bash('rm -rf $TMPDIR/x'), env).status, 2);
 }
+// One-component roots would turn a whole system tree into "temp" (measured at
+// e1ee886b: TMPDIR=/usr allowed rm -rf /usr/bin). /Users/me is the repo's
+// documentation stand-in for a home path.
+for (const [env, command] of [
+  [{ TMPDIR: '/usr' }, 'rm -rf /usr/bin'],
+  [{ TMPDIR: '/Users' }, 'rm -rf /Users/me'],
+  [{ TMPDIR: '/var' }, 'rm -rf /var/db'],
+  [{ TMPDIR: '/home' }, 'rm -rf /home/me'],
+  [{ TMPDIR: '/etc' }, 'rm -rf /etc/x'],
+  [{ TMPDIR: '/opt' }, 'rm -rf /opt/x'],
+]) {
+  check(`cli TMPDIR=${env.TMPDIR}: deny ${command}`, runHook(bash(command), env).status, 2);
+}
+check('cli TMPDIR=/private/tmp/q: allow rm -rf $TMPDIR/x',
+  runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: '/private/tmp/q' }).status, 0);
+
 {
   const realTmp = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-root-`));
   const r = runHook(bash('rm -rf $TMPDIR/x'), { TMPDIR: realTmp });
