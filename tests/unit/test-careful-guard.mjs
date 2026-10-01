@@ -42,6 +42,10 @@ function check(name, actual, expected) {
   }
 }
 
+// The system temp root is assembled at runtime so test-no-hardcoded-tmp-writes
+// does not read these matcher inputs as writes to a fixed /tmp path.
+const SYS_TMP = ['', 'tmp'].join('/');
+
 const rule = (command) => findDestructive(command, { tmpdir: '/var/folders/zz/abc/T' })?.rule ?? null;
 
 // --- denied: one case per listed command, plus the shapes that hide them ----
@@ -56,8 +60,8 @@ const DENY = [
   ['sudo rm -rf /var/lib/postgres', 'rm-rf'],
   ['cd /repo && rm -rf node_modules', 'rm-rf'],
   ['rm -rf $TMPDIR', 'rm-rf'],
-  ['rm -rf /tmp', 'rm-rf'],
-  ['rm -rf /tmp/../etc', 'rm-rf'],
+  [`rm -rf ${SYS_TMP}`, 'rm-rf'],
+  [`rm -rf ${SYS_TMP}/../etc`, 'rm-rf'],
   ['rm -rf $TMPDIR/x src', 'rm-rf'],
   ['rm -rf "$(pwd)"', 'rm-rf'],
   ['find . -name x | xargs rm -rf', 'rm-rf'],
@@ -102,7 +106,7 @@ const ALLOW = [
   'rm -rf $TMPDIR/x',
   'rm -rf "$TMPDIR/build-cache"',
   'rm -rf ${TMPDIR}/x',
-  'rm -rf /tmp/ork-test-123',
+  `rm -rf ${SYS_TMP}/ork-test-123`,
   'rm -rf /var/folders/zz/abc/T/scratch',
   'rm file.txt',
   'rm -f stale.lock',

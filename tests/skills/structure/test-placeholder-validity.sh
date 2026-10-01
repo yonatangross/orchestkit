@@ -250,6 +250,15 @@ for f in sorted(glob.glob("src/skills/*/SKILL.md")):
         c = open(f, encoding="utf-8").read()
     except (OSError, UnicodeDecodeError):
         continue
+    # Body only. A frontmatter `hooks:` command runs as a shell command, not as
+    # skill text: CC does not expand ${CLAUDE_SKILL_DIR} there and a relative
+    # path resolves against the session cwd, so the plugin root IS the portable
+    # form (the header table above, and the codemod, which never touches
+    # frontmatter and so could not fix such a hit).
+    if c.startswith("---"):
+        end = c.find("\n---", 3)
+        if end != -1:
+            c = c[end + 4:]
     k = len(pat.findall(c))
     if k:
         n += k; files += 1
