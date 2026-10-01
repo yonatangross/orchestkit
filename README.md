@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.139](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139)** · 2026-10-01
+
+- **skills:** brainstorm diverges at effort low, implement effort ladder (#4572)
+
 **[v10.0.0-beta.138](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.137...v10.0.0-beta.138)** · 2026-10-01
 
 - **hooks:** warn before a model switch re-caches a warm large context (#4567)
@@ -665,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc:** adopt CC 2.1.281 to 2.1.284 (#4545)
 - **models:** adopt Claude Sonnet 5.5 as the sonnet alias target (#4541)
 - **ci:** fetch the CC CHANGELOG raw, not base64 through execSync (#4546)
-
-**[v10.0.0-beta.131](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.130...v10.0.0-beta.131)** · 2026-09-28
-
-- **agents:** m3 script keeps quoted commas and validates first (#4533) (#4535)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
