@@ -23,7 +23,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
+import { mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as guard from '../../src/skills/careful/scripts/careful-guard.mjs';
@@ -295,6 +295,31 @@ for (const row of REASSIGN) {
 // $TMP and $TEMP were never trusted; pin it with them set to a valid temp dir.
 for (const command of ['rm -rf $TMP/x', 'rm -rf ${TEMP}/x']) {
   check(`never trusted: deny ${command}`, runHook(bash(command), { TMP: '/private/tmp/q', TEMP: '/private/tmp/q', ...VALID_ENV }).status, 2);
+}
+
+// --- review round 6 (estate-31 HOLD 5937102937): symlinks under a temp root --
+// A literal temp path that runs through an existing link must be judged where
+// it lands. Real links under a mkdtemp base (itself a valid TMPDIR root).
+{
+  const base = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-link-`));
+  const other = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-other-`));
+  try {
+    symlinkSync('/usr', `${base}/to-usr`);
+    symlinkSync('/', `${base}/to-root`);
+    symlinkSync(other, `${base}/to-other`);
+    symlinkSync(`${base}/c2`, `${base}/c1`);
+    symlinkSync('/usr', `${base}/c2`);
+    const env = { TMPDIR: base };
+    check('link -> /usr: deny rm -rf <link>/local', runHook(bash(`rm -rf ${base}/to-usr/local`), env).status, 2);
+    check('link -> /: deny rm -rf <link>/etc', runHook(bash(`rm -rf ${base}/to-root/etc`), env).status, 2);
+    check('link to another temp dir: allow rm -rf <link>/x', runHook(bash(`rm -rf ${base}/to-other/x`), env).status, 0);
+    check('tail not created yet: allow', runHook(bash(`rm -rf ${base}/not/yet/here`), env).status, 0);
+    check('chain of two links ending outside: deny', runHook(bash(`rm -rf ${base}/c1/local`), env).status, 2);
+    check('in-process: link -> /usr denied', findDestructive(`rm -rf ${base}/to-usr/local`, { tmpdir: base })?.rule ?? null, 'rm-rf');
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+    rmSync(other, { recursive: true, force: true });
+  }
 }
 
 {

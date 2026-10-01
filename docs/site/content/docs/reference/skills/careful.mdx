@@ -25,7 +25,7 @@ start a new session to work without it.
 
 | Rule | Blocks | Still allowed |
 |------|--------|---------------|
-| `rm-rf` | `rm` with recursive and force flags (`-rf`, `-fr`, `-r -f`, `--recursive --force`), `xargs rm -rf`, and any target the shell expands: `$TMPDIR/x`, `$TMP`, `$TEMP`, `$X`, `$( )`, globs, braces, `~` | the same command when every target is a LITERAL absolute path strictly inside `/tmp`, `/private/tmp` or the configured TMPDIR (trusted only when it is two or more levels deep); write `/tmp/build`, not `$TMPDIR/build`, because a command can reassign TMPDIR first (`TMPDIR=/ ; rm -rf $TMPDIR/usr`); `rm -r`; `rm -f file` |
+| `rm-rf` | `rm` with recursive and force flags (`-rf`, `-fr`, `-r -f`, `--recursive --force`), `xargs rm -rf`, and any target the shell expands: `$TMPDIR/x`, `$TMP`, `$TEMP`, `$X`, `$( )`, globs, braces, `~` | the same command when every target is a LITERAL absolute path that lands, after following existing symlinks, strictly inside `/tmp`, `/private/tmp` or the configured TMPDIR (trusted only when it is two or more levels deep); write `/tmp/build`, not `$TMPDIR/build`, because a command can reassign TMPDIR first (`TMPDIR=/ ; rm -rf $TMPDIR/usr`); `rm -r`; `rm -f file` |
 | `git-push-force` | `git push --force`, `-f` (also inside `-uf`), `--force-with-lease[=...]`, a `+branch` refspec, to any branch | `git push`, `git push -u origin <branch>` |
 | `git-push-delete` | `git push origin --delete <b>`, `-d <b>`, `:<b>` | `git push origin <b>:<b>` |
 | `git-reset-hard` | `git reset --hard` | `git reset --soft`, `git reset HEAD <file>` |
@@ -65,6 +65,10 @@ sandbox. It does NOT see:
   read as text; it only reads literal strings;
 - interpreters and other shells running the same thing (`python -c "shutil.rmtree(...)"`,
   `node -e`, `fish -c`, `pwsh`), or a remote shell other than plain `ssh host '...'`;
+- a link created in the same command (`ln -s / /tmp/r9 && rm -rf /tmp/r9/usr`): the
+  guard follows links that already exist when it runs (a temp path through a link to
+  `/usr` is denied), but one made by the command itself is out of reach for a text
+  check, like `python -c "shutil.rmtree(...)"`;
 - MCP tools, file edits, and anything outside the Bash tool.
 
 - If the hook cannot read its input it blocks (exit 2) rather than guess.

@@ -63,7 +63,7 @@ a{color:var(--accent)}
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/careful/scripts/careful-guard.mjs'
 node tests/unit/test-freeze-guard.mjs    (before the scripts existed)
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../src/skills/freeze/scripts/freeze-guard.mjs'</span>
-<span class="ok">careful-guard: 250 passed
+<span class="ok">careful-guard: 256 passed
 freeze-guard: 31 passed
 freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
   <p class="meta" style="margin-top:8px">PR: <a href="https://github.com/yonatangross/orchestkit/pull/4576">#4576</a>. Not verified in a live Claude Code session; see the PR body.</p>
@@ -73,7 +73,12 @@ freeze-skill-flow: 12 passed (the skill run as Claude Code runs it)</span></pre>
 // Browser stand-ins for the node:path and node:fs calls the matcher makes.
 const isAbsolute=(p)=>p.startsWith('/');
 const resolve=(p)=>{const out=[];for(const s of p.split('/')){if(s===''||s==='.')continue;if(s==='..')out.pop();else out.push(s);}return '/'+out.join('/');};
-const realpathSync=()=>{throw new Error('no filesystem in the browser');};
+// No filesystem here, so no links: every path lands where it is written. The
+// real hook follows symlinks (resolveLanding); this page cannot show that.
+const realpathSync=(p)=>p;
+const dirname=(p)=>{const i=p.replace(/\/+$/,'').lastIndexOf('/');return i<=0?'/':p.slice(0,i);};
+const basename=(p)=>p.replace(/\/+$/,'').split('/').pop();
+const join=(...a)=>resolve(a.join('/'));
 const SHELLS = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
 const SQL_CLIENT = /\b(psql|pgcli|mysql|mariadb|mycli|sqlite3|duckdb|clickhouse(-client)?|cockroach|sqlcmd|snowsql|usql)\b/i;
 const MAX_DEPTH = 4;
@@ -157,18 +162,53 @@ const isShortCluster = (w) => /^-[a-zA-Z]+$/.test(w);
 const SHELL_DECIDES = /[$`*?[\]{}~]/;
 
 /**
- * Is `target` a literal absolute path strictly inside a validated temp root?
+ * Where a path really lands: realpath of its deepest existing ancestor, with
+ * the not-yet-existing tail re-appended. Links anywhere on the path, chains
+ * included, are followed. null when an ancestor exists but cannot be resolved
+ * (EACCES, ELOOP, ENOTDIR and the like): the caller must treat that as unsafe.
+ */
+function resolveLanding(p) {
+  const missing = [];
+  let cursor = resolve(p);
+  for (;;) {
+    try {
+      const real = realpathSync(cursor);
+      return missing.length === 0 ? real : join(real, ...missing.reverse());
+    } catch (err) {
+      if (err?.code !== 'ENOENT') return null;
+      const parent = dirname(cursor);
+      if (parent === cursor) return null;
+      missing.push(basename(cursor));
+      cursor = parent;
+    }
+  }
+}
+
+/**
+ * Is `target` a literal absolute path strictly inside a validated temp root,
+ * both as written and where it really lands?
+ *
  * Only literal text counts. A command can reassign TMPDIR before using it
  * (`TMPDIR=/ ; rm -rf $TMPDIR/usr`), unset it, or build it in eval, so no
  * variable, substitution or expansion in a target is ever trusted, $TMPDIR
- * included. Use the literal path instead.
+ * included. A literal path can still run through an existing symlink
+ * (`<tmp>/link/local` with link -> /usr), so the landing spot from
+ * resolveLanding must also be strictly inside a root's own landing spot. If
+ * the target cannot be resolved it is not temp.
  */
 function isTempTarget(target, tmpRoots) {
   if (SHELL_DECIDES.test(target)) return false;
   if (target.split('/').includes('..')) return false;
-  return tmpRoots.some((root) => {
+  const inside = (path, root) => {
     const prefix = `${root.replace(/\/+$/, '')}/`;
-    return target.startsWith(prefix) && target.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+    return path.startsWith(prefix) && path.slice(prefix.length).replace(/[/.]+/g, '') !== '';
+  };
+  if (!tmpRoots.some((root) => inside(target, root))) return false;
+  const landing = resolveLanding(target);
+  if (landing === null) return false;
+  return tmpRoots.some((root) => {
+    const rootLanding = resolveLanding(root);
+    return rootLanding !== null && inside(landing, rootLanding);
   });
 }
 
@@ -180,9 +220,9 @@ const isRootShaped = (p) => p === '/tmp' || p.split('/').filter(Boolean).length 
  * realpath when that differs), or [] to drop the candidate.
  *
  * Accepted: after path.resolve (so //, /./ and /tmp/.. collapse) an absolute
- * path at least two components deep, the one exception being /tmp itself. When
- * the path exists its realpath must pass the same test, so a deep-looking link
- * to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
+ * path at least two components deep, the one exception being /tmp itself. Where
+ * it really lands (resolveLanding: links followed, an absent tail re-appended)
+ * must pass the same test, so a deep-looking link to / or /usr is dropped too. /, /usr, /home, /Users and relative values are
  * refused.
  *
  * What this does NOT judge: whether a path two or more levels deep is really a
@@ -194,14 +234,11 @@ function validateTempRoot(p) {
   if (typeof p !== 'string' || p === '' || !isAbsolute(p)) return [];
   const resolved = resolve(p);
   if (!isRootShaped(resolved)) return [];
-  let real = null;
-  try {
-    real = realpathSync(resolved);
-  } catch {
-    // absent: the normalised path is all there is to judge
-  }
-  if (real === null || real === resolved) return [resolved];
-  return isRootShaped(real) ? [resolved, real] : [];
+  // Where the root really lands, links on its ancestors included (an absent
+  // TMPDIR under a link to / would otherwise pass as two components deep).
+  const real = resolveLanding(resolved);
+  if (real === null || !isRootShaped(real)) return [];
+  return real === resolved ? [resolved] : [resolved, real];
 }
 
 function checkRm(args, tmpRoots) {
