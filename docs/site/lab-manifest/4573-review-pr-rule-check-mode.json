@@ -1,0 +1,13 @@
+{
+  "slug": "4573-review-pr-rule-check-mode",
+  "source": "docs/feat--review-pr-rule-check/index.html",
+  "title": "#4573: review-pr rule-check mode, one verifier per rule",
+  "description": "Opt-in /ork:review-pr --rules splits CLAUDE.md and rules files into rules, runs one low-effort verifier per rule over the diff, then a skeptic per violation that must cite the diff to refute it. Paste a rules file to see the real splitter.",
+  "tags": [
+    "skills",
+    "review",
+    "workflows",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}
