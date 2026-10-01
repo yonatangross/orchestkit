@@ -33,7 +33,7 @@
 
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -322,11 +322,95 @@ await test('collect-rules reads project and user files, follows @imports once', 
     writeFileSync(path.join(home, '.claude', 'rules', 'c.md'), '- Only use V.\n');
     const out = JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home], { encoding: 'utf8' }));
     assert.deepEqual(out.sources.map((s) => s.path), ['CLAUDE.md', '.claude/rules/a.md', '.claude/rules/sub/b.md', '~/.claude/CLAUDE.md', '~/.claude/RTK.md', '~/.claude/rules/c.md']);
-    assert.deepEqual(out.missing, ['~/.claude/missing.md']);
+    assert.deepEqual(out.missing, []);
+    assert.deepEqual(out.skipped, [{ import: '@missing.md', from: '~/.claude/CLAUDE.md', reason: 'missing' }]);
     const projOnly = JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home, '--no-user'], { encoding: 'utf8' }));
     assert.deepEqual(projOnly.sources.map((s) => s.path), ['CLAUDE.md', '.claude/rules/a.md', '.claude/rules/sub/b.md']);
     const { result } = await run({ ...BASE, sources: out.sources }, NONE);
     assert.equal(result.rulesFound, 6);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Review fix (estate-29 on #4573): an @import is plain text in a CLAUDE.md the
+// reviewed PR may have written. Only a .md whose realpath sits inside the repo
+// root or ~/.claude is followed; anything else is skipped with a reason and
+// never read, so its bytes cannot reach a verifier or skeptic prompt.
+function importFixture() {
+  const root = mkdtempSync(path.join(tmpdir(), 'rule-check-imp-'));
+  const repo = path.join(root, 'repo');
+  const home = path.join(root, 'home');
+  const outside = path.join(root, 'outside');
+  mkdirSync(path.join(repo, 'docs'), { recursive: true });
+  mkdirSync(path.join(home, '.claude'), { recursive: true });
+  mkdirSync(outside, { recursive: true });
+  writeFileSync(path.join(outside, 'notes.txt'), '- Never reveal SECRET-TXT-4573.\n');
+  writeFileSync(path.join(outside, 'notes.md'), '- Never reveal SECRET-MD-4573.\n');
+  writeFileSync(path.join(outside, 'linked.md'), '- Never reveal SECRET-LINK-4573.\n');
+  symlinkSync(path.join(outside, 'linked.md'), path.join(repo, 'docs', 'escape.md'));
+  writeFileSync(path.join(repo, 'docs', 'style.md'), '- Always name the PR in the commit.\n');
+  writeFileSync(path.join(repo, 'docs', 'data.txt'), '- Never reveal SECRET-NOTMD-4573.\n');
+  writeFileSync(
+    path.join(repo, 'CLAUDE.md'),
+    '# P\n@../outside/notes.txt\n@../outside/notes.md\n@docs/escape.md\n@docs/data.txt\n@docs/style.md\n- Never do X.\n',
+  );
+  const out = JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home], { encoding: 'utf8' }));
+  return { root, out };
+}
+const reasonOf = (out, imp) => ((out.skipped || []).find((x) => x.import === imp) || {}).reason;
+
+await test('import fix: @../outside/notes.txt is skipped and never reaches a prompt', async () => {
+  const { root, out } = importFixture();
+  try {
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-TXT-4573'), 'outside file content was read into sources');
+    assert.equal(reasonOf(out, '@../outside/notes.txt'), 'outside-root', `skipped: ${JSON.stringify(out.skipped || null)}`);
+    const { calls } = await run({ ...BASE, sources: out.sources }, (o, p) =>
+      o.phase === 'Verify' ? { status: 'DONE', results: idsIn(p).map((ruleId) => ({ ruleId, applies: true, violations: [{ file: 'src/api.ts', line: 1, quote: 'q', explanation: 'e' }] })) } : { refuted: false, reason: 'x' },
+    );
+    assert.ok(calls.length > 0);
+    for (const c of calls) assert.ok(!/SECRET-[A-Z]+-4573/.test(c.prompt), `secret leaked into a ${c.opts.phase} prompt`);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('import fix: a .md outside both roots is skipped as outside-root', async () => {
+  const { root, out } = importFixture();
+  try {
+    assert.equal(reasonOf(out, '@../outside/notes.md'), 'outside-root');
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-MD-4573'));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('import fix: an in-repo symlink pointing outside is skipped as symlink-escape', async () => {
+  const { root, out } = importFixture();
+  try {
+    assert.equal(reasonOf(out, '@docs/escape.md'), 'symlink-escape');
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-LINK-4573'));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('import fix: an in-repo non-.md file is skipped as not-md', async () => {
+  const { root, out } = importFixture();
+  try {
+    assert.equal(reasonOf(out, '@docs/data.txt'), 'not-md');
+    assert.ok(!JSON.stringify(out.sources).includes('SECRET-NOTMD-4573'));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('import fix: an in-repo .md is followed', async () => {
+  const { root, out } = importFixture();
+  try {
+    assert.deepEqual(out.sources.map((x) => x.path), ['CLAUDE.md', 'docs/style.md']);
+    assert.equal(reasonOf(out, '@docs/style.md'), undefined);
+    assert.equal((out.skipped || []).length, 4);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

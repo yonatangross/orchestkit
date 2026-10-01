@@ -14,7 +14,19 @@
 // plus every whole-line `@path` import inside them, one level deep (relative
 // to the importing file, `~/` from home). A file reached twice is read once.
 //
-// Prints {"sources":[{"path","text"}],"missing":[...]} on stdout, exit 0.
+// Imports are confined. Rule-check runs on other people's pull requests, and an
+// import is plain text in a CLAUDE.md the PR may have written, so following
+// `@../../<a credential file>` would put it into every verifier prompt. An
+// import is followed ONLY when its realpath is a .md file inside the repo root
+// or inside ~/.claude (both roots realpath'd too). Everything else is listed in
+// `skipped` with a reason, and never opened:
+//   missing         the target does not exist
+//   outside-root    the target is outside both roots
+//   symlink-escape  the path sits inside a root but its realpath leaves it
+//   not-md          the target is not a .md file
+//
+// Prints {"sources":[{"path","text"}],"missing":[...],"skipped":[{"import","from","reason"}]}
+// on stdout, exit 0.
 // The workflow cannot read files (no fs in a Workflow script), so this is the
 // only place rule files are read; splitting them into rules is the workflow's job.
 
@@ -68,6 +80,22 @@ function read(p) {
   return text;
 }
 
+// Import confinement roots: lexical (for display and the symlink check) and real.
+const realOrSelf = (p) => (existsSync(p) ? realpathSync(p) : p);
+const ROOTS = [REPO, path.join(HOME, '.claude')].map((r) => ({ lexical: r, real: realOrSelf(r) }));
+const under = (p, root) => p === root || p.startsWith(root + path.sep);
+const skipped = [];
+
+function importVerdict(target) {
+  if (!existsSync(target)) return 'missing';
+  const real = realpathSync(target);
+  if (!ROOTS.some((r) => under(real, r.real))) {
+    return ROOTS.some((r) => under(target, r.lexical) || under(target, r.real)) ? 'symlink-escape' : 'outside-root';
+  }
+  if (!real.endsWith('.md') || !statSync(real).isFile()) return 'not-md';
+  return null;
+}
+
 const OPTIONAL = new Set([path.join(REPO, 'CLAUDE.md'), path.join(REPO, '.claude', 'CLAUDE.md'), path.join(HOME, '.claude', 'CLAUDE.md')]);
 for (const root of roots) {
   if (OPTIONAL.has(root) && !existsSync(root)) continue; // absent top-level files are normal, not missing
@@ -76,8 +104,13 @@ for (const root of roots) {
   for (const m of text.matchAll(/^@(\S+)\s*$/gm)) {
     const ref = m[1];
     const target = ref.startsWith('~/') ? path.join(HOME, ref.slice(2)) : path.resolve(path.dirname(root), ref);
+    const reason = importVerdict(target);
+    if (reason) {
+      skipped.push({ import: `@${ref}`, from: display(root), reason });
+      continue;
+    }
     read(target);
   }
 }
 
-process.stdout.write(`${JSON.stringify({ sources, missing })}\n`);
+process.stdout.write(`${JSON.stringify({ sources, missing, skipped })}\n`);

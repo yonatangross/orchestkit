@@ -319,7 +319,7 @@ Workflow(scriptPath="${CLAUDE_SKILL_DIR}/workflows/rule-check.js",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
 ```
 
-Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", and `skipped` only as a count. Protocol, ceilings and the survivor filter: `Read("references/rule-check-mode.md")`.
+Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", `skipped` only as a count, and every import the collector refused (`SOURCES.skipped`) with its reason. Protocol, ceilings and the survivor filter: `Read("references/rule-check-mode.md")`.
 
 ## Phase 5: Synthesize Review
 
@@ -1435,7 +1435,7 @@ Off by default. It runs when `/ork:review-pr` gets `--rules`, or when the user a
 
 | Step | Who | What |
 |------|-----|------|
-| Collect | `scripts/collect-rules.mjs` | Reads `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md` in the repo, then `~/.claude/CLAUDE.md` and `~/.claude/rules/**/*.md`, plus whole-line `@path` imports one level deep. `--no-user` keeps it to the project. A file reached twice is read once. |
+| Collect | `scripts/collect-rules.mjs` | Reads `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md` in the repo, then `~/.claude/CLAUDE.md` and `~/.claude/rules/**/*.md`, plus whole-line `@path` imports one level deep. An import is followed only when its realpath is a `.md` file inside the repo root or `~/.claude`; any other import is listed in `skipped` (`missing`, `outside-root`, `symlink-escape`, `not-md`) and never opened, so a CLAUDE.md written by the reviewed PR cannot pull a credential file from the home directory into a prompt. `--no-user` keeps it to the project. A file reached twice is read once. |
 | Split | `workflows/rule-check.js`, plain code | Top-level list items (nested items and continuation lines fold in), table data rows, directive paragraphs and quotes become rules. Code fences, YAML frontmatter, HTML comments and table headers never do. Text without a directive word (must, never, always, do not, avoid, prefer, should, only, required, ...) is skipped and listed in `skipped`. A rule copied into several files is checked once; `alsoIn` names the copies. |
 | Verify | one agent per rule, effort `low` | Reads the diff itself (`diffCommand`), answers `applies` and lists violations on ADDED or changed lines only, each with file, line and the quoted line. |
 | Skeptic | one agent per violation, session effort | Gets the rule, the location and the quoted line, not the verifier's explanation, and is told to refute it. |

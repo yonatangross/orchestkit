@@ -311,7 +311,7 @@ Workflow(scriptPath="skills/review-pr/workflows/rule-check.js",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
 ```
 
-Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", and `skipped` only as a count. Protocol, ceilings and the survivor filter: `Read("skills/review-pr/references/rule-check-mode.md")`.
+Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", `skipped` only as a count, and every import the collector refused (`SOURCES.skipped`) with its reason. Protocol, ceilings and the survivor filter: `Read("skills/review-pr/references/rule-check-mode.md")`.
 
 ## Phase 5: Synthesize Review
 
