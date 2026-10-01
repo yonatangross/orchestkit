@@ -100,13 +100,16 @@ const refused = invokeSkill(X, 'src/missing');
 check('arm of a missing dir is refused', refused.status, 1);
 check('refused arm keeps the fence', edit(X, path.join(sibling, 'b.ts')), 2);
 
-// A dir name with a space and a literal `$` must reach the guard as typed:
-// the shell may neither split it nor expand `$HOME` (review round 3).
-const oddRel = 'src/odd dir $HOME x';
+// A dir name with a space and an apostrophe must reach the guard as typed: the
+// arm line double-quotes "$ARGUMENTS" (the repo rule in test-multi-agent-safety.sh,
+// after an apostrophe broke an unquoted !-line), so the shell neither splits it
+// nor trips on the quote. A `$` or backtick in a name would still be expanded;
+// the skill documents that as unsupported.
+const oddRel = "src/odd dir it's x";
 const odd = path.join(project, oddRel);
 mkdirSync(odd, { recursive: true });
 const oddArm = invokeSkill(X, oddRel);
-check('arm of a dir with a space and $ exits 0', oddArm.status, 0);
+check("arm of a dir with a space and ' exits 0", oddArm.status, 0);
 check('arm reports the literal dir', oddArm.stdout.includes(odd), true);
 check('session X: write inside the odd dir allowed', edit(X, path.join(odd, 'a.ts')), 0);
 check('session X: write in the old fence now denied', edit(X, path.join(frozen, 'a.ts')), 2);

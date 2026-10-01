@@ -2520,7 +2520,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "e9cdcedf63c9467a31b8b7fe93f7916ba4722eca7f486b29d3f255aa43feb9b8",
+    "sha256": "00868bc99cb1974d5c1977c4d4316ad0669c7cdb6547490b80f0509e3a2c81f5",
     "author": "OrchestKit",
     "tags": [
       "freeze",
