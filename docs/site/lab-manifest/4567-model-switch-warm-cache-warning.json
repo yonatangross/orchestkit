@@ -1,0 +1,12 @@
+{
+  "slug": "4567-model-switch-warm-cache-warning",
+  "source": "docs/fix--model-switch-warm-cache-warning/index.html",
+  "title": "#4567: warn before a model switch re-caches a warm context",
+  "description": "PreModelSwitch now prints one line when a switch would re-cache a warm context above 100k tokens, with the estimated cost and the cheaper path. It never blocks.",
+  "tags": [
+    "hooks",
+    "prompt-caching",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}
