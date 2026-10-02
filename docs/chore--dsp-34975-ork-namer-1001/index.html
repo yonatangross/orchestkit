@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session namer test guard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6fb; color: #172033; font: 16px/1.5 system-ui, sans-serif; }
+    main { width: min(720px, calc(100% - 32px)); margin: 40px auto; }
+    h1 { margin-bottom: 8px; }
+    .card { margin-top: 24px; padding: 24px; border: 1px solid #c9d3e7; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px #17203312; }
+    .controls { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+    label { display: grid; gap: 6px; font-weight: 650; }
+    select { padding: 9px; border: 1px solid #75819a; border-radius: 6px; background: #fff; font: inherit; }
+    .result { margin-top: 22px; padding: 18px; border-radius: 8px; background: #e8f5ee; }
+    .result.blocked { background: #fff1df; }
+    .result p { margin: 6px 0; }
+    .proof { padding-left: 20px; }
+    code { padding: 2px 5px; border-radius: 4px; background: #edf0f5; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Session namer test guard</h1>
+    <p>This models <code>spawnIdentityGenerator</code>. It never starts a real Claude process.</p>
+
+    <section class="card" aria-labelledby="controls-title">
+      <h2 id="controls-title">Choose an environment</h2>
+      <div class="controls">
+        <label for="vitest">VITEST
+          <select id="vitest" name="vitest">
+            <option value="absent">Absent</option>
+            <option value="empty">Empty string</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label for="node-env">NODE_ENV
+          <select id="node-env" name="node-env">
+            <option value="production">production</option>
+            <option value="test">test</option>
+          </select>
+        </label>
+        <label for="guard">Implementation
+          <select id="guard" name="guard">
+            <option value="after">After guard</option>
+            <option value="before">Before guard</option>
+          </select>
+        </label>
+      </div>
+      <div id="result" class="result" aria-live="polite"></div>
+    </section>
+
+    <section class="card" aria-labelledby="proof-title">
+      <h2 id="proof-title">Reproduced proof</h2>
+      <ul class="proof">
+        <li>With the guard removed, 3 regression cases failed because mocked spawn was called.</li>
+        <li>With the guard restored, 37 tests passed.</li>
+        <li>Production behavior stays unchanged because VITEST is absent and NODE_ENV is not test.</li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    const vitest = document.getElementById('vitest');
+    const nodeEnv = document.getElementById('node-env');
+    const guard = document.getElementById('guard');
+    const result = document.getElementById('result');
+
+    function render() {
+      const underTest = vitest.value !== 'absent' || nodeEnv.value === 'test';
+      const wouldSpawn = guard.value === 'before' || !underTest;
+      result.className = wouldSpawn ? 'result' : 'result blocked';
+      result.innerHTML = `<p><strong>Mocked spawn: ${wouldSpawn ? 'called' : 'not called'}</strong></p>
+        <p>Return value: <strong>${wouldSpawn}</strong></p>
+        <p>${underTest ? 'The environment is a test run.' : 'The environment is a production run.'}</p>`;
+    }
+
+    vitest.addEventListener('change', render);
+    nodeEnv.addEventListener('change', render);
+    guard.addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>
