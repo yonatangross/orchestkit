@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.146",
+    "date": "2026-10-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.145...v10.0.0-beta.146",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**glyph:** triage gate never falls back to the real Google Chrome ([#4584](https://github.com/yonatangross/orchestkit/issues/4584)) ([9c41934](https://github.com/yonatangross/orchestkit/commit/9c41934ab53c650813495a5b80c4cc03b598a03c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.145",
     "date": "2026-10-02",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.144...v10.0.0-beta.145",
