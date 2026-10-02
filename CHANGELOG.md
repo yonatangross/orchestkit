@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.142](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.141...v10.0.0-beta.142) (2026-10-02)
+
+
+### Miscellaneous
+
+* **deps:** bump dompurify from 3.4.14 to 3.4.16 in /docs/site ([#4578](https://github.com/yonatangross/orchestkit/issues/4578)) ([1317df7](https://github.com/yonatangross/orchestkit/commit/1317df760f24909eeb270c62e9a8534f5cb9afb7))
+
 ## [10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141) (2026-10-01)
 
 

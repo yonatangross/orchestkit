@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.142](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.141...v10.0.0-beta.142)** · 2026-10-02
+
+- **deps:** bump dompurify from 3.4.14 to 3.4.16 in /docs/site (#4578)
+
 **[v10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141)** · 2026-10-01
 
 - **skills:** careful and freeze, on-demand guard hooks in a skill (#4576)
@@ -659,10 +663,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.135](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.134...v10.0.0-beta.135)** · 2026-09-29
 
 - **ci:** make the G1 standards gate a required main check (#4559)
-
-**[v10.0.0-beta.134](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.133...v10.0.0-beta.134)** · 2026-09-29
-
-- **frontmatter:** normalize allowed-tools values (#4556)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
