@@ -152,4 +152,47 @@ unsaid silent-fail 'SKIP:' \
   || fail "a silent non-zero exit was skipped instead of failed"
 ok "silent non-zero exit: hard no-DOM fail, never a launch-failure skip"
 
+# A fake macOS app records execution. The deny signal must stop it first.
+mkdir -p "$WORK/Fake Chrome.app/Contents/MacOS" "$WORK/bin" "$WORK/home"
+cat > "$WORK/Fake Chrome.app/Contents/MacOS/Chrome" << 'STUB'
+#!/bin/sh
+touch "$ORK_GLYPH_EXEC_MARKER"
+exit 0
+STUB
+printf '#!/bin/sh\necho Darwin\n' > "$WORK/bin/uname"
+chmod +x "$WORK/Fake Chrome.app/Contents/MacOS/Chrome" "$WORK/bin/uname"
+
+run_gate sandbox-skip 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" -u CI \
+  ORK_GLYPH_SANDBOX=1 ORK_GLYPH_EXEC_MARKER="$WORK/executed" \
+  HOME="$WORK/home" PATH="$WORK/bin:$PATH"
+[[ "$(status sandbox-skip)" == 0 ]] || fail "sandbox preflight did not skip"
+said sandbox-skip 'SKIP: sandbox cannot start Chrome' \
+  || fail "sandbox preflight did not print the required reason"
+[[ ! -e "$WORK/executed" ]] || fail "sandbox preflight started the full app"
+unsaid sandbox-skip '✓ mode=' || fail "sandbox skip judged a mutation case"
+ok "sandbox outside CI: SKIP before full app execution"
+
+run_gate sandbox-ci 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" CI=true \
+  ORK_GLYPH_SANDBOX=1 ORK_GLYPH_EXEC_MARKER="$WORK/executed" \
+  HOME="$WORK/home" PATH="$WORK/bin:$PATH"
+[[ "$(status sandbox-ci)" != 0 ]] || fail "CI sandbox preflight did not fail"
+unsaid sandbox-ci 'SKIP:' || fail "CI sandbox preflight skipped"
+[[ ! -e "$WORK/executed" ]] || fail "CI sandbox preflight started the full app"
+ok "sandbox in CI: hard fail before full app execution"
+
+# A cached headless shell is selected before any installed GUI app.
+mkdir -p "$WORK/home/.cache/puppeteer/chrome-headless-shell/mac-test/chrome-headless-shell-mac"
+SHELL_STUB="$WORK/home/.cache/puppeteer/chrome-headless-shell/mac-test/chrome-headless-shell-mac/chrome-headless-shell"
+cp "$WORK/Fake Chrome.app/Contents/MacOS/Chrome" "$SHELL_STUB"
+rc=0
+env -u CI -u ORK_GLYPH_CHROME ORK_GLYPH_SANDBOX=1 \
+  ORK_GLYPH_EXEC_MARKER="$WORK/headless-executed" \
+  HOME="$WORK/home" PATH="$WORK/bin:/usr/bin:/bin" bash "$GATE" \
+  > "$WORK/cached-shell.log" 2>&1 || rc=$?
+[[ "$rc" != 0 ]] || fail "cached null shell was allowed to pass"
+[[ -e "$WORK/headless-executed" ]] || fail "cached headless shell was not selected"
+said cached-shell 'produced no DOM' || fail "headless shell did not reach render gate"
+unsaid cached-shell 'SKIP:' || fail "headless shell was blocked by GUI preflight"
+ok "cached headless shell: selected first and still judged for DOM output"
+
 echo "✓ $PASS launch-vs-render proofs hold"
