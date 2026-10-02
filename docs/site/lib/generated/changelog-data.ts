@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.143",
+    "date": "2026-10-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.142...v10.0.0-beta.143",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**glyph:** avoid macOS Chrome app launches in sandboxes ([#4580](https://github.com/yonatangross/orchestkit/issues/4580)) ([23e2c69](https://github.com/yonatangross/orchestkit/commit/23e2c69a71ec7cb8c300296cafd4379ef07712f2))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.142",
     "date": "2026-10-02",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.141...v10.0.0-beta.142",
