@@ -62,6 +62,24 @@ CHROME="${ORK_GLYPH_CHROME:-}"
 if [[ -n "$CHROME" && ! -x "$CHROME" ]]; then
   fail "ORK_GLYPH_CHROME is set to a path that is not executable: $CHROME"
 fi
+# The operator's own Google Chrome is never a candidate. A sandboxed agent
+# that starts it gets SIGABRT in HIServices _RegisterApplication and macOS
+# shows the operator a crash dialog. Chrome for Testing and the headless
+# shell are separate binaries, so only "Google Chrome.app" is refused.
+real_chrome() {
+  local path="$1" resolved restore rc=1
+  resolved="$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$path" 2>/dev/null || echo "$path")"
+  # The macOS volume is case insensitive, so "/applications/google chrome.app"
+  # starts the same binary. Compare without case.
+  restore="$(shopt -p nocasematch)"
+  shopt -s nocasematch
+  [[ "$path" == *"/Google Chrome.app/"* || "$resolved" == *"/Google Chrome.app/"* ]] && rc=0
+  eval "$restore"
+  return "$rc"
+}
+if [[ -n "$CHROME" ]] && real_chrome "$CHROME"; then
+  fail "ORK_GLYPH_CHROME names the operator's Google Chrome; use Chrome for Testing or chrome-headless-shell"
+fi
 # Cache discovery is limited to browser tool caches under the home directory.
 headless_shell() {
   command -v chrome-headless-shell 2>/dev/null && return 0
@@ -79,21 +97,27 @@ for cache in (".cache/puppeteer", ".cache/agent-browser", ".cache/ms-playwright"
             if binary.is_file() and os.access(binary, os.X_OK):
                 print(binary)
                 raise SystemExit(0)
+# No headless shell: Chrome for Testing, newest first (agent-browser install
+# puts it under ~/.agent-browser/browsers).
+cft = "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+for cache in (".agent-browser/browsers", ".cache/puppeteer", "Library/Caches/ms-playwright"):
+    for binary in sorted((home / cache).glob("**/" + cft), reverse=True):
+        if binary.is_file() and os.access(binary, os.X_OK):
+            print(binary)
+            raise SystemExit(0)
 PYTHON
 }
 for candidate in "$CHROME" "$(headless_shell)" \
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  "/Applications/Chromium.app/Contents/MacOS/Chromium" \
   "$(command -v google-chrome 2>/dev/null || true)" \
   "$(command -v google-chrome-stable 2>/dev/null || true)" \
   "$(command -v chromium 2>/dev/null || true)" \
   "$(command -v chromium-browser 2>/dev/null || true)"; do
-  if [[ -n "$candidate" && -x "$candidate" ]]; then
+  if [[ -n "$candidate" && -x "$candidate" ]] && ! real_chrome "$candidate"; then
     CHROME="$candidate"
     break
   fi
 done
-[[ -n "$CHROME" ]] || fail "no Chrome or Chromium to load the rendered triage page"
+[[ -n "$CHROME" ]] || fail "no chrome-headless-shell or Chrome for Testing to load the rendered triage page (the real Google Chrome is never used): run 'npx @puppeteer/browsers install chrome-headless-shell@stable' or 'agent-browser install'"
 
 # Query the sandbox policy without registering or starting a GUI application.
 # The deny-only override lets stub tests exercise this path on any host.
@@ -144,6 +168,7 @@ LAUNCH_FAILURE_SIGNATURES=(
   'Failed to launch browser process'
   'error while loading shared libraries'
   'cannot open display'
+  'MachPortRendezvousServer'
 )
 
 # Echo the first stderr line carrying a launch-failure signature, else return 1.
