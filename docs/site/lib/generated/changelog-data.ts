@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.145",
+    "date": "2026-10-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.144...v10.0.0-beta.145",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** do not spawn the session namer under test ([#4569](https://github.com/yonatangross/orchestkit/issues/4569)) ([05e329d](https://github.com/yonatangross/orchestkit/commit/05e329d8c87a366b0ca22fac849fe54557760b4f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.144",
     "date": "2026-10-02",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.143...v10.0.0-beta.144",
