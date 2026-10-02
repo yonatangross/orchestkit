@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.144",
+    "date": "2026-10-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.143...v10.0.0-beta.144",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**skills:** nest frontmatter command hooks ([#4581](https://github.com/yonatangross/orchestkit/issues/4581)) ([1c24dc2](https://github.com/yonatangross/orchestkit/commit/1c24dc2c93f8c72c7770ca6a60ef35fa0660cde7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.143",
     "date": "2026-10-02",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.142...v10.0.0-beta.143",

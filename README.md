@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.144](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.143...v10.0.0-beta.144)** · 2026-10-02
+
+- **skills:** nest frontmatter command hooks (#4581)
+
 **[v10.0.0-beta.143](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.142...v10.0.0-beta.143)** · 2026-10-02
 
 - **glyph:** avoid macOS Chrome app launches in sandboxes (#4580)
@@ -659,10 +663,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.137](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.136...v10.0.0-beta.137)** · 2026-09-30
 
 - **evals:** tag run-evals claude launch as headless-ok (#4564)
-
-**[v10.0.0-beta.136](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.135...v10.0.0-beta.136)** · 2026-09-30
-
-- **deps:** bump drifted upstream pins (#3537) (#4562)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
