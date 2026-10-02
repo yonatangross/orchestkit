@@ -62,7 +62,26 @@ CHROME="${ORK_GLYPH_CHROME:-}"
 if [[ -n "$CHROME" && ! -x "$CHROME" ]]; then
   fail "ORK_GLYPH_CHROME is set to a path that is not executable: $CHROME"
 fi
-for candidate in "$CHROME" \
+# Cache discovery is limited to browser tool caches under the home directory.
+headless_shell() {
+  command -v chrome-headless-shell 2>/dev/null && return 0
+  python3 - << 'PYTHON'
+import os
+from pathlib import Path
+
+home = Path.home()
+for cache in (".cache/puppeteer", ".cache/agent-browser", ".cache/ms-playwright",
+              "Library/Caches/puppeteer", "Library/Caches/agent-browser",
+              "Library/Caches/ms-playwright"):
+    root = home / cache
+    for name in ("chrome-headless-shell", "headless_shell"):
+        for binary in sorted(root.glob("**/" + name), reverse=True):
+            if binary.is_file() and os.access(binary, os.X_OK):
+                print(binary)
+                raise SystemExit(0)
+PYTHON
+}
+for candidate in "$CHROME" "$(headless_shell)" \
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   "/Applications/Chromium.app/Contents/MacOS/Chromium" \
   "$(command -v google-chrome 2>/dev/null || true)" \
@@ -75,6 +94,39 @@ for candidate in "$CHROME" \
   fi
 done
 [[ -n "$CHROME" ]] || fail "no Chrome or Chromium to load the rendered triage page"
+
+# Query the sandbox policy without registering or starting a GUI application.
+# The deny-only override lets stub tests exercise this path on any host.
+window_server_allowed() {
+  [[ "${ORK_GLYPH_SANDBOX:-}" != 1 ]] || return 1
+  python3 - << 'PYTHON'
+import ctypes
+import os
+import sys
+
+try:
+    sandbox = ctypes.CDLL("/usr/lib/libsandbox.dylib")
+    check = sandbox.sandbox_check
+    check.restype = ctypes.c_int
+    check.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
+    # SANDBOX_FILTER_GLOBAL_NAME is 2. A denied mach lookup cannot reach
+    # WindowServer, even when Chrome is asked to render headlessly.
+    result = check(os.getpid(), b"mach-lookup", 2,
+                   ctypes.c_char_p(b"com.apple.windowserver.active"))
+    sys.exit(0 if result == 0 else 1)
+except (OSError, AttributeError):
+    sys.exit(1)
+PYTHON
+}
+if [[ "$(uname -s)" == Darwin && "$CHROME" == *.app/Contents/MacOS/* ]]; then
+  if ! window_server_allowed; then
+    if [[ -n "${CI:-}" ]]; then
+      fail "CI sandbox cannot start Chrome"
+    fi
+    echo "SKIP: sandbox cannot start Chrome"
+    exit 0
+  fi
+fi
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
