@@ -15,10 +15,7 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Write"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader"
-          once: true
+      hooks: [{ type: command, command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader", once: true }]
     - matcher: "Agent"
       hooks:
         - type: command
@@ -26,9 +23,7 @@ hooks:
           once: true
   PostToolUse:
     - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+      hooks: [{ type: command, command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer" }]
 metadata:
   category: workflow-automation
   mcp-server: memory, context7

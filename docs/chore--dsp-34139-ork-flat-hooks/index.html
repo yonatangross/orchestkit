@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Compare flat and nested skill hooks. One flat item stops every hook in a skill.">
+<title>Skill hooks: flat or nested</title>
+<style>
+:root {
+  color-scheme: dark;
+  font: 16px/1.6 system-ui, sans-serif;
+  --pg-bg: hsl(232 26% 7%);
+  --pg-ink: hsl(220 18% 93%);
+  --pg-muted: hsl(226 14% 72%);
+  --pg-glass: hsl(0 0% 100% / .05);
+  --pg-glass-edge: hsl(226 14% 30%);
+  --pg-control: hsl(232 20% 15%);
+  --pg-control-edge: hsl(226 14% 45%);
+  --pg-code: hsl(232 20% 11%);
+  --pg-accent: hsl(248 84% 68%);
+  --pg-link: hsl(248 84% 78%);
+  --status-good: #0ca30c;
+  --status-critical: #d03b3b;
+}
+body { margin: 0; background: var(--pg-bg); color: var(--pg-ink); }
+main { max-width: 880px; margin: auto; padding: 32px 24px 72px; }
+header { position: sticky; inset-block-start: 0; padding: 16px 0; background: var(--pg-bg); border-block-end: 1px solid var(--pg-glass-edge); }
+h1 { font-size: clamp(24px, 4vw, 36px); line-height: 1.2; margin: 0 0 12px; }
+p { max-width: 70ch; }
+small, .muted { color: var(--pg-muted); }
+select, button { font: inherit; color: inherit; background: var(--pg-control); border: 1px solid var(--pg-control-edge); border-radius: 8px; padding: 10px 14px; }
+button { cursor: pointer; }
+select:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--pg-accent); outline-offset: 3px; }
+label { display: block; margin-block: 12px; }
+details { margin-block: 20px; padding: 16px; border: 1px solid var(--pg-glass-edge); border-radius: 12px; background: var(--pg-glass); }
+summary { cursor: pointer; font-size: 18px; font-weight: 650; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; padding: 16px; background: var(--pg-code); border-radius: 8px; }
+#verdict { border-inline-start: 4px solid var(--status-good); padding: 12px 16px; }
+#verdict[data-valid="false"] { border-color: var(--status-critical); }
+a { color: var(--pg-link); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none; transition: none; scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<main>
+<header><h1>One flat item stops every hook</h1><p class="muted">PR #4581 changes the YAML shape. It keeps the commands, matchers and once values.</p></header>
+<details id="before-after" open>
+<summary>[0] Before and after</summary>
+<p>Select a shape to see the effect on both hooks. This is a model of the measured Claude Code behavior. It does not run a hook.</p>
+<label for="shape">Hook shape</label>
+<select id="shape"><option value="nested">Both items nested</option><option value="flat">Both items flat</option><option value="mixed">One flat item and one nested item</option></select>
+<p id="verdict" role="status" aria-live="polite"></p>
+<pre id="yaml" aria-label="Selected YAML hook shape"></pre>
+</details>
+<details id="changes" open><summary>[1] Changes</summary><p>14 skills. 19 matcher groups. 17 unique handlers. The validator parses skill and agent frontmatter as YAML. It rejects a command on a matcher item, an empty handler list, and a handler without type.</p><p>All text outside the 14 hook blocks stays unchanged. Two handler lists in implement use compact YAML sequences to stay below the repo line limit.</p></details>
+<details id="execution"><summary>[2] Execution evidence</summary><p>The new check fails on all 19 flat items on the base. It passes after conversion. The flat and nested fixtures use the same parser. Eight code mutations made the fixture test fail.</p><p>Build, typecheck and security tests pass. Vitest passed 7,468 tests, with two skipped. The PR body has the full check output and handler table.</p></details>
+<details id="risks"><summary>[3] Risks</summary><p>Each handler ran once through the built runner. All 17 returned exit code 0. Three took more than 500 ms: issue context, PR context and quality baseline. This PR leaves their code unchanged.</p><p>A small fixture can produce silent output. That result does not prove the handler will return useful context in a real session.</p></details>
+<details id="decisions"><summary>[4] Decisions</summary><p>The PR stays in draft. The conductor controls ready status, merge and release. The Chrome test is not run in this sandbox. CI runs it.</p></details>
+<details id="impact"><summary>[5] Impact</summary><p>After release, invoke ork:doctor in a fresh Claude Code session and run Bash. Check that skill/doctor-env-snapshot appears in hook timing telemetry. Fresh Claude Code loading is not yet measured.</p></details>
+<p><button id="copy-prompt" type="button">Copy review prompt</button> <span id="copy-status" role="status" aria-live="polite"></span></p>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4581">Open the draft PR and its evidence</a></p>
+</main>
+<script>
+const command = '${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/doctor-env-snapshot';
+const handler = { type: 'command', command, once: true };
+const nested = { matcher: 'Bash', hooks: [handler] };
+const flat = { matcher: 'Bash', command, once: true };
+function groupsFor(shape) {
+  if (shape === 'flat') return [flat, flat];
+  if (shape === 'mixed') return [flat, nested];
+  return [nested, nested];
+}
+function validGroups(groups) {
+  return groups.every(group => !Object.hasOwn(group, 'command') && Array.isArray(group.hooks) && group.hooks.length > 0 && group.hooks.every(item => item.type));
+}
+function yamlFor(groups) {
+  const lines = ['hooks:', '  PreToolUse:'];
+  for (const group of groups) {
+    lines.push('    - matcher: "Bash"');
+    if (group.hooks) lines.push('      hooks:', '        - type: command', '          command: "' + command + '"', '          once: true');
+    else lines.push('      command: "' + command + '"', '      once: true');
+  }
+  return lines.join('\n');
+}
+function render() {
+  const groups = groupsFor(document.getElementById('shape').value);
+  const valid = validGroups(groups);
+  const verdict = document.getElementById('verdict');
+  verdict.dataset.valid = String(valid);
+  verdict.textContent = valid ? 'Shape check: PASS. Both hooks can run.' : 'Shape check: FAIL. Neither hook runs, even when the second item is nested.';
+  document.getElementById('yaml').textContent = yamlFor(groups);
+}
+document.getElementById('shape').addEventListener('change', render);
+document.getElementById('copy-prompt').addEventListener('click', async () => {
+  const prompt = 'Review OrchestKit PR #4581. Check all 19 nested groups, command and once values, YAML fixtures, and the 17 handler smoke results. Keep the PR in draft.';
+  try { await navigator.clipboard.writeText(prompt); document.getElementById('copy-status').textContent = 'Copied.'; }
+  catch { document.getElementById('copy-status').textContent = 'Clipboard unavailable. Select this prompt: ' + prompt; }
+});
+render();
+</script>
+</body>
+</html>

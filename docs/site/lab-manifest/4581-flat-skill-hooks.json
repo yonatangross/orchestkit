@@ -1,0 +1,12 @@
+{
+  "slug": "4581-flat-skill-hooks",
+  "source": "docs/chore\u002d\u002ddsp-34139-ork-flat-hooks/index.html",
+  "title": "Skill hooks: flat or nested",
+  "description": "Compare flat, nested and mixed skill hook shapes. One flat item stops every hook in a skill.",
+  "tags": [
+    "hooks",
+    "skills",
+    "validation"
+  ],
+  "date": "2026-10-02"
+}
