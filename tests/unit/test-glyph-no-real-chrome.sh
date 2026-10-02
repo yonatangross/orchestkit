@@ -52,6 +52,20 @@ grep -q "operator's Google Chrome" "$WORK/out" || fail "symlink refusal does not
 [[ ! -e "$WORK/launched" ]] || fail "the Google Chrome.app stub was started through a symlink"
 ok "a symlink that resolves into Google Chrome.app is refused"
 
+for odd in "applications/google chrome.app/Contents/MacOS/google chrome" \
+           "Applications/GOOGLE CHROME.app/Contents/MacOS/GOOGLE CHROME"; do
+  CASE_STUB="$WORK/case/$odd"
+  mkdir -p "$(dirname "$CASE_STUB")"
+  printf '#!/bin/sh\ntouch "%s/launched"\nexit 0\n' "$WORK" > "$CASE_STUB"
+  chmod +x "$CASE_STUB"
+  run_gate "$CASE_STUB"
+  [[ "$(cat "$WORK/rc")" != 0 ]] || fail "a pin to $odd passed: $(tail -3 "$WORK/out")"
+  grep -q "operator's Google Chrome" "$WORK/out" || fail "refusal for $odd does not name the reason"
+  [[ ! -e "$WORK/launched" ]] || fail "the $odd stub was started"
+  rm -rf "$WORK/case"
+done
+ok "the refusal ignores case (lowercase and upper-case bundle names)"
+
 if grep -n '"/Applications/Google Chrome.app' "$GATE"; then
   fail "the gate still lists /Applications/Google Chrome.app as a candidate"
 fi

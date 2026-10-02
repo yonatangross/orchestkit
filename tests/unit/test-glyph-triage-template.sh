@@ -67,9 +67,15 @@ fi
 # shows the operator a crash dialog. Chrome for Testing and the headless
 # shell are separate binaries, so only "Google Chrome.app" is refused.
 real_chrome() {
-  local path="$1" resolved
+  local path="$1" resolved restore rc=1
   resolved="$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$path" 2>/dev/null || echo "$path")"
-  [[ "$path" == *"/Google Chrome.app/"* || "$resolved" == *"/Google Chrome.app/"* ]]
+  # The macOS volume is case insensitive, so "/applications/google chrome.app"
+  # starts the same binary. Compare without case.
+  restore="$(shopt -p nocasematch)"
+  shopt -s nocasematch
+  [[ "$path" == *"/Google Chrome.app/"* || "$resolved" == *"/Google Chrome.app/"* ]] && rc=0
+  eval "$restore"
+  return "$rc"
 }
 if [[ -n "$CHROME" ]] && real_chrome "$CHROME"; then
   fail "ORK_GLYPH_CHROME names the operator's Google Chrome; use Chrome for Testing or chrome-headless-shell"
