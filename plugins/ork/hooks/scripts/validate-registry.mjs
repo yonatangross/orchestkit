@@ -45,7 +45,8 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { load } from 'js-yaml';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const hooksRoot = join(__dirname, '..');
@@ -115,6 +116,43 @@ function checkSchemaKeys(data) {
     });
   }
   return failures;
+}
+
+/** Parse YAML frontmatter and reject matcher items that CC cannot execute. */
+export function checkFrontmatterHookShapes(content, label) {
+  const lines = content.split(/\r?\n/);
+  const delimiter = '-'.repeat(3);
+  if (lines[0] !== delimiter) return [];
+  const end = lines.indexOf(delimiter, 1);
+  if (end === -1) return [`${label}: frontmatter has no closing delimiter`];
+  let data;
+  try {
+    data = load(lines.slice(1, end).join('\n'));
+  } catch (error) {
+    return [`${label}: invalid YAML frontmatter: ${error.message}`];
+  }
+  const failures = [];
+  for (const [event, groups] of Object.entries(data?.hooks || {})) {
+    if (!Array.isArray(groups)) {
+      failures.push(`${label}: hooks.${event} must be an array`);
+      continue;
+    }
+    groups.forEach((group, i) => {
+      if (!group || Object.hasOwn(group, 'command') ||
+          !Array.isArray(group.hooks) || group.hooks.length === 0 ||
+          group.hooks.some(handler => !handler?.type)) {
+        failures.push(`${label}: hooks.${event}[${i}] is flat (command on the matcher item); nest it under hooks: - type: command`);
+      }
+    });
+  }
+  return failures;
+}
+
+function checkMarkdownHookShapes(files) {
+  return files.flatMap(file => checkFrontmatterHookShapes(
+    readFileSync(file, 'utf-8'),
+    file.endsWith('SKILL.md') ? dirname(file).split(sep).pop() : file.split(sep).pop(),
+  ));
 }
 
 /** entries/*.ts registry maps → Set of registered hook ids */
@@ -208,7 +246,7 @@ function main() {
   const agents = parseMarkdownHookRefs(agentFiles());
   const skills = parseMarkdownHookRefs(skillFiles());
 
-  const failures = [];
+  const failures = checkMarkdownHookShapes([...agentFiles(), ...skillFiles()]);
 
   // 5. SELF-CHECK — the previous version of this script parsed the legacy
   // command format, saw 0 hooks.json ids, and PASSED for months. Never again.
@@ -292,4 +330,4 @@ function main() {
   process.exit(0);
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

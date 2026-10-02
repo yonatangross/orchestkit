@@ -15,8 +15,10 @@ skills: [glyph, explore, architecture-decision-record, memory, remember, page-se
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/plan-context-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/plan-context-loader"
+          once: true
 metadata:
   category: document-asset-creation
   mcp-server: memory

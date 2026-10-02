@@ -408,7 +408,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.9.0",
-    "sha256": "37d8d66b49a885f6f4cbba49fc42a45c487cf1d7f92d286abb335695a1acd4d1",
+    "sha256": "38dc1c82a505218870907eb2dd8a27287853374ea2414352b2321f061f039e81",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "02af7e628fb758ec0280c2e9f2f7ac7f2881f41704f3727b44748d719294e18a",
+    "sha256": "89a77b3b77728e858e246782ceee7e6099c87f176f68b6d953adffddec815628",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1012,7 +1012,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "code-review-playbook",
     "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.",
     "version": "2.0.0",
-    "sha256": "b21895a314fb4a71d30d13fccf23407300dc032e8d3981f34f30730013482876",
+    "sha256": "868eb23bda8f5c1ee4f52c7f2f0974fb7bf4451bbdda8d765aebf1e047f62785",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -1061,7 +1061,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "commit",
     "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message. Do not invoke it for incidental git commits during other work; those stay a bare CLI call.",
     "version": "1.2.0",
-    "sha256": "10d69eb5096ea3fe1a5b2eef39d4ee660b1de6cd369092e9c6b7a3fa83d5d3f5",
+    "sha256": "41d2fce3aec0aadcd6d4872a4b247c07ff66eea8f4c87ac0ef155c1bbbefc55c",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1228,7 +1228,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.3.0",
-    "sha256": "bb9f37d55be46b9f29520079eff0a6549ec4a67829385bf97e0c785572520b1a",
+    "sha256": "28046ab04874d365cc1775603a8f5dbbbeaae48b2fff7c3d33a49bfebf8cd96c",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -1937,7 +1937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "4a472fe9e02315bd0435601179a5fc953e326b2e863303d3ae8177a1b1c32c0c",
+    "sha256": "7ad74ab6a9624e00088acba60e3279f8d0c8dfe8a158d8ba8288073c2aeb5e2f",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2334,7 +2334,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "0187870a3975e169bb175437b644adc3751394dc7fef5db99a4ac1550abf7701",
+    "sha256": "8cf57e8accbdf183abdd31b9e52d7a1971ec759caf86752cf2e8fdf14ef60e49",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2439,7 +2439,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "13c5f9ce5cb0f4c9f0e38a90f2f69d7e5d759001ce3613dfb161fe92268f2348",
+    "sha256": "fb276e379b8130fa4bbab457d3fc6d9c3ee1d63c398bc276722b14d9b8570c03",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2769,7 +2769,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "09e6527b0797ab617d869612ce9bb1324fbfba66267de59cee2d8cd94f9db20f",
+    "sha256": "69202f3c5dc5bbc9670a99d26c9129a53b15719c66d2b496918f0dba088ecf1a",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3893,7 +3893,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "quality-gates",
     "description": "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.",
     "version": "1.3.0",
-    "sha256": "1d028135c325d5dfcd7b4e73becd58a943a59c3a0b9071eec84ab5ae6045e8b2",
+    "sha256": "2ce52e8886ffd5a6c6aa1966095afa93049f464ba09ed9c4777f393d589dbda7",
     "author": "OrchestKit",
     "tags": [
       "quality",
@@ -4242,7 +4242,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "baf6557073171f5436d2e70d3c1e676db06aa26b3379542c3d1d7e4976403d52",
+    "sha256": "76b8fc88cc86dc0d0fec6cf5e67a5637433a891fd20395d893cf7aa333fa2ecc",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4428,7 +4428,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.1.0",
-    "sha256": "434df3dbe539052fdd172ea9a6dcf5f88ab775c8b6fc4d072df16f0632a0de05",
+    "sha256": "3bbb420cdbc7850a6832657d6baae243d15c5bfc3a83104e295e4fdd017bfec0",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -5055,7 +5055,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "e16de0820a004aed419c59342471de8e2f44bf95c424a066bf375fdebf8a4351",
+    "sha256": "a3eb4032c7ee6adfff7e5e8314d578942d8feea7ebb134911b843df188f35ae1",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5144,7 +5144,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "057cf3f77317ca31d60acd25370691d32993220a710a459c9e682549e669f887",
+    "sha256": "d0c50f25e347b2458282552510bfcd725cdc7217434e3b156efbfc1940f5be0e",
     "author": "OrchestKit",
     "tags": [
       "visualization",

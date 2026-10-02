@@ -15,11 +15,15 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
+          once: true
     - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/brainstorm-instructions-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/brainstorm-instructions-loader"
+          once: true
 metadata:
   category: workflow-automation
   mcp-server: memory

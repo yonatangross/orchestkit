@@ -8,7 +8,9 @@ user-invocable: false
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 effort: low
 model: haiku
 metadata:
