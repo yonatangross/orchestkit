@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141)** · 2026-10-01
+
+- **skills:** careful and freeze, on-demand guard hooks in a skill (#4576)
+
 **[v10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140)** · 2026-10-01
 
 - **review-pr:** opt-in rule-check mode, one verifier per rule (#4573)
@@ -659,14 +663,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.134](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.133...v10.0.0-beta.134)** · 2026-09-29
 
 - **frontmatter:** normalize allowed-tools values (#4556)
-
-**[v10.0.0-beta.133](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.132...v10.0.0-beta.133)** · 2026-09-29
-
-- **models:** mark Opus 4 / Sonnet 4 dated IDs retired (2026-06-15) (#4550)
-- **deps:** bump ip-address from 10.4.0 to 10.7.2 in /src/mcp-server (#4548)
-- **release:** pin stable channel to v9.8.1 (#4552)
-- **doctor:** treat policyHelper sources as not observable in fallback (#4551)
-- **triage:** read the triage model from a repo variable (#4555)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
