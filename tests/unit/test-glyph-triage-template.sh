@@ -162,6 +162,7 @@ LAUNCH_FAILURE_SIGNATURES=(
   'Failed to launch browser process'
   'error while loading shared libraries'
   'cannot open display'
+  'MachPortRendezvousServer'
 )
 
 # Echo the first stderr line carrying a launch-failure signature, else return 1.
