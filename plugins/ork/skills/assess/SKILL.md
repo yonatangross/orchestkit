@@ -15,8 +15,10 @@ model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/assessment-baseline-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/assessment-baseline-loader"
+          once: true
 metadata:
   category: document-asset-creation
   mcp-server: memory

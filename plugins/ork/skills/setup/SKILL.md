@@ -14,8 +14,10 @@ skills: [configure, remember, explore, help]
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/setup-env-detector"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/setup-env-detector"
+          once: true
 metadata:
   category: configuration
   mcp-server: memory
