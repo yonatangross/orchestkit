@@ -250,9 +250,28 @@ describe('spawnIdentityGenerator (RC2 — minimal child context)', () => {
   let dir: string;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'ork-spawn-'));
+    vi.stubEnv('VITEST', undefined);
+    vi.stubEnv('NODE_ENV', 'production');
     vi.mocked(spawn).mockClear();
   });
-  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it.each([
+    { vitest: 'true', nodeEnv: 'production' },
+    { vitest: '', nodeEnv: 'production' },
+    { vitest: undefined, nodeEnv: 'test' },
+  ])('does not spawn under test with $vitest and $nodeEnv', ({ vitest, nodeEnv }) => {
+    vi.stubEnv('VITEST', vitest);
+    vi.stubEnv('NODE_ENV', nodeEnv);
+
+    const ok = spawnIdentityGenerator('do a thing', 'feat/x', join(dir, 'out.raw'), dir);
+
+    expect(spawn).not.toHaveBeenCalled();
+    expect(ok).toBe(false);
+  });
 
   it('strips MCP/plugins/skills and spawns from a neutral cwd', () => {
     const ok = spawnIdentityGenerator('do a thing', 'feat/x', join(dir, 'out.raw'), dir);
