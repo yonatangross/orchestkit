@@ -142,6 +142,9 @@ export function checkFrontmatterHookShapes(content, label) {
           !Array.isArray(group.hooks) || group.hooks.length === 0 ||
           group.hooks.some(handler => !handler?.type)) {
         failures.push(`${label}: hooks.${event}[${i}] is flat (command on the matcher item); nest it under hooks: - type: command`);
+      } else if (group.hooks.some(handler => handler.type === 'command' &&
+          (typeof handler.command !== 'string' || !handler.command.trim()))) {
+        failures.push(`${label}: hooks.${event}[${i}] has a command handler with no command`);
       }
     });
   }

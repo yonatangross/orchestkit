@@ -11,6 +11,11 @@ assert.deepEqual(check(fixture('flat')), [
   'fixture: hooks.PreToolUse[0] is flat (command on the matcher item); nest it under hooks: - type: command',
 ]);
 assert.deepEqual(check(fixture('nested')), []);
+for (const handler of ['{type: command}', '{type: command, command: ""}']) {
+  assert.deepEqual(check(`hooks: {PreToolUse: [{hooks: [${handler}]}]}`), [
+    'fixture: hooks.PreToolUse[0] has a command handler with no command',
+  ]);
+}
 for (const item of ['{}', '{hooks: []}', '{hooks: [{command: test}]}', '{command: test, hooks: [{type: command}]}']) {
   assert.equal(check(`hooks: {PostToolUse: [${item}]}`).length, 1);
 }
@@ -18,4 +23,4 @@ assert.equal(check('hooks: {PreToolUse: invalid}').length, 1);
 assert.equal(check('hooks: [invalid').length, 1);
 assert.equal(checkFrontmatterHookShapes(`${delimiter}\nname: fixture`, 'fixture').length, 1);
 assert.deepEqual(check('name: fixture'), []);
-console.log('PASS: flat, mixed, missing handlers, missing type, invalid YAML and nested frontmatter shapes');
+console.log('PASS: flat, mixed, missing handlers, missing type, missing command, empty command, invalid YAML and nested frontmatter shapes');
