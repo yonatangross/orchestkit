@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The orchestkit mods were never inside plugins/ork. They are separate marketplace plugins; memory-lens had no entry at all.">
+<title>Where the ork mods actually ship</title>
+<style>
+:root {
+  color-scheme: dark;
+  font: 16px/1.6 system-ui, sans-serif;
+  --pg-bg: hsl(232 26% 7%);
+  --pg-ink: hsl(220 18% 93%);
+  --pg-muted: hsl(226 14% 72%);
+  --pg-glass: hsl(0 0% 100% / .05);
+  --pg-glass-edge: hsl(226 14% 30%);
+  --pg-control: hsl(232 20% 15%);
+  --pg-control-edge: hsl(226 14% 45%);
+  --pg-code: hsl(232 20% 11%);
+  --pg-accent: hsl(248 84% 68%);
+  --pg-link: hsl(248 84% 78%);
+  --status-good: #0ca30c;
+  --status-warn: #c9a227;
+  --status-critical: #d03b3b;
+}
+body { margin: 0; background: var(--pg-bg); color: var(--pg-ink); }
+main { max-width: 880px; margin: auto; padding: 32px 24px 72px; }
+header { position: sticky; inset-block-start: 0; padding: 16px 0; background: var(--pg-bg); border-block-end: 1px solid var(--pg-glass-edge); }
+h1 { font-size: clamp(24px, 4vw, 36px); line-height: 1.2; margin: 0 0 12px; }
+p { max-width: 70ch; }
+small, .muted { color: var(--pg-muted); }
+select, button { font: inherit; color: inherit; background: var(--pg-control); border: 1px solid var(--pg-control-edge); border-radius: 8px; padding: 10px 14px; }
+button { cursor: pointer; }
+select:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--pg-accent); outline-offset: 3px; }
+label { display: block; margin-block: 12px; }
+details { margin-block: 20px; padding: 16px; border: 1px solid var(--pg-glass-edge); border-radius: 12px; background: var(--pg-glass); }
+summary { cursor: pointer; font-size: 18px; font-weight: 650; }
+pre, code { font-size: 14px; background: var(--pg-code); border-radius: 8px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; }
+code { padding: 1px 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: start; padding: 8px 10px; border-block-end: 1px solid var(--pg-glass-edge); }
+th { color: var(--pg-muted); font-weight: 600; }
+#card { border-inline-start: 4px solid var(--status-good); padding: 12px 16px; }
+#card[data-state="missing"] { border-color: var(--status-critical); }
+#gate { border-inline-start: 4px solid var(--status-good); padding: 12px 16px; }
+#gate[data-level="warn"] { border-color: var(--status-warn); }
+#gate[data-level="error"] { border-color: var(--status-critical); }
+a { color: var(--pg-link); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none; transition: none; scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<main>
+<header><h1>The mods were never inside the plugin</h1><p class="muted">PR #4587 registers memory-lens in the marketplace and turns the missing-entry warning into an error.</p></header>
+<details id="model" open>
+<summary>[0] The packaging model</summary>
+<p>A mod is its own plugin. Each one ships as a separate marketplace entry pointing at <code>mods/&lt;name&gt;</code>, installed with <code>claude plugin install &lt;name&gt;@orchestkit</code>. Nothing about <code>plugins/ork</code> was supposed to contain them. Pick a mod to see its entry status before and after this PR, its registered events, and the install command.</p>
+<label for="mod">Mod</label>
+<select id="mod"></select>
+<p id="card" role="status" aria-live="polite"></p>
+<pre id="detail" aria-label="Selected mod detail"></pre>
+</details>
+<details id="changes" open><summary>[1] What was broken</summary><p>memory-lens landed in #4530 with no marketplace entry, so <code>claude plugin install memory-lens@orchestkit</code> had nothing to resolve. The structure gate compared 3 entries to 4 directories and only warned, so CI stayed green. Three descriptions still asked for CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1, a variable Claude Code 2.1.287 and later ignore.</p></details>
+<details id="evidence"><summary>[2] Bug check on Claude Code 2.1.288</summary><p>Each mod loaded with <code>claude -p --plugin-dir mods/&lt;name&gt;</code>. All four were admitted by the built-in sec-default guard and registered their declared events.</p>
+<table><thead><tr><th>mod</th><th>loads</th><th>fires</th><th>errors</th><th>wall time</th></tr></thead><tbody>
+<tr><td>lesson-cards</td><td>yes</td><td>session.start 33.5ms, tool.call 1.5ms</td><td>none</td><td>~22s</td></tr>
+<tr><td>memory-lens</td><td>yes</td><td>384 memories indexed in 300ms, prompt.submit 755ms</td><td>none</td><td>~18s</td></tr>
+<tr><td>promote-lights</td><td>yes</td><td>session.start 96.5ms, turn.complete 0.9ms</td><td>none</td><td>~16s</td></tr>
+<tr><td>secrets-veil</td><td>yes</td><td>mask verified end to end</td><td>none</td><td>~14s</td></tr>
+</tbody></table></details>
+<details id="gate-demo"><summary>[3] The gate, before and after</summary>
+<p>Move the slider to simulate mod directories vs marketplace entries, and compare the old check (left in for contrast) with the new one.</p>
+<label for="dirs">Mod directories on disk: <output id="dirs-out">4</output></label>
+<input id="dirs" type="range" min="0" max="6" value="4">
+<label for="entries">Marketplace mod entries: <output id="entries-out">3</output></label>
+<input id="entries" type="range" min="0" max="6" value="3">
+<p id="gate" role="status" aria-live="polite"></p>
+</details>
+<details id="decisions"><summary>[4] Decisions</summary><p>The fix lands on the packaging surface that exists, not on a new build step that would copy mods into a tree Claude Code never reads. The PR stays in draft; the conductor controls ready status and merge.</p></details>
+<details id="impact"><summary>[5] Impact</summary><p>After merge, <code>claude plugin install memory-lens@orchestkit</code> resolves. The next mod added without an entry fails CI instead of warning. Mods stay opt-in: installing ork still installs no mod by itself.</p></details>
+<p><button id="copy-prompt" type="button">Copy review prompt</button> <span id="copy-status" role="status" aria-live="polite"></span></p>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4587">Open the draft PR and its evidence</a></p>
+</main>
+<script>
+(function(){
+"use strict";
+var MODS=[
+ {name:"lesson-cards", had:true, version:"1.0.7", events:"session.start, tool.call, ui.render{ToolUse}, command.run{lessons}", note:"Lesson hint cards on matched tool patterns. /lessons reloads."},
+ {name:"promote-lights", had:true, version:"0.0.10", events:"session.start, turn.complete, ui.render{AbovePrompt}, command.run{lights}", note:"CI status band above the prompt for open promote PRs."},
+ {name:"secrets-veil", had:true, version:"0.0.6", events:"session.start, tool.call", note:"Masks secret values in tool results before the model reads them."},
+ {name:"memory-lens", had:false, version:"0.1.0", events:"session.start, prompt.submit, tool.call, command.run{memory-lens}", note:"Recalls the few memories related to each prompt. Missing entry added by this PR."}
+];
+var sel=document.getElementById("mod");
+MODS.forEach(function(m,i){var o=document.createElement("option");o.value=i;o.textContent=m.name+(m.had?"":" (was missing)");sel.appendChild(o)});
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function show(){
+ var m=MODS[+sel.value],card=document.getElementById("card"),d=document.getElementById("detail");
+ card.dataset.state=m.had?"ok":"missing";
+ card.innerHTML=m.had?"Marketplace entry: <strong>present before and after</strong>":"Marketplace entry: <strong>missing before, added by this PR</strong>";
+ d.textContent=[
+  "source.path:  mods/"+m.name+"  (git-subdir, ref main)",
+  "version:      "+m.version,
+  "events:       "+m.events,
+  "",
+  m.note,
+  "",
+  "install:  claude plugin install "+m.name+"@orchestkit",
+  "try once: claude --plugin-dir mods/"+m.name
+ ].join("\n");
+}
+sel.addEventListener("change",show);show();
+var dirs=document.getElementById("dirs"),entries=document.getElementById("entries");
+function gate(){
+ var nd=+dirs.value,ne=+entries.value;
+ document.getElementById("dirs-out").textContent=nd;
+ document.getElementById("entries-out").textContent=ne;
+ var g=document.getElementById("gate");
+ if(nd===ne){g.dataset.level="ok";g.textContent="Match ("+ne+" entries, "+nd+" dirs): pass, both old and new."}
+ else if(ne===0||ne>nd||nd===0){g.dataset.level="error";g.textContent="Mismatch ("+ne+" entries, "+nd+" dirs): old check stayed silent or warned; new check is an ERROR. A dir with no entry can never install."}
+ else{g.dataset.level="warn";g.textContent="Mismatch ("+ne+" entries, "+nd+" dirs): old check printed a warning and exited 0; new check is an ERROR."}
+}
+dirs.addEventListener("input",gate);entries.addEventListener("input",gate);gate();
+var cp=document.getElementById("copy-prompt"),cs=document.getElementById("copy-status");
+cp.addEventListener("click",function(){
+ var text="Review PR #4587 in yonatangross/orchestkit: marketplace entry for memory-lens plus a fail-closed mod count gate. Check the diff, the bug-check table, and the two pre-existing CI failures it does not touch.";
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){cs.textContent="Copied."},function(){cs.textContent="Copy failed."})}else{cs.textContent="Clipboard unavailable."}
+});
+})();
+</script>
+</body></html>
