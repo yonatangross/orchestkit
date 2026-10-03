@@ -16,9 +16,12 @@
 //      screen readers), and captions and ALT stay short.
 //   6. The real-data pattern draws from the page JSON: other numbers give
 //      another frame, and a null value draws "?" instead of a bar.
-//   7. Pause then Play leaves exactly one animation chain: a frame queued
+//   7. Pause stops the animation: no frame stays queued and nothing draws.
+//      Two stops, each pinned on its own: pause() cancels the queued frame,
+//      and tick() checks the playing flag.
+//   8. Pause then Play leaves exactly one animation chain: a frame queued
 //      before the pause must not keep running beside the new one.
-//   8. The skeleton carries the ids the kernel reads, and SKILL.md routes
+//   9. The skeleton carries the ids the kernel reads, and SKILL.md routes
 //      pages to the reference.
 //
 //   Two negative arms (a Math.random pattern, a stateful pattern) must FAIL
@@ -203,6 +206,51 @@ patterns.forEach((src, i) => {
   check('pattern 4: known value is printed', texts.includes('14'), JSON.stringify(texts));
   const empty = boot(realData, { data: [] }).frame(HERO_T, 'ideal');
   check('pattern 4: empty array draws without NaN', finiteArgs(empty));
+}
+
+// ---- pause stops the animation ---------------------------------------------
+// Boot queues frame 1. Pause it, through seek() or the Pause control (both
+// call the same pause()). Then run 4 frames. Returns what is
+// still queued right after the pause, what is queued after the 4 frames, and
+// how many draw calls the 4 frames made (a paused piece makes none).
+function afterPause(source, kernelSrc = kernel, via = 'seek') {
+  const art = boot(source, { kernelSrc });
+  if (art.pending() !== 1) return { boot: art.pending() };
+  if (via === 'seek') art.window.seek(1);
+  else art.playBtn.onclick();
+  const queuedAtPause = art.pending();
+  art.log.length = 0;
+  for (let i = 1; i <= 4; i++) art.flush(i * 16);
+  return { queuedAtPause, queued: art.pending(), draws: art.log.length };
+}
+const PAUSE_CANCEL = '  cancelAnimationFrame(frameId); // a frame queued before the pause never runs\n';
+const TICK_GUARD = '    if (!playing) return; // second stop, if a cancel is ever missed\n';
+check('kernel: pause() cancels the queued frame', kernel.includes(PAUSE_CANCEL));
+check('kernel: tick() checks the playing flag', kernel.includes(TICK_GUARD));
+const noPauseCancel = kernel.replace(PAUSE_CANCEL, '');
+const noGuard = kernel.replace(TICK_GUARD, '');
+const noStop = noPauseCancel.replace(TICK_GUARD, '');
+patterns.forEach((src, i) => {
+  for (const via of ['seek', 'button']) {
+    const r = afterPause(src, kernel, via);
+    check(`pattern ${i + 1}: pause via ${via} leaves no queued frame and no draws`,
+      r.queuedAtPause === 0 && r.queued === 0 && r.draws === 0, JSON.stringify(r));
+  }
+  // Each stop alone is enough: strip the other one and pause must still hold.
+  const g = afterPause(src, noPauseCancel);
+  check(`pattern ${i + 1}: the tick guard alone stops a paused piece`,
+    g.queued === 0 && g.draws === 0, JSON.stringify(g));
+  const c = afterPause(src, noGuard);
+  check(`pattern ${i + 1}: the pause cancel alone stops a paused piece`,
+    c.queuedAtPause === 0 && c.queued === 0 && c.draws === 0, JSON.stringify(c));
+});
+{
+  // Negative arms: each removal must be visible, so neither stop can go silently.
+  const a = afterPause(patterns[0], noPauseCancel);
+  check('negative arm: no pause cancel leaves a frame queued at pause', a.queuedAtPause === 1, JSON.stringify(a));
+  const b = afterPause(patterns[0], noStop);
+  check('negative arm: no cancel and no guard keeps animating after pause',
+    b.queued >= 1 && b.draws > 0, JSON.stringify(b));
 }
 
 // ---- pause then Play: exactly one animation chain ---------------------------
