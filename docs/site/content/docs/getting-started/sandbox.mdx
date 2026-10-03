@@ -1,0 +1,48 @@
+---
+title: Try OrchestKit Safely
+description: "Exercise OrchestKit without touching real data: read-only hosted tools, a dry-run install plan, and a throwaway local project."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+You can evaluate OrchestKit end to end without giving it write access to anything you care about. Three layers, from least to most commitment.
+
+## 1. Read-only hosted tools (no install)
+
+The public docs API and both MCP servers need no account and no key. Nothing here can write.
+
+- **CLI**: `npx orchestkit` (short form `npx -p orchestkit ork`; bare `npx ork` resolves a different npm package). The `search`, `ask`, `read`, `doctor` and `mcp` commands query the public API or print output; they write nothing. `install` prints the install command for you to inspect.
+- **OrchestKit Actions MCP** (`https://orchestkit.yonyon.ai/api/mcp/actions`, Streamable HTTP): the product MCP. Three tools, all read-only by construction:
+  - `orchestkit_list_skills`: discover user-invocable skills.
+  - `orchestkit_install_plan`: returns the install commands for a skill or goal. It executes nothing.
+  - `orchestkit_doctor_check`: checks a pasted JSON config fragment. It reads only the input.
+
+  Server card: [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/actions-server-card.json). There is no `dry_run` flag because no tool can mutate state.
+- **OrchestKit Docs MCP** (`https://orchestkit.yonyon.ai/api/mcp`): docs search and fetch. Details and the stdio Docker image are in [MCP servers](/docs/foundations/mcp-servers).
+
+## 2. Plan an install without running it
+
+Call `orchestkit_install_plan` on the Actions MCP, or run `npx orchestkit install` and `npx orchestkit mcp`. Each prints exactly what a real setup would run. You read the plan; nothing executes.
+
+## 3. Exercise the plugin in a throwaway project
+
+The plugin runs locally inside your agent host and acts only on the project you open it in. A scratch repo gives it something harmless to work on:
+
+```bash
+mkdir /tmp/ork-sandbox && cd /tmp/ork-sandbox && git init
+```
+
+Install per [Installation](/docs/getting-started/installation), open your host in that directory, then:
+
+- `/ork:doctor` reports plugin health. Diagnostics only.
+- `/ork:commit`, `/ork:review-pr` and friends operate on the scratch repo, so a test file or two is enough to see a real run.
+- For integrations that call external APIs, the `emulate-seed` skill generates Vercel emulate seed configs (GitHub, Vercel, Stripe and more) so agents exercise stateful local fakes instead of production.
+
+<Callout type="info">
+Hooks are local lifecycle automation inside the project you opened. Uninstalling the plugin removes them; nothing phones home unless you configure a telemetry URL.
+</Callout>
+
+## What not to worry about
+
+- **No credentials**: nothing above needs an API key or an account.
+- **Rate limits**: the hosted API allows 120 requests per minute per IP and answers with `RateLimit-*` headers. Policy: [API versioning and deprecation](/api-policy).

@@ -206,6 +206,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Hub-and-spoke navigation: find the right skills and agents for your role and task."
   },
   {
+    "url": "/docs/getting-started/sandbox",
+    "title": "Try OrchestKit Safely",
+    "description": "Exercise OrchestKit without touching real data: read-only hosted tools, a dry-run install plan, and a throwaway local project."
+  },
+  {
     "url": "/docs/getting-started/skills-sh",
     "title": "OpenCode and other skills.sh clients, plus Pi",
     "description": "Pi installs from its shipped manifest; OpenCode and any other skills.sh client take the starter 12 skills. Muse Code has its own page."

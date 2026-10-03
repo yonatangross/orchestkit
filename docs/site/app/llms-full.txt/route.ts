@@ -36,6 +36,7 @@ function header(): string {
 		`- **Search**: \`GET ${SITE.domain}/api/search?query=...\` returns JSON results. OpenAPI: ${SITE.domain}/api/openapi`,
 		`- **Ask** (natural language): \`POST ${SITE.domain}/ask\` returns JSON (NLWeb); send \`Accept: text/event-stream\` for SSE streaming.`,
 		`- **MCP server** (Streamable HTTP): ${SITE.domain}/api/mcp · card: ${SITE.domain}/.well-known/mcp/server-card.json`,
+		`- **Actions MCP** (Streamable HTTP, read-only product tools): ${SITE.domain}/api/mcp/actions · card: ${SITE.domain}/.well-known/mcp/actions-server-card.json`,
 		`- **Markdown**: append \`.md\` to any page URL, or send \`Accept: text/markdown\`.`,
 		`- **API catalog** (RFC 9727): ${SITE.domain}/.well-known/api-catalog`,
 		"",

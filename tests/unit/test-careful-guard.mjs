@@ -302,7 +302,11 @@ for (const command of ['rm -rf $TMP/x', 'rm -rf ${TEMP}/x']) {
 // it lands. Real links under a mkdtemp base (itself a valid TMPDIR root).
 {
   const base = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-link-`));
-  const other = realpathSync(mkdtempSync(`${tmpdir()}/ork-careful-other-`));
+  // `other` must land inside a root the hook process still trusts with
+  // TMPDIR=base. On macOS os.tmpdir() inside the hook IS base (it reads the
+  // env), so a sibling under the real TMPDIR is untrusted there and the case
+  // denied; on Linux it passed only because the sibling sat under /tmp.
+  const other = realpathSync(mkdtempSync(`${base}/ork-careful-other-`));
   try {
     symlinkSync('/usr', `${base}/to-usr`);
     symlinkSync('/', `${base}/to-root`);

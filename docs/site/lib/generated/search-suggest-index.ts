@@ -70,7 +70,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Find Your Agent",
       "Frontmatter Fields Explained",
       "Model Assignment Strategy",
-      "Context Isolation",
+      "Why No context Field",
       "Agent Lifecycle",
       "Agent-Scoped Hooks",
       "The 36 Agents by Category",
@@ -596,6 +596,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "By Keyboard Shortcut",
       "By Command",
       "Next Steps"
+    ]
+  },
+  {
+    "url": "/docs/getting-started/sandbox",
+    "title": "Try OrchestKit Safely",
+    "headings": [
+      "1. Read-only hosted tools (no install)",
+      "2. Plan an install without running it",
+      "3. Exercise the plugin in a throwaway project",
+      "What not to worry about"
     ]
   },
   {
@@ -3395,7 +3405,6 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "STEP 0: Verify User Intent with AskUserQuestion",
       "STEP 0b: Select Orchestration Mode",
       "🚨 Task Management (CC 2.1.16)",
-      "What This Skill Answers",
       "🔄 Workflow Overview",
       "Phase 1: Target Understanding",
       "Phase 1.5: Scope Discovery",
@@ -3434,6 +3443,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Scope filter (which scores get a refuter)",
       "Effort gate (assess-specific)",
       "Isolation note",
+      "What the workflow enforces vs the shell",
       "Agent Spawn Definitions",
       "Agent Tool Mode (Default)",
       "Agent Teams Alternative",
@@ -4020,6 +4030,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Round-Robin",
       "Selection Guide",
       "Effort Scaling",
+      "Phase 2 runs at low at every level",
       "Evaluation Rubric",
       "Dimensions",
       "Scoring Scale",
@@ -4291,6 +4302,15 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Payback Period",
       "Sensitivity Analysis",
       "Common Mistakes"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/careful",
+    "title": "Careful",
+    "headings": [
+      "What it blocks",
+      "When a command is blocked",
+      "Limits"
     ]
   },
   {
@@ -4864,7 +4884,10 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "CC 2.1.278 and 2.1.280 Settings",
       "CLAUDECODEAUTOMODESERVER, server-side classifier by default (2.1.278)",
       "CLAUDECODEMAXMCPDESCRIPTIONLENGTH, MCP description cap (2.1.280)",
-      "Effort on newly released models (2.1.280)"
+      "Effort on newly released models (2.1.280)",
+      "CC 2.1.285 and 2.1.288 Settings",
+      "Auto mode becomes the headless default (2.1.285)",
+      "CLAUDECODEDISABLESTRUCTUREDOUTPUTS, gateway opt-out (2.1.288)"
     ]
   },
   {
@@ -6061,6 +6084,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/doctor/references/skill-preapproval",
+    "title": "Doctor: Skill pre-approval under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284)",
+    "headings": [
+      "What changed, and for whom",
+      "How to detect it",
+      "Remedy (admin side, ork cannot ship it)",
+      "Affected skills"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
     "headings": [
@@ -6944,6 +6977,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/freeze",
+    "title": "Freeze",
+    "headings": [
+      "How it works",
+      "Usage",
+      "When an edit is blocked",
+      "Limits"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/github-operations",
     "title": "Github Operations",
     "headings": [
@@ -7411,7 +7454,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "url": "/docs/reference/skills/implement/references",
     "title": "Implement: References",
     "headings": [
-      "References (19)",
+      "References (20)",
       "Agent Phases",
       "128K Output Token Strategy",
       "Phase 4: Architecture Design (5 Agents)",
@@ -7495,6 +7538,12 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Full-Stack Verification",
       "What to Check",
       "When to Skip",
+      "Effort Ladder",
+      "The ladder",
+      "Low is right when ALL of these hold",
+      "Medium (the default) when ANY of these hold",
+      "High for implement itself",
+      "How to apply it",
       "Feedback Loop",
       "After Each Task Completion",
       "Feedback Triggers",
@@ -10368,17 +10417,17 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Capture Scope for Agents",
       "Tool Guidance",
       "Phase 2: Skills Auto-Loading",
-      "Phase 3: Parallel Code Review (6 Agents)",
+      "Phase 2.5: /ultrareview Gate (asked BEFORE the review call)",
+      "Phase 3: Parallel Code Review (Workflow)",
       "Project Context Injection",
       "Structured Output",
       "Anti-Sycophancy Response Protocol",
       "Agent Status Protocol",
       "Domain-Aware Agent Selection",
-      "Progressive Output (CC 2.1.76+)",
-      "Phase 3.5: /ultrareview Gate (CC 2.1.111+, optional)",
       "Phase 4: Run Validation",
       "Phase 4.5: Adversarial Refutation (effort-gated)",
       "Cross-model refuter (optional, provenance-labeled, cost-gated)",
+      "Phase 4.6: Rule-check Mode (opt-in, --rules)",
       "Phase 5: Synthesize Review",
       "Memory Persistence",
       "Phase 6: Submit Review",
@@ -10406,7 +10455,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Structured Output Contract",
       "Agent Prompts",
       "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM",
-      "References (10)",
+      "References (12)",
       "Adversarial Refutation",
       "Bindings",
       "Scope filter (which findings get a refuter)",
@@ -10430,6 +10479,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Pattern",
       "When to use this vs Phase 8c",
       "Orchestration Mode Selection",
+      "Progressive And Partial Results",
+      "Progressive Output (CC 2.1.76+)",
       "Review Report Template",
       "Review Template",
       "Review Output Format",
@@ -10437,9 +10488,14 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Request Changes Message",
       "Conventional Comments",
       "Example Comments",
+      "Rule Check Mode",
+      "Pipeline",
+      "Ceilings",
+      "The survivor filter",
+      "In the report",
       "Task Metrics Template",
       "Ultrareview Gate",
-      "Trigger evaluation (automatic, after Phase 3)",
+      "Trigger evaluation (automatic, Phase 2.5, BEFORE the review call)",
       "When triggers fire: voice-friendly prompt",
       "After user response",
       "Opt-out",
@@ -12626,7 +12682,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "36 Commands You Can Invoke",
+    "title": "38 Commands You Can Invoke",
     "headings": [
       "What Are Command Skills?",
       "Build and Explore",
@@ -12636,6 +12692,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Memory and Knowledge",
       "Dev Loop and Visuals",
       "Plugin Management",
+      "More Commands",
       "How Command Skills Compose Reference Skills",
       "Chaining Commands in a Session",
       "What's Next"

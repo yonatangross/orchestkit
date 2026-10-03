@@ -111,7 +111,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/foundations/mcp-servers": {
       "title": "OrchestKit MCP Servers",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/foundations/overview": {
       "title": "What is OrchestKit?",
@@ -159,7 +159,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/installation": {
       "title": "OrchestKit Installation and Setup",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/getting-started/muse": {
       "title": "Muse Code",
@@ -168,6 +168,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/getting-started/navigating": {
       "title": "Find What You Need",
       "inbound": 2
+    },
+    "/docs/getting-started/sandbox": {
+      "title": "Try OrchestKit Safely",
+      "inbound": 1
     },
     "/docs/getting-started/skills-sh": {
       "title": "OpenCode and other skills.sh clients, plus Pi",
@@ -665,6 +669,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Business Case",
       "inbound": 2
     },
+    "/docs/reference/skills/careful": {
+      "title": "Careful",
+      "inbound": 3
+    },
     "/docs/reference/skills/chain-patterns": {
       "title": "Chain Patterns",
       "inbound": 2
@@ -775,7 +783,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor": {
       "title": "Doctor",
-      "inbound": 23
+      "inbound": 24
     },
     "/docs/reference/skills/doctor/references/agent-memory-dir": {
       "title": "Doctor: Per-agent memory directory",
@@ -827,6 +835,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor/references/settings-posture": {
       "title": "Doctor: Check 16: Operator Settings Posture",
+      "inbound": 1
+    },
+    "/docs/reference/skills/doctor/references/skill-preapproval": {
+      "title": "Doctor: Skill pre-approval under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284)",
       "inbound": 1
     },
     "/docs/reference/skills/doctor/references/skills-validation": {
@@ -892,6 +904,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/fix-issue": {
       "title": "Fix Issue",
       "inbound": 6
+    },
+    "/docs/reference/skills/freeze": {
+      "title": "Freeze",
+      "inbound": 3
     },
     "/docs/reference/skills/github-operations": {
       "title": "Github Operations",
@@ -1210,7 +1226,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "36 Commands You Can Invoke",
+      "title": "38 Commands You Can Invoke",
       "inbound": 11
     },
     "/docs/skills/dependency-graph": {
@@ -1444,6 +1460,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/getting-started/installation": [
       "/docs/getting-started/configuration",
       "/docs/getting-started/hosts",
+      "/docs/getting-started/sandbox",
       "/docs/getting-started/superpowers",
       "/docs/guides/orchestkit-on-pi-codex-cursor"
     ],
@@ -1456,6 +1473,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/getting-started/configuration",
       "/docs/skills/command-skills",
       "/docs/skills/overview"
+    ],
+    "/docs/getting-started/sandbox": [
+      "/docs/foundations/mcp-servers",
+      "/docs/getting-started/installation"
     ],
     "/docs/getting-started/skills-sh": [
       "/docs/getting-started/agy",
@@ -1942,6 +1963,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/brainstorm",
       "/docs/reference/skills/browser-tools",
       "/docs/reference/skills/business-case",
+      "/docs/reference/skills/careful",
       "/docs/reference/skills/chain-patterns",
       "/docs/reference/skills/ci-debug",
       "/docs/reference/skills/ci-sentinel",
@@ -1974,6 +1996,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/explore",
       "/docs/reference/skills/figma-design-handoff",
       "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/freeze",
       "/docs/reference/skills/github-operations",
       "/docs/reference/skills/glyph",
       "/docs/reference/skills/golden-dataset",
@@ -2067,6 +2090,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/reference/skills/browser-tools": [],
     "/docs/reference/skills/business-case": [],
+    "/docs/reference/skills/careful": [],
     "/docs/reference/skills/chain-patterns": [],
     "/docs/reference/skills/ci-debug": [],
     "/docs/reference/skills/ci-sentinel": [],
@@ -2127,6 +2151,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/doctor/references/sandbox-posture",
       "/docs/reference/skills/doctor/references/schema-validation",
       "/docs/reference/skills/doctor/references/settings-posture",
+      "/docs/reference/skills/doctor/references/skill-preapproval",
       "/docs/reference/skills/doctor/references/skills-validation",
       "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
       "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
@@ -2173,6 +2198,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/doctor/references/settings-posture": [
       "/docs/reference/skills/doctor"
     ],
+    "/docs/reference/skills/doctor/references/skill-preapproval": [
+      "/docs/reference/skills/doctor"
+    ],
     "/docs/reference/skills/doctor/references/skills-validation": [
       "/docs/reference/skills/doctor"
     ],
@@ -2213,6 +2241,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/explore": [],
     "/docs/reference/skills/figma-design-handoff": [],
     "/docs/reference/skills/fix-issue": [],
+    "/docs/reference/skills/freeze": [],
     "/docs/reference/skills/github-operations": [],
     "/docs/reference/skills/glyph": [],
     "/docs/reference/skills/golden-dataset": [],
@@ -2476,6 +2505,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/audit-activation",
       "/docs/reference/skills/auto",
       "/docs/reference/skills/brainstorm",
+      "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
       "/docs/reference/skills/ci-sentinel",
       "/docs/reference/skills/commit",
@@ -2494,6 +2524,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/expect",
       "/docs/reference/skills/explore",
       "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/freeze",
       "/docs/reference/skills/glyph",
       "/docs/reference/skills/help",
       "/docs/reference/skills/implement",
@@ -2518,6 +2549,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/audit-activation",
       "/docs/reference/skills/auto",
       "/docs/reference/skills/brainstorm",
+      "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
       "/docs/reference/skills/ci-sentinel",
       "/docs/reference/skills/commit",
@@ -2535,6 +2567,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/expect",
       "/docs/reference/skills/explore",
       "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/freeze",
       "/docs/reference/skills/glyph",
       "/docs/reference/skills/help",
       "/docs/reference/skills/implement",

@@ -38,6 +38,16 @@ export function GET() {
 						title: "MCP server card",
 					},
 					{
+						href: `${d}/api/mcp/actions`,
+						type: "application/json",
+						title: "Actions MCP server, read-only product tools (Streamable HTTP)",
+					},
+					{
+						href: `${d}/.well-known/mcp/actions-server-card.json`,
+						type: "application/json",
+						title: "Actions MCP server card",
+					},
+					{
 						href: `${d}/.well-known/agent-card.json`,
 						type: "application/json",
 						title: "A2A agent card",
