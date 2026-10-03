@@ -1,4 +1,8 @@
 {
+  "1240992": {
+    "reason": "braces <=3.0.3 (GHSA-vfj7-8cjw-p6xm), no patched version as of 2026-10-03. Reachability: vendored orchestkit-demos lockfile only, dev-only chain eslint/@remotion/eslint-config-flat -> typescript-eslint -> fast-glob -> micromatch -> braces (all dev:true in the lockfile, absent from dependencies); the demos workspace ships no runtime code into plugins/. Operator policy 2026-10-03, same dated ignore as trading-ai-analyst#1335.",
+    "until": "2026-10-17"
+  },
   "_schema": {
     "description": "npm audit gate allowlist. Keys are the NUMERIC npm advisory id (the `source` field of an npm audit `via` entry), not the GHSA string, because that is what tests/security/test-npm-audit.sh matches on. Add a reason and an optional expiry date (YYYY-MM-DD). An expired entry fails the test so exceptions get revisited: extend the date only with a fresh reachability writeup, or delete the entry once the dependency has moved past the vulnerable range.",
     "example": {
