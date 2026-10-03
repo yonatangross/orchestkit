@@ -58,6 +58,7 @@ Auth profiles are managed by agent-browser's vault system — credentials are ne
 - **One session per run** — sequential page visits, shared auth state
 - **Session timeout**: 5 minutes per page (configurable)
 - **Cleanup**: agent-browser auto-closes on agent completion
+- **Never pass `--all` to `agent-browser close`**: on a shared machine it kills sessions owned by other agents (#4520). If cleanup is needed, close only the session this run opened (`agent-browser close --session <name>`)
 
 ## Failure Decision Tree
 
