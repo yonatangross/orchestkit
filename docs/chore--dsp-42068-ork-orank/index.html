@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>orank: advertise the Actions MCP and document the safe path</title>
+<meta name="description" content="The OrchestKit Actions MCP existed since 2026-09-14 but was absent from llms.txt, the developer-resource index, the sitemap and the API catalog. This PR advertises it and adds a try-safely docs page.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style></head><body>
+
+<h1>orank: advertise the Actions MCP and document the safe path</h1>
+<p class="lede">orchestkit.yonyon.ai scored 97/100 (A+) on the 2026-10-03 scan. The product MCP shipped on 2026-09-14 but no index pointed at it, and no page told an agent how to try OrchestKit without touching real data. This PR is docs and indexes only; no MCP code changed.</p>
+
+<p class="verdict"><b>Verdict.</b> The OrchestKit Actions MCP (<code>/api/mcp/actions</code>, three read-only tools) existed with a server card, tests and one docs section, but orank sees a docs MCP and no product MCP because /llms.txt, the developer-resource index, the sitemap, the schema-map and the RFC 9727 API catalog never named it. All five now do. A new <code>getting-started/sandbox</code> page gives the sandbox path a predictable URL.</p>
+
+<div class="kpis">
+<div class="kpi"><b>2</b><span>MCP servers now advertised (docs + actions)</span></div>
+<div class="kpi"><b>5</b><span>indexes that gained the Actions MCP</span></div>
+<div class="kpi"><b>3</b><span>read-only action tools, zero writes</span></div>
+<div class="kpi"><b>1</b><span>new docs page (Try OrchestKit Safely)</span></div>
+<div class="kpi"><b>993</b><span>site tests passing</span></div>
+</div>
+
+<h2>1. Product MCP coverage</h2>
+<div class="cols">
+<div class="card before"><h3>Before: /llms.txt Machine-readable resources</h3>
+<pre>- [OrchestKit Docs MCP server (Streamable HTTP)](/api/mcp)
+  · [OrchestKit MCP server card](/.well-known/mcp/server-card.json)
+  · [MCP well-known](/.well-known/mcp)
+- [OrchestKit API catalog (RFC 9727)](/.well-known/api-catalog)</pre>
+<p class="mut">An agent reading the index finds the docs MCP only. The Actions endpoint and its server card appear nowhere.</p></div>
+<div class="card after"><h3>After: same section</h3>
+<pre>- [OrchestKit Docs MCP server (Streamable HTTP)](/api/mcp) · ...
+- [OrchestKit Actions MCP server, read-only product tools
+  (Streamable HTTP)](/api/mcp/actions)
+  · [OrchestKit Actions MCP server card]
+    (/.well-known/mcp/actions-server-card.json)
+- [OrchestKit API catalog (RFC 9727)](/.well-known/api-catalog)</pre>
+<p class="mut">Plus a For-AI-agents bullet: list skills, install plan, doctor check; executes nothing.</p></div>
+</div>
+<table>
+<tr><th>Surface</th><th>Change</th></tr>
+<tr><td><code>lib/developer-resources.ts</code></td><td>typed entry "OrchestKit Actions MCP server" (kind MCP server); feeds /developers, /developers.md and both llms files</td></tr>
+<tr><td><code>app/llms.txt/route.ts</code></td><td>For-AI-agents bullet + Machine-readable line</td></tr>
+<tr><td><code>app/llms-full.txt/route.ts</code></td><td>Actions MCP API bullet</td></tr>
+<tr><td><code>app/sitemap.ts</code></td><td>actions server card in MACHINE_SURFACES</td></tr>
+<tr><td><code>app/schema-map.xml/route.ts</code></td><td>mcp/server-card feed entry</td></tr>
+<tr><td><code>api/well-known/api-catalog/route.ts</code></td><td>endpoint + card linkset items</td></tr>
+</table>
+
+<h2>2. Sandbox and dry-run docs</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<p class="mut">The only sandbox statement was a section inside foundations/mcp-servers.mdx. No predictable URL, no page an agent can cite as "how to try OrchestKit without real data".</p></div>
+<div class="card after"><h3>After: /docs/getting-started/sandbox</h3>
+<p class="mut">"Try OrchestKit Safely", three layers: read-only hosted tools (CLI, Docs MCP, Actions MCP), a dry-run install plan that prints commands and executes nothing, and a throwaway-repo recipe for exercising the plugin. Linked from installation.mdx, registered in meta.json.</p></div>
+</div>
+
+<h2>3. Proof</h2>
+<table>
+<tr><th>Run</th><th>Result</th></tr>
+<tr><td>docs/site vitest (vitest.site.config.ts)</td><td>88 files, 993 tests pass</td></tr>
+<tr><td>test-docs-site-drift.mjs</td><td>SUCCESS, 318 mdx, all /ork: refs resolve</td></tr>
+<tr><td>npm run test:mdx</td><td>318 mdx compile, 2/2</td></tr>
+<tr><td>tsc --noEmit -p docs/site/tsconfig.json</td><td>clean</td></tr>
+<tr><td>developerResourceLines() format test</td><td>pins one line per named resource, product name in each title</td></tr>
+</table>
+<p class="warn"><b>Not confirmed here.</b> The orank score changes only on rescan after merge and deploy. The deploy of docs/site to orchestkit.yonyon.ai is a conductor step, not part of this PR.</p>
+</body></html>
