@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.148",
+    "date": "2026-10-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**mods:** register memory-lens in the marketplace, gate missing entries ([#4587](https://github.com/yonatangross/orchestkit/issues/4587)) ([3d35ab4](https://github.com/yonatangross/orchestkit/commit/3d35ab4f760d0322d85057be01fe8405b826b4df))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.147",
     "date": "2026-10-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147",
