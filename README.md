@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.147](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147)** · 2026-10-03
+
+- **cc:** adopt Claude Code 2.1.285 through 2.1.288 (#4588)
+
 **[v10.0.0-beta.146](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.145...v10.0.0-beta.146)** · 2026-10-02
 
 - **glyph:** triage gate never falls back to the real Google Chrome (#4584)
@@ -657,10 +661,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140)** · 2026-10-01
 
 - **review-pr:** opt-in rule-check mode, one verifier per rule (#4573)
-
-**[v10.0.0-beta.139](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139)** · 2026-10-01
-
-- **skills:** brainstorm diverges at effort low, implement effort ladder (#4572)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
