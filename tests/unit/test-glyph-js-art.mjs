@@ -16,7 +16,9 @@
 //      screen readers), and captions and ALT stay short.
 //   6. The real-data pattern draws from the page JSON: other numbers give
 //      another frame, and a null value draws "?" instead of a bar.
-//   7. The skeleton carries the ids the kernel reads, and SKILL.md routes
+//   7. Pause then Play leaves exactly one animation chain: a frame queued
+//      before the pause must not keep running beside the new one.
+//   8. The skeleton carries the ids the kernel reads, and SKILL.md routes
 //      pages to the reference.
 //
 //   Two negative arms (a Math.random pattern, a stateful pattern) must FAIL
@@ -69,13 +71,13 @@ const SAMPLE_DATA = [
   { label: 'unknown', now: null, ideal: 1 },
 ];
 
-function boot(source, { reduced = false, data = SAMPLE_DATA } = {}) {
+function boot(source, { reduced = false, data = SAMPLE_DATA, kernelSrc = kernel } = {}) {
   const log = [];
   const canvasAttrs = {};
   const canvas = { width: 960, height: 320, attrs: canvasAttrs, setAttribute: (k, v) => { canvasAttrs[k] = v; } };
   canvas.getContext = () => makeCtx(canvas, log);
   const caption = { textContent: '' };
-  const playBtn = { hidden: false, textContent: '', addEventListener() {} };
+  const playBtn = { hidden: false, textContent: '', onclick: null, addEventListener(type, fn) { if (type === 'click') this.onclick = fn; } };
   const buttons = ['now', 'ideal'].map((m) => {
     const attrs = {};
     return { dataset: { mode: m }, attrs, setAttribute: (k, v) => { attrs[k] = v; }, addEventListener() {} };
@@ -85,6 +87,7 @@ function boot(source, { reduced = false, data = SAMPLE_DATA } = {}) {
     'art-data': { textContent: JSON.stringify(data) },
   };
   let rafCalls = 0;
+  let rafQueue = [];
   let randomCalls = 0;
   const strictMath = Object.create(Math);
   strictMath.random = () => { randomCalls++; return 0.5; };
@@ -97,17 +100,21 @@ function boot(source, { reduced = false, data = SAMPLE_DATA } = {}) {
       getElementById: (id) => els[id] ?? null,
       querySelectorAll: (sel) => (sel === '[data-mode]' ? buttons : []),
     },
-    requestAnimationFrame: () => { rafCalls++; return rafCalls; },
+    requestAnimationFrame: (cb) => { rafCalls++; rafQueue.push({ id: rafCalls, cb }); return rafCalls; },
+    cancelAnimationFrame: (id) => { rafQueue = rafQueue.filter((e) => e.id !== id); },
     performance: { now: () => 0 },
     Math: strictMath,
     console,
   };
   vm.createContext(sandbox);
   // const declarations stay script-scoped, so expose the pattern constants.
-  vm.runInContext(`${source}\n${kernel}\nwindow.__art = { LOOP, HERO_T, ALT, CAPTION };`, sandbox);
+  vm.runInContext(`${source}\n${kernelSrc}\nwindow.__art = { LOOP, HERO_T, ALT, CAPTION };`, sandbox);
   return {
     log, caption, playBtn, buttons, window, canvas,
     rafCalls: () => rafCalls,
+    pending: () => rafQueue.length,
+    // Run one animation frame: every callback queued so far fires once.
+    flush(now) { const due = rafQueue; rafQueue = []; for (const e of due) e.cb(now); },
     randomCalls: () => randomCalls,
     frame(t, mode) {
       if (mode) window.setMode(mode);
@@ -196,6 +203,31 @@ patterns.forEach((src, i) => {
   check('pattern 4: known value is printed', texts.includes('14'), JSON.stringify(texts));
   const empty = boot(realData, { data: [] }).frame(HERO_T, 'ideal');
   check('pattern 4: empty array draws without NaN', finiteArgs(empty));
+}
+
+// ---- pause then Play: exactly one animation chain ---------------------------
+// Boot queues frame 1. seek() pauses before frame 1 fires, then Play starts a
+// new chain. If frame 1 is still queued it sees playing === true and keeps a
+// second chain alive (Codex XREVIEW on 711710b6).
+function chainsAfterReplay(source, kernelSrc = kernel) {
+  const art = boot(source, { kernelSrc });
+  if (art.pending() !== 1) return -1;
+  art.window.seek(1);
+  art.playBtn.onclick();
+  let most = 0;
+  for (let i = 1; i <= 6; i++) { art.flush(i * 16); most = Math.max(most, art.pending()); }
+  return most;
+}
+patterns.forEach((src, i) => {
+  const n = chainsAfterReplay(src);
+  check(`pattern ${i + 1}: pause then Play leaves one animation chain`, n === 1, `${n} chains`);
+});
+{
+  // Negative arm: the same kernel without its cancel calls must show two chains.
+  const leaky = kernel.replace(/\s*cancelAnimationFrame\([^)]*\);?/g, '');
+  check('negative arm: cancel mutation applied', leaky !== kernel, 'kernel has no cancelAnimationFrame call');
+  const n = chainsAfterReplay(patterns[0], leaky);
+  check('negative arm: a leaked queued frame is caught', n > 1, `${n} chains`);
 }
 
 // ---- negative arms: the harness must catch a broken pattern -----------------

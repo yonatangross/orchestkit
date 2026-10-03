@@ -915,7 +915,7 @@ contract fails CI.
 | `window.seek(t)` | Pauses and draws frame `t`. A capture script steps it to make an mp4 or gif. |
 | `window.setMode(m)` | `'now'` or `'ideal'`. The toggle buttons carry `aria-pressed`. |
 | Reduced motion | `prefers-reduced-motion: reduce` draws `HERO_T` once and never calls `requestAnimationFrame`. The toggle still works. |
-| Pause | A Play/Pause button, so motion is never forced on the reader. |
+| Pause | A Play/Pause button, so motion is never forced on the reader. `pause()` cancels the queued frame by its id. A `playing` flag alone is not enough: Play before that frame fires would start a second animation chain. |
 | Randomness | `rng(seed)` (seeded) at the top level of the pattern, never inside `draw`. |
 | Page | Self-contained: no network, no CDN, light paper colors from `C`, no em dash. |
 
@@ -976,6 +976,7 @@ const still = !!(window.matchMedia &&
 const playBtn = document.getElementById('art-play');
 let mode = 'now';
 let playing = false;
+let frameId = 0; // the one queued animation frame; pause() cancels it
 let last = HERO_T;
 
 function rng(seed) { // mulberry32: same seed, same sequence
@@ -994,16 +995,20 @@ function render(t) {
 function label() { if (playBtn) playBtn.textContent = playing ? 'Pause' : 'Play'; }
 function play() {
   if (still) { render(HERO_T); return; } // reduced motion: one still frame
+  cancelAnimationFrame(frameId); // never two chains: drop any queued frame
   playing = true;
   label();
   const start = performance.now() - last * 1000;
-  requestAnimationFrame(function tick(now) {
-    if (!playing) return;
+  frameId = requestAnimationFrame(function tick(now) {
     render((now - start) / 1000);
-    requestAnimationFrame(tick);
+    frameId = requestAnimationFrame(tick);
   });
 }
-function pause() { playing = false; label(); }
+function pause() {
+  cancelAnimationFrame(frameId); // a frame queued before the pause never runs
+  playing = false;
+  label();
+}
 
 window.seek = function (t) { pause(); render(t); };
 window.setMode = function (m) {
