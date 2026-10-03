@@ -183,6 +183,7 @@ Given a topic (or the conversation, when none is given):
    | ranked list, scores, counts | table + bar meters |
    | over time | sparkline or milestone track |
    | triage open issues, what is left, categorize the backlog | **triage page** (`templates/triage.html`). Not an inline render. |
+| explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`references/js-art.md`). Chat stays ASCII. |
 
 3. **Emit inline in the reply, except the triage page.** Never write a file unless the user asked for one. The triage row above is the exception: that answer is `templates/triage.html`, not an inline render. Every other answer stays in the reply.
 4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
@@ -198,6 +199,8 @@ Given a topic (or the conversation, when none is given):
 
 **Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
+
+**JS art is for pages; chat stays ASCII.** When the answer is already a page (an explainer, a NOW vs IDEAL plan), the page carries one animated piece above its first beat: an inline `<canvas>`, a Now/Ideal toggle, a Play/Pause button, and a text alt on the canvas. Build it from `references/js-art.md`: paste one pattern (flow dots, gate, before/after meter, or real-data bars from a JSON array in the page), then the kernel. `draw(ctx, t, mode)` is pure, so `window.seek(t)` can capture any frame to mp4 or gif; `prefers-reduced-motion` gets one still frame and no animation loop; no `Math.random`, no network. A piece that shows measured numbers draws `?` for a value you do not have. Never put JS art in a chat reply.
 
 ## Render anatomy (the v3 reference shape)
 
@@ -884,7 +887,324 @@ mitigation; reject PRs that add status glyphs outside the list.
 
 ---
 
-## References (1)
+## References (2)
+
+### Js Art
+
+# JS art: the moving piece on a glyph page
+
+Chat stays ASCII. A glyph **page** that explains a change (an explainer, a NOW vs
+IDEAL plan, "show it moving") carries one small animated piece: an inline
+`<canvas>` driven by a pure timeline function. This file is the contract and
+four patterns to start from (three drawn, one from real numbers). It is the page half of `/ork:glyph`: the
+page route in `src/skills/glyph/references/page-route.md` sends NOW vs IDEAL
+pages here, and the live demo of all four is the OrchestKit Lab entry
+`glyph-js-art-patterns`. `tests/unit/test-glyph-js-art.mjs` runs every
+`js` block below in node with a stub canvas, so a pattern that breaks the
+contract fails CI.
+
+## The contract
+
+| Part | Rule |
+|---|---|
+| `draw(ctx, t, mode)` | Pure. Same `t` and `mode` draw the same frame. It reads no clock, no `Math.random`, no state that a previous frame left. |
+| `LOOP`, `HERO_T` | Loop length in seconds, and the one frame that tells the story best. |
+| `CAPTION` | `{ now, ideal }`: one sentence per mode, plain words, at most 12 words. |
+| `ALT` | One sentence (at most 25 words) that says what the piece shows. The kernel puts `ALT` plus the current caption on the canvas `aria-label`, so a screen reader hears the piece, not "image". |
+| Real numbers | A piece that shows measured data reads it from a JSON array in the page (pattern 4). An unknown value is `null` and draws as `?`, never as a guessed bar. |
+| `window.seek(t)` | Pauses and draws frame `t`. A capture script steps it to make an mp4 or gif. |
+| `window.setMode(m)` | `'now'` or `'ideal'`. The toggle buttons carry `aria-pressed`. |
+| Reduced motion | `prefers-reduced-motion: reduce` draws `HERO_T` once and never calls `requestAnimationFrame`. The toggle still works. |
+| Pause | A Play/Pause button, so motion is never forced on the reader. `pause()` cancels the queued frame by its id. `tick` also returns when `playing` is false, as a second stop. The flag alone is not enough: Play before that frame fires would start a second animation chain. |
+| Randomness | `rng(seed)` (seeded) at the top level of the pattern, never inside `draw`. |
+| Page | Self-contained: no network, no CDN, light paper colors from `C`, no em dash. |
+
+Why pure: a piece that keeps state between frames (positions it moves by `dt`,
+a `Math.random` per frame) cannot jump to frame `t`. Then it cannot be
+captured frame by frame, and two screenshots of "the same" page differ.
+
+**Incorrect** (state plus randomness, cannot seek):
+
+```text
+x += speed * dt;  if (Math.random() < 0.5) badge = 'b';
+```
+
+**Correct** (position is a function of t):
+
+```text
+x = 40 + ((t / LOOP + i / N) % 1) * (w - 80);
+```
+
+## Page skeleton
+
+One piece per page, above the first beat. The pattern goes first in the
+script, the kernel after it, because the kernel reads `LOOP`, `HERO_T`,
+`ALT`, `CAPTION` and `draw`.
+
+```html
+<figure class="art">
+  <div role="group" aria-label="Compare">
+    <button data-mode="now" aria-pressed="true">Now</button>
+    <button data-mode="ideal" aria-pressed="false">Ideal</button>
+    <button id="art-play">Pause</button>
+  </div>
+  <canvas id="art" width="960" height="320" role="img"
+          aria-label="Animated comparison of now and ideal"></canvas>
+  <figcaption id="art-caption"></figcaption>
+</figure>
+<!-- pattern 4 only: the real numbers, one row per item. Write "<" in a
+     string as \u003c so the JSON can never close this script tag. -->
+<script type="application/json" id="art-data">
+  [{ "label": "review", "now": 14, "ideal": 3 }]
+</script>
+<script>
+  /* 1. one pattern block from below */
+  /* 2. the kernel block */
+</script>
+```
+
+## The kernel (paste once, after the pattern)
+
+```js
+// js-art kernel. Reads LOOP, HERO_T, ALT, CAPTION and draw() from the pattern.
+const C = { ink: '#1a1a1a', muted: '#6b6b6b', line: '#e2e2e2',
+  accent: '#2f6f4e', warn: '#b45309', stop: '#b91c1c' };
+const cv = document.getElementById('art');
+const ctx = cv.getContext('2d');
+const still = !!(window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const playBtn = document.getElementById('art-play');
+let mode = 'now';
+let playing = false;
+let frameId = 0; // the one queued animation frame; pause() cancels it
+let last = HERO_T;
+
+function rng(seed) { // mulberry32: same seed, same sequence
+  return function () {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let r = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function render(t) {
+  last = ((t % LOOP) + LOOP) % LOOP;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  draw(ctx, last, mode);
+}
+function label() { if (playBtn) playBtn.textContent = playing ? 'Pause' : 'Play'; }
+function play() {
+  if (still) { render(HERO_T); return; } // reduced motion: one still frame
+  cancelAnimationFrame(frameId); // never two chains: drop any queued frame
+  playing = true;
+  label();
+  const start = performance.now() - last * 1000;
+  frameId = requestAnimationFrame(function tick(now) {
+    if (!playing) return; // second stop, if a cancel is ever missed
+    render((now - start) / 1000);
+    frameId = requestAnimationFrame(tick);
+  });
+}
+function pause() {
+  cancelAnimationFrame(frameId); // a frame queued before the pause never runs
+  playing = false;
+  label();
+}
+
+window.seek = function (t) { pause(); render(t); };
+window.setMode = function (m) {
+  mode = m;
+  for (const b of document.querySelectorAll('[data-mode]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+  }
+  const cap = document.getElementById('art-caption');
+  if (cap) cap.textContent = CAPTION[m];
+  cv.setAttribute('aria-label', ALT + ' ' + CAPTION[m]);
+  render(last);
+};
+for (const b of document.querySelectorAll('[data-mode]')) {
+  b.addEventListener('click', () => window.setMode(b.dataset.mode));
+}
+if (playBtn) {
+  playBtn.hidden = still;
+  playBtn.addEventListener('click', () => (playing ? pause() : play()));
+}
+window.setMode('now');
+play();
+```
+
+## Pattern 1: flow dots
+
+Items travel along a path. Spacing and speed carry the message: in NOW they
+bunch up at the start, in IDEAL they move at one even pace.
+
+```js
+const LOOP = 8;
+const HERO_T = 3.2;
+const ALT = 'Twelve dots travel left to right along one line.';
+const CAPTION = {
+  now: 'Now: work moves in bursts and piles up at the start.',
+  ideal: 'Ideal: work moves at one steady pace.',
+};
+const N = 12;
+const DRAG = Array.from({ length: N }, (_, i) => rng(7 + i)());
+
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const y = ctx.canvas.height / 2;
+  ctx.strokeStyle = C.line;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 40, y); ctx.stroke();
+  for (let i = 0; i < N; i++) {
+    const phase = (t / LOOP + i / N) % 1;
+    const p = mode === 'now' ? Math.pow(phase, 1 + DRAG[i] * 2) : phase;
+    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+    ctx.beginPath(); ctx.arc(40 + p * (w - 80), y, 8, 0, Math.PI * 2); ctx.fill();
+  }
+}
+```
+
+## Pattern 2: gate
+
+Items arrive at a gate and wait until it opens. In NOW the gate opens once,
+late, for a short time (a person checks by hand), and the line grows. In
+IDEAL it checks each item as it arrives. Each item's place is computed from
+`t` alone: its arrival time and the first open window after it.
+
+```js
+const LOOP = 10;
+const HERO_T = 6;
+const ALT = 'Dots arrive at a gate, wait in a line while it is red, and pass when it is green.';
+const CAPTION = {
+  now: 'Now: the gate opens only when someone checks by hand.',
+  ideal: 'Ideal: the gate checks each item as it arrives.',
+};
+const N = 10;
+const GAP = 0.25;    // seconds between two items through the gate
+const TRAVEL = 2;    // seconds from the gate to the right edge
+const OPEN = { now: [[7, 8.5]], ideal: [[0, LOOP]] };
+
+function passTime(arrive, prev, mode) {
+  const ready = Math.max(arrive, prev + GAP);
+  for (const [a, b] of OPEN[mode]) if (ready < b) return Math.max(ready, a);
+  return Infinity; // still waiting when the loop ends
+}
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const y = ctx.canvas.height / 2;
+  const gx = w / 2;
+  const open = OPEN[mode].some(([a, b]) => t >= a && t < b);
+  ctx.fillStyle = open ? C.accent : C.stop;
+  ctx.fillRect(gx - 4, y - 40, 8, 80);
+  let prev = -Infinity;
+  let waiting = 0;
+  for (let i = 0; i < N; i++) {
+    const arrive = i * 0.6;
+    const pass = passTime(arrive, prev, mode);
+    prev = pass;
+    if (t < arrive) continue;
+    let x;
+    if (t < pass) { x = gx - 24 - waiting * 20; waiting++; }
+    else x = gx + 24 + ((t - pass) / TRAVEL) * (w / 2 - 64);
+    if (x > w - 20) continue;
+    ctx.fillStyle = t < pass ? C.warn : C.accent;
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = C.muted;
+  ctx.font = '16px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText('waiting: ' + waiting, 40, 40);
+}
+```
+
+## Pattern 3: before/after meter
+
+The same scene in two modes, so the toggle is the whole explanation. In NOW
+the bar rises and falls back (work redone), in IDEAL it fills once and stays.
+
+```js
+const LOOP = 6;
+const HERO_T = 4.5;
+const ALT = 'One progress bar that shows how much of the work is done.';
+const CAPTION = {
+  now: 'Now: half the work is redone, so the bar never fills.',
+  ideal: 'Ideal: done once, the bar fills and stays full.',
+};
+
+function level(t, mode) {
+  const u = t / LOOP;
+  if (mode === 'ideal') return Math.min(1, u * 1.25);
+  return 0.1 + 0.35 * Math.abs(Math.sin(2 * Math.PI * u));
+}
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const v = level(t, mode);
+  ctx.fillStyle = C.line;
+  ctx.fillRect(40, h / 2 - 20, w - 80, 40);
+  ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+  ctx.fillRect(40, h / 2 - 20, (w - 80) * v, 40);
+  ctx.fillStyle = C.ink;
+  ctx.font = '600 18px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText(Math.round(v * 100) + ' % done', 40, h / 2 - 32);
+}
+```
+
+## Pattern 4: real-data bars
+
+The operator wants pieces built from real numbers, not only synthetic dots.
+The data sits in the page as a JSON array (see the skeleton), one row per
+item, both modes in the same unit. Bars grow in, then hold, so the capture
+still has motion. Fill the array from the command that measured it, and keep
+`null` for a value you do not have: it draws `?` and no bar.
+
+```js
+const DATA = JSON.parse(document.getElementById('art-data').textContent);
+const LOOP = 6;
+const HERO_T = 5;
+const ALT = 'Bar chart of hours per step, now against ideal, from the numbers in this page.';
+const CAPTION = {
+  now: 'Now: hours each step takes today.',
+  ideal: 'Ideal: hours each step takes after the change.',
+};
+const MAX = Math.max(1, ...DATA.flatMap((d) => [d.now, d.ideal]).filter((v) => typeof v === 'number'));
+
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const grow = Math.min(1, t / 1.5); // grow in, then hold
+  const row = (h - 40) / Math.max(1, DATA.length);
+  const track = w - 280;
+  ctx.font = '15px ui-sans-serif, system-ui, sans-serif';
+  DATA.forEach((d, i) => {
+    const y = 20 + i * row;
+    const v = d[mode];
+    const known = typeof v === 'number';
+    const bw = known ? track * (v / MAX) * grow : 0;
+    ctx.fillStyle = C.ink;
+    ctx.fillText(String(d.label), 40, y + row / 2 + 5);
+    ctx.fillStyle = C.line;
+    ctx.fillRect(180, y + row * 0.2, track, row * 0.6);
+    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+    ctx.fillRect(180, y + row * 0.2, bw, row * 0.6);
+    ctx.fillStyle = C.muted;
+    ctx.fillText(known ? String(v) : '?', 190 + bw, y + row / 2 + 5);
+  });
+}
+```
+
+## Capture to mp4 or gif
+
+Because `draw` is pure, a headless browser can step `window.seek(i / fps)`
+for `i` in `0 .. LOOP * fps` and screenshot the canvas each step; `ffmpeg`
+joins the frames. No screen recording, no dropped frames, and the same
+input always gives the same file.
+
+## Before you call it done
+
+Same rule as `page-route.md` section 4: open the page, look at it in both
+modes and with reduced motion on, and read the pixels. A test that runs the
+script proves the contract, not that the piece explains anything.
+
 
 ### Page Route
 
@@ -933,6 +1253,7 @@ Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline 
 - **Every beat ends in a consequence AND a do-nothing line.** A picture of a gate with lamps is not an explanation until the reader knows what happens and what happens if nothing is done. Two side-by-side cards under the drawing, "What it means" and "If we do nothing" (the second styled as a warning), ≤ 12 words each, in the reader's terms.
 - **≤ 20 words per beat** (the two consequence lines are extra), 4 to 6 beats total. More than six means split the topic.
 - **One idea per beat**, and the visual carries it, not the caption.
+- **A NOW vs IDEAL or "how it moves" page carries one JS art piece** above the first beat, built from `js-art.md` in this folder (pure `draw(ctx, t, mode)`, `seek(t)`, reduced-motion still frame, text alt). The beats below still carry the words.
 - **If the topic IS a decision, the page carries the controls.** One decision block per fork: radio group, consequence column beside each option, checkboxes for the follow-ups the pick unlocks. ONE sticky bottom answer bar collects every block into a fixed-width `key: value` summary the agent can parse, reports `N/M chosen`, and keeps "copy my answers" DISABLED until every block has a pick, so a half-answered page cannot be pasted back as if complete. Clipboard needs a select-and-Cmd+C fallback (`navigator.clipboard` is denied in some contexts). A page that only pictures the options is a poster; the decision still happens somewhere else, which defeats the page. Source the controls from a component library or house kit when one is reachable; the template's built-in block is the floor so every decision page looks the same, not the ceiling.
 - **Plain words inside the diagram too.** Visual labels are where insider language leaks most: check names, branch names and service names as chart labels are a FAIL for a novice page.
 - **No leftover template markers.** The baseline ships bare `TITLE` / `DATE`; none may survive into the emitted file.
