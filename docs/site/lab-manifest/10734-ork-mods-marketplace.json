@@ -1,0 +1,13 @@
+{
+  "slug": "10734-ork-mods-marketplace",
+  "source": "docs/chore--dsp-10734-ork-mods-devin/index.html",
+  "title": "Where the ork mods actually ship: memory-lens gets its marketplace entry",
+  "description": "The four orchestkit mods are separate marketplace plugins, not files inside plugins/ork. memory-lens shipped in #4530 with no entry, and the count gate only warned. Pick a mod to see its events and install command, and run the gate simulator to see warning become error. Bug-checked on Claude Code 2.1.288.",
+  "tags": [
+    "mods",
+    "marketplace",
+    "packaging",
+    "10734"
+  ],
+  "date": "2026-10-03"
+}

@@ -46,7 +46,7 @@
     },
     {
       "name": "lesson-cards",
-      "description": "Mod (function hooks): lesson hint cards when a tool call matches a known pattern; /lessons reloads. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "description": "Mod (function hooks): lesson hint cards when a tool call matches a known pattern; /lessons reloads. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
       "version": "1.0.7",
       "author": {
         "name": "Yonatan Gross",
@@ -62,7 +62,7 @@
     },
     {
       "name": "promote-lights",
-      "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
       "version": "0.0.10",
       "author": {
         "name": "Yonatan Gross",
@@ -78,7 +78,7 @@
     },
     {
       "name": "secrets-veil",
-      "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
       "version": "0.0.6",
       "author": {
         "name": "Yonatan Gross",
@@ -89,6 +89,22 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "mods/secrets-veil",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "memory-lens",
+      "description": "Mod (function hooks): recalls the few memories related to each prompt; /memory-lens for stats, reload and show. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/memory-lens",
         "ref": "main"
       }
     }
