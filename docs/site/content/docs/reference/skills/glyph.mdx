@@ -896,7 +896,10 @@ mitigation; reject PRs that add status glyphs outside the list.
 Chat stays ASCII. A glyph **page** that explains a change (an explainer, a NOW vs
 IDEAL plan, "show it moving") carries one small animated piece: an inline
 `<canvas>` driven by a pure timeline function. This file is the contract and
-four patterns to start from (three drawn, one from real numbers). `tests/unit/test-glyph-js-art.mjs` runs every
+four patterns to start from (three drawn, one from real numbers). It is the page half of `/ork:glyph`: the
+page route in `src/skills/glyph/references/page-route.md` sends NOW vs IDEAL
+pages here, and the live demo of all four is the OrchestKit Lab entry
+`glyph-js-art-patterns`. `tests/unit/test-glyph-js-art.mjs` runs every
 `js` block below in node with a stub canvas, so a pattern that breaks the
 contract fails CI.
 

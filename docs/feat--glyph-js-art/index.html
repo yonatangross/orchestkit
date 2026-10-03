@@ -48,7 +48,7 @@
   ];
   var CLOSE = '</' + 'script>';
   function frame(i) {
-    var dataTag = i === 3 ? '<script type="application/json" id="art-data">' + DATA + CLOSE : '';
+    var dataTag = i === 3 ? '<' + 'script type="application/json" id="art-data">' + DATA + CLOSE : '';
     return '<!doctype html><html lang="en"><head><meta charset="utf-8"><style>' +
       'body{margin:0;padding:14px;font:15px ui-sans-serif,system-ui,sans-serif;color:#1a1a1a;background:#fff}' +
       'button{font:inherit;padding:4px 12px;margin-right:6px;border:1px solid #e2e2e2;border-radius:8px;background:#fff;cursor:pointer}' +
