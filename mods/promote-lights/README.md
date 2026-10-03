@@ -61,6 +61,18 @@ Cancelled runs get their own bucket because a superseded attempt leaves tiers CA
 - Claude Code 2.1.266 minimum (first measured `classic.*` binary)
 - `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` in your shell profile or personal settings
 
+### Public Mods status (CC 2.1.287+)
+
+CC 2.1.287 announces Claude Mods as public, so plugins may now modify deeper behaviour than
+hooks. This mod and its siblings (lesson-cards, memory-lens, secrets-veil) already run on the
+module registration path that announcement covers, but the release note alone does not prove
+every `$.*` call this mod makes is unchanged. Until an offline load test on 2.1.287 or
+later proves parity, the measured version boundary stays 2.1.266 and the
+`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` flag stays required even though Mods are public. The
+built-in "You should know" mod (`/plugin enable cc-plugin-you-should-know@builtin`) ships in
+the same release; coexistence is unverified and ork does not enable it. Migration questions
+stay open in GH-3917; the command hook fleet is not part of this check.
+
 ## Footprint
 
 Hooks:

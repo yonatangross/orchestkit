@@ -1,5 +1,497 @@
 [
   {
+    "version": "2.1.285",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "headless_auto_mode_default",
+        "category": "changed_default",
+        "description": "claude -p and Python Agent SDK sessions on third-party providers or with telemetry off start in auto mode when no permission mode is configured; --permission-mode still overrides.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "bare-eval",
+          "ci-sentinel"
+        ],
+        "reference_changelog_line": "Changed `claude -p` and Python Agent SDK sessions on third-party providers or with telemetry off to start in auto mode when no permission mode is configured, like interactive sessions; `--permission-mode` still overrides it",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md beside the 2.1.284 interactive auto-mode default. Harnesses keep explicit permission modes."
+      },
+      {
+        "feature_slug": "plugin_stdio_mcp_get_redaction",
+        "category": "changed_default",
+        "description": "claude mcp get hides command, arguments and environment values of stdio MCP servers provided by plugins; variable names are still shown.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed `claude mcp get` to hide the command, arguments, and environment values of stdio MCP servers provided by plugins; variable names are still shown",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in doctor/rules/mcp-status-checks.md: a redacted value is unmeasured, not a missing credential."
+      },
+      {
+        "feature_slug": "allowed_providers_managed",
+        "category": "new_attr",
+        "description": "Managed allowedProviders limits which API providers a machine may use (Anthropic API, custom endpoint, Bedrock, Mantle, Vertex, Foundry, Claude Platform on AWS, Cloud gateway).",
+        "gap_score": 10,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `allowedProviders` managed setting to limit which API providers a machine may use",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Managed orgs only. An ork agent pinned to an alias whose provider is delisted fails the same way as under deniedModels (2.1.283 row)."
+      },
+      {
+        "feature_slug": "claude_plugin_configure_cmd",
+        "category": "new_command",
+        "description": "claude plugin configure <plugin> shows a plugin's options and which are unset, or saves values read from stdin with --values-stdin.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `claude plugin configure <plugin>` to show a plugin's options and which are unset, or save new values read from stdin with `values-stdin`",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Scriptable plugin option surface; folds into GH-4054 richer plugin health output."
+      },
+      {
+        "feature_slug": "claude_code_disable_web_fetch",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_DISABLE_WEB_FETCH turns off the WebFetch tool.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_DISABLE_WEB_FETCH` environment variable to turn off the WebFetch tool",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Operator knob; ork ships no env config."
+      },
+      {
+        "feature_slug": "background_bash_time_limit",
+        "category": "changed_default",
+        "description": "Background Bash and PowerShell commands stop after a time limit (their timeout with run_in_background, default 30 min, max 2 h); Claude is notified.",
+        "gap_score": 5,
+        "affected_skills": [
+          "backend-system-architect"
+        ],
+        "reference_changelog_line": "Changed background Bash and PowerShell commands to stop after a time limit (their `timeout` with `run_in_background`, default 30 min, max 2 h); Claude is notified when one is stopped",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork hooks and agents run background commands. Scoped to unattended sessions only in 2.1.288, which resolves the interactive case."
+      },
+      {
+        "feature_slug": "exit_plan_mode_plan_visibility",
+        "category": "fix",
+        "description": "Hooks and SDK permission callbacks no longer see a missing or outdated plan on ExitPlanMode when the plan was written in the same response.",
+        "gap_score": 10,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed hooks and SDK permission callbacks seeing a missing or outdated plan on ExitPlanMode when the plan was written in the same response",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork registers no ExitPlanMode hook; corrects the input ork permission callbacks would read."
+      },
+      {
+        "feature_slug": "sync_hook_daemon_output_hang",
+        "category": "fix",
+        "description": "Synchronous hooks no longer hang Claude Code while a background process the hook started kept its output open; the hook finishes shortly after its own process exits.",
+        "gap_score": 10,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed synchronous hooks hanging Claude Code while a background process the hook started (for example `some-daemon &`) kept its output open; the hook now finishes shortly after its own process exits",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free reliability fix across ork's command-hook fleet; no daemon-spawning hook exists to change."
+      },
+      {
+        "feature_slug": "mcp_tool_alwaysload_meta",
+        "category": "changed_default",
+        "description": "An MCP tool that sets its own _meta['anthropic/alwaysLoad'] to false stays deferred when its --mcp-config, Agent SDK or plugin server is set to alwaysLoad.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed MCP tools so a tool that sets its own `_meta['anthropic/alwaysLoad']` to false stays deferred when its `--mcp-config`, Agent SDK or plugin server is set to `alwaysLoad`",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Per-tool deferral now beats the server-level alwaysLoad the doctor alwaysLoad audit recommends; a tool that opts out is not a finding."
+      }
+    ],
+    "raw_bullets_count": 136
+  },
+  {
+    "version": "2.1.286",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "verify_skill_commit_guidance",
+        "category": "changed_default",
+        "description": "When project or user skills include one named verify, Claude is told to run it right before committing, except docs-only and tests-only commits.",
+        "gap_score": 5,
+        "affected_skills": [
+          "verify",
+          "commit"
+        ],
+        "reference_changelog_line": "Improved commit guidance: when your project or user skills include one named `verify`, Claude is now told to run it right before committing, except for docs-only and tests-only commits",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork ships a verify skill, so CC's built-in commit guidance now names it. Check its triggers and outputs before changing invocation docs."
+      },
+      {
+        "feature_slug": "bare_mode_narrowed",
+        "category": "changed_default",
+        "description": "--bare now connects only the MCP servers named on the command line, sends the model no system reminders and starts no background tasks; a shell command reaching its timeout stops instead of moving to the background.",
+        "gap_score": 10,
+        "affected_skills": [
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Changed `--bare` to connect only the MCP servers named on the command line, send the model no system reminders, and start no background tasks; under `--bare`, a shell command that reaches its timeout now stops instead of moving to the background",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork's bare-eval harness relies on --bare minimalism; the timeout change alters long-running eval commands."
+      },
+      {
+        "feature_slug": "tool_hook_nontext_400",
+        "category": "fix",
+        "description": "API 400 errors after a tool or hook returned an object, number or boolean instead of text are fixed, including in resumed sessions.",
+        "gap_score": 10,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed API 400 errors after a tool or hook returned an object, number or boolean instead of text, including in resumed sessions",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork hooks emit JSON text already; this removes a whole failure class for any non-conforming hook output."
+      },
+      {
+        "feature_slug": "model_alias_refusal_fallback",
+        "category": "fix",
+        "description": "When the Anthropic API refuses the model a default or alias resolves to, Claude Code retries once on the previous model of the same tier instead of failing every turn.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed every turn failing when the Anthropic API refuses the model your default or a model alias resolves to: Claude Code now retries once on the previous model of the same tier",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork agents pin aliases that advance upstream (sonnet -> sonnet-5-5); a refused new target now falls back instead of breaking the session."
+      },
+      {
+        "feature_slug": "worktree_subagent_claudemd_dedup",
+        "category": "fix",
+        "description": "Subagents spawned with worktree isolation no longer load the project CLAUDE.md and its imports a second time from the worktree copy on their first file read.",
+        "gap_score": 15,
+        "affected_skills": [
+          "backend-system-architect"
+        ],
+        "reference_changelog_line": "Fixed subagents spawned with worktree isolation loading the project CLAUDE.md and its imports a second time from the worktree copy on their first file read",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork runs 25 isolation:worktree agents; the double-load wasted context on every first read."
+      },
+      {
+        "feature_slug": "secret_redaction_fixes",
+        "category": "fix",
+        "description": "MCP error messages no longer show a credential's value, percent-encoded Bearer tokens are fully masked, secrets with invisible characters stay redacted, and URL passwords with punctuation are masked.",
+        "gap_score": 5,
+        "affected_skills": [
+          "security-patterns",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed MCP error messages showing a credential's value when \"Bearer\" or \"Basic\" came before its key name",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Four redaction fixes on the log/transcript surface ork's doctor reads; nothing to ship."
+      },
+      {
+        "feature_slug": "plugin_stdio_typeless_listing",
+        "category": "fix",
+        "description": "claude mcp list and claude mcp get no longer print escape sequences from server names and values, and stdio servers without a type field show Type, Command, Args and Environment again.",
+        "gap_score": 20,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `claude mcp list` and `claude mcp get`, and the not-found error of `claude mcp remove`, `login` and `logout`, printing line breaks and terminal escape sequences from MCP server names and values",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Cleaner input for doctor's claude mcp list parsing."
+      }
+    ],
+    "raw_bullets_count": 88
+  },
+  {
+    "version": "2.1.287",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "claude_mods_public",
+        "category": "new_attr",
+        "description": "Claude Mods are announced: plugins may now modify deeper behavior.",
+        "gap_score": 2,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added Claude Mods: plugins may now modify deeper behavior",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork ships four module-based mods (lesson-cards, memory-lens, promote-lights, secrets-veil) behind CLAUDE_CODE_ENABLE_FUNCTION_HOOKS. The release note alone does not prove the module API is unchanged; the experimental flag stays until an offline load test on 2.1.287+ proves parity (draft A4, #3917)."
+      },
+      {
+        "feature_slug": "you_should_know_builtin_mod",
+        "category": "new_command",
+        "description": "You should know, a built-in mod where a side agent flags things you or Claude might miss; /plugin enable cc-plugin-you-should-know@builtin (first-party sessions with telemetry on).",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added You should know, a built-in mod where a side agent watches your back and flags things you or Claude might miss. Turn it on with `/plugin enable cc-plugin-you-should-know@builtin` (for first-party sessions with telemetry on)",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Optional built-in mod; check coexistence with ork's mods, do not enable it by default."
+      },
+      {
+        "feature_slug": "mcp_url_elicitation",
+        "category": "new_attr",
+        "description": "URL prompts from MCP servers on the 2025-11-25 protocol; a server that no longer connects after the update needs \"bareElicitationCapability\": true in its MCP config entry.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added URL prompts from MCP servers on the 2025-11-25 protocol, for example to sign in. If a server no longer connects after this update, add \"bareElicitationCapability\": true to its MCP config entry",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Doctor's MCP checks should know the recovery key when a server stops connecting on 2.1.287+."
+      },
+      {
+        "feature_slug": "otel_user_prompt_prompt_text",
+        "category": "new_attr",
+        "description": "prompt_text joins the OpenTelemetry user_prompt event as a copy of prompt for backends that nest dotted keys; drop or mask it wherever prompt is dropped or masked.",
+        "gap_score": 15,
+        "affected_skills": [
+          "monitoring-observability"
+        ],
+        "reference_changelog_line": "Added `prompt_text` to the OpenTelemetry `user_prompt` event, a copy of `prompt` for backends that nest dotted keys; drop or mask it wherever you drop or mask `prompt`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no OTEL config; a masking note for operators who export telemetry."
+      },
+      {
+        "feature_slug": "asyncrewake_missing_script_report",
+        "category": "fix",
+        "description": "Hooks configured with asyncRewake no longer wake Claude repeatedly with \"found issues\" notifications when the hook's script file is missing; the broken hook is reported once.",
+        "gap_score": 15,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed hooks configured with `asyncRewake` waking Claude over and over with \"found issues\" notifications when the hook's script file is missing; the broken hook is now reported once",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork registers no asyncRewake hooks; the fix quiets a notification loop for operators who add their own."
+      },
+      {
+        "feature_slug": "rm_always_ask_redirect_escape",
+        "category": "fix",
+        "description": "A dangerous rm no longer loses its always-ask safeguard when the same command redirects output to a ~ or wildcard path.",
+        "gap_score": 3,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed a dangerous `rm` (such as one on `/` or the home directory) losing its always-ask safeguard when the same command also redirected output to a `~` or wildcard path",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Closes an escape on the dangerous-rm class security-patterns documents; free hardening beside ork's deny payload."
+      },
+      {
+        "feature_slug": "sessionstart_synced_plugin_cloud",
+        "category": "fix",
+        "description": "SessionStart hooks from synced plugins now run in new cloud sessions.",
+        "gap_score": 15,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed SessionStart hooks from synced plugins not running in new cloud sessions",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork registers ~15 SessionStart hooks; they now fire in cloud sessions for operators who sync the plugin from claude.ai."
+      },
+      {
+        "feature_slug": "bash_allow_rule_protected_files",
+        "category": "changed_default",
+        "description": "Whole-tool Bash allow rules and allowing hooks now prompt for, not run, shell writes to files Claude Code's file tools refuse outright (the Anthropic profile store, the host credentials file).",
+        "gap_score": 3,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Changed whole-tool `Bash` allow rules and allowing hooks to prompt for, not run, shell writes to files Claude Code's file tools refuse outright (the Anthropic profile store, the host credentials file)",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "A Bash allow rule can no longer route around the credential-store refusal; converges with ork's guards."
+      }
+    ],
+    "raw_bullets_count": 106
+  },
+  {
+    "version": "2.1.288",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "mods_ui_selection",
+        "category": "new_attr",
+        "description": "$.ui.selection() for mods returns the text last selected in fullscreen mode and, when the selection lies within one transcript row, that row.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `$.ui.selection()` for mods: returns the text you last selected in fullscreen mode and, when the selection lies within one transcript row, that row",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "New mod API surface for ork's four module-based mods once the A4 contract check lands."
+      },
+      {
+        "feature_slug": "disable_structured_outputs_env",
+        "category": "new_env",
+        "description": "Session titles, memory recall and prompt hooks failing on Mantle or behind gateways that reject structured outputs are fixed; CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS turns structured outputs off.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed session titles, memory recall and prompt hooks failing on Mantle or behind gateways that reject structured outputs; added `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS` to turn structured outputs off",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Named in configure/references/cc-version-settings.md: the opt-out for gateway deployments whose prompt hooks failed on structured-output requests."
+      },
+      {
+        "feature_slug": "plugin_agent_spawn_config",
+        "category": "fix",
+        "description": "Agent teams: a plugin-defined agent spawned by name now runs with its own prompt, tools, disallowedTools and effort instead of the defaults.",
+        "gap_score": 3,
+        "affected_skills": [
+          "backend-system-architect"
+        ],
+        "reference_changelog_line": "Fixed agent teams: a plugin-defined agent spawned by name now runs with its own prompt, tools, disallowedTools and effort instead of the defaults",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "All 36 ork agents declared custom config that was silently dropped on team spawns; the fix lands for free."
+      },
+      {
+        "feature_slug": "pretool_permissionrequest_fail_closed",
+        "category": "fix",
+        "description": "PreToolUse and PermissionRequest hooks are no longer skipped when matching them failed or the tool's input could not be serialized to JSON; the call is now blocked.",
+        "gap_score": 3,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed PreToolUse and PermissionRequest hooks being skipped when matching them failed or the tool's input could not be serialized to JSON; the call is now blocked",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Fail-closed on the two hook events ork's guards live on; a skipped guard was a silent pass before."
+      },
+      {
+        "feature_slug": "plugin_tool_call_worktree_subagent",
+        "category": "fix",
+        "description": "A plugin's tool.call hook no longer makes Bash fail and file searches read the wrong folder in subagents that run in a worktree.",
+        "gap_score": 10,
+        "affected_skills": [
+          "backend-system-architect"
+        ],
+        "reference_changelog_line": "Fixed a plugin's `tool.call` hook making Bash fail and file searches read the wrong folder in subagents that run in a worktree",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork's mods register tool.call hooks and ork spawns worktree-isolated subagents; the two surfaces overlapped."
+      },
+      {
+        "feature_slug": "git_subdir_old_git",
+        "category": "fix",
+        "description": "git-subdir plugin installs no longer fail or cache an incomplete plugin on git older than 2.39 (e.g. Ubuntu 22.04's 2.34).",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `git-subdir` plugin installs failing, or caching an incomplete plugin, on older git (before 2.39, e.g. Ubuntu 22.04's 2.34)",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork's marketplace ships two git-subdir entries; installs on older git now work."
+      },
+      {
+        "feature_slug": "instructions_loaded_agent_context",
+        "category": "fix",
+        "description": "The InstructionsLoaded hook no longer omits agent_id and agent_type when a subagent's file access loads a rule or nested CLAUDE.md; rules and nested CLAUDE.md files loaded on file access now also report effort.",
+        "gap_score": 15,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed the InstructionsLoaded hook omitting agent_id and agent_type when a subagent's file access loads a rule or nested CLAUDE.md; rules and nested CLAUDE.md files loaded on file access now also report effort",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork registers InstructionsLoaded hooks; the payload fields they log are complete on file-access loads."
+      },
+      {
+        "feature_slug": "path_scoped_rules_write_load",
+        "category": "fix",
+        "description": "Path-scoped .claude/rules and nested CLAUDE.md files now load when Write or Edit creates or changes a file in their scope; previously only Read loaded them.",
+        "gap_score": 10,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed path-scoped `.claude/rules` and nested CLAUDE.md files not loading when Write or Edit creates or changes a file in their scope (previously only Read loaded them)",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork ships 10 path-scoped rules; a write into their scope now loads them like a read did."
+      },
+      {
+        "feature_slug": "background_cmd_limit_unattended_only",
+        "category": "changed_default",
+        "description": "The background command time limit now applies only in unattended sessions (-p, Agent SDK, CI, cloud); terminal, desktop app and VS Code sessions have no limit.",
+        "gap_score": 10,
+        "affected_skills": [
+          "backend-system-architect"
+        ],
+        "reference_changelog_line": "Changed the background command time limit to apply only in unattended sessions (`-p`, Agent SDK, CI, cloud); terminal, desktop app and VS Code sessions have no limit",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Narrows the 2.1.285 limit: interactive sessions are unbounded again, headless ork harnesses keep the 30 min default ceiling."
+      },
+      {
+        "feature_slug": "automode_classifier_sonnet_pin",
+        "category": "changed_default",
+        "description": "The client-side auto mode classifier ignores an ANTHROPIC_DEFAULT_SONNET_MODEL pin that names Claude Sonnet 5.5 or Opus 5.5 and uses Claude Sonnet 5 instead.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed the client-side auto mode classifier to ignore an `ANTHROPIC_DEFAULT_SONNET_MODEL` pin that names Claude Sonnet 5.5 or Opus 5.5 and use Claude Sonnet 5 instead",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Classifier-side only; ork's sonnet alias mapping to claude-sonnet-5-5 is unaffected but the pin no longer steers auto mode."
+      },
+      {
+        "feature_slug": "bash_c_dangerous_rm",
+        "category": "fix",
+        "description": "A dangerous rm inside a bash -c or sh -c script no longer runs without a prompt in bypassPermissions mode or under a shell allow rule.",
+        "gap_score": 3,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed a dangerous `rm` (such as one on `/` or the home directory) inside a `bash -c` or `sh -c` script running without a prompt in bypassPermissions mode or under a shell allow rule",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Second 2.1.x closure of a subshell-carrier for dangerous rm; the class security-patterns documents."
+      },
+      {
+        "feature_slug": "plugin_install_https_fallback",
+        "category": "fix",
+        "description": "claude plugin install for GitHub-source plugins on machines with no GitHub SSH key now falls back to HTTPS and prints a notice.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `claude plugin install` failing for GitHub-source plugins on macOS and Linux machines with no GitHub SSH key: the clone now falls back to HTTPS and prints a notice",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Removes an install-time failure for ork's GitHub marketplace source."
+      }
+    ],
+    "raw_bullets_count": 89
+  },
+  {
     "version": "2.1.281",
     "parse_failed": false,
     "features": [
@@ -204,7 +696,7 @@
         "affected_skills": [
           "analytics"
         ],
-        "reference_changelog_line": "Added Claude Sonnet 5.5 (`claude-sonnet-5-5`), now the default Sonnet model on the Anthropic API — 1M context, $2/$10 per Mtok with $0.20/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Sonnet 5.5 (`claude-sonnet-5-5`), now the default Sonnet model on the Anthropic API \u2014 1M context, $2/$10 per Mtok with $0.20/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "Adopted in orchestkit#4541 (models.vocab.json sonnet row and matrix row \"Sonnet 5.5 default model\")."
@@ -254,7 +746,7 @@
           "doctor",
           "analytics"
         ],
-        "reference_changelog_line": "Added Claude Opus 5.5 (`claude-opus-5-5`), now the default Opus model — 1M context, $4/$20 per Mtok with $0.20/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Opus 5.5 (`claude-opus-5-5`), now the default Opus model \u2014 1M context, $4/$20 per Mtok with $0.20/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "models.vocab.json: opus alias -> claude-opus-5-5, fullIds + pricing (cache write 5.00 at the vocab's 1.25x ratio). Without the row cost-estimator billed Opus 5.5 at the claude-sonnet-5 fallback. tests/ci/claude-model-ids.txt gains claude-opus-5-5 (and the missing claude-opus-5). model-recency-scan.py date-snapshot exemption fixed so the gate sees claude-opus-5 as superseded; 24 live Opus 5 claims retargeted."
@@ -1016,7 +1508,7 @@
           "security-patterns"
         ],
         "disposition": "triaged-noop",
-        "ork_disposition_note": "Do not adopt: 2.1.260 REVERTED this one release later ('it denied `npm run build` under a `Read(./**/build/**)` rule in every mode and made `cd … && grep` prompt even in auto mode'). Net effect across the wave is zero. Recorded so a future reader does not re-adopt a reverted behaviour from the 2.1.259 snapshot alone."
+        "ork_disposition_note": "Do not adopt: 2.1.260 REVERTED this one release later ('it denied `npm run build` under a `Read(./**/build/**)` rule in every mode and made `cd \u2026 && grep` prompt even in auto mode'). Net effect across the wave is zero. Recorded so a future reader does not re-adopt a reverted behaviour from the 2.1.259 snapshot alone."
       },
       {
         "feature_slug": "glab_mr_recognition",
@@ -1323,7 +1815,7 @@
           "security-patterns"
         ],
         "disposition": "upside",
-        "ork_disposition_note": "Closes two carriers that ork's own deny rules structurally cannot see. VERIFIED ork ships 9 literal `rm -rf` deny rules in src/settings/ork.settings.json (`Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -rf .)`, the /private/* pair set), all of which match command TEXT and therefore miss `rm -rf \"$1\"` and `sh -c \"rm -rf …\"` entirely; those rules are also discarded because CC reads only `agent` and `subagentStatusLine` from a plugin settings file. So the native prompt is the only thing that ever covered this, and it now covers more. Free."
+        "ork_disposition_note": "Closes two carriers that ork's own deny rules structurally cannot see. VERIFIED ork ships 9 literal `rm -rf` deny rules in src/settings/ork.settings.json (`Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -rf .)`, the /private/* pair set), all of which match command TEXT and therefore miss `rm -rf \"$1\"` and `sh -c \"rm -rf \u2026\"` entirely; those rules are also discarded because CC reads only `agent` and `subagentStatusLine` from a plugin settings file. So the native prompt is the only thing that ever covered this, and it now covers more. Free."
       },
       {
         "feature_slug": "agent_team_first_turn_announcement_cache_miss",
@@ -1495,7 +1987,7 @@
           "analytics",
           "doctor"
         ],
-        "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model \u2014 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "Added to src/hooks/src/lib/models.vocab.json (fullIds + pricing, `fable` alias now resolves to 5.1 like CC does) and tests/ci/claude-model-ids.txt. cost-estimator picks the $0.25 cache-read rate up via the vocab import."
@@ -1594,7 +2086,7 @@
           "agent-orchestration",
           "chain-patterns"
         ],
-        "reference_changelog_line": "Fixed worktree-isolated sessions refusing Bash loops, `$VAR` reads, `\"$(…)\"` and heredocs that never touch git as \"too complex to verify that it stays inside the worktree\"",
+        "reference_changelog_line": "Fixed worktree-isolated sessions refusing Bash loops, `$VAR` reads, `\"$(\u2026)\"` and heredocs that never touch git as \"too complex to verify that it stays inside the worktree\"",
         "relevance": "plugin",
         "disposition": "upside",
         "ork_disposition_note": "25 agents declare `isolation: worktree` (grep src/agents). Free. The cross-repo `git -C` refusal (hq-ext #795) is a different check and is NOT lifted by this bullet."
@@ -1871,7 +2363,7 @@
         "description": "/btw history browsing moved from left/right arrows to Shift+arrows or [ ]; Ctrl+E command explanation removed from Bash permission prompts.",
         "gap_score": 15,
         "affected_skills": [],
-        "reference_changelog_line": "Changed `/btw` history browsing from `←`/`→` to `Shift+←`/`Shift+→` (or `[`/`]`), stepping through your recent side questions and back to the live answer",
+        "reference_changelog_line": "Changed `/btw` history browsing from `\u2190`/`\u2192` to `Shift+\u2190`/`Shift+\u2192` (or `[`/`]`), stepping through your recent side questions and back to the live answer",
         "relevance": "end-user",
         "disposition": "triaged-noop",
         "ork_disposition_note": "No ork doc cites the old keys (grep /btw and Ctrl+E: 0 in src)."

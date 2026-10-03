@@ -25,6 +25,11 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 #   Skip the warning on CC < 2.1.121 (key would be silently ignored).
 # - claude plugin orphans (CC 2.1.121+, #1544): suggest `claude plugin prune`
 #   when `claude plugin list --json` shows orphaned auto-installed deps.
+# - plugin stdio redaction (CC 2.1.285+): `claude mcp get` hides the command,
+#   arguments and environment values of stdio MCP servers provided by plugins
+#   (variable names are still shown). A redacted value is unmeasured, not a
+#   missing credential: verify the non-secret settings against the plugin
+#   manifest or the effective config source, never a personal credential file.
 ```
 
 **Incorrect:**
