@@ -59,7 +59,21 @@ Cancelled runs get their own bucket because a superseded attempt leaves tiers CA
 ## Requirements
 
 - Claude Code 2.1.266 minimum (first measured `classic.*` binary)
-- `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` in your shell profile or personal settings
+- On 2.1.266 through 2.1.286 the module system sits behind
+  `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`; set it in your shell profile or personal settings.
+  On 2.1.287+ Mods are public and the flag is no longer needed.
+
+### Public Mods status (CC 2.1.287+)
+
+CC 2.1.287 announces Claude Mods as public, so plugins may now modify deeper behaviour than
+hooks. Measured on CC 2.1.288 (2026-10-03, headless `-p --plugin-dir` per mod, flag unset
+then set to 1): all four ork mods load and fire with the flag unset. secrets-veil masked a
+secret in a Bash tool result, lesson-cards denied `gh pr checks` via lesson
+`cancelled-check-is-not-pass`, memory-lens indexed 384 memories at session start, and
+promote-lights ran `gh` through `$.process.run`. The flag only gates 2.1.266 to 2.1.286.
+The built-in "You should know" mod (`/plugin enable cc-plugin-you-should-know@builtin`)
+ships in the same release; coexistence is unverified and ork does not enable it. Migration
+questions stay open in GH-3917; the command hook fleet is not part of this check.
 
 ## Footprint
 
@@ -87,7 +101,7 @@ Negative: no `$.secrets.*`, no `$.http.fetch`, no `$.model.*`.
 ## Rollback
 
 1. `/lights off` or disable the plugin
-2. Unset `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS`
+2. On 2.1.266 to 2.1.286 also unset `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` (inert on 2.1.287+)
 3. `$.store` keys `lights:*` are the only residue and are safe to drop
 
 ## Budget guard
