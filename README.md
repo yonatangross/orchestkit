@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.148](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148)** · 2026-10-03
+
+- **mods:** register memory-lens in the marketplace, gate missing entries (#4587)
+
 **[v10.0.0-beta.147](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147)** · 2026-10-03
 
 - **cc:** adopt Claude Code 2.1.285 through 2.1.288 (#4588)
@@ -657,10 +661,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141)** · 2026-10-01
 
 - **skills:** careful and freeze, on-demand guard hooks in a skill (#4576)
-
-**[v10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140)** · 2026-10-01
-
-- **review-pr:** opt-in rule-check mode, one verifier per rule (#4573)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
