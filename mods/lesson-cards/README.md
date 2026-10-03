@@ -13,7 +13,8 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
    cp -r mods/lesson-cards/ /path/to/your/project/mods/
    ```
 
-2. Enable function hooks in your shell profile or personal settings:
+2. On CC 2.1.266 through 2.1.286, enable function hooks in your shell profile
+   or personal settings (not needed on 2.1.287+, where Mods are public):
    ```bash
    export CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1
    ```
@@ -77,7 +78,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
    claude plugin disable lesson-cards
    ```
 
-2. Unset the flag:
+2. On 2.1.266 to 2.1.286, unset the flag (inert on 2.1.287+):
    ```bash
    unset CLAUDE_CODE_ENABLE_FUNCTION_HOOKS
    ```

@@ -32,7 +32,7 @@
 <button id="theme" type="button">dark</button>
 <main>
 <h1>CC 2.1.285 to 2.1.288 adoption</h1>
-<p class="verdict">No ork runtime change. Two doc adoptions and one env opt-out documented; public Mods stay on the experimental flag until an offline load test proves the contract.</p>
+<p class="verdict">No ork runtime change. Two doc adoptions and one env opt-out documented; public Mods measured firing with the flag unset on 2.1.288, the env gate covers 2.1.266 to 2.1.286 only.</p>
 <div class="sub">latest_known 2.1.284 to 2.1.288, floor unchanged at 2.1.277. 36 ledger features triaged in shared/cc-adoption-gaps.json. Every row cites the upstream CHANGELOG read on 2026-10-03.</div>
 
 <h2 class="c1">01 / Does this reach you?</h2>
@@ -59,7 +59,7 @@
 <tr><td>2.1.285</td><td>managed <code>allowedProviders</code></td><td>watch: a delisted provider fails an alias-pinned agent</td></tr>
 <tr><td>2.1.286</td><td><code>--bare</code> narrows to named servers, no reminders, no background</td><td>watch: bare-eval relies on the minimal surface</td></tr>
 <tr><td>2.1.286</td><td>skills named <code>verify</code> suggested before commits</td><td>watch: ork ships verify; triggers checked before doc edits</td></tr>
-<tr><td>2.1.287</td><td>Claude Mods public; "You should know" builtin</td><td>watch: flag stays pending offline load test; builtin not enabled</td></tr>
+<tr><td>2.1.287</td><td>Claude Mods public; "You should know" builtin</td><td>measured: all four mods fire with the flag unset on 2.1.288; gate is 2.1.266 to 2.1.286 only; builtin not enabled</td></tr>
 <tr><td>2.1.288</td><td><code>CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS</code></td><td>adopted-doc: configure reference, for strict gateways</td></tr>
 <tr><td>2.1.288</td><td>PreToolUse/PermissionRequest match failure now blocks</td><td>upside: fail-closed on the guard events</td></tr>
 <tr><td>2.1.288</td><td>plugin-defined agent spawned by name keeps its config</td><td>upside: all 36 ork agents</td></tr>

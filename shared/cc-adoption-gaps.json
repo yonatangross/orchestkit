@@ -236,7 +236,7 @@
         "reference_changelog_line": "Added Claude Mods: plugins may now modify deeper behavior",
         "relevance": "plugin",
         "disposition": "watch",
-        "ork_disposition_note": "ork ships four module-based mods (lesson-cards, memory-lens, promote-lights, secrets-veil) behind CLAUDE_CODE_ENABLE_FUNCTION_HOOKS. The release note alone does not prove the module API is unchanged; the experimental flag stays until an offline load test on 2.1.287+ proves parity (draft A4, #3917)."
+        "ork_disposition_note": "ork ships four module-based mods (lesson-cards, memory-lens, promote-lights, secrets-veil). Measured 2026-10-03 on 2.1.288 headless (-p --plugin-dir per mod, flag unset then set): all four load and fire with CLAUDE_CODE_ENABLE_FUNCTION_HOOKS unset (secrets-veil masked a tool result, lesson-cards denied gh pr checks via cancelled-check-is-not-pass, memory-lens indexed 384 memories, promote-lights ran gh via $.process.run). The flag gates 2.1.266 to 2.1.286 only. Watch stays for the built-in You should know coexistence and GH-3917 (draft A4)."
       },
       {
         "feature_slug": "you_should_know_builtin_mod",
