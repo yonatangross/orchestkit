@@ -11,7 +11,7 @@ You can evaluate OrchestKit end to end without giving it write access to anythin
 
 The public docs API and both MCP servers need no account and no key. Nothing here can write.
 
-- **CLI**: `npx orchestkit` (also `npx ork`). The `search`, `ask`, `read`, `doctor` and `mcp` commands query the public API or print output; they write nothing. `install` prints the install command for you to inspect.
+- **CLI**: `npx orchestkit` (short form `npx -p orchestkit ork`; bare `npx ork` resolves a different npm package). The `search`, `ask`, `read`, `doctor` and `mcp` commands query the public API or print output; they write nothing. `install` prints the install command for you to inspect.
 - **OrchestKit Actions MCP** (`https://orchestkit.yonyon.ai/api/mcp/actions`, Streamable HTTP): the product MCP. Three tools, all read-only by construction:
   - `orchestkit_list_skills`: discover user-invocable skills.
   - `orchestkit_install_plan`: returns the install commands for a skill or goal. It executes nothing.
@@ -39,7 +39,7 @@ Install per [Installation](/docs/getting-started/installation), open your host i
 - For integrations that call external APIs, the `emulate-seed` skill generates Vercel emulate seed configs (GitHub, Vercel, Stripe and more) so agents exercise stateful local fakes instead of production.
 
 <Callout type="info">
-Hooks are local lifecycle automation inside the project you opened. Uninstalling the plugin removes them; nothing phones home.
+Hooks are local lifecycle automation inside the project you opened. Uninstalling the plugin removes them; nothing phones home unless you configure a telemetry URL.
 </Callout>
 
 ## What not to worry about
