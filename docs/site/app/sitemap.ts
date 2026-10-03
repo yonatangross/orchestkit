@@ -11,6 +11,7 @@ const MACHINE_SURFACES = [
   "/openapi.json",
   "/api/openapi.yaml",
   "/.well-known/mcp/server-card.json",
+  "/.well-known/mcp/actions-server-card.json",
   "/.well-known/api-catalog",
   "/llms.txt",
   "/llms-full.txt",
