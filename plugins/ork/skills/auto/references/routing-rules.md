@@ -2,6 +2,8 @@
 
 Per-category parameter extraction + edge cases. Read during the Classify step to configure the target skill correctly.
 
+A follow-up that depends on the caller's conversation ("now fix that", "verify it") routes inline. Never hand it to a forked context, and never set `context: fork` on this skill: a fork starts without the conversation the follow-up refers to (#4539, guarded by `tests/skills/test-router-skill-context.sh`).
+
 ## fix → /ork:fix-issue
 
 - **Extract:** bug description (full goal), target files if named, ticket/issue `#N`, quoted error message.
