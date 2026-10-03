@@ -61,7 +61,7 @@ a { color: var(--pg-link); }
 <p id="card" role="status" aria-live="polite"></p>
 <pre id="detail" aria-label="Selected mod detail"></pre>
 </details>
-<details id="changes" open><summary>[1] What was broken</summary><p>memory-lens landed in #4530 with no marketplace entry, so <code>claude plugin install memory-lens@orchestkit</code> had nothing to resolve. The structure gate compared 3 entries to 4 directories and only warned, so CI stayed green. Three descriptions still asked for CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1, a variable Claude Code 2.1.287 and later ignore.</p></details>
+<details id="changes" open><summary>[1] What was broken</summary><p>memory-lens landed in #4530 with no marketplace entry, so <code>claude plugin install memory-lens@orchestkit</code> had nothing to resolve. The structure gate compared 3 entries to 4 directories and only warned, so CI stayed green. Three descriptions still asked for CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1, a variable measured inert on 2.1.288; the gate covers 2.1.266 through 2.1.286 only.</p></details>
 <details id="evidence"><summary>[2] Bug check on Claude Code 2.1.288</summary><p>Each mod loaded with <code>claude -p --plugin-dir mods/&lt;name&gt;</code>. All four were admitted by the built-in sec-default guard and registered their declared events.</p>
 <table><thead><tr><th>mod</th><th>loads</th><th>fires</th><th>errors</th><th>wall time</th></tr></thead><tbody>
 <tr><td>lesson-cards</td><td>yes</td><td>session.start 33.5ms, tool.call 1.5ms</td><td>none</td><td>~22s</td></tr>
