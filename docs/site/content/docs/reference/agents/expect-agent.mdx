@@ -90,6 +90,13 @@ agent-browser find role textbox fill --name "Email" "user@test.com"
 For each page in the test plan, follow this exact sequence:
 
 ```
+0. NAME THE SESSION (once per run, before the first `open`)
+   export AGENT_BROWSER_SESSION="expect-$(date +%s)-$RANDOM"
+   A bare `agent-browser open` lands on `default`, the session every other
+   agent-browser caller on the machine shares. With the env var set, every
+   command this run (open, snapshot, close) scopes to a session only this
+   run owns (#4520).
+
 1. NAVIGATE
    agent-browser open {url}
    agent-browser wait --load networkidle
@@ -225,7 +232,7 @@ Error occurs
 4. **No blind clicking.** Always `snapshot -i` before interacting. Never guess element selectors.
 5. **Screenshot on failure only.** Don't screenshot every step, only on `ASSERTION_FAILED`.
 6. **FORBIDDEN: `agent-browser chat`.** The `chat` subcommand bypasses the STEP_START / STEP_DONE status protocol, disables the ARIA-first workflow, and makes freeform LLM navigation decisions that can't be parsed by the lead agent. Never invoke it from this agent under any circumstance. Use the explicit `open` / `snapshot -i` / `click` / `fill` pipeline instead.
-7. **Never pass `--all` to `agent-browser close`.** A shared machine runs several agent-browser sessions owned by other agents; the all-sessions flag kills them mid-work (#4520). Close only the session this run opened (`agent-browser close --session <name>`), or end your turn and let auto-close handle it.
+7. **Never pass `--all` to `agent-browser close`, and never run on the unnamed `default` session.** A shared machine runs several agent-browser sessions owned by other agents; the all-sessions flag kills them mid-work (#4520). Mint `AGENT_BROWSER_SESSION=expect-<run-id>` once per run (Page Testing Workflow step 0) so `open` and `close` both hit this run's own session. If cleanup is needed, run `agent-browser close` with the env var still set, or end your turn and let auto-close handle it.
 
 ## Integration
 

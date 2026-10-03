@@ -20,13 +20,15 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 FAILED=0
 
 # `close --all` and the `-a` short form, with or without the agent-browser
-# prefix. Scoped to src/ prose (skills, agents, rules); tests and fixtures
-# carry the literal by necessity and are excluded by directory choice.
+# prefix and with any options in between (`close --session x --all` still
+# kills every session). Scoped to src/ prose (skills, agents, rules); tests
+# and fixtures carry the literal by necessity and are excluded by directory
+# choice.
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
-  echo "FAIL: ${hit#"$REPO_ROOT"/} — instructs 'close --all'; close only the session the run opened (#4520)"
+  echo "FAIL: ${hit#"$REPO_ROOT"/}: instructs 'close --all'; close only the session the run opened (#4520)"
   FAILED=1
-done < <(grep -rnoE 'agent-browser[[:space:]]+close[[:space:]]+(-a|--all)\b|(^|[[:space:]"`'"'"'])close[[:space:]]+--all\b' \
+done < <(grep -rnoE '(^|[[:space:]"`'"'"'])close\b([[:space:]]+[^[:space:]&|;]+)*[[:space:]]+(--all|-a)\b' \
   "$REPO_ROOT/src/skills" "$REPO_ROOT/src/agents" 2>/dev/null || true)
 
 echo ""

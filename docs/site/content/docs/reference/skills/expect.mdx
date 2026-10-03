@@ -1027,10 +1027,10 @@ Auth profiles are managed by agent-browser's vault system, credentials are never
 
 ## Session Management
 
-- **One session per run**: sequential page visits, shared auth state
+- **One named session per run**: mint `AGENT_BROWSER_SESSION=expect-<run-id>` (for example `export AGENT_BROWSER_SESSION="expect-$(date +%s)-$RANDOM"`) before the first `open`, so sequential page visits share auth state inside a session only this run owns. A bare `agent-browser open` lands on `default`, the session every other agent-browser caller on the machine shares.
 - **Session timeout**: 5 minutes per page (configurable)
 - **Cleanup**: agent-browser auto-closes on agent completion
-- **Never pass `--all` to `agent-browser close`**: on a shared machine it kills sessions owned by other agents (#4520). If cleanup is needed, close only the session this run opened (`agent-browser close --session <name>`)
+- **Never pass `--all` to `agent-browser close`**: on a shared machine it kills sessions owned by other agents (#4520). If cleanup is needed, close only this run's session (`agent-browser close` with `AGENT_BROWSER_SESSION` still set)
 
 ## Failure Decision Tree
 
