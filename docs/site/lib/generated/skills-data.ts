@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "89a77b3b77728e858e246782ceee7e6099c87f176f68b6d953adffddec815628",
+    "sha256": "86ca6d687b0c2aa99fd25cce07e718cdd75336e228b030611f0c6dce53b9aba8",
     "author": "OrchestKit",
     "tags": [
       "planning",
