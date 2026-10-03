@@ -13,7 +13,8 @@ Requires Claude Code 2.1.283 or later (the `prompt.submit` answer shape below wa
    cp -r mods/memory-lens/ /path/to/your/project/mods/
    ```
 
-2. Enable function hooks in your shell profile or personal settings:
+2. On CC 2.1.266 through 2.1.286, enable function hooks in your shell profile
+   or personal settings (not needed on 2.1.287+, where Mods are public):
    ```bash
    export CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1
    ```
@@ -80,7 +81,7 @@ Secret-shaped text (key prefixes, PEM headers) reaches neither the screen nor th
 ## Rollback
 
 1. Remove from the plugin directory, or `claude plugin disable memory-lens`
-2. Unset `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS`
+2. On 2.1.266 to 2.1.286, unset `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` (inert on 2.1.287+)
 
 No state is persisted; the index lives in memory for the session.
 

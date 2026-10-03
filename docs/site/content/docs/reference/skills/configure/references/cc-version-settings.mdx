@@ -1171,3 +1171,38 @@ their launch-default effort over `-p`, the Agent SDK, a project, managed or `--s
 
 **Action for OrchestKit**: skills that expect deep work (audit-full, verify) now say to pass `high`
 or `xhigh` explicitly. Skill-level `effort:` frontmatter is tracked separately in GH-4052.
+
+## CC 2.1.285 and 2.1.288 Settings
+
+### Auto mode becomes the headless default (2.1.285)
+
+Auto mode became the unset default in three steps. CC 2.1.283 moved interactive sessions on
+third-party providers or with telemetry off. CC 2.1.284 moved interactive terminal and VS Code
+sessions on every plan and provider. CC 2.1.285 moves `claude -p` and Python Agent SDK sessions
+on third-party providers or with telemetry off, matching the interactive behaviour. In all three
+cases an explicit `permissions.defaultMode` in settings or a `--permission-mode` flag still wins.
+
+This is a permission-mode default, not a classifier change: the 2.1.278 server-side classifier
+default above is unchanged, and a session in auto mode still runs the same classifier it did
+interactively. What changes is only which mode a headless session starts in when nothing named
+one. Headless `PermissionRequest` acceptance evidence is tracked in GH-4055.
+
+**Action for OrchestKit**: ci-sentinel already passes `--permission-mode acceptEdits` and
+run-agent-eval passes `--dangerously-skip-permissions`, so their launch policy is unchanged.
+The gap to watch is the bare-eval grader calls (`run-skill-eval.sh`, `run-trigger-eval.sh`,
+`optimize-description.sh`), which pass no mode: on a third-party provider or with telemetry
+off they now start in auto mode where they used to stop at prompts. That is a policy question
+for a conductor, not a doc change; this section only records that a bare `claude -p` no longer
+implies the old stop-at-prompt behaviour on those environments. A harness that wants it must
+pass an explicit `--permission-mode`.
+
+### `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS`, gateway opt-out (2.1.288)
+
+CC 2.1.288 adds `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS` to turn structured outputs off. On
+Mantle or behind a gateway that rejects structured-output requests, session titles, memory
+recall and prompt hooks failed until this variable was set; the failure took the prompt hook
+path down with it.
+
+**Action for OrchestKit**: ork runs prompt hooks, so an operator on a strict gateway needs this
+opt-out for the hooks to fire. Set `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS=1` on Mantle or any
+gateway that rejects structured outputs; leave it unset elsewhere.
