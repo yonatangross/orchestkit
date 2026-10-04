@@ -614,4 +614,28 @@ describe('session.start with HOME unset', () => {
       vi.unstubAllGlobals();
     }
   });
+
+  test('calls no $.fs method when HOME is unset', async () => {
+    const { hooks } = captureHooks();
+    const fsCalls: string[] = [];
+    const $ = {
+      env: { get: async (): Promise<string | undefined> => undefined },
+      fs: {
+        list: async (path: string): Promise<null> => { fsCalls.push(`list ${path}`); return null; },
+        read: async (path: string): Promise<string> => { fsCalls.push(`read ${path}`); return ''; },
+        stat: async (path: string): Promise<null> => { fsCalls.push(`stat ${path}`); return null; },
+      },
+      command: { register: async (): Promise<void> => undefined },
+      ui: { invalidate: async (): Promise<void> => undefined },
+    };
+    vi.stubGlobal('process', undefined);
+    try {
+      await startSession(hooks, $);
+      // An empty home must stop loadCorpus before any path is built: a relative
+      // path would resolve under the session cwd and read the repository.
+      expect(fsCalls).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
