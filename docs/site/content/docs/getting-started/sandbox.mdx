@@ -39,7 +39,7 @@ Install per [Installation](/docs/getting-started/installation), open your host i
 - For integrations that call external APIs, the `emulate-seed` skill generates Vercel emulate seed configs (GitHub, Vercel, Stripe and more) so agents exercise stateful local fakes instead of production.
 
 <Callout type="info">
-Hooks are local lifecycle automation inside the project you opened. Uninstalling the plugin removes them; nothing phones home unless you configure a telemetry URL.
+Hooks are local lifecycle automation inside the project you opened. Uninstalling the plugin removes them. Nothing phones home unless you opt in, in one of two ways: you configure a telemetry URL, or you set `ORK_TYPESAFE_API_KEY` together with `ORK_SESSION_CATEGORY_PROVIDER=jev` or `shadow` (a hook then sends an excerpt of the session's first prompt and the git branch name to TypeSafe to label the session) or `ORK_ROUTE_JEV=shadow` or `steer` (a hook then sends a redacted copy of build-shaped prompts and the repo name to TypeSafe for routing).
 </Callout>
 
 ## What not to worry about
