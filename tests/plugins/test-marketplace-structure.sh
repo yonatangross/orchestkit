@@ -181,9 +181,15 @@ if [[ $PLUGIN_COUNT -eq 0 ]]; then
 elif [[ $((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) -ne $PLUGIN_DIRS ]]; then
   echo "⚠ WARNING: Mismatch between marketplace entries ($((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) outside mods/) and plugin directories ($PLUGIN_DIRS)"
   WARNINGS=$((WARNINGS + 1))
-elif [[ ${MOD_ENTRY_COUNT:-0} -gt 0 && ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
-  echo "⚠ WARNING: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
-  WARNINGS=$((WARNINGS + 1))
+elif [[ ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
+  # A mod dir with no marketplace entry cannot be installed at all (the mod
+  # exists on disk but `claude plugin install <name>@<marketplace>` finds no
+  # entry): memory-lens shipped in #4530 with no entry and stayed loadable
+  # by --plugin-dir only while this check only warned. An entry with no dir
+  # is a dangling install pointer. Both directions are errors.
+  echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
+  echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>'"
+  ERRORS=$((ERRORS + 1))
 else
   echo "✓ Marketplace entries match plugin directories"
 fi

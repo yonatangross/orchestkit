@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One close, three dead browsers</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">SHARED-MACHINE SAFETY &middot; #4520</div>
+<h1>One close, <span>three dead browsers</span></h1>
+<p class="lede">A forked expect agent finished a run and ran
+<code>agent-browser close --all</code>. On a shared machine that flag closed three
+other Claude sessions' agent-browser sessions mid-work. No source file told it to;
+the cleanup line was vague enough to improvise from.</p>
+
+<h2>Before and after</h2>
+<table>
+<tr><th>Layer</th><th>Before</th><th>After</th></tr>
+<tr><td>expect-agent rules</td><td>no close guidance at all</td><td class="ok">rule 7: never pass <code>--all</code> to <code>agent-browser close</code>; close the run's own session or let auto-close handle it</td></tr>
+<tr><td>execution reference</td><td>"auto-closes on agent completion"</td><td class="ok">same line plus the explicit never-all rule and the <code>--session &lt;name&gt;</code> shape</td></tr>
+<tr><td>gate</td><td>none; the flag could be reintroduced silently</td><td class="ok"><code>test-agent-browser-close-scope.sh</code> fails any skill or agent source naming the flag</td></tr>
+</table>
+
+<h2>The lint earns its verdict</h2>
+<table>
+<tr><th>Probe</th><th>Result</th></tr>
+<tr><td>planted <code>close --all</code> file under src/skills</td><td class="bad">lint exits 1 and names the line</td></tr>
+<tr><td>clean tree</td><td class="ok">lint exits 0</td></tr>
+</table>
+
+<div class="foot">A check that cannot disagree measures nothing, so the fixture
+probe is part of the change, not an afterthought.</div>
+</div></body></html>
