@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154) (2026-10-04)
+
+
+### Features
+
+* **site:** advertise Actions MCP and add try-safely sandbox page ([#4596](https://github.com/yonatangross/orchestkit/issues/4596)) ([8f5c732](https://github.com/yonatangross/orchestkit/commit/8f5c732ccf613c84016354348efcb0e9ec0d45e7))
+
 ## [10.0.0-beta.153](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153) (2026-10-04)
 
 
