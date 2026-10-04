@@ -1,0 +1,45 @@
+GLYPH LEARNS JS ART (pages only, chat stays ASCII)
+ask ──▶ glyph picks surface ──▶ chat: ASCII  |  page: HTML + JS art   ork-glyph-js-art-1
+
+01 / WHEN IT FIRES ───────────────────────────────────────────────────────
+┌ ASK SHAPE ─────────────────┐      ┌ SURFACE ───────────────────────┐
+│ explainer page, NOW vs     │──▶   │ page: one self-contained HTML  │
+│ IDEAL, "show it moving",   │      │ chat: unchanged ASCII render   │
+│ a flow, a gate, a fix      │      └────────────────────────────────┘
+└────────────────────────────┘
+
+02 / THE PIECE (one per page, above the beats) ───────────────────────────
+┌ ○ ○ ○ ──────────────────────────── canvas 960x400 ┐
+│  [ Now ] [ Ideal ]                     t = 3.2 s   │
+│                                                    │
+│  ● ● ──▶ ● ──▶ ┃GATE┃ ──▶ ● ●      (flow dots)     │
+│                  ▲ red when shut, green when open  │
+│  caption: Now: work waits at the gate by hand.     │
+└────────────────────────────────────────────────────┘
+ reduced motion: one still frame at t = HERO_T, toggle still works
+
+03 / THE CONTRACT (references/js-art.md) ─────────────────────────────────
+  draw(ctx, t, mode)   pure: same t + mode, same pixels
+  window.seek(t)       draws frame t, for capture to mp4 / gif
+  window.setMode(m)    'now' | 'ideal', buttons use aria-pressed
+  play()               requestAnimationFrame only when motion is allowed
+  rng(seed)            seeded PRNG, Math.random is banned
+  no network, no CDN, light paper colors, no em dash
+
+04 / THREE PATTERNS ──────────────────────────────────────────────────────
+  flow dots     items move on a path, speed and spacing are the message
+  gate          items queue at a gate, open/shut cycle shows the wait
+  before/after  same scene, two modes, one toggle (Now vs Ideal)
+
+05 / FILES IN THE DRAFT PR ───────────────────────────────────────────────
+src/skills/glyph/
+├── SKILL.md                 form-table row + short "JS art" section
+├── references/js-art.md     timeline API + 3 patterns, runnable js blocks
+└── references/page-route.md one line: explainer pages carry a JS piece
+tests/unit/test-glyph-js-art.sh
+    runs the reference js blocks in node with a stub canvas:
+    seek(t) twice gives the same draw log, no Math.random, reduced
+    motion never calls requestAnimationFrame, both modes draw different
+    frames, SKILL.md routes to the reference
+skill version 3.0.0 ──▶ 3.1.0, feat(glyph) commit feeds the changelog
+                        ◆ CONDUCTOR98 APPROVES THIS SHAPE

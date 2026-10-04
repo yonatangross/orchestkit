@@ -1,0 +1,12 @@
+{
+  "slug": "glyph-js-art-patterns",
+  "source": "docs/feat--glyph-js-art/index.html",
+  "title": "glyph JS art: four patterns, one contract",
+  "description": "Glyph pages now carry one animated canvas piece with a Now/Ideal toggle. Flow dots, gate, before/after meter and real-data bars, each a pure draw(ctx, t, mode) you can seek to any frame.",
+  "tags": [
+    "skills",
+    "glyph",
+    "explainer"
+  ],
+  "date": "2026-10-03"
+}

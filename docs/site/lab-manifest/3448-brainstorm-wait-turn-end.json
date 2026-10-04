@@ -1,0 +1,13 @@
+{
+  "slug": "3448-brainstorm-wait-turn-end",
+  "source": "docs/fix--3448-brainstorm-backgrounded-work/index.html",
+  "title": "#3448 the wait that had nowhere to land: auto-backgrounded Bash is not run_in_background",
+  "description": "A brainstorm teammate's foreground Bash call was auto-backgrounded on timeout; the agent ended its turn on 'I'll wait' and the output was lost silently. SKILL.md now scopes the turn-end survival claim to run_in_background tasks, moves long research to the lead, and bars ending a turn on an uncollected wait.",
+  "tags": [
+    "brainstorm",
+    "skills",
+    "guidance",
+    "3448"
+  ],
+  "date": "2026-10-03"
+}
