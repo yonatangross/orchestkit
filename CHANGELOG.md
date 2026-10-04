@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152) (2026-10-04)
+
+
+### Bug Fixes
+
+* **brainstorm:** scope the turn-end survival claim ([#4593](https://github.com/yonatangross/orchestkit/issues/4593)) ([c0cd49d](https://github.com/yonatangross/orchestkit/commit/c0cd49da27ffa5defd3e9fa1a8aa557046c4619c))
+
 ## [10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151) (2026-10-04)
 
 
