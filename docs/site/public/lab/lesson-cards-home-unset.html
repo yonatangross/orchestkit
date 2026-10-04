@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lesson-cards: do not read process when HOME is unset</title>
+<meta name="description" content="The lesson-cards mod threw on session.start when $.env.get(HOME) returned nothing: homeDir() read a process global a mod worker does not have. This PR fixes the read and adds the test its review HOLD asked for.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards: do not read process when HOME is unset"><meta property="og:description" content="Before/after for the lesson-cards HOME fix plus the mutant table for the new no-fs-calls test, the vitest count and the nit that is not done."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/lesson-cards-home-unset.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards: do not read process when HOME is unset"><meta name="twitter:description" content="Before/after for the lesson-cards HOME fix plus the mutant table for the new no-fs-calls test, the vitest count and the nit that is not done."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body>
+
+<h1>lesson-cards: do not read process when HOME is unset</h1>
+<p class="lede">PR #4608, branch <code>fix/lesson-cards-home-unset-test</code>. It supersedes draft PR #4607 and carries that commit plus the one test its HOLD asked for (issue comment 5982942967, reviewer-estate-47-desk).</p>
+
+<p class="verdict"><b>Verdict.</b> On Claude Code 2.1.289 the lesson-cards session.start hook threw <code>ReferenceError: process is not defined</code> and was skipped when <code>$.env.get("HOME")</code> returned nothing. <code>homeDir()</code> now returns an empty string when there is no process global, and <code>loadCorpus()</code> returns an empty corpus before any path is built. The new test proves <code>$.fs.list</code>, <code>$.fs.read</code> and <code>$.fs.stat</code> are never called when HOME is unset.</p>
+
+<div class="kpis">
+<div class="kpi"><b>89</b><span>tests passing in mods/lesson-cards</span></div>
+<div class="kpi"><b>4</b><span>test files passing</span></div>
+<div class="kpi"><b>1</b><span>new test added by this PR</span></div>
+<div class="kpi"><b>0</b><span>$.fs calls when HOME is unset</span></div>
+<div class="kpi"><b>2</b><span>relative paths the mutant tried to read</span></div>
+</div>
+
+<h2>1. What the fix does</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<pre>homeDir() read process.env.HOME directly.
+A mod worker has no process global, so the
+read threw a ReferenceError and CC skipped
+the whole session.start hook: /lessons was
+never registered and no lesson matched.</pre>
+<p class="mut">Measured on CC 2.1.289: "lesson-cards: session.start hook skipped: threw ReferenceError: process is not defined".</p></div>
+<div class="card after"><h3>After</h3>
+<pre>homeDir() returns "" when typeof process
+is "undefined". loadCorpus() reads HOME
+from $.env first, then homeDir(). When the
+home is empty it returns an empty corpus
+with loadError "HOME is not set", before
+any fs path is built.</pre>
+<p class="mut">An empty home would make every corpus path relative, resolved under the session cwd. The early return stops that.</p></div>
+</div>
+
+<h2>2. The test the HOLD asked for</h2>
+<p><code>calls no $.fs method when HOME is unset</code> in <code>mods/lesson-cards/tests/register.test.ts</code> stubs <code>process</code> away, answers <code>$.env.get("HOME")</code> with <code>undefined</code>, and records every <code>$.fs</code> call. It asserts the list is empty. The reviewer measured that the same suite was all green with the early return removed; this assertion is what was missing.</p>
+<table>
+<tr><th>Run</th><th>Result</th></tr>
+<tr><td>Mutant: early return removed from <code>loadCorpus()</code></td><td>New test FAILS. Recorded calls: <code>list .claude/plugins/cache/yonatan-hq/hq-ext</code> and <code>list .claude/hq</code>. The other 88 tests still passed.</td></tr>
+<tr><td>File restored (git checkout)</td><td>89 of 89 pass.</td></tr>
+</table>
+<p class="mut">Why it matters: with the early return gone, the hook asks $.fs for relative paths that resolve under the session cwd. A repository can carry files at those paths, and the mod would load lesson patterns and lesson text from the repository.</p>
+
+<h2>3. Test count</h2>
+<table>
+<tr><th>Step</th><th>Result</th></tr>
+<tr><td><code>npm ci --ignore-scripts</code> then <code>npx vitest run</code> in mods/lesson-cards</td><td>89 passed, 4 test files</td></tr>
+<tr><td>Count at cherry-picked commit 7de5d3da</td><td>88 passed</td></tr>
+</table>
+
+<h2>4. Not done</h2>
+<p class="warn"><b>Nit, left open.</b> <code>homeDir()</code> still throws when <code>process</code> exists and <code>process.env</code> does not. <code>process?.env?.HOME</code> covers both. Named in the PR body; left for a follow up.</p>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
