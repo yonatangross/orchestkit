@@ -1,0 +1,13 @@
+{
+  "slug": "4520-browser-close-scope",
+  "source": "docs/fix--4520-expect-close-scope/index.html",
+  "title": "#4520 one close, three dead browsers: scoping agent-browser close to the run's own session",
+  "description": "A forked expect agent ran agent-browser close --all and killed three other sessions' browsers on a shared machine. The fix: never --all guidance in the agent and execution reference, plus a structure lint that fails any source naming the flag, probe-verified.",
+  "tags": [
+    "expect",
+    "agent-browser",
+    "skills",
+    "4520"
+  ],
+  "date": "2026-10-03"
+}

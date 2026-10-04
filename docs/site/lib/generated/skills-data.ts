@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "89a77b3b77728e858e246782ceee7e6099c87f176f68b6d953adffddec815628",
+    "sha256": "86ca6d687b0c2aa99fd25cce07e718cdd75336e228b030611f0c6dce53b9aba8",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -2611,8 +2611,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "glyph": {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead.",
-    "version": "3.0.0",
-    "sha256": "cdea5e1a7f449a6a94c2bf5c4ac5fb6914d275bf52d5f2329aea4435bba1e27f",
+    "version": "3.1.0",
+    "sha256": "400e3fb066df69960e56867c6d530635e0206147318a95f192f4e6973d69008f",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -2634,6 +2634,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {
       "references": [
+        "js-art.md",
         "page-route.md"
       ]
     },

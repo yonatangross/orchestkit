@@ -5,6 +5,53 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152) (2026-10-04)
+
+
+### Bug Fixes
+
+* **brainstorm:** scope the turn-end survival claim ([#4593](https://github.com/yonatangross/orchestkit/issues/4593)) ([c0cd49d](https://github.com/yonatangross/orchestkit/commit/c0cd49da27ffa5defd3e9fa1a8aa557046c4619c))
+
+## [10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151) (2026-10-04)
+
+
+### Bug Fixes
+
+* **test:** retain dispatcher stderr in the session_id quarantine probe ([#4592](https://github.com/yonatangross/orchestkit/issues/4592)) ([7586f63](https://github.com/yonatangross/orchestkit/commit/7586f63b7d2907f9ec9fef218db1a25838bbdee3))
+
+## [10.0.0-beta.150](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150) (2026-10-04)
+
+
+### Bug Fixes
+
+* **expect:** scope browser close to the run's own session ([#4594](https://github.com/yonatangross/orchestkit/issues/4594)) ([b3e6925](https://github.com/yonatangross/orchestkit/commit/b3e6925970ecc5db54205299686b58ec39c7660d))
+
+## [10.0.0-beta.149](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149) (2026-10-04)
+
+
+### Bug Fixes
+
+* **test:** make careful-guard link-to-temp case platform-stable ([#4590](https://github.com/yonatangross/orchestkit/issues/4590)) ([75f0141](https://github.com/yonatangross/orchestkit/commit/75f0141894a0795efd65d5a5ac6458e5edce2e6b))
+
+## [10.0.0-beta.148](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148) (2026-10-04)
+
+
+### Features
+
+* **glyph:** JS art pieces for glyph pages ([#4599](https://github.com/yonatangross/orchestkit/issues/4599)) ([fef92f8](https://github.com/yonatangross/orchestkit/commit/fef92f8be30dcd3e0aecab841ac7cd66adb1c951))
+
+
+### Bug Fixes
+
+* **mods:** register memory-lens in the marketplace, gate missing entries ([#4587](https://github.com/yonatangross/orchestkit/issues/4587)) ([3d35ab4](https://github.com/yonatangross/orchestkit/commit/3d35ab4f760d0322d85057be01fe8405b826b4df))
+
+## [10.0.0-beta.147](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147) (2026-10-03)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.285 through 2.1.288 ([#4588](https://github.com/yonatangross/orchestkit/issues/4588)) ([742663e](https://github.com/yonatangross/orchestkit/commit/742663e8e0340c0fb9b748ed4b46426ccc217de4))
+
 ## [10.0.0-beta.146](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.145...v10.0.0-beta.146) (2026-10-02)
 
 
