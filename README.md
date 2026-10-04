@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.149](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149)** · 2026-10-04
+
+- **test:** make careful-guard link-to-temp case platform-stable (#4590)
+
 **[v10.0.0-beta.148](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148)** · 2026-10-04
 
 - **glyph:** JS art pieces for glyph pages (#4599)
@@ -658,10 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.142](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.141...v10.0.0-beta.142)** · 2026-10-02
 
 - **deps:** bump dompurify from 3.4.14 to 3.4.16 in /docs/site (#4578)
-
-**[v10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141)** · 2026-10-01
-
-- **skills:** careful and freeze, on-demand guard hooks in a skill (#4576)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
