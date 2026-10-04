@@ -24,7 +24,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px
 <div class="kpis">
 <div class="kpi"><b>89</b><span>tests passing in mods/lesson-cards</span></div>
 <div class="kpi"><b>4</b><span>test files passing</span></div>
-<div class="kpi"><b>1</b><span>new test added by this PR</span></div>
+<div class="kpi"><b>1</b><span>new test over PR 4607 (3 over main)</span></div>
 <div class="kpi"><b>0</b><span>$.fs calls when HOME is unset</span></div>
 <div class="kpi"><b>2</b><span>relative paths the mutant tried to read</span></div>
 </div>
@@ -60,7 +60,7 @@ any fs path is built.</pre>
 <h2>3. Test count</h2>
 <table>
 <tr><th>Step</th><th>Result</th></tr>
-<tr><td><code>npm ci --ignore-scripts</code> then <code>npx vitest run</code> in mods/lesson-cards</td><td>89 passed, 4 test files</td></tr>
+<tr><td>npm ci with install scripts off, then <code>npx vitest run</code> in mods/lesson-cards</td><td>89 passed, 4 test files</td></tr>
 <tr><td>Count at cherry-picked commit 7de5d3da</td><td>88 passed</td></tr>
 </table>
 
