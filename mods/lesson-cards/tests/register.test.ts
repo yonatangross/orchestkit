@@ -6,7 +6,7 @@
  * registered hooks directly.
  */
 
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { register } from '../hooks/register.js';
 
 type RegisteredHook = (...args: unknown[]) => unknown;
@@ -588,5 +588,30 @@ describe('command.run', () => {
     const next = asNext<never>({});
     const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: string[] };
     expect(matched.context?.length).toBe(1);
+  });
+});
+
+describe('session.start with HOME unset', () => {
+  test('does not throw without a process global, loads an empty corpus and still registers /lessons', async () => {
+    const { hooks } = captureHooks();
+    const registered: string[] = [];
+    const $ = {
+      env: { get: async (): Promise<string | undefined> => undefined },
+      fs: {
+        list: async (): Promise<null> => null,
+        read: async (): Promise<string> => '',
+        stat: async (): Promise<null> => null,
+      },
+      command: { register: async (c: { name: string }): Promise<void> => { registered.push(c.name); } },
+      ui: { invalidate: async (): Promise<void> => undefined },
+    };
+    vi.stubGlobal('process', undefined);
+    try {
+      const out = await startSession(hooks, $);
+      expect(out).toEqual({ forwarded: SESSION_EVENT });
+      expect(registered).toEqual(['lessons']);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
