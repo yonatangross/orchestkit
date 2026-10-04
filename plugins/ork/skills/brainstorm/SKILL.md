@@ -437,6 +437,8 @@ ExitWorktree(action="keep")  # Keep branch for follow-up implement
 
 > **Teammate background tasks survive turn-end (CC 2.1.183):** A background task started *by a teammate* is no longer killed when that teammate finishes its turn. Phase-2 teammates may safely kick off a long `run_in_background` task (e.g. a feasibility build) and let it outlive their own turn — the result is still collectable at synthesis. Pre-2.1.183 this required the lead to own the background task.
 
+> **That claim does not cover auto-backgrounded work (#3448):** a foreground Bash call the harness backgrounds on timeout is a different path. Its completion notice goes to the agent that spawned it, and if that agent already ended its turn on "I'll wait", the notice lands nowhere and the output is lost with zero logged errors. Two rules follow. The lead owns any research call whose documented runtime can approach the Bash timeout (`tavily-research` advertises 30-120s and real queries pass 180s). And no teammate ends a turn on "I'll wait for X" without either collecting X or handing ownership of X to the lead.
+
 ---
 
 ## Key Principles
