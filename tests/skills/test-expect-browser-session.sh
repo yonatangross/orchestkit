@@ -12,6 +12,10 @@
 #   static: every `agent-browser` command line inside the expect-agent.md
 #           Page Testing Workflow block carries `--session` with one
 #           identical, non-default, non-variable token
+#   same:   every `agent-browser --session X` command in execution.md
+#           (where the close recipe lives) names the same X the workflow
+#           opens with: a close on a different name kills nothing this run
+#           owns and may hit somebody else's session
 #   live:   the documented open, a later command and the documented close,
 #           run as three separate env-scrubbed shells against a stubbed
 #           agent-browser, all log the same non-default session
@@ -86,6 +90,30 @@ elif grep -qE 'agent-browser --session [^ ]+ close' "$EXEC_DOC"; then
     ok "execution.md close guidance carries an explicit --session"
 else
     bad "execution.md close guidance lacks an explicit --session"
+fi
+
+# --- same-session arm: the documented close names the session the open did
+# The workflow block pins one token ($tok from the static arm). Every
+# `agent-browser --session X` command in execution.md, which holds the
+# close recipe, must name the same X.
+if [[ "${ntok:-0}" != 1 || -z "${tok:-}" ]]; then
+    bad "cannot compare close session: workflow token is not pinned to one value"
+else
+    exec_cmds="$(grep -oE 'agent-browser --session [^ ,`)]+' "$EXEC_DOC" || true)"
+    if [[ -z "$exec_cmds" ]]; then
+        bad "execution.md carries no 'agent-browser --session X' commands to compare"
+    else
+        mismatch=0
+        while IFS= read -r ecline; do
+            [[ -z "$ecline" ]] && continue
+            s="${ecline##*--session }"
+            if [[ "$s" != "$tok" ]]; then
+                bad "execution.md names session '$s' but the workflow opens '$tok': $ecline"
+                mismatch=1
+            fi
+        done <<< "$exec_cmds"
+        [[ "$mismatch" -eq 0 ]] && ok "execution.md agent-browser commands name the same session as the open ($tok)"
+    fi
 fi
 
 # --- live arm: open, a later command, close, three separate shells -------
