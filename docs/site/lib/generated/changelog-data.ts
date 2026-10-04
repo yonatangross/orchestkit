@@ -18,6 +18,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.152",
+    "date": "2026-10-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**brainstorm:** scope the turn-end survival claim ([#4593](https://github.com/yonatangross/orchestkit/issues/4593)) ([c0cd49d](https://github.com/yonatangross/orchestkit/commit/c0cd49da27ffa5defd3e9fa1a8aa557046c4619c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.151",
+    "date": "2026-10-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**test:** retain dispatcher stderr in the session_id quarantine probe ([#4592](https://github.com/yonatangross/orchestkit/issues/4592)) ([7586f63](https://github.com/yonatangross/orchestkit/commit/7586f63b7d2907f9ec9fef218db1a25838bbdee3))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.150",
     "date": "2026-10-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150",

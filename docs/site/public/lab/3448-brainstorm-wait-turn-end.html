@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The wait that had nowhere to land</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#3448 the wait that had nowhere to land: auto-backgrounded Bash is not run_in_background"><meta property="og:description" content="A brainstorm teammate's foreground Bash call was auto-backgrounded on timeout; the agent ended its turn on 'I'll wait' and the output was lost silently. SKILL.md now scopes the turn-end survival claim to run_in_background tasks, moves long research to the lead, and bars ending a turn on an uncollected wait."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/3448-brainstorm-wait-turn-end.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#3448 the wait that had nowhere to land: auto-backgrounded Bash is not run_in_background"><meta name="twitter:description" content="A brainstorm teammate's foreground Bash call was auto-backgrounded on timeout; the agent ended its turn on 'I'll wait' and the output was lost silently. SKILL.md now scopes the turn-end survival claim to run_in_background tasks, moves long research to the lead, and bars ending a turn on an uncollected wait."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">SKILL GUIDANCE &middot; #3448</div>
+<h1>The wait that had <span>nowhere to land</span></h1>
+<p class="lede">A brainstorm teammate ran <code>tvly research</code> as a foreground
+Bash call. The harness auto-backgrounded it on timeout and the agent ended its turn
+on "I'll wait for both threads". The completion notice went to an agent that no
+longer existed. Output: 0 bytes, zero logged errors.</p>
+
+<h2>Two background paths, only one survives</h2>
+<table>
+<tr><th>How the work started</th><th>Who gets the notice</th><th>Turn-end outcome</th></tr>
+<tr><td><code>run_in_background: true</code> task</td><td>collectable at synthesis</td><td class="ok">survives (CC 2.1.183)</td></tr>
+<tr><td>foreground Bash auto-backgrounded on timeout</td><td>the spawning agent only</td><td class="bad">lost when the agent ended its turn</td></tr>
+</table>
+
+<h2>What the SKILL.md now says</h2>
+<table>
+<tr><th>Rule</th><th>Effect</th></tr>
+<tr><td>The survival claim is scoped to <code>run_in_background</code> tasks</td><td>no longer reads as covering auto-backgrounded work</td></tr>
+<tr><td>Lead owns research near the Bash timeout (<code>tavily-research</code> advertises 30-120s, real queries pass 180s)</td><td>the long call lives where the notice can land</td></tr>
+<tr><td>No turn ends on "I'll wait for X" without collecting X or handing X to the lead</td><td>an uncollected wait cannot go silent again</td></tr>
+</table>
+
+<div class="foot">Changed: src/skills/brainstorm/SKILL.md one scoped paragraph plus
+regenerated plugin and docs copies. Guidance only; no behaviour gate exists for a
+turn-end promise, so the wording is the fix the issue asked for.</div>
+</div><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

@@ -1,0 +1,14 @@
+{
+  "slug": "4539-router-context-guard",
+  "source": "docs/fix--4539-router-context-guard/index.html",
+  "title": "#4539 the front door that forgot the room: lint against context: fork on router skills",
+  "description": "A front-door router on context: fork cannot see the caller's conversation, so follow-ups lose their referent. New self-probing lint fails any skill whose description says 'DEFAULT entry point' or 'front door' when it declares context: fork; routing-rules.md gains the inline-routing rule.",
+  "tags": [
+    "auto",
+    "routing",
+    "skills",
+    "tests",
+    "4539"
+  ],
+  "date": "2026-10-03"
+}
