@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.154",
+    "date": "2026-10-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** advertise Actions MCP and add try-safely sandbox page ([#4596](https://github.com/yonatangross/orchestkit/issues/4596)) ([8f5c732](https://github.com/yonatangross/orchestkit/commit/8f5c732ccf613c84016354348efcb0e9ec0d45e7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.153",
     "date": "2026-10-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153",
