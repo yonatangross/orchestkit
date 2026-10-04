@@ -56,14 +56,17 @@ step judge's bounded action set (see the `expect` skill's
 `references/jev-shadow.md`) only knows ARIA-ref verbs and the fixed meta
 moves, and an action outside that keyspace cannot be scored or replayed.
 
+Every command above runs with `--session <run-id>` on the real call (Page Testing Workflow step 0); the table omits it for readability.
+
 Chain commands with `&&`:
 ```bash
-agent-browser open http://localhost:3000/login && agent-browser wait --load networkidle && agent-browser snapshot -i
+agent-browser --session expect-<run-id> open http://localhost:3000/login && agent-browser --session expect-<run-id> wait --load networkidle && agent-browser --session expect-<run-id> snapshot -i
 ```
 
 ## ARIA Selector Patterns
 
 ALWAYS prefer ARIA selectors over CSS. They survive redesigns.
+(Every example below runs with `--session <run-id>` on the real call, omitted for readability.)
 
 ```bash
 # BY ACCESSIBLE NAME (best — most stable)
@@ -91,18 +94,19 @@ For each page in the test plan, follow this exact sequence:
 
 ```
 0. NAME THE SESSION (once per run, before the first `open`)
-   export AGENT_BROWSER_SESSION="expect-$(date +%s)-$RANDOM"
-   A bare `agent-browser open` lands on `default`, the session every other
-   agent-browser caller on the machine shares. With the env var set, every
-   command this run (open, snapshot, close) scopes to a session only this
-   run owns (#4520).
+   Pick a literal session name, for example expect-1759500000-4821, then
+   write `--session <that name>` on EVERY browser command this run, open
+   and close included. Do not export AGENT_BROWSER_SESSION once and rely
+   on it: Bash tool calls run in separate shells, the export does not
+   survive, and later commands fall back to `default`, the session every
+   other caller on the machine shares (#4520).
 
 1. NAVIGATE
-   agent-browser open {url}
-   agent-browser wait --load networkidle
+   agent-browser --session expect-<run-id> open {url}
+   agent-browser --session expect-<run-id> wait --load networkidle
 
 2. SNAPSHOT (understand the page)
-   agent-browser snapshot -i
+   agent-browser --session expect-<run-id> snapshot -i
    → Read the ARIA tree. Identify interactive elements by name/role.
 
 3. EXECUTE STEPS
@@ -113,7 +117,7 @@ For each page in the test plan, follow this exact sequence:
         - Modes: unset/falsey = off. ORK_EXPECT_JEV=shadow (or legacy
           ORK_EXPECT_JEV_SHADOW truthy) = log-only shadow. ORK_EXPECT_JEV=1
           or =act = the Jev pick drives the step.
-        - Save the snapshot you already read: `agent-browser snapshot -i > .expect/jev-snap.txt`
+        - Save the snapshot you already read: `agent-browser --session expect-<run-id> snapshot -i > .expect/jev-snap.txt`
         - Run:
           bash ${CLAUDE_PLUGIN_ROOT}/skills/expect/scripts/jev-shadow.sh \
             --step-id {id} --goal "{title}" \
@@ -123,10 +127,12 @@ For each page in the test plan, follow this exact sequence:
         - Emit its stdout verbatim (one JEV_SHADOW|... line, or nothing)
         - shadow mode: NEVER act on the Jev pick. It logs, it does not drive.
         - act mode: read `executed_action` from the record and run THAT:
-          `verb:@eN` maps to `agent-browser <verb> @eN` (fill/select still
-          take the value you intended); meta verbs map as `done` = take no
-          element action, `wait` = `agent-browser wait`, `scroll` =
-          `agent-browser scroll down`, `press_enter` = `agent-browser press Enter`.
+          `verb:@eN` maps to `agent-browser --session expect-<run-id> <verb> @eN`
+          (fill/select still take the value you intended); meta verbs map as
+          `done` = take no element action, `wait` =
+          `agent-browser --session expect-<run-id> wait`, `scroll` =
+          `agent-browser --session expect-<run-id> scroll down`,
+          `press_enter` = `agent-browser --session expect-<run-id> press Enter`.
           When `path` starts with "fallback", `executed_action` is your own
           pick, so the step degrades to today's behaviour; the record says why.
      d. Perform the action (click, fill, assert)
@@ -135,6 +141,11 @@ For each page in the test plan, follow this exact sequence:
      g. On failure: screenshot, output ASSERTION_FAILED|{id}|{reason}
 
 4. NEXT PAGE (navigate to next URL in plan)
+
+5. CLOSE (once, when the whole run ends and cleanup is needed)
+   agent-browser --session expect-<run-id> close
+   Scopes the close to this run's own session; a close without --session
+   hits `default`, which other runs may be using.
 ```
 
 ## Form Interaction Pattern
@@ -175,7 +186,7 @@ Format: `EVENT|payload`. Seven events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAI
 ### ROUTE / ARIA emission rules
 
 - **`ROUTE|<path>`**: emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
-- **`ARIA|<json-or-text>`**: emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB, the snapshot recorder caps anyway.
+- **`ARIA|<json-or-text>`**: emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser --session expect-<run-id> snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB; the snapshot recorder caps anyway.
 - **`JEV_SHADOW|<step-id>|<one-line-json>`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's Jev call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV` and `ORK_EXPECT_JEV_SHADOW` are both unset (the script emits nothing then anyway). In shadow mode it logs the Jev pick with probabilities beside your pick plus per-step agreement. In act mode the same record additionally carries `path` and `executed_action`, and `executed_action` is what you run.
 - For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`.
 
@@ -232,7 +243,7 @@ Error occurs
 4. **No blind clicking.** Always `snapshot -i` before interacting. Never guess element selectors.
 5. **Screenshot on failure only.** Don't screenshot every step, only on `ASSERTION_FAILED`.
 6. **FORBIDDEN: `agent-browser chat`.** The `chat` subcommand bypasses the STEP_START / STEP_DONE status protocol, disables the ARIA-first workflow, and makes freeform LLM navigation decisions that can't be parsed by the lead agent. Never invoke it from this agent under any circumstance. Use the explicit `open` / `snapshot -i` / `click` / `fill` pipeline instead.
-7. **Never pass `--all` to `agent-browser close`, and never run on the unnamed `default` session.** A shared machine runs several agent-browser sessions owned by other agents; the all-sessions flag kills them mid-work (#4520). Mint `AGENT_BROWSER_SESSION=expect-<run-id>` once per run (Page Testing Workflow step 0) so `open` and `close` both hit this run's own session. If cleanup is needed, run `agent-browser close` with the env var still set, or end your turn and let auto-close handle it.
+7. **Never pass `--all` to `agent-browser close`, and never run on the unnamed `default` session.** A shared machine runs several agent-browser sessions owned by other agents; the all-sessions flag kills them mid-work (#4520). Mint one literal session name per run and write `--session expect-<run-id>` on every agent-browser command (Page Testing Workflow step 0): a variable or an exported env var does not survive between separate Bash calls. If cleanup is needed, close only this run's session (`agent-browser --session expect-<run-id> close`), or end your turn and let auto-close handle it.
 
 ## Integration
 
