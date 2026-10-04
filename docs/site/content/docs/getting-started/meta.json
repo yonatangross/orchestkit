@@ -3,6 +3,7 @@
   "icon": "Rocket",
   "pages": [
     "installation",
+    "sandbox",
     "hosts",
     "claude-code",
     "cursor",

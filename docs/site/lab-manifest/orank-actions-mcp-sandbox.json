@@ -1,0 +1,8 @@
+{
+  "slug": "orank-actions-mcp-sandbox",
+  "source": "docs/chore--dsp-42068-ork-orank/index.html",
+  "title": "Orank: advertise the Actions MCP and document the safe path",
+  "description": "Before/after for advertising the read-only OrchestKit Actions MCP across llms.txt, developer resources, sitemap, schema-map and the API catalog, plus the new try-safely sandbox docs page.",
+  "tags": ["orank", "docs-site", "mcp", "llms.txt", "agent-readiness"],
+  "date": "2026-10-03"
+}

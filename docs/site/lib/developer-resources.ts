@@ -50,6 +50,12 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		kind: "MCP server",
 	},
 	{
+		title: "OrchestKit Actions MCP server",
+		desc: "Read-only product MCP: list skills, plan installs, check config fragments. Executes nothing. Endpoint /api/mcp/actions; card /.well-known/mcp/actions-server-card.json.",
+		href: "/docs/foundations/mcp-servers",
+		kind: "MCP server",
+	},
+	{
 		title: "OrchestKit SDK packages",
 		desc: "Official clients: npm CLI, PyPI orchestkit, Go module github.com/yonatangross/orchestkit/sdk.",
 		href: "/docs/sdk",
