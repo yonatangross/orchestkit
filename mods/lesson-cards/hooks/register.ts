@@ -178,6 +178,11 @@ async function loadCorpus($: Hook$): Promise<Corpus> {
   const home = (await $.env.get('HOME').catch(() => undefined)) || homeDir();
   const startTime = Date.now();
 
+  // No home means every corpus path would be relative and resolve under the session's cwd.
+  if (!home) {
+    return { patterns: [], bullets: [], loadedAt: startTime, loadError: 'HOME is not set' };
+  }
+
   try {
     const hqExtPath = await findNewestHqExt($, home);
 
