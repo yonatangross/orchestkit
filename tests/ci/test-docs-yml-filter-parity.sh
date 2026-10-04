@@ -110,7 +110,11 @@ fi
 
 # inputs + exists arms
 in_list() {  # in_list <needle> <haystack-lines>
-    printf '%s\n' "$2" | grep -qxF "$1"
+    # Pure bash, exact whole-line match. Not `printf | grep -q`: under pipefail
+    # grep -q exiting on the first hit can SIGPIPE printf and flip a hit to a
+    # failure. Not `grep <<<"$2"` either: a here-string over PIPE_BUF can
+    # deadlock on bash 5.3 builds (ork#3348). The quoted "$1" is literal.
+    [[ $'\n'"$2"$'\n' == *$'\n'"$1"$'\n'* ]]
 }
 for f in "${GENERATOR_INPUTS[@]}" "${JOB_INPUTS[@]}"; do
     if [[ "$f" == *'*'* ]]; then
