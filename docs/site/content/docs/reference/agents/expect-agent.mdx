@@ -56,7 +56,7 @@ step judge's bounded action set (see the `expect` skill's
 `references/jev-shadow.md`) only knows ARIA-ref verbs and the fixed meta
 moves, and an action outside that keyspace cannot be scored or replayed.
 
-Every command above runs with `--session <run-id>` on the real call (Page Testing Workflow step 0); the table omits it for readability.
+Every command above runs with `--session expect-<run-id>` on the real call (Page Testing Workflow step 0); the table omits it for readability.
 
 Chain commands with `&&`:
 ```bash
@@ -66,7 +66,7 @@ agent-browser --session expect-<run-id> open http://localhost:3000/login && agen
 ## ARIA Selector Patterns
 
 ALWAYS prefer ARIA selectors over CSS. They survive redesigns.
-(Every example below runs with `--session <run-id>` on the real call, omitted for readability.)
+(Every example below runs with `--session expect-<run-id>` on the real call, omitted for readability.)
 
 ```bash
 # BY ACCESSIBLE NAME (best — most stable)

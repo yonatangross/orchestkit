@@ -92,27 +92,34 @@ else
     bad "execution.md close guidance lacks an explicit --session"
 fi
 
-# --- same-session arm: the documented close names the session the open did
+# --- same-session arm: every documented --session equals the open token
 # The workflow block pins one token ($tok from the static arm). Every
-# `agent-browser --session X` command in execution.md, which holds the
-# close recipe, must name the same X.
+# --session token the docs put on a real call must equal it: the
+# `agent-browser --session X` commands in both docs (the close recipe in
+# execution.md, the chain example and rule 7 in expect-agent.md) and the
+# two "on the real call" notes that tell the agent what flag to write on
+# table rows. A different name (for example bare `<run-id>`) sends the
+# command to a session this run never opened.
 if [[ "${ntok:-0}" != 1 || -z "${tok:-}" ]]; then
-    bad "cannot compare close session: workflow token is not pinned to one value"
+    bad "cannot compare documented sessions: workflow token is not pinned to one value"
 else
-    exec_cmds="$(grep -oE 'agent-browser --session [^ ,`)]+' "$EXEC_DOC" || true)"
-    if [[ -z "$exec_cmds" ]]; then
-        bad "execution.md carries no 'agent-browser --session X' commands to compare"
+    all_sess="$(
+        { grep -hoE 'agent-browser --session [^ ,`)]+' "$DOC" "$EXEC_DOC" | sed 's/.*--session //'
+          grep -hE 'on the real call' "$DOC" | grep -oE -- '--session [^ ,`)]+' | sed 's/^--session //'
+        } | sort -u
+    )"
+    if [[ -z "$all_sess" ]]; then
+        bad "no --session tokens found to compare against the workflow token"
     else
         mismatch=0
-        while IFS= read -r ecline; do
-            [[ -z "$ecline" ]] && continue
-            s="${ecline##*--session }"
+        while IFS= read -r s; do
+            [[ -z "$s" ]] && continue
             if [[ "$s" != "$tok" ]]; then
-                bad "execution.md names session '$s' but the workflow opens '$tok': $ecline"
+                bad "documented session '$s' differs from the session the open names ($tok)"
                 mismatch=1
             fi
-        done <<< "$exec_cmds"
-        [[ "$mismatch" -eq 0 ]] && ok "execution.md agent-browser commands name the same session as the open ($tok)"
+        done <<< "$all_sess"
+        [[ "$mismatch" -eq 0 ]] && ok "every documented --session equals the open token ($tok)"
     fi
 fi
 
