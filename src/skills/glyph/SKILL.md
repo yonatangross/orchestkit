@@ -11,7 +11,7 @@ argument-hint: "[topic-to-render]"
 effort: low
 metadata:
   category: document-asset-creation
-  version: "3.0.0"
+  version: "3.1.0"
   author: "OrchestKit"
   complexity: "low"
   tags: "ascii, diagrams, visualization, box-drawing, terminal, quick"
@@ -51,6 +51,7 @@ Given a topic (or the conversation, when none is given):
    | ranked list, scores, counts | table + bar meters |
    | over time | sparkline or milestone track |
    | triage open issues, what is left, categorize the backlog | **triage page** (`templates/triage.html`). Not an inline render. |
+| explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`references/js-art.md`). Chat stays ASCII. |
 
 3. **Emit inline in the reply, except the triage page.** Never write a file unless the user asked for one. The triage row above is the exception: that answer is `templates/triage.html`, not an inline render. Every other answer stays in the reply.
 4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
@@ -66,6 +67,8 @@ Given a topic (or the conversation, when none is given):
 
 **Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
+
+**JS art is for pages; chat stays ASCII.** When the answer is already a page (an explainer, a NOW vs IDEAL plan), the page carries one animated piece above its first beat: an inline `<canvas>`, a Now/Ideal toggle, a Play/Pause button, and a text alt on the canvas. Build it from `references/js-art.md`: paste one pattern (flow dots, gate, before/after meter, or real-data bars from a JSON array in the page), then the kernel. `draw(ctx, t, mode)` is pure, so `window.seek(t)` can capture any frame to mp4 or gif; `prefers-reduced-motion` gets one still frame and no animation loop; no `Math.random`, no network. A piece that shows measured numbers draws `?` for a value you do not have. Never put JS art in a chat reply.
 
 ## Render anatomy (the v3 reference shape)
 
