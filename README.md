@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152)** · 2026-10-04
+
+- **brainstorm:** scope the turn-end survival claim (#4593)
+
 **[v10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151)** · 2026-10-04
 
 - **test:** retain dispatcher stderr in the session_id quarantine probe (#4592)
@@ -658,10 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.145](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.144...v10.0.0-beta.145)** · 2026-10-02
 
 - **hooks:** do not spawn the session namer under test (#4569)
-
-**[v10.0.0-beta.144](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.143...v10.0.0-beta.144)** · 2026-10-02
-
-- **skills:** nest frontmatter command hooks (#4581)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
