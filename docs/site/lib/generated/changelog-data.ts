@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.153",
+    "date": "2026-10-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** close docs.yml gate gaps on filter paths and cancel-in-progress ([#4591](https://github.com/yonatangross/orchestkit/issues/4591)) ([7316a1d](https://github.com/yonatangross/orchestkit/commit/7316a1d73aef549ee31a549149674dc0cdf555d8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.152",
     "date": "2026-10-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152",

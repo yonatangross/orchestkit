@@ -6,11 +6,27 @@ name: Docs Site
 on:
   push:
     branches: [main, dev]
+    # Keep in sync with the paths-filter `docs` list below: every input the
+    # validate/build jobs consume must appear in BOTH places, or a PR that
+    # breaks one of them gets a green required check with no build.
+    # tests/ci/test-docs-yml-filter-parity.sh enforces this in CI.
     paths:
       - "src/skills/**"
       - "src/agents/**"
       - "src/hooks/hooks.json"
       - "docs/site/**"
+      - "docs/stubs/**"
+      - "scripts/_build-docs-generate.py"
+      - "scripts/build-docs.sh"
+      - "scripts/build-plugins.sh"
+      - "scripts/check-docs-facts.mjs"
+      - "scripts/lib/parse-frontmatter.js"
+      - "scripts/seo/link-graph.mjs"
+      - "shared/cc-support.json"
+      - "manifests/ork.json"
+      - "package.json"
+      - "package-lock.json"
+      - ".nvmrc"
       - ".github/workflows/docs.yml"
   pull_request:
     branches: [main, dev]
@@ -45,6 +61,18 @@ jobs:
               - 'src/agents/**'
               - 'src/hooks/hooks.json'
               - 'docs/site/**'
+              - 'docs/stubs/**'
+              - 'scripts/_build-docs-generate.py'
+              - 'scripts/build-docs.sh'
+              - 'scripts/build-plugins.sh'
+              - 'scripts/check-docs-facts.mjs'
+              - 'scripts/lib/parse-frontmatter.js'
+              - 'scripts/seo/link-graph.mjs'
+              - 'shared/cc-support.json'
+              - 'manifests/ork.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.nvmrc'
               - '.github/workflows/docs.yml'
 
   validate:
@@ -102,11 +130,14 @@ jobs:
     permissions:
       contents: read
     needs: [changes, validate]
-    # Always runs, so the required context always reports: red when detection
-    # or validation failed, green with a notice when no docs-site input changed
-    # (a skipped required check never reads as SUCCESS at the merge door, which
-    # blocked every weekly traffic-snapshot bot PR), full build otherwise.
-    if: always()
+    # Runs on every non-cancelled run, so the required context always reports:
+    # red when detection or validation failed, green with a notice when no
+    # docs-site input changed (a skipped required check never reads as SUCCESS
+    # at the merge door, which blocked every weekly traffic-snapshot bot PR),
+    # full build otherwise. `!cancelled()` keeps that contract while letting
+    # concurrency cancel-in-progress stop the superseded build; `always()`
+    # ignored the cancellation and ran two builds at once (#4496).
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:

@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.153](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153)** · 2026-10-04
+
+- **ci:** close docs.yml gate gaps on filter paths and cancel-in-progress (#4591)
+
 **[v10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152)** · 2026-10-04
 
 - **brainstorm:** scope the turn-end survival claim (#4593)
@@ -658,10 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.146](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.145...v10.0.0-beta.146)** · 2026-10-02
 
 - **glyph:** triage gate never falls back to the real Google Chrome (#4584)
-
-**[v10.0.0-beta.145](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.144...v10.0.0-beta.145)** · 2026-10-02
-
-- **hooks:** do not spawn the session namer under test (#4569)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
