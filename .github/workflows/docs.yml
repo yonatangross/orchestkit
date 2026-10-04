@@ -20,6 +20,10 @@ on:
       - "scripts/build-docs.sh"
       - "scripts/build-plugins.sh"
       - "scripts/check-docs-facts.mjs"
+      - "scripts/lib/parse-frontmatter.js"
+      - "scripts/seo/link-graph.mjs"
+      - "shared/cc-support.json"
+      - "manifests/ork.json"
       - "package.json"
       - "package-lock.json"
       - ".nvmrc"
@@ -62,6 +66,10 @@ jobs:
               - 'scripts/build-docs.sh'
               - 'scripts/build-plugins.sh'
               - 'scripts/check-docs-facts.mjs'
+              - 'scripts/lib/parse-frontmatter.js'
+              - 'scripts/seo/link-graph.mjs'
+              - 'shared/cc-support.json'
+              - 'manifests/ork.json'
               - 'package.json'
               - 'package-lock.json'
               - '.nvmrc'

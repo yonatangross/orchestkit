@@ -13,9 +13,11 @@
 #
 # Arms:
 #   parity:  push paths and paths-filter docs hold the same set
-#   inputs:  every file in GENERATOR_INPUTS appears in BOTH lists
-#   exists:  every file in GENERATOR_INPUTS exists on disk (a rename that
-#            drops one must be loud, not silent)
+#   inputs:  every file in GENERATOR_INPUTS and JOB_INPUTS appears in
+#            BOTH lists (a name removed from both lists keeps parity,
+#            so the lists alone cannot catch it)
+#   exists:  every file in GENERATOR_INPUTS and JOB_INPUTS exists on
+#            disk (a rename that drops one must be loud, not silent)
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,6 +41,27 @@ GENERATOR_INPUTS=(
     scripts/build-docs.sh
     scripts/_build-docs-generate.py
     scripts/check-docs-facts.mjs
+)
+
+# The non-script files the validate/build jobs read, direct or through
+# an import. #4591 round 2 (HOLD): each had 0 lines in docs.yml, so a
+# change to one earned docs=false and a green required `build` notice
+# with no validation. Globs cannot be -f checked; the exists arm skips
+# them but both list checks still apply.
+#   shared/cc-support.json        check-docs-facts.mjs reads supported_floor
+#   manifests/ork.json            docs/site/lib/constants.ts imports it
+#   scripts/seo/link-graph.mjs    gen-related-graph + search-suggest index
+#   scripts/lib/parse-frontmatter.js  required by link-graph.mjs
+#   package.json, package-lock.json, .nvmrc   npm ci + setup-node inputs
+JOB_INPUTS=(
+    shared/cc-support.json
+    manifests/ork.json
+    scripts/seo/link-graph.mjs
+    scripts/lib/parse-frontmatter.js
+    package.json
+    package-lock.json
+    .nvmrc
+    "docs/stubs/**"
 )
 
 # extract_paths <mode>: print one path per line, quotes stripped.
@@ -81,7 +104,7 @@ else
     else
         bad "push paths and paths-filter docs differ:"
         diff <(printf '%s\n' "$PUSH_LIST" | sort) \
-             <(printf '%s\n' "$FILTER_LIST" | sort) | sed 's/^/      /'
+             <(printf '%s\n' "$FILTER_LIST" | sort) | sed 's/^/      /' || true
     fi
 fi
 
@@ -89,11 +112,13 @@ fi
 in_list() {  # in_list <needle> <haystack-lines>
     printf '%s\n' "$2" | grep -qxF "$1"
 }
-for f in "${GENERATOR_INPUTS[@]}"; do
-    if [[ -f "$REPO_ROOT/$f" ]]; then
+for f in "${GENERATOR_INPUTS[@]}" "${JOB_INPUTS[@]}"; do
+    if [[ "$f" == *'*'* ]]; then
+        : # glob entry: existence cannot be -f checked
+    elif [[ -f "$REPO_ROOT/$f" ]]; then
         ok "$f exists on disk"
     else
-        bad "$f is named a generator input but is missing on disk"
+        bad "$f is named a job input but is missing on disk"
     fi
     missing=""
     in_list "$f" "$PUSH_LIST"   || missing="push paths"
