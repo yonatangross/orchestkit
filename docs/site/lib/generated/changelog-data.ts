@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.150",
+    "date": "2026-10-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**expect:** scope browser close to the run's own session ([#4594](https://github.com/yonatangross/orchestkit/issues/4594)) ([b3e6925](https://github.com/yonatangross/orchestkit/commit/b3e6925970ecc5db54205299686b58ec39c7660d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.149",
     "date": "2026-10-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149",
