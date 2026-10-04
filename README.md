@@ -630,6 +630,23 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.150](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150)** · 2026-10-04
+
+- **expect:** scope browser close to the run's own session (#4594)
+
+**[v10.0.0-beta.149](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149)** · 2026-10-04
+
+- **test:** make careful-guard link-to-temp case platform-stable (#4590)
+
+**[v10.0.0-beta.148](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148)** · 2026-10-04
+
+- **glyph:** JS art pieces for glyph pages (#4599)
+- **mods:** register memory-lens in the marketplace, gate missing entries (#4587)
+
+**[v10.0.0-beta.147](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147)** · 2026-10-03
+
+- **cc:** adopt Claude Code 2.1.285 through 2.1.288 (#4588)
+
 **[v10.0.0-beta.146](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.145...v10.0.0-beta.146)** · 2026-10-02
 
 - **glyph:** triage gate never falls back to the real Google Chrome (#4584)
@@ -645,22 +662,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.143](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.142...v10.0.0-beta.143)** · 2026-10-02
 
 - **glyph:** avoid macOS Chrome app launches in sandboxes (#4580)
-
-**[v10.0.0-beta.142](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.141...v10.0.0-beta.142)** · 2026-10-02
-
-- **deps:** bump dompurify from 3.4.14 to 3.4.16 in /docs/site (#4578)
-
-**[v10.0.0-beta.141](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.140...v10.0.0-beta.141)** · 2026-10-01
-
-- **skills:** careful and freeze, on-demand guard hooks in a skill (#4576)
-
-**[v10.0.0-beta.140](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.139...v10.0.0-beta.140)** · 2026-10-01
-
-- **review-pr:** opt-in rule-check mode, one verifier per rule (#4573)
-
-**[v10.0.0-beta.139](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.138...v10.0.0-beta.139)** · 2026-10-01
-
-- **skills:** brainstorm diverges at effort low, implement effort ladder (#4572)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

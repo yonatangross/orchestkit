@@ -272,16 +272,20 @@ il_input() { # il_input <session_id>
 
 # Drive the dispatcher with a chosen TMPDIR. What lands on disk is the
 # assertion; the hook's own stdout is deliberately not consulted here.
-run_instructions_loaded() { # run_instructions_loaded <tmpdir> <session_id>
+# stderr is kept when the caller names a file: an empty listing can mean the
+# 100ms stdin watchdog ran the hook on {} (#3415), and without stderr that
+# failure has no evidence (#4489).
+run_instructions_loaded() { # run_instructions_loaded <tmpdir> <session_id> [stderr-file]
   local payload; payload="$(il_input "$2")"
   # silent: best-effort
-  printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>&1 || true
+  printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>"${3:-/dev/null}" || true
 }
 
 probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
-  local sid="$1" want="$2" label="$3" root got
+  local sid="$1" want="$2" label="$3" root got err
   root="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
-  run_instructions_loaded "$root" "$sid"
+  err="$(mktemp "${TMPDIR:-/tmp}/ork-probe-stderr.XXXXXX")"
+  run_instructions_loaded "$root" "$sid" "$err"
 
   # Exactly one top-level entry, named as expected.
   got="$(find "$root" -mindepth 1 -maxdepth 1 -exec basename {} \; | sort | tr '\n' ',')"
@@ -291,8 +295,13 @@ probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
     log_pass "$label (-> $got)"
   else
     log_fail "$label — expected tmp entry '$want', got '$got'"
+    if [[ -s "$err" ]]; then
+      printf '%s\n' "  dispatcher stderr follows:"
+      sed 's/^/    /' "$err"
+    fi
   fi
   rm -rf "$root"
+  rm -f "$err"
 }
 
 probe_session_id '{"continue":true,"suppressOutput":true}' \
