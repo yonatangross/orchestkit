@@ -1259,6 +1259,7 @@ Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline 
 - **No leftover template markers.** The baseline ships bare `TITLE` / `DATE`; none may survive into the emitted file.
 - **Light theme**, deliberately: this is usually read by someone outside the team.
 - **Self-contained**: opens from `file://`, zero network references. Inline SVG, not a CDN-loaded diagram library.
+- **A page with 3 or more sections carries the sections rail**: inline `templates/rail/` (`rail.html` markup first in `<body>`, `rail.css` in a `<style>` block, `rail.js` in a `<script>` block), one entry per section in page order. The contract and the token list are in `templates/rail/README.md`; `tests/unit/test-glyph-rail.mjs` holds the behaviour. It is plain files, so a Codex or Cursor lane writing the page uses the same rail.
 - **No em-dash characters** in the emitted page; several house verify scripts grep for them.
 
 ## 4. Not done until you have looked at it

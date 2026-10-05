@@ -1,0 +1,18 @@
+<!-- rail.html: the markup of the side sections rail. Copy it as the first thing in <body>.
+     One <li> per section the page already has, in page order, numbered 01, 02 and so on.
+     Each href must name a real section id; the button's <b> starts as the first entry.
+     Give the page's main element id="pk-main" (the skip link target) and put
+     <style> rail.css </style> in the head and <script> rail.js </script> at the end of body. -->
+<a class="pk-skip" href="#pk-main">Skip to the page</a>
+<aside class="pk-rail" id="pk-rail" aria-label="Sections of this page">
+  <button type="button" class="pk-rail-toggle" id="pk-rail-toggle" aria-expanded="false" aria-controls="pk-rail-list"><span>Sections</span><b id="pk-rail-now">01 Verdict</b></button>
+  <a class="pk-rail-title" href="#top">Page title<span>2026-01-01</span></a>
+  <div class="pk-rail-progress" aria-hidden="true"><i id="pk-rail-bar"></i></div>
+  <ol class="pk-rail-list" id="pk-rail-list">
+    <li><a class="pk-rail-sec" href="#s-verdict"><b>01</b><span>Verdict</span></a></li>
+    <li><a class="pk-rail-sec" href="#s-how"><b>02</b><span>How it works</span></a></li>
+    <li><a class="pk-rail-sec" href="#s-next"><b>03</b><span>Next</span></a></li>
+  </ol>
+  <p class="pk-rail-foot">With focus in the rail, [ and ] move between sections</p>
+  <div class="pk-sr-only" id="pk-rail-say" role="status" aria-live="polite"></div>
+</aside>
