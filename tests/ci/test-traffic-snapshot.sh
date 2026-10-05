@@ -143,6 +143,22 @@ cat > "$FX/referrers-local.json" <<'EOF'
   {"referrer": "duckduckgo.com", "count": 6, "uniques": 5}
 ]
 EOF
+# Edge shapes of a local host (CodeRabbit review on #4626): a trailing dot,
+# all of 127.0.0.0/8, 0.0.0.0, IPv4-mapped and expanded ::1. The two public
+# near-misses must survive: a parser that over-matches fails them.
+cat > "$FX/referrers-local-edge.json" <<'EOF'
+[
+  {"referrer": "example.com", "count": 8, "uniques": 6},
+  {"referrer": "x.localhost.", "count": 1, "uniques": 1},
+  {"referrer": "localhost.", "count": 1, "uniques": 1},
+  {"referrer": "https://x.localhost.:3000/", "count": 1, "uniques": 1},
+  {"referrer": "127.0.0.2", "count": 1, "uniques": 1},
+  {"referrer": "0.0.0.0", "count": 1, "uniques": 1},
+  {"referrer": "[::ffff:127.0.0.1]", "count": 1, "uniques": 1},
+  {"referrer": "0:0:0:0:0:0:0:1", "count": 1, "uniques": 1},
+  {"referrer": "localhost.example.com", "count": 2, "uniques": 2}
+]
+EOF
 # fault fixtures
 printf 'not json at all\n' > "$FX/clones-garbage.json"
 # bad types: .count is a string; buckets valid and in-window
@@ -225,6 +241,24 @@ if ! grep -qE 'localhost|127\.0\.0\.1|::1' "$LOUT"; then
   ok "local: no local host string anywhere in the row"
 else
   bad "local: row still names a local host: $(grep -oE '"referrer":"[^"]*"' "$LOUT" | tr '\n' ' ')"
+fi
+
+# --- local referrer edge shapes ------------------------------------------------
+EDIR="$WORK/local-edge"
+mkdir -p "$EDIR"
+run_traffic "$EDIR/stdout" "$EDIR/stderr" "$EDIR/ghout" "$EDIR/snapshots.jsonl" \
+  TRAFFIC_STUB_REFERRERS_FILE=referrers-local-edge.json
+EOUT="$EDIR/snapshots.jsonl"
+if [ "$RC" -eq 0 ]; then ok "local edge: exit 0"; else bad "local edge: exit $RC; stderr: $(cat "$EDIR/stderr")"; fi
+if jq -e '[.referrers.items[].referrer] | sort == ["example.com", "localhost.example.com"]' "$EOUT" > /dev/null; then
+  ok "local edge: the 7 local shapes are dropped, the 2 public hosts survive"
+else
+  bad "local edge: survivors wrong: $(jq -r '.referrers.items[].referrer' "$EOUT" 2>/dev/null | tr '\n' ' ')"
+fi
+if jq -e '.referrers.local_dropped == 7' "$EOUT" > /dev/null; then
+  ok "local edge: local_dropped counts the 7"
+else
+  bad "local edge: local_dropped wrong: $(jq '.referrers.local_dropped' "$EOUT" 2>/dev/null)"
 fi
 
 # --- fault arms: every one must exit non-zero and write NOTHING ------------------
