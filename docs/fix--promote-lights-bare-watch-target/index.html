@@ -1,0 +1,78 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>promote-lights: /lights takes a bare watch target</title>
+<meta name="description" content="On a Windows screen /lights owner/#repo123 answered with the same no-PR hint as a bare /lights. The command now parses any non-empty argument as a watch target, names a bad argument, and the no-PR hint names the promote head it looked for.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style></head><body>
+
+<h1>promote-lights: /lights takes a bare watch target</h1>
+<p class="lede">Branch <code>fix/promote-lights-bare-watch-target</code>. Seen on an operator screenshot (2026-10-05, Claude Code inside Herdr on a Windows terminal, repo on branch <code>development</code>): <code>/lights owner/#repo123</code> answered with the same line as a bare <code>/lights</code>.</p>
+
+<p class="verdict"><b>Verdict.</b> The /lights handler tested only <code>off</code>, <code>refresh</code> and <code>watch</code>; every other first word fell through to the no-PR hint. Now any other non-empty argument goes through <code>parseWatchTarget</code>: a match starts the watch, a miss gets its own line naming the word. The no-PR hint names the head it looked for and the PROMOTE_HEAD override.</p>
+
+<div class="kpis">
+<div class="kpi"><b>121</b><span>tests passing in mods/promote-lights</span></div>
+<div class="kpi"><b>5</b><span>test files passing</span></div>
+<div class="kpi"><b>+12</b><span>new tests over main</span></div>
+<div class="kpi"><b>0</b><span>gh calls for a bad argument</span></div>
+</div>
+
+<h2>1. What the command answers now</h2>
+<table>
+<tr><th>Input</th><th>Before</th><th>After</th></tr>
+<tr><td><code>/lights owner/repo#12</code></td><td>no-PR hint</td><td>starts the watch, same as <code>/lights watch owner/repo#12</code></td></tr>
+<tr><td><code>/lights owner/#repo123</code></td><td>no-PR hint</td><td><code>lights: unknown argument "owner/#repo123"; try /lights watch owner/repo#123, for example cli/cli#1</code></td></tr>
+<tr><td><code>/lights</code> on a repo on <code>development</code></td><td>no-PR hint</td><td><code>no promote PR open with head "dev" into main (set PROMOTE_HEAD to look for another); try /lights watch owner/repo#123, for example cli/cli#1</code></td></tr>
+</table>
+
+<h2>2. Before / after in the handler</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<pre>off, refresh, watch matched.
+Every other first word fell
+through to the stored lookup
+and then to NO_PR_HINT, so a
+bad target and no target read
+the same.</pre></div>
+<div class="card after"><h3>After</h3>
+<pre>off, refresh, watch matched.
+A non-empty argument goes to
+parseWatchTarget: a match runs
+startWatch, a miss answers
+unknownArgHint(word). Only an
+empty args reads the store and
+the no-PR hint.</pre></div>
+</div>
+
+<h2>3. Skipped runs no longer drag a success yellow</h2>
+<p class="verdict"><b>Second fault, measured on Nir's Windows setup (acct-nir-request-4, 2026-10-05).</b> A check name with two runs on the head, one success and one skipped, counted as yellow: a rerun leaves a skipped sibling under the same name, and worst-wins across ALL runs read [skipped, success] as yellow forever. A green bundle printed "3 yellow".</p>
+<table>
+<tr><th>Runs under one name</th><th>Before</th><th>After</th></tr>
+<tr><td>success + skipped</td><td>yellow</td><td>green (skipped is a non-verdict)</td></tr>
+<tr><td>skipped only</td><td>yellow</td><td>yellow (never ran, not pass)</td></tr>
+<tr><td>success + failure</td><td>red</td><td>red (GH-4177 worst-wins unchanged)</td></tr>
+<tr><td>success + in_progress</td><td>yellow</td><td>yellow</td></tr>
+<tr><td>success + cancelled</td><td>cancelled</td><td>cancelled</td></tr>
+</table>
+
+<h2>4. Test count</h2>
+<table>
+<tr><th>Step</th><th>Result</th></tr>
+<tr><td><code>npm ci</code> then <code>npx vitest run</code> in mods/promote-lights</td><td>121 passed, 5 test files (was 109 on main)</td></tr>
+<tr><td><code>npx tsc --noEmit</code> in mods/promote-lights</td><td>clean</td></tr>
+</table>
+
+<h2>5. Not measured</h2>
+<p class="warn"><b>Windows, not measured.</b> The lane runs on macOS and cannot drive Claude Code on a Windows terminal. The change is covered by unit tests only; the strings above are the literals the handler returns.</p>
+</body></html>
