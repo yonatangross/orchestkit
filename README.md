@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157)** · 2026-10-05
+
+- **lesson-cards:** home via env, /lessons before corpus load (#4625)
+
 **[v10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156)** · 2026-10-05
 
 - **promote-lights:** /lights takes a bare watch target (#4624)
@@ -661,10 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.150](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150)** · 2026-10-04
 
 - **expect:** scope browser close to the run's own session (#4594)
-
-**[v10.0.0-beta.149](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149)** · 2026-10-04
-
-- **test:** make careful-guard link-to-temp case platform-stable (#4590)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
