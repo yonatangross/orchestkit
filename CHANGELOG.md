@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157) (2026-10-05)
+
+
+### Bug Fixes
+
+* **lesson-cards:** home via env, /lessons before corpus load ([#4625](https://github.com/yonatangross/orchestkit/issues/4625)) ([8cbcb1d](https://github.com/yonatangross/orchestkit/commit/8cbcb1d2b0871e92b93e5496cf817c4769871545))
+
 ## [10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156) (2026-10-05)
 
 
