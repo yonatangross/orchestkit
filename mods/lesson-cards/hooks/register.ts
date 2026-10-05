@@ -15,7 +15,6 @@
 
 import {
   parseLessonsMd,
-  homeDir,
   joinPath,
   type Corpus,
   type LessonPattern,
@@ -173,14 +172,17 @@ async function loadLessonsMds($: Hook$, home: string): Promise<LessonBullet[]> {
  */
 async function loadCorpus($: Hook$): Promise<Corpus> {
   // A mod has no process.env: HOME comes from $.env (types/claude-code.d.ts `$.env.get("HOME")`).
-  // With homeDir() alone the path was relative, resolved under the session's cwd, and the
-  // corpus loaded 0 entries on CC 2.1.282.
-  const home = (await $.env.get('HOME').catch(() => undefined)) || homeDir();
+  // On Windows HOME is normally unset and USERPROFILE set, so read it second through the
+  // same env reader. Never read the process global: a mod worker does not have it.
+  const home =
+    (await $.env.get('HOME').catch(() => undefined)) ||
+    (await $.env.get('USERPROFILE').catch(() => undefined)) ||
+    '';
   const startTime = Date.now();
 
   // No home means every corpus path would be relative and resolve under the session's cwd.
   if (!home) {
-    return { patterns: [], bullets: [], loadedAt: startTime, loadError: 'HOME is not set' };
+    return { patterns: [], bullets: [], loadedAt: startTime, loadError: 'HOME and USERPROFILE are not set' };
   }
 
   try {
@@ -234,10 +236,18 @@ function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
  */
 export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
   on('session.start', async ($: Hook$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
-    corpus = await loadCorpus($);
+    // Register first: CC skips the whole hook when session.start throws, so a
+    // corpus load failure must never take the /lessons command down with it
+    // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
+    await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     interactive = e.isInteractive === true;
     matchMap.clear();
-    await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
+    corpus = await loadCorpus($).catch((err: unknown) => ({
+      patterns: [],
+      bullets: [],
+      loadedAt: Date.now(),
+      loadError: err instanceof Error ? err.message : 'Unknown error',
+    }));
     return next(e);
   });
 
@@ -325,7 +335,12 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
   });
 
   on('command.run', { command: 'lessons' }, async ($: Hook$) => {
-    corpus = await loadCorpus($);
+    corpus = await loadCorpus($).catch((err: unknown) => ({
+      patterns: [],
+      bullets: [],
+      loadedAt: Date.now(),
+      loadError: err instanceof Error ? err.message : 'Unknown error',
+    }));
     matchMap.clear();
     try {
       await $.ui.invalidate('ui.render');
@@ -333,6 +348,12 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       // nothing drawn yet: nothing to refresh
     }
     const n = corpus ? corpus.patterns.length + corpus.bullets.length : 0;
+    if (n === 0) {
+      const reason = corpus?.loadError ? `: ${corpus.loadError}` : '';
+      return {
+        text: `Lessons reloaded (0 entries)${reason}. Lessons come from configs/lesson-patterns.json in the newest hq-ext cache and ~/.claude/hq/floor-*/lessons.md.`,
+      };
+    }
     return { text: `Lessons reloaded (${n} entries)` };
   });
 }
