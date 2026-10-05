@@ -103,12 +103,21 @@ export function isPassing(lights: readonly ClassifiedLight[]): boolean {
  * Order-independent worst case wins per context (GH-4177): reruns can put
  * several runs under one name at the same sha and the API order is not a
  * contract, so the verdict for a name is computed from the SET of its runs,
- * never from which run arrived first or last. ANY run under a name that is
- * not success means that name is NOT passing: a pending, skipped, cancelled,
- * failed, or unknown run each blocks the pass even when a green rerun sits
- * next to it. The representative color shown is the worst color present:
- * red beats cancelled beats yellow beats green. A name with no runs is red
- * (not run).
+ * never from which run arrived first or last. ANY non-skipped run under a
+ * name that is not success means that name is NOT passing: a pending,
+ * cancelled, failed, or unknown run each blocks the pass even when a green
+ * rerun sits next to it. The representative color shown is the worst color
+ * present: red beats cancelled beats yellow beats green. A name with no
+ * runs is red (not run).
+ *
+ * Skipped runs are the one exception (acct-nir-request-4, measured on Nir's
+ * Windows setup 2026-10-05): a rerun or a conditional leg leaves a skipped
+ * sibling under the same name, and worst-wins read [skipped, success] as
+ * yellow forever, so a green bundle printed "3 yellow". GitHub itself treats
+ * a skipped required check as satisfied, so skipped runs are dropped from
+ * the verdict pool when the name has any real verdict. A name whose runs
+ * are ALL skipped keeps its present colour: yellow (the check never ran,
+ * so it is not pass).
  */
 export function matchAndClassify(
   requiredContexts: string[],
@@ -135,12 +144,19 @@ export function matchAndClassify(
       continue;
     }
 
-    // Classify EVERY run under the name and take the worst color. This is
+    // Skipped runs carry no verdict: drop them when the name has any
+    // non-skipped run, so a skipped sibling cannot drag a success yellow.
+    // When every run under the name is skipped the pool stays the skipped
+    // set and the name keeps its present colour, yellow.
+    const verdicts = matching.filter((r) => r.conclusion !== "skipped");
+    const pool = verdicts.length > 0 ? verdicts : matching;
+
+    // Classify EVERY run in the pool and take the worst color. This is
     // the order-independent core: sorting the same runs into any order
     // yields the same worst color, so [success, in_progress] and
     // [in_progress, success] both read pending, and a green rerun next to
     // a failure never resuscitates the name.
-    const classified = matching.map((r) => classifyCheckRun(r));
+    const classified = pool.map((r) => classifyCheckRun(r));
     const worst = classified.reduce((a, b) =>
       SEVERITY[b.color] > SEVERITY[a.color] ? b : a
     );

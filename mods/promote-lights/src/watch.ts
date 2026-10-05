@@ -44,7 +44,7 @@ export function formatWatchTarget(t: WatchTarget): string {
 /**
  * Every distinct check-run name on a head, in first-seen order. Used when the
  * watched repo protects nothing: the lights then cover every check that ran,
- * and matchAndClassify still takes the worst run per name.
+ * and matchAndClassify takes the worst non-skipped run per name.
  */
 export function allCheckNames(runs: ReadonlyArray<{ name: string }>): string[] {
   const seen = new Set<string>();

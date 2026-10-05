@@ -22,9 +22,9 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px
 <p class="verdict"><b>Verdict.</b> The /lights handler tested only <code>off</code>, <code>refresh</code> and <code>watch</code>; every other first word fell through to the no-PR hint. Now any other non-empty argument goes through <code>parseWatchTarget</code>: a match starts the watch, a miss gets its own line naming the word. The no-PR hint names the head it looked for and the PROMOTE_HEAD override.</p>
 
 <div class="kpis">
-<div class="kpi"><b>119</b><span>tests passing in mods/promote-lights</span></div>
+<div class="kpi"><b>121</b><span>tests passing in mods/promote-lights</span></div>
 <div class="kpi"><b>5</b><span>test files passing</span></div>
-<div class="kpi"><b>+10</b><span>new tests over main</span></div>
+<div class="kpi"><b>+12</b><span>new tests over main</span></div>
 <div class="kpi"><b>0</b><span>gh calls for a bad argument</span></div>
 </div>
 
@@ -55,13 +55,24 @@ empty args reads the store and
 the no-PR hint.</pre></div>
 </div>
 
-<h2>3. Test count</h2>
+<h2>3. Skipped runs no longer drag a success yellow</h2>
+<p class="verdict"><b>Second fault, measured on Nir's Windows setup (acct-nir-request-4, 2026-10-05).</b> A check name with two runs on the head, one success and one skipped, counted as yellow: a rerun leaves a skipped sibling under the same name, and worst-wins across ALL runs read [skipped, success] as yellow forever. A green bundle printed "3 yellow".</p>
+<table>
+<tr><th>Runs under one name</th><th>Before</th><th>After</th></tr>
+<tr><td>success + skipped</td><td>yellow</td><td>green (skipped is a non-verdict)</td></tr>
+<tr><td>skipped only</td><td>yellow</td><td>yellow (never ran, not pass)</td></tr>
+<tr><td>success + failure</td><td>red</td><td>red (GH-4177 worst-wins unchanged)</td></tr>
+<tr><td>success + in_progress</td><td>yellow</td><td>yellow</td></tr>
+<tr><td>success + cancelled</td><td>cancelled</td><td>cancelled</td></tr>
+</table>
+
+<h2>4. Test count</h2>
 <table>
 <tr><th>Step</th><th>Result</th></tr>
-<tr><td><code>npm ci</code> then <code>npx vitest run</code> in mods/promote-lights</td><td>119 passed, 5 test files (was 109 on main)</td></tr>
+<tr><td><code>npm ci</code> then <code>npx vitest run</code> in mods/promote-lights</td><td>121 passed, 5 test files (was 109 on main)</td></tr>
 <tr><td><code>npx tsc --noEmit</code> in mods/promote-lights</td><td>clean</td></tr>
 </table>
 
-<h2>4. Not measured</h2>
+<h2>5. Not measured</h2>
 <p class="warn"><b>Windows, not measured.</b> The lane runs on macOS and cannot drive Claude Code on a Windows terminal. The change is covered by unit tests only; the strings above are the literals the handler returns.</p>
 </body></html>
