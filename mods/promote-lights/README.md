@@ -114,6 +114,7 @@ One REST call group per minute. Measured over 10 minutes with a real PR: at most
 - `/lights off` - stop tracking and clear the band
 - `/lights refresh` - force immediate refresh
 - `/lights watch owner/repo#N` - show lights for any open PR (demo mode)
+- `/lights owner/repo#N` - the same, without the watch word (also `owner/repo N` and PR URLs)
 
 ## Acceptance checklist
 

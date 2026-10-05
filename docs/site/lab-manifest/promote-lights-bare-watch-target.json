@@ -1,0 +1,8 @@
+{
+  "slug": "promote-lights-bare-watch-target",
+  "source": "docs/fix--promote-lights-bare-watch-target/index.html",
+  "title": "promote-lights: /lights takes a bare watch target",
+  "description": "A non-empty /lights argument goes through parseWatchTarget: a match starts the watch, a miss names the word. The no-PR hint names the head it looked for and the PROMOTE_HEAD override.",
+  "tags": ["mods", "promote-lights", "windows", "ux"],
+  "date": "2026-10-05"
+}
