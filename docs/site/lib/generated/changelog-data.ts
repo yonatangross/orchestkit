@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.157",
+    "date": "2026-10-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**lesson-cards:** home via env, /lessons before corpus load ([#4625](https://github.com/yonatangross/orchestkit/issues/4625)) ([8cbcb1d](https://github.com/yonatangross/orchestkit/commit/8cbcb1d2b0871e92b93e5496cf817c4769871545))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.156",
     "date": "2026-10-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156",

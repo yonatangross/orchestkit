@@ -884,9 +884,15 @@ test_shared_load_backoff_fixture() {
 #   - tsc ABSENT: plant a test-owned exit-7 stub; remove it on cleanup.
 #   - tsc is a RELATIVE symlink (npm ci): move it aside, stub, restore with
 #     -L||-f so a dangling $tmp backup is not skipped (#4220 / CodeRabbit).
+# The nested hook runs in full mode, whatever the caller's ORK_PRE_PUSH_MODE.
+# A lane push exports targeted, and the nested hook inherited it: targeted mode
+# skips the typecheck stage this case plants a tsc stub for (exit 0, want 7),
+# and it takes a machine-wide test slot (#4238) while the push running this
+# suite already holds one, so a second holder anywhere failed the case with
+# "could not acquire a test slot". Full mode runs the stage and takes no slot.
 _run_pre_push_for_exit_status() {
     local hook="$1" rc=0 out
-    out=$(/bin/bash "$hook" origin "https://example.invalid/repo.git" \
+    out=$(ORK_PRE_PUSH_MODE=full /bin/bash "$hook" origin "https://example.invalid/repo.git" \
         <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
     printf '%s\n' "$out"
     return "$rc"
