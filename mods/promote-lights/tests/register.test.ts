@@ -288,7 +288,7 @@ describe("register", () => {
 
     expect($.command.register).toHaveBeenCalledTimes(1);
     expect($.command.register).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "lights", argumentHint: "[off|refresh|watch owner/repo#N]" })
+      expect.objectContaining({ name: "lights", argumentHint: "[off|refresh|watch] [owner/repo#N]" })
     );
   });
 });
@@ -1123,6 +1123,122 @@ describe("watch mode (demo: lights for any open PR)", () => {
     );
     const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
     expect(argvs.some((a) => a.includes("check-runs"))).toBe(false);
+  });
+});
+
+describe("/lights with a bare target or a bad argument", () => {
+  // Seen on a Windows screen 2026-10-05: "/lights owner/#repo123" answered
+  // with the no-PR hint, the same line as a bare "/lights". Any non-empty
+  // argument that is not a subcommand goes through parseWatchTarget.
+
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  test("/lights owner/repo#N starts the watch without the watch word", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "acme/widgets#77" }, NEXT)) as {
+      text: string;
+    };
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus,baseRefName -R acme/widgets");
+    expect($.clock.every).toHaveBeenCalledWith(60000, expect.any(Function));
+    const stored = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => /^lights:yonatangross\/orchestkit:/.test(String(c[0])) && (c[1] as { lights?: unknown }).lights
+    )?.[1] as { mode: string; label: string };
+    expect(stored.mode).toBe("watch");
+    expect(stored.label).toBe("watch acme/widgets#77");
+    expect(out.text).toContain("acme/widgets#77");
+  });
+
+  test("/lights owner/repo N (the space form) starts the watch too", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+
+    await handlers.get("command.run")!($, { command: "lights", args: "acme/widgets 77" }, NEXT);
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus,baseRefName -R acme/widgets");
+  });
+
+  test("/lights with a PR URL starts the watch", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+
+    await handlers.get("command.run")!(
+      $,
+      { command: "lights", args: "https://github.com/acme/widgets/pull/77" },
+      NEXT
+    );
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus,baseRefName -R acme/widgets");
+  });
+
+  test("an unparseable argument gets its own line naming the bad word and a real example", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "owner/#repo123" }, NEXT)) as {
+      text: string;
+    };
+
+    expect(out.text).toContain("owner/#repo123");
+    expect(out.text).toContain("cli/cli#1");
+    expect(out.text).not.toContain("no promote PR open");
+    expect($.process.run).not.toHaveBeenCalled();
+  });
+
+  test("a bad argument never shadows stored lights", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    const stored = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => (c[1] as { passing?: boolean }).passing !== undefined
+    )?.[1];
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(stored);
+    const callsBefore = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "bogus" }, NEXT)) as {
+      text: string;
+    };
+
+    // The bad word is reported; the tracked PR keeps its tick untouched.
+    expect(out.text).toContain("bogus");
+    expect(($.process.run as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
+  });
+
+  test("the no-PR hint names the head it looked for, the PROMOTE_HEAD override and a real example", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as {
+      text: string;
+    };
+
+    expect(out.text).toContain("no promote PR open");
+    expect(out.text).toContain("dev");
+    expect(out.text).toContain("PROMOTE_HEAD");
+    expect(out.text).toContain("cli/cli#1");
+  });
+
+  test("the no-PR hint names a configured PROMOTE_HEAD (a repo on development, not dev)", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      envGet: vi.fn(async (k: string) => (k === "PROMOTE_HEAD" ? "development" : undefined)),
+    });
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as {
+      text: string;
+    };
+
+    expect(out.text).toContain("development");
+    expect(out.text).toContain("PROMOTE_HEAD");
+    expect(out.text).not.toContain('"dev"');
   });
 });
 

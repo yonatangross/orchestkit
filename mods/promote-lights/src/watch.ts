@@ -44,7 +44,7 @@ export function formatWatchTarget(t: WatchTarget): string {
 /**
  * Every distinct check-run name on a head, in first-seen order. Used when the
  * watched repo protects nothing: the lights then cover every check that ran,
- * and matchAndClassify still takes the worst run per name.
+ * and matchAndClassify takes the worst non-skipped run per name.
  */
 export function allCheckNames(runs: ReadonlyArray<{ name: string }>): string[] {
   const seen = new Set<string>();
@@ -58,5 +58,19 @@ export function allCheckNames(runs: ReadonlyArray<{ name: string }>): string[] {
   return names;
 }
 
-export const WATCH_USAGE = "usage: /lights watch owner/repo#123 (or owner/repo 123, or a PR URL)";
-export const NO_PR_HINT = "no promote PR open; try /lights watch owner/repo#123 to show lights for any open PR";
+export const WATCH_USAGE = "usage: /lights watch owner/repo#123 (for example cli/cli#1; also owner/repo 123, or a PR URL)";
+
+/**
+ * What a bare /lights answers when nothing is tracked. Names the promote
+ * head the session search used (dev unless PROMOTE_HEAD overrides it): on a
+ * repo whose promote branch is named anything else, the bare "no promote PR
+ * open" read as a bug instead of a lookup that found nothing.
+ */
+export function noPrHint(promoteHead: string): string {
+  return `no promote PR open with head "${promoteHead}" into main (set PROMOTE_HEAD to look for another); try /lights watch owner/repo#123, for example cli/cli#1`;
+}
+
+/** An argument that is neither a subcommand nor a parseable target gets its own line. */
+export function unknownArgHint(arg: string): string {
+  return `lights: unknown argument "${arg}"; try /lights watch owner/repo#123, for example cli/cli#1`;
+}
