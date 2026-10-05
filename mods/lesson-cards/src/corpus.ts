@@ -12,6 +12,9 @@
 
 /** Home directory from the environment, without importing node:os (hooks module rule). */
 export function homeDir(): string {
+  // A mod worker has no `process` global: reading it throws a ReferenceError, which skipped
+  // the whole session.start hook when $.env.get("HOME") came back unset (measured on CC 2.1.289).
+  if (typeof process === 'undefined') return '';
   return process.env.HOME || process.env.USERPROFILE || '';
 }
 

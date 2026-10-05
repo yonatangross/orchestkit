@@ -1,0 +1,8 @@
+{
+  "slug": "lesson-cards-home-unset",
+  "source": "docs/fix--lesson-cards-home-unset-test/index.html",
+  "title": "lesson-cards: do not read process when HOME is unset",
+  "description": "Before/after for the lesson-cards HOME fix plus the mutant table for the new no-fs-calls test, the vitest count and the nit that is not done.",
+  "tags": ["mods", "lesson-cards", "testing", "mutant"],
+  "date": "2026-10-04"
+}

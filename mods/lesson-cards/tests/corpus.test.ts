@@ -2,7 +2,7 @@
  * Unit tests for the shipped corpus parser (src/corpus.ts).
  */
 
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { parseLessonsMd, joinPath, homeDir } from '../src/corpus.js';
 
 describe('parseLessonsMd', () => {
@@ -141,6 +141,15 @@ describe('path helpers', () => {
   test('joinPath drops empty segments and joins with slashes', () => {
     expect(joinPath('/home/u', '.claude', '', 'hq')).toBe('/home/u/.claude/hq');
     expect(joinPath()).toBe('');
+  });
+
+  test('homeDir does not throw when the process global is missing (mod worker)', () => {
+    vi.stubGlobal('process', undefined);
+    try {
+      expect(homeDir()).toBe('');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   test('homeDir falls back to empty string without env', () => {
