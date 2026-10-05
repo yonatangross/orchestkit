@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.156",
+    "date": "2026-10-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**promote-lights:** /lights takes a bare watch target ([#4624](https://github.com/yonatangross/orchestkit/issues/4624)) ([fe0fb75](https://github.com/yonatangross/orchestkit/commit/fe0fb752d81e051f8c07e84823bd77f1d9f3d60c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.155",
     "date": "2026-10-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155",

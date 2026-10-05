@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156)** · 2026-10-05
+
+- **promote-lights:** /lights takes a bare watch target (#4624)
+
 **[v10.0.0-beta.155](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155)** · 2026-10-05
 
 - **lesson-cards:** do not read process when HOME is unset (#4608)
@@ -661,11 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.149](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.148...v10.0.0-beta.149)** · 2026-10-04
 
 - **test:** make careful-guard link-to-temp case platform-stable (#4590)
-
-**[v10.0.0-beta.148](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.147...v10.0.0-beta.148)** · 2026-10-04
-
-- **glyph:** JS art pieces for glyph pages (#4599)
-- **mods:** register memory-lens in the marketplace, gate missing entries (#4587)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
