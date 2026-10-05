@@ -34,7 +34,8 @@ import {
   formatWatchTarget,
   allCheckNames,
   WATCH_USAGE,
-  NO_PR_HINT,
+  noPrHint,
+  unknownArgHint,
   type WatchTarget,
 } from "../src/watch.js";
 
@@ -200,7 +201,7 @@ export const register: Register = (on) => {
     await $.command.register({
       name: "lights",
       description: "CI lights for the open promote PR, or any PR with /lights watch",
-      argumentHint: "[off|refresh|watch owner/repo#N]",
+      argumentHint: "[off|refresh|watch] [owner/repo#N]",
     });
     const repo = await $.session.repo();
     const key = keyFor(repo);
@@ -386,6 +387,17 @@ export const register: Register = (on) => {
       return { text: outcome };
     }
 
+    // Any other non-empty argument is a target guess: a bare owner/repo#N,
+    // owner/repo N, or a PR URL starts the same watch as /lights watch.
+    // What does not parse gets its own line naming the word, never the
+    // no-PR hint (which says nothing about an argument it did not read).
+    if (trimmed) {
+      const target = parseWatchTarget(trimmed);
+      if (!target) return { text: unknownArgHint(arg) };
+      const outcome = await startWatch($, key, target);
+      return { text: outcome };
+    }
+
     const stored = own(await $.store.get(key));
 
     if (stored && stored.lights) {
@@ -401,7 +413,8 @@ export const register: Register = (on) => {
       };
     }
     if (stored && stored.error) return { text: `lights: ${stored.error}` };
-    return { text: NO_PR_HINT };
+    const promoteHead = (await $.env.get("PROMOTE_HEAD").catch(() => undefined)) || DEFAULT_PROMOTE_HEAD;
+    return { text: noPrHint(promoteHead) };
   });
 };
 

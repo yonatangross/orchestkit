@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156) (2026-10-05)
+
+
+### Bug Fixes
+
+* **promote-lights:** /lights takes a bare watch target ([#4624](https://github.com/yonatangross/orchestkit/issues/4624)) ([fe0fb75](https://github.com/yonatangross/orchestkit/commit/fe0fb752d81e051f8c07e84823bd77f1d9f3d60c))
+
+## [10.0.0-beta.155](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155) (2026-10-05)
+
+
+### Bug Fixes
+
+* **lesson-cards:** do not read process when HOME is unset ([#4608](https://github.com/yonatangross/orchestkit/issues/4608)) ([1a2da0b](https://github.com/yonatangross/orchestkit/commit/1a2da0b909eab41867a41ddad0b77b5265b41b56))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group ([#4618](https://github.com/yonatangross/orchestkit/issues/4618)) ([ede8569](https://github.com/yonatangross/orchestkit/commit/ede856995f1dd8a0831ba3d21d0637fb5212b11b))
+* **deps:** bump the npm-minor-patch group in /docs/site with 8 updates ([#4616](https://github.com/yonatangross/orchestkit/issues/4616)) ([0b71bfc](https://github.com/yonatangross/orchestkit/commit/0b71bfc8b7569d6c2e6345881c93f1310fc9d881))
+* **deps:** bump the remotion group ([#4617](https://github.com/yonatangross/orchestkit/issues/4617)) ([166fe79](https://github.com/yonatangross/orchestkit/commit/166fe79d3cdf46239825a02d9f33723b27aede65))
+
+
+### CI/CD
+
+* bump anthropics/claude-code-action ([#4620](https://github.com/yonatangross/orchestkit/issues/4620)) ([b3eb91a](https://github.com/yonatangross/orchestkit/commit/b3eb91ad78ba2d6841b41e210a6125fa379a52c8))
+
 ## [10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154) (2026-10-04)
 
 
