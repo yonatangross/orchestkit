@@ -2,7 +2,7 @@
 // Created: 2026-09-25
 
 import { describe, test, expect } from "vitest";
-import { parseWatchTarget, formatWatchTarget, allCheckNames } from "../src/watch.ts";
+import { parseWatchTarget, formatWatchTarget, allCheckNames, WATCH_USAGE, noPrHint, unknownArgHint } from "../src/watch.ts";
 
 describe("parseWatchTarget", () => {
   test("owner/repo#N", () => {
@@ -47,5 +47,28 @@ describe("allCheckNames", () => {
 
   test("no runs, no names", () => {
     expect(allCheckNames([])).toEqual([]);
+  });
+});
+
+describe("hint texts", () => {
+  test("WATCH_USAGE shows the watch form and a real example", () => {
+    expect(WATCH_USAGE).toContain("usage: /lights watch owner/repo#123");
+    expect(WATCH_USAGE).toContain("cli/cli#1");
+  });
+
+  test("the no-PR hint names the head it looked for, the override and a real example", () => {
+    const hint = noPrHint("development");
+    expect(hint).toContain("no promote PR open");
+    expect(hint).toContain("development");
+    expect(hint).toContain("PROMOTE_HEAD");
+    expect(hint).toContain("/lights watch owner/repo#123");
+    expect(hint).toContain("cli/cli#1");
+  });
+
+  test("the unknown-argument line names the bad word and a real example", () => {
+    const hint = unknownArgHint("owner/#repo123");
+    expect(hint).toContain("owner/#repo123");
+    expect(hint).toContain("cli/cli#1");
+    expect(hint).not.toContain("no promote PR open");
   });
 });

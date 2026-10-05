@@ -28,7 +28,7 @@ The band is built from the `Box` and `Text` elements that `$.ui.resolve(e)` hand
 `/lights watch owner/repo#123` (also `owner/repo 123` or a PR URL) points the tick at any open PR:
 
 - every gh call targets the watched repo (`-R owner/repo`); the lights still show in this session's band
-- a watched repo that protects nothing falls back to every check run on the head, worst run per name wins
+- a watched repo that protects nothing falls back to every check run on the head, worst non-skipped run per name wins
 - a new push to a watched PR is followed, not stopped (a promote PR still stops on a moved head)
 - `PROMOTE_LIGHTS_WATCH=owner/repo#123` starts watching at session start with no typing, for recorded demos
 
@@ -52,6 +52,7 @@ removes the previous entry) never shows older lights, even for a moment.
 | queued / in_progress / null | yellow circle |
 | failure / timed_out / action_required | red circle |
 | cancelled | warning sign (its own bucket, never pass) |
+| skipped | dropped when the name has a real verdict; a skipped-only name stays yellow (never ran, never pass) |
 | missing (no run found) | red circle |
 
 Cancelled runs get their own bucket because a superseded attempt leaves tiers CANCELLED, and the aggregate must read failure even though zero tests failed.
@@ -114,6 +115,7 @@ One REST call group per minute. Measured over 10 minutes with a real PR: at most
 - `/lights off` - stop tracking and clear the band
 - `/lights refresh` - force immediate refresh
 - `/lights watch owner/repo#N` - show lights for any open PR (demo mode)
+- `/lights owner/repo#N` - the same, without the watch word (also `owner/repo N` and PR URLs)
 
 ## Acceptance checklist
 
