@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.158",
+    "date": "2026-10-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**test:** nested pre-push hook runs in full mode ([#4635](https://github.com/yonatangross/orchestkit/issues/4635)) ([ee47e33](https://github.com/yonatangross/orchestkit/commit/ee47e33b17bd340330dd974cc740f10408580dac))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.157",
     "date": "2026-10-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157",
