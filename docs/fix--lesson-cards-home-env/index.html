@@ -1,0 +1,66 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lesson-cards: home from $.env HOME then USERPROFILE, /lessons registered first</title>
+<meta name="description" content="On a Windows screen /lessons answered Unknown command: the corpus load read a process global a mod worker does not have, before the command was registered. The home lookup now uses $.env for HOME then USERPROFILE, registration runs first, and a 0-lesson reload names its sources.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style></head><body>
+
+<h1>lesson-cards: home from $.env HOME then USERPROFILE, /lessons registered first</h1>
+<p class="lede">Branch <code>fix/lesson-cards-home-env</code>. Builds on the HOME-unset fix that already landed (#4608, superseding draft #4607). Seen on an operator screenshot (2026-10-05, Claude Code on a Windows terminal): <code>/lessons</code> answered <code>Unknown command: /lessons</code>.</p>
+
+<p class="verdict"><b>Verdict.</b> A mod worker has no <code>process</code> global, and on Windows <code>HOME</code> is normally unset while <code>USERPROFILE</code> is set. The home lookup now reads <code>HOME</code> then <code>USERPROFILE</code> through <code>$.env.get</code>, with no read of <code>process</code> anywhere. <code>$.command.register</code> runs before <code>loadCorpus</code>, and a <code>/lessons</code> reload that finds nothing says why and where lessons come from.</p>
+
+<div class="kpis">
+<div class="kpi"><b>92</b><span>tests passing in mods/lesson-cards</span></div>
+<div class="kpi"><b>4</b><span>test files passing</span></div>
+<div class="kpi"><b>+5</b><span>new tests over main</span></div>
+<div class="kpi"><b>0</b><span>reads of the process global</span></div>
+</div>
+
+<h2>1. What changed</h2>
+<table>
+<tr><th>Surface</th><th>Before</th><th>After</th></tr>
+<tr><td>home lookup</td><td><code>$.env.get("HOME")</code> then <code>homeDir()</code>, which read <code>process.env</code></td><td><code>$.env.get("HOME")</code> then <code>$.env.get("USERPROFILE")</code>; <code>homeDir()</code> is deleted, no code reads <code>process</code></td></tr>
+<tr><td>command registration</td><td>after <code>loadCorpus</code> in <code>session.start</code></td><td>before it; a load failure still answers <code>/lessons</code></td></tr>
+<tr><td><code>/lessons</code> with 0 lessons</td><td><code>Lessons reloaded (0 entries)</code></td><td>adds the reason (for example <code>HOME and USERPROFILE are not set</code>) and the sources: <code>configs/lesson-patterns.json</code> in the newest hq-ext cache and <code>~/.claude/hq/floor-*/lessons.md</code></td></tr>
+</table>
+
+<h2>2. Why it failed on Windows</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<pre>loadCorpus fell back to homeDir(),
+which read process.env. A mod worker
+has no process global. A failure
+before $.command.register left
+/lessons unregistered, and on Windows
+HOME is unset anyway.</pre></div>
+<div class="card after"><h3>After</h3>
+<pre>$.command.register runs first in
+session.start. loadCorpus reads HOME
+then USERPROFILE through $.env and is
+wrapped, so a throw lands in an empty
+corpus with a loadError that /lessons
+prints.</pre></div>
+</div>
+
+<h2>3. Test count</h2>
+<table>
+<tr><th>Step</th><th>Result</th></tr>
+<tr><td><code>npm ci</code> then <code>npx vitest run</code> in mods/lesson-cards</td><td>92 passed, 4 test files (was 89 on main)</td></tr>
+<tr><td><code>npx tsc --noEmit</code> in mods/lesson-cards</td><td>clean</td></tr>
+</table>
+
+<h2>4. Not measured</h2>
+<p class="warn"><b>Windows, not measured.</b> The lane runs on macOS and cannot drive Claude Code on a Windows terminal. The USERPROFILE path is covered by unit tests that stub the process global away; the real Windows home resolution is unverified.</p>
+</body></html>

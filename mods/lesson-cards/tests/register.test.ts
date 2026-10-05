@@ -52,6 +52,8 @@ interface Fake$Options {
   noticeThrows?: boolean;
   /** When set, $.ui.ask exists and answers with this label; unset = no dialog (headless). */
   askAnswer?: string;
+  /** When set, $.env.get answers from this map instead of the default HOME only. */
+  env?: Record<string, string>;
 }
 
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.283 (captured live). */
@@ -114,6 +116,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     env: {
       get: async (name: string): Promise<string | undefined> => {
         envGets.push(name);
+        if (options.env) return options.env[name];
         return name === 'HOME' ? FAKE_HOME : undefined;
       },
     },
@@ -588,6 +591,107 @@ describe('command.run', () => {
     const next = asNext<never>({});
     const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: string[] };
     expect(matched.context?.length).toBe(1);
+  });
+});
+
+describe('home lookup: HOME then USERPROFILE through $.env, never process', () => {
+  test('loads the corpus under USERPROFILE when HOME is unset (the Windows shape)', async () => {
+    const { hooks } = captureHooks();
+    const { $, envGets } = makeFake$({ env: { USERPROFILE: FAKE_HOME }, askAnswer: 'Proceed anyway' });
+    vi.stubGlobal('process', undefined);
+    try {
+      await startSession(hooks, $);
+      expect(envGets).toContain('USERPROFILE');
+      const next = asNext<never>({});
+      const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: string[] };
+      expect(matched.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test('asks for HOME before USERPROFILE', async () => {
+    const { hooks } = captureHooks();
+    const { $, envGets } = makeFake$({ env: { USERPROFILE: FAKE_HOME } });
+    await startSession(hooks, $);
+    expect(envGets.indexOf('HOME')).toBeLessThan(envGets.indexOf('USERPROFILE'));
+  });
+
+  test('registers /lessons before any env or fs read, so a load failure cannot stop it', async () => {
+    const { hooks } = captureHooks();
+    const order: string[] = [];
+    const $ = {
+      env: {
+        get: async (name: string): Promise<string | undefined> => {
+          order.push(`env:${name}`);
+          return undefined;
+        },
+      },
+      fs: {
+        list: async (path: string): Promise<null> => {
+          order.push(`list:${path}`);
+          return null;
+        },
+        read: async (): Promise<string> => '',
+        stat: async (): Promise<null> => null,
+      },
+      command: {
+        register: async (c: { name: string }): Promise<void> => {
+          order.push(`register:${c.name}`);
+        },
+      },
+      ui: { invalidate: async (): Promise<void> => undefined },
+    };
+    await startSession(hooks, $);
+    expect(order[0]).toBe('register:lessons');
+  });
+});
+
+describe('/lessons with an empty corpus', () => {
+  test('says why there are 0 lessons and where they come from (no HOME, no USERPROFILE)', async () => {
+    const { hooks } = captureHooks();
+    const registered: string[] = [];
+    const $ = {
+      env: { get: async (): Promise<string | undefined> => undefined },
+      fs: {
+        list: async (): Promise<null> => null,
+        read: async (): Promise<string> => '',
+        stat: async (): Promise<null> => null,
+      },
+      command: { register: async (c: { name: string }): Promise<void> => { registered.push(c.name); } },
+      ui: { invalidate: async (): Promise<void> => undefined },
+    };
+    vi.stubGlobal('process', undefined);
+    try {
+      await startSession(hooks, $);
+      const result = (await hooks.get('command.run')!($, { command: 'lessons' })) as { text?: string };
+      expect(result.text).toContain('0 entries');
+      expect(result.text).toContain('HOME');
+      expect(result.text).toContain('lesson-patterns.json');
+      expect(result.text).toContain('lessons.md');
+      expect(registered).toEqual(['lessons']);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test('names the sources even without a load error (home set, nothing found)', async () => {
+    const { hooks } = captureHooks();
+    const $ = {
+      env: { get: async (name: string): Promise<string | undefined> => (name === 'HOME' ? '/empty-home' : undefined) },
+      fs: {
+        list: async (): Promise<null> => null,
+        read: async (): Promise<string> => { throw new Error('not found'); },
+        stat: async (): Promise<null> => null,
+      },
+      command: { register: async (): Promise<void> => undefined },
+      ui: { invalidate: async (): Promise<void> => undefined },
+    };
+    await startSession(hooks, $);
+    const result = (await hooks.get('command.run')!($, { command: 'lessons' })) as { text?: string };
+    expect(result.text).toContain('0 entries');
+    expect(result.text).toContain('lesson-patterns.json');
+    expect(result.text).toContain('lessons.md');
   });
 });
 
