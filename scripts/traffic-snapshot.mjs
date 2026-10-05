@@ -123,6 +123,29 @@ function readDaily(endpoint, label, arrayKey) {
   return { count: body.count, uniques: body.uniques, buckets };
 }
 
+// A referrer whose host is local must not land in the public ledger or in the
+// PR body built from it: #4621 carried "floor.localhost", the host name of a
+// private board. A host is local when it IS localhost, ENDS in ".localhost",
+// or is a loopback literal. The items are dropped before the row is written
+// and only the count survives (referrers.local_dropped).
+const LOCAL_REFERRER_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+
+function isLocalReferrer(referrer) {
+  // The API sends bare hosts; tolerate a URL or host:port shape anyway.
+  const host = String(referrer)
+    .trim()
+    .toLowerCase()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//, '')
+    .split(/[/?#]/, 1)[0];
+  const bare = host.replace(/\[|\]/g, '').replace(/:\d+$/, '');
+  return (
+    LOCAL_REFERRER_HOSTS.has(host) ||
+    host.endsWith('.localhost') ||
+    LOCAL_REFERRER_HOSTS.has(bare) ||
+    bare.endsWith('.localhost')
+  );
+}
+
 // Reads an array of {key, count, uniques} items (popular paths or referrers).
 // GitHub caps both lists at 10 items; the full list is kept as returned.
 function readItems(endpoint, label, keyField, titleField) {
@@ -231,7 +254,9 @@ const base = `repos/${args.repo}/traffic`;
 const views = readDaily(`${base}/views`, 'traffic/views', 'views');
 const clones = readDaily(`${base}/clones`, 'traffic/clones', 'clones');
 const popularPaths = readItems(`${base}/popular/paths`, 'traffic/popular/paths', 'path', 'title');
-const referrers = readItems(`${base}/popular/referrers`, 'traffic/popular/referrers', 'referrer', null);
+const referrersAll = readItems(`${base}/popular/referrers`, 'traffic/popular/referrers', 'referrer', null);
+const referrers = referrersAll.filter((r) => !isLocalReferrer(r.referrer));
+const localDropped = referrersAll.length - referrers.length;
 
 const row = {
   week: win.weekKey,
@@ -240,12 +265,12 @@ const row = {
   views: aggregate(views.buckets, win, 'traffic/views'),
   clones: aggregate(clones.buckets, win, 'traffic/clones'),
   popular_paths: { window_days: 14, items: popularPaths },
-  referrers: { window_days: 14, items: referrers },
+  referrers: { window_days: 14, local_dropped: localDropped, items: referrers },
 };
 
 mkdirSync(path.dirname(args.out), { recursive: true });
 appendFileSync(args.out, `${JSON.stringify(row)}\n`);
 
-console.log(`traffic-snapshot: wrote row for week ${win.weekKey} (${args.out}): views ${row.views.total}/${row.views.uniques}, clones ${row.clones.total}/${row.clones.uniques}`);
+console.log(`traffic-snapshot: wrote row for week ${win.weekKey} (${args.out}): views ${row.views.total}/${row.views.uniques}, clones ${row.clones.total}/${row.clones.uniques}, local referrers dropped ${localDropped}`);
 emitGitHubOutput('row', 'written');
 emitGitHubOutput('week', win.weekKey);
