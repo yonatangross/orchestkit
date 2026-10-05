@@ -630,6 +630,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.155](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155)** · 2026-10-05
+
+- **lesson-cards:** do not read process when HOME is unset (#4608)
+- **deps-dev:** bump the vitest group (#4618)
+- **deps:** bump the npm-minor-patch group in /docs/site with 8 updates (#4616)
+- **deps:** bump the remotion group (#4617)
+- bump anthropics/claude-code-action (#4620)
+
 **[v10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154)** · 2026-10-04
 
 - **site:** advertise Actions MCP and add try-safely sandbox page (#4596)
@@ -658,10 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **glyph:** JS art pieces for glyph pages (#4599)
 - **mods:** register memory-lens in the marketplace, gate missing entries (#4587)
-
-**[v10.0.0-beta.147](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.146...v10.0.0-beta.147)** · 2026-10-03
-
-- **cc:** adopt Claude Code 2.1.285 through 2.1.288 (#4588)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
