@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>traffic snapshot: local referrers dropped, count only</title>
-<meta name="description" content="The weekly traffic snapshot row and its PR body carried a private host name (floor.localhost in #4621). Referrers whose host is localhost, ends in .localhost, or is a loopback literal are now dropped before the row is written; only the dropped count is kept.">
+<meta name="description" content="The weekly traffic snapshot row and its PR body carried a private host name (a *.localhost name, in #4621). Referrers whose host is localhost, ends in .localhost, or is a loopback literal are now dropped before the row is written; only the dropped count is kept.">
 <style>
 body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
 h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
@@ -17,7 +17,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px
 </style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="traffic snapshot: local referrers dropped, count only"><meta property="og:description" content="Referrers whose host is localhost, ends in .localhost, or is a loopback literal are dropped before the weekly row is written and before the PR body is made; only the dropped count is kept."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/traffic-snapshot-drop-local-referrers.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="traffic snapshot: local referrers dropped, count only"><meta name="twitter:description" content="Referrers whose host is localhost, ends in .localhost, or is a loopback literal are dropped before the weekly row is written and before the PR body is made; only the dropped count is kept."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body>
 
 <h1>traffic snapshot: local referrers dropped, count only</h1>
-<p class="lede">Branch <code>fix/traffic-snapshot-drop-local-referrers</code>. PR #4621 appended a JSONL row to the public ledger whose referrer list named <code>floor.localhost</code>, the local host name of a private board, and printed it again in the PR body.</p>
+<p class="lede">Branch <code>fix/traffic-snapshot-drop-local-referrers</code>. PR #4621 appended a JSONL row to the public ledger whose referrer list named the local host name of a private board (a <code>*.localhost</code> name), and printed it again in the PR body.</p>
 
 <p class="verdict"><b>Verdict.</b> <code>scripts/traffic-snapshot.mjs</code> now drops every referrer whose host is <code>localhost</code>, ends in <code>.localhost</code>, or is a loopback literal (<code>127.0.0.1</code>, <code>::1</code>) before the row is written. The row and the PR body built from it keep only the dropped count under <code>referrers.local_dropped</code>; no host name survives.</p>
 
@@ -31,7 +31,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px
 <h2>1. What is dropped</h2>
 <table>
 <tr><th>Referrer from the API</th><th>Verdict</th><th>Why</th></tr>
-<tr><td><code>floor.localhost</code></td><td>dropped</td><td>ends in .localhost (the #4621 leak)</td></tr>
+<tr><td><code>board.localhost</code></td><td>dropped</td><td>ends in .localhost (the #4621 leak)</td></tr>
 <tr><td><code>localhost</code></td><td>dropped</td><td>the bare local host</td></tr>
 <tr><td><code>127.0.0.1</code>, <code>::1</code></td><td>dropped</td><td>loopback literals</td></tr>
 <tr><td><code>localhost:3000</code>, <code>[::1]:8080</code></td><td>dropped</td><td>port and bracket shapes tolerated</td></tr>
@@ -43,7 +43,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px
 <div class="card before"><h3>Before (#4621)</h3>
 <pre>"referrers": {"window_days": 14,
   "items": [
-    {"referrer": "floor.localhost",
+    {"referrer": "board.localhost",
      "count": 9, "uniques": 1},
     {"referrer": "google.com", ...}
   ]}</pre></div>

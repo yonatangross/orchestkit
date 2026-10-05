@@ -124,7 +124,7 @@ function readDaily(endpoint, label, arrayKey) {
 }
 
 // A referrer whose host is local must not land in the public ledger or in the
-// PR body built from it: #4621 carried "floor.localhost", the host name of a
+// PR body built from it: #4621 carried a "*.localhost" name, the host name of a
 // private board. A host is local when it IS localhost, ENDS in ".localhost",
 // or is a loopback literal. The items are dropped before the row is written
 // and only the count survives (referrers.local_dropped).

@@ -130,12 +130,12 @@ cat > "$FX/referrers.json" <<'EOF'
 EOF
 # local referrers: the API reports whatever host names the 14-day window saw,
 # and a private board served on a *.localhost name leaks it into a public
-# repo's ledger and PR body (floor.localhost shipped in #4621). The script
+# repo's ledger and PR body (one such name shipped in #4621). The script
 # drops them before the row is written and keeps only the dropped count.
 cat > "$FX/referrers-local.json" <<'EOF'
 [
   {"referrer": "google.com", "count": 30, "uniques": 22},
-  {"referrer": "floor.localhost", "count": 9, "uniques": 1},
+  {"referrer": "board.localhost", "count": 9, "uniques": 1},
   {"referrer": "localhost", "count": 4, "uniques": 2},
   {"referrer": "127.0.0.1", "count": 3, "uniques": 3},
   {"referrer": "::1", "count": 2, "uniques": 1},
@@ -195,7 +195,7 @@ if cmp -s "$WORK/control/first-row.jsonl" "$OUT"; then ok "idempotency: file byt
 if [ "$(wc -l < "$OUT")" -eq 1 ]; then ok "idempotency: still exactly one row"; else bad "idempotency: duplicate row appended"; fi
 
 # --- local referrers: dropped from the row, counted, never named ----------------
-# Regression arm for #4621: a referrer like floor.localhost is a private host
+# Regression arm for #4621: a referrer like board.localhost is a private host
 # name that must not land in the public ledger or the PR body. The row keeps
 # the count only (.referrers.local_dropped), never a host string.
 LDIR="$WORK/local"
