@@ -1,0 +1,27 @@
+APPROVED 2026-10-05 by the maintainer ("Cards first, then pages").
+Card orchestkit-visuals. OG card 1200x630 for every skill and agent page on orchestkit.yonyon.ai.
+
+SKILL CARD (1200x630)
++----------------------------------------------------+
+| <> ORCHESTKIT . skill               ork:glyph       |
+|                                                    |
+| Glyph                   +----------------------+   |
+| Answers with shape get  | DISK [######-] 83%   |   |
+| a render, verdict first | SAFE --------------- |   |
+|                         | docker ###- 14.5G    |   |
+| > status . audits       | chrome ##--  8.9G    |   |
+| > budgets . rankings    | npm    #---  6.2G    |   |
+|                         +----------------------+   |
+| [real logo] orchestkit.yonyon.ai                   |
++----------------------------------------------------+
+  right panel = the skill's OWN example output (emoji kept in the real render)
+
+AGENT CARD
++----------------------------------------------------+
+| <> ORCHESTKIT . agent                               |
+| Backend System Architect   + delegates to ------+  |
+| APIs, schemas, services    | database-engineer  |  |
+|                            | test-generator     |  |
+| tools  Read Edit Bash Grep +--------------------+  |
+| [real logo] orchestkit.yonyon.ai                   |
++----------------------------------------------------+
