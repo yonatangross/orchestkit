@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-only fix: source-map-js and proxy-addr in 10 lock trees</title>
+<meta name="description" content="Which of the 10 package-lock trees carry source-map-js 1.2.1 or proxy-addr 2.0.7, and what this PR changes in each.">
+<style>
+  :root{
+    --pg-bg:hsl(40 20% 97%); --pg-panel:hsl(0 0% 100%); --pg-ink:hsl(220 20% 14%);
+    --pg-dim:hsl(220 10% 40%); --pg-line:hsl(220 15% 86%); --pg-ok:hsl(145 55% 32%);
+    --pg-bad:hsl(5 70% 42%); --pg-acc:hsl(215 70% 40%);
+    --pg-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pg-bg);color:var(--pg-ink);font:15px/1.55 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+  main{max-inline-size:900px;margin-inline:auto;padding:28px 20px 64px}
+  h1{font-size:22px;margin:0 0 6px}
+  p{margin:0 0 10px}
+  .dim{color:var(--pg-dim)}
+  code{font-family:var(--pg-mono);font-size:.9em}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-block:16px}
+  select,button{font:inherit;padding:6px 12px;border:1px solid var(--pg-line);border-radius:6px;background:var(--pg-panel);color:var(--pg-ink);cursor:pointer}
+  button:focus-visible,select:focus-visible{outline:2px solid var(--pg-acc);outline-offset:2px}
+  table{inline-size:100%;border-collapse:collapse;background:var(--pg-panel);border:1px solid var(--pg-line)}
+  th,td{text-align:start;padding:8px 10px;border-block-end:1px solid var(--pg-line);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--pg-dim)}
+  .old{color:var(--pg-bad);font-family:var(--pg-mono)}
+  .new{color:var(--pg-ok);font-family:var(--pg-mono)}
+  .kpi{display:flex;gap:24px;flex-wrap:wrap;margin-block:14px}
+  .kpi div{border:1px solid var(--pg-line);background:var(--pg-panel);padding:8px 14px;border-radius:8px}
+  .kpi b{display:block;font-size:22px}
+  @media (prefers-reduced-motion: no-preference){ tr{transition:opacity .15s} }
+  tr[hidden]{display:none}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Lock-only fix: source-map-js 1.2.2 and proxy-addr 2.0.8 in 10 lock trees"><meta property="og:description" content="Which of the 10 package-lock trees carry source-map-js 1.2.1 or proxy-addr 2.0.7, and what the lock-only PR changes in each. The all-trees audit gate needs every tree fixed at once."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/lock-source-map-js-proxy-addr.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Lock-only fix: source-map-js 1.2.2 and proxy-addr 2.0.8 in 10 lock trees"><meta name="twitter:description" content="Which of the 10 package-lock trees carry source-map-js 1.2.1 or proxy-addr 2.0.7, and what the lock-only PR changes in each. The all-trees audit gate needs every tree fixed at once."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Lock-only fix: source-map-js and proxy-addr</h1>
+  <p class="dim">The audit gate (<code>tests/security/test-npm-audit.sh</code>) reads all 10 tracked <code>package-lock.json</code> trees, so main stays red until every tree is fixed. This PR changes the lock files only, no manifest.</p>
+  <div class="kpi">
+    <div><b id="k-trees">10</b>lock trees changed</div>
+    <div><b>9</b>source-map-js 1.2.1 to 1.2.2 (HIGH)</div>
+    <div><b>2</b>proxy-addr 2.0.7 to 2.0.8 (CRITICAL)</div>
+  </div>
+  <div class="bar">
+    <label for="f">Show</label>
+    <select id="f">
+      <option value="all">all trees</option>
+      <option value="smj">source-map-js only</option>
+      <option value="pa">proxy-addr only</option>
+      <option value="dep">covered by a Dependabot PR</option>
+    </select>
+    <button id="copy" type="button">Copy as prompt</button>
+    <span id="msg" class="dim" role="status"></span>
+  </div>
+  <table>
+    <thead><tr><th>Lock tree</th><th>source-map-js</th><th>proxy-addr</th><th>Dependabot PR</th></tr></thead>
+    <tbody id="rows">
+      <tr data-t="smj dep"><td><code>package-lock.json</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>#4638</td></tr>
+      <tr data-t="smj dep"><td><code>orchestkit-demos</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>#4639</td></tr>
+      <tr data-t="smj dep"><td><code>docs/site</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>#4640</td></tr>
+      <tr data-t="smj"><td><code>src/hooks</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>none</td></tr>
+      <tr data-t="smj"><td><code>mods/lesson-cards</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>none</td></tr>
+      <tr data-t="smj"><td><code>mods/memory-lens</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>none</td></tr>
+      <tr data-t="smj"><td><code>mods/promote-lights</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>none</td></tr>
+      <tr data-t="smj"><td><code>mods/secrets-veil</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td class="dim">not present</td><td>none</td></tr>
+      <tr data-t="smj pa"><td><code>packages/hook-contract/examples/generic-client</code></td><td><span class="old">1.2.1</span> to <span class="new">1.2.2</span></td><td><span class="old">2.0.7</span> to <span class="new">2.0.8</span></td><td>none</td></tr>
+      <tr data-t="pa"><td><code>src/mcp-server</code></td><td class="dim">not present</td><td><span class="old">2.0.7</span> to <span class="new">2.0.8</span></td><td>none</td></tr>
+    </tbody>
+  </table>
+  <p class="dim" style="margin-block-start:14px">Advisories: GHSA-68fv-2mgg-jv7q (source-map-js, HIGH, fixed in 1.2.2) and GHSA-jqcg-44mw-7w3h (proxy-addr, CRITICAL, fixed in 2.0.8). Dependabot PRs #4638, #4639 and #4640 each fix one tree and are red alone.</p>
+</main>
+<script>
+(function(){
+  var rows=[].slice.call(document.querySelectorAll('#rows tr'));
+  var f=document.getElementById('f');
+  f.addEventListener('change',function(){
+    rows.forEach(function(r){ r.hidden = f.value!=='all' && r.dataset.t.split(' ').indexOf(f.value)<0; });
+  });
+  document.getElementById('copy').addEventListener('click',function(){
+    var shown=rows.filter(function(r){return !r.hidden;}).map(function(r){return r.cells[0].textContent;});
+    var text='Lock-only fix in these orchestkit trees (source-map-js 1.2.2, proxy-addr 2.0.8): '+shown.join(', ');
+    var m=document.getElementById('msg');
+    if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){m.textContent='Copied '+shown.length+' trees';},function(){m.textContent='Copy blocked';}); }
+    else { m.textContent='Clipboard not available'; }
+  });
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
