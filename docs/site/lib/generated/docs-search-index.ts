@@ -256,6 +256,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "How OrchestKit applies to a Python backend: async patterns, SQLAlchemy, migrations, and the typed hook contract on PyPI."
   },
   {
+    "url": "/docs/guides/output-modes",
+    "title": "Output modes: try them",
+    "description": "See the same answer as a chat render, a question, or a page, for an operator or a novice, with and without the done sign-off. Pick one and copy the flag or the prompt."
+  },
+  {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
     "description": "How OrchestKit's 171-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."

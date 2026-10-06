@@ -2611,8 +2611,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "glyph": {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead.",
-    "version": "3.1.0",
-    "sha256": "400e3fb066df69960e56867c6d530635e0206147318a95f192f4e6973d69008f",
+    "version": "3.2.0",
+    "sha256": "44ace1a0b557d5a440795eb17e3606e1a6bd2aec4cadc06a4675cd151d8bd248",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -2627,13 +2627,16 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [
       "Read",
       "Grep",
-      "Glob"
+      "Glob",
+      "Write",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
     "complexity": "low",
     "structure": {
       "references": [
+        "dials.md",
         "js-art.md",
         "page-route.md"
       ]
@@ -5056,7 +5059,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "a3eb4032c7ee6adfff7e5e8314d578942d8feea7ebb134911b843df188f35ae1",
+    "sha256": "38b0df1d1fb94a84ab815aad9b23d83c39384dffc2a5b8f24aa809efa031c4d4",
     "author": "OrchestKit",
     "tags": [
       "verification",

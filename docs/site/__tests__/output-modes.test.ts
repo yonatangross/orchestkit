@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   AUDIENCES,
+  DEFAULT_MODE,
   SIGNOFF_LABELS,
   SURFACES,
   buildFlag,
   buildJson,
   buildPrompt,
+  modeToSearch,
+  parseMode,
   type Mode,
 } from "@/lib/output-modes";
 
@@ -57,6 +60,14 @@ describe("output modes picker", () => {
       const parsed = JSON.parse(buildJson(mode));
       expect(parsed).toEqual({ skill: "ork:glyph", ...mode, flag: buildFlag(mode) });
     }
+  });
+
+  it("round-trips every mode through the query string, and falls back to the default", () => {
+    for (const mode of allModes) {
+      expect(parseMode(modeToSearch(mode))).toEqual(mode);
+    }
+    expect(parseMode("?surface=poster&audience=boss")).toEqual(DEFAULT_MODE);
+    expect(parseMode("")).toEqual(DEFAULT_MODE);
   });
 
   it("never emits an em dash, en dash or double hyphen outside a flag", () => {
