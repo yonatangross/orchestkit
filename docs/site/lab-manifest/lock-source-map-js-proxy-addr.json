@@ -1,0 +1,13 @@
+{
+  "slug": "lock-source-map-js-proxy-addr",
+  "source": "docs/fix--lock-source-map-js-proxy-addr/index.html",
+  "title": "Lock-only fix: source-map-js 1.2.2 and proxy-addr 2.0.8 in 10 lock trees",
+  "description": "Which of the 10 package-lock trees carry source-map-js 1.2.1 or proxy-addr 2.0.7, and what the lock-only PR changes in each. The all-trees audit gate needs every tree fixed at once.",
+  "tags": [
+    "security",
+    "deps",
+    "audit",
+    "4642"
+  ],
+  "date": "2026-10-06"
+}
