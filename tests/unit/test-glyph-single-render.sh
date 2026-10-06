@@ -24,8 +24,19 @@ grep -q 'do not invoke the other' "$RULE" \
 if grep -q 'the front door: same dials, may route' "$FEATURED"; then
   fail "featured examples still describe /glyph as a router into another skill"
 fi
+# The guard must catch every phrasing of the false claim. Self-check it first:
+# a guard that misses a known phrasing passes on a file that still says it.
+ONE_SKILL_RE='are (one|that same|the same) skill|same skill as /ork:glyph'
+for claim in \
+  'glyph and ork:glyph are one skill' \
+  'glyph and ork:glyph are that same skill' \
+  'glyph and ork:glyph are the same skill' \
+  '/glyph is the same skill as /ork:glyph'; do
+  printf '%s\n' "$claim" | grep -qiE "$ONE_SKILL_RE" \
+    || fail "guard regex misses the phrasing: $claim"
+done
 for f in "$SKILL" "$RULE" "$FEATURED"; do
-  if grep -qiE 'are (one|that same) skill|same skill as /ork:glyph' "$f"; then
+  if grep -qiE "$ONE_SKILL_RE" "$f"; then
     fail "$(basename "$f") still claims glyph and ork:glyph are one skill"
   fi
 done
