@@ -26,10 +26,10 @@ export function buildFlag(mode: Mode): string {
   return parts.join(" ");
 }
 
+// --signoff already names the gate; the skill owns its labels (done-signoff.md),
+// so the prompt never spells them out a second time.
 export function buildPrompt(mode: Mode): string {
-  const flag = buildFlag(mode);
-  if (!mode.signoff) return `Answer with ${flag}.`;
-  return `Answer with ${flag}, and end with the done sign-off (${SIGNOFF_LABELS.join(" | ")}).`;
+  return `Answer with ${buildFlag(mode)}.`;
 }
 
 // The page keeps the pick in the query string, so a chosen mode is a shareable link.

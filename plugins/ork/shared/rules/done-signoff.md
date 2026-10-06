@@ -18,7 +18,7 @@ order, with these labels:
 
 ```python
 AskUserQuestion(questions=[{
-  "question": "Verification reports <N/M> PASS on <work>. Accept as done?",
+  "question": "<work>: <grade line>. Accept as done?",
   "header": "Sign-off",
   "multiSelect": False,
   "options": [
@@ -28,6 +28,11 @@ AskUserQuestion(questions=[{
   ]
 }])
 ```
+
+`<grade line>` is the verdict in the caller's own scale. From `verify`, that is the composite
+and the verdict, for example `7.8/10, IMPROVEMENTS RECOMMENDED` (scores are 0 to 10). From
+`glyph --signoff` or any skill without a grade, it is the count of checks that ran, for example
+`11 of 12 checks passed`.
 
 - **"Accept done"**: the work is closed. Not before.
 - **"Show me the evidence"**: re-run the named check in the main thread, paste the
@@ -50,7 +55,8 @@ earlier in the run is not in the reply.
 ✅ 11 of 12 passed (tests 412/412, typecheck 0 errors).
 ```
 
-Then the gate above, with `<N/M>` = `11/12`.
+Then the gate above, with `<grade line>` = `11 of 12 checks passed` (or, from `verify`,
+`6.4/10, BLOCKED`).
 
 ### When to skip the gate
 

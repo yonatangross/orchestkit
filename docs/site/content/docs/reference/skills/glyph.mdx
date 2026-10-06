@@ -174,7 +174,7 @@ skill's `examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
-**Already loaded means render, not hand off.** Once this file is loaded, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads a skill again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. A user may have a personal skill also named `glyph` (`/glyph`); it lives in a separate namespace, may call this skill for its chat route, and is never called from here (`references/dials.md`, "Personal skills named glyph").
+**Already loaded means render, not hand off.** Once this file is loaded, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads a skill again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate. A user may have a personal skill also named `glyph` (`/glyph`); it lives in a separate namespace, may call this skill for its chat route, and is never called from here (`references/dials.md`, "Personal skills named glyph").
 
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
@@ -780,9 +780,10 @@ or any character that requires a non-default monospace font.
 - The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
   this answer has shape, render it", not "draw something every turn".
 - `/ork:glyph` is the reference implementation; use it unprompted whenever
-  rule 1 applies. `glyph` and `ork:glyph` are that same skill. If either name
-  is already loaded, render in place and do not invoke the other: a second
-  invocation re-enters this file instead of drawing (GH-4159).
+  rule 1 applies. Once it is loaded, render in place and
+  do not invoke the other name (`glyph`, `/glyph`, `/ork:glyph`): a second
+  invocation re-enters a skill instead of drawing (GH-4159). A personal
+  `/glyph` is a separate skill.
 - "Where do we stand / what's next" always gets a render plus ranked next
   steps.
 
@@ -940,8 +941,8 @@ follows is written for a novice.
 |---|---|
 | `--chat` | Surface chat. One render, up to about 50 lines, 76 cells wide. |
 | `--ask` | Surface ask. One `AskUserQuestion`, 2 to 4 options, then render the picked branch. |
-| `--page` | Surface page. Write the HTML and hand it over with `/page-serve PATH`. |
-| `--eli5` | Audience novice. Without a surface flag it also sets page. The bare word "eli5" in the request acts the same. |
+| `--page` | Surface page. Write the HTML and hand it over with `/ork:page-serve PATH`. |
+| `--eli5` | Audience novice, and page unless a surface flag is given. The bare word "eli5" in the request acts the same. |
 | `--decide` | The answer is a decision. Chat: a DECIDE block. Page: a decision beat with real controls. |
 | `--signoff` | After the render, run the done sign-off gate from `../../shared/rules/done-signoff.md`. |
 
@@ -958,6 +959,11 @@ then asks for sign-off.
   "for onboarding"),
 - asks what a thing is or how it works in general ("how does OAuth work" is novice;
   "is our OAuth broken" is operator).
+
+**The eli5 rule, settled.** eli5 (the flag or the word) sets novice, and eli5 also picks page
+unless a surface flag (`--chat`, `--ask`, `--page`) is given: `--chat --eli5` stays inline. The
+other novice triggers (a named reader, a "how does X work" question) set the audience only; the
+surface is then chosen by the table below, so a short plain-word answer stays in chat.
 
 Novice means: a one-clause gloss for every term, no internal file or host names
 unless defined on the spot, an analogy before the mechanism. It does not mean less

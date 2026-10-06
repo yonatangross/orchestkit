@@ -19,6 +19,7 @@ DIALS="$ROOT/src/skills/glyph/references/dials.md"
 GLYPH_MDX="$ROOT/docs/site/content/docs/reference/skills/glyph.mdx"
 SIGNOFF="$ROOT/src/shared/rules/done-signoff.md"
 VERIFY="$ROOT/src/skills/verify/SKILL.md"
+LONGRUN="$ROOT/src/shared/rules/long-run-protocol.md"
 GUIDE_DIR="$ROOT/docs/site/content/docs/guides/output-modes"
 GUIDE="$GUIDE_DIR/index.mdx"
 DATA="$GUIDE_DIR/data.json"
@@ -66,6 +67,10 @@ fi
 for l in "${LABELS[@]}"; do
   if has "$SIGNOFF" "\"$l\""; then ok "sign-off label '$l'"; else bad "sign-off label '$l' missing from $SIGNOFF"; fi
 done
+if has "$SIGNOFF" '/10'; then ok "sign-off speaks the 0 to 10 grade"; else bad "done-signoff.md does not use verify's 0 to 10 grade"; fi
+if has "$LONGRUN" 'done-signoff.md'; then ok "long-run protocol ends with the sign-off"; else bad "long-run-protocol.md does not name the end-of-run sign-off"; fi
+if has "$DIALS" '/ork:page-serve' && ! grep -qE '(^|[^:])/page-serve' "$DIALS"; then ok "dials uses /ork:page-serve"; else bad "dials.md uses a bare /page-serve"; fi
+if has "$DIALS" 'eli5 also picks page'; then ok "dials settles eli5 vs page"; else bad "dials.md does not settle when eli5 picks the page surface"; fi
 if has "$VERIFY" 'shared/rules/done-signoff.md'; then ok "verify loads done-signoff"; else bad "verify does not load done-signoff"; fi
 if has "$GLYPH" 'shared/rules/done-signoff.md' || has "$DIALS" 'shared/rules/done-signoff.md'; then
   ok "glyph --signoff loads done-signoff"
@@ -84,6 +89,11 @@ else
   bad "docs/site/content/docs/guides/output-modes/index.mdx missing"
 fi
 if [[ -s "$GUIDE_DIR/approved-design/mockup.txt" ]]; then ok "approved mockup saved"; else bad "approved-design/mockup.txt missing"; fi
+if has "$GUIDE_DIR/approved-design/mockup-v2.txt" 'Good, continue' && has "$GUIDE_DIR/approved-design/mockup-v2.txt" 'Built-in, right side'; then
+  ok "as-built mockup-v2 names both operator words"
+else
+  bad "approved-design/mockup-v2.txt missing or lacks the two operator words"
+fi
 if has "$DATA" '"serves": "ork-output-modes-2026-10-06"'; then ok "data.json serves the card"; else bad "data.json with serves missing"; fi
 
 echo "glyph dials: $pass passed, $fail failed"

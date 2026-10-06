@@ -45,14 +45,18 @@ describe("output modes picker", () => {
     expect(flags.size).toBe(allModes.length);
   });
 
-  it("puts the three exact sign-off labels in the prompt only when sign-off is on", () => {
+  it("keeps the canonical sign-off labels, and never repeats the sign-off in the prompt", () => {
     expect(SIGNOFF_LABELS).toEqual(["Accept done", "Show me the evidence", "Not satisfied"]);
-    const on = buildPrompt({ surface: "page", audience: "novice", signoff: true });
-    expect(on).toBe(
-      "Answer with /ork:glyph --page --eli5 --signoff, and end with the done sign-off (Accept done | Show me the evidence | Not satisfied).",
+    expect(buildPrompt({ surface: "page", audience: "novice", signoff: true })).toBe(
+      "Answer with /ork:glyph --page --eli5 --signoff.",
     );
-    const off = buildPrompt({ surface: "page", audience: "novice", signoff: false });
-    expect(off).toBe("Answer with /ork:glyph --page --eli5.");
+    expect(buildPrompt({ surface: "page", audience: "novice", signoff: false })).toBe(
+      "Answer with /ork:glyph --page --eli5.",
+    );
+    for (const mode of allModes) {
+      const text = buildPrompt(mode);
+      expect(text.match(/sign-?off/gi)?.length ?? 0).toBe(mode.signoff ? 1 : 0);
+    }
   });
 
   it("emits JSON that round-trips to the same mode and flag", () => {

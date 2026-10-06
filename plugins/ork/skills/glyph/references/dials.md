@@ -27,8 +27,8 @@ follows is written for a novice.
 |---|---|
 | `--chat` | Surface chat. One render, up to about 50 lines, 76 cells wide. |
 | `--ask` | Surface ask. One `AskUserQuestion`, 2 to 4 options, then render the picked branch. |
-| `--page` | Surface page. Write the HTML and hand it over with `/page-serve PATH`. |
-| `--eli5` | Audience novice. Without a surface flag it also sets page. The bare word "eli5" in the request acts the same. |
+| `--page` | Surface page. Write the HTML and hand it over with `/ork:page-serve PATH`. |
+| `--eli5` | Audience novice, and page unless a surface flag is given. The bare word "eli5" in the request acts the same. |
 | `--decide` | The answer is a decision. Chat: a DECIDE block. Page: a decision beat with real controls. |
 | `--signoff` | After the render, run the done sign-off gate from `../../shared/rules/done-signoff.md`. |
 
@@ -45,6 +45,11 @@ then asks for sign-off.
   "for onboarding"),
 - asks what a thing is or how it works in general ("how does OAuth work" is novice;
   "is our OAuth broken" is operator).
+
+**The eli5 rule, settled.** eli5 (the flag or the word) sets novice, and eli5 also picks page
+unless a surface flag (`--chat`, `--ask`, `--page`) is given: `--chat --eli5` stays inline. The
+other novice triggers (a named reader, a "how does X work" question) set the audience only; the
+surface is then chosen by the table below, so a short plain-word answer stays in chat.
 
 Novice means: a one-clause gloss for every term, no internal file or host names
 unless defined on the spot, an analogy before the mechanism. It does not mean less

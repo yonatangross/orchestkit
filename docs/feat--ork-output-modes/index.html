@@ -71,9 +71,7 @@
   const mode = { surface: "chat", audience: "operator", signoff: false };
 
   const flag = (m) => ["/ork:glyph", "--" + m.surface, m.audience === "novice" ? "--eli5" : "", m.signoff ? "--signoff" : ""].filter(Boolean).join(" ");
-  const prompt = (m) => m.signoff
-    ? "Answer with " + flag(m) + ", and end with the done sign-off (Accept done | Show me the evidence | Not satisfied)."
-    : "Answer with " + flag(m) + ".";
+  const prompt = (m) => "Answer with " + flag(m) + ".";
   const json = (m) => JSON.stringify({ skill: "ork:glyph", ...m, flag: flag(m) }, null, 2);
 
   function render() {

@@ -60,7 +60,7 @@ describe("output modes page islands", () => {
       fireEvent.click(screen.getByRole("checkbox"));
     });
     expect(flag()).toBe("/ork:glyph --page --eli5 --signoff");
-    expect(prompt()).toContain("(Accept done | Show me the evidence | Not satisfied)");
+    expect(prompt()).toBe("Answer with /ork:glyph --page --eli5 --signoff.");
     expect(window.location.search).toBe("?surface=page&audience=novice&signoff=1");
     expect(picked()).toEqual(["page", "novice (--eli5)", "with --signoff"]);
   });
