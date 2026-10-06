@@ -52,22 +52,22 @@ const ANSWERS: Record<Surface, Record<Audience, string>> = {
   chat: {
     operator: `→ chat · operator
 
-beta.160 ships after one docs fix.
+beta.160 ships after one fix.
 🚀 RELEASE beta.160 · gates
 [▓▓▓▓▓▓░░░] 2 of 3 green
-✅ tests       412/412
-✅ security    gitleaks clean
-⚠️ docs build  search index exit 1`,
+✅ tests      412/412
+✅ security   no leaks
+⚠️ docs build exit 1`,
     novice: `→ chat · novice
 
-Almost ready: 2 of 3 checks passed.
-Like a pre-flight list: one check
-failed, so the plane waits at the
-gate until it is fixed.
+Almost ready: 2 of 3 passed.
+Like a pre-flight list: one
+check failed, so the plane
+waits at the gate for a fix.
 [▓▓▓▓▓▓░░░] 2 of 3 checks
 ✅ the code works
 ✅ no secrets leaked
-⚠️ the docs website did not build`,
+⚠️ the docs site broke`,
   },
   ask: {
     operator: `→ ask · operator
@@ -86,34 +86,36 @@ Ship which way?
 ❯ 1. Ship now
   2. Wait for docs
   3. Hold
-(you answer; then the pick is
-explained in plain words:)
-"You chose to wait. One fix to
-the website, then it ships."`,
+(you answer; then the pick
+is explained in plain words:)
+"You chose to wait. One fix
+to the website, then it
+ships."`,
   },
   page: {
     operator: `→ page · operator
 
-┌ ○ ○ ○ ── release-160.localhost ┐
-│ beta.160: ship after docs fix │
-│ ┌─────┐ ┌─────┐ ┌─────┐       │
-│ │ 412 │ │  0  │ │  1  │       │
-│ │tests│ │leaks│ │ red │       │
-│ └─────┘ └─────┘ └─────┘       │
-│ ▓▓▓▓▓▓░░░ gates over time      │
-│ ▸ raw evidence (folded)        │
-└────────────────────────────────┘`,
+┌ ○ ○ ○ release-160 ───────┐
+│ ship after one docs fix  │
+│ ┌────┐ ┌────┐ ┌────┐     │
+│ │412 │ │ 0  │ │ 1  │     │
+│ │test│ │leak│ │red │     │
+│ └────┘ └────┘ └────┘     │
+│ ▓▓▓▓▓▓░░░ gates by day   │
+│ ▸ raw evidence (folded)  │
+└──────────────────────────┘`,
     novice: `→ page · novice
 
-┌ ○ ○ ○ ── release-160.localhost ┐
-│ Is the new version ready?      │
-│ 1. Three safety checks         │
-│ 2. Two passed (picture)        │
-│ 3. One failed: the website     │
-│ ┌ What it means ┐┌ If ignored ┐│
-│ │ one fix left  ││ broken docs ││
-│ └───────────────┘└─────────────┘│
-└────────────────────────────────┘`,
+┌ ○ ○ ○ release-160 ───────┐
+│ Is the new build ready?  │
+│ 1. three safety checks   │
+│ 2. two passed            │
+│ 3. one failed: the site  │
+│ ┌ means ──┐┌ if not ──┐  │
+│ │ one fix ││ docs     │  │
+│ │ left    ││ broken   │  │
+│ └─────────┘└──────────┘  │
+└──────────────────────────┘`,
   },
 };
 
