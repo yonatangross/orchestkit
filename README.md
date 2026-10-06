@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161)** · 2026-10-06
+
+- **deps-dev:** bump vitest (#4611)
+- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4613)
+
 **[v10.0.0-beta.160](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.159...v10.0.0-beta.160)** · 2026-10-06
 
 - **deps-dev:** bump vitest (#4610)
@@ -661,10 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154)** · 2026-10-04
 
 - **site:** advertise Actions MCP and add try-safely sandbox page (#4596)
-
-**[v10.0.0-beta.153](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153)** · 2026-10-04
-
-- **ci:** close docs.yml gate gaps on filter paths and cancel-in-progress (#4591)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
