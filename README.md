@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158)** · 2026-10-05
+
+- **test:** nested pre-push hook runs in full mode (#4635)
+
 **[v10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157)** · 2026-10-05
 
 - **lesson-cards:** home via env, /lessons before corpus load (#4625)
@@ -661,10 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151)** · 2026-10-04
 
 - **test:** retain dispatcher stderr in the session_id quarantine probe (#4592)
-
-**[v10.0.0-beta.150](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150)** · 2026-10-04
-
-- **expect:** scope browser close to the run's own session (#4594)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
