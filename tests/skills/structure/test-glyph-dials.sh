@@ -43,9 +43,12 @@ for f in "${FLAGS[@]}"; do
 done
 
 tools="$(grep -m1 '^allowed-tools:' "$GLYPH")"
-for t in AskUserQuestion Write; do
-  if [[ "$tools" == *"$t"* ]]; then ok "allowed-tools has $t"; else bad "allowed-tools lacks $t"; fi
-done
+if [[ "$tools" == *AskUserQuestion* ]]; then ok "allowed-tools has AskUserQuestion"; else bad "allowed-tools lacks AskUserQuestion"; fi
+# W1 (review of #4647): glyph is model-invoked for any answer with shape, so an
+# unscoped Write pre-approval would let it write files with no prompt. The page
+# surface asks once per write instead. A scoped grant needs the operator's word.
+if [[ "$tools" =~ (^|[^A-Za-z])Write([^A-Za-z]|$) ]]; then bad "allowed-tools pre-approves Write"; else ok "allowed-tools does not pre-approve Write"; fi
+if has "$DIALS" 'Read references/page-route.md first; never overwrite an existing file.'; then ok "page path reads page-route.md and never overwrites"; else bad "dials.md --page row lacks the page-route.md / no-overwrite line"; fi
 
 if has "$GLYPH" '→ chat · operator'; then ok "announce line documented"; else bad "announce line '→ chat · operator' missing from SKILL.md"; fi
 if grep -qi 'are one skill' "$GLYPH"; then bad "SKILL.md still claims glyph and ork:glyph are one skill"; else ok "no one-skill claim"; fi

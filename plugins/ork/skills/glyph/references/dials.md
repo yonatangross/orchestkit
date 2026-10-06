@@ -27,7 +27,7 @@ follows is written for a novice.
 |---|---|
 | `--chat` | Surface chat. One render, up to about 50 lines, 76 cells wide. |
 | `--ask` | Surface ask. One `AskUserQuestion`, 2 to 4 options, then render the picked branch. |
-| `--page` | Surface page. Write the HTML and hand it over with `/ork:page-serve PATH`. |
+| `--page` | Surface page. Read references/page-route.md first; never overwrite an existing file. Write the HTML (Write is not pre-approved, so the user approves each file) and hand it over with `/ork:page-serve PATH`. |
 | `--eli5` | Audience novice, and page unless a surface flag is given. The bare word "eli5" in the request acts the same. |
 | `--decide` | The answer is a decision. Chat: a DECIDE block. Page: a decision beat with real controls. |
 | `--signoff` | After the render, run the done sign-off gate from `../../shared/rules/done-signoff.md`. |

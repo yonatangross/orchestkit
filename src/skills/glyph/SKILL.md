@@ -6,7 +6,7 @@ description: "Render an answer as ASCII art plus semantic emojis inline with no 
 user-invocable: true
 disable-model-invocation: false
 context: inherit
-allowed-tools: "Read Grep Glob Write AskUserQuestion"
+allowed-tools: "Read Grep Glob AskUserQuestion"
 argument-hint: "[--chat|--ask|--page] [--eli5] [--decide] [--signoff] [topic-to-render]"
 effort: low
 metadata:

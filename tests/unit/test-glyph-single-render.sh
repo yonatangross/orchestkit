@@ -32,7 +32,7 @@ for claim in \
   'glyph and ork:glyph are that same skill' \
   'glyph and ork:glyph are the same skill' \
   '/glyph is the same skill as /ork:glyph'; do
-  printf '%s\n' "$claim" | grep -qiE "$ONE_SKILL_RE" \
+  grep -qiE "$ONE_SKILL_RE" <<< "$claim" \
     || fail "guard regex misses the phrasing: $claim"
 done
 for f in "$SKILL" "$RULE" "$FEATURED"; do
