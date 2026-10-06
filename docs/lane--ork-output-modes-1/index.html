@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Output modes grid: pick a glyph mode</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --accent:#1f5fbf; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --accent:#7aa7ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .lede { color: var(--mute); margin: 0 0 24px; }
+  .top { display:flex; justify-content:space-between; align-items:start; gap:12px; }
+  button { font: inherit; cursor: pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  button:hover { border-color: var(--accent); }
+  table { border-collapse: separate; border-spacing: 8px; width: 100%; margin: 0 -8px; }
+  th { font: 600 13px ui-monospace, monospace; color: var(--mute); text-align: left; }
+  td button { width: 100%; text-align: left; padding: 12px; min-height: 92px; }
+  td button[aria-pressed="true"] { border: 2px solid var(--accent); }
+  td small { display:block; color: var(--mute); font-size: 13px; }
+  code, output { font-family: ui-monospace, monospace; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin: 20px 0 8px; }
+  output { display:block; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  textarea { width:100%; margin-top:8px; font: 13px ui-monospace, monospace; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>Output modes grid</h1>
+      <p class="lede">Pick a surface and an audience for <code>/ork:glyph</code>, choose whether it ends with the done sign-off, then copy the flag or the prompt. The full page with side-by-side renders is <code>/docs/guides/output-modes</code>.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark theme">Dark</button>
+  </div>
+
+  <table aria-label="Modes">
+    <thead><tr><th></th><th>chat</th><th>ask</th><th>page</th></tr></thead>
+    <tbody id="grid"></tbody>
+  </table>
+
+  <div class="row">
+    <label><input id="signoff" type="checkbox"> end with the done sign-off (Accept done | Show me the evidence | Not satisfied)</label>
+  </div>
+
+  <output id="flag" aria-label="flag"></output>
+  <div class="row"><output id="prompt" aria-label="prompt" style="flex:1"></output></div>
+  <div class="row">
+    <button id="copy-prompt" type="button">Copy as prompt</button>
+    <button id="copy-json" type="button">Copy JSON</button>
+    <span id="status" aria-live="polite"></span>
+  </div>
+  <label id="fallback" class="hidden">The browser blocked the clipboard. The text is selected: press Cmd+C (Ctrl+C).
+    <textarea id="fallback-text" rows="4" readonly></textarea>
+  </label>
+</main>
+<script>
+  const SURFACES = ["chat", "ask", "page"];
+  const AUDIENCES = ["operator", "novice"];
+  const WHAT = {
+    "chat|operator": "dense render inline, up to about 50 lines",
+    "chat|novice": "plain words and an analogy, inline",
+    "ask|operator": "one question, 2 to 4 options, then the pick",
+    "ask|novice": "same fork; the pick is explained in plain words",
+    "page|operator": "served page: verdict, KPIs, evidence folded",
+    "page|novice": "served explainer: one idea per beat",
+  };
+  const mode = { surface: "chat", audience: "operator", signoff: false };
+
+  const flag = (m) => ["/ork:glyph", "--" + m.surface, m.audience === "novice" ? "--eli5" : "", m.signoff ? "--signoff" : ""].filter(Boolean).join(" ");
+  const prompt = (m) => m.signoff
+    ? "Answer with " + flag(m) + ", and end with the done sign-off (Accept done | Show me the evidence | Not satisfied)."
+    : "Answer with " + flag(m) + ".";
+  const json = (m) => JSON.stringify({ skill: "ork:glyph", ...m, flag: flag(m) }, null, 2);
+
+  function render() {
+    const grid = document.getElementById("grid");
+    grid.textContent = "";
+    for (const a of AUDIENCES) {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.textContent = a;
+      tr.appendChild(th);
+      for (const s of SURFACES) {
+        const td = document.createElement("td");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("aria-pressed", String(mode.surface === s && mode.audience === a));
+        b.innerHTML = "<strong></strong><small></small>";
+        b.querySelector("strong").textContent = "→ " + (s === "ask" ? "ask · operator" : s + " · " + a);
+        b.querySelector("small").textContent = WHAT[s + "|" + a];
+        b.addEventListener("click", () => { mode.surface = s; mode.audience = a; render(); });
+        td.appendChild(b);
+        tr.appendChild(td);
+      }
+      grid.appendChild(tr);
+    }
+    document.getElementById("flag").textContent = flag(mode);
+    document.getElementById("prompt").textContent = prompt(mode);
+  }
+
+  function copy(text) {
+    const status = document.getElementById("status");
+    const fallback = () => {
+      document.getElementById("fallback").classList.remove("hidden");
+      const ta = document.getElementById("fallback-text");
+      ta.value = text;
+      ta.select();
+      status.textContent = "";
+    };
+    if (!navigator.clipboard) return fallback();
+    navigator.clipboard.writeText(text).then(() => { status.textContent = "Copied"; }, fallback);
+  }
+
+  document.getElementById("signoff").addEventListener("change", (e) => { mode.signoff = e.target.checked; render(); });
+  document.getElementById("copy-prompt").addEventListener("click", () => copy(prompt(mode)));
+  document.getElementById("copy-json").addEventListener("click", () => copy(json(mode)));
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+  render();
+</script>
+</body>
+</html>
