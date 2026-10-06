@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159)** · 2026-10-06
+
+- **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees (#4642)
+
 **[v10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158)** · 2026-10-05
 
 - **test:** nested pre-push hook runs in full mode (#4635)
@@ -661,10 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152)** · 2026-10-04
 
 - **brainstorm:** scope the turn-end survival claim (#4593)
-
-**[v10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151)** · 2026-10-04
-
-- **test:** retain dispatcher stderr in the session_id quarantine probe (#4592)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

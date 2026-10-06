@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159) (2026-10-06)
+
+
+### Bug Fixes
+
+* **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees ([#4642](https://github.com/yonatangross/orchestkit/issues/4642)) ([badfc82](https://github.com/yonatangross/orchestkit/commit/badfc82999e424b0445ba9db6a1e9aa2aed9e20f))
+
 ## [10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158) (2026-10-05)
 
 

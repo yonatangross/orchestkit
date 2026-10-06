@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.159",
+    "date": "2026-10-06",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees ([#4642](https://github.com/yonatangross/orchestkit/issues/4642)) ([badfc82](https://github.com/yonatangross/orchestkit/commit/badfc82999e424b0445ba9db6a1e9aa2aed9e20f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.158",
     "date": "2026-10-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158",
