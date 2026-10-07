@@ -1,0 +1,22 @@
+{
+  "serves": "ork-output-modes-2026-10-06",
+  "page": "/docs/guides/output-modes",
+  "source": "docs/site/content/docs/guides/output-modes/index.mdx",
+  "approved_mockup": "docs/site/content/docs/guides/output-modes/approved-design/mockup.txt",
+  "approved": "2026-10-06, operator via conductor124: Approve, build it",
+  "rail": "Fumadocs table of contents (inline end); operator-approved exception to visual-style rule 7 for the docs site",
+  "sections": [
+    "Pick a mode",
+    "One answer, three surfaces",
+    "Operator or novice",
+    "Done sign-off",
+    "Display env vars",
+    "Copy as prompt"
+  ],
+  "modes": {
+    "surface": ["chat", "ask", "page"],
+    "audience": ["operator", "novice"],
+    "signoff": ["Accept done", "Show me the evidence", "Not satisfied"]
+  },
+  "display_env_vars": 16
+}

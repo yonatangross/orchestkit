@@ -3886,6 +3886,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "",
             "out": null,
             "tag": null
+          },
+          {
+            "num": "",
+            "label": "Done sign-off (--signoff)",
+            "does": "",
+            "out": null,
+            "tag": null
           }
         ]
       }
