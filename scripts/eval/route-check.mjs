@@ -69,13 +69,19 @@ function classify(rawGoal) {
   //     4209117569: "fail on CI" was a new run, "failing, add a retry" was
   //     cover). Then: no e2e tests yet, or write/add/generate -> cover.
   if (/\be2e\b|\bend[- ]to[- ]end tests?\b|\bin the browser\b|\bbrowser tests?\b|\bplaywright\b/.test(g)) {
+    // A creation request names what to test: "write e2e tests for the login
+    // error page" is cover, so the failure words are nouns there
+    // (CodeRabbit 4209764041). "failing, add a retry" is not a creation.
+    const creation =
+      /\b(?:write|add|generate|create)\b[^.,;]*\b(?:e2e|playwright|browser|end[- ]to[- ]end)\b[^.,;]*\btests?\b/.test(g);
     const failure =
+      !creation &&
       /\bfail(?:s|ed|ing|ures?)?\b|\bflaky\b|\bbroken\b|\berrors?\b|\btim(?:e|ed) ?outs?\b|\btimed out\b|\bred\b/.test(g) &&
       !/\bno (?:fail|errors?\b|flak|timeouts?\b)/.test(g);
     const whyQuestion = /\bwhy (?:is|are|does|do|did)\b/.test(g);
     if (failure || whyQuestion) {
       if (!whyQuestion) return 'fix';
-    } else if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bmissing\b/.test(g)) {
+    } else if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bcreate\b|\bmissing\b/.test(g)) {
       return 'cover';
     } else {
       return 'e2e';

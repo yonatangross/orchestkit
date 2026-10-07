@@ -72,6 +72,8 @@
     { "id": "e2e-08", "goal": "the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "CodeRabbit 4209117569: fail/fails/failed is a failure, not a new run" },
     { "id": "e2e-09", "goal": "the e2e tests are failing, add a retry", "category": "fix", "route": "/ork:fix-issue", "note": "the failure guard runs before the add/write -> cover check" },
     { "id": "e2e-10", "goal": "why do no e2e tests run on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a why-question about missing runs, not a request to write tests" },
-    { "id": "e2e-11", "goal": "the playwright suite timed out again", "category": "fix", "route": "/ork:fix-issue", "note": "timeout is a failure symptom" }
+    { "id": "e2e-11", "goal": "the playwright suite timed out again", "category": "fix", "route": "/ork:fix-issue", "note": "timeout is a failure symptom" },
+    { "id": "e2e-12", "goal": "write e2e tests for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4209764041: error is the page under test, not a failing run" },
+    { "id": "e2e-13", "goal": "add playwright tests for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "failure names the flow under test" }
   ]
 }
