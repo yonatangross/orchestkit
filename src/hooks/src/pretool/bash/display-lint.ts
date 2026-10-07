@@ -87,7 +87,9 @@ const STAGE_SPLIT_RE = /\s*(?<!\\)(?:&&|\|\||\||;|\n)\s*/;
  * Blanking alone is insufficient: `grep -l a\|b` has no quotes at all.
  */
 function splitDisplayStages(command: string): string[] {
-  return stripComments(blankSubstitutions(blankQuotedContent(command)))
+  // Comments go before substitutions: an unmatched `$(` or backtick inside a
+  // comment would otherwise blank every later line (CodeRabbit 4209092885).
+  return blankSubstitutions(stripComments(blankQuotedContent(command)))
     .split(STAGE_SPLIT_RE)
     .map((s) => s.trim())
     .filter(Boolean);

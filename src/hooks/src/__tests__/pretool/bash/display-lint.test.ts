@@ -413,6 +413,26 @@ describe('display-lint', () => {
       expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
     });
 
+    // CodeRabbit 4209092885: a comment that holds an unmatched `$(` or
+    // backtick must not hide the real stages after it.
+    test('a comment holding an unmatched $( does not hide later stages', () => {
+      const plain = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      const cmd = `# todo: wrap this in $( later\n${REAL_OFFENDER}`;
+      const r = displayLint(bash(cmd), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      const stages = (x: Advisory) => /across (\d+) stages/.exec(message(x))?.[1];
+      expect(stages(r)).toBe(stages(plain));
+    });
+
+    test('a comment holding an unmatched backtick does not hide later stages', () => {
+      const plain = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      const cmd = `# the \` key is broken\n${REAL_OFFENDER}`;
+      const r = displayLint(bash(cmd), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      const stages = (x: Advisory) => /across (\d+) stages/.exec(message(x))?.[1];
+      expect(stages(r)).toBe(stages(plain));
+    });
+
     test('a pipeline inside $( ) is one top-level stage', () => {
       const cmd = `VAL=$(git rev-parse HEAD | cut -c1-8 | tr a-z A-Z) && echo "${'v'.repeat(170)}"`;
       expect(cmd.length).toBeGreaterThan(200);

@@ -8,7 +8,7 @@
  * injected deps object instead of importing node:fs itself.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const STATE_DIR_REL = '.claude/state';
@@ -21,18 +21,25 @@ function safeSessionPart(sessionId: string): string {
 /**
  * True the first time `name` is claimed in this session, false after.
  *
- * A flag file that cannot be written still returns true: one repeated hint
- * beats a hook that silently never speaks.
+ * The claim is one exclusive create (`wx`), so two hook processes racing on
+ * the same session cannot both win: the loser gets EEXIST and returns false
+ * (CodeRabbit 4209092868). Any other write error still returns true: one
+ * repeated hint beats a hook that silently never speaks.
  */
 export function claimOncePerSession(projectDir: string, name: string, sessionId: string): boolean {
   const dir = join(projectDir, STATE_DIR_REL);
   const flag = join(dir, `${name}-${safeSessionPart(sessionId)}.flag`);
-  if (existsSync(flag)) return false;
   try {
     mkdirSync(dir, { recursive: true });
-    writeFileSync(flag, new Date().toISOString());
   } catch {
-    // Fall through: see the doc comment.
+    return true; // no state dir: see the doc comment
+  }
+  try {
+    writeFileSync(flag, new Date().toISOString(), { flag: 'wx' });
+  } catch (err) {
+    // Only an existing flag means "already claimed"; mkdir errors above can
+    // also report EEXIST on some platforms, which is why they are separate.
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') return false;
   }
   return true;
 }
