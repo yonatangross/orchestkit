@@ -20,7 +20,7 @@
 # Never append a date suffix to an alias. `claude-sonnet-5` is complete as
 # written; `claude-sonnet-5-20260101` is not a real ID.
 #
-# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog; claude-opus-5-5 (and the missing claude-opus-5) added 2026-09-22 from the CC 2.1.280 changelog; claude-sonnet-5-5 added 2026-09-28 from the platform models overview (Sonnet 5 moved to Legacy); Haiku 4.5 re-checked 2026-09-28 against the model deprecations page: Active, deprecation N/A, retirement not sooner than 2026-10-15; claude-opus-4-20250514 and claude-sonnet-4-20250514 moved Deprecated->Retired 2026-09-29 (#4543): deprecations page retired both on 2026-06-15
+# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog; claude-opus-5-5 (and the missing claude-opus-5) added 2026-09-22 from the CC 2.1.280 changelog; claude-sonnet-5-5 added 2026-09-28 from the platform models overview (Sonnet 5 moved to Legacy); claude-haiku-5-5 added 2026-10-07 from the platform models overview; Haiku 4.5 re-checked 2026-09-28 against the model deprecations page: Active, deprecation N/A, retirement not sooner than 2026-10-15; claude-opus-4-20250514 and claude-sonnet-4-20250514 moved Deprecated->Retired 2026-09-29 (#4543): deprecations page retired both on 2026-06-15
 
 # ---- Current ----
 claude-fable-5-1
@@ -32,6 +32,7 @@ claude-opus-4-7
 claude-opus-4-6
 claude-sonnet-5-5
 claude-sonnet-4-6
+claude-haiku-5-5  # Active; released 2026-10-07; retirement not sooner than 2027-10-07
 claude-haiku-4-5  # Active; retirement not sooner than 2026-10-15
 claude-haiku-4-5-20251001  # Active; retirement not sooner than 2026-10-15
 
