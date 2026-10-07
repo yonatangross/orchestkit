@@ -3,8 +3,6 @@ name: responsive-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
-context: fork
-agent: frontend-ui-developer
 user-invocable: false
 disable-model-invocation: true
 metadata:

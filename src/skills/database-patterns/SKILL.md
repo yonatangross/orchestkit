@@ -3,8 +3,6 @@ name: database-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.
-context: fork
-agent: database-engineer
 user-invocable: false
 disable-model-invocation: false
 targets:

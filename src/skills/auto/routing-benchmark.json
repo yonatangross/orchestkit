@@ -61,6 +61,13 @@
     { "id": "amb-04", "goal": "test the new feature", "category": "fallback", "route": "clarify", "note": "functional tests (build/verify) vs coverage (cover)" },
     { "id": "amb-05", "goal": "make it better", "category": "fallback", "route": "clarify", "note": "no metric, no target, no artifact" },
     { "id": "amb-06", "goal": "design and build the notifications feature end to end", "category": "design", "route": "/ork:brainstorm", "note": "start design, offer build after" },
-    { "id": "edge-01", "goal": "optimize my prompt for the summarizer", "category": "optimize", "route": "/goal", "note": "a prompt, not a SKILL.md -> optimize not improve-skill" }
+    { "id": "edge-01", "goal": "optimize my prompt for the summarizer", "category": "optimize", "route": "/goal", "note": "a prompt, not a SKILL.md -> optimize not improve-skill" },
+    { "id": "e2e-01", "goal": "check the change in the browser", "category": "e2e", "route": "/ork:expect", "note": "run a browser test plan on the diff" },
+    { "id": "e2e-02", "goal": "verify the checkout flow in the browser before merge", "category": "e2e", "route": "/ork:expect", "note": "browser beats the plain verify verb" },
+    { "id": "e2e-03", "goal": "why don't you do proper e2e like ork suggests", "category": "e2e", "route": "/ork:expect", "note": "operator transcript 2026-10-07: a request, not a why-question about a failure" },
+    { "id": "e2e-04", "goal": "run the playwright tests against this branch", "category": "e2e", "route": "/ork:expect" },
+    { "id": "e2e-05", "goal": "we have no e2e tests yet", "category": "cover", "route": "/ork:cover", "note": "missing e2e tests are a coverage gap" },
+    { "id": "e2e-06", "goal": "write e2e tests for the signup page", "category": "cover", "route": "/ork:cover", "note": "writing new Playwright tests is cover's E2E tier" },
+    { "id": "e2e-07", "goal": "why is the e2e suite failing on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a failing e2e run is a diagnosis, not a new run" }
   ]
 }

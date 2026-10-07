@@ -3,8 +3,6 @@ name: async-jobs
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.
-context: fork
-agent: python-performance-engineer
 user-invocable: false
 disable-model-invocation: true
 metadata:

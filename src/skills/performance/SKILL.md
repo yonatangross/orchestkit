@@ -3,8 +3,6 @@ name: performance
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.
-context: fork
-agent: frontend-performance-engineer
 user-invocable: false
 disable-model-invocation: false
 effort: high

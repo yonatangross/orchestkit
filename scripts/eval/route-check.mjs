@@ -41,7 +41,7 @@ const TOLERANCE = 0.02;
 
 // The full known category set (matches the routing-benchmark labels + SKILL.md table).
 const KNOWN_CATEGORIES = new Set([
-  'build', 'cover', 'design', 'diagnose', 'fallback',
+  'build', 'cover', 'design', 'diagnose', 'e2e', 'fallback',
   'fix', 'improve-skill', 'optimize', 'review', 'verify',
 ]);
 
@@ -60,6 +60,16 @@ function classify(rawGoal) {
   // 1. improve-skill — a SKILL.md / named skill is the optimization target.
   //    Must precede `optimize` ("optimize the prompt for the X skill").
   if (/skill\.md/.test(g) || /\bskills?\b/.test(g)) return 'improve-skill';
+
+  // 1b. e2e: an end-to-end or browser test ask. Precedes `verify` so "verify the
+  //     flow in the browser" runs a browser plan, and precedes `diagnose` so the
+  //     request form "why don't you do proper e2e" is not read as a why-question.
+  //     No e2e tests yet, or write/add/generate them -> cover (its E2E tier).
+  //     A failing or flaky e2e run falls through to diagnose/fix.
+  if (/\be2e\b|\bend[- ]to[- ]end tests?\b|\bin the browser\b|\bbrowser tests?\b|\bplaywright\b/.test(g)) {
+    if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bmissing\b/.test(g)) return 'cover';
+    if (!/\bfailing\b|\bflaky\b|\bbroken\b|\berrors?\b|\bwhy (?:is|are|does|do)\b/.test(g)) return 'e2e';
+  }
 
   // 2. verify — confirm existing state is green (verify/validate/make-sure/check-that).
   //    Precedes `build`/`review` so "validate the build" and "check that ..." resolve here.

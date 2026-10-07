@@ -3,8 +3,6 @@ name: python-backend
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract."
-context: fork
-agent: backend-system-architect
 user-invocable: false
 disable-model-invocation: false
 targets:

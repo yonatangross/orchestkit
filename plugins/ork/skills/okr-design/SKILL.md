@@ -2,8 +2,6 @@
 name: okr-design
 compatibility: "Claude Code 2.1.277+"
 description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails."
-context: fork
-agent: product-strategist
 user-invocable: false
 disable-model-invocation: false
 metadata:

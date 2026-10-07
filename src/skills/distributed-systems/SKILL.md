@@ -3,8 +3,6 @@ name: distributed-systems
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns.
-context: fork
-agent: backend-system-architect
 user-invocable: false
 disable-model-invocation: true
 metadata:

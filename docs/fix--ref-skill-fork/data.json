@@ -1,0 +1,6 @@
+{
+  "serves": "ork-ref-skill-fork",
+  "page": "docs/fix--ref-skill-fork/index.html",
+  "lab_slug": "ref-skill-fork",
+  "purpose": "PR playground: why forked reference skills returned nothing, the 51-skill classification, and the new e2e routes"
+}
