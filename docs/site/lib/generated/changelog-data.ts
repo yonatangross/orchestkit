@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.163",
+    "date": "2026-10-07",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**glyph:** output mode dials, done sign-off, and a try-it page ([#4647](https://github.com/yonatangross/orchestkit/issues/4647)) ([f917aac](https://github.com/yonatangross/orchestkit/commit/f917aac6b21bfe509a8c3359d899bed22a94d4ff))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump the vitest group across 1 directory with 2 updates ([#4612](https://github.com/yonatangross/orchestkit/issues/4612)) ([9246bca](https://github.com/yonatangross/orchestkit/commit/9246bca5aee7216274fb8e1323a87f5c0c05d39e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.162",
     "date": "2026-10-07",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162",
