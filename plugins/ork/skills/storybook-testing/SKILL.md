@@ -3,8 +3,6 @@ name: storybook-testing
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9.
-context: fork
-agent: frontend-ui-developer
 user-invocable: false
 disable-model-invocation: true
 # Reference skill: fenced Storybook MCP names teach CSF/testing patterns; this
@@ -14,6 +12,7 @@ targets:
   - library: storybook
     version: ">=10.6.1"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   storybook-version: "10.3"
   version: "2.0.0"

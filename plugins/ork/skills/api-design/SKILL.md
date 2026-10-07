@@ -3,11 +3,10 @@ name: api-design
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: API contract design for REST and GraphQL, covering resource shape, URL and header versioning with deprecation windows, RFC 9457 Problem Details error handling, and OpenAPI specs. Use when specifying the wire contract an endpoint exposes, choosing a versioning scheme, or standardizing error response bodies across services. Framework-agnostic protocol layer, not runtime implementation.
-context: fork
-agent: backend-system-architect
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

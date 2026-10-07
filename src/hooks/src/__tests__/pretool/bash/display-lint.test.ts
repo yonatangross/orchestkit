@@ -9,9 +9,13 @@
  * remedy it suggests (script files, heredoc-created) must never be flagged.
  *
  * The hook WARNS, it does not block (#2947), so `isFlagged` reads the
- * advisory systemMessage rather than a permission decision.
+ * advisory additionalContext rather than a permission decision. The advice
+ * is for the model only (#4652), so it never rides systemMessage.
  */
 
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { displayLint } from '../../../pretool/bash/display-lint.js';
 import { NOOP_CTX } from '../../../lib/context.js';
@@ -20,9 +24,11 @@ function bash(command: string): never {
   return { tool_name: 'Bash', tool_input: { command } } as never;
 }
 
+type Advisory = { systemMessage?: string; hookSpecificOutput?: { additionalContext?: string } };
+
 /** The hook flagged the command (advisory emitted). */
-function isFlagged(r: { systemMessage?: string }): boolean {
-  return (r.systemMessage ?? '').includes('[display-lint]');
+function isFlagged(r: Advisory): boolean {
+  return (r.hookSpecificOutput?.additionalContext ?? '').includes('[display-lint]');
 }
 
 /**
@@ -69,15 +75,65 @@ describe('display-lint', () => {
     expect(madePermissionDecision(clean)).toBe(false);
   });
 
-  // systemMessage reaches the USER; additionalContext reaches CLAUDE. Now
-  // that the hook cannot block, additionalContext is the ONLY channel that
-  // shifts future tool calls toward script files. Dropping it would leave a
-  // hook that is visible but inert.
-  test('advisory reaches BOTH the user and Claude', () => {
+  // #4652: the advice is for the model. additionalContext reaches Claude and
+  // is the channel that shifts future calls toward script files; a
+  // systemMessage copy only repeated the paragraph in the user's transcript.
+  test('advisory reaches Claude only, never the user transcript (#4652)', () => {
     const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
-    expect(r.systemMessage).toContain('[display-lint]');
+    expect(r.systemMessage).toBeUndefined();
     expect(r.hookSpecificOutput?.additionalContext).toContain('[display-lint]');
     expect(r.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+  });
+
+  // #4652: a polling loop of long commands printed the same paragraph on
+  // every call. The model needs the advice once per session.
+  describe('once per session (#4652)', () => {
+    let projectDir: string;
+    beforeEach(() => {
+      projectDir = mkdtempSync(join(tmpdir(), 'display-lint-'));
+    });
+    afterEach(() => {
+      rmSync(projectDir, { recursive: true, force: true });
+    });
+    const inSession = (sessionId: string) =>
+      ({
+        tool_name: 'Bash',
+        tool_input: { command: REAL_OFFENDER },
+        session_id: sessionId,
+        project_dir: projectDir,
+      }) as never;
+
+    test('the second flagged command in the same session is silent', () => {
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(false);
+    });
+
+    test('a new session gets the advice again', () => {
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-b'), NOOP_CTX))).toBe(true);
+    });
+
+    test('the session store is injected, so the handler owns no file I/O', () => {
+      const seen = new Set<string>();
+      const deps = {
+        claimOnce: (_dir: string, name: string, sid: string) => {
+          const key = `${name}:${sid}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        },
+      };
+      expect(isFlagged(displayLint(inSession('sess-x'), NOOP_CTX, deps))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-x'), NOOP_CTX, deps))).toBe(false);
+      expect(seen.has('display-lint:sess-x')).toBe(true);
+    });
+
+    test('a hostile session id cannot write outside the state dir', () => {
+      expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(false);
+      // Unsanitized, `.claude/state/display-lint-../../escape.flag` lands here.
+      expect(existsSync(join(projectDir, '.claude', 'escape.flag'))).toBe(false);
+    });
   });
 
   test('passes short commands regardless of stages', () => {
@@ -299,6 +355,95 @@ describe('display-lint', () => {
     test('the exemption never makes a permission decision', () => {
       const command = `bash ${P}/x.sh > ${P}/probe.log 2>&1; tail -1 ${P}/probe.log; rm ${P}/probe.log`;
       expect(madePermissionDecision(displayLint(bash(command), NOOP_CTX))).toBe(false);
+    });
+  });
+
+  // ork-display-lint-bug-2026-10-07: a Linux box (bash) was told about a zsh
+  // word-split trap it does not have, and short safe commands were counted
+  // as many stages.
+  describe('shell-aware advice and inflated stage counts', () => {
+    let savedShell: string | undefined;
+    let savedCcShell: string | undefined;
+    beforeEach(() => {
+      savedShell = process.env.SHELL;
+      savedCcShell = process.env.CLAUDE_CODE_SHELL;
+      delete process.env.CLAUDE_CODE_SHELL;
+    });
+    afterEach(() => {
+      if (savedShell === undefined) delete process.env.SHELL;
+      else process.env.SHELL = savedShell;
+      if (savedCcShell === undefined) delete process.env.CLAUDE_CODE_SHELL;
+      else process.env.CLAUDE_CODE_SHELL = savedCcShell;
+    });
+
+    const message = (r: Advisory) => r.hookSpecificOutput?.additionalContext ?? '';
+
+    test('bash shell: still flags, but never gives the zsh word-split advice', () => {
+      process.env.SHELL = '/bin/bash';
+      const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      expect(message(r)).not.toMatch(/zsh/i);
+      expect(message(r)).toContain('script file');
+    });
+
+    test('zsh shell: keeps the zsh word-split advice', () => {
+      process.env.SHELL = '/bin/zsh';
+      const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      expect(message(r)).toMatch(/zsh/);
+      expect(message(r)).toMatch(/word-split/);
+    });
+
+    test('CLAUDE_CODE_SHELL overrides SHELL, the way Claude Code picks the Bash tool shell', () => {
+      process.env.SHELL = '/bin/zsh';
+      process.env.CLAUDE_CODE_SHELL = '/usr/bin/bash';
+      expect(message(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).not.toMatch(/zsh/i);
+    });
+
+    test('unknown shell: no shell-specific claim at all', () => {
+      delete process.env.SHELL;
+      expect(message(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).not.toMatch(/zsh/i);
+    });
+
+    test('comment lines are not stages, even when they mention && | ;', () => {
+      const cmd =
+        '# step 1: build && test | report; then ship\n' +
+        '# step 2: a; b; c\n' +
+        'npm run build --workspace=packages/' + 'p'.repeat(170);
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    // CodeRabbit 4209092885: a comment that holds an unmatched `$(` or
+    // backtick must not hide the real stages after it.
+    test('a comment holding an unmatched $( does not hide later stages', () => {
+      const plain = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      const cmd = `# todo: wrap this in $( later\n${REAL_OFFENDER}`;
+      const r = displayLint(bash(cmd), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      const stages = (x: Advisory) => /across (\d+) stages/.exec(message(x))?.[1];
+      expect(stages(r)).toBe(stages(plain));
+    });
+
+    test('a comment holding an unmatched backtick does not hide later stages', () => {
+      const plain = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      const cmd = `# the \` key is broken\n${REAL_OFFENDER}`;
+      const r = displayLint(bash(cmd), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      const stages = (x: Advisory) => /across (\d+) stages/.exec(message(x))?.[1];
+      expect(stages(r)).toBe(stages(plain));
+    });
+
+    test('a pipeline inside $( ) is one top-level stage', () => {
+      const cmd = `VAL=$(git rev-parse HEAD | cut -c1-8 | tr a-z A-Z) && echo "${'v'.repeat(170)}"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('real clutter around a comment or a $( ) is still flagged', () => {
+      const cmd =
+        '# look around\n' +
+        'cd /tmp/' + 'd'.repeat(120) + ' && ls -la && X=$(date | cut -c1-4) && grep -n foo bar.txt | head -5';
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(true);
     });
   });
 });

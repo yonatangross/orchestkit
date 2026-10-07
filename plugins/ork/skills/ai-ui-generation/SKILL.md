@@ -3,11 +3,10 @@ name: ai-ui-generation
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
-context: fork
-agent: frontend-ui-developer
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.1.0"
   author: "OrchestKit"

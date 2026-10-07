@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.277+."
 description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
 user-invocable: false
 disable-model-invocation: true
-context: fork
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"

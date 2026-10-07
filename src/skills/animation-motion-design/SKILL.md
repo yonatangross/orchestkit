@@ -3,14 +3,13 @@ name: animation-motion-design
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.
-context: fork
-agent: frontend-ui-developer
 user-invocable: false
 disable-model-invocation: true
 targets:
   - library: motion
     version: ">=13.4.6"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

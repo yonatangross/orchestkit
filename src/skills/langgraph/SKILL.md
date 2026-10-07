@@ -3,8 +3,6 @@ name: langgraph
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
-context: fork
-agent: workflow-architect
 user-invocable: false
 disable-model-invocation: true
 effort: high
@@ -16,6 +14,7 @@ targets:
     version: ">=1.2.0"
 upstream-version-tested: "1.2.12"
 metadata:
+  owner-agent: "workflow-architect"
   category: document-asset-creation
   version: "2.3.0"
   author: "OrchestKit"

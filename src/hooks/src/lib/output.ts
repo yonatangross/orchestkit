@@ -392,6 +392,28 @@ export function outputPreToolAdvisory(message: string): HookResult {
 }
 
 /**
+ * Non-blocking PreToolUse hint for CLAUDE only, without any permission
+ * decision (#4652).
+ *
+ * Use this when the text is advice for the model (how to shape the next tool
+ * call) and the user has nothing to act on. outputPreToolAdvisory also sets
+ * `systemMessage`, which repeats the same paragraph in the user's transcript
+ * on every hit. Like outputPreToolAdvisory it omits `permissionDecision`, so
+ * the normal permission flow still applies.
+ */
+export function outputPreToolModelHint(message: string): HookResult {
+  if (!message?.trim()) return outputSilentSuccess();
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: message,
+    },
+  };
+}
+
+/**
  * Output error message - only use when there's an actual problem
  */
 export function outputError(message: string): HookResult {
