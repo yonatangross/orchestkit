@@ -3,8 +3,6 @@ name: testing-llm
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
-context: fork
-agent: test-generator
 user-invocable: false
 disable-model-invocation: false
 targets:
@@ -13,6 +11,7 @@ targets:
   - library: "ragas"
     version: ">=0.4.0"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"
