@@ -74,6 +74,10 @@
     { "id": "e2e-10", "goal": "why do no e2e tests run on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a why-question about missing runs, not a request to write tests" },
     { "id": "e2e-11", "goal": "the playwright suite timed out again", "category": "fix", "route": "/ork:fix-issue", "note": "timeout is a failure symptom" },
     { "id": "e2e-12", "goal": "write e2e tests for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4209764041: error is the page under test, not a failing run" },
-    { "id": "e2e-13", "goal": "add playwright tests for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "failure names the flow under test" }
+    { "id": "e2e-13", "goal": "add playwright tests for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "failure names the flow under test" },
+    { "id": "e2e-14", "goal": "add a retry to the failing e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "HOLD 6043667415: the verb's object is a retry, not new tests" },
+    { "id": "e2e-15", "goal": "add a fix for the flaky playwright tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a fix" },
+    { "id": "e2e-16", "goal": "write a workaround for the broken e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a workaround" },
+    { "id": "e2e-17", "goal": "create a ticket: the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a ticket; the tests fail" }
   ]
 }
