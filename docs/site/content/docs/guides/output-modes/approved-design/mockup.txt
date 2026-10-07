@@ -1,0 +1,53 @@
+OUTPUT MODES · TRY IT                              orchestkit.yonyon.ai
+pick a mode ──▶ see the same answer ──▶ copy the flag or the prompt
+
+┌ Sections ──────┐ 01 / PICK A MODE ─────────────────────────────────
+│▸ Pick a mode   │ surface   (●) chat    ( ) ask     ( ) page
+│  One answer    │ audience  (●) operator            ( ) novice
+│  Audience      │ sign-off  [ ] end with "accept done?"
+│  Done sign-off │ ┌ your flag ──────────────────────────┐
+│  Display vars  │ │ /ork:glyph --chat                   │ [ copy ]
+│  Copy prompt   │ └─────────────────────────────────────┘
+└────────────────┘
+
+02 / ONE ANSWER, THREE SURFACES ─────────────────────────────────────
+question: "is beta.160 ready to ship?"   (the same answer in each)
+┏ chat ━━━━━━━━━━━━┓ ┌ ask ────────────────┐ ┌ page ──────────────┐
+┃ → chat · operator┃ │ → ask · operator    │ │ → page · operator  │
+┃ 2 of 3 gates ✅  ┃ │ Ship which way?     │ │ ┌ ○ ○ ○ ─────────┐ │
+┃ [▓▓▓▓▓▓░░░] 66 % ┃ │ ▸ ship now          │ │ │ verdict line   │ │
+┃ ✅ tests 412/412 ┃ │   wait for docs     │ │ │ 3 KPI tiles    │ │
+┃ ✅ security      ┃ │   hold the release  │ │ │ ▓▓▓▓░ chart    │ │
+┃ ⚠️ docs build    ┃ │ (pick blocks reply) │ │ └────────────────┘ │
+┗━━━━━━━━━━━━━━━━━━┛ └─────────────────────┘ └────────────────────┘
+ inline, ≤50 lines     2 to 4 options, waits    served URL, persists
+ the picked surface is outlined heavy; the other two dim, still readable
+
+03 / AUDIENCE: OPERATOR vs NOVICE (--eli5) ──────────────────────────
+┌ operator ─────────────────────┐ ┌ novice ───────────────────────┐
+│ ⚠️ docs-site build red        │ │ Two of three checks passed.   │
+│   (generate-search-index,     │ │ Think of a pre-flight list:   │
+│   #4651); tests + gitleaks ✅ │ │ the website check failed, so  │
+│                               │ │ the plane waits at the gate.  │
+└───────────────────────────────┘ └───────────────────────────────┘
+
+04 / DONE SIGN-OFF ──────────────────────────────────────────────────
+┌ without ──────────────────────┐ ┌ with ─────────────────────────┐
+│ ... verdict, evidence.        │ │ Verified 3/3 PASS. Done?      │
+│ (reply ends; you judge)       │ │ ▸ Accept done                 │
+│                               │ │   Show me the evidence        │
+│                               │ │   Not satisfied               │
+└───────────────────────────────┘ └───────────────────────────────┘
+
+05 / DISPLAY ENV VARS (16) ──────────────────────────────────────────
+│ var                       │ default │ what it changes        │ hook │
+│ ORK_ASK_FALLBACK=text     │ unset   │ picker → numbered list │ ...  │
+│ ORK_DISPLAY_LINT=0        │ on      │ ...                    │ ...  │
+│ ... 14 more rows, each verified against src/hooks/src           │
+
+06 / COPY AS PROMPT ─────────────────────────────────────────────────
+┌ prompt ─────────────────────────────────────────────────────────┐
+│ Answer with /ork:glyph --page --eli5, and end with the done     │
+│ sign-off (Accept done | Show me the evidence | Not satisfied).  │
+└─────────────────────────────────────────────────────────────────┘
+[ copy as prompt ]   [ copy JSON ]   (select + Cmd+C fallback)

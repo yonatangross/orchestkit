@@ -26,7 +26,9 @@ data, force-pushing, or changing anything outside this repository."
 **Correct:** a one-line status note, then the first action of phase 4, in the same message.
 
 A skill's own AskUserQuestion gates (intent, scope, blast radius) still apply: they are decisions only
-the user can make, which is the case the rule stops for.
+the user can make, which is the case the rule stops for. So does the end-of-run question: when the run
+reaches its finish line, ask the one sign-off question from `done-signoff.md` (Accept done, Show me the
+evidence, Not satisfied) instead of declaring the work done. Non-interactive runs return the verdict as data.
 
 ### 3. Keep a TASKS.md for runs that can outlive the session
 

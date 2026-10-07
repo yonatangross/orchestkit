@@ -1,0 +1,89 @@
+---
+title: "Output modes: try them"
+description: "See the same answer as a chat render, a question, or a page, for an operator or a novice, with and without the done sign-off. Pick one and copy the flag or the prompt."
+---
+
+import {
+  AudienceCompare,
+  CopyPrompt,
+  ModePicker,
+  SignoffCompare,
+  SurfaceCompare,
+} from '@/components/output-modes';
+
+OrchestKit answers in one of three **surfaces** (chat, ask, page) for one of two
+**audiences** (operator, novice), and can end with a **done sign-off**. `/ork:glyph`
+picks all of this for you and says what it picked in one line, for example
+`→ chat · operator`. A flag always wins over its guess. Pick a mode below: every
+section on this page follows your pick, and the last one gives you a prompt to paste.
+
+## Pick a mode
+
+<ModePicker />
+
+Defaults: surface **chat**, audience **operator**, no sign-off. `--eli5` on its own
+also sets the page surface, so the flag above always names the surface.
+
+## One answer, three surfaces
+
+The question is "is beta.160 ready to ship?". Each panel is the same answer. Your
+pick has the heavy outline.
+
+<SurfaceCompare />
+
+- **chat** is the common case: one render in the reply, up to about 50 lines.
+- **ask** is for a real fork that must be settled before the next step. It blocks
+  until someone answers, so glyph uses it only when the pick changes what happens next.
+- **page** is for answers over about 50 lines, or answers that must persist.
+
+## Operator or novice
+
+Same surface, two readers. Novice (`--eli5`, or a request that names a reader who is
+not you, such as "explain it to the client") means plain words and an analogy before
+the mechanism. It does not mean less accurate.
+
+<AudienceCompare />
+
+On the ask surface the announce line always says `operator`: it names who answers
+the question, not who reads the result.
+
+## Done sign-off
+
+`--signoff` on glyph, and the last step of `/ork:verify`, end with one question:
+**Accept done**, **Show me the evidence**, or **Not satisfied**. Any failure is listed
+first. Runs with no one to answer (`claude -p`, a workflow) print the verdict and
+skip the question.
+
+<SignoffCompare />
+
+## Display env vars
+
+Sixteen environment variables change what OrchestKit shows you. Each one is read by
+the hook named in the last column. Set them in your shell before you start Claude Code.
+
+| Variable | Default | What it changes | Hook |
+|---|---|---|---|
+| `ORK_ASK_FALLBACK` | unset | `text` turns every picker into a numbered text list ([guide](/docs/guides/ask-fallback)) | `lifecycle/ask-fallback-injector` |
+| `ORK_DISPLAY_LINT` | on | `0` stops the nudge to put long multi-stage shell commands in a script file | `pretool/bash/display-lint` |
+| `ORK_NO_NOTIFY` | unset | `1` turns off desktop notifications | `notification/desktop` |
+| `ORK_NOTIFY_OSASCRIPT` | unset | `1` sends notifications with osascript or notify-send instead of the terminal escape code | `notification/desktop` |
+| `ORK_NO_CTX_WARN` | unset | `1` turns off the context-window warnings | `posttool/context-crossing-warn` |
+| `ORK_CTX_WARN_THRESHOLD` | unset | a token count used as the one warning point; turns off the wind-down zone | `posttool/context-crossing-warn` |
+| `ORK_CTX_WINDDOWN_PCT` | `0.70` | the share of the context window where the wind-down warning starts | `posttool/context-crossing-warn` |
+| `ORK_CTX_IMMINENT_PCT` | `0.85` | the share of the context window where the "compaction is near" warning starts | `posttool/context-crossing-warn` |
+| `ORCHESTKIT_AUTO_COMMIT_NUDGE` | on | `false` stops the "consider committing" reminder | `posttool/commit-nudge` |
+| `ORK_DISABLE_DEBT_SURFACER` | unset | `1` stops the list of deferred work shown when instructions load | `instructions-loaded/debt-surfacer` |
+| `ORK_NO_STRAY_PLAYGROUND_CHECK` | unset | `1` stops the session-start warning about uncommitted playground pages | `lifecycle/stray-playground-pages` |
+| `ORK_STRAY_PLAYGROUND_MIN_AGE_HOURS` | `1` | how old a playground page must be before that warning names it | `lifecycle/stray-playground-pages` |
+| `ORK_EXPECT_AUTO` | on | `0` stops the browser-test suggestion after UI file edits | `posttool/ui-change-detector` |
+| `ORK_NO_PRECOMPACT_PROMPT` | unset | `1` stops the "mark finished tasks done" prompt before compaction | `lifecycle/pre-compact-task-done-prompt` |
+| `ORK_TASK_NUDGE_MAX_UNANSWERED` | `3` | after this many ignored nudges, the task-list nudge gets quieter (2 to 1000) | `prompt/multi-step-task-nudge` |
+| `ORK_NO_MEMORY_LINT` | unset | `1` turns off the checks that come from your memory files | `lib/memory-lint` |
+
+The visual-style nudge that asks for a render on every prompt has no off switch today.
+
+## Copy as prompt
+
+Paste this into Claude Code to get your pick on the next answer.
+
+<CopyPrompt />
