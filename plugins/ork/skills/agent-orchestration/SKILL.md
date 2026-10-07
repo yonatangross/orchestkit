@@ -7,6 +7,7 @@ user-invocable: false
 disable-model-invocation: true
 effort: high
 metadata:
+  owner-agent: "workflow-architect"
   category: workflow-automation
   version: "2.0.0"
   author: "OrchestKit"

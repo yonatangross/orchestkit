@@ -9,6 +9,7 @@ targets:
   - library: vite
     version: ">=8.3.1"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   vite-version: "8.0"
   version: "2.0.0"

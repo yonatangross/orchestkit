@@ -6,6 +6,7 @@ description: Product management frameworks for business cases, market analysis, 
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

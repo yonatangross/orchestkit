@@ -5,6 +5,7 @@ description: "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportu
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

@@ -6,6 +6,7 @@ description: Async job processing patterns for background tasks, Celery workflow
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "python-performance-engineer"
   category: workflow-automation
   version: "2.0.0"
   author: "OrchestKit"

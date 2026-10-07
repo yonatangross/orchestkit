@@ -6,6 +6,7 @@ description: AI-assisted UI generation patterns for json-render, v0.app, Google 
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.1.0"
   author: "OrchestKit"

@@ -7,6 +7,7 @@ user-invocable: false
 disable-model-invocation: true
 effort: high
 metadata:
+  owner-agent: "data-pipeline-engineer"
   category: mcp-enhancement
   version: "2.0.0"
   author: "OrchestKit"

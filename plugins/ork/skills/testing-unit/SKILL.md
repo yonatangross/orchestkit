@@ -9,6 +9,7 @@ targets:
   - library: vitest
     version: ">=5.0.3"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

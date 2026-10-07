@@ -6,6 +6,7 @@ description: Task Management patterns with TaskCreate, TaskUpdate, TaskGet, Task
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "workflow-architect"
   category: workflow-automation
   version: "1.0.0"
   author: "OrchestKit"

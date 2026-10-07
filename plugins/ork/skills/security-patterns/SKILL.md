@@ -8,6 +8,7 @@ disable-model-invocation: false
 effort: high
 model: opus
 metadata:
+  owner-agent: "security-auditor"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

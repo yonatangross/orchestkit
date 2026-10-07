@@ -6,6 +6,7 @@ description: Use when setting up CI/CD pipelines, containerizing applications, d
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "ci-cd-engineer"
   category: workflow-automation
   version: "1.0.0"
   author: "OrchestKit"

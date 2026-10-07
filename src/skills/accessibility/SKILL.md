@@ -6,6 +6,7 @@ description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus mana
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "accessibility-specialist"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

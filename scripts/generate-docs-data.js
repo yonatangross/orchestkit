@@ -343,7 +343,9 @@ function extractSkillMetadata(skillName, skillPath) {
     // YAML list; the generated field is always string[].
     allowedTools: toolList(frontmatter['allowed-tools']),
     skills: frontmatter.skills || [],
-    agent: frontmatter.agent || null,
+    // The fork agent for a task skill, else the owning agent a guideline
+    // skill records under metadata (it no longer forks, ork-ref-skill-fork).
+    agent: frontmatter.agent || frontmatter.metadata?.['owner-agent'] || null,
     complexity: frontmatter.complexity || 'low',
     structure: structure,
     // Derived from the FULL body on purpose: `content` below is truncated at

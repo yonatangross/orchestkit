@@ -1742,10 +1742,20 @@ def _collect_skill_metadata(skills_src: str) -> list[dict]:
                 "tags": set(tags),
                 "user_invocable": meta.get("user-invocable", False),
                 "complexity": meta.get("complexity", ""),
-                "agent": meta.get("agent", ""),
+                "agent": _skill_owner_agent(meta),
             }
         )
     return results
+
+
+def _skill_owner_agent(meta: dict) -> str:
+    """The fork `agent:` of a task skill, else the `metadata.owner-agent` of a
+    guideline skill (guideline skills no longer fork, ork-ref-skill-fork)."""
+    agent = (meta.get("agent", "") or "").strip()
+    if agent:
+        return agent
+    md = meta.get("metadata")
+    return (md.get("owner-agent", "") or "").strip() if isinstance(md, dict) else ""
 
 
 def _match_category(skill: dict, rule: dict) -> bool:
@@ -2034,8 +2044,8 @@ def generate_reference_skills(skills_src: str, out_file: str, agents_src: str = 
         slug = skill_dir.name
         desc = _ref_table_cell((meta.get("description", "") or "").strip())
         unique += 1
-        fork_agent = (meta.get("agent", "") or "").strip()
-        owners = sorted(set(preloaded_by.get(slug, [])) | ({fork_agent} if fork_agent else set()))
+        owner_agent = _skill_owner_agent(meta)
+        owners = sorted(set(preloaded_by.get(slug, [])) | ({owner_agent} if owner_agent else set()))
         for owner in owners:
             by_agent.setdefault(owner, []).append((slug, desc))
         if not owners:

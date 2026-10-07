@@ -9,6 +9,7 @@ targets:
   - library: sqlalchemy
     version: ">=2.1.1"
 metadata:
+  owner-agent: "database-engineer"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

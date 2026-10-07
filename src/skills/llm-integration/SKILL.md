@@ -6,6 +6,7 @@ description: LLM integration patterns for function calling, streaming responses,
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "llm-integrator"
   category: mcp-enhancement
   version: "2.0.0"
   author: "OrchestKit"

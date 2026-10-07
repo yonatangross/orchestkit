@@ -14,6 +14,7 @@ targets:
     version: ">=1.2.0"
 upstream-version-tested: "1.2.12"
 metadata:
+  owner-agent: "workflow-architect"
   category: document-asset-creation
   version: "2.3.0"
   author: "OrchestKit"

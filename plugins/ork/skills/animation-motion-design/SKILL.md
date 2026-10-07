@@ -9,6 +9,7 @@ targets:
   - library: motion
     version: ">=13.4.6"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

@@ -6,6 +6,7 @@ description: Golden dataset lifecycle patterns for curation, versioning, quality
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "data-pipeline-engineer"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

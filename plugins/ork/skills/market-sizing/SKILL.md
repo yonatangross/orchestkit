@@ -5,6 +5,7 @@ description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation m
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

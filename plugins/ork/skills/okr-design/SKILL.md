@@ -5,6 +5,7 @@ description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indi
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

@@ -8,6 +8,7 @@ targets:
   - library: "style-dictionary"
     version: ">=5.5.5"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   dtcg-version: "v2025.10"
   version: "1.1.0"

@@ -6,6 +6,7 @@ description: UI component library patterns for shadcn/ui and Radix Primitives. U
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

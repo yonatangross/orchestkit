@@ -6,6 +6,7 @@ description: UI interaction design patterns for skeleton loading, infinite scrol
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

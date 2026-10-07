@@ -9,6 +9,7 @@ targets:
   - library: "style-dictionary"
     version: ">=5.5.5"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   figma-mcp-tool-count: 16
   version: "1.1.0"

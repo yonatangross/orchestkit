@@ -11,6 +11,7 @@ targets:
   - library: react
     version: ">=19.3.0"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.5.0"
   author: "OrchestKit"

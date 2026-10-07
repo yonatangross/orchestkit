@@ -12,6 +12,7 @@ targets:
   - library: storybook
     version: ">=10.6.1"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   storybook-version: "10.3"
   version: "2.0.0"

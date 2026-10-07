@@ -11,6 +11,7 @@ targets:
   - library: "ragas"
     version: ">=0.4.0"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

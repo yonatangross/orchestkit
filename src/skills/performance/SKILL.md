@@ -7,6 +7,7 @@ user-invocable: false
 disable-model-invocation: false
 effort: high
 metadata:
+  owner-agent: "frontend-performance-engineer"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

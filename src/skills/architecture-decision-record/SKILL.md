@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: ADR templates in the Nygard format with context, decision, consequences, and alternatives. Use when writing ADRs, recording an architectural decision, or evaluating options.
 user-invocable: false
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

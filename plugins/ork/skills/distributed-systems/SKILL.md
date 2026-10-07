@@ -6,6 +6,7 @@ description: Distributed systems patterns for locking, resilience, idempotency, 
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

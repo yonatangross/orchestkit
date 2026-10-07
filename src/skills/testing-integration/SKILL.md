@@ -11,6 +11,7 @@ targets:
   - library: "testcontainers"
     version: ">=12.2.0"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

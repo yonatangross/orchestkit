@@ -11,6 +11,7 @@ targets:
   - library: "locust"
     version: ">=2.46.6"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

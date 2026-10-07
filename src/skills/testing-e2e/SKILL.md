@@ -9,6 +9,7 @@ targets:
   - library: "@playwright/test"
     version: ">=1.63.0"  # 1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

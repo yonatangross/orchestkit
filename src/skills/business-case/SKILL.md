@@ -5,6 +5,7 @@ description: "Business case analysis with ROI, NPV, IRR, payback period, and TCO
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

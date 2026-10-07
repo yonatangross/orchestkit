@@ -6,6 +6,7 @@ description: "A/B test evaluation, cohort retention analysis, funnel metrics, an
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

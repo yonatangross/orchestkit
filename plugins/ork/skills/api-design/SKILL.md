@@ -6,6 +6,7 @@ description: API contract design for REST and GraphQL, covering resource shape, 
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

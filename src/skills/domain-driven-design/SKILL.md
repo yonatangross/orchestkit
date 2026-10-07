@@ -6,6 +6,7 @@ description: "DDD tactical patterns for complex business modeling including enti
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

@@ -7,6 +7,7 @@ user-invocable: false
 disable-model-invocation: true
 effort: high
 metadata:
+  owner-agent: "multimodal-specialist"
   category: mcp-enhancement
   version: "2.1.1"
   author: "OrchestKit"
