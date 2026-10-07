@@ -197,7 +197,7 @@ def area_of(text, project, areas):
     for name, rxs in areas:
         if any(rx.search(text) for rx in rxs):
             return name
-    base = os.path.basename(project.rstrip("/")) if project else ""
+    base = Path(project.rstrip("/")).name if project else ""
     base = re.sub(r"^\.?worktrees?$", "", base)
     if "/.worktrees/" in project or "/worktrees/" in project:
         base = (
