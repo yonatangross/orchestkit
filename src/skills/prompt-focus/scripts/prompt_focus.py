@@ -100,7 +100,7 @@ def config():
     cfg = dict(DEFAULTS)
     p = workdir() / "config.json"
     if p.exists():
-        cfg.update(json.loads(p.read_text()))
+        cfg.update(json.loads(p.read_text(encoding="utf-8")))
     return cfg
 
 
@@ -125,7 +125,7 @@ def read_claude():
     cache = home() / ".claude" / "paste-cache"
     if not hist.exists():
         return
-    for line in hist.open(errors="replace"):
+    for line in hist.open(encoding="utf-8", errors="replace"):
         try:
             d = json.loads(line)
         except ValueError:
@@ -137,7 +137,7 @@ def read_claude():
             c = p.get("content")
             if c is None and p.get("contentHash"):
                 f = cache / (p["contentHash"] + ".txt")
-                c = f.read_text(errors="replace") if f.exists() else None
+                c = f.read_text(encoding="utf-8", errors="replace") if f.exists() else None
             if c is None:
                 unknown += 1
             else:
@@ -156,7 +156,7 @@ def read_codex():
     hist = home() / ".codex" / "history.jsonl"
     if not hist.exists():
         return
-    for line in hist.open(errors="replace"):
+    for line in hist.open(encoding="utf-8", errors="replace"):
         try:
             d = json.loads(line)
         except ValueError:
@@ -399,7 +399,7 @@ def report(agg, title, path):
         .replace("__SUB__", html.escape(sub))
         .replace("__DATA__", json.dumps(agg).replace("</", "<\\/"))
     )
-    path.write_text(page)
+    path.write_text(page, encoding="utf-8")
     if days is not None:
         agg["days"] = days
     return path
@@ -468,7 +468,7 @@ def fake_home(root, seed=7, weeks=WEEKS):
                     "project": "/home/dev/code/api",
                 }
             )
-    (root / ".claude" / "history.jsonl").write_text("".join(json.dumps(x) + "\n" for x in lines))
+    (root / ".claude" / "history.jsonl").write_text("".join(json.dumps(x) + "\n" for x in lines), encoding="utf-8")
 
 
 def selftest():
@@ -485,7 +485,7 @@ def selftest():
             assert secret not in blob, secret
         assert agg["areas"][:1] and len(agg["weeks"]) == WEEKS
         out = report(agg, "prompt-focus selftest", root / "r.html")
-        page = out.read_text()
+        page = out.read_text(encoding="utf-8")
         assert "add a retry" not in page and "<script" in page
         print(
             f"selftest ok: {k.get('typed', 0)} typed, {k.get('brief', 0)} briefs, {k.get('command', 0)} commands"
@@ -511,7 +511,7 @@ def main(argv):
         return 0
     out.mkdir(parents=True, exist_ok=True)
     agg = scan(config())
-    (out / "agg.json").write_text(json.dumps(agg, indent=1))
+    (out / "agg.json").write_text(json.dumps(agg, indent=1), encoding="utf-8")
     if cmd == "scan":
         t = agg["total"]
         print(
@@ -524,7 +524,7 @@ def main(argv):
         day = argv[2] if len(argv) > 2 else (today() - dt.timedelta(days=1)).isoformat()
         path = out / "daily.jsonl"
         seen = (
-            {json.loads(x)["date"] for x in path.read_text().splitlines() if x.strip()}
+            {json.loads(x)["date"] for x in path.read_text(encoding="utf-8").splitlines() if x.strip()}
             if path.exists()
             else set()
         )
@@ -532,7 +532,7 @@ def main(argv):
             print(f"skip {day}: already written")
             return 0
         row = agg["days"].get(day, {"prompts": 0})
-        with path.open("a") as fh:
+        with path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps({"date": day, **row}) + "\n")
         print(f"appended {day}: {row['prompts']} prompts")
         return 0

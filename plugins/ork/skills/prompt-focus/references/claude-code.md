@@ -12,5 +12,5 @@ Open the page for the user: `open ~/.claude/prompt-focus/report.html` (macOS) or
 A daily row from cron, 04:20 local time:
 
 ```text
-20 4 * * * python3 /path/to/skills/prompt-focus/scripts/prompt_focus.py daily >> ~/.claude/prompt-focus/daily.log 2>&1
+20 4 * * * mkdir -p ~/.claude/prompt-focus && python3 /path/to/skills/prompt-focus/scripts/prompt_focus.py daily >> ~/.claude/prompt-focus/daily.log 2>&1
 ```

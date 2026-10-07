@@ -34,8 +34,8 @@ Output dir: `$PROMPT_FOCUS_DIR`, default `~/.claude/prompt-focus`. The exact cal
 ## Quick Start Example
 
 ```bash
-python3 scripts/prompt_focus.py report     # writes ~/.claude/prompt-focus/report.html
-python3 scripts/prompt_focus.py demo /tmp/prompt-focus-demo.html   # synthetic data, safe to share
+python3 "${CLAUDE_SKILL_DIR}/scripts/prompt_focus.py" report     # writes ~/.claude/prompt-focus/report.html
+python3 "${CLAUDE_SKILL_DIR}/scripts/prompt_focus.py" demo /tmp/prompt-focus-demo.html   # synthetic data, safe to share
 ```
 
 Optional `~/.claude/prompt-focus/config.json`:
