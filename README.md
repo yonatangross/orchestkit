@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162)** · 2026-10-07
+
+- **deps:** sharp 0.35.5 in docs/site for advisory 1241331 (#4653)
+
 **[v10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161)** · 2026-10-06
 
 - **deps-dev:** bump vitest (#4611)
@@ -662,10 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the npm-minor-patch group in /docs/site with 8 updates (#4616)
 - **deps:** bump the remotion group (#4617)
 - bump anthropics/claude-code-action (#4620)
-
-**[v10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154)** · 2026-10-04
-
-- **site:** advertise Actions MCP and add try-safely sandbox page (#4596)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
