@@ -68,6 +68,10 @@
     { "id": "e2e-04", "goal": "run the playwright tests against this branch", "category": "e2e", "route": "/ork:expect" },
     { "id": "e2e-05", "goal": "we have no e2e tests yet", "category": "cover", "route": "/ork:cover", "note": "missing e2e tests are a coverage gap" },
     { "id": "e2e-06", "goal": "write e2e tests for the signup page", "category": "cover", "route": "/ork:cover", "note": "writing new Playwright tests is cover's E2E tier" },
-    { "id": "e2e-07", "goal": "why is the e2e suite failing on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a failing e2e run is a diagnosis, not a new run" }
+    { "id": "e2e-07", "goal": "why is the e2e suite failing on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a failing e2e run is a diagnosis, not a new run" },
+    { "id": "e2e-08", "goal": "the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "CodeRabbit 4209117569: fail/fails/failed is a failure, not a new run" },
+    { "id": "e2e-09", "goal": "the e2e tests are failing, add a retry", "category": "fix", "route": "/ork:fix-issue", "note": "the failure guard runs before the add/write -> cover check" },
+    { "id": "e2e-10", "goal": "why do no e2e tests run on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a why-question about missing runs, not a request to write tests" },
+    { "id": "e2e-11", "goal": "the playwright suite timed out again", "category": "fix", "route": "/ork:fix-issue", "note": "timeout is a failure symptom" }
   ]
 }

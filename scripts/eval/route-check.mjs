@@ -64,11 +64,22 @@ function classify(rawGoal) {
   // 1b. e2e: an end-to-end or browser test ask. Precedes `verify` so "verify the
   //     flow in the browser" runs a browser plan, and precedes `diagnose` so the
   //     request form "why don't you do proper e2e" is not read as a why-question.
-  //     No e2e tests yet, or write/add/generate them -> cover (its E2E tier).
-  //     A failing or flaky e2e run falls through to diagnose/fix.
+  //     A failing, flaky or timed-out e2e run is checked FIRST: a why-question
+  //     falls through to diagnose, anything else is fix (CodeRabbit
+  //     4209117569: "fail on CI" was a new run, "failing, add a retry" was
+  //     cover). Then: no e2e tests yet, or write/add/generate -> cover.
   if (/\be2e\b|\bend[- ]to[- ]end tests?\b|\bin the browser\b|\bbrowser tests?\b|\bplaywright\b/.test(g)) {
-    if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bmissing\b/.test(g)) return 'cover';
-    if (!/\bfailing\b|\bflaky\b|\bbroken\b|\berrors?\b|\bwhy (?:is|are|does|do)\b/.test(g)) return 'e2e';
+    const failure =
+      /\bfail(?:s|ed|ing|ures?)?\b|\bflaky\b|\bbroken\b|\berrors?\b|\btim(?:e|ed) ?outs?\b|\btimed out\b|\bred\b/.test(g) &&
+      !/\bno (?:fail|errors?\b|flak|timeouts?\b)/.test(g);
+    const whyQuestion = /\bwhy (?:is|are|does|do|did)\b/.test(g);
+    if (failure || whyQuestion) {
+      if (!whyQuestion) return 'fix';
+    } else if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bmissing\b/.test(g)) {
+      return 'cover';
+    } else {
+      return 'e2e';
+    }
   }
 
   // 2. verify — confirm existing state is green (verify/validate/make-sure/check-that).
