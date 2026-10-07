@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** sharp 0.35.5 in docs/site for advisory 1241331 ([#4653](https://github.com/yonatangross/orchestkit/issues/4653)) ([fb6742b](https://github.com/yonatangross/orchestkit/commit/fb6742b34db2ebd463aa4c155d84ebe7adf99986))
+
+## [10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161) (2026-10-06)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump vitest ([#4611](https://github.com/yonatangross/orchestkit/issues/4611)) ([ef6ff6b](https://github.com/yonatangross/orchestkit/commit/ef6ff6b6ea1c52794ef83ee7365a106e05adb1fa))
+* **deps:** bump the npm-minor-patch group across 1 directory with 2 updates ([#4613](https://github.com/yonatangross/orchestkit/issues/4613)) ([4f298b0](https://github.com/yonatangross/orchestkit/commit/4f298b08ded6681c4a386921040504a1d751fe96))
+
 ## [10.0.0-beta.160](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.159...v10.0.0-beta.160) (2026-10-06)
 
 
