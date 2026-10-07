@@ -96,7 +96,12 @@ describe('display-lint', () => {
       rmSync(projectDir, { recursive: true, force: true });
     });
     const inSession = (sessionId: string) =>
-      ({ ...bash(REAL_OFFENDER), session_id: sessionId, project_dir: projectDir }) as never;
+      ({
+        tool_name: 'Bash',
+        tool_input: { command: REAL_OFFENDER },
+        session_id: sessionId,
+        project_dir: projectDir,
+      }) as never;
 
     test('the second flagged command in the same session is silent', () => {
       expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(true);
