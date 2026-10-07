@@ -21,13 +21,13 @@
   .bad { color: var(--bad); font-weight:600; } .ok { color: var(--ok); font-weight:600; }
   @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="display-lint: right advice for the real shell"><meta property="og:description" content="The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/display-lint-shell.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="display-lint: right advice for the real shell"><meta name="twitter:description" content="The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="display-lint: right advice for the real shell"><meta property="og:description" content="The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages. The hint now goes to the model only, once per session (#4652)."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/display-lint-shell.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="display-lint: right advice for the real shell"><meta name="twitter:description" content="The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages. The hint now goes to the model only, once per session (#4652)."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
 <body>
 <main>
   <div class="top">
     <div>
       <h1>display-lint: right advice for the real shell</h1>
-      <p class="lede">The PreToolUse Bash hook that nudges long multi-stage commands into a script file. Three defects, found from a Linux bash host that was told about a zsh trap it does not have.</p>
+      <p class="lede">The PreToolUse Bash hook that nudges long multi-stage commands into a script file. Four defects, found from a Linux bash host that was told about a zsh trap it does not have.</p>
     </div>
     <button id="theme" type="button">Dark</button>
   </div>
@@ -55,6 +55,20 @@ npm run build --workspace=packages/...</pre>
   <div class="case"><h2>3. A pipeline inside $( ) counted at the top level</h2>
     <pre>VAL=$(git rev-parse HEAD | cut -c1-8 | tr a-z A-Z) &amp;&amp; echo "..."</pre>
     <div class="row"><div><span class="bad">Before</span> 4 stages, flagged</div><div><span class="ok">After</span> 2 stages, silent</div></div>
+  </div>
+
+  <div class="case"><h2>4. The hint repeated in the user's transcript (#4652)</h2>
+    <div class="row">
+      <div><span class="bad">Before</span><pre>every long command:
+PreToolUse:Bash says: [display-lint] ...
+PreToolUse:Bash says: [display-lint] ...
+(systemMessage to the user + additionalContext to the model)</pre></div>
+      <div><span class="ok">After</span><pre>first long command in a session:
+  hint to the model only (additionalContext)
+later ones: silent
+user transcript: nothing</pre></div>
+    </div>
+    <p>A flag file <code>.claude/state/display-lint-&lt;session&gt;.flag</code> marks that this session already got the hint. The session id is cleaned to a safe file name first.</p>
   </div>
 
   <p>Unchanged on purpose: real clutter is still flagged, even with a comment or a <code>$( )</code> in it. <code>case</code> with <code>;;</code> and one-line <code>for</code> loops still count each statement.</p>

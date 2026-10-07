@@ -49,7 +49,9 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputPreToolAdvisory } from '../../lib/common.js';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { outputSilentSuccess, outputPreToolModelHint } from '../../lib/common.js';
 import { blankQuotedContent } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -186,6 +188,34 @@ function isPlumbingStage(stage: string): boolean {
 // so `console.log(1 << 4)` correctly stays out of the exemption.
 const HEREDOC_RE = /<<-?~?\s*(['"][A-Za-z_][A-Za-z0-9_]*['"]|[A-Za-z_][A-Za-z0-9_]*)/;
 
+const STATE_DIR_REL = '.claude/state';
+
+/**
+ * True the first time this session flags a command, false after (#4652).
+ *
+ * The advice is the same paragraph every time, and a polling loop of long
+ * commands repeated it on every call. One copy per session teaches the model;
+ * the rest is noise. Without a session id there is no session to key on, so
+ * the hint is not limited. A flag file that cannot be written also lets the
+ * hint through: one extra hint beats a hook that silently never speaks.
+ */
+function firstHintThisSession(input: HookInput, ctx: HookContext): boolean {
+  if (!input.session_id) return true;
+  // Hook input is untrusted: keep the session id to a safe filename so a
+  // value like `../../x` cannot write outside the state dir.
+  const sid = input.session_id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+  const dir = join(input.project_dir || ctx.projectDir, STATE_DIR_REL);
+  const flag = join(dir, `display-lint-${sid}.flag`);
+  if (existsSync(flag)) return false;
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(flag, new Date().toISOString());
+  } catch {
+    // Fall through: see the doc comment.
+  }
+  return true;
+}
+
 export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (process.env.ORK_DISPLAY_LINT === '0') return outputSilentSuccess();
 
@@ -210,12 +240,14 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
 
   ctx.log(HOOK_NAME, `flagged: ${command.length} chars / ${stages.length} stages`);
 
-  // Advisory, NOT a permission decision: the command runs. Reaches the user
-  // (systemMessage) AND Claude (additionalContext) — the latter is what
-  // actually shifts future calls toward script files now that this hook no
-  // longer blocks. outputAllowWithContext() would have set
-  // permissionDecision:'allow' and skipped the permission prompt as a side
-  // effect of a cosmetic lint.
+  if (!firstHintThisSession(input, ctx)) return outputSilentSuccess();
+
+  // Advisory, NOT a permission decision: the command runs. The hint reaches
+  // Claude only (additionalContext), which is what shifts future calls toward
+  // script files. A systemMessage copy repeated it in the user's transcript
+  // and gave the user nothing to act on (#4652). outputAllowWithContext()
+  // would have set permissionDecision:'allow' and skipped the permission
+  // prompt as a side effect of a cosmetic lint.
   // The zsh clause is true only where the Bash tool shell IS zsh. On a bash
   // host (Linux, or CLAUDE_CODE_SHELL=bash) it was wrong advice about a trap
   // that host does not have (ork-display-lint-bug-2026-10-07).
@@ -223,7 +255,7 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
     toolShell() === 'zsh'
       ? ', and gets real bash word splitting (the Bash tool shell here is zsh, where an unquoted $var never word-splits, so a loop over $var runs once on the whole string and every iteration gets a malformed argument)'
       : '';
-  return outputPreToolAdvisory(
+  return outputPreToolModelHint(
     `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card and is safe from line-wrap splitting a flag from its argument${zshClause}: write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
   );
 }

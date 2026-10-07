@@ -2,7 +2,7 @@
   "slug": "display-lint-shell",
   "source": "docs/fix--display-lint-shell/index.html",
   "title": "display-lint: right advice for the real shell",
-  "description": "The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages.",
+  "description": "The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages. The hint now goes to the model only, once per session (#4652).",
   "tags": [
     "hooks",
     "display-lint",

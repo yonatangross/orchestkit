@@ -9,9 +9,13 @@
  * remedy it suggests (script files, heredoc-created) must never be flagged.
  *
  * The hook WARNS, it does not block (#2947), so `isFlagged` reads the
- * advisory systemMessage rather than a permission decision.
+ * advisory additionalContext rather than a permission decision. The advice
+ * is for the model only (#4652), so it never rides systemMessage.
  */
 
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { displayLint } from '../../../pretool/bash/display-lint.js';
 import { NOOP_CTX } from '../../../lib/context.js';
@@ -20,9 +24,11 @@ function bash(command: string): never {
   return { tool_name: 'Bash', tool_input: { command } } as never;
 }
 
+type Advisory = { systemMessage?: string; hookSpecificOutput?: { additionalContext?: string } };
+
 /** The hook flagged the command (advisory emitted). */
-function isFlagged(r: { systemMessage?: string }): boolean {
-  return (r.systemMessage ?? '').includes('[display-lint]');
+function isFlagged(r: Advisory): boolean {
+  return (r.hookSpecificOutput?.additionalContext ?? '').includes('[display-lint]');
 }
 
 /**
@@ -69,15 +75,45 @@ describe('display-lint', () => {
     expect(madePermissionDecision(clean)).toBe(false);
   });
 
-  // systemMessage reaches the USER; additionalContext reaches CLAUDE. Now
-  // that the hook cannot block, additionalContext is the ONLY channel that
-  // shifts future tool calls toward script files. Dropping it would leave a
-  // hook that is visible but inert.
-  test('advisory reaches BOTH the user and Claude', () => {
+  // #4652: the advice is for the model. additionalContext reaches Claude and
+  // is the channel that shifts future calls toward script files; a
+  // systemMessage copy only repeated the paragraph in the user's transcript.
+  test('advisory reaches Claude only, never the user transcript (#4652)', () => {
     const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
-    expect(r.systemMessage).toContain('[display-lint]');
+    expect(r.systemMessage).toBeUndefined();
     expect(r.hookSpecificOutput?.additionalContext).toContain('[display-lint]');
     expect(r.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+  });
+
+  // #4652: a polling loop of long commands printed the same paragraph on
+  // every call. The model needs the advice once per session.
+  describe('once per session (#4652)', () => {
+    let projectDir: string;
+    beforeEach(() => {
+      projectDir = mkdtempSync(join(tmpdir(), 'display-lint-'));
+    });
+    afterEach(() => {
+      rmSync(projectDir, { recursive: true, force: true });
+    });
+    const inSession = (sessionId: string) =>
+      ({ ...bash(REAL_OFFENDER), session_id: sessionId, project_dir: projectDir }) as never;
+
+    test('the second flagged command in the same session is silent', () => {
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(false);
+    });
+
+    test('a new session gets the advice again', () => {
+      expect(isFlagged(displayLint(inSession('sess-a'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-b'), NOOP_CTX))).toBe(true);
+    });
+
+    test('a hostile session id cannot write outside the state dir', () => {
+      expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(true);
+      expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(false);
+      // Unsanitized, `.claude/state/display-lint-../../escape.flag` lands here.
+      expect(existsSync(join(projectDir, '.claude', 'escape.flag'))).toBe(false);
+    });
   });
 
   test('passes short commands regardless of stages', () => {
@@ -320,7 +356,7 @@ describe('display-lint', () => {
       else process.env.CLAUDE_CODE_SHELL = savedCcShell;
     });
 
-    const message = (r: { systemMessage?: string }) => r.systemMessage ?? '';
+    const message = (r: Advisory) => r.hookSpecificOutput?.additionalContext ?? '';
 
     test('bash shell: still flags, but never gives the zsh word-split advice', () => {
       process.env.SHELL = '/bin/bash';

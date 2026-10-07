@@ -24,6 +24,7 @@ export {
   outputWithNotification,
   outputAllowWithContext,
   outputPreToolAdvisory,
+  outputPreToolModelHint,
   outputError,
   outputWarning,
   outputDeny,
