@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>display-lint: right advice for the real shell</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .lede { color: var(--mute); margin: 0 0 20px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .case { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin: 0 0 14px; }
+  .case h2 { font-size:16px; margin:0 0 8px; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .bad { color: var(--bad); font-weight:600; } .ok { color: var(--ok); font-weight:600; }
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>display-lint: right advice for the real shell</h1>
+      <p class="lede">The PreToolUse Bash hook that nudges long multi-stage commands into a script file. Three defects, found from a Linux bash host that was told about a zsh trap it does not have.</p>
+    </div>
+    <button id="theme" type="button">Dark</button>
+  </div>
+
+  <div class="case"><h2>1. zsh advice on a bash host</h2>
+    <div class="row">
+      <div><span class="bad">Before</span><pre>SHELL=/bin/bash
+... (when the Bash tool shell is zsh, the macOS default,
+an unquoted $var never word-splits ...)</pre></div>
+      <div><span class="ok">After</span><pre>SHELL=/bin/bash
+... A script file renders as one short tool card and
+is safe from line-wrap splitting a flag from its
+argument: write the steps to ... and run that.</pre></div>
+    </div>
+    <p>The shell is read the way Claude Code picks it: <code>CLAUDE_CODE_SHELL</code>, then <code>SHELL</code>. The zsh clause appears only when that shell is zsh.</p>
+  </div>
+
+  <div class="case"><h2>2. Comment lines counted as stages</h2>
+    <pre># step 1: build &amp;&amp; test | report; then ship
+# step 2: a; b; c
+npm run build --workspace=packages/...</pre>
+    <div class="row"><div><span class="bad">Before</span> 8 stages, flagged</div><div><span class="ok">After</span> 1 stage, silent</div></div>
+  </div>
+
+  <div class="case"><h2>3. A pipeline inside $( ) counted at the top level</h2>
+    <pre>VAL=$(git rev-parse HEAD | cut -c1-8 | tr a-z A-Z) &amp;&amp; echo "..."</pre>
+    <div class="row"><div><span class="bad">Before</span> 4 stages, flagged</div><div><span class="ok">After</span> 2 stages, silent</div></div>
+  </div>
+
+  <p>Unchanged on purpose: real clutter is still flagged, even with a comment or a <code>$( )</code> in it. <code>case</code> with <code>;;</code> and one-line <code>for</code> loops still count each statement.</p>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "slug": "display-lint-shell",
+  "source": "docs/fix--display-lint-shell/index.html",
+  "title": "display-lint: right advice for the real shell",
+  "description": "The Bash display-lint hook stops giving zsh advice on bash hosts and stops counting comment lines and pipelines inside $( ) as stages.",
+  "tags": [
+    "hooks",
+    "display-lint",
+    "bug"
+  ],
+  "date": "2026-10-07"
+}

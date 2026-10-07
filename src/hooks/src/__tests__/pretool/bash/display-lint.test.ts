@@ -301,4 +301,73 @@ describe('display-lint', () => {
       expect(madePermissionDecision(displayLint(bash(command), NOOP_CTX))).toBe(false);
     });
   });
+
+  // ork-display-lint-bug-2026-10-07: a Linux box (bash) was told about a zsh
+  // word-split trap it does not have, and short safe commands were counted
+  // as many stages.
+  describe('shell-aware advice and inflated stage counts', () => {
+    let savedShell: string | undefined;
+    let savedCcShell: string | undefined;
+    beforeEach(() => {
+      savedShell = process.env.SHELL;
+      savedCcShell = process.env.CLAUDE_CODE_SHELL;
+      delete process.env.CLAUDE_CODE_SHELL;
+    });
+    afterEach(() => {
+      if (savedShell === undefined) delete process.env.SHELL;
+      else process.env.SHELL = savedShell;
+      if (savedCcShell === undefined) delete process.env.CLAUDE_CODE_SHELL;
+      else process.env.CLAUDE_CODE_SHELL = savedCcShell;
+    });
+
+    const message = (r: { systemMessage?: string }) => r.systemMessage ?? '';
+
+    test('bash shell: still flags, but never gives the zsh word-split advice', () => {
+      process.env.SHELL = '/bin/bash';
+      const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      expect(isFlagged(r)).toBe(true);
+      expect(message(r)).not.toMatch(/zsh/i);
+      expect(message(r)).toContain('script file');
+    });
+
+    test('zsh shell: keeps the zsh word-split advice', () => {
+      process.env.SHELL = '/bin/zsh';
+      const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+      expect(message(r)).toMatch(/zsh/);
+      expect(message(r)).toMatch(/word-split/);
+    });
+
+    test('CLAUDE_CODE_SHELL overrides SHELL, the way Claude Code picks the Bash tool shell', () => {
+      process.env.SHELL = '/bin/zsh';
+      process.env.CLAUDE_CODE_SHELL = '/usr/bin/bash';
+      expect(message(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).not.toMatch(/zsh/i);
+    });
+
+    test('unknown shell: no shell-specific claim at all', () => {
+      delete process.env.SHELL;
+      expect(message(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).not.toMatch(/zsh/i);
+    });
+
+    test('comment lines are not stages, even when they mention && | ;', () => {
+      const cmd =
+        '# step 1: build && test | report; then ship\n' +
+        '# step 2: a; b; c\n' +
+        'npm run build --workspace=packages/' + 'p'.repeat(170);
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('a pipeline inside $( ) is one top-level stage', () => {
+      const cmd = `VAL=$(git rev-parse HEAD | cut -c1-8 | tr a-z A-Z) && echo "${'v'.repeat(170)}"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('real clutter around a comment or a $( ) is still flagged', () => {
+      const cmd =
+        '# look around\n' +
+        'cd /tmp/' + 'd'.repeat(120) + ' && ls -la && X=$(date | cut -c1-4) && grep -n foo bar.txt | head -5';
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(true);
+    });
+  });
 });

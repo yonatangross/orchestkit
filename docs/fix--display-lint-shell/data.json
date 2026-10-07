@@ -1,0 +1,6 @@
+{
+  "serves": "ork-display-lint-bug-2026-10-07",
+  "page": "docs/fix--display-lint-shell/index.html",
+  "lab_slug": "display-lint-shell",
+  "purpose": "PR playground: the three display-lint defects before and after (zsh advice on a bash host, comment lines as stages, pipelines inside $( ) as stages)"
+}
