@@ -25,7 +25,7 @@ resp = await client.chat.completions.create(
 
 # 2. VALIDATE with a DIFFERENT model on the cost tier, never the teacher
 #    Score clarity / quality / realism 1-10; keep=false if any score < 6.
-validator_model = "claude-haiku-4-5-20251001"
+validator_model = "claude-haiku-5-5"
 
 # 3. DEDUPLICATE on instruction embeddings, cosine > 0.85 is a duplicate
 from sentence_transformers import SentenceTransformer

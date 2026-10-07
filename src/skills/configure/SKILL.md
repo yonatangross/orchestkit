@@ -150,7 +150,7 @@ All 4 MCPs ship **enabled by default**. Tavily requires an API key.
 | sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
 
-> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. Opus 5.5 and Sonnet 5 think natively (adaptive thinking is on by default); Haiku 4.5 supports extended thinking only with an explicit `budget_tokens`, so sequential-thinking is most useful for Haiku subagents. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. Opus 5.5, Sonnet 5 and Haiku 5.5 think natively (adaptive thinking is on by default), so sequential-thinking is most useful for a subagent pinned to an older model such as Haiku 4.5, which needs an explicit `budget_tokens`. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
