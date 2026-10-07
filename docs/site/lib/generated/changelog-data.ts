@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.164",
+    "date": "2026-10-07",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.163...v10.0.0-beta.164",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** display-lint hint is shell-aware, model-only, once per session ([#4655](https://github.com/yonatangross/orchestkit/issues/4655)) ([dc0b811](https://github.com/yonatangross/orchestkit/commit/dc0b811dab41c1141d2eee4d93064e947bb6dfff))",
+          "**skills:** reference skills load inline; ork:auto routes e2e asks ([#4656](https://github.com/yonatangross/orchestkit/issues/4656)) ([480e358](https://github.com/yonatangross/orchestkit/commit/480e35851fe52e3aaa33a74773a46f59c7794520))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.163",
     "date": "2026-10-07",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163",
