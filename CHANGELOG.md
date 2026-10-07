@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.163](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163) (2026-10-07)
+
+
+### Features
+
+* **glyph:** output mode dials, done sign-off, and a try-it page ([#4647](https://github.com/yonatangross/orchestkit/issues/4647)) ([f917aac](https://github.com/yonatangross/orchestkit/commit/f917aac6b21bfe509a8c3359d899bed22a94d4ff))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#4612](https://github.com/yonatangross/orchestkit/issues/4612)) ([9246bca](https://github.com/yonatangross/orchestkit/commit/9246bca5aee7216274fb8e1323a87f5c0c05d39e))
+
 ## [10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162) (2026-10-07)
 
 

@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.163](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163)** · 2026-10-07
+
+- **glyph:** output mode dials, done sign-off, and a try-it page (#4647)
+- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4612)
+
 **[v10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162)** · 2026-10-07
 
 - **deps:** sharp 0.35.5 in docs/site for advisory 1241331 (#4653)
@@ -658,14 +663,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156)** · 2026-10-05
 
 - **promote-lights:** /lights takes a bare watch target (#4624)
-
-**[v10.0.0-beta.155](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155)** · 2026-10-05
-
-- **lesson-cards:** do not read process when HOME is unset (#4608)
-- **deps-dev:** bump the vitest group (#4618)
-- **deps:** bump the npm-minor-patch group in /docs/site with 8 updates (#4616)
-- **deps:** bump the remotion group (#4617)
-- bump anthropics/claude-code-action (#4620)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
