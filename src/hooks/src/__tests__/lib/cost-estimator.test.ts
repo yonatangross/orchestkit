@@ -241,6 +241,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
       'claude-sonnet-5-5': 2.0,
       // Opus 5.5 launched below the $5 Opus line at $4/$20 (CC 2.1.280).
       'claude-opus-5-5': 4.0,
+      // Haiku 5.5 launched at $0.10/$0.50, a tenth of the Haiku 4.5 line (2026-10-07).
+      'claude-haiku-5-5': 0.1,
     };
     for (const id of modelsVocab.fullIds) {
       const family = Object.keys(TIER).find(f => id.includes(f));
