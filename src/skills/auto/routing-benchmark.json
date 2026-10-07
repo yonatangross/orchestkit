@@ -78,6 +78,8 @@
     { "id": "e2e-14", "goal": "add a retry to the failing e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "HOLD 6043667415: the verb's object is a retry, not new tests" },
     { "id": "e2e-15", "goal": "add a fix for the flaky playwright tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a fix" },
     { "id": "e2e-16", "goal": "write a workaround for the broken e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a workaround" },
-    { "id": "e2e-17", "goal": "create a ticket: the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a ticket; the tests fail" }
+    { "id": "e2e-17", "goal": "create a ticket: the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a ticket; the tests fail" },
+    { "id": "e2e-18", "goal": "write an e2e test for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4210572472: a singular test with an article is still a creation" },
+    { "id": "e2e-19", "goal": "add a playwright test for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "singular test, article a" }
   ]
 }

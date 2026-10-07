@@ -72,10 +72,11 @@ function classify(rawGoal) {
     // A creation request names what to test: "write e2e tests for the login
     // error page" is cover, so the failure words are nouns there
     // (CodeRabbit 4209764041). The test noun must follow the verb, with at
-    // most one quantity word, so "add a retry to the failing e2e tests" is
-    // not a creation (HOLD 6043667415).
+    // most three article or quantity words ("an", "a few more"), so "add a
+    // retry to the failing e2e tests" is not a creation (HOLD 6043667415,
+    // CodeRabbit 4210572472).
     const creation =
-      /\b(?:write|add|generate|create)\s+(?:(?:some|more|new|a few|the)\s+)?(?:e2e|playwright|browser|end[- ]to[- ]end)\b[^.,;:]*\btests?\b/.test(g);
+      /\b(?:write|add|generate|create)\s+(?:(?:a|an|the|some|more|new|few|extra|another)\s+){0,3}(?:e2e|playwright|browser|end[- ]to[- ]end)\b[^.,;:]*\btests?\b/.test(g);
     const failure =
       !creation &&
       /\bfail(?:s|ed|ing|ures?)?\b|\bflaky\b|\bbroken\b|\berrors?\b|\btim(?:e|ed) ?outs?\b|\btimed out\b|\bred\b/.test(g) &&

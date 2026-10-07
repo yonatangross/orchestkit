@@ -2,8 +2,8 @@
   "schema": "ork-routing-baseline/1.0",
   "description": "Committed ratchet floor for /ork:auto routing accuracy. Regenerated only when accuracy improves or the benchmark changes intentionally. --check fails if accuracy drops > 2 points below this.",
   "accuracy": 1,
-  "correct": 67,
-  "total": 67,
+  "correct": 69,
+  "total": 69,
   "tolerance": 0.02,
   "target_accuracy": 0.95,
   "generated_at": "2026-10-07"
