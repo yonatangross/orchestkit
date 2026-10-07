@@ -9,7 +9,7 @@ counted apart), groups them by project or by your own areas, and writes:
   <dir>/daily.jsonl   one row per day (counts only)
   <dir>/report.html   a self-contained page: stream graph, hours, re-typed asks
 
-Commands:  scan | daily [YYYY-MM-DD] | report | demo | selftest
+Commands:  scan | daily [YYYY-MM-DD] [--force] | report | demo | selftest
 Config:    <dir>/config.json (optional), <dir> = $PROMPT_FOCUS_DIR or ~/.claude/prompt-focus
 Stdlib only. Never sends anything anywhere.
 """
@@ -120,18 +120,37 @@ def window(cfg):
 # ── read ──────────────────────────────────────────────────────────────────────
 
 
-def read_claude():
+def _number(v):
+    """A real number, or None (bool, str and null are not timestamps)."""
+    return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+
+def read_claude(bad):
+    """Yield typed rows; count lines that are not usable history records in bad."""
     hist = home() / ".claude" / "history.jsonl"
     cache = home() / ".claude" / "paste-cache"
     if not hist.exists():
         return
     for line in hist.open(encoding="utf-8", errors="replace"):
+        if not line.strip():
+            continue
         try:
             d = json.loads(line)
         except ValueError:
+            bad["claude-code"] += 1
+            continue
+        ts = _number(d.get("timestamp")) if isinstance(d, dict) else None
+        text = d.get("display", "") if isinstance(d, dict) else None
+        project = d.get("project") if isinstance(d, dict) else None
+        if ts is None or not isinstance(text, str) or not isinstance(project, (str, type(None))):
+            bad["claude-code"] += 1
+            continue
+        pasted = d.get("pastedContents") or {}
+        if not isinstance(pasted, dict):
+            bad["claude-code"] += 1
             continue
         pastes, unknown = [], 0
-        for p in (d.get("pastedContents") or {}).values():
+        for p in pasted.values():
             if not isinstance(p, dict) or p.get("type") == "image":
                 continue
             c = p.get("content")
@@ -144,27 +163,36 @@ def read_claude():
                 pastes.append(c)
         yield {
             "harness": "claude-code",
-            "ts": d.get("timestamp", 0) / 1000,
-            "text": d.get("display", ""),
+            "ts": ts / 1000,
+            "text": text,
             "pastes": pastes,
             "paste_unknown": unknown,
-            "project": d.get("project") or "",
+            "project": project or "",
         }
 
 
-def read_codex():
+def read_codex(bad):
+    """Yield typed rows; count lines that are not usable history records in bad."""
     hist = home() / ".codex" / "history.jsonl"
     if not hist.exists():
         return
     for line in hist.open(encoding="utf-8", errors="replace"):
+        if not line.strip():
+            continue
         try:
             d = json.loads(line)
         except ValueError:
+            bad["codex"] += 1
+            continue
+        ts = _number(d.get("ts")) if isinstance(d, dict) else None
+        text = d.get("text", "") if isinstance(d, dict) else None
+        if ts is None or not isinstance(text, str):
+            bad["codex"] += 1
             continue
         yield {
             "harness": "codex",
-            "ts": float(d.get("ts", 0)),
-            "text": d.get("text", ""),
+            "ts": ts,
+            "text": text,
             "pastes": [],
             "paste_unknown": 0,
             "project": "",
@@ -212,7 +240,8 @@ def scan(cfg):
     areas = [(n, [re.compile(p, re.I) for p in ps]) for n, ps in cfg["areas"].items()]
     kinds = collections.Counter()
     prompts = []
-    for row in [*read_claude(), *read_codex()]:
+    bad = collections.Counter()
+    for row in [*read_claude(bad), *read_codex(bad)]:
         if not (t0 <= row["ts"] < t1):
             continue
         k, typed = kind_of(row, briefs)
@@ -278,6 +307,7 @@ def scan(cfg):
         "window": {"start": start.isoformat(), "end": end.isoformat(), "weeks": cfg["weeks"]},
         "areas": names,
         "kinds": dict(kinds),
+        "skipped_lines": dict(bad),
         "markers": cfg["markers"],
         "total": dump(total),
         "weeks": [
@@ -492,6 +522,61 @@ def selftest():
         )
 
 
+# ── daily ─────────────────────────────────────────────────────────────────────
+
+
+def _daily_rows(path):
+    """(date -> (line index, row)) for every valid row; bad lines are kept but ignored."""
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines() if path.exists() else []
+    rows = {}
+    for i, x in enumerate(lines):
+        try:
+            r = json.loads(x)
+        except ValueError:
+            continue
+        if isinstance(r, dict) and isinstance(r.get("date"), str):
+            rows[r["date"]] = (i, r)
+    return lines, rows
+
+
+def daily(agg, path, args, force):
+    """Append one finished day. Today or later is partial: refused unless --force,
+    and a partial row is rewritten on the next run instead of frozen."""
+    if args:
+        day = args[0]
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+            print(f"bad date {day!r}: use YYYY-MM-DD", file=sys.stderr)
+            return 2
+        try:
+            dt.date.fromisoformat(day)
+        except ValueError:
+            print(f"bad date {day!r}: not a calendar date", file=sys.stderr)
+            return 2
+    else:
+        day = (today() - dt.timedelta(days=1)).isoformat()
+    partial = dt.date.fromisoformat(day) >= today()
+    if partial and not force:
+        print(f"refuse {day}: the day is not over; pass --force to write a partial row", file=sys.stderr)
+        return 2
+    lines, rows = _daily_rows(path)
+    if day in rows and not rows[day][1].get("partial"):
+        print(f"skip {day}: already written")
+        return 0
+    row = {"date": day, **agg["days"].get(day, {"prompts": 0})}
+    if partial:
+        row["partial"] = True
+    if day in rows:
+        lines[rows[day][0]] = json.dumps(row)
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        print(f"rewrote {day}: {row['prompts']} prompts{' (partial)' if partial else ''}")
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(row) + "\n")
+    print(f"appended {day}: {row['prompts']} prompts{' (partial)' if partial else ''}")
+    return 0
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 
 
@@ -519,23 +604,12 @@ def main(argv):
         )
         print("areas", {a: t["areas"][a] for a in agg["areas"]})
         print("kinds", agg["kinds"])
+        skipped = sum(agg["skipped_lines"].values())
+        if skipped:
+            print(f"skipped {skipped} malformed history lines", agg["skipped_lines"])
         return 0
     if cmd == "daily":
-        day = argv[2] if len(argv) > 2 else (today() - dt.timedelta(days=1)).isoformat()
-        path = out / "daily.jsonl"
-        seen = (
-            {json.loads(x)["date"] for x in path.read_text(encoding="utf-8").splitlines() if x.strip()}
-            if path.exists()
-            else set()
-        )
-        if day in seen:
-            print(f"skip {day}: already written")
-            return 0
-        row = agg["days"].get(day, {"prompts": 0})
-        with path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps({"date": day, **row}) + "\n")
-        print(f"appended {day}: {row['prompts']} prompts")
-        return 0
+        return daily(agg, out / "daily.jsonl", [a for a in argv[2:] if a != "--force"], "--force" in argv[2:])
     if cmd == "report":
         print(report(agg, "Where your focus went", out / "report.html"))
         return 0

@@ -25,7 +25,7 @@ Where did your attention go, and what do you keep telling your agents again and 
 |---|---|---|
 | `scan` | read history, attribute, aggregate | `agg.json` (counts only) |
 | `report` | scan, then build the page | `report.html` |
-| `daily [YYYY-MM-DD]` | append one day (yesterday by default), once | `daily.jsonl` |
+| `daily [YYYY-MM-DD] [--force]` | append one finished day (yesterday by default), once; today needs `--force` and is written as a partial row that a later run replaces | `daily.jsonl` |
 | `demo [path]` | the same page from synthetic data | a shareable demo page |
 | `selftest` | synthetic run with privacy asserts | exit 0 or an assert |
 

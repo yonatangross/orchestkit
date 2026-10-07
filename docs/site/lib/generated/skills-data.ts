@@ -3843,7 +3843,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prompt-focus",
     "description": "Shows where your attention went from your own Claude Code and Codex prompts: projects, hours and re-typed asks over 20 weeks, as a local counts-only HTML report. Use when asking where your focus goes.",
     "version": "1.0.0",
-    "sha256": "38f20397c8c90384cefb5e89837ac4526f1b7270700cdb23924afa3f8f0a726d",
+    "sha256": "34e24487d3e4b0da2544801a605c675c2405c70f062ae746c21b2161da4231d5",
     "author": "OrchestKit",
     "tags": [
       "analytics",
