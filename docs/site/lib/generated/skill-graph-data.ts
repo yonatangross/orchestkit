@@ -795,6 +795,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "prompt-focus",
+    "label": "Prompt Focus",
+    "type": "reference",
+    "complexity": "low",
+    "category": "other",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "python-backend",
     "label": "Python Backend",
     "type": "reference",

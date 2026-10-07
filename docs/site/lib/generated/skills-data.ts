@@ -151,7 +151,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.",
     "version": "2.1.0",
-    "sha256": "c5f082c181e7cde30a2813ac6718f3117ea7d6fee20ec0417869ff1a89d12d97",
+    "sha256": "d22f1f48811787d4c2e5fb94a786004411f88ba41c8627d730460a602348f16f",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "00c410cf52b3f312b0247f3ebd4d1915560c612947fec84531d444fa9c076ad0",
+    "sha256": "9bf54093ce29df3b376be6106ec9ae05b611cb92c714aa89db08cfac66926e34",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -3832,6 +3832,46 @@ export const SKILLS: Record<string, SkillMeta> = {
         "prioritization-session-checklist.md",
         "research-study-checklist.md",
         "strategy-review-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "prompt-focus": {
+    "name": "prompt-focus",
+    "description": "Shows where your attention went from your own Claude Code and Codex prompts: projects, hours and re-typed asks over 20 weeks, as a local counts-only HTML report. Use when asking where your focus goes.",
+    "version": "1.0.0",
+    "sha256": "34e24487d3e4b0da2544801a605c675c2405c70f062ae746c21b2161da4231d5",
+    "author": "OrchestKit",
+    "tags": [
+      "analytics",
+      "prompts",
+      "focus",
+      "attention",
+      "self-coaching",
+      "defaults",
+      "data-visualization",
+      "daily",
+      "privacy"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "references": [
+        "claude-code.md",
+        "how-it-works.md"
+      ],
+      "scripts": [
+        "prompt_focus.py"
       ]
     },
     "plugins": [

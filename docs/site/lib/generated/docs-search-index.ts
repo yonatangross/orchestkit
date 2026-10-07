@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code: 109 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 171 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -1048,7 +1048,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 109 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 110 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1178,7 +1178,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 109 OrchestKit skills."
+    "description": "Complete reference for all 110 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1289,6 +1289,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/product-frameworks",
     "title": "Product Frameworks",
     "description": "Product management frameworks for business cases, market analysis, strategy, prioritization, OKRs/KPIs, personas, requirements, and user research. Use when building ROI projections, competitive analysis, RICE scoring, OKR trees, user personas, PRDs, or usability testing plans."
+  },
+  {
+    "url": "/docs/reference/skills/prompt-focus",
+    "title": "Prompt Focus",
+    "description": "Shows where your attention went from your own Claude Code and Codex prompts: projects, hours and re-typed asks over 20 weeks, as a local counts-only HTML report. Use when asking where your focus goes."
   },
   {
     "url": "/docs/reference/skills/python-backend",
@@ -1533,7 +1538,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 109 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 110 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",
@@ -1548,7 +1553,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 71 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
+    "description": "The 72 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",
