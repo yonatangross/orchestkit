@@ -207,6 +207,13 @@ export function mockCommonBasic(
       systemMessage: message,
       hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
     })),
+    // Mirrors the real outputPreToolModelHint: Claude only, no systemMessage,
+    // no permissionDecision (#4652).
+    outputPreToolModelHint: vi.fn((message: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
+    })),
     outputError: vi.fn((message: string): HookResult => ({ continue: true, systemMessage: message })),
     outputWarning: vi.fn((message: string): HookResult => ({ continue: true, systemMessage: `\u26a0 ${message}` })),
     outputDeny: vi.fn((reason: string): HookResult => ({

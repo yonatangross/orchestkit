@@ -49,11 +49,10 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { outputSilentSuccess, outputPreToolModelHint } from '../../lib/common.js';
 import { blankQuotedContent } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { claimOncePerSession } from '../../lib/session-once.js';
 
 const HOOK_NAME = 'pretool/bash/display-lint';
 
@@ -188,7 +187,15 @@ function isPlumbingStage(stage: string): boolean {
 // so `console.log(1 << 4)` correctly stays out of the exemption.
 const HEREDOC_RE = /<<-?~?\s*(['"][A-Za-z_][A-Za-z0-9_]*['"]|[A-Za-z_][A-Za-z0-9_]*)/;
 
-const STATE_DIR_REL = '.claude/state';
+/**
+ * The once-per-session store, injected so the handler owns no file I/O
+ * (FH-ready). The default writes a flag file under .claude/state.
+ */
+export interface DisplayLintDeps {
+  claimOnce: (projectDir: string, name: string, sessionId: string) => boolean;
+}
+
+const DEFAULT_DEPS: DisplayLintDeps = { claimOnce: claimOncePerSession };
 
 /**
  * True the first time this session flags a command, false after (#4652).
@@ -196,27 +203,18 @@ const STATE_DIR_REL = '.claude/state';
  * The advice is the same paragraph every time, and a polling loop of long
  * commands repeated it on every call. One copy per session teaches the model;
  * the rest is noise. Without a session id there is no session to key on, so
- * the hint is not limited. A flag file that cannot be written also lets the
- * hint through: one extra hint beats a hook that silently never speaks.
+ * the hint is not limited.
  */
-function firstHintThisSession(input: HookInput, ctx: HookContext): boolean {
+function firstHintThisSession(input: HookInput, ctx: HookContext, deps: DisplayLintDeps): boolean {
   if (!input.session_id) return true;
-  // Hook input is untrusted: keep the session id to a safe filename so a
-  // value like `../../x` cannot write outside the state dir.
-  const sid = input.session_id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
-  const dir = join(input.project_dir || ctx.projectDir, STATE_DIR_REL);
-  const flag = join(dir, `display-lint-${sid}.flag`);
-  if (existsSync(flag)) return false;
-  try {
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(flag, new Date().toISOString());
-  } catch {
-    // Fall through: see the doc comment.
-  }
-  return true;
+  return deps.claimOnce(input.project_dir || ctx.projectDir, 'display-lint', input.session_id);
 }
 
-export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+export function displayLint(
+  input: HookInput,
+  ctx: HookContext = NOOP_CTX,
+  deps: DisplayLintDeps = DEFAULT_DEPS,
+): HookResult {
   if (process.env.ORK_DISPLAY_LINT === '0') return outputSilentSuccess();
 
   const command = input.tool_input?.command || '';
@@ -240,7 +238,7 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
 
   ctx.log(HOOK_NAME, `flagged: ${command.length} chars / ${stages.length} stages`);
 
-  if (!firstHintThisSession(input, ctx)) return outputSilentSuccess();
+  if (!firstHintThisSession(input, ctx, deps)) return outputSilentSuccess();
 
   // Advisory, NOT a permission decision: the command runs. The hint reaches
   // Claude only (additionalContext), which is what shifts future calls toward

@@ -108,6 +108,21 @@ describe('display-lint', () => {
       expect(isFlagged(displayLint(inSession('sess-b'), NOOP_CTX))).toBe(true);
     });
 
+    test('the session store is injected, so the handler owns no file I/O', () => {
+      const seen = new Set<string>();
+      const deps = {
+        claimOnce: (_dir: string, name: string, sid: string) => {
+          const key = `${name}:${sid}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        },
+      };
+      expect(isFlagged(displayLint(inSession('sess-x'), NOOP_CTX, deps))).toBe(true);
+      expect(isFlagged(displayLint(inSession('sess-x'), NOOP_CTX, deps))).toBe(false);
+      expect(seen.has('display-lint:sess-x')).toBe(true);
+    });
+
     test('a hostile session id cannot write outside the state dir', () => {
       expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(true);
       expect(isFlagged(displayLint(inSession('../../escape'), NOOP_CTX))).toBe(false);
