@@ -19,8 +19,12 @@ export const GLYPH_UI_URI = 'ui://ork-glyph/card-v1' // new HTML = new URI (Open
 export const MCP_APP_MIME = 'text/html;profile=mcp-app'
 const TOOL_NAME = 'render_glyph_card'
 const BAR_CELLS = 10
+/** @typedef {'ok' | 'warn' | 'bad'} Status */
+/** @type {Record<Status, string>} */
 const ICONS = { ok: '🟢', warn: '🟡', bad: '🔴' }
-const STATUSES = Object.keys(ICONS)
+const STATUSES = /** @type {Status[]} */ (Object.keys(ICONS))
+/** @param {unknown} v @returns {v is Status} */
+const isStatus = (v) => typeof v === 'string' && STATUSES.some((s) => s === v)
 
 const TOOL = {
   name: TOOL_NAME,
@@ -115,21 +119,26 @@ function parseArgs(args) {
   const a = /** @type {Record<string, unknown>} */ (args ?? {})
   if (typeof a.title !== 'string' || a.title.length === 0) return { ok: false, error: 'title must be a non-empty string' }
   if (!Array.isArray(a.rows) || a.rows.length === 0 || a.rows.length > 12) return { ok: false, error: 'rows must be an array of 1 to 12 items' }
+  /** @type {Row[]} */
   const rows = []
   for (const r of a.rows) {
     const row = /** @type {Record<string, unknown>} */ (r ?? {})
     if (typeof row.label !== 'string' || typeof row.value !== 'number' || !Number.isFinite(row.value) || row.value < 0) {
       return { ok: false, error: 'each row needs a string label and a non-negative number value' }
     }
-    const status = typeof row.status === 'string' && STATUSES.includes(row.status) ? row.status : undefined
+    const status = isStatus(row.status) ? row.status : undefined
     rows.push({ label: row.label, value: row.value, unit: typeof row.unit === 'string' ? row.unit : '', status })
   }
   return { ok: true, title: a.title, rows }
 }
 
+/** @param {number} n */
 const round1 = (n) => Math.round(n * 10) / 10
 
-/** The text fallback: what a host with no UI (Claude Code, a plain model) shows. */
+/**
+ * The text fallback: what a host with no UI (Claude Code, a plain model) shows.
+ * @param {string} title @param {Row[]} rows @param {number} total
+ */
 function glyphText(title, rows, total) {
   const max = Math.max(...rows.map((r) => r.value), 1)
   const lines = [title.slice(0, 70), '─'.repeat(Math.min(title.length, 70))]
@@ -143,6 +152,7 @@ function glyphText(title, rows, total) {
   return lines.join('\n')
 }
 
+/** @param {unknown} args */
 function callTool(args) {
   const parsed = parseArgs(args)
   if (!parsed.ok) return { content: [{ type: 'text', text: `Invalid input: ${parsed.error}` }], isError: true }
@@ -153,12 +163,16 @@ function callTool(args) {
   }
 }
 
+/** @param {number | string} id @param {unknown} result */
 const ok = (id, result) => ({ jsonrpc: '2.0', id, result })
+/** @param {number | string | null} id @param {number} code @param {string} message */
 const fail = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, message } })
+
+/** @typedef {{jsonrpc: string, id?: number | string, method: string, params?: Record<string, any>}} RpcMessage */
 
 /**
  * One JSON-RPC message in, one response out (null for notifications).
- * @param {{jsonrpc: string, id?: number | string, method: string, params?: Record<string, any>}} msg
+ * @param {RpcMessage} msg
  */
 export async function handleRpc(msg) {
   if (msg.id === undefined) return null
@@ -187,41 +201,71 @@ export async function handleRpc(msg) {
   }
 }
 
-/** @typedef {{label: string, value: number, unit: string, status: string | undefined}} Row */
+/** @typedef {{label: string, value: number, unit: string, status: Status | undefined}} Row */
 
 const MAX_BODY = 64 * 1024
+
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+
+/** @param {string} hostHeader "name", "name:port" or "[::1]:port" */
+const hostName = (hostHeader) => {
+  const h = hostHeader.toLowerCase()
+  return h.startsWith('[') ? h.slice(0, h.indexOf(']') + 1) : h.split(':')[0]
+}
 
 /**
  * Streamable HTTP, stateless: POST /mcp, one JSON-RPC message per request, JSON reply.
  * This is the shape ChatGPT and claude.ai connect to (they need a public HTTPS URL
  * in front of it). No auth: a spike, never expose it as is.
+ *
+ * Origin guard: a request is refused with 403 unless its Host is local or named in
+ * `allowedHosts`, and any Origin header it carries is local or named too. So a tunnel
+ * in front of this server serves only the one host you named, and a web page cannot
+ * reach it from the browser via DNS rebinding or a cross-site POST.
+ * @param {{allowedHosts?: string[]}} [opts]
  */
-export function createHttpServer() {
+export function createHttpServer({ allowedHosts = [] } = {}) {
+  const allowed = new Set([...LOCAL_HOSTS, ...allowedHosts.map((h) => h.toLowerCase())])
   return createServer((req, res) => {
+    /** @param {number} status @param {unknown} [body] @param {Record<string, string>} [headers] */
     const send = (status, body, headers = {}) => {
       res.writeHead(status, { 'content-type': 'application/json', ...headers })
       res.end(body === undefined ? undefined : JSON.stringify(body))
     }
+    const origin = req.headers.origin
+    let originHost = ''
+    if (origin !== undefined) {
+      try {
+        originHost = new URL(origin).hostname.toLowerCase()
+      } catch {
+        originHost = ''
+      }
+    }
+    if (!allowed.has(hostName(req.headers.host ?? '')) || (origin !== undefined && !allowed.has(originHost))) {
+      return send(403, { error: 'forbidden host or origin' })
+    }
     if (req.url !== '/mcp') return send(404, { error: 'not found' })
     if (req.method !== 'POST') return send(405, { error: 'method not allowed' }, { allow: 'POST' })
+    /** @type {Buffer[]} */
     const chunks = []
     let size = 0
-    req.on('data', (c) => {
+    req.on('data', (/** @type {Buffer} */ c) => {
       size += c.length
       if (size > MAX_BODY) return void req.destroy()
       chunks.push(c)
     })
     req.on('end', async () => {
+      /** @type {unknown} */
       let msg
       try {
         msg = JSON.parse(Buffer.concat(chunks).toString('utf8'))
       } catch {
         return send(400, fail(null, -32700, 'Parse error'))
       }
-      if (msg === null || typeof msg !== 'object' || Array.isArray(msg) || typeof msg.method !== 'string') {
+      if (msg === null || typeof msg !== 'object' || Array.isArray(msg) || typeof (/** @type {{method?: unknown}} */ (msg)).method !== 'string') {
         return send(400, fail(null, -32600, 'Invalid Request'))
       }
-      const reply = await handleRpc(msg)
+      const reply = await handleRpc(/** @type {RpcMessage} */ (msg))
       if (reply === null) return send(202)
       send(200, reply)
     })
@@ -229,12 +273,15 @@ export function createHttpServer() {
 }
 
 // Run directly: `node glyph-card-server.mjs` is stdio (newline-delimited JSON-RPC),
-// `node glyph-card-server.mjs --http 3000` listens on 127.0.0.1.
+// `node glyph-card-server.mjs --http 3000` listens on 127.0.0.1 and refuses any
+// non-local Host or Origin; add `--allow-host demo.example.com` to open that one host.
 if (import.meta.url === `file://${process.argv[1]}`) {
   const httpAt = process.argv.indexOf('--http')
+  const hostAt = process.argv.indexOf('--allow-host')
   if (httpAt !== -1) {
     const port = Number(process.argv[httpAt + 1] ?? 3000)
-    createHttpServer().listen(port, '127.0.0.1', () => console.error(`glyph card MCP on http://127.0.0.1:${port}/mcp`))
+    const allowedHosts = hostAt === -1 ? [] : [process.argv[hostAt + 1] ?? '']
+    createHttpServer({ allowedHosts }).listen(port, '127.0.0.1', () => console.error(`glyph card MCP on http://127.0.0.1:${port}/mcp`))
   } else {
     for await (const line of createInterface({ input: process.stdin })) {
       if (!line.trim()) continue

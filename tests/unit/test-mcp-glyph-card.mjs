@@ -14,6 +14,7 @@
 //   Offline: no network, no SDK, no clock, no randomness.
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { request } from 'node:http'
 import { handleRpc, createHttpServer, GLYPH_UI_URI, MCP_APP_MIME } from '../../src/skills/mcp-visual-output/scripts/glyph-card-server.mjs'
 
 const rpc = (method, params = {}, id = 1) => handleRpc({ jsonrpc: '2.0', id, method, params })
@@ -109,4 +110,50 @@ test('Streamable HTTP: POST /mcp answers JSON-RPC, notifications get 202, GET is
   } finally {
     await new Promise((r) => server.close(r))
   }
+})
+
+// Raw http.request: fetch() refuses to set the Host header, and this test must.
+const rawPost = (port, headers, body = '{"jsonrpc":"2.0","id":1,"method":"tools/list"}') =>
+  new Promise((resolve, reject) => {
+    const req = request({ host: '127.0.0.1', port, path: '/mcp', method: 'POST', headers: { 'content-type': 'application/json', ...headers } }, (res) => {
+      res.resume()
+      res.on('end', () => resolve(res.statusCode))
+    })
+    req.on('error', reject)
+    req.end(body)
+  })
+
+const withServer = async (opts, fn) => {
+  const server = createHttpServer(opts)
+  await new Promise((r) => server.listen(0, '127.0.0.1', r))
+  try {
+    return await fn(server.address().port)
+  } finally {
+    await new Promise((r) => server.close(r))
+  }
+}
+
+test('origin guard: a non-local Host is refused by default', async () => {
+  await withServer(undefined, async (port) => {
+    assert.equal(await rawPost(port, { host: 'demo.trycloudflare.com' }), 403)
+    assert.equal(await rawPost(port, { host: `localhost:${port}` }), 200)
+    assert.equal(await rawPost(port, { host: `127.0.0.1:${port}` }), 200)
+    assert.equal(await rawPost(port, { host: `[::1]:${port}` }), 200)
+  })
+})
+
+test('origin guard: a non-local Origin is refused even with a local Host', async () => {
+  await withServer(undefined, async (port) => {
+    assert.equal(await rawPost(port, { host: `localhost:${port}`, origin: 'https://evil.example' }), 403)
+    assert.equal(await rawPost(port, { host: `localhost:${port}`, origin: `http://localhost:${port}` }), 200)
+  })
+})
+
+test('origin guard: allowedHosts opens exactly the named host, nothing else', async () => {
+  await withServer({ allowedHosts: ['demo.trycloudflare.com'] }, async (port) => {
+    assert.equal(await rawPost(port, { host: 'demo.trycloudflare.com' }), 200)
+    assert.equal(await rawPost(port, { host: 'demo.trycloudflare.com:443' }), 200)
+    assert.equal(await rawPost(port, { host: 'other.trycloudflare.com' }), 403)
+    assert.equal(await rawPost(port, { host: 'demo.trycloudflare.com', origin: 'https://evil.example' }), 403)
+  })
 })

@@ -127,7 +127,7 @@ registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 
 ## Smallest Proof: One Tool, UI Resource Plus Text Fallback
 
-`scripts/glyph-card-server.mjs` is a dependency-free MCP server (stdio, or `--http <port>` for Streamable HTTP) with one tool, `render_glyph_card`. The tool lists `_meta.ui.resourceUri` (plus the legacy `ui/resourceUri` and the ChatGPT alias `openai/outputTemplate`), serves a `ui://` resource as `text/html;profile=mcp-app`, and returns a glyph text card in `content` with the same rows in `structuredContent`. Hosts without UI use the text; MCP Apps hosts draw the card. One caveat: Claude Code passes `structuredContent` JSON to the model when it is present, so the text card is not what the model sees there. Unit tests: `tests/unit/test-mcp-glyph-card.mjs`.
+`scripts/glyph-card-server.mjs` is a dependency-free MCP server (stdio, or `--http <port>` for Streamable HTTP) with one tool, `render_glyph_card`. The tool lists `_meta.ui.resourceUri` (plus the legacy `ui/resourceUri` and the ChatGPT alias `openai/outputTemplate`), serves a `ui://` resource as `text/html;profile=mcp-app`, and returns a glyph text card in `content` with the same rows in `structuredContent`. Hosts without UI use the text; MCP Apps hosts draw the card. One caveat: Claude Code passes `structuredContent` JSON to the model when it is present, so the text card is not what the model sees there. The HTTP mode refuses any non-local Host or Origin with 403 unless you name one host with `--allow-host <host>`, so a tunnel serves only that name. Unit tests: `tests/unit/test-mcp-glyph-card.mjs`.
 
 ## Client-Side Iframe App
 
