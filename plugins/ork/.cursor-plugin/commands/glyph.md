@@ -1,12 +1,12 @@
 ---
 description: "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead."
-argument-hint: "[topic-to-render]"
+argument-hint: "[--chat|--ask|--page] [--eli5] [--decide] [--signoff] [topic-to-render]"
 disable-model-invocation: false
 effort: low
 context: inherit
 user-invocable: true
 name: glyph
-allowed-tools: "Read Grep Glob"
+allowed-tools: "Read Grep Glob AskUserQuestion"
 ---
 
 # Auto-generated from skills/glyph/SKILL.md
@@ -28,13 +28,14 @@ skill's `skills/glyph/examples/_featured.md`, so it cannot drift from the skill)
 
 The whole point is speed, so there is no setup phase.
 
-**Already loaded means render, not hand off.** `glyph` and `ork:glyph` are one skill: this file. If the host already invoked either name, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads this file again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate.
+**Already loaded means render, not hand off.** Once this file is loaded, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads a skill again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate. A user may have a personal skill also named `glyph` (`/glyph`); it lives in a separate namespace, may call this skill for its chat route, and is never called from here (`skills/glyph/references/dials.md`, "Personal skills named glyph").
 
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
-1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
+0. **Resolve the two dials, then announce them in one line.** Surface is chat, ask or page (default chat); audience is operator or novice (default operator). A flag beats inference: `--chat`, `--ask`, `--page`, `--eli5`, `--decide`, `--signoff`. Print exactly `→ chat · operator` (surface, then audience) and a blank line before the answer. Inference rules, the ask guardrail and the `--decide` shapes: `Read("skills/glyph/references/dials.md")`.
+1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format (the ask surface and `--signoff` are the only questions this skill asks), do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
 2. **Pick the form from the shape of the data**, using the pattern library below:
 
    | Topic shape | Form |
@@ -261,7 +262,16 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Progress bars | Status tracking, completion metrics |
 | Inventory render | Disk, spend, backlog, dependency audits; anything with sections and totals |
 
+## Done sign-off (`--signoff`)
+
+With `--signoff`, the render is the last thing before the gate: lead with any failure,
+then ask the one sign-off question from `Read("../../shared/rules/done-signoff.md")`
+with its three labels unchanged ("Accept done", "Show me the evidence", "Not
+satisfied"). In a non-interactive run, print the verdict and skip the question.
+
 ## Related Skills
+
+- `verify`: grades the work, then ends with the same done sign-off
 
 - `brainstorm`: Design exploration where diagrams communicate ideas
 - `architecture-patterns`: System architecture that benefits from ASCII diagrams

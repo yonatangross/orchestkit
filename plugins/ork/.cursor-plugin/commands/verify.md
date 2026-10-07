@@ -334,6 +334,8 @@ Load details: `Read("skills/verify/references/report-template.md")` for full for
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
 
+**Done sign-off (last step).** After the report, the verdict is not "done" until the user accepts it. Load `Read("../../shared/rules/done-signoff.md")` and ask its one question with the three labels unchanged: "Accept done", "Show me the evidence", "Not satisfied". Lead with any BLOCKED dimension or FAIL. On "Show me the evidence", re-run the named check live and ask again. Skip the question in non-interactive runs (`claude -p`, a Workflow phase) and return the verdict as data instead.
+
 > **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
 >
 > ```python

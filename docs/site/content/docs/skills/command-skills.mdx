@@ -97,7 +97,7 @@ Local dev URLs, served pages, and visual answers in chat.
 |---------|--------------|------------|-------|
 | [`/ork:dev`](/docs/reference/skills/dev) | One-command dev loop boot. | medium | `/ork:dev [start\|stop\|status] [--share\|--funnel\|--live H]` |
 | [`/ork:page-serve`](/docs/reference/skills/page-serve) | Hand a human a rendered HTML page at a stable HTTPS URL. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
-| [`/ork:glyph`](/docs/reference/skills/glyph) | Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. | low | `/ork:glyph [topic-to-render]` |
+| [`/ork:glyph`](/docs/reference/skills/glyph) | Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. | low | `/ork:glyph [--chat\|--ask\|--page] [--eli5] [--decide] [--signoff] [topic-to-render]` |
 | [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). | medium | `/ork:visualize-plan [plan-or-issue]` |
 
 ---
