@@ -46,6 +46,8 @@ NOW_MS="$(python3 -c 'import time; print(int(time.time() * 1000) - 86400000)')"
   echo '{"display": null, "timestamp": '"$NOW_MS"'}'
   echo '{"display": "a string timestamp", "timestamp": "yesterday"}'
   echo 'not json at all'
+  echo '{"display": "paste with a number", "timestamp": '"$NOW_MS"', "pastedContents": {"1": {"type": "text", "content": 5}}}'
+  echo '{"display": "paste with a numeric hash", "timestamp": '"$NOW_MS"', "pastedContents": {"1": {"contentHash": 7}}}'
   echo '{"display": "a valid prompt about the build", "timestamp": '"$NOW_MS"', "project": "/x/alpha"}'
 } > "$BAD/.claude/history.jsonl"
 echo '{"text": "codex bad ts", "ts": "soon"}' > "$BAD/.codex/history.jsonl"
@@ -53,17 +55,31 @@ scan_out="$(HOME="$BAD" PROMPT_FOCUS_DIR="$BAD/pf" python3 -I "$PF" scan 2>&1)" 
 case "$scan_out" in *"skipped 5 malformed"*) ;; *) echo "FAIL: scan did not report 5 skipped lines: $scan_out"; exit 1 ;; esac
 HOME="$BAD" PROMPT_FOCUS_DIR="$BAD/pf" python3 -I "$PF" report >/dev/null 2>&1 || { echo "FAIL: report crashed on malformed history"; exit 1; }
 
-# HOLD 6046590959 (b): daily validates the date, refuses today without --force,
-# rewrites a partial row, and tolerates a bad line in daily.jsonl.
+# HOLD 6046590959 (b) and 6046946363: daily validates the date, refuses today
+# without --force and days before the scan window, rewrites a partial row,
+# tolerates bad lines, writes atomically after a cut-off fragment, and does not
+# treat a row without counts as done.
 DAY_ENV=(env HOME="$BAD" PROMPT_FOCUS_DIR="$BAD/pf" PROMPT_FOCUS_TODAY=2026-10-07)
-if "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-7 >/dev/null 2>&1; then echo "FAIL: daily accepted the date 2026-10-7"; exit 1; fi
-if "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07 >/dev/null 2>&1; then echo "FAIL: daily froze today without --force"; exit 1; fi
-"${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07 --force >/dev/null || { echo "FAIL: daily today --force failed"; exit 1; }
-"${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07 --force >/dev/null || { echo "FAIL: daily could not rewrite a partial row"; exit 1; }
-today_rows="$(grep -c '"date": "2026-10-07"' "$BAD/pf/daily.jsonl")"
-[ "$today_rows" = "1" ] || { echo "FAIL: partial row for today written $today_rows times"; exit 1; }
+expect_exit() { # expect_exit CODE MESSAGE CMD...
+  local want="$1" msg="$2"; shift 2
+  local rc=0; "$@" >/dev/null 2>&1 || rc=$?
+  [ "$rc" = "$want" ] || { echo "FAIL: $msg (exit $rc, expected $want)"; exit 1; }
+}
+rows_for() { awk -v d="\"date\": \"$1\"" 'index($0, d) { n++ } END { print n + 0 }' "$BAD/pf/daily.jsonl"; }
+expect_exit 2 "daily accepted the date 2026-10-7" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-7
+expect_exit 2 "daily froze today without --force" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07
+expect_exit 2 "daily wrote a day before the scan window" "${DAY_ENV[@]}" python3 -I "$PF" daily 2020-01-01
+expect_exit 0 "daily today --force failed" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07 --force
+expect_exit 0 "daily could not rewrite a partial row" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-07 --force
+[ "$(rows_for 2026-10-07)" = "1" ] || { echo "FAIL: partial row for today written $(rows_for 2026-10-07) times"; exit 1; }
 grep -q '"partial": true' "$BAD/pf/daily.jsonl" || { echo "FAIL: today's row is not marked partial"; exit 1; }
 echo 'garbage line' >> "$BAD/pf/daily.jsonl"
-"${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-05 >/dev/null || { echo "FAIL: one bad line in daily.jsonl broke daily"; exit 1; }
+expect_exit 0 "one bad line in daily.jsonl broke daily" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-05
+echo '{"date": "2026-10-04"}' >> "$BAD/pf/daily.jsonl"
+expect_exit 0 "daily failed on a row without counts" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-04
+python3 -I -c 'import json,sys; rows=[json.loads(x) for x in open(sys.argv[1], encoding="utf-8") if x.startswith("{") and "\"prompts\"" in x]; sys.exit(0 if any(r["date"] == "2026-10-04" for r in rows) else 1)' "$BAD/pf/daily.jsonl" || { echo "FAIL: a row without counts was treated as done"; exit 1; }
+printf '%s' '{"date": "2026-10-0' >> "$BAD/pf/daily.jsonl"
+expect_exit 0 "daily failed after a cut-off fragment" "${DAY_ENV[@]}" python3 -I "$PF" daily 2026-10-03
+python3 -I -c 'import json,sys; ok=[json.loads(x) for x in open(sys.argv[1], encoding="utf-8") if x.startswith("{\"date\": \"2026-10-03\"")]; sys.exit(0 if ok and ok[0].get("prompts") is not None else 1)' "$BAD/pf/daily.jsonl" || { echo "FAIL: the row after a cut-off fragment is not on its own line"; exit 1; }
 
 echo "PASS: prompt-focus selftest, idempotent daily row, counts-only output"

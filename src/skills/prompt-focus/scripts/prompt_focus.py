@@ -153,10 +153,15 @@ def read_claude(bad):
         for p in pasted.values():
             if not isinstance(p, dict) or p.get("type") == "image":
                 continue
+            # Inner entries are untrusted too: only string content or a string
+            # hash counts; anything else is an unknown paste, never a crash.
             c = p.get("content")
-            if c is None and p.get("contentHash"):
-                f = cache / (p["contentHash"] + ".txt")
-                c = f.read_text(encoding="utf-8", errors="replace") if f.exists() else None
+            h = p.get("contentHash")
+            if not isinstance(c, str):
+                c = None
+                if isinstance(h, str) and re.fullmatch(r"[A-Za-z0-9_-]+", h):
+                    f = cache / (h + ".txt")
+                    c = f.read_text(encoding="utf-8", errors="replace") if f.exists() else None
             if c is None:
                 unknown += 1
             else:
@@ -525,8 +530,19 @@ def selftest():
 # ── daily ─────────────────────────────────────────────────────────────────────
 
 
+def _is_row(r):
+    """A complete daily row: a date and the counts written with it."""
+    return (
+        isinstance(r, dict)
+        and isinstance(r.get("date"), str)
+        and isinstance(r.get("prompts"), int)
+        and not isinstance(r.get("prompts"), bool)
+    )
+
+
 def _daily_rows(path):
-    """(date -> (line index, row)) for every valid row; bad lines are kept but ignored."""
+    """(lines, date -> (line index, row)) for every complete row. Bad lines,
+    including a cut-off last line, are kept but never count as a written day."""
     lines = path.read_text(encoding="utf-8", errors="replace").splitlines() if path.exists() else []
     rows = {}
     for i, x in enumerate(lines):
@@ -534,14 +550,25 @@ def _daily_rows(path):
             r = json.loads(x)
         except ValueError:
             continue
-        if isinstance(r, dict) and isinstance(r.get("date"), str):
+        if _is_row(r):
             rows[r["date"]] = (i, r)
     return lines, rows
 
 
+def _write_lines(path, lines):
+    """Replace the file in one step, so a crash never leaves half a row and a
+    cut-off fragment never swallows the next row."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".daily-", suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+    Path(tmp).replace(path)
+
+
 def daily(agg, path, args, force):
-    """Append one finished day. Today or later is partial: refused unless --force,
-    and a partial row is rewritten on the next run instead of frozen."""
+    """Write one finished day. Today or later is partial: refused unless --force,
+    and a partial row is rewritten on the next run instead of frozen. A day
+    before the scan window is refused: its count would be a false zero."""
     if args:
         day = args[0]
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
@@ -554,6 +581,9 @@ def daily(agg, path, args, force):
             return 2
     else:
         day = (today() - dt.timedelta(days=1)).isoformat()
+    if day < agg["window"]["start"]:
+        print(f"refuse {day}: before the scan window ({agg['window']['start']})", file=sys.stderr)
+        return 2
     partial = dt.date.fromisoformat(day) >= today()
     if partial and not force:
         print(f"refuse {day}: the day is not over; pass --force to write a partial row", file=sys.stderr)
@@ -565,15 +595,13 @@ def daily(agg, path, args, force):
     row = {"date": day, **agg["days"].get(day, {"prompts": 0})}
     if partial:
         row["partial"] = True
+    verb = "rewrote" if day in rows else "appended"
     if day in rows:
         lines[rows[day][0]] = json.dumps(row)
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        print(f"rewrote {day}: {row['prompts']} prompts{' (partial)' if partial else ''}")
-        return 0
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(row) + "\n")
-    print(f"appended {day}: {row['prompts']} prompts{' (partial)' if partial else ''}")
+    else:
+        lines.append(json.dumps(row))
+    _write_lines(path, lines)
+    print(f"{verb} {day}: {row['prompts']} prompts{' (partial)' if partial else ''}")
     return 0
 
 
