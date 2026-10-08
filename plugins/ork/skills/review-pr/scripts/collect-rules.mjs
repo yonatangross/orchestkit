@@ -2,7 +2,8 @@
 // collect-rules.mjs: gather the instruction files rule-check mode verifies a diff
 // against, and print them as one JSON object for workflows/rule-check.js.
 //
-// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user] [--standards --base-ref REF]
+// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user]
+//        [--standards (--default-branch NAME [--pr-base NAME] | --base-ref REF)]
 //
 //   --repo DIR   project root (default: the current directory)
 //   --home DIR   home directory (default: $HOME); tests point it at a fixture
@@ -134,28 +135,51 @@ if (STANDARDS) {
     process.stdout.write(`${JSON.stringify({ sources, missing, skipped, ...extra })}\n`);
     process.exit(0);
   };
-  const ref = opt('--base-ref');
-  if (!ref || ref.startsWith('-') || !/^[A-Za-z0-9._/@^~-]+$/.test(ref)) {
-    done({ skip: 'standards pass skipped: no usable --base-ref (the rules come from the base branch, never the PR head)' });
+  const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  const BRANCH = /^[A-Za-z0-9._][A-Za-z0-9._/-]*$/;
+  // The rules come from the repo's DEFAULT branch, never the PR's base or head:
+  // a PR author picks its base, so a base they control could carry weaker
+  // rules (#4671 review). --default-branch wins over --base-ref.
+  const def = opt('--default-branch');
+  const prBase = opt('--pr-base');
+  const notes = [];
+  let ref = opt('--base-ref');
+  if (def !== null) {
+    if (!BRANCH.test(def) || def.includes('..')) done({ skip: `standards pass skipped: --default-branch ${def} is not a branch name` });
+    ref = `refs/remotes/origin/${def}`;
+    if (prBase !== null && prBase !== def) notes.push(`standards read from the default branch ${def}, not the PR base ${prBase}`);
   }
-  const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  let entry = '';
+  // Only a remote-tracking ref or a full commit SHA: no HEAD, @, ~ or ^ forms.
+  if (ref && /^origin\/[A-Za-z0-9._][A-Za-z0-9._/-]*$/.test(ref)) ref = `refs/remotes/${ref}`;
+  const okRef = ref && !ref.includes('..') && (/^refs\/remotes\/origin\/[A-Za-z0-9._][A-Za-z0-9._/-]*$/.test(ref) || /^[0-9a-f]{40}$/.test(ref));
+  if (!okRef) done({ skip: 'standards pass skipped: the rules ref must be refs/remotes/origin/<branch> or a full commit SHA (never the PR head)' });
+  // Resolve once; every later read uses this SHA, so the type check and the
+  // content cannot come from two different commits.
+  let sha = '';
+  let head = '';
   try {
-    entry = git('ls-tree', ref, '--', STANDARDS_FILE).trim();
+    sha = git('rev-parse', '--verify', '--quiet', `${ref}^{commit}`);
   } catch {
-    done({ skip: `standards pass skipped: base ref ${ref} is not readable in ${REPO}` });
+    done({ skip: `standards pass skipped: ${ref} is not a commit in ${REPO}` });
   }
+  try {
+    head = git('rev-parse', '--verify', '--quiet', 'HEAD^{commit}');
+  } catch {
+    head = '';
+  }
+  if (sha === head) done({ skip: `standards pass skipped: ${ref} is the checked-out head (${sha.slice(0, 12)}); the rules must come from the default branch` });
+  const entry = git('ls-tree', sha, '--', STANDARDS_FILE);
   if (!entry) {
     missing.push(`${STANDARDS_FILE}@${ref}`);
-    done({ skip: `standards pass skipped: ${REPO} has no ${STANDARDS_FILE} at ${ref}` });
+    done({ skip: `standards pass skipped: ${REPO} has no ${STANDARDS_FILE} at ${ref}`, notes });
   }
   const [mode, type] = entry.split(/\s+/);
   if (type !== 'blob' || mode === '120000') {
     skipped.push({ file: `${STANDARDS_FILE}@${ref}`, reason: mode === '120000' ? 'symlink' : 'not-file' });
-    done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${ref} is not a plain file` });
+    done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${ref} is not a plain file`, notes });
   }
-  sources.push({ path: STANDARDS_FILE, ref, text: git('show', `${ref}:${STANDARDS_FILE}`) });
-  done({});
+  sources.push({ path: STANDARDS_FILE, ref, sha, text: execFileSync('git', ['-C', REPO, 'show', `${sha}:${STANDARDS_FILE}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }) });
+  done(notes.length ? { notes } : {});
 }
 
 // [path, confined to the repo root?]; absent top-level CLAUDE.md files are normal.
