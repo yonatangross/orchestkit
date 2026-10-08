@@ -387,6 +387,12 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
       expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
     }
   });
+  test('(HOLD 6065310703) a quoted command-running flag is still that flag', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of ['rg "--pre" /tmp/post.sh x', "rg '--pre=/tmp/post.sh' x", 'git grep "-O/tmp/post.sh" x', 'git log -p "--ext-diff" -- x']) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+    }
+  });
   test('(HOLD 6065036334) plain reads still pass, including sed with double quotes and test -f', () => {
     const t = transcript([typed('4668')]);
     for (const cmd of [

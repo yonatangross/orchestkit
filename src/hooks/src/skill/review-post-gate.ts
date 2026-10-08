@@ -63,7 +63,7 @@ const READ_FAMILY = /^(?:git|rg|grep|egrep|fgrep|sed|less|more)(?:\s|$)/;
 
 function isReadOnly(segment: string): boolean {
   if (READ_SED.test(segment)) return true;
-  return READ_VERB.test(segment) && !EXEC_FLAG.test(segment);
+  return READ_VERB.test(segment) && !EXEC_FLAG.test(segment.replace(/['"\\]/g, ''));
 }
 
 const TRANSCRIPT_DIR = /\.claude\/projects\b/;
@@ -179,7 +179,8 @@ export function rawWriteReason(command: string): string | null {
     for (const s of inner) {
       for (const part of segments(s)) {
         // A read verb with a flag that runs a command is not a read.
-        if (READ_FAMILY.test(part) && EXEC_FLAG.test(part)) return 'a read verb with a flag that runs a command';
+        // The shell removes quotes first, so "--pre" and '-O...' are the flags.
+        if (READ_FAMILY.test(part) && EXEC_FLAG.test(part.replace(/['"\\]/g, ''))) return 'a read verb with a flag that runs a command';
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
