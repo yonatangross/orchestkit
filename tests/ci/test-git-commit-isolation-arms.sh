@@ -9,6 +9,9 @@
 #            that line has nothing to check and the lint reports the scan broken
 #   self:    a copy of the lint is not a committing test (same verdict)
 #   comment: a commit whose only "isolation" is in comments FAILS
+#   hash:    a # inside quotes is not a comment, so the commit after it on
+#            the same line is still seen and FAILS
+#   order:   a git_isolate call after the commit does not cover it, FAILS
 #   real:    a commit after a real git_isolate call passes
 #
 # Usage: test-git-commit-isolation-arms.sh [lint-path]   (default: the repo lint)
@@ -47,6 +50,22 @@ expect self 1 "scan is broken" "$WORK/self"
 mkdir -p "$WORK/comment"
 printf '#!/usr/bin/env bash\n# call git_isolate here, or set commit.gpgsign=false\ngit init -q r\ngit -C r %s -qm x --allow-empty\n' "$c" > "$WORK/comment/t.sh"
 expect comment 1 "FAIL: t.sh" "$WORK/comment"
+
+# hash and order each sit next to an isolated file, so the scan has work to
+# do and the arm reads the per-file verdict, not the "scan is broken" guard.
+ok_file() {
+  printf '#!/usr/bin/env bash\ngit_isolate iso\ngit init -q r && git -C r %s -qm x --allow-empty\n' "$c" > "$1/ok.sh"
+}
+
+mkdir -p "$WORK/hash"
+ok_file "$WORK/hash"
+printf '#!/usr/bin/env bash\ngit init -q r\necho "log #1"; git -C r %s -qm x --allow-empty\n' "$c" > "$WORK/hash/t.sh"
+expect hash 1 "FAIL: t.sh" "$WORK/hash"
+
+mkdir -p "$WORK/order"
+ok_file "$WORK/order"
+printf '#!/usr/bin/env bash\ngit init -q r\ngit -C r %s -qm x --allow-empty\ngit_isolate iso\n' "$c" > "$WORK/order/t.sh"
+expect order 1 "FAIL: t.sh" "$WORK/order"
 
 mkdir -p "$WORK/real"
 printf '#!/usr/bin/env bash\nsource fixtures/git-isolate.sh\ngit_isolate iso\ngit init -q r && git -C r %s -qm x --allow-empty\n' "$c" > "$WORK/real/t.sh"

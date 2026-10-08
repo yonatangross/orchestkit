@@ -24,8 +24,8 @@ TESTS_DIR="${1:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 FAILED=0
 CHECKED=0
 
-# Only real command lines count. Comment lines and trailing comments are
-# dropped first, so a comment that names the fix does not satisfy the lint.
+# Only real command lines count. Comments are blanked first (see
+# code_lines), so a comment that names the fix does not satisfy the lint.
 # A commit is git (with optional env prefixes and -C/-c options) at a command
 # position: line start, or after ; & | ( or then/do/else. Text inside a message
 # ("... runs git commit ...") is not a command position.
@@ -36,19 +36,61 @@ COMMIT_RE="(^|[;&|(]|\b(then|do|else)\b)[[:space:]]*${ENV_PREFIX}git([[:space:]]
 ISOLATE_RE="(^|[;&|(]|\b(then|do|else)\b)[[:space:]]*git_isolate\b|GIT_CONFIG_GLOBAL=|commit\.gpgsign(=|[[:space:]]+)false"
 SELF="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
 
+# Print the file with comments blanked, one output line per input line so
+# line numbers stay true. A # starts a comment only outside quotes and at the
+# start of a word, so `echo "log #1"; git commit` keeps its commit.
 code_lines() {
-  sed -E -e '/^[[:space:]]*#/d' -e 's/[[:space:]]#.*$//' "$1"
+  awk '{
+    out = ""; q = ""; n = length($0)
+    for (i = 1; i <= n; i++) {
+      ch = substr($0, i, 1)
+      if (q == "") {
+        if (ch == "#" && (i == 1 || substr($0, i - 1, 1) ~ /[[:space:];&|(]/)) break
+        if (ch == "\\") { out = out ch substr($0, i + 1, 1); i++; continue }
+        if (ch == "\047" || ch == "\"") q = ch
+      } else if (ch == q) {
+        q = ""
+      } else if (q == "\"" && ch == "\\") {
+        out = out ch substr($0, i + 1, 1); i++; continue
+      }
+      out = out ch
+    }
+    print out
+  }' "$1"
 }
+
+# Every commit must be covered: the commit line itself turns signing off, or
+# an isolation line comes before it. A git_isolate call after the commit does
+# not cover it, because the commit already reached the signer.
+uncovered_commit() {
+  local first_iso="" n line
+  first_iso="$(grep -m1 -nE "$ISOLATE_RE" "$1" || true)"
+  first_iso="${first_iso%%:*}"
+  while IFS=: read -r n line; do
+    if grep -Eq "$ISOLATE_RE" <<< "$line"; then continue; fi
+    if [[ -n "$first_iso" && "$first_iso" -lt "$n" ]]; then continue; fi
+    echo "$n"
+    return 0
+  done < <(grep -nE "$COMMIT_RE" "$1" || true)
+}
+
+# The blanked copy goes to a file, never into `code_lines | grep -q`: under
+# pipefail grep -q exits on the first match, awk takes SIGPIPE, and a long file
+# reads as "no commit" (measured: two eval scripts dropped out that way).
+CODE="$(mktemp "${TMPDIR:-/tmp}/ork-commit-iso.XXXXXX")"
+trap 'rm -f "$CODE"' EXIT
 
 while IFS= read -r -d '' f; do
   # The lint quotes the patterns it looks for; never count it.
   [[ "$f" -ef "$SELF" ]] && continue
-  if ! code_lines "$f" | grep -Eq "$COMMIT_RE"; then
+  code_lines "$f" > "$CODE"
+  if ! grep -Eq "$COMMIT_RE" "$CODE"; then
     continue
   fi
   CHECKED=$((CHECKED + 1))
-  if ! code_lines "$f" | grep -Eq "$ISOLATE_RE"; then
-    echo "FAIL: ${f#"$TESTS_DIR"/}: commits without turning signing off (source tests/fixtures/git-isolate.sh and call git_isolate)"
+  bad="$(uncovered_commit "$CODE")"
+  if [[ -n "$bad" ]]; then
+    echo "FAIL: ${f#"$TESTS_DIR"/}:$bad: commits before signing is turned off (source tests/fixtures/git-isolate.sh and call git_isolate first)"
     FAILED=1
   fi
 done < <(find "$TESTS_DIR" -name fixtures -prune -o -type f -name '*.sh' -print0)
