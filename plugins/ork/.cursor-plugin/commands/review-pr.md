@@ -1,10 +1,8 @@
 ---
 description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
 argument-hint: "[pr-number-or-branch]"
-context: fork
 user-invocable: true
 name: review-pr
-background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 ---
 
@@ -86,14 +84,12 @@ The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `t
 
 This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
 
-> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill's own frontmatter sets `background: false` (#3093). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
+> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill used to set `background: false` (#3093); since #4672 it runs inline (no `context: fork`), because a fork has no Workflow tool for the fan-out. CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
 
 
 ## STEP 0b: Select Orchestration Mode
 
 Default: **Workflow** (star, `skills/review-pr/workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("skills/review-pr/references/orchestration-mode-selection.md")`.
-
-**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run Phases 3 and 4.5 with the Agent tool: `Read("skills/review-pr/rules/agent-prompts-task-tool.md")`, all reviewers in one message. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
 
 
 ## MCP Probe (CC 2.1.71)

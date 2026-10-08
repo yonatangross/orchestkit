@@ -3,10 +3,8 @@ description: "Generate tests that do not exist yet. Analyzes coverage gaps, then
 argument-hint: "[scope-or-feature]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: cover
-background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
 
@@ -313,8 +311,6 @@ Workflow(
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )  # one invocation per tier that has failures
 ```
-
-**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run each heal iteration with the Agent tool (one fixer agent, then rerun the tier command), at most `maxIterations` times; only then is the loop run by hand. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
 
 **The iteration bound is enforced by the script, not by instruction.** `heal-loop.js` runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
 actually executes the test command and returns structured pass/fail plus the verbatim

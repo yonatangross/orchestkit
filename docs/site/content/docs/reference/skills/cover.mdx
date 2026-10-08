@@ -319,8 +319,6 @@ Workflow(
 )  # one invocation per tier that has failures
 ```
 
-**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run each heal iteration with the Agent tool (one fixer agent, then rerun the tier command), at most `maxIterations` times; only then is the loop run by hand. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
-
 **The iteration bound is enforced by the script, not by instruction.** `heal-loop.js` runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
 actually executes the test command and returns structured pass/fail plus the verbatim
 failure output, then a repair agent that receives *that failure text* and edits test files

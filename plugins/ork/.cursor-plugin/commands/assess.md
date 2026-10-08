@@ -3,10 +3,8 @@ description: "Assesses and rates quality 0-10 across multiple dimensions (correc
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: assess
-background: false
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 ---
 
@@ -266,8 +264,6 @@ Write(".claude/chain/02-evaluation.json", result)
 **The script owns the mechanics, not the prose.** It picks the assessors from `focus` and `effort` (security first), gives each a score schema that demands `file:line` evidence, sends every decision-bearing score to blind refuters (Phase 2.5), and computes the weighted composite, grade, rubric verdict and blockers. A score with no `file:line` evidence counts as unscored, a repeated dimension keeps only its first entry, and a selected dimension with a `min_blocker` that nobody scored is a blocker. It returns `composite`, `grade`, `verdict`, `blockers` (producer basis), `postRefutation`, `chainVerdict`, `chainVerdictIfConfirmed`, `revisions`, `confirmationNeeded`, `manualReview`, `advisory`, `priorityConcerns`, `quickWins`, `unscored`, `rejectedDimensions`, `unassessed`, `dimensions`, `ledger` and `reasons`. **It never asks and never writes**: those stay in this shell.
 
 Fallback (no Workflow tool, `ORCHESTKIT_FORCE_TASK_TOOL=1`, or the cross-model lane below): `Read("skills/assess/references/agent-spawn-definitions.md")` for Agent tool and Agent Teams spawns, then run Phase 2.5 by hand.
-
-**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, take the fallback above: run Phase 2 with the Agent tool. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
 
 **Composite Score:** Weighted average of the scored dimensions (see quality-model.md).
 

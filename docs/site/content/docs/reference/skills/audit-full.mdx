@@ -90,8 +90,6 @@ audit-full has **two execution tiers**. The estimate decides which:
 
 **Over-budget → run the map-reduce workflow** (don't punt, don't silently truncate the load):
 
-**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run the map-reduce with the Agent tool: one agent per shard in one message, then the cross-shard synthesis yourself. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
-
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({

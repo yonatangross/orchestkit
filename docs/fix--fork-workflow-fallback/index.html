@@ -42,8 +42,9 @@
   </section>
   <section class="card">
     <h2>Cause and fix</h2>
-    <p>The guess "a forked agent cannot spawn agents" is refuted: it can. It cannot call Workflow, and the default fan-out of review-pr, verify, assess, audit-full and cover is a Workflow call. Each of these five skills now has a <code>**Forked run:**</code> line: use the Agent tool, a single pass is not a fallback, and stop with BLOCKED if neither tool is there.</p>
-    <p><code>tests/skills/structure/test-fork-workflow-fallback.mjs</code> fails on all five skills before the fix and passes after it.</p>
+    <p>The guess "a forked agent cannot spawn agents" is refuted: it can. It cannot call Workflow, and the default fan-out of review-pr, verify, assess, audit-full and cover is a Workflow call.</p>
+    <p>A first fix added a fallback line to each skill. A live run (8a5bd5aa) still did a single pass with 0 Agent calls: the fork judged the PR too small. So, by operator decision, the five skills now run inline (no <code>context: fork</code>), where the Workflow tool exists.</p>
+    <p><code>tests/skills/structure/test-workflow-skills-run-inline.mjs</code> fails if any skill that calls Workflow sets <code>context: fork</code>. It fails on all five skills before the change.</p>
   </section>
 </main>
 <script>
