@@ -368,6 +368,37 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
     }
   });
+  test('(HOLD 6065036334) a read verb with a flag that runs a command is not a read', () => {
+    const t = transcript([typed('4668')]);
+    const P = '/opt/ork/skills/review-pr/scripts/post-review.mjs';
+    for (const cmd of [
+      `git grep -O'node ${P} --pr 4668 --post #' x`,
+      "git grep -O'gh pr review 4668 --approve -b ok' x",
+      'git grep --open-files-in-pager=sh x',
+      `rg --pre /tmp/post.sh x ${P}`,
+      'rg --pre-glob "*" --pre /tmp/p.sh "pr review" .',
+      `sed -n 1p -e '1e node ${P} --pr 4668 --post' f`,
+      "less '+!gh pr review 4668' x",
+      `more ${P}`,
+      'git log --ext-diff -p -- x',
+      'git show --textconv HEAD -- x',
+      'git diff --output=/tmp/o HEAD',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+    }
+  });
+  test('(HOLD 6065036334) plain reads still pass, including sed with double quotes and test -f', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of [
+      'sed -n "1,40p" src/skills/review-pr/scripts/post-review.mjs',
+      "sed -n '5p' scripts/post-review.mjs",
+      'test -f src/skills/review-pr/scripts/post-review.mjs',
+      'git log --oneline -- src/skills/review-pr/scripts/post-review.mjs',
+      'rg -n "pr review" src/',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
+    }
+  });
   test('an uppercase GitHub host is still GitHub', () => {
     expect(isRawPost('curl -X POST https://API.GITHUB.COM/repos/o/r/issues/1/comments -d @b')).toBe(true);
   });

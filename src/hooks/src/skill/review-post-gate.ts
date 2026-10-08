@@ -50,10 +50,22 @@ const GUARD_SCRIPT = /\bpost-review\.mjs\b/;
 // The one form that runs the script: `node <path>/post-review.mjs ...`.
 const GUARD_CALL = /^node\s+\S*\/post-review\.mjs(?:\s|$)/;
 // A segment that only reads a file or history (cat the script, grep for
-// "pr review", git log --grep): never a guard call, never a write.
-// sed only in its pure line-print form (sed -n 'N,Mp'): GNU sed's e command runs a shell.
-const READ_ONLY =
-  /^(?:(?:cat|head|tail|less|more|wc|nl|ls|stat|file|diff|grep|egrep|fgrep|rg|git\s+(?:log|show|diff|grep|blame|status|ls-files|cat-file))(?:\s|$)|sed\s+-n\s+'?\d+(?:,\d+)?p'?\s)/;
+// "pr review", git log --grep): never a guard call, never a write. Only verbs
+// with no flag that runs a command: no less/more (+!cmd), no git grep (-O).
+// sed counts only as one whole `sed -n 'N,Mp' <file>` (GNU sed's e runs a shell).
+const READ_VERB =
+  /^(?:cat|head|tail|wc|nl|ls|stat|file|diff|grep|egrep|fgrep|rg|test|git\s+(?:log|show|diff|blame|status|ls-files|cat-file))(?:\s|$)/;
+const READ_SED = /^sed\s+-n\s+(['"]?)\d+(?:,\d+)?p\1\s+[^\s;|&<>]+$/;
+// Flags that make a read verb run a command: git grep -O/--open-files-in-pager,
+// rg --pre/--pre-glob, git --ext-diff/--textconv, and --output (writes a file).
+const EXEC_FLAG = /(?:^|\s)(?:-O\S*|--open-files-in-pager\S*|--pre(?:-glob)?(?:=|\s|$)|--ext-diff\b|--textconv\b|--output(?:=|\s|$))/;
+const READ_FAMILY = /^(?:git|rg|grep|egrep|fgrep|sed|less|more)(?:\s|$)/;
+
+function isReadOnly(segment: string): boolean {
+  if (READ_SED.test(segment)) return true;
+  return READ_VERB.test(segment) && !EXEC_FLAG.test(segment);
+}
+
 const TRANSCRIPT_DIR = /\.claude\/projects\b/;
 const REPO_FLAG = /(?:^|\s)(?:-R|--repo)(?:\s|=|$)/;
 // A guard call is one plain command: letters, digits, - _ . / : and spaces.
@@ -166,8 +178,10 @@ export function rawWriteReason(command: string): string | null {
     const inner = [seg, ...[...seg.matchAll(/\$\(([^()]*)\)|`([^`]*)`|\(([^()]*)\)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? '')];
     for (const s of inner) {
       for (const part of segments(s)) {
+        // A read verb with a flag that runs a command is not a read.
+        if (READ_FAMILY.test(part) && EXEC_FLAG.test(part)) return 'a read verb with a flag that runs a command';
         // A search or a history read names write verbs without running them.
-        if (READ_ONLY.test(part)) continue;
+        if (isReadOnly(part)) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
       }
@@ -283,7 +297,7 @@ export function reviewPostGate(
   if (!GUARD_CALL.test(command.trim())) {
     // Named but not run as `node <path>/post-review.mjs`: a read is fine,
     // any other form (env node, bash -c, running the file) is denied.
-    if (segments(command).every((seg) => !GUARD_SCRIPT.test(seg) || READ_ONLY.test(seg))) return outputSilentSuccess();
+    if (segments(command).every((seg) => !GUARD_SCRIPT.test(seg) || isReadOnly(seg))) return outputSilentSuccess();
     return deny(ctx, input, 'Run post-review.mjs only as `node <path>/post-review.mjs ...`, one plain command, so this gate reads what runs.');
   }
 
