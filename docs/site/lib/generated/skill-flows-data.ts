@@ -6474,7 +6474,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "6",
             "label": "Submit Review",
-            "does": "Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis verdict unless the user confirmed the post-refutation one in Phase 4.5.",
+            "does": "This skill never posts unless the user typed --post on /ork:review-pr (#4675). Without it, print the review and stop: the user posts it, or re-runs with --post. Never ask to post and never post because the review \"looks done\".",
             "out": null,
             "tag": null
           },

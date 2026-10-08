@@ -104,6 +104,8 @@ export interface HookInput {
   prompt?: string;
   /** Project directory */
   project_dir?: string;
+  /** Shell working directory when the hook fires (CC sends it on every event) */
+  cwd?: string;
   /** Path to the session transcript jsonl (sent on all hook events) */
   transcript_path?: string;
   /** Resolved absolute path to the plugin root (injected by run-hook.mjs) */

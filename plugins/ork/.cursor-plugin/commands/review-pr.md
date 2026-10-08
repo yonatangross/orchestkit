@@ -1,6 +1,6 @@
 ---
 description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
-argument-hint: "[pr-number-or-branch]"
+argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 name: review-pr
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
@@ -31,8 +31,10 @@ review-pr feature-branch
 Resolve the target with the script first, then review exactly that target (#3892):
 
 ```bash
-RULES_MODE=false; STANDARDS_MODE=false; REST=""  # --rules / --standards select Phase 4.6; strip them before resolving
-for a in $ARGUMENTS; do case "$a" in --rules) RULES_MODE=true ;; --standards) STANDARDS_MODE=true ;; *) REST="$REST $a" ;; esac; done
+RULES_MODE=false; STANDARDS_MODE=false; POST=false; POST_VERDICT=false; REST=""  # mode and opt-in flags; strip them before resolving
+for a in $ARGUMENTS; do case "$a" in
+  --rules) RULES_MODE=true ;; --standards) STANDARDS_MODE=true ;; --post) POST=true ;; --post-verdict) POST_VERDICT=true ;;
+  *) REST="$REST $a" ;; esac; done
 TARGET=$(bash "skills/review-pr/scripts/resolve-target.sh" $REST)  # one JSON object
 ```
 
@@ -102,7 +104,7 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 ```
 
 
-**Finish line.** Done means: every agent's findings are checked against the diff, the validation checks ran, and the review is posted as conventional comments (praise, issue, suggestion, nitpick) with an approve or request-changes verdict, each blocking issue carrying file, line and why. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+**Finish line.** Done means: every agent's findings are checked against the diff, the validation checks ran, and the review is printed as conventional comments (praise, issue, suggestion, nitpick) with an approve or request-changes verdict, each blocking issue carrying file, line and why. It is posted to GitHub only when the user typed `--post` (Phase 6). Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
 ## CRITICAL: Task Management is MANDATORY
 
@@ -321,17 +323,21 @@ Combine the workflow result (and any "Ultrareview:" findings) into a structured 
 
 After synthesis, persist critical/high findings to the memory graph for cross-session learning. The Phase 8c verdict writeback (below) handles this automatically when `yg-mcp-core>=0.3.0` is installed; for interactive sessions, see `skills/review-pr/references/memory-persistence.md` for the manual `mcp__memory__create_entities` + `mcp__memory__add_observations` pattern.
 
-## Phase 6: Submit Review
+## Phase 6: Submit Review (only with --post)
 
-Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5.
+This skill never posts unless the user typed `--post` on `/ork:review-pr` (#4675). Without it, print the review and stop: the user posts it, or re-runs with `--post`. Never ask to post and never post because the review "looks done".
+
+Every post goes through `skills/review-pr/scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A body whose first line is verdict-shaped (`LAND`, `HOLD`, `XREVIEW`) also needs `--post-verdict` typed by the user.
 
 ```bash
-# Approve
-gh pr review $PR_NUMBER --approve -b "Review message"
-
-# Request changes
-gh pr review $PR_NUMBER --request-changes -b "Review message"
+# Only when the user typed --post (Argument Resolution). Write the review under /tmp first.
+# CC writes the skill dir in as a literal path. The call is one plain command (letters, digits, - _ . / : and spaces): no quotes, $, globs or chaining, and --pr is exactly what the user typed.
+node skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/review-4668.md --post
+# --kind comment posts a PR comment instead of a review.
+# --event approve or request-changes, or a LAND/HOLD/XREVIEW first line, also needs --post-verdict, and only when the user typed it.
 ```
+
+The skill's `skill/review-post-gate` hook enforces this in code: it denies raw `gh pr review`, `gh pr comment` and review or comment API writes, and denies `post-review.mjs` unless the user's own `/ork:review-pr` line, as the turn that started this work, carries `--post` and exactly the same PR token, a number or the same github.com pull URL, typed right after the command (a bare number also needs the shell at the session project root, since gh resolves it against the cwd's repo) (and `--post-verdict` for an approve or a verdict line). gh runs read-only otherwise: every gh write verb, `gh api` with a method, field or input flag, and any graphql call are denied. The script also refuses a body file outside a system temp dir, over 64 KB, or holding a secret shape, and hands gh the checked bytes on stdin. It does not read gh auth, so it holds with a full gh login. It is a skill-scoped hook, so it runs only because this skill runs inline: Claude Code drops a forked skill's frontmatter hooks. If a post is denied, do not retry another way.
 
 ## Phase 8c — Verdict KG writeback (signal-fired, optional)
 
