@@ -30,7 +30,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const require = createRequire(join(ROOT, 'package.json'));
+// js-yaml is a declared dependency of src/hooks, and the CI job that runs
+// tests/ci installs src/hooks deps only. The root package.json has no YAML
+// parser, so resolve from src/hooks, not from the root.
+const require = createRequire(join(ROOT, 'src/hooks/package.json'));
 const yaml = require('js-yaml');
 
 const wf = yaml.load(readFileSync(join(ROOT, '.github/workflows/docs.yml'), 'utf8'));
