@@ -5,10 +5,9 @@ compatibility: "Claude Code 2.1.277+."
 description: Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.
 user-invocable: false
 disable-model-invocation: true
-context: fork
-agent: multimodal-specialist
 effort: high
 metadata:
+  owner-agent: "multimodal-specialist"
   category: mcp-enhancement
   version: "2.1.1"
   author: "OrchestKit"

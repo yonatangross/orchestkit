@@ -28,6 +28,13 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 - **Invoke:** `/ork:cover --target {N}`
 - **Edges:** "write more tests" with no target → ask the target %. "test the new feature" is `build`/`verify` (functional tests), not `cover` (coverage %). A surface called out as **"untested"** is `cover` even with no % target ("the payments service is untested, fix that") — the "fix" there repairs a coverage gap, not a bug; ask the target % at invoke time.
 
+## e2e → /ork:expect (run) or /ork:cover (write)
+
+- **Signals:** e2e, end-to-end tests, in the browser, browser test, playwright.
+- **Run:** "check the change in the browser", "run the playwright tests on this branch", "why don't you do proper e2e" → `/ork:expect`. It reads the diff, builds a browser test plan and runs it.
+- **Write:** "no e2e tests yet", "write e2e tests for the signup page" → `/ork:cover`, whose E2E tier writes and runs new Playwright tests.
+- **Edges:** a failing or flaky e2e run ("why is the e2e suite failing on CI") is `diagnose`/`fix`, not a new run. Never hand off to `Skill(ork:testing-e2e)`: it is reference guidance that loads inline, not an executor.
+
 ## design → /ork:brainstorm
 
 - **Extract:** topic (full goal). Deep mode if the goal says "thorough/comprehensive/deep dive" or spans multiple systems.
@@ -106,6 +113,7 @@ Defaults, not verdicts. The rubric overrides any row here when the goal carries 
 | diagnose | Standard | root cause spans services or is adversarial | reading a log or reproducing a named error |
 | optimize | Standard | the optimization changes architecture | tuning one measured constant |
 | cover | Standard | tests must model an attacker or a race | mechanical test scaffolding for existing pure functions |
+| e2e | Standard | the flow covers auth, payment, or data loss | one page, one assertion, already-running app |
 | design | Standard | architecture, protocol, or cross-cutting design | never (design is judgment by definition) |
 | build | Standard | new public API, schema, or auth surface | single-file change fully specified in the goal |
 | review | Standard | security, auth, crypto, or safety in scope | style or formatting only |
@@ -147,6 +155,7 @@ Everything else is a documented hint carried into the handoff. Per the no-bypass
 1. Explicit verb wins. "Fix the slow query" → `fix`.
 2. Metric + direction → `optimize`.
 3. Percentage in a test context → `cover`.
+3b. An e2e or browser signal → `e2e` (or `cover` when the tests do not exist yet). It beats the plain verify verb and the request form "why don't you ..."; a failing or flaky e2e run stays `diagnose`/`fix`.
 4. Question form → `design` ("how should") or `diagnose` ("why") — and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
 5. PR/MR/`#N` → `review`.
 6. Ticket reference → `build`.

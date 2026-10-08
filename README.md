@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->109<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
+**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -107,7 +107,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->109<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->110<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->171<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
@@ -630,6 +630,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165)** · 2026-10-07
+
+- **prompt-focus:** where your attention went, from your own prompts (#4657)
+
+**[v10.0.0-beta.164](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.163...v10.0.0-beta.164)** · 2026-10-07
+
+- **hooks:** display-lint hint is shell-aware, model-only, once per session (#4655)
+- **skills:** reference skills load inline; ork:auto routes e2e asks (#4656)
+
 **[v10.0.0-beta.163](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163)** · 2026-10-07
 
 - **glyph:** output mode dials, done sign-off, and a try-it page (#4647)
@@ -655,14 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158)** · 2026-10-05
 
 - **test:** nested pre-push hook runs in full mode (#4635)
-
-**[v10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157)** · 2026-10-05
-
-- **lesson-cards:** home via env, /lessons before corpus load (#4625)
-
-**[v10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156)** · 2026-10-05
-
-- **promote-lights:** /lights takes a bare watch target (#4624)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
