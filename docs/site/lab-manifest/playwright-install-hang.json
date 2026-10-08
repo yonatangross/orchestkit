@@ -1,0 +1,12 @@
+{
+  "slug": "playwright-install-hang",
+  "source": "docs/fix--playwright-install-hang/index.html",
+  "title": "Docs Site Build: a Playwright install that cannot hang",
+  "description": "Three Docs Site Build runs hung in apt during the Playwright install; the install is now cached, split and bounded.",
+  "tags": [
+    "ci",
+    "playwright",
+    "bug"
+  ],
+  "date": "2026-10-08"
+}
