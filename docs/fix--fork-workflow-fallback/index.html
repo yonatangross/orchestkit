@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forked skills have no Workflow tool</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>Forked skills have no Workflow tool</h1>
+      <p class="lede">Issue #4672. /ork:review-pr ran two headless reviews on hq-ext#2230 as a single pass: 0 Agent calls, 0 Workflow calls.</p>
+    </div>
+    <button id="theme" type="button">Dark</button>
+  </div>
+  <section class="card">
+    <h2>Repro, CC 2.1.294, claude -p</h2>
+    <table>
+      <tr><th>Probe skill</th><th>Agent tool</th><th>Workflow tool</th><th>Agent call</th><th>Child</th></tr>
+      <tr><td>minimal, context: fork</td><td class="ok">yes</td><td class="bad">no</td><td>1</td><td>PONG</td></tr>
+      <tr><td>minimal, no fork (control)</td><td class="ok">yes</td><td class="ok">yes</td><td>1</td><td>PONG</td></tr>
+      <tr><td>review-pr frontmatter, context: fork</td><td class="ok">yes</td><td class="bad">no</td><td>1</td><td>PONG</td></tr>
+    </table>
+    <p>Tool presence is the probe model's own report of its tool list. Agent calls and child replies are counted from the stream-json output.</p>
+  </section>
+  <section class="card">
+    <h2>Cause and fix</h2>
+    <p>The guess "a forked agent cannot spawn agents" is refuted: it can. It cannot call Workflow, and the default fan-out of review-pr, verify, assess, audit-full and cover is a Workflow call.</p>
+    <p>A first fix added a fallback line to each skill. A live run (8a5bd5aa) still did a single pass with 0 Agent calls: the fork judged the PR too small. So, by operator decision, the five skills now run inline (no <code>context: fork</code>), where the Workflow tool exists.</p>
+    <p><code>tests/skills/structure/test-workflow-skills-run-inline.mjs</code> fails if any skill that calls Workflow sets <code>context: fork</code>. It fails on all five skills before the change.</p>
+  </section>
+</main>
+<script>
+  const b = document.getElementById('theme');
+  b.addEventListener('click', () => { const d = document.documentElement; const dark = d.dataset.theme !== 'dark'; d.dataset.theme = dark ? 'dark' : 'light'; b.textContent = dark ? 'Light' : 'Dark'; });
+</script>
+</body>
+</html>

@@ -3,10 +3,8 @@ description: "Assesses and rates quality 0-10 across multiple dimensions (correc
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: assess
-background: false
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 ---
 

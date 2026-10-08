@@ -4,9 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written."
 argument-hint: "[feature-or-scope]"
-context: fork
-# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
-background: false
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]

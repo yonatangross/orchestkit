@@ -1,0 +1,12 @@
+{
+  "slug": "fork-workflow-fallback",
+  "source": "docs/fix--fork-workflow-fallback/index.html",
+  "title": "Forked skills have no Workflow tool",
+  "description": "A context: fork skill can spawn agents but cannot call Workflow, so five skills now name the Agent tool fallback.",
+  "tags": [
+    "skills",
+    "review",
+    "bug"
+  ],
+  "date": "2026-10-08"
+}

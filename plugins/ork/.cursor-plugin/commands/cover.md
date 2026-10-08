@@ -3,10 +3,8 @@ description: "Generate tests that do not exist yet. Analyzes coverage gaps, then
 argument-hint: "[scope-or-feature]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: cover
-background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
 
@@ -311,12 +309,10 @@ Workflow(
   scriptPath="skills/cover/workflows/heal-loop.js",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
-)
-# One invocation per tier that has failures.
+)  # one invocation per tier that has failures
 ```
 
-**The iteration bound is enforced by the script, not by instruction.** `heal-loop.js`
-runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
+**The iteration bound is enforced by the script, not by instruction.** `heal-loop.js` runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
 actually executes the test command and returns structured pass/fail plus the verbatim
 failure output, then a repair agent that receives *that failure text* and edits test files
 only. It exits early the moment the suite is green.
