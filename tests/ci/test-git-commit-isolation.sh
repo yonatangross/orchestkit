@@ -11,7 +11,8 @@
 # tests/**/*.sh that commits without one of the accepted isolation forms:
 #   - git_isolate         (tests/fixtures/git-isolate.sh)
 #   - GIT_CONFIG_GLOBAL=  (an isolated global config)
-#   - commit.gpgsign      (signing turned off on the repo or the command)
+#   - commit.gpgsign      (set to false on the repo or the command)
+# Comments do not count, and the lint skips itself.
 #
 # Usage: test-git-commit-isolation.sh [tests-dir]   (default: this repo's tests/)
 
@@ -23,14 +24,31 @@ TESTS_DIR="${1:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 FAILED=0
 CHECKED=0
 
+# Only real command lines count. Comment lines and trailing comments are
+# dropped first, so a comment that names the fix does not satisfy the lint.
+# A commit is git (with optional env prefixes and -C/-c options) at a command
+# position: line start, or after ; & | ( or then/do/else. Text inside a message
+# ("... runs git commit ...") is not a command position.
+ENV_PREFIX='([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*'
+COMMIT_RE="(^|[;&|(]|\b(then|do|else)\b)[[:space:]]*${ENV_PREFIX}git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+commit\b"
+# Accepted isolation, also as commands: a git_isolate call, an isolated
+# global config, or signing set to false.
+ISOLATE_RE="(^|[;&|(]|\b(then|do|else)\b)[[:space:]]*git_isolate\b|GIT_CONFIG_GLOBAL=|commit\.gpgsign(=|[[:space:]]+)false"
+SELF="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
+
+code_lines() {
+  sed -E -e '/^[[:space:]]*#/d' -e 's/[[:space:]]#.*$//' "$1"
+}
+
 while IFS= read -r -d '' f; do
-  # A commit command on a non-comment line: git, optional -C/-c options, commit.
-  if ! grep -Eq '^[^#]*\bgit([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+commit\b' "$f"; then
+  # The lint quotes the patterns it looks for; never count it.
+  [[ "$f" -ef "$SELF" ]] && continue
+  if ! code_lines "$f" | grep -Eq "$COMMIT_RE"; then
     continue
   fi
   CHECKED=$((CHECKED + 1))
-  if ! grep -Eq 'git_isolate|GIT_CONFIG_GLOBAL=|commit\.gpgsign' "$f"; then
-    echo "FAIL: ${f#"$TESTS_DIR"/}: runs git commit without turning signing off (source tests/fixtures/git-isolate.sh and call git_isolate)"
+  if ! code_lines "$f" | grep -Eq "$ISOLATE_RE"; then
+    echo "FAIL: ${f#"$TESTS_DIR"/}: commits without turning signing off (source tests/fixtures/git-isolate.sh and call git_isolate)"
     FAILED=1
   fi
 done < <(find "$TESTS_DIR" -name fixtures -prune -o -type f -name '*.sh' -print0)
