@@ -326,7 +326,7 @@ export const AGENTS: Agent[] = [
     "name": "Component Curator",
     "description": "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency.",
     "category": "frontend",
-    "model": "sonnet",
+    "model": "haiku",
     "taskTypes": [
       "review",
       "research"
