@@ -1,0 +1,13 @@
+{
+  "slug": "4662-cc-matrix-probes",
+  "source": "docs/feat--cc-matrix-2-1-289-293/index.html",
+  "title": "Claude Code 2.1.289 to 2.1.294: what the seat probes showed",
+  "description": "Filter the probe results behind the new version matrix rows: which Claude Code changes were run on a seat and passed, which stayed inconclusive, and which are release text only.",
+  "tags": [
+    "cc",
+    "version-matrix",
+    "probes",
+    "4662"
+  ],
+  "date": "2026-10-08"
+}
