@@ -103,6 +103,8 @@ Load details: `Read("skills/verify/references/orchestration-mode.md")` for env v
 
 Default: **Workflow** (star, `skills/verify/workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
 
+**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run Phase 2 with the Agent tool, all verifiers in one message, per the orchestration mode reference. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
+
 
 ### MCP Probe + Resume
 

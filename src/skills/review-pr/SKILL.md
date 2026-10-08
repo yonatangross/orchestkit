@@ -122,6 +122,8 @@ This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit s
 
 Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`.
 
+**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, run Phases 3 and 4.5 with the Agent tool: `Read("rules/agent-prompts-task-tool.md")`, all reviewers in one message. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
+
 ---
 
 ## MCP Probe (CC 2.1.71)

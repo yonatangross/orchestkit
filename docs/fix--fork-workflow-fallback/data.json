@@ -1,0 +1,6 @@
+{
+  "serves": "ork-review-pr-no-fanout",
+  "page": "docs/fix--fork-workflow-fallback/index.html",
+  "lab_slug": "fork-workflow-fallback",
+  "purpose": "PR playground for #4672: the fork repro and the fallback line in five forked skills"
+}

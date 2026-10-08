@@ -297,6 +297,8 @@ Write(".claude/chain/02-evaluation.json", result)
 
 Fallback (no Workflow tool, `ORCHESTKIT_FORCE_TASK_TOOL=1`, or the cross-model lane below): `Read("references/agent-spawn-definitions.md")` for Agent tool and Agent Teams spawns, then run Phase 2.5 by hand.
 
+**Forked run:** this skill has `context: fork`, and a forked agent has the Agent tool but no Workflow tool (measured on CC 2.1.294, #4672). When Workflow is not in your tool list, take the fallback above: run Phase 2 with the Agent tool. A single pass is not a fallback: if neither Workflow nor the Agent tool is in your tool list, stop and report BLOCKED.
+
 **Composite Score:** Weighted average of the scored dimensions (see quality-model.md).
 
 ---
