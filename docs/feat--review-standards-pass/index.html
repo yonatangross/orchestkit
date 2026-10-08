@@ -58,7 +58,7 @@ LAND reviewer (cross-provider) reviews the final head</pre>
 
   <section class="card" id="file">
     <h2>The standards file</h2>
-    <p><code>.github/review-standards.md</code>, owned by the repo. Claude Code loads <code>CLAUDE.md</code> and <code>.claude/rules/**</code> into every session, so those reach the builder. It does not load <code>.github/*.md</code>. At most 20 rules and 3 KB. A leading <code>[glob]</code> limits a rule to matching paths. A repo without the file skips the pass and logs one line.</p>
+    <p><code>.github/review-standards.md</code>, owned by the repo. Claude Code loads <code>CLAUDE.md</code> and <code>.claude/rules/**</code> into every session, so those reach the builder. It does not load <code>.github/*.md</code>. At most 20 rules and 3 KB. A leading <code>[glob]</code> limits a rule to matching paths. The pass reads it from the PR's base branch, so a PR cannot rewrite the rules it is checked against. A repo without the file skips the pass and logs one line.</p>
   </section>
 
   <section class="card" id="cost">

@@ -320,6 +320,7 @@ const violations = [];
 const outOfScope = [];
 const unverified = [];
 const vKeys = new Set();
+const unknownRuleIds = [];
 
 function absorbVerifier(res, batch) {
 	const status = res && typeof res.status === "string" ? res.status : null;
@@ -327,15 +328,22 @@ function absorbVerifier(res, batch) {
 		for (const r of batch) unchecked.push({ id: r.id, source: r.source, line: r.line, text: r.text, status });
 		return;
 	}
+	// Every row counts: one agent may answer a rule in several rows (one per
+	// violation). A rule is not applicable only when no row applied it, and a
+	// row naming a rule this agent was not given is reported, never dropped.
 	const answered = new Set();
+	const applied = new Set();
 	for (const row of res.results) {
-		const rule = row && ruleById.get(String(row.ruleId));
-		if (!rule || !batch.includes(rule) || answered.has(rule.id)) continue;
-		answered.add(rule.id);
-		if (row.applies !== true) {
-			notApplicable.push(rule.id);
+		const id = row && row.ruleId !== undefined && row.ruleId !== null ? String(row.ruleId) : "(none)";
+		const rule = ruleById.get(id);
+		if (!rule || !batch.includes(rule)) {
+			unknownRuleIds.push(id);
+			unverified.push({ ruleId: id, ruleSource: null, ruleText: null, file: null, line: null, quote: "", explanation: "", why: `unknown rule id ${id}: not one of the rules this agent was given` });
 			continue;
 		}
+		answered.add(rule.id);
+		if (row.applies !== true) continue;
+		applied.add(rule.id);
 		for (const raw of Array.isArray(row.violations) ? row.violations : []) {
 			const file = raw && typeof raw.file === "string" && raw.file.trim() ? raw.file.trim() : null;
 			const line = raw && typeof raw.line === "number" && Number.isFinite(raw.line) ? raw.line : null;
@@ -358,7 +366,10 @@ function absorbVerifier(res, batch) {
 			violations.push(v);
 		}
 	}
-	for (const r of batch) if (!answered.has(r.id)) unchecked.push({ id: r.id, source: r.source, line: r.line, text: r.text, status: "no result for this rule" });
+	for (const r of batch) {
+		if (!answered.has(r.id)) unchecked.push({ id: r.id, source: r.source, line: r.line, text: r.text, status: "no result for this rule" });
+		else if (!applied.has(r.id)) notApplicable.push(r.id);
+	}
 }
 
 function classify(v, r) {
@@ -412,6 +423,7 @@ toCheck.forEach((v, k) => {
 	else survivors.push({ ...v, confidence: r ? "high" : "low", skeptic: r ? (r.refuted === true ? "unbacked refutation" : "upheld") : "no answer" });
 });
 
+if (unknownRuleIds.length) reasons.push(`finding: ${unknownRuleIds.length} row(s) named an unknown rule id (${unknownRuleIds.join(", ")}), listed in unverified`);
 if (unchecked.length) reasons.push(`unchecked: ${unchecked.length} rule(s) got no verifier answer`);
 if (survivors.length) reasons.push(`survivors: ${survivors.length} violation(s) stood up to the skeptic`);
 
@@ -432,6 +444,10 @@ return {
 	notApplicable,
 	skepticsSpawned: skeptics,
 	// One line per survivor: the rule's number and its line, then where it broke.
-	findingLines: survivors.map((v) => `${v.ruleId} (${v.ruleSource}) broken at ${v.file}${v.line === null ? "" : `:${v.line}`}`),
+	findingLines: [
+		...survivors.map((v) => `${v.ruleId} (${v.ruleSource}) broken at ${v.file}${v.line === null ? "" : `:${v.line}`}`),
+		...unknownRuleIds.map((id) => `${id} is not a rule this pass was given (unknown rule id)`),
+	],
+	unknownRuleIds,
 	reasons,
 };

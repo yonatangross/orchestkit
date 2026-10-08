@@ -45,7 +45,9 @@ Tests: `tests/unit/test-review-rule-check.mjs` (splitting fixtures, fan-out and 
 
 Two-pass review: the builder makes it work, then a separate pass checks the repo's standards. The source is only `.github/review-standards.md` (no CLAUDE.md, no `~/.claude`, no imports), a file Claude Code never loads into a builder session. At most 20 rules and 3 KB. A leading `[glob]` limits a rule to matching paths, and a violation outside it goes to `outOfScope`.
 
-- A repo without the file: the collector returns no sources and one `skip` line, and the pass logs it and stops.
+- The file is read from the PR's base branch (`--base-ref`, with `git show`), never from the PR head, so a PR cannot rewrite the rules it is checked against. A symlink committed there is refused.
+- No file at the base ref, or no `--base-ref`: the collector returns no sources and one `skip` line, and the pass logs it and stops.
+- Every verifier row counts, also a second row for the same rule. A row naming a rule the agent was not given is reported in `unverified`, `unknownRuleIds` and `findingLines`.
 - Rules are numbered `S1..Sn` in file order. Each survivor prints as `S<n> (.github/review-standards.md:<line>) broken at <file>:<line>` (`findingLines`).
 - Default `strategy: "single"`: one agent holds every rule at session effort and refutes its own findings first, with no skeptics. `--standards --rules` sets `strategy: "fanout"` (one verifier per rule plus skeptics). Measured on #4667 at 03f6132d: single 107,832 tokens, fan-out 1,099,909, the same one finding.
 - The pass never gives LAND or HOLD and never commits. The conductor sends the findings to a separate fix lane, then the LAND reviewer reviews the final head.

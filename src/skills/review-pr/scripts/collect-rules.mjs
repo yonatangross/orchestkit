@@ -2,14 +2,17 @@
 // collect-rules.mjs: gather the instruction files rule-check mode verifies a diff
 // against, and print them as one JSON object for workflows/rule-check.js.
 //
-// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user] [--standards]
+// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user] [--standards --base-ref REF]
 //
 //   --repo DIR   project root (default: the current directory)
 //   --home DIR   home directory (default: $HOME); tests point it at a fixture
 //   --no-user    project files only, skip ~/.claude
-//   --standards  ONLY DIR/.github/review-standards.md (the review-only file
+//   --standards  ONLY .github/review-standards.md (the review-only file
 //                builders never load): no CLAUDE.md, no ~/.claude, no
-//                @imports. Absent file: no sources and a one-line `skip`.
+//                @imports. It is read from --base-ref with `git show`, never
+//                from the working tree: a PR must not rewrite the rules it is
+//                checked against. No --base-ref, no file at that ref, or a
+//                symlink there: no sources and a one-line `skip`.
 //
 // Sources, in the order Claude Code layers them for a session in DIR:
 //   DIR/CLAUDE.md, DIR/.claude/CLAUDE.md, DIR/.claude/rules/**/*.md,
@@ -36,6 +39,7 @@
 // The workflow cannot read files (no fs in a Workflow script), so this is the
 // only place rule files are read; splitting them into rules is the workflow's job.
 
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
@@ -126,17 +130,32 @@ function read(p) {
 }
 
 if (STANDARDS) {
-  const file = path.join(REPO, STANDARDS_FILE);
-  const why = confine(file, REPO_ROOTS);
-  if (why === 'missing') {
-    const skip = `standards pass skipped: ${REPO} has no ${STANDARDS_FILE}`;
-    process.stdout.write(`${JSON.stringify({ sources, missing: [STANDARDS_FILE], skipped, skip })}\n`);
+  const done = (extra) => {
+    process.stdout.write(`${JSON.stringify({ sources, missing, skipped, ...extra })}\n`);
     process.exit(0);
+  };
+  const ref = opt('--base-ref');
+  if (!ref || ref.startsWith('-') || !/^[A-Za-z0-9._/@^~-]+$/.test(ref)) {
+    done({ skip: 'standards pass skipped: no usable --base-ref (the rules come from the base branch, never the PR head)' });
   }
-  if (why) skipped.push({ file: STANDARDS_FILE, reason: why });
-  else read(file);
-  process.stdout.write(`${JSON.stringify({ sources, missing, skipped })}\n`);
-  process.exit(0);
+  const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  let entry = '';
+  try {
+    entry = git('ls-tree', ref, '--', STANDARDS_FILE).trim();
+  } catch {
+    done({ skip: `standards pass skipped: base ref ${ref} is not readable in ${REPO}` });
+  }
+  if (!entry) {
+    missing.push(`${STANDARDS_FILE}@${ref}`);
+    done({ skip: `standards pass skipped: ${REPO} has no ${STANDARDS_FILE} at ${ref}` });
+  }
+  const [mode, type] = entry.split(/\s+/);
+  if (type !== 'blob' || mode === '120000') {
+    skipped.push({ file: `${STANDARDS_FILE}@${ref}`, reason: mode === '120000' ? 'symlink' : 'not-file' });
+    done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${ref} is not a plain file` });
+  }
+  sources.push({ path: STANDARDS_FILE, ref, text: git('show', `${ref}:${STANDARDS_FILE}`) });
+  done({});
 }
 
 // [path, confined to the repo root?]; absent top-level CLAUDE.md files are normal.
