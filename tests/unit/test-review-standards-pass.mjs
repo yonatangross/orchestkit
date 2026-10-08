@@ -60,6 +60,8 @@
 //      reasons. Fails on 2761857d, which printed none of them.
 //  21. A rule id written "s1", " S1" or 1 is S1; an unknown id keeps its
 //      violation's file:line in unverified. Fails on 2761857d (item 6).
+//  22. A rules commit whose tree git cannot read (a shallow or partial clone)
+//      gives one skip line, not a crash. Fails on b32a3f0b (ls-tree threw).
 //   8. The repo's own .github/review-standards.md has at most 20 rules and
 //      3 KB, and every bullet is a rule. Fails if a 21st rule is added, or a
 //      bullet has no directive word (it would be skipped silently).
@@ -467,6 +469,25 @@ await test('rule id "s1", " S1" or 1 is S1; an unknown id keeps its file:line', 
   assert.deepEqual(r.unknownRuleIds, ['S99']);
   assert.ok(r.unverified.some((v) => v.ruleId === 'S99' && v.file === 'a.txt' && v.line === 9), JSON.stringify(r.unverified));
   assert.ok(!r.unchecked.some((u) => u.id === 'S1'));
+});
+
+// 22
+await test('an unreadable rules tree (shallow clone) gives one skip line, not a crash', async () => {
+  const { root, repo, home } = fixture(STANDARDS_MD);
+  try {
+    const tree = git(repo, 'rev-parse', 'refs/remotes/origin/main^{tree}').trim();
+    rmSync(path.join(repo, '.git', 'objects', tree.slice(0, 2), tree.slice(2)), { force: true });
+    let out;
+    try {
+      out = collect(repo, home, ['--standards', '--default-branch', 'main']);
+    } catch (e) {
+      assert.fail(`collector crashed: ${String(e.message).split('\n')[0]}`);
+    }
+    assert.deepEqual(out.sources, []);
+    assert.match(String(out.skip), /cannot read the tree of refs\/remotes\/origin\/main/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 // 8

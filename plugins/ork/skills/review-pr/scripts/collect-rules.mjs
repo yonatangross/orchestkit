@@ -172,7 +172,14 @@ if (STANDARDS) {
     head = '';
   }
   if (!fromDefault && sha === head) done({ skip: `standards pass skipped: ${ref} is the checked-out head (${sha.slice(0, 12)}); the rules must come from the default branch` });
-  const entry = git('ls-tree', sha, '--', STANDARDS_FILE);
+  // A shallow or partial clone can resolve the commit and still miss its
+  // tree or blob: print the skip line, never a stack trace.
+  let entry = '';
+  try {
+    entry = git('ls-tree', sha, '--', STANDARDS_FILE);
+  } catch {
+    done({ skip: `standards pass skipped: cannot read the tree of ${ref} (${sha.slice(0, 12)}) in ${REPO}; fetch it in full`, notes });
+  }
   if (!entry) {
     missing.push(`${STANDARDS_FILE}@${ref}`);
     done({ skip: `standards pass skipped: ${REPO} has no ${STANDARDS_FILE} at ${ref}`, notes });
@@ -182,7 +189,13 @@ if (STANDARDS) {
     skipped.push({ file: `${STANDARDS_FILE}@${ref}`, reason: mode === '120000' ? 'symlink' : 'not-file' });
     done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${ref} is not a plain file`, notes });
   }
-  sources.push({ path: STANDARDS_FILE, ref, sha, text: execFileSync('git', ['-C', REPO, 'show', `${sha}:${STANDARDS_FILE}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }) });
+  let text = '';
+  try {
+    text = execFileSync('git', ['-C', REPO, 'show', `${sha}:${STANDARDS_FILE}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    done({ skip: `standards pass skipped: cannot read ${STANDARDS_FILE} at ${ref} (${sha.slice(0, 12)}) in ${REPO}; fetch it in full`, notes });
+  }
+  sources.push({ path: STANDARDS_FILE, ref, sha, text });
   done(notes.length ? { notes } : {});
 }
 
