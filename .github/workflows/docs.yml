@@ -268,10 +268,51 @@ jobs:
       # view-transition abort guard (PostHog 01a0a900 / #4353). Grep matches
       # Landing titles and the VT describe so both files stay in CI (#4384).
       # site-qa.spec covers the 2026-09-25 QA regressions (nav, commands).
-      - name: Install Playwright Chromium
+      #
+      # The install is cached and bounded (#4665). On 2026-10-07 the combined
+      # `install --with-deps` hung three times for about 20 minutes, always in
+      # the apt update before any browser download: the Azure Ubuntu mirror
+      # stopped answering and apt waited with no timeout. So: apt gets network
+      # timeouts, system deps and the browser are separate steps, each step is
+      # capped at 5 minutes, and each attempt runs under `timeout` with one
+      # retry. The browser cache is keyed by the installed Playwright version.
+      - name: Read Playwright version
+        id: pwv
         if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
-        run: npx playwright install --with-deps chromium
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pw-cache
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pwv.outputs.version }}
+      - name: Bound apt network waits
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          printf '%s\n' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'Acquire::Retries "2";' \
+            | sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts >/dev/null
+      - name: Install Playwright system deps
+        if: steps.gate.outputs.run == 'true'
+        timeout-minutes: 5
+        working-directory: docs/site
+        run: |
+          for attempt in 1 2; do
+            timeout 120 npx playwright install-deps chromium && exit 0
+            echo "::warning::playwright install-deps attempt $attempt failed or timed out"
+          done
+          exit 1
+      - name: Install Playwright Chromium
+        if: steps.gate.outputs.run == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        working-directory: docs/site
+        run: |
+          for attempt in 1 2; do
+            timeout 120 npx playwright install chromium && exit 0
+            echo "::warning::playwright install attempt $attempt failed or timed out"
+          done
+          exit 1
       - name: Run docs-site Playwright e2e
         if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
