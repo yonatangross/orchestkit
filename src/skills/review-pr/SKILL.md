@@ -60,8 +60,8 @@ review-pr feature-branch
 Resolve the target with the script first, then review exactly that target (#3892):
 
 ```bash
-RULES_MODE=false; REST=""  # --rules is the opt-in for Phase 4.6; strip it before resolving
-for a in $ARGUMENTS; do if [ "$a" = "--rules" ]; then RULES_MODE=true; else REST="$REST $a"; fi; done
+RULES_MODE=false; STANDARDS_MODE=false; REST=""  # --rules / --standards select Phase 4.6; strip them before resolving
+for a in $ARGUMENTS; do case "$a" in --rules) RULES_MODE=true ;; --standards) STANDARDS_MODE=true ;; *) REST="$REST $a" ;; esac; done
 TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $REST)  # one JSON object
 ```
 
@@ -334,7 +334,7 @@ Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (faili
 
 ## Phase 4.6: Rule-check Mode (opt-in, `--rules`)
 
-Runs only when `RULES_MODE` is true or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:
+Runs when `RULES_MODE` or `STANDARDS_MODE` is true, or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:
 
 ```python
 SOURCES = Bash("node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)")  # project + ~/.claude CLAUDE.md and rules/*.md
@@ -342,6 +342,8 @@ Workflow(scriptPath="${CLAUDE_SKILL_DIR}/workflows/rule-check.js",
          args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff base...head)",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
 ```
+
+**Standards pass (`--standards`, two-pass review).** Source is ONLY `.github/review-standards.md`, which builders never load: `collect-rules.mjs --standards`. If the result has `skip`, print that one line and stop. Otherwise skip Phases 2 to 4 and call the same workflow with `"mode": "standards"`: by default ONE agent checks every rule and refutes its own findings (measured 107,832 tokens on #4667 against 1,099,909 for the fan-out, same finding); add `"strategy": "fanout"` only when `--rules` is also given. Print `findingLines` as is (`S<n> (.github/review-standards.md:<line>) broken at <file>:<line>`). The pass gives no LAND or HOLD verdict and never commits: findings go to a separate fix lane.
 
 Report `survivors` as `issue (rule)` findings citing the rule's file:line; any survivor floors the verdict at comment. List `unverified` and `unchecked` as "not checked, manual review required", `skipped` only as a count, and every import the collector refused (`SOURCES.skipped`) with its reason. Protocol, ceilings and the survivor filter: `Read("references/rule-check-mode.md")`.
 

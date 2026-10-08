@@ -2,11 +2,14 @@
 // collect-rules.mjs: gather the instruction files rule-check mode verifies a diff
 // against, and print them as one JSON object for workflows/rule-check.js.
 //
-// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user]
+// Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user] [--standards]
 //
 //   --repo DIR   project root (default: the current directory)
 //   --home DIR   home directory (default: $HOME); tests point it at a fixture
 //   --no-user    project files only, skip ~/.claude
+//   --standards  ONLY DIR/.github/review-standards.md (the review-only file
+//                builders never load): no CLAUDE.md, no ~/.claude, no
+//                @imports. Absent file: no sources and a one-line `skip`.
 //
 // Sources, in the order Claude Code layers them for a session in DIR:
 //   DIR/CLAUDE.md, DIR/.claude/CLAUDE.md, DIR/.claude/rules/**/*.md,
@@ -45,6 +48,8 @@ const opt = (name) => {
 const REPO = path.resolve(opt('--repo') || process.cwd());
 const HOME = path.resolve(opt('--home') || process.env.HOME || homedir());
 const USER = !argv.includes('--no-user');
+const STANDARDS = argv.includes('--standards');
+const STANDARDS_FILE = path.join('.github', 'review-standards.md');
 
 const display = (p) => {
   if (p.startsWith(REPO + path.sep)) return path.relative(REPO, p);
@@ -118,6 +123,20 @@ function read(p) {
   const text = readFileSync(p, 'utf8');
   sources.push({ path: display(p), text });
   return text;
+}
+
+if (STANDARDS) {
+  const file = path.join(REPO, STANDARDS_FILE);
+  const why = confine(file, REPO_ROOTS);
+  if (why === 'missing') {
+    const skip = `standards pass skipped: ${REPO} has no ${STANDARDS_FILE}`;
+    process.stdout.write(`${JSON.stringify({ sources, missing: [STANDARDS_FILE], skipped, skip })}\n`);
+    process.exit(0);
+  }
+  if (why) skipped.push({ file: STANDARDS_FILE, reason: why });
+  else read(file);
+  process.stdout.write(`${JSON.stringify({ sources, missing, skipped })}\n`);
+  process.exit(0);
 }
 
 // [path, confined to the repo root?]; absent top-level CLAUDE.md files are normal.

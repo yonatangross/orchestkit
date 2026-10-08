@@ -4285,7 +4285,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "76b8fc88cc86dc0d0fec6cf5e67a5637433a891fd20395d893cf7aa333fa2ecc",
+    "sha256": "e5c1bda8f2694639f99cda93de6e25c457153ea38a5aca8c38377d61faa3da6f",
     "author": "OrchestKit",
     "tags": [
       "code-review",
