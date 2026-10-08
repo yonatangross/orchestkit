@@ -144,6 +144,10 @@ if (STANDARDS) {
   const prBase = opt('--pr-base');
   const notes = [];
   let ref = opt('--base-ref');
+  // The HEAD check guards a caller-chosen --base-ref only. Under
+  // --default-branch the ref IS the default branch, and a reviewer on a fresh
+  // origin/<default> has HEAD equal to it: that is the normal case (#4671 F1).
+  const fromDefault = def !== null;
   if (def !== null) {
     if (!BRANCH.test(def) || def.includes('..')) done({ skip: `standards pass skipped: --default-branch ${def} is not a branch name` });
     ref = `refs/remotes/origin/${def}`;
@@ -167,7 +171,7 @@ if (STANDARDS) {
   } catch {
     head = '';
   }
-  if (sha === head) done({ skip: `standards pass skipped: ${ref} is the checked-out head (${sha.slice(0, 12)}); the rules must come from the default branch` });
+  if (!fromDefault && sha === head) done({ skip: `standards pass skipped: ${ref} is the checked-out head (${sha.slice(0, 12)}); the rules must come from the default branch` });
   const entry = git('ls-tree', sha, '--', STANDARDS_FILE);
   if (!entry) {
     missing.push(`${STANDARDS_FILE}@${ref}`);

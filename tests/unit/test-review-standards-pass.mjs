@@ -51,6 +51,15 @@
 //      flips to the fan-out, or the self-refute line is dropped.
 //  10. strategy "fanout" (the --rules opt-in) keeps one verifier per rule at
 //      effort low plus one skeptic per violation. Fails if fanout is ignored.
+//  18. A reviewer on a fresh origin/<default> (HEAD equals it) still gets the
+//      file under --default-branch; a --base-ref equal to HEAD is still
+//      refused. Fails on 2761857d, which skipped the pass (#4671 F1).
+//  19. A violation cited as ./x, b/x, a/x or /x for a changed x survives as x.
+//      Fails on 2761857d, which put it in outOfScope (#4671 F2).
+//  20. Every outOfScope row is printed in findingLines and counted in
+//      reasons. Fails on 2761857d, which printed none of them.
+//  21. A rule id written "s1", " S1" or 1 is S1; an unknown id keeps its
+//      violation's file:line in unverified. Fails on 2761857d (item 6).
 //   8. The repo's own .github/review-standards.md has at most 20 rules and
 //      3 KB, and every bullet is a rule. Fails if a 21st rule is added, or a
 //      bullet has no directive word (it would be skipped silently).
@@ -397,6 +406,67 @@ await test('strategy fanout: one verifier per rule at effort low, one skeptic pe
   assert.deepEqual(verify.map((c) => [c.opts.label, c.opts.effort]), [['verify:S1', 'low'], ['verify:S2', 'low'], ['verify:S3', 'low']]);
   assert.equal(r.skepticsSpawned, 2);
   assert.ok(!verify.some((c) => /try to refute it/.test(c.prompt)));
+});
+
+// 18
+await test('HEAD on a fresh origin/<default> still reads the file under --default-branch', async () => {
+  const { root, repo, home } = fixture(STANDARDS_MD);
+  try {
+    git(repo, 'update-ref', 'refs/remotes/origin/main', 'HEAD');
+    const out = collect(repo, home, ['--standards', '--default-branch', 'main', '--pr-base', 'main']);
+    assert.equal(out.skip, undefined, `skipped: ${out.skip}`);
+    assert.deepEqual(out.sources.map((x) => [x.ref, x.text]), [['refs/remotes/origin/main', STANDARDS_MD]]);
+    const byBase = collect(repo, home, ['--standards', '--base-ref', 'origin/main']);
+    assert.deepEqual(byBase.sources, []);
+    assert.match(String(byBase.skip), /is the checked-out head/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+const rowsFor = (rows) => (o, p) =>
+  o.phase === 'Verify'
+    ? { status: 'DONE', results: [...rows, ...idsIn(p).filter((id) => !rows.some((r) => String(r.ruleId).trim().toUpperCase() === id)).map((ruleId) => ({ ruleId, applies: false, violations: [] }))] }
+    : { refuted: false, reason: 'n/a' };
+const at = (file, line) => ({ file, line, quote: 'x', explanation: 'y' });
+
+// 19
+await test('a violation cited as ./x, b/x, a/x or /x for a changed x survives as x', async () => {
+  const r = await run(
+    { mode: 'standards', target: 'PR #1', sources: SRC, changedFiles: ['tests/ci/x.sh'] },
+    rowsFor([{ ruleId: 'S2', applies: true, violations: [at('./tests/ci/x.sh', 3), at('b/tests/ci/x.sh', 4), at('a/tests/ci/x.sh', 5), at('/tests/ci/x.sh', 6)] }]),
+  );
+  assert.deepEqual(r.survivors.map((v) => `${v.ruleId}@${v.file}:${v.line}`), ['S2@tests/ci/x.sh:3', 'S2@tests/ci/x.sh:4', 'S2@tests/ci/x.sh:5', 'S2@tests/ci/x.sh:6']);
+  assert.deepEqual(r.outOfScope, []);
+});
+
+// 20
+await test('every outOfScope row is printed in findingLines and counted in reasons', async () => {
+  const r = await run(
+    { mode: 'standards', target: 'PR #1', sources: SRC, changedFiles: ['tests/ci/x.sh'] },
+    rowsFor([{ ruleId: 'S1', applies: true, violations: [at('other/y.txt', 7)] }]),
+  );
+  assert.equal(r.survivors.length, 0);
+  assert.equal(r.outOfScope.length, 1);
+  assert.ok(r.findingLines.includes('S1 at other/y.txt:7 not counted: file is not in the diff'), JSON.stringify(r.findingLines));
+  assert.ok(r.reasons.some((x) => /^out of scope: 1 violation/.test(x)), JSON.stringify(r.reasons));
+});
+
+// 21
+await test('rule id "s1", " S1" or 1 is S1; an unknown id keeps its file:line', async () => {
+  const r = await run(
+    { mode: 'standards', target: 'PR #1', sources: SRC, changedFiles: ['a.txt'] },
+    rowsFor([
+      { ruleId: 's1', applies: true, violations: [at('a.txt', 1)] },
+      { ruleId: ' S1', applies: true, violations: [at('a.txt', 2)] },
+      { ruleId: 1, applies: true, violations: [at('a.txt', 3)] },
+      { ruleId: 'S99', applies: true, violations: [at('a.txt', 9)] },
+    ]),
+  );
+  assert.deepEqual(r.survivors.map((v) => `${v.ruleId}@${v.line}`), ['S1@1', 'S1@2', 'S1@3']);
+  assert.deepEqual(r.unknownRuleIds, ['S99']);
+  assert.ok(r.unverified.some((v) => v.ruleId === 'S99' && v.file === 'a.txt' && v.line === 9), JSON.stringify(r.unverified));
+  assert.ok(!r.unchecked.some((u) => u.id === 'S1'));
 });
 
 // 8
