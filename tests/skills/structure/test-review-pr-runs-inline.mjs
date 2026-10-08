@@ -12,11 +12,17 @@
 //   on a Bash call that ten global PreToolUse:Bash hooks did record; run
 //   c6fae215 (context: fork removed) ran that hook and it denied the call.
 //
-//   review-pr declares frontmatter hooks (the PR context and review dimension
-//   loaders, and the post gate in #4678), so it must run inline for them to run.
+//   review-pr must run inline so a skill-scoped hook (the post gate in #4678)
+//   runs, and so its Workflow fan-out has the Workflow tool (#4672).
 //
-//   Fails if: src/skills/review-pr/SKILL.md sets `context: fork`, or declares
-//   no frontmatter hooks (then this test guards nothing and must be updated).
+//   Running inline turns on every frontmatter hook the skill declares, so it
+//   must declare none that load the wrong context. HOLD 6064156428: the PR
+//   context loader ran `gh pr view` with no number, which reads the checked-out
+//   branch's PR, not the PR under review; the review dimensions loader added a
+//   second output contract beside the workflow's findings schema.
+//
+//   Fails if: src/skills/review-pr/SKILL.md sets `context: fork`, or wires
+//   skill/pr-context-loader or skill/review-dimensions-loader.
 // ============================================================================
 
 import { readFileSync } from 'node:fs';
@@ -29,10 +35,12 @@ const text = readFileSync(FILE, 'utf8');
 const fm = (/^---\n([\s\S]*?)\n---\n/.exec(text) || [])[1] ?? '';
 
 const failures = [];
-if (!/^hooks:\s*$/m.test(fm)) failures.push('review-pr declares no frontmatter hooks; this test guards nothing, update it');
 if (/^context:\s*fork\s*$/m.test(fm)) {
   failures.push('review-pr sets context: fork, so Claude Code drops its frontmatter hooks (runs 913b0ab4 and c6fae215)');
 }
+for (const loader of ['skill/pr-context-loader', 'skill/review-dimensions-loader']) {
+  if (fm.includes(loader)) failures.push(`review-pr wires ${loader}, which loads context that is not the PR under review (HOLD 6064156428)`);
+}
 for (const f of failures) console.log(`FAIL: ${f}`);
 if (failures.length) process.exit(1);
-console.log('PASS: review-pr runs inline, so its frontmatter hooks run');
+console.log('PASS: review-pr runs inline and wires no loader that ignores the target PR');

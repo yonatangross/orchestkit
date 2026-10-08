@@ -7,18 +7,6 @@ argument-hint: "[pr-number-or-branch]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
-hooks:
-  PreToolUse:
-    - matcher: "Read"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pr-context-loader"
-          once: true
-    - matcher: "Agent"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-dimensions-loader"
-          once: true
 metadata:
   category: workflow-automation
   mcp-server: memory
