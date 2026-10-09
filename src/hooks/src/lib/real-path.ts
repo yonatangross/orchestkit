@@ -32,7 +32,9 @@ function walk(p: string, budget: { links: number }): string {
     }
     if (link !== null && budget.links > 0) {
       budget.links -= 1;
-      cur = walk(posix.resolve(cur, link), budget);
+      // The payload is walked name by name too, never collapsed first: a
+      // link inside it resolves before a .. after it (HOLD 6088683660).
+      cur = walk(link.startsWith('/') ? link : `${cur}/${link}`, budget);
     } else {
       cur = next;
     }

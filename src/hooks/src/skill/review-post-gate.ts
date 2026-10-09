@@ -1308,6 +1308,9 @@ export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs
     }
     if (leadingGlob(a)) return `a glob at the start of a word, which bash can expand into a flag (${t}); write ./${t} or put it after --`;
     if (t === '-' || !t.startsWith('-')) {
+      // A quoted $NAME can expand to -X or --pre=sh, which the command reads
+      // as a flag, or be its program; only after -- is it data (HOLD 6088683660).
+      if (a.variable) return `a variable before -- (${t}), which the command can read as a flag or its program; put it after --`;
       out.positionals.push(a);
       continue;
     }
@@ -1504,6 +1507,7 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (typeof p === 'string') return p;
     // The program is the first word that is not a flag, before or after --.
     const [program, ...files] = [...p.positionals, ...p.afterDash];
+    if (program?.variable) return `a variable as the jq program (${program.text})`;
     const envWhy = jqProgramReason(program?.text);
     if (envWhy) return envWhy;
     return pathsOk(files, ctx);
@@ -1521,6 +1525,8 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     const rest = args.slice(at + (sub === 'api' ? 1 : 2));
     const p = parseFlags(key, rest, s);
     if (typeof p === 'string') return p;
+    // After -- a word is still the endpoint or a gh argument, never plain data.
+    if (p.afterDash.some((w) => w.variable)) return `a variable as a ${key.trim()} argument`;
     for (const { name, value } of p.values) {
       const envWhy = name === 'q' || name === 'jq' ? jqProgramReason(value) : null;
       if (envWhy) return envWhy;
@@ -1536,7 +1542,12 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
     const p = parseFlags(`git ${sub}`, args.slice(1), FLAGS[`git ${sub}`]);
     if (typeof p === 'string') return p;
-    // Words before -- are revisions; words after it are paths.
+    // Words before -- are revisions; words after it are paths. git reads a
+    // word before -- as a path when it is no revision, and git diff with a
+    // path outside the repo diffs it as a plain file (--no-index), so a word
+    // there may not leave the repo by spelling.
+    const outside = p.positionals.find((w) => w.text.startsWith('/') || w.text.split(/[/:]/).includes('..'));
+    if (outside) return `a path outside the repo before -- in git ${sub} (${outside.text})`;
     return pathsOk(p.afterDash, ctx);
   }
   // A quoted command word with a space ("gh pr view") is not a key here.
@@ -1554,7 +1565,7 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (cmd === 'uniq' && words.length > 1) return 'uniq writing a file';
     // grep's and rg's first positional is the pattern unless -e gives it (rg --files and --type-list take none).
     const patternFirst = (cmd === 'grep' || cmd === 'rg') && !['e', 'regexp', 'files', 'type-list'].some((f) => p.given.has(f));
-    return pathsOk(patternFirst ? [...p.positionals.slice(1), ...p.afterDash] : words, ctx);
+    return pathsOk(patternFirst ? words.slice(1) : words, ctx);
   }
   // The skill's own scripts, by their exact pinned path, as one plain call.
   const script = SKILL_SCRIPTS[cmd];
@@ -1581,4 +1592,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME', a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
