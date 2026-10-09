@@ -264,6 +264,25 @@ else
     fi
 fi
 
+# 6b. plugin-validation.yml :: a failed CC install must fail the step (#4686 follow-up).
+# "2>/dev/null || true" on the install made a broken install look like "CLI not available"
+# and skipped plugin validation with a green job.
+if [[ -f "$PV_YML" ]]; then
+    set +e
+    SOFT=$(grep -nE '(claude-code@|install\.cjs|INSTALL_CJS).*\|\| *true' "$PV_YML")
+    SOFT_RC=$?
+    set -e
+    if [[ "$SOFT_RC" -gt 1 ]]; then
+        log_fail "plugin-validation.yml CC install" "could not observe (grep rc=$SOFT_RC)"
+    elif [[ -n "$SOFT" ]]; then
+        while IFS= read -r soft_line; do
+            log_fail "plugin-validation.yml CC install" "line ${soft_line%%:*} swallows a failed install with || true"
+        done <<< "$SOFT"
+    else
+        log_pass "plugin-validation.yml CC installs fail loudly (no || true)"
+    fi
+fi
+
 # 7. Idempotence: stamper should produce zero mutations on an already-stamped tree.
 set +e
 STAMP_OUT=$(node "$PROJECT_ROOT/scripts/stamp-cc-support.mjs" 2>&1)
