@@ -4,61 +4,11 @@
 /**
  * Unit tests for common.ts utilities
  *
- * Tests outputStderrWarning (CC 2.1.39) and fnv1aHash/writeRulesFile (token-reduction)
+ * Tests fnv1aHash/writeRulesFile (token-reduction) and output helpers
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { fnv1aHash } from '../../lib/common.js';
-
-describe('outputStderrWarning', () => {
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-    mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-  });
-
-  test('writes warning message to stderr with newline', async () => {
-    // Dynamic import to avoid hoisting issues with mocks
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    // Act
-    outputStderrWarning('Something is deprecated');
-
-    // Assert
-    expect(mockStderrWrite).toHaveBeenCalledWith('\u26a0 Something is deprecated\n');
-  });
-
-  test('exits with code 2', async () => {
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    // Act
-    outputStderrWarning('Test warning');
-
-    // Assert
-    expect(mockExit).toHaveBeenCalledWith(2);
-  });
-
-  test('calls stderr.write before process.exit', async () => {
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    const callOrder: string[] = [];
-    mockStderrWrite.mockImplementation(() => {
-      callOrder.push('stderr');
-      return true;
-    });
-    mockExit.mockImplementation((() => {
-      callOrder.push('exit');
-    }) as never);
-
-    // Act
-    outputStderrWarning('Order test');
-
-    // Assert
-    expect(callOrder).toEqual(['stderr', 'exit']);
-  });
-});
 
 // =============================================================================
 // #865 Injection Gating — empty-string guard

@@ -63,7 +63,6 @@ export {
 export {
   logHook,
   logPermissionFeedback,
-  outputStderrWarning,
   writeRulesFile,
   rulesFileMatches,
   rulesFileExists,
