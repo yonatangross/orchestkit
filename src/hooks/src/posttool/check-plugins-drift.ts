@@ -14,9 +14,9 @@
  *
  * Why a block (not a notify):
  *   The drift CI check fails the PR later; surfacing this at Write time
- *   prevents a wasted push/CI roundtrip. `continueOnBlock: true` in
- *   hooks.json keeps the edit applied — only the next tool call is
- *   gated.
+ *   prevents a wasted push/CI roundtrip. PostToolUse runs after the edit
+ *   is applied. CC honors `continueOnBlock` on prompt hooks only, so the
+ *   block is not softened (#4684).
  *
  * Why time-window the snapshot:
  *   A stale snapshot from a long-running session would false-positive

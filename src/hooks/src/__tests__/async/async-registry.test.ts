@@ -116,7 +116,7 @@ describe('Async Hooks Registry', () => {
       //           agent-view-titler (#1783) is also sync.
       // 81 -> 83: M140 Bundle B (#1790, #1791) — stop/goal-tracker (async) +
       //           lifecycle/goal-budget-guard (SessionEnd, async). The companion
-      //           prompt/goal-tracker is SYNC (needs outputBlock + continueOnBlock).
+      //           prompt/goal-tracker is SYNC (needs outputBlock before the prompt runs).
       // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
       // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector moved from
       //           UserPromptSubmit (sync) to SessionStart (async, 5s).
