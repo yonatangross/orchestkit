@@ -1526,6 +1526,28 @@ describe('(HOLD 6087117284) script arguments, jq input, unquoted $NAME, link the
   });
 });
 
+describe('(own check at c91d5000) a flag value is read the way the parser reads it', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  test('every spelling of gh -q/--jq has its program checked', () => {
+    for (const cmd of ['gh api repos/o/r -iq env.GH_TOKEN', 'gh api repos/o/r -iqenv.GH_TOKEN', 'gh api repos/o/r --jq=env.GH_TOKEN', "gh pr view 4668 --json title -q '$ENV.X'"]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at("gh api repos/o/r -iq '.name'")).toBe(false);
+  });
+  test('a jq program after -- is checked', () => {
+    expect(at('jq -- env f.json')).toBe(true);
+    expect(at("jq -- '.a' f.json")).toBe(false);
+  });
+  test('collect-rules.mjs --repo is this repo itself, not any dir above it', () => {
+    for (const cmd of [`node ${S}/collect-rules.mjs --repo /`, `node ${S}/collect-rules.mjs --repo /test`]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at(`node ${S}/collect-rules.mjs --repo /test/project`)).toBe(false);
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
