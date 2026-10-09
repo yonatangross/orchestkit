@@ -368,6 +368,35 @@ const NO_ARG_FLAG = /^-[elxuvn]+$/;
 const CHECKED = /^sh -c :(?:\s|$)/;
 const baseName = (t: string): string => t.replace(/^.*\//, '');
 
+const COMPOUND = new Set(['{', '}', '!', '(', ')', 'if', 'then', 'else', 'elif', 'fi', 'while', 'until', 'do', 'done', 'for', 'esac', 'select', 'coproc', 'function']);
+
+/** Words split on unquoted blanks, quotes and escapes kept in each word. */
+function shellWords(text: string): string[] {
+  const out: string[] = [];
+  let cur = '';
+  let quote = '';
+  for (let k = 0; k < text.length; k += 1) {
+    const c = text[k];
+    if (quote) {
+      cur += c;
+      if (c === quote) quote = '';
+      else if (quote === '"' && c === '\\' && k + 1 < text.length) cur += text[(k += 1)];
+    } else if (c === "'" || c === '"') {
+      quote = c;
+      cur += c;
+    } else if (c === '\\' && k + 1 < text.length) {
+      cur += c + text[(k += 1)];
+    } else if (/\s/.test(c)) {
+      if (cur) out.push(cur);
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
 // A redirect word (2>/dev/null, 0<&0, </dev/stdin, &>f, <<EOF); an operator
 // alone (2> f) takes the next word as its target.
 // <( and >( are process substitutions, not redirects: they stay words.
@@ -383,7 +412,9 @@ const REDIRECT = /^(?:\d*|&)(?:<<<|<<-?|>>|<>|<&|>&|&>>?|<|>)(?!\()(.*)$/;
  * before it is refused, because its argument count is not known here.
  */
 export function resolveCommand(part: string): string[] | null {
-  const raw = part.replace(/['"\\]/g, '').split(/\s+/).filter(Boolean);
+  // Split on unquoted blanks first, so a quoted redirect target stays one
+  // word (2>"x -n"), then drop redirects, then remove the quotes.
+  const raw = shellWords(part);
   const toks: string[] = [];
   for (let k = 0; k < raw.length; k += 1) {
     const r = raw[k].match(REDIRECT);
@@ -391,10 +422,22 @@ export function resolveCommand(part: string): string[] | null {
       if (r[1] === '') k += 1;
       continue;
     }
-    toks.push(raw[k]);
+    toks.push(raw[k].replace(/['"\\]/g, ''));
   }
   let i = 0;
-  while (i < toks.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[i])) i += 1;
+  // Compound-command words and a case pattern or f() come before the command
+  // ({ sh; }, then sh, do sh, x) sh, f() { sh; }), as do assignments.
+  for (;;) {
+    if (i < toks.length && (COMPOUND.has(toks[i]) || /\)$/.test(toks[i]) || /^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[i]))) {
+      i += 1;
+    } else if (toks[i] === 'case') {
+      // case WORD in PATTERN) cmd: the command follows the pattern.
+      const pat = toks.findIndex((t, k) => k > i && /\)$/.test(t));
+      i = pat < 0 ? toks.length : pat + 1;
+    } else {
+      break;
+    }
+  }
   if (i < toks.length && PREFIX_WORDS.has(baseName(toks[i]))) {
     const rest = toks.slice(i + 1);
     const stop = (t: string) => RUNNERS.has(t) || STRING_RUNNERS.has(t) || t === 'find' || t === 'git';
@@ -517,7 +560,9 @@ function checkShellPrograms(command: string): { why: string | null; rest: string
  * No quoted text is skipped: `echo "$(gh pr comment ...)"` runs the post, so a
  * harmless `echo "gh pr review"` is denied too (fail closed).
  */
-export function rawWriteReason(full: string): string | null {
+export function rawWriteReason(input: string): string | null {
+  // bash removes backslash-newline before it splits words (s\<newline>h is sh).
+  const full = input.replace(/\\\n/g, '');
   // The guard call is node + a file and one plain command, so it holds no
   // inline code; its --pr URL names github.com on purpose.
   const plainGuard = GUARD_CALL.test(full.trim()) && PLAIN_CALL.test(full.trim());
@@ -686,7 +731,9 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   }
   // Monitor runs a shell command too.
   if (input.tool_name !== 'Bash' && input.tool_name !== 'Monitor') return outputSilentSuccess();
-  const command = typeof input.tool_input?.command === 'string' ? input.tool_input.command : '';
+  // bash removes backslash-newline first, so every check reads the joined text
+  // (.claude/pro\<newline>jects is .claude/projects).
+  const command = typeof input.tool_input?.command === 'string' ? input.tool_input.command.replace(/\\\n/g, '') : '';
   if (!command) return outputSilentSuccess();
   if (touchesTranscript(command, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
 

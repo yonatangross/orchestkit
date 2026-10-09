@@ -945,6 +945,48 @@ describe('(HOLD 6082847596, XREVIEW 6082111346) one word resolver, path rule for
   });
 });
 
+describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, compound commands', () => {
+  const none = () => transcript([typed('4678')]);
+  const P = "printf 'g%s pr com%sent 4678 -b synthetic' h m";
+  const deniedAll = (cmds: string[]) => {
+    for (const cmd of cmds) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
+    }
+  };
+  test('P1 1: a quoted redirect target is one word, dropped whole', () => {
+    deniedAll([`${P} | sh 2>"synthetic -n"`, `${P} | 2>"synthetic word" sh`, `${P} | sh 2>'a -n'`]);
+    // Control: a dropped redirect leaves sh -n, a syntax check that runs nothing.
+    expect(resolveCommand('sh >"x y" -n')).toEqual(['sh', '-n']);
+    expect(resolveCommand('sh 2>"synthetic -n"')).toEqual(['sh']);
+    expect(resolveCommand('2>"synthetic word" sh')).toEqual(['sh']);
+  });
+  test('P1 2: an escaped newline joins the lines before the split', () => {
+    deniedAll([`${P} | s\\\nh`, `${P} | \\\nsh`, `${P} |\\\n sh`]);
+  });
+  test('P1 3: the shell inside a compound command is the command', () => {
+    deniedAll([
+      `${P} | { sh; }`,
+      `${P} | if true; then sh; fi`,
+      `${P} | while true; do sh; break; done`,
+      `${P} | until false; do sh; done`,
+      `${P} | for i in 1; do sh; done`,
+      `${P} | ! sh`,
+      `${P} | case x in x) sh;; esac`,
+      `${P} | f() { sh; }; f`,
+      `${P} | coproc sh`,
+    ]);
+    expect(resolveCommand('{ sh')).toEqual(['sh']);
+    expect(resolveCommand('then sh')).toEqual(['sh']);
+    expect(resolveCommand('x) sh')).toEqual(['sh']);
+  });
+  test('control: quoted words with spaces, a continued plain command, an if around a read', () => {
+    for (const cmd of ['git commit -m "a b" --dry-run', 'git log \\\n  --oneline -3', 'if test -f x; then cat x; fi', '{ git status; } 2>&1 | tail -3']) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
