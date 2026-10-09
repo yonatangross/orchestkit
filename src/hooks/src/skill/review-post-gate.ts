@@ -1188,9 +1188,177 @@ export function tokenizeAllowed(command: string): Tokens {
   return { ok: true, commands };
 }
 
-const READ_CMDS = new Set(['ls', 'cat', 'head', 'tail', 'wc', 'grep', 'rg', 'test']);
-const FILTER_CMDS = new Set(['sort', 'uniq', 'cut', 'tr', 'nl']);
-const GH_PR_READ = new Set(['view', 'diff', 'checks', 'list']);
+// FLAGS BY ALLOWLIST (HOLD 6086210644): a flag can run a program (rg
+// --hostname-bin, --pre) or write a file (sort -o), so each allowed command
+// has a fixed list of flags, and any other flag denies. A flag either takes
+// no value, a number, or text that is not a path (no listed flag reads or
+// writes a file).
+type ArgKind = 'num' | 'text' | 'field';
+interface FlagSpec {
+  /** Short flags with no value, as one string of letters. */
+  shortNone: string;
+  shortArg: Record<string, ArgKind>;
+  longNone: readonly string[];
+  longArg: Record<string, ArgKind>;
+  /** -NUM is a count (head -20, grep -3, git log -5). */
+  numeric?: boolean;
+}
+const spec = (shortNone: string, shortArg: Record<string, ArgKind>, longNone: readonly string[], longArg: Record<string, ArgKind> = {}, numeric = false): FlagSpec => ({
+  shortNone,
+  shortArg,
+  longNone,
+  longArg,
+  numeric,
+});
+const NUM = 'num' as const;
+const TEXT = 'text' as const;
+// gh api -F key=@file reads a file into the request, so an @ value denies.
+const FIELD = 'field' as const;
+const GH_OUT = { json: TEXT, jq: TEXT, template: TEXT, repo: TEXT };
+const GH_OUT_SHORT = { q: TEXT, t: TEXT, R: TEXT };
+const GREP_LONG = ['color', 'colour', 'recursive', 'line-number', 'ignore-case', 'files-with-matches', 'files-without-match', 'count', 'invert-match', 'word-regexp', 'line-regexp', 'only-matching', 'quiet', 'silent', 'no-messages', 'no-filename', 'with-filename', 'extended-regexp', 'fixed-strings', 'perl-regexp', 'null', 'text'];
+const FLAGS: Record<string, FlagSpec> = {
+  ls: spec('lahAR1trSdFGpisnog', {}, ['all', 'almost-all', 'human-readable', 'recursive', 'directory', 'reverse']),
+  cat: spec('nbsvetAET', {}, ['number', 'number-nonblank', 'squeeze-blank', 'show-all']),
+  head: spec('qv', { n: NUM, c: NUM }, ['quiet', 'silent', 'verbose'], { lines: NUM, bytes: NUM }, true),
+  tail: spec('qvr', { n: NUM, c: NUM }, ['quiet', 'silent', 'verbose'], { lines: NUM, bytes: NUM }, true),
+  wc: spec('lwcmL', {}, ['lines', 'words', 'bytes', 'chars', 'max-line-length']),
+  grep: spec('rRniIlLcvwxoqshHEFPaz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, GREP_LONG, { regexp: TEXT, context: NUM, 'after-context': NUM, 'before-context': NUM, 'max-count': NUM, include: TEXT, exclude: TEXT, 'exclude-dir': TEXT }, true),
+  rg: spec(
+    'niIsSlcvwxoquUFPHNLa.0',
+    { e: TEXT, t: TEXT, T: TEXT, g: TEXT, A: NUM, B: NUM, C: NUM, m: NUM, M: NUM, d: NUM, j: NUM, r: TEXT },
+    [...GREP_LONG, 'case-sensitive', 'smart-case', 'count-matches', 'hidden', 'no-ignore', 'multiline', 'json', 'files', 'heading', 'no-heading', 'vimgrep', 'column', 'no-line-number', 'follow', 'trim', 'passthru', 'unrestricted', 'type-list'],
+    { regexp: TEXT, type: TEXT, 'type-not': TEXT, glob: TEXT, iglob: TEXT, context: NUM, 'after-context': NUM, 'before-context': NUM, 'max-count': NUM, 'max-columns': NUM, 'max-depth': NUM, threads: NUM, replace: TEXT, sort: TEXT, sortr: TEXT, colors: TEXT },
+  ),
+  sort: spec('rnufbdghiMRVscCz', { k: TEXT, t: TEXT }, ['reverse', 'numeric-sort', 'unique', 'ignore-case', 'ignore-leading-blanks', 'dictionary-order', 'general-numeric-sort', 'human-numeric-sort', 'month-sort', 'version-sort', 'stable', 'check', 'zero-terminated'], { key: TEXT, 'field-separator': TEXT }),
+  uniq: spec('cdui', { f: NUM, s: NUM, w: NUM }, ['count', 'repeated', 'unique', 'ignore-case'], { 'skip-fields': NUM, 'skip-chars': NUM, 'check-chars': NUM }),
+  cut: spec('sn', { d: TEXT, f: TEXT, c: TEXT, b: TEXT }, ['only-delimited', 'complement'], { delimiter: TEXT, fields: TEXT, characters: TEXT, bytes: TEXT, 'output-delimiter': TEXT }),
+  tr: spec('cCds', {}, ['complement', 'delete', 'squeeze-repeats']),
+  nl: spec('', { b: TEXT, n: TEXT, w: NUM, s: TEXT, v: NUM, i: NUM }, []),
+  jq: spec('rjcnseSCMaR', {}, ['raw-output', 'join-output', 'compact-output', 'null-input', 'slurp', 'exit-status', 'sort-keys', 'color-output', 'monochrome-output', 'ascii-output', 'raw-input', 'tab', 'seq'], { indent: NUM }),
+  awk: spec('', { F: TEXT }, []),
+  'gh pr view': spec('c', GH_OUT_SHORT, ['comments'], GH_OUT),
+  'gh pr diff': spec('', { R: TEXT }, ['name-only', 'patch', 'color'], { repo: TEXT }),
+  'gh pr checks': spec('', { ...GH_OUT_SHORT, i: NUM }, ['required', 'watch', 'fail-fast'], { ...GH_OUT, interval: NUM }),
+  'gh pr list': spec('d', { ...GH_OUT_SHORT, s: TEXT, L: NUM, A: TEXT, a: TEXT, l: TEXT, B: TEXT, H: TEXT, S: TEXT }, ['draft'], { ...GH_OUT, state: TEXT, limit: NUM, author: TEXT, assignee: TEXT, label: TEXT, base: TEXT, head: TEXT, search: TEXT }),
+  'gh issue view': spec('c', GH_OUT_SHORT, ['comments'], GH_OUT),
+  'gh issue list': spec('', { ...GH_OUT_SHORT, s: TEXT, L: NUM, A: TEXT, a: TEXT, l: TEXT, S: TEXT }, [], { ...GH_OUT, state: TEXT, limit: NUM, author: TEXT, assignee: TEXT, label: TEXT, search: TEXT }),
+  'gh repo view': spec('', { q: TEXT, t: TEXT, b: TEXT }, [], { json: TEXT, jq: TEXT, template: TEXT, branch: TEXT }),
+  'gh run view': spec('v', { ...GH_OUT_SHORT, j: TEXT, a: NUM }, ['log', 'log-failed', 'exit-status', 'verbose'], { ...GH_OUT, job: TEXT, attempt: NUM }),
+  'gh run list': spec('', { ...GH_OUT_SHORT, L: NUM, b: TEXT, w: TEXT, s: TEXT, c: TEXT, e: TEXT, u: TEXT }, ['all'], { ...GH_OUT, limit: NUM, branch: TEXT, workflow: TEXT, status: TEXT, commit: TEXT, event: TEXT, user: TEXT }),
+  'gh release view': spec('', GH_OUT_SHORT, [], GH_OUT),
+  'gh release list': spec('', { ...GH_OUT_SHORT, L: NUM }, ['exclude-drafts', 'exclude-pre-releases'], { ...GH_OUT, limit: NUM }),
+  'gh workflow view': spec('y', { ...GH_OUT_SHORT, r: TEXT }, ['yaml'], { ...GH_OUT, ref: TEXT }),
+  'gh workflow list': spec('a', { ...GH_OUT_SHORT, L: NUM }, ['all'], { ...GH_OUT, limit: NUM }),
+  'gh label list': spec('', { ...GH_OUT_SHORT, L: NUM, S: TEXT }, [], { ...GH_OUT, limit: NUM, search: TEXT, order: TEXT, sort: TEXT }),
+  // Fields pass only with an explicit GET (ghApiWrite); -F never with @.
+  'gh api': spec('i', { q: TEXT, t: TEXT, H: TEXT, X: TEXT, f: TEXT, F: FIELD }, ['paginate', 'slurp', 'include', 'silent', 'verbose'], { jq: TEXT, template: TEXT, header: TEXT, method: TEXT, cache: TEXT, 'raw-field': TEXT, field: FIELD }),
+  'git log': spec('p', { n: NUM, S: TEXT, G: TEXT, U: NUM }, ['oneline', 'graph', 'stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'no-merges', 'merges', 'first-parent', 'reverse', 'all', 'patch', 'follow', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv', 'decorate', 'no-decorate'], { format: TEXT, pretty: TEXT, since: TEXT, until: TEXT, after: TEXT, before: TEXT, author: TEXT, grep: TEXT, 'max-count': NUM, skip: NUM, date: TEXT, unified: NUM, 'diff-filter': TEXT }, true),
+  'git diff': spec('pwbMR', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'cached', 'staged', 'no-color', 'patch', 'merge-base', 'ignore-all-space', 'ignore-space-change', 'find-renames', 'word-diff', 'check', 'minimal', 'no-ext-diff', 'no-textconv', 'no-renames'], { unified: NUM, 'diff-filter': TEXT }),
+  'git show': spec('ps', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'oneline', 'no-patch', 'patch', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv'], { format: TEXT, pretty: TEXT, unified: NUM }),
+  'git status': spec('sbu', {}, ['short', 'branch', 'porcelain', 'long', 'ignored']),
+  'git rev-parse': spec('q', {}, ['abbrev-ref', 'short', 'verify', 'show-toplevel', 'git-dir', 'git-common-dir', 'is-inside-work-tree', 'quiet', 'symbolic-full-name', 'show-prefix']),
+  'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email'], { date: TEXT }),
+  'git ls-files': spec('cmodzs', {}, ['cached', 'modified', 'others', 'deleted', 'exclude-standard', 'error-unmatch', 'full-name', 'stage']),
+  'git merge-base': spec('a', {}, ['is-ancestor', 'fork-point', 'all', 'octopus']),
+  'git grep': spec('nilLcwvEFPhHIz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, ['cached', 'untracked', 'name-only', 'count', 'or', 'and', 'not', 'all-match', 'line-number', 'ignore-case', 'files-with-matches', 'word-regexp', 'invert-match', 'extended-regexp', 'fixed-strings', 'perl-regexp'], { 'max-depth': NUM, 'max-count': NUM, context: NUM }, true),
+};
+// Long flags whose value is optional and given only with = (--color, --porcelain=v2).
+const LONG_OPTIONAL_VALUE = new Set(['color', 'colour', 'decorate', 'porcelain', 'word-diff', 'short', 'abbrev-ref', 'abbrev-commit', 'untracked', 'ignored']);
+
+interface ParsedArgs {
+  /** Words that are not flags or flag values, before a --. */
+  positionals: Word[];
+  /** Words after a --. */
+  afterDash: Word[];
+  /** Flags given, by name (single letter for a short flag). */
+  given: Set<string>;
+}
+
+/** A word bash can expand into a word that starts with - (a glob at its start). */
+const leadingGlob = (w: Word): boolean => w.glob && /^[*?[]/.test(w.text);
+
+function flagValue(name: string, kind: ArgKind, value: Word | string | undefined): string | null {
+  if (value === undefined) return `the flag ${name} has no value`;
+  const v = typeof value === 'string' ? value : value.text;
+  if (typeof value !== 'string' && (value.variable || leadingGlob(value))) return `a variable or glob as the value of ${name}`;
+  if (v.startsWith('~')) return `a tilde as the value of ${name}`;
+  if (kind === NUM && !/^[+-]?\d+$/.test(v)) return `the flag ${name} takes a number`;
+  if (kind === FIELD && /^[^=]*=@/.test(v)) return `${name} with an @ value reads a file`;
+  return null;
+}
+
+/** Split the args of a command by its flag list; a flag not on the list is a reason. */
+export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs | string {
+  const out: ParsedArgs = { positionals: [], afterDash: [], given: new Set() };
+  for (let i = 0; i < args.length; i += 1) {
+    const a = args[i];
+    const t = a.text;
+    if (t === '--') {
+      out.afterDash = args.slice(i + 1);
+      return out;
+    }
+    if (leadingGlob(a)) return `a glob at the start of a word, which bash can expand into a flag (${t}); write ./${t} or put it after --`;
+    if (t === '-' || !t.startsWith('-')) {
+      out.positionals.push(a);
+      continue;
+    }
+    if (a.variable) return `a variable in a flag (${t})`;
+    if (t.startsWith('--')) {
+      const eq = t.indexOf('=');
+      const name = eq < 0 ? t.slice(2) : t.slice(2, eq);
+      const kind = s.longArg[name];
+      // An optional value comes only with =, so the next word is never taken
+      // as a value the command would read as a path.
+      if (LONG_OPTIONAL_VALUE.has(name) && s.longNone.includes(name)) {
+        const why = eq < 0 ? null : flagValue(`--${name}`, TEXT, t.slice(eq + 1));
+        if (why) return why;
+        out.given.add(name);
+        continue;
+      }
+      if (s.longNone.includes(name)) {
+        if (eq >= 0) return `${label} --${name} takes no value`;
+        out.given.add(name);
+        continue;
+      }
+      if (!kind) return `${label} --${name} is not on the flags allowed for ${label}`;
+      if (eq < 0) i += 1;
+      const why = flagValue(`--${name}`, kind, eq < 0 ? args[i] : t.slice(eq + 1));
+      if (why) return why;
+      out.given.add(name);
+      continue;
+    }
+    if (s.numeric && /^-\d+$/.test(t)) continue;
+    for (let k = 1; k < t.length; k += 1) {
+      const c = t[k];
+      if (s.shortNone.includes(c)) {
+        out.given.add(c);
+        continue;
+      }
+      const kind = s.shortArg[c];
+      if (!kind) return `${label} -${c} is not on the flags allowed for ${label}`;
+      const glued = t.slice(k + 1);
+      if (!glued) i += 1;
+      const why = flagValue(`-${c}`, kind, glued ? glued : args[i]);
+      if (why) return why;
+      out.given.add(c);
+      break;
+    }
+  }
+  return out;
+}
+
+/** Each path word must stay in the repo or the temp dir. */
+function pathsOk(paths: Word[], ctx: AllowContext): string | null {
+  for (const p of paths) {
+    const why = pathOutside(p, ctx);
+    if (why) return why;
+  }
+  return null;
+}
+
+// test's operators are its flags; test never reads a program or a file body.
+const TEST_OPS = new Set(['-b', '-c', '-d', '-e', '-f', '-g', '-h', '-k', '-L', '-n', '-p', '-r', '-s', '-S', '-t', '-u', '-w', '-x', '-z', '-O', '-G', '-N', '-eq', '-ne', '-lt', '-le', '-gt', '-ge', '-nt', '-ot', '-ef', '-a', '-o']);
 const GIT_READ = new Set(['log', 'diff', 'show', 'status', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
 const SKILL_SCRIPTS: Record<string, string> = {
   node: 'collect-rules.mjs',
@@ -1229,88 +1397,55 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   return null;
 }
 
-/** Positional args (not options) of a read command, all paths, checked. */
-function pathsInside(args: Word[], ctx: AllowContext, skipFirst = false): string | null {
-  let skipped = !skipFirst;
-  for (const a of args) {
-    if (a.text.startsWith('-')) {
-      // An option may not carry a path, a variable or a tilde (-C$HOME, --file=/x).
-      if (a.variable || /[/~]/.test(a.text)) return `an option with a path or variable (${a.text})`;
-      continue;
-    }
-    if (!skipped) {
-      skipped = true;
-      continue;
-    }
-    const why = pathOutside(a, ctx);
-    if (why) return why;
-  }
-  return null;
-}
-
 /** Why a simple command is not on the read-only allowlist, or null. */
 export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   const [first, ...args] = words;
   const cmd = first.text;
   if (/=/.test(cmd) && !first.text.startsWith('-')) return 'an environment assignment';
   if (first.variable || first.glob) return 'a command word built at run time';
-  if (READ_CMDS.has(cmd)) {
-    if (cmd === 'rg' && args.some((a) => /^--pre(?:-glob)?(?:=|$)/.test(a.text))) return 'rg --pre runs a command';
-    // grep's and rg's first positional is the pattern unless -e or -f gives it.
-    const patternGiven = args.some((a) => /^-(?:[A-Za-z]*[ef]|-regexp|-file)/.test(a.text));
-    return pathsInside(args, ctx, (cmd === 'grep' || cmd === 'rg') && !patternGiven);
-  }
-  // sed only as one whole sed -n 'N,Mp' <file> (GNU sed's e command runs a shell).
+  // sed only as one whole sed -n 'N,Mp' <file>: its one allowed flag is -n
+  // (GNU sed's e command runs a shell, w writes a file).
   if (cmd === 'sed') {
-    const ok = args.length === 3 && args[0].text === '-n' && /^\d+(?:,\d+)?p$/.test(args[1].text);
+    const ok = args.length === 3 && args[0].text === '-n' && /^\d+(?:,\d+)?p$/.test(args[1].text) && !leadingGlob(args[2]);
     return ok ? pathOutside(args[2], ctx) : "sed other than sed -n 'N,Mp' <file>";
   }
-  if (FILTER_CMDS.has(cmd)) {
-    if (cmd === 'sort' && args.some((a) => /^-(?:[A-Za-z]*[oT]|-output|-temporary-directory|-compress-program)/.test(a.text))) return 'sort writing a file';
-    if (cmd === 'uniq' && args.filter((a) => !a.text.startsWith('-')).length > 1) return 'uniq writing a file';
-    if (cmd === 'tr') return args.some((a) => a.variable) ? 'a variable in tr' : null;
-    return pathsInside(args, ctx);
+  if (cmd === 'test') {
+    for (const a of args) {
+      if (leadingGlob(a)) return `a glob at the start of a word (${a.text})`;
+      if (a.text.startsWith('-') && !TEST_OPS.has(a.text)) return `test ${a.text} is not a test operator on the list`;
+    }
+    return pathsOk(args.filter((a) => !a.text.startsWith('-')), ctx);
   }
   if (cmd === 'jq') {
-    // The filter is the first positional; --arg/--argjson take two values.
-    let filterSeen = false;
+    // --arg and --argjson take a name and a value; the filter is the first positional.
+    const rest: Word[] = [];
     for (let i = 0; i < args.length; i += 1) {
-      const a = args[i];
-      if (/^--(?:arg|argjson)$/.test(a.text)) {
+      if (/^--(?:arg|argjson)$/.test(args[i].text)) {
+        const pair = args.slice(i + 1, i + 3);
+        if (pair.length < 2 || pair.some((w) => w.variable || leadingGlob(w))) return `jq ${args[i].text} needs a plain name and value`;
         i += 2;
         continue;
       }
-      if (/^-(?:f|L|-from-file|-rawfile|-slurpfile)$/.test(a.text)) return 'jq reading a program or extra file';
-      if (a.text.startsWith('-')) {
-        if (a.variable || /[/~]/.test(a.text)) return `an option with a path or variable (${a.text})`;
-        continue;
-      }
-      if (!filterSeen) {
-        filterSeen = true;
-        continue;
-      }
-      const why = pathOutside(a, ctx);
-      if (why) return why;
+      rest.push(args[i]);
     }
-    return null;
-  }
-  if (cmd === 'awk') {
-    const program = args.find((a) => !a.text.startsWith('-'));
-    if (args.some((a) => /^-(?:f|-file)/.test(a.text)) || !program || !isAwkFieldPrint(program.text)) return 'an awk program other than a pure field print';
-    return pathsInside(args.filter((a) => /^-F/.test(a.text) === false), ctx, true);
+    const p = parseFlags('jq', rest, FLAGS.jq);
+    if (typeof p === 'string') return p;
+    return pathsOk([...p.positionals.slice(1), ...p.afterDash], ctx);
   }
   if (cmd === 'gh') {
     let at = 0;
     while (at < args.length && /^(?:-R|--repo)$/.test(args[at].text)) at += 2;
     while (at < args.length && /^--repo=/.test(args[at].text)) at += 1;
+    const lead = args.slice(0, at);
+    if (lead.some((w) => w.variable || leadingGlob(w))) return 'gh -R needs a plain owner/repo';
     const [sub, verb] = args.slice(at).map((a) => a.text);
-    if (sub === 'pr' && GH_PR_READ.has(verb ?? '')) return null;
-    if (GH_READ[sub ?? '']?.includes(verb ?? '') || GH_READ_ANY_VERB.has(sub ?? '')) return null;
-    if (sub === 'api') {
-      const rest = args.slice(at + 1).map((a) => a.text).join(' ');
-      return ghApiWrite(rest) ?? (/(?:^|\s)--hostname\b/.test(rest) ? 'gh api to another host' : null);
-    }
-    return `${`gh ${sub ?? ''} ${verb ?? ''}`.trim()} is not a gh read on the list`;
+    const key = sub === 'api' ? 'gh api' : `gh ${sub ?? ''} ${verb ?? ''}`;
+    const s = FLAGS[key];
+    if (!s) return `${key.trim()} is not a gh read on the list`;
+    const rest = args.slice(at + (sub === 'api' ? 1 : 2));
+    const p = parseFlags(key, rest, s);
+    if (typeof p === 'string') return p;
+    return sub === 'api' ? ghApiWrite(rest.map((a) => a.text).join(' ')) : null;
   }
   if (cmd === 'git') {
     const sub = args[0]?.text ?? '';
@@ -1319,12 +1454,27 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
       return rest.length === 2 && rest[0] === 'origin' && /^[A-Za-z0-9._/-]+$/.test(rest[1]) && !rest[1].startsWith('-') ? null : 'git fetch other than git fetch origin <branch>';
     }
     if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
-    for (const a of args.slice(1)) {
-      if (/^--(?:output|ext-diff|textconv|exec|upload-pack|config-env)/.test(a.text)) return `git ${sub} ${a.text}`;
+    const p = parseFlags(`git ${sub}`, args.slice(1), FLAGS[`git ${sub}`]);
+    if (typeof p === 'string') return p;
+    // Words before -- are revisions; words after it are paths.
+    return pathsOk(p.afterDash, ctx);
+  }
+  // A quoted command word with a space ("gh pr view") is not a key here.
+  const flags = /^[a-z]+$/.test(cmd) ? FLAGS[cmd] : undefined;
+  if (flags) {
+    const p = parseFlags(cmd, args, flags);
+    if (typeof p === 'string') return p;
+    if (cmd === 'tr') return [...p.positionals, ...p.afterDash].some((a) => a.variable) ? 'a variable in tr' : null;
+    if (cmd === 'awk') {
+      const [program, ...files] = [...p.positionals, ...p.afterDash];
+      if (!program || !isAwkFieldPrint(program.text)) return 'an awk program other than a pure field print';
+      return pathsOk(files, ctx);
     }
-    if (sub === 'grep' && gitGrepPager(`git grep ${args.slice(1).map((a) => a.text).join(' ')}`)) return 'git grep with a pager command';
-    const dash = args.findIndex((a) => a.text === '--');
-    return dash < 0 ? null : pathsInside(args.slice(dash + 1), ctx);
+    const words = [...p.positionals, ...p.afterDash];
+    if (cmd === 'uniq' && words.length > 1) return 'uniq writing a file';
+    // grep's and rg's first positional is the pattern unless -e gives it (rg --files and --type-list take none).
+    const patternFirst = (cmd === 'grep' || cmd === 'rg') && !['e', 'regexp', 'files', 'type-list'].some((f) => p.given.has(f));
+    return pathsOk(patternFirst ? [...p.positionals.slice(1), ...p.afterDash] : words, ctx);
   }
   // The skill's own scripts, by their exact pinned path, as one plain call.
   const script = SKILL_SCRIPTS[cmd];
@@ -1347,4 +1497,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  'review-pr runs Bash only as simple read-only commands: gh pr view|diff|checks|list, gh repo view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, file list, merge-base), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep on paths in the repo, sort, uniq, cut, tr, nl, an awk field print, and the skill scripts by their pinned path. No cd, assignments, subshells, expansions but $NAME, or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here';
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but $NAME, a glob at the start of a word (write ./*), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";

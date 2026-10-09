@@ -1281,7 +1281,7 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       'git fetch origin main',
       "jq -r '.files[].path' f.json",
       'grep -rn TODO src',
-      'ls **/docker-compose*.yml 2>/dev/null',
+      'ls ./**/docker-compose*.yml 2>/dev/null',
       'cat src/x.ts | head -20',
       "awk '{print $1}' f.txt | sort | uniq -c",
       'wc -l src/x.ts 2>&1',
@@ -1359,7 +1359,8 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
       'gh run view 1 --web',
       'gh api repos/o/r --hostname x.example',
       'gh api repos/o/r --input f.json',
-      'gh release view v1',
+      'gh release view v1 --web',
+      "gh api -X GET search/issues -F q=@/etc/hosts",
       'gh search prs x --web',
       'git log --no-such-flag',
       'git diff --ext-diff',
@@ -1383,7 +1384,8 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
     }
   });
   test('a word that bash can expand into a flag denies (a leading glob before --)', () => {
-    for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *']) {
+    // 'ls **/docker-compose*.yml' was a control in the 6085798647 block; it is this class, so it is now a deny row.
+    for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *', 'ls **/docker-compose*.yml 2>/dev/null']) {
       expect(at(cmd), cmd).toBe(true);
     }
     for (const cmd of ['rg TODO ./*', 'cat src/*.ts', 'ls -- *.md', 'git diff -- *.ts']) {
