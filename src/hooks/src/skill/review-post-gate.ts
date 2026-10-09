@@ -964,6 +964,11 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
       return deny(ctx, input, 'review-pr may only read the gate code (hooks, skills/review-pr): the post gate runs from it.');
     }
   }
+  // A literal skill-dir variable means Claude Code did not substitute it; say
+  // so instead of the reason a later rule would give (HOLD 6086210644 should 5).
+  if (/\$\{?CLAUDE_SKILL_DIR\b/.test(command)) {
+    return deny(ctx, input, 'review-pr: $CLAUDE_SKILL_DIR was not substituted in this command. Use the absolute skill path the loaded skill shows, as one plain call.');
+  }
   const why = rawWriteReason(command);
   if (why) {
     return deny(
@@ -1223,11 +1228,12 @@ const FLAGS: Record<string, FlagSpec> = {
   head: spec('qv', { n: NUM, c: NUM }, ['quiet', 'silent', 'verbose'], { lines: NUM, bytes: NUM }, true),
   tail: spec('qvr', { n: NUM, c: NUM }, ['quiet', 'silent', 'verbose'], { lines: NUM, bytes: NUM }, true),
   wc: spec('lwcmL', {}, ['lines', 'words', 'bytes', 'chars', 'max-line-length']),
-  grep: spec('rRniIlLcvwxoqshHEFPaz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, GREP_LONG, { regexp: TEXT, context: NUM, 'after-context': NUM, 'before-context': NUM, 'max-count': NUM, include: TEXT, exclude: TEXT, 'exclude-dir': TEXT }, true),
+  // No grep -R or rg -L/--follow: they follow links while they walk a dir.
+  grep: spec('rniIlLcvwxoqshHEFPaz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, GREP_LONG, { regexp: TEXT, context: NUM, 'after-context': NUM, 'before-context': NUM, 'max-count': NUM, include: TEXT, exclude: TEXT, 'exclude-dir': TEXT }, true),
   rg: spec(
-    'niIsSlcvwxoquUFPHNLa.0',
+    'niIsSlcvwxoquUFPHNa.0',
     { e: TEXT, t: TEXT, T: TEXT, g: TEXT, A: NUM, B: NUM, C: NUM, m: NUM, M: NUM, d: NUM, j: NUM, r: TEXT },
-    [...GREP_LONG, 'case-sensitive', 'smart-case', 'count-matches', 'hidden', 'no-ignore', 'multiline', 'json', 'files', 'heading', 'no-heading', 'vimgrep', 'column', 'no-line-number', 'follow', 'trim', 'passthru', 'unrestricted', 'type-list'],
+    [...GREP_LONG, 'case-sensitive', 'smart-case', 'count-matches', 'hidden', 'no-ignore', 'multiline', 'json', 'files', 'heading', 'no-heading', 'vimgrep', 'column', 'no-line-number', 'trim', 'passthru', 'unrestricted', 'type-list'],
     { regexp: TEXT, type: TEXT, 'type-not': TEXT, glob: TEXT, iglob: TEXT, context: NUM, 'after-context': NUM, 'before-context': NUM, 'max-count': NUM, 'max-columns': NUM, 'max-depth': NUM, threads: NUM, replace: TEXT, sort: TEXT, sortr: TEXT, colors: TEXT },
   ),
   sort: spec('rnufbdghiMRVscCz', { k: TEXT, t: TEXT }, ['reverse', 'numeric-sort', 'unique', 'ignore-case', 'ignore-leading-blanks', 'dictionary-order', 'general-numeric-sort', 'human-numeric-sort', 'month-sort', 'version-sort', 'stable', 'check', 'zero-terminated'], { key: TEXT, 'field-separator': TEXT }),
@@ -1381,17 +1387,19 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   if (arg.variable) return `a variable in a path (${t})`;
   if (t.startsWith('~')) return `a tilde path (${t})`;
   if (t.split('/').some((c) => c === '..')) return `a .. path (${t})`;
-  // A glob segment that starts with . can match . and .. (bash before globskipdots).
-  if (arg.glob && t.split('/').some((c) => c.startsWith('.') && /[*?[]/.test(c))) return `a dot glob (${t})`;
+  // A glob's matches are not resolved through symlinks here (a committed link
+  // dir or file can point out of the repo), so a path is read only by a name
+  // the gate can resolve (conductor145 at 348161fb). rg -g filters instead.
+  if (arg.glob) return `a glob in a path (${t}); name the file, or use rg -g`;
   if (!ctx.cwd) return 'no cwd to resolve paths against';
   const abs = posix.normalize(t.startsWith('/') ? t : `${ctx.cwd}/${t}`);
   const root = posix.normalize(ctx.cwd);
   const inside = (p: string, base: string) => p === base || p.startsWith(`${base.replace(/\/$/, '')}/`);
   // The repo, or a temp dir (a fetched diff or JSON); checked by real path, so
   // a symlink in either cannot point out of it.
-  const real = arg.glob ? abs : ctx.realpath(abs);
+  const real = ctx.realpath(abs);
   const temp = (x: string) => /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/.test(x);
-  if (!(inside(abs, root) && (arg.glob || inside(real, ctx.realpath(root)))) && !(temp(abs) && temp(real))) {
+  if (!(inside(abs, root) && inside(real, ctx.realpath(root))) && !(temp(abs) && temp(real))) {
     return `a path outside the repo and the temp dir (${t})`;
   }
   return null;
@@ -1497,4 +1505,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but $NAME, a glob at the start of a word (write ./*), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but $NAME, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
