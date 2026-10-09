@@ -459,8 +459,17 @@ if (bundleLoadError) {
   failBundleLoad(hookName, bundleLoadError, t1);
 }
 
+// #4678: a gate that is the only check on a write must not pass when its
+// code is absent: a missing bundle or a missing handler blocks (exit 2).
+const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+function failMissing(what) {
+  process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" ${what}, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.\n`);
+  process.exit(2);
+}
+
 if (!hooks) {
   // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no bundle');
   silentExit();
 }
 
@@ -469,6 +478,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no handler in its bundle');
   silentExit();
 }
 
