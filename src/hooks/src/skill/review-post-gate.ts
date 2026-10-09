@@ -108,7 +108,6 @@ function isReadOnly(segment: string): boolean {
   return READ_VERB.test(segment) && !runsCommand(segment);
 }
 
-const TRANSCRIPT_DIR = /\.claude\/projects\b/;
 
 /**
  * Text as the file system reads it (HOLD 6082847596 M3): APFS folds case, and
@@ -568,15 +567,16 @@ const SHELL_C_AT = /(^|[\s;&|(`])((?:\S*\/)?(?:ba|z|da|k|mk)?sh)((?:\s+-[elxuvc]
  * in double quotes, an unquoted word that is not plain) denies. On null the
  * returned text has each checked program replaced by `sh -c :`.
  */
-function checkShellPrograms(command: string): { why: string | null; rest: string } {
-  const unreadable = { why: 'an sh -c program the gate cannot read', rest: command };
+function checkShellPrograms(command: string): { why: string | null; rest: string; flat: string } {
+  const unreadable = { why: 'an sh -c program the gate cannot read', rest: command, flat: command };
   let out = '';
+  // The same text with each program inlined as its own command line, so the
+  // path rule follows a cd inside it ( ; <program> ; ).
+  let flat = '';
   let last = 0;
   for (const m of command.matchAll(SHELL_C_AT)) {
     const at = m.index ?? 0;
     if (at < last || !m[3].includes('c')) continue;
-    // Every sh -c program denies, whatever it holds (XREVIEW HOLD 6084895142).
-    if (at >= 0) return { why: 'an inline shell program (sh -c)', rest: command };
     const start = at + m[1].length;
     const i = at + m[0].length;
     const q = command[i];
@@ -594,19 +594,21 @@ function checkShellPrograms(command: string): { why: string | null; rest: string
       program = w[0];
       end = i + w[0].length;
     }
-    if (GUARD_SCRIPT.test(program)) return { why: 'post-review.mjs inside sh -c', rest: command };
+    if (GUARD_SCRIPT.test(program)) return { why: 'post-review.mjs inside sh -c', rest: command, flat: command };
     // The words after the program are its arguments: a positional parameter
     // in the program runs them ($@, $*, $1), which this check cannot read.
     const trailing = (command.slice(end).match(/^[^;&|\n]*/)?.[0] ?? '').trim();
     if (trailing && /\$(?:[@*#]|\d|\{[@*#\d])/.test(program)) {
-      return { why: 'a positional parameter in an sh -c program with trailing words', rest: command };
+      return { why: 'a positional parameter in an sh -c program with trailing words', rest: command, flat: command };
     }
+    // The program is a nested command line, checked by the same rules.
     const why = rawWriteReason(program);
-    if (why) return { why, rest: command };
+    if (why) return { why, rest: command, flat: command };
     out += `${command.slice(last, start)}sh -c :`;
+    flat += `${command.slice(last, start)} ; ${checkShellPrograms(program).flat} ; `;
     last = end;
   }
-  return { why: null, rest: out + command.slice(last) };
+  return { why: null, rest: out + command.slice(last), flat: flat + command.slice(last) };
 }
 
 /**
@@ -720,11 +722,14 @@ export interface ReviewPostGateDeps {
   readOptIn: (transcriptPath: string | undefined, toolUseId: string | undefined) => OptIn;
   /** CLAUDE_PLUGIN_ROOT exactly, '' when unset: no fallback to the project dir. */
   pluginRoot: () => string;
+  /** HOME, for ~ and the default config dir ~/.claude. */
+  home?: () => string;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
   readOptIn,
   pluginRoot: () => (process.env.CLAUDE_PLUGIN_ROOT ?? '').trim().replace(/\/+$/, ''),
+  home: () => process.env.HOME ?? '',
 };
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
@@ -737,8 +742,8 @@ function decodeAnsiC(text: string): string {
   const esc: Record<string, string> = { n: '\n', t: '\t', r: '\r', e: '\x1b', a: '\x07', b: '\b', f: '\f', v: '\v' };
   return text
     .replace(/\$'((?:[^'\\]|\\.)*)'/g, (_m, body: string) =>
-      `'${body.replace(/\\(x[0-9a-fA-F]{1,2}|u[0-9a-fA-F]{1,4}|[0-7]{1,3}|.)/g, (_e, c: string) => {
-        if (/^x/.test(c) || /^u/.test(c)) return String.fromCharCode(parseInt(c.slice(1), 16));
+      `'${body.replace(/\\(x[0-9a-fA-F]{1,2}|u[0-9a-fA-F]{1,4}|U[0-9a-fA-F]{1,8}|[0-7]{1,3}|.)/g, (_e, c: string) => {
+        if (/^[xuU]/.test(c)) return String.fromCodePoint(parseInt(c.slice(1), 16));
         if (/^[0-7]/.test(c)) return String.fromCharCode(parseInt(c, 8));
         return esc[c] ?? c;
       })}'`,
@@ -746,29 +751,96 @@ function decodeAnsiC(text: string): string {
     .replace(/\$"/g, '"');
 }
 
-function touchesTranscript(raw: string, transcriptPath: string | undefined): boolean {
-  const text = decodeAnsiC(raw);
-  // Read the text as written and with quotes and escapes removed (~/.claude/'projects').
-  const tp = transcriptPath ? pathFold(transcriptPath) : '';
-  for (const t of [pathFold(text), pathFold(text.replace(/['"\\]/g, ''))]) {
-    if (tp && t.includes(tp)) return true;
-    if (TRANSCRIPT_DIR.test(t)) return true;
-  }
-  // A glob or brace in a .claude child or a hidden dir name can expand to the
-  // transcripts dir (~/.claude/proj*, ~/.claude/{projects,x}, ~/.cl*). Bash
-  // expands only unquoted, unescaped glob characters, so quoted text in a word
-  // (a jq filter '.files[].path') is neutralized first (HOLD 6084435284 M1).
-  for (const word of shellWords(text)) {
-    const bare = pathFold(
-      word.replace(/'[^']*'|"[^"]*"/g, (q) => q.slice(1, -1).replace(/[*?[{]/g, '_')).replace(/\\./g, '_'),
-    );
-    if (/\.claude\/[^/]*[*?[{]/.test(bare) || /(?:^|\/)\.[^/]*[*?[{]/.test(bare)) return true;
-    // The .claude dir itself (cd ~/.claude && cat projects/x, grep -r x ~/.claude):
-    // a relative path or a recursive read from there reaches the transcripts.
-    if (/(?:^|\/)\.claude\/?$/.test(pathFold(word.replace(/['"\\]/g, '').replace(/[;&|)]+$/, '')))) return true;
-  }
-  return false;
+/**
+ * ONE path rule (HOLD 6085261794): the command is split on shell separators,
+ * the cwd starts at input.cwd and follows cd and pushd, ANSI-C quoting is
+ * decoded, and every word is resolved to an absolute, normalized (. and ..),
+ * case-folded (APFS) path. Only the protected targets count, so a project's
+ * own .claude passes.
+ */
+interface PathTargets {
+  /** The Claude config dir of transcript_path (it holds projects/), and ~/.claude. */
+  configDirs: string[];
+  /** The code the gate trusts: <plugin root>/hooks and <plugin root>/skills/review-pr. */
+  codeDirs: string[];
 }
+
+const HOME_ALIAS = /^(?:~|\$home|\$\{home\})(?=\/|$)/;
+
+/** One word as an absolute, folded, normalized path, or null when it cannot be one. */
+function resolvePath(word: string, cwd: string, home: string): string | null {
+  // A redirect target (>x, 2>>x), a flag value (--file=x) or an assignment
+  // value (P=~/x, where bash expands the tilde) is a path too.
+  let w = word.replace(/^\d*[<>&]+/, '');
+  if (/^[^/]*=/.test(w)) w = w.slice(w.indexOf('=') + 1);
+  if (!w || w.startsWith('-')) return null;
+  w = w.toLowerCase();
+  if (HOME_ALIAS.test(w)) {
+    if (!home) return null;
+    w = home + w.replace(HOME_ALIAS, '');
+  }
+  const abs = w.startsWith('/') ? w : cwd ? `${cwd}/${w}` : null;
+  return abs === null ? null : posix.normalize(abs).replace(/(.)\/+$/, '$1');
+}
+
+/** Every path word of a command, each resolved against the cwd it runs in. */
+export function commandPaths(command: string, startCwd: string, home: string): string[] {
+  return pathSegments(command, startCwd, home).flatMap((x) => x.paths);
+}
+
+/** Each segment with its resolved path words. */
+function pathSegments(command: string, startCwd: string, home: string): Array<{ seg: string; paths: string[] }> {
+  const out: Array<{ seg: string; paths: string[] }> = [];
+  const h = home.toLowerCase().replace(/\/+$/, '');
+  let cwd = startCwd ? posix.normalize(startCwd.toLowerCase()) : '';
+  for (const seg of segments(decodeAnsiC(command))) {
+    // Quoted parts neutralize globs (bash does not expand them), then quotes
+    // and escapes are removed.
+    const words = shellWords(seg).map((t) =>
+      t.replace(/'[^']*'|"[^"]*"/g, (q) => q.slice(1, -1).replace(/[*?[{]/g, '_')).replace(/\\(.)/g, '$1'),
+    );
+    const paths: string[] = [];
+    for (const w of words) {
+      const p = resolvePath(w, cwd, h);
+      if (p !== null) paths.push(p);
+    }
+    out.push({ seg, paths });
+    const at = words.findIndex((w) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(w));
+    if (at >= 0 && (words[at] === 'cd' || words[at] === 'pushd')) {
+      const target = words.slice(at + 1).find((w) => !w.startsWith('-'));
+      // A cd target the gate cannot resolve makes every later relative path unknown.
+      cwd = target === undefined ? h : (resolvePath(target, cwd, h) ?? '');
+    }
+  }
+  return out;
+}
+
+function pathTargets(input: HookInput, deps: ReviewPostGateDeps): PathTargets {
+  const home = (deps.home?.() ?? '').toLowerCase().replace(/\/+$/, '');
+  const config = new Set<string>();
+  if (home) config.add(`${home}/.claude`);
+  const tp = typeof input.transcript_path === 'string' ? posix.normalize(input.transcript_path.toLowerCase()) : '';
+  const cut = tp.lastIndexOf('/projects/');
+  if (cut > 0) config.add(tp.slice(0, cut));
+  const root = deps.pluginRoot() ? posix.normalize(deps.pluginRoot().toLowerCase()).replace(/\/+$/, '') : '';
+  return { configDirs: [...config], codeDirs: root ? [`${root}/hooks`, `${root}/skills/review-pr`] : [] };
+}
+
+/** Which target a path reaches: 'config', 'code', or null. */
+function targetOf(p: string, t: PathTargets): 'config' | 'code' | null {
+  for (const dir of t.configDirs) {
+    if (p === dir || p.startsWith(`${dir}/`)) return 'config';
+    // A glob in a hidden child of the dir's parent can expand to it (~/.cl*, ~/.{claude,x}).
+    const parent = posix.dirname(dir);
+    const child = p.startsWith(`${parent}/.`) ? p.slice(parent.length + 1).split('/')[0] : '';
+    if (/[*?[{]/.test(child)) return 'config';
+  }
+  for (const dir of t.codeDirs) if (p === dir || p.startsWith(`${dir}/`)) return 'code';
+  // Any hook bundle or runner dir, wherever the plugin is installed.
+  if (/\/hooks\/(?:dist|bin)(?:\/|$)/.test(p)) return 'code';
+  return null;
+}
+
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
@@ -810,16 +882,13 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   if (input.tool_name === 'Write' || input.tool_name === 'Edit' || input.tool_name === 'NotebookEdit') {
     // NotebookEdit names its file notebook_path, not file_path.
     const fp = input.tool_input?.file_path ?? (input.tool_input as { notebook_path?: unknown } | undefined)?.notebook_path;
-    if (typeof fp === 'string' && touchesTranscript(fp, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
-    const root = deps.pluginRoot();
-    // The gate's own code: the hook bundle and runner (the plugin's hooks dir,
-    // or any hooks/dist or hooks/bin), compared case-folded (APFS).
-    const f = typeof fp === 'string' ? pathFold(fp) : '';
-    if (f && ((root && f.startsWith(`${pathFold(root)}/hooks/`)) || /\/hooks\/(?:dist|bin)\//.test(f))) {
-      return deny(ctx, input, 'review-pr may not write the hook code (hooks/dist, hooks/bin): the post gate runs from it.');
-    }
-    if (typeof fp === 'string' && (/(?:^|\/)post-review\.mjs$/i.test(fp) || (root && f.startsWith(`${pathFold(root)}/skills/review-pr/`)))) {
-      return deny(ctx, input, 'review-pr may not write post-review.mjs or its own skill dir: the post gate trusts that file.');
+    const targets = pathTargets(input, deps);
+    const p = typeof fp === 'string' ? resolvePath(fp, (input.cwd ?? '').toLowerCase(), (deps.home?.() ?? '').toLowerCase()) : null;
+    const hit = p === null ? null : targetOf(p, targets);
+    const isTranscript = typeof fp === 'string' && typeof input.transcript_path === 'string' && pathFold(fp) === pathFold(input.transcript_path);
+    if (hit === 'config' || isTranscript) return deny(ctx, input, TRANSCRIPT_DENY);
+    if (hit === 'code' || (typeof fp === 'string' && /(?:^|\/)post-review\.mjs$/i.test(fp))) {
+      return deny(ctx, input, 'review-pr may not write the hook code, post-review.mjs or its own skill dir: the post gate runs from them.');
     }
     return outputSilentSuccess();
   }
@@ -838,15 +907,27 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   const command = typeof input.tool_input?.command === 'string' ? input.tool_input.command.replace(/\\\n/g, '') : '';
   // A Bash or Monitor call with no command string is not a call the gate can read.
   if (!command) return deny(ctx, input, 'review-pr: a Bash or Monitor call with no command is denied (the gate cannot read it).');
-  if (touchesTranscript(command, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
-
-  // The hook code (bundle, runner) may be read, never written, copied over or removed.
-  const folded = pathFold(decodeAnsiC(command).replace(/['"\\]/g, ''));
-  const hookRoot = deps.pluginRoot() ? `${pathFold(deps.pluginRoot())}/hooks/` : '';
-  if ((hookRoot && folded.includes(hookRoot)) || /\/hooks\/(?:dist|bin)\//.test(folded)) {
-    const quietHook = command.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
-    if (/[<>]/.test(quietHook) || !segments(quietHook).every(isReadOnly)) {
-      return deny(ctx, input, 'review-pr may only read the hook code (hooks/dist, hooks/bin): the post gate runs from it.');
+  if (typeof input.transcript_path === 'string' && pathFold(command).includes(pathFold(input.transcript_path))) {
+    return deny(ctx, input, TRANSCRIPT_DENY);
+  }
+  const targets = pathTargets(input, deps);
+  const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
+  // Two views of the command: each sh -c program blanked (the cwd outside it)
+  // and inlined (a cd inside it); a hit in either counts.
+  const views = checkShellPrograms(command);
+  const pathViews = [...new Set([views.rest, views.flat, command])];
+  for (const { seg, paths } of pathViews.flatMap((v) => pathSegments(v, input.cwd ?? '', deps.home?.() ?? ''))) {
+    const hits = paths.map((p) => targetOf(p, targets));
+    if (hits.includes('config')) return deny(ctx, input, TRANSCRIPT_DENY);
+    // The gate's code (hooks, skills/review-pr) may be read or run as a script
+    // (node <file>, python <file>, the plain guard call), never written,
+    // copied over or removed.
+    if (!hits.includes('code') || plainGuardCall) continue;
+    const quiet = seg.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
+    const w = resolveCommand(quiet) ?? [];
+    const runsScript = /^(?:node|python[0-9.]*)$/.test(baseName(w[0] ?? '')) && inlineProgram(w) === null;
+    if (/[<>]/.test(quiet) || !(isReadOnly(quiet.trim()) || runsScript)) {
+      return deny(ctx, input, 'review-pr may only read the gate code (hooks, skills/review-pr): the post gate runs from it.');
     }
   }
   const why = rawWriteReason(command);

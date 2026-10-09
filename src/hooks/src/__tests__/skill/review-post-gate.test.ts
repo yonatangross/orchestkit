@@ -16,18 +16,22 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn, resolveCommand } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 let dir: string;
 const savedRoot = process.env.CLAUDE_PLUGIN_ROOT;
+const savedHome = process.env.HOME;
 beforeEach(() => {
+  // The transcripts dir is protected under HOME (and the config dir of transcript_path).
+  process.env.HOME = '/Users/me';
   dir = mkdtempSync(join(tmpdir(), 'review-post-gate-'));
   // The gate pins the script to CLAUDE_PLUGIN_ROOT itself (HOLD 6078660476).
   process.env.CLAUDE_PLUGIN_ROOT = '/test/plugin-root';
 });
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
+  process.env.HOME = savedHome;
   if (savedRoot === undefined) delete process.env.CLAUDE_PLUGIN_ROOT;
   else process.env.CLAUDE_PLUGIN_ROOT = savedRoot;
 });
@@ -1014,7 +1018,7 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
     }
   });
   test('control (HOLD 6083798707): reads that name a shell word or the hook code still pass', () => {
-    for (const cmd of ['grep -n bash scripts/x.sh', 'cat /test/plugin-root/hooks/bin/run-hook.mjs', 'ls ~/.claude/plugins', 'git log --grep sh']) {
+    for (const cmd of ['grep -n bash scripts/x.sh', 'cat /test/plugin-root/hooks/bin/run-hook.mjs', 'git log --grep sh']) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);
     }
   });
@@ -1127,8 +1131,6 @@ describe('(XREVIEW HOLD 6084895142) every inline interpreter program denies, wha
       `php -r 'echo 1;'`,
       `osascript -e 'return 1'`,
       `deno eval "console.log(1)"`,
-      `bash -c 'echo hi'`,
-      `sh -c "gh pr view 4668"`,
       `awk 'BEGIN { print 1 }'`,
       `awk -F, '{s+=$2} END {print s}' f.csv`,
       `awk -f prog.awk f.txt`,
@@ -1150,6 +1152,61 @@ describe('(XREVIEW HOLD 6084895142) every inline interpreter program denies, wha
       'gh pr diff 4668 | head -50',
     ]) {
       expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
+});
+
+describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd, ANSI-C, targets only', () => {
+  const tr = () => transcript([typed('4668 --post')]);
+  const at = (cmd: string, cwd = ROOT) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
+  test('the resolver follows cd and pushd and normalizes . and ..', () => {
+    expect(commandPaths('cd ~/.claude/x/.. && cat projects/a', '/test/project', '/users/me')).toContain('/users/me/.claude/projects/a');
+    expect(commandPaths('cd ~/.claude;cat projects/a', '/test/project', '/users/me')).toContain('/users/me/.claude/projects/a');
+    expect(commandPaths('pushd /test/plugin-root && cp x hooks/dist/skill.mjs', '/', '/users/me')).toContain('/test/plugin-root/hooks/dist/skill.mjs');
+    expect(commandPaths('cat .claude/rules/x.md', '/test/project', '/users/me')).toEqual(['/test/project/cat', '/test/project/.claude/rules/x.md']);
+  });
+  test('path spellings that passed at 6751c114 deny', () => {
+    expect(at("cd ~/.claude;sed -n 1p projects/-p/s.jsonl")).toBe(true);
+    expect(at("cd ~/.claude&&sed -n 1p projects/-p/s.jsonl")).toBe(true);
+    expect(at("cd ~/.claude/x/.. && sed -n 1p projects/-p/s.jsonl")).toBe(true);
+    expect(at("cat ~/.claude/$'\\U00000070'rojects/p/s.jsonl")).toBe(true);
+    expect(at('cat projects/p/s.jsonl', '/Users/me/.claude')).toBe(true);
+    expect(at('cd /test/plugin-root && cp /tmp/x.mjs hooks/dist/skill.mjs')).toBe(true);
+    expect(at('cp /tmp/x /test/plugin-root/skills/review-pr/SKILL.md')).toBe(true);
+    // HOLD 6085261794: the whole config dir is the protected target, not only projects/.
+    expect(at('ls ~/.claude/plugins')).toBe(true);
+  });
+  test('the config dir of transcript_path is protected, wherever it is', () => {
+    const t = '/opt/cfg/claude/projects/p/s.jsonl';
+    const input = { tool_name: 'Bash', session_id: 's', cwd: ROOT, tool_input: { command: 'ls /opt/cfg/claude' }, transcript_path: t, tool_use_id: TOOL } as HookInput;
+    expect(denied(reviewPostGate(input, ctx))).toBe(true);
+  });
+  test('control: the project\'s own .claude and reads of the plugin code pass', () => {
+    for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md', 'cat /test/plugin-root/skills/review-pr/SKILL.md', 'cat /test/plugin-root/hooks/bin/run-hook.mjs']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+});
+
+describe('(conductor144 correction at 41ed231d) sh -c programs are parsed as nested command lines', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  test('control: readable sh -c programs of reads pass', () => {
+    for (const cmd of [`bash -c "gh pr view 4668"`, `bash -c 'git status'`, `bash -lc 'git status'`, `sh -c 'git log --oneline -3'`, `bash -c 'echo hi'`]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('a write, an inline interpreter or a protected path inside the program denies, nested too', () => {
+    for (const cmd of [
+      `bash -c 'gh pr comment 1 -b x'`,
+      `bash -c "python3 -c 'print(1)'"`,
+      `bash -c "bash -c 'gh pr comment 1 -b x'"`,
+      `bash -c 'cd ~/.claude && cat projects/p/s.jsonl'`,
+      `cd ~/.claude && bash -c 'cat projects/p/s.jsonl'`,
+      `bash -c 'cp /tmp/x /test/plugin-root/hooks/dist/skill.mjs'`,
+      `perl -ne 'print if /TODO/' f.txt`,
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
     }
   });
 });
