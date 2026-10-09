@@ -16,7 +16,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 let dir: string;
@@ -865,7 +865,7 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
     }
   });
   test('control: a script file after a no-argument flag, a prefix on a non-shell, a readable sh -c', () => {
-    for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', "bash -c 'gh pr view 4668'", 'nice -n 5 bash scripts/x.sh']) {
+    for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', "bash -c 'gh pr view 4668'", 'nice bash scripts/x.sh']) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
   });
@@ -881,9 +881,65 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       "bash -lc 'git status'",
       "python3 - <<'PY'\nprint(1)\nPY",
       'env FOO=1 node scripts/x.mjs',
-      'nice -n 5 bash scripts/resolve-target.sh 4668',
+      'nice bash scripts/resolve-target.sh 4668',
       'printf x | xargs echo',
     ]) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
+});
+
+describe('(HOLD 6082847596, XREVIEW 6082111346) one word resolver, path rule for the transcripts dir', () => {
+  const none = () => transcript([typed('4678')]);
+  const tool = (tool_name: string, tool_input: Record<string, unknown>) =>
+    ({ tool_name, session_id: 's', cwd: ROOT, tool_input, transcript_path: transcript([typed('4668 --post --post-verdict')]), tool_use_id: TOOL }) as HookInput;
+  const P = "printf 'g%s pr com%sent 4678 -b synthetic' h m";
+  const deniedAll = (cmds: string[]) => {
+    for (const cmd of cmds) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
+    }
+  };
+  test('M1: a later argument is not the command word; redirects before or after it are dropped', () => {
+    deniedAll([
+      `${P} | env "$SHELL" -s sh -n`,
+      `${P} | command "$SHELL" -s sh -n`,
+      `${P} | env $(which sh) -s sh -n`,
+      `${P} | env \`which sh\` -s sh -n`,
+      `${P} | </dev/stdin sh`,
+      `${P} | 0<&0 sh`,
+      `${P} | 2>/dev/null sh`,
+      `${P} | sh 2>/dev/null`,
+      `${P} | sh 0<&0`,
+      `cd /; ${P} | sh dev/stdin`,
+      `cd /dev; ${P} | sh stdin`,
+      `cd /dev/fd; ${P} | sh 0`,
+      `${P} | sh ../../dev/stdin`,
+    ]);
+  });
+  test('M1 word assertions: the resolver picks the word the shell runs, or refuses', () => {
+    expect(resolveCommand('</dev/stdin sh')).toEqual(['sh']);
+    expect(resolveCommand('0<&0 sh')).toEqual(['sh']);
+    expect(resolveCommand('2>/dev/null sh -n x.sh')).toEqual(['sh', '-n', 'x.sh']);
+    expect(resolveCommand('sh x.sh 2> /dev/null')).toEqual(['sh', 'x.sh']);
+    expect(resolveCommand('env sh -s sh -n')).toEqual(['sh', '-s', 'sh', '-n']);
+    expect(resolveCommand('X=1 nice bash x.sh')).toEqual(['bash', 'x.sh']);
+    expect(resolveCommand('flock /tmp/l sh')).toEqual(['sh']);
+    expect(resolveCommand('git log --oneline')).toEqual(['git', 'log', '--oneline']);
+    // Refused: a run-time word after a prefix, or an option before a shell word.
+    expect(resolveCommand('env "$SHELL" -s sh -n')).toBeNull();
+    expect(resolveCommand('env -u X sh')).toBeNull();
+    expect(resolveCommand('nice -n 5 sh')).toBeNull();
+  });
+  test('M3: the transcripts dir in any spelling APFS resolves, and NotebookEdit notebook_path', () => {
+    for (const fp of ['/Users/me/.Claude/Projects/p/s.jsonl', '/Users/me/.claude//projects/p/s.jsonl', '/Users/me/.claude/./projects/p/s.jsonl', '/Users/me/.claude/x/../projects/p/s.jsonl']) {
+      expect(denied(reviewPostGate(tool('Write', { file_path: fp, content: 'x' }), ctx)), fp).toBe(true);
+      expect(denied(reviewPostGate(bash(`cat ${fp}`, none()), ctx)), fp).toBe(true);
+    }
+    expect(denied(reviewPostGate(tool('NotebookEdit', { notebook_path: '/Users/me/.claude/projects/p/n.ipynb', new_source: 'x' }), ctx))).toBe(true);
+  });
+  test('control: the resolver still passes plain work', () => {
+    for (const cmd of ['nice bash scripts/x.sh', 'bash -n < /tmp/x.sh', 'git status 2>&1 | tail -3', 'npm test 2>&1 | tail -20', 'ls /Users/me/.claude/plugins']) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
   });

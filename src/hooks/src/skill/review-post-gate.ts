@@ -108,6 +108,20 @@ function isReadOnly(segment: string): boolean {
 }
 
 const TRANSCRIPT_DIR = /\.claude\/projects\b/;
+
+/**
+ * Text as the file system reads it (HOLD 6082847596 M3): APFS folds case, and
+ * // , /./ and dir/.. all resolve, so .Claude/Projects, .claude//projects and
+ * .claude/x/../projects open the transcripts dir.
+ */
+function pathFold(text: string): string {
+  let t = text.toLowerCase().replace(/\/(?:\.\/)+/g, '/').replace(/\/{2,}/g, '/');
+  for (let prev = ''; prev !== t; ) {
+    prev = t;
+    t = t.replace(/\/[^/\s]+\/\.\.(?=\/)/, '');
+  }
+  return t;
+}
 const REPO_FLAG = /(?:^|\s)(?:-R|--repo)(?:\s|=|$)/;
 // A guard call is one plain command: letters, digits, - _ . / : and spaces.
 // Quotes, escapes, globs, braces, ~, =, $, backticks and chaining would let the
@@ -175,7 +189,8 @@ function ghApiWrite(rest: string): string | null {
 
 /** Split a command line into shell segments on ; & | && || and newlines. */
 function segments(command: string): string[] {
-  return command.split(/\n|;|&&|\|\||\||&/).map((s) => s.trim()).filter(Boolean);
+  // An & inside a descriptor redirect (0<&0, 2>&1, &>f) is not a separator.
+  return command.split(/\n|;|&&|\|\||\||(?<![<>&])&(?![>&])/).map((s) => s.trim()).filter(Boolean);
 }
 
 /** Why a gh invocation in this segment is a write, or null when it is a read. */
@@ -342,7 +357,10 @@ const STDIN_FILE = /^(?:\/dev\/stdin|\/dev\/fd\/\d+|\/proc\/[^/]+\/fd\/\d+)$/;
  */
 function unseenScriptPath(f: string): boolean {
   if (/^[-<]/.test(f) || /[$`]/.test(f)) return true;
-  return f.startsWith('/') && STDIN_FILE.test(posix.normalize(f));
+  if (f.startsWith('/')) return STDIN_FILE.test(posix.normalize(f));
+  // A relative path resolves against a cwd this text does not fix (cd /dev;
+  // sh stdin): refuse any that could be stdin or a descriptor.
+  return STDIN_FILE.test(posix.normalize(`/${f}`)) || /(?:^|\/)(?:stdin|\d+)$/.test(f) || /(?:^|\/)(?:dev|proc|fd)(?:\/|$)/.test(f);
 }
 // No-argument flags; -n is a syntax check that runs nothing (never with -i).
 const NO_ARG_FLAG = /^-[elxuvn]+$/;
@@ -350,17 +368,40 @@ const NO_ARG_FLAG = /^-[elxuvn]+$/;
 const CHECKED = /^sh -c :(?:\s|$)/;
 const baseName = (t: string): string => t.replace(/^.*\//, '');
 
-/** The segment's words from its command word on, quotes removed. */
-function commandWords(part: string): string[] {
-  const toks = part.replace(/['"\\]/g, '').split(/\s+/).filter(Boolean);
+// A redirect word (2>/dev/null, 0<&0, </dev/stdin, &>f, <<EOF); an operator
+// alone (2> f) takes the next word as its target.
+// <( and >( are process substitutions, not redirects: they stay words.
+const REDIRECT = /^(?:\d*|&)(?:<<<|<<-?|>>|<>|<&|>&|&>>?|<|>)(?!\()(.*)$/;
+
+/**
+ * The words bash runs for one segment, from its command word on, or null when
+ * the gate cannot resolve them (HOLD 6082847596, XREVIEW 6082111346). Quotes
+ * are removed and every redirect is dropped, before or after the command word.
+ * Assignments are skipped. After a prefix word (env, nice, flock, ...) the
+ * command is the first word this classifier reads (a shell, runner, find, git,
+ * watch); a run-time word ($SHELL, $(which sh), a backtick) or an option
+ * before it is refused, because its argument count is not known here.
+ */
+export function resolveCommand(part: string): string[] | null {
+  const raw = part.replace(/['"\\]/g, '').split(/\s+/).filter(Boolean);
+  const toks: string[] = [];
+  for (let k = 0; k < raw.length; k += 1) {
+    const r = raw[k].match(REDIRECT);
+    if (r) {
+      if (r[1] === '') k += 1;
+      continue;
+    }
+    toks.push(raw[k]);
+  }
   let i = 0;
   while (i < toks.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[i])) i += 1;
   if (i < toks.length && PREFIX_WORDS.has(baseName(toks[i]))) {
-    // Stop at any word this classifier reads, so a prefix cannot hide find,
-    // git or watch (env find . -exec sh, env git -c alias.x=!sh x).
+    const rest = toks.slice(i + 1);
     const stop = (t: string) => RUNNERS.has(t) || STRING_RUNNERS.has(t) || t === 'find' || t === 'git';
-    const j = toks.findIndex((t, k) => k > i && stop(baseName(t)));
-    return j < 0 ? toks.slice(i) : toks.slice(j);
+    const j = rest.findIndex((t) => stop(baseName(t)));
+    if (j < 0) return toks.slice(i);
+    if (rest.slice(0, j).some((t) => /[$`]/.test(t) || /^[-+]/.test(t))) return null;
+    return rest.slice(j);
   }
   return toks.slice(i);
 }
@@ -372,7 +413,9 @@ function isRunnerWord(t: string): boolean {
 }
 
 function runsUnseenScript(part: string): string | null {
-  const w = commandWords(part);
+  const resolved = resolveCommand(part);
+  if (resolved === null) return 'a command word the gate cannot resolve';
+  const w = resolved;
   // A program word built at run time ($SHELL, ${S:-sh}, `x`), also behind a
   // prefix (env $SHELL): the gate cannot resolve it (product-6 HOLD 6081164375).
   const runtime = (t: string) => /[$`]/.test(t);
@@ -512,7 +555,7 @@ export function rawWriteReason(full: string): string | null {
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
         // A checked sh -c program (replaced by `sh -c :` above).
-        if (CHECKED.test(commandWords(part).join(' '))) {
+        if (CHECKED.test((resolveCommand(part) ?? []).join(' '))) {
           // The checked program is gone; its trailing words are still checked.
           const after = part.replace(/^[\s\S]*?sh -c :/, '').trim();
           const trail = after && (ghWrite(` ${after}`) ?? verbWrite(after) ?? httpWrite(after) ?? foldedWrite(after));
@@ -588,8 +631,9 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
 
 function touchesTranscript(text: string, transcriptPath: string | undefined): boolean {
-  if (transcriptPath && text.includes(transcriptPath)) return true;
-  return TRANSCRIPT_DIR.test(text);
+  const t = pathFold(text);
+  if (transcriptPath && t.includes(pathFold(transcriptPath))) return true;
+  return TRANSCRIPT_DIR.test(t);
 }
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
@@ -623,7 +667,8 @@ export function reviewPostGate(
 
 function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): HookResult {
   if (input.tool_name === 'Write' || input.tool_name === 'Edit' || input.tool_name === 'NotebookEdit') {
-    const fp = input.tool_input?.file_path;
+    // NotebookEdit names its file notebook_path, not file_path.
+    const fp = input.tool_input?.file_path ?? (input.tool_input as { notebook_path?: unknown } | undefined)?.notebook_path;
     if (typeof fp === 'string' && touchesTranscript(fp, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
     const root = deps.pluginRoot();
     if (typeof fp === 'string' && (/(?:^|\/)post-review\.mjs$/.test(fp) || (root && fp.startsWith(`${root}/skills/review-pr/`)))) {
