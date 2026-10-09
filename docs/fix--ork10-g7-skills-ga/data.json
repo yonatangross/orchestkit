@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-g7",
+  "page": "docs/fix--ork10-g7-skills-ga/index.html",
+  "lab_slug": "ork10-g7-skills-ga",
+  "purpose": "PR playground: GA bugs, skills: fork, hooks and target fixes"
+}
