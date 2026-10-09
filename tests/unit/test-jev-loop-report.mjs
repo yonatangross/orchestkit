@@ -74,7 +74,9 @@ try {
   result = collect(manifest([source([legacyInvalid])]));
   assert.equal(result.invalid_contracts, 2);
   assert.deepEqual(result.rows[0].contract_errors, ['null_incumbent_without_reason']);
-  assert.deepEqual(result.rows[1].contract_errors, ['non_choice_incumbent_requires_null_agree']);
+  // {status:'failed'} with no reason is not the documented failure shape
+  // ({status:'no_valid_result', choice:null, reason}), so it is also invalid (#4297).
+  assert.deepEqual(result.rows[1].contract_errors, ['invalid:incumbent_pick', 'non_choice_incumbent_requires_null_agree']);
   const invalid = write('invalid.jsonl', [row({ ...canonical, incumbent_pick: null, agree: null }),
     row({ ...canonical, incumbent_pick: { status: 'failed' }, agree: false })]);
   result = collect(manifest([source([invalid])]));
