@@ -504,8 +504,8 @@ describe('(HOLD 6078660476) git grep pager flags, one interpreter rule, fail-clo
   test('interpreter calls that name neither gh nor GitHub still run', () => {
     const t = transcript([typed('4668')]);
     for (const cmd of [
-      'python3 -c "print(1 + 1)"',
-      'node -e "console.log(JSON.parse(process.argv[1]).a)" \'{"a":1}\'',
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
       'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)',
       'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
     ]) {
@@ -664,7 +664,7 @@ describe('(HOLD 6079468845) one heredoc rule, the script is a call or a read, fa
     }
   });
   test('control: running a script file and plain shell work still pass', () => {
-    for (const cmd of ['bash scripts/resolve-target.sh 4668', 'sh -c "echo hi"', 'echo evaluate']) {
+    for (const cmd of ['bash scripts/resolve-target.sh 4668', 'echo evaluate']) {
       expect(isRawPost(cmd)).toBe(false);
     }
   });
@@ -673,8 +673,8 @@ describe('(HOLD 6079468845) one heredoc rule, the script is a call or a read, fa
       'ls ~/go/src/github.com/o/r',
       'mkdir -p /tmp/gh-review',
       'jq . /tmp/gh.json',
-      'bash -c "gh pr view 4668"',
-      "sh -c 'gh pr diff 4668'",
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
     ]) {
       expect(isRawPost(cmd)).toBe(false);
     }
@@ -857,7 +857,7 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
     ]);
   });
   test('control: an sh -c program with plain trailing words and no positional parameter, find -exec a reader', () => {
-    for (const cmd of ["sh -c 'echo hi' _", "bash -c 'git status'", 'find . -name x.ts -exec grep -n foo {} +', 'find . -maxdepth 1 -type f']) {
+    for (const cmd of ['find . -name x.ts -exec grep -n foo {} +', 'find . -maxdepth 1 -type f']) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
   });
@@ -867,7 +867,7 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
     }
   });
   test('control: a script file after a no-argument flag, a prefix on a non-shell, a readable sh -c', () => {
-    for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', "bash -c 'gh pr view 4668'", 'nice bash scripts/x.sh']) {
+    for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', 'nice bash scripts/x.sh']) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
   });
@@ -878,10 +878,9 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
   });
   test('control: sh -c with a readable program, a heredoc into a non-shell, prefixes on a non-shell', () => {
     for (const cmd of [
-      'bash -c "gh pr view 4668"',
-      "sh -c 'echo hi; ls'",
-      "bash -lc 'git status'",
-      "python3 - <<'PY'\nprint(1)\nPY",
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
+      // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
       'env FOO=1 node scripts/x.mjs',
       'nice bash scripts/resolve-target.sh 4668',
       'printf x | xargs echo',
@@ -1049,7 +1048,7 @@ describe('(XREVIEW HOLD 6084214694) an interpreter that can run a command denies
     }
   });
   test('control: interpreter calls that only compute or read pass', () => {
-    for (const cmd of [`awk '{print $1}' f.txt | sort`, `python3 -c "print(1)"`, 'node scripts/x.mjs', `jq -r .x f.json`, `awk -F, '{s+=$2} END {print s}' f.csv`]) {
+    for (const cmd of [`awk '{print $1}' f.txt | sort`, 'node scripts/x.mjs', `jq -r .x f.json`]) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
   });
@@ -1107,6 +1106,50 @@ describe('(HOLD 6084834846) ANSI-C quoting, cd into .claude, a deny that survive
   test('should: xargs into a word built at run time denies', () => {
     for (const cmd of ['printf x | xargs $G', 'printf x | xargs "$G"', 'printf x | xargs `echo sh`']) {
       expect(isRawPost(cmd), cmd).toBe(true);
+    }
+  });
+});
+
+describe('(XREVIEW HOLD 6084895142) every inline interpreter program denies, whatever it holds', () => {
+  const none = () => transcript([typed('4678')]);
+  test('Codex repros and the class: quoted names and computed names', () => {
+    for (const cmd of [
+      `printf 'echo synthetic-placeholder\\n' | a''wk 'BEGIN { system(sprintf("%c%c",115,104)) }'`,
+      `printf echo\\ synthetic-placeholder | python3 -c "getattr(__import__('o'+'s'),'sy'+'stem')('s'+'h')"`,
+      `node -e "require('child'+'_process')['ex'+'ecSync']('x')"`,
+      `p''ython3 -c "print(1)"`,
+      `python3 -c "print(1)"`,
+      `python3 - <<'PY'\nprint(1)\nPY`,
+      `node -p "1+1"`,
+      `perl -e 'print 1'`,
+      `perl -pi -e 's/a/b/' f.txt`,
+      `ruby -e 'puts 1'`,
+      `php -r 'echo 1;'`,
+      `osascript -e 'return 1'`,
+      `deno eval "console.log(1)"`,
+      `bash -c 'echo hi'`,
+      `sh -c "gh pr view 4668"`,
+      `awk 'BEGIN { print 1 }'`,
+      `awk -F, '{s+=$2} END {print s}' f.csv`,
+      `awk -f prog.awk f.txt`,
+    ]) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
+    }
+  });
+  test('control: a pure awk field print, a script file, jq and gh reads pass', () => {
+    for (const cmd of [
+      `printf 'synthetic-placeholder\\n' | awk '{print $1}'`,
+      `awk -F, '{print $2, $3}' f.csv`,
+      `awk '{print}' f.txt`,
+      'python3 scripts/x.py',
+      'node scripts/x.mjs',
+      'python3 -m json.tool f.json',
+      `jq -r '.files[].path' f.json`,
+      'gh pr view 4668 --json title',
+      'gh pr diff 4668 | head -50',
+    ]) {
+      expect(isRawPost(cmd), cmd).toBe(false);
     }
   });
 });

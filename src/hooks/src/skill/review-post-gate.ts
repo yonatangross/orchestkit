@@ -250,17 +250,8 @@ const INTERPRETER =
  * heredoc one item per line), so the whole command is read with newlines and
  * every non-word character folded to spaces.
  */
-// A primitive that runs a command from interpreter code: the command can be
-// built at run time (sprintf("%c%c",115,104)) and read the piped stdin, so no
-// gh word or host needs to appear (XREVIEW HOLD 6084214694).
-const RUNS_CODE =
-  /\b(?:system|exec[A-Za-z]*|popen|spawn[A-Za-z]*|fork|child_process|subprocess|shell_exec|passthru|proc_open|pcntl_exec|getline|qx|Open3|Kernel|eval)\b|IO\.popen|Deno\.(?:run|Command)|Bun\.spawn|do\s+shell\s+script|%x[({[<]/;
-// A | inside a quoted program pipes to a command (awk print | "sh", perl open "|x").
-const PIPE_IN_QUOTES = /'[^']*\|[^']*'|"[^"]*\|[^"]*"/;
-
 function interpreterWrite(command: string): string | null {
   if (!INTERPRETER.test(command)) return null;
-  if (RUNS_CODE.test(command) || PIPE_IN_QUOTES.test(command)) return 'an interpreter call that can run a command';
   if (GITHUB_HOST.test(command)) return 'an interpreter call that names a GitHub host';
   const folded = ` ${command.replace(/[^A-Za-z0-9_]+/g, ' ')} `;
   if (/\sgh\s/.test(folded)) return 'an interpreter call that names gh';
@@ -461,6 +452,46 @@ export function resolveCommand(part: string): string[] | null {
   return toks.slice(i);
 }
 
+// The only awk program that passes: a pure field print ({print}, {print $1, $NF}).
+const AWK_FIELD_PRINT = /^\{\s*print(?:\s+\$(?:\d+|NF)(?:\s*,?\s*\$(?:\d+|NF))*)?\s*;?\s*\}$/;
+
+/**
+ * Why this resolved command runs an inline interpreter program, or null
+ * (XREVIEW HOLD 6084895142). A primitive list cannot win against a computed
+ * name (getattr(__import__('o'+'s'),'sy'+'stem')), so every inline program
+ * denies whatever it holds: -c, -e, -p, -r, eval, a program on stdin, osascript,
+ * and any awk program but a pure field print. A script file passes.
+ */
+function inlineProgram(w: string[]): string | null {
+  const name = baseName(w[0] ?? '');
+  const args = w.slice(1);
+  const operand = args.find((a) => !a.startsWith('-'));
+  const has = (re: RegExp) => args.some((a) => re.test(a));
+  const why = `an inline ${name} program`;
+  if (/^(?:python|pypy|ipython)[0-9.]*$/.test(name)) {
+    if (has(/^-[A-Za-z]*c/) || args.includes('-')) return why;
+    if (operand === undefined && !has(/^-[A-Za-z]*m/)) return why;
+    return null;
+  }
+  if (/^(?:node|nodejs|bun|tsx|ts-node)$/.test(name)) {
+    return has(/^(?:-[A-Za-z]*[ep][A-Za-z]*|--eval|--print)(?:=|$)/) || operand === undefined ? why : null;
+  }
+  if (name === 'deno') return operand === undefined || operand === 'eval' || operand === 'repl' ? why : null;
+  if (/^(?:perl|ruby|php|lua|luajit|Rscript)$/.test(name)) {
+    return has(/^-[A-Za-z]*[eEr]/) || operand === undefined ? why : null;
+  }
+  if (/^(?:osascript|irb|tclsh|jshell|swift)$/.test(name)) return why;
+  if (/^[gmn]?awk$/.test(name)) {
+    let k = 0;
+    while (k < args.length && args[k].startsWith('-')) {
+      if (/^-f/.test(args[k])) return why;
+      k += /^-[Fv]$/.test(args[k]) ? 2 : 1;
+    }
+    return AWK_FIELD_PRINT.test(args[k] ?? '') ? null : why;
+  }
+  return null;
+}
+
 /** A word that runs a command or a script: a shell, interpreter, runner or prefix. */
 function isRunnerWord(t: string): boolean {
   const b = baseName(t);
@@ -484,6 +515,8 @@ function runsUnseenScript(part: string): string | null {
     if (v && !['', 'cat', 'less', 'more'].includes(v[1])) return 'a pager, editor or ssh variable set to a command';
   }
   const cmd = baseName(w[0] ?? '');
+  const inline = inlineProgram(w);
+  if (inline) return inline;
   // A shell or runner word after a command word that is not a known read or
   // a word this classifier reads (arch -arm64 sh, busybox sh): the gate does
   // not know that wrapper, so it cannot prove the shell does not run.
@@ -542,6 +575,8 @@ function checkShellPrograms(command: string): { why: string | null; rest: string
   for (const m of command.matchAll(SHELL_C_AT)) {
     const at = m.index ?? 0;
     if (at < last || !m[3].includes('c')) continue;
+    // Every sh -c program denies, whatever it holds (XREVIEW HOLD 6084895142).
+    if (at >= 0) return { why: 'an inline shell program (sh -c)', rest: command };
     const start = at + m[1].length;
     const i = at + m[0].length;
     const q = command[i];
