@@ -788,6 +788,8 @@ export function commandPaths(command: string, startCwd: string, home: string): s
   return pathSegments(command, startCwd, home).flatMap((x) => x.paths);
 }
 
+const UNRESOLVED_CD = '\u0000unresolved-cd';
+
 /** Each segment with its resolved path words. */
 function pathSegments(command: string, startCwd: string, home: string): Array<{ seg: string; paths: string[] }> {
   const out: Array<{ seg: string; paths: string[] }> = [];
@@ -807,9 +809,15 @@ function pathSegments(command: string, startCwd: string, home: string): Array<{ 
     out.push({ seg, paths });
     const at = words.findIndex((w) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(w));
     if (at >= 0 && (words[at] === 'cd' || words[at] === 'pushd')) {
-      const target = words.slice(at + 1).find((w) => !w.startsWith('-'));
-      // A cd target the gate cannot resolve makes every later relative path unknown.
-      cwd = target === undefined ? h : (resolvePath(target, cwd, h) ?? '');
+      const target = words.slice(at + 1).find((w) => !/^-./.test(w));
+      // A target the gate cannot resolve (cd -, $D, a backtick, ~user) would
+      // leave every later relative path unseen: the segment is marked unresolved.
+      if (target !== undefined && (target === '-' || /[$`]/.test(target) || /^~[^/]/.test(target))) {
+        out.push({ seg: UNRESOLVED_CD, paths: [] });
+        cwd = '';
+      } else {
+        cwd = target === undefined ? h : (resolvePath(target, cwd, h) ?? '');
+      }
     }
   }
   return out;
@@ -917,6 +925,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   const views = checkShellPrograms(command);
   const pathViews = [...new Set([views.rest, views.flat, command])];
   for (const { seg, paths } of pathViews.flatMap((v) => pathSegments(v, input.cwd ?? '', deps.home?.() ?? ''))) {
+    if (seg === UNRESOLVED_CD) return deny(ctx, input, 'review-pr: a cd or pushd target the gate cannot resolve (cd -, a variable, a command) is denied, because the paths after it would be unseen.');
     const hits = paths.map((p) => targetOf(p, targets));
     if (hits.includes('config')) return deny(ctx, input, TRANSCRIPT_DENY);
     // The gate's code (hooks, skills/review-pr) may be read or run as a script

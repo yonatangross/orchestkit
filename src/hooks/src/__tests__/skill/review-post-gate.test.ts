@@ -1181,6 +1181,16 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
     const input = { tool_name: 'Bash', session_id: 's', cwd: ROOT, tool_input: { command: 'ls /opt/cfg/claude' }, transcript_path: t, tool_use_id: TOOL } as HookInput;
     expect(denied(reviewPostGate(input, ctx))).toBe(true);
   });
+  test('a cd target the gate cannot resolve denies (the later relative paths would be unseen)', () => {
+    for (const cmd of ['D=~/.claude; cd "$D" && cat projects/p/s.jsonl', 'cd - && cat projects/p/s.jsonl', 'cd `echo ~/.claude` && ls', 'pushd $(dirname x) && ls']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('control: a plain cd still passes', () => {
+    for (const cmd of ['cd src && ls', 'cd /test/project/docs; ls', 'cd && ls']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
   test('control: the project\'s own .claude and reads of the plugin code pass', () => {
     for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md', 'cat /test/plugin-root/skills/review-pr/SKILL.md', 'cat /test/plugin-root/hooks/bin/run-hook.mjs']) {
       expect(at(cmd), cmd).toBe(false);
