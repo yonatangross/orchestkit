@@ -335,10 +335,9 @@ describe('the transcripts dir cannot be touched while the skill runs', () => {
   test('documented limit: a path built at run time is not seen by the text check', () => {
     // Quote removal now reads "$HOME/.claude/proj""ects" as the dir (HOLD 6083798707 M4).
     expect(denied(reviewPostGate(bash('P="$HOME/.claude/proj""ects"; ls "$P"', transcript([typed('4668')])), ctx))).toBe(true);
-    // A name held in a variable is still out of reach of a text check; the chain
-    // check stops an appended fake line, an in-place edit stays out of reach (#4677).
+    // The allowlist (HOLD 6085798647) closes this old limit: an assignment denies.
     const cmd = 'D=.claude; ls "$HOME/$D/projects"';
-    expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
+    expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(true);
   });
 });
 
@@ -510,7 +509,7 @@ describe('(HOLD 6078660476) git grep pager flags, one interpreter rule, fail-clo
     for (const cmd of [
       // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
       // XREVIEW HOLD 6084895142: every inline interpreter or sh -c program now denies (see that block).
-      'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)',
+      'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo /test/project',
       'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
     ]) {
       expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
@@ -647,7 +646,6 @@ describe('(HOLD 6079468845) one heredoc rule, the script is a call or a read, fa
   test('control: a pure read of the script still passes', () => {
     const t = transcript([typed('4668')]);
     for (const cmd of [
-      'cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs',
       'grep -n post scripts/post-review.mjs 2>/dev/null',
       'wc -l scripts/post-review.mjs && head -5 scripts/post-review.mjs',
     ]) {
@@ -766,13 +764,11 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
   test('control (product-6): reads with a pipe, a read of the guard, a review heredoc', () => {
     for (const cmd of [
       'git log --oneline -5 | cat',
-      'npm test 2>&1 | tail -20',
       'gh pr diff 4668 | head -200',
-      "cat <<'EOF' > /tmp/review-4668.md\n## Review\n1. The loop at a.ts:12 never ends.\nEOF",
     ]) {
       expect(isRawPost(cmd), cmd).toBe(false);
     }
-    for (const cmd of ['cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs', 'grep -n post /test/plugin-root/skills/review-pr/scripts/post-review.mjs | head -5']) {
+    for (const cmd of ['grep -n post scripts/post-review.mjs | head -5']) {
       expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(false);
     }
   });
@@ -1018,7 +1014,7 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
     }
   });
   test('control (HOLD 6083798707): reads that name a shell word or the hook code still pass', () => {
-    for (const cmd of ['grep -n bash scripts/x.sh', 'cat /test/plugin-root/hooks/bin/run-hook.mjs', 'git log --grep sh']) {
+    for (const cmd of ['grep -n bash scripts/x.sh', 'git log --grep sh']) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);
     }
   });
@@ -1199,13 +1195,13 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
       else process.env.CDPATH = saved;
     }
   });
-  test('control: a plain cd still passes', () => {
+  test('a plain cd denies too, under the allowlist (HOLD 6085798647: no cd)', () => {
     for (const cmd of ['cd src && ls', 'cd /test/project/docs; ls', 'cd && ls']) {
-      expect(at(cmd), cmd).toBe(false);
+      expect(at(cmd), cmd).toBe(true);
     }
   });
   test('control: the project\'s own .claude and reads of the plugin code pass', () => {
-    for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md', 'cat /test/plugin-root/skills/review-pr/SKILL.md', 'cat /test/plugin-root/hooks/bin/run-hook.mjs']) {
+    for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1214,9 +1210,9 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
 describe('(conductor144 correction at 41ed231d) sh -c programs are parsed as nested command lines', () => {
   const tr = () => transcript([typed('4668')]);
   const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
-  test('control: readable sh -c programs of reads pass', () => {
+  test('readable sh -c programs deny too, under the allowlist (HOLD 6085798647: no subshells)', () => {
     for (const cmd of [`bash -c "gh pr view 4668"`, `bash -c 'git status'`, `bash -lc 'git status'`, `sh -c 'git log --oneline -3'`, `bash -c 'echo hi'`]) {
-      expect(at(cmd), cmd).toBe(false);
+      expect(at(cmd), cmd).toBe(true);
     }
   });
   test('a write, an inline interpreter or a protected path inside the program denies, nested too', () => {
@@ -1231,6 +1227,103 @@ describe('(conductor144 correction at 41ed231d) sh -c programs are parsed as nes
     ]) {
       expect(at(cmd), cmd).toBe(true);
     }
+  });
+});
+
+describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-only commands', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  test('product-8 musts and commands outside the set deny', () => {
+    for (const cmd of [
+      'cat ~root/.claude/projects/p/s.jsonl',
+      'ls ~-',
+      'cat ~+/x',
+      '(cd ~/.claude && cat projects/p/s.jsonl)',
+      '{ cd ~/.claude; cat projects/p/s.jsonl; }',
+      'pushd /tmp; popd; cat projects/p/s.jsonl',
+      'CDPATH=/x cd .claude && ls',
+      'ls -d$HOME/.claude',
+      'grep -r x --file=/Users/me/.claude/projects/p/s.jsonl .',
+      'cat /System/Volumes/Data/Users/me/.claude/projects/p/s.jsonl',
+      'python3 -W ignore /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py x',
+      'node --import data:text/javascript,1 /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs',
+      'echo hi',
+      'cd src && ls',
+      'X=1 git status',
+      'git -C .. status',
+      'cat /etc/hosts',
+      'cat ../x',
+      'ls > out.txt',
+      'git log --output=x',
+      'gh pr comment 4668 -b x',
+      'gh issue comment 1 -b x',
+      'git push origin HEAD',
+      "awk 'BEGIN { print 1 }'",
+      'ls `pwd`',
+      'ls $(pwd)',
+      'cat .env &',
+      'gh api -X POST repos/o/r/issues/1/comments -f body=x',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('control: the read-only set passes, and the skill scripts by their pinned path', () => {
+    for (const cmd of [
+      'gh pr view 4668 --json title,body',
+      'gh pr diff 4668 | head -200',
+      "gh pr checks 4668 --json name --jq '.[] | .name'",
+      "gh api repos/o/r/pulls/4668/files --paginate --jq '.[].filename'",
+      'gh repo view --json defaultBranchRef',
+      'git log --oneline -5 | cat',
+      'git diff main...HEAD -- src/x.ts',
+      'git status',
+      'git rev-parse --show-toplevel',
+      'git fetch origin main',
+      "jq -r '.files[].path' f.json",
+      'grep -rn TODO src',
+      'ls **/docker-compose*.yml 2>/dev/null',
+      'cat src/x.ts | head -20',
+      "awk '{print $1}' f.txt | sort | uniq -c",
+      'wc -l src/x.ts 2>&1',
+      'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo /test/project',
+      'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
+      'bash /test/plugin-root/skills/review-pr/scripts/resolve-target.sh 4668',
+      'ls .claude',
+      'git diff -- .claude',
+    ]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('read cost, measured: reads that passed before the allowlist and now deny', () => {
+    for (const cmd of [
+      'cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs',
+      'cat /test/plugin-root/hooks/bin/run-hook.mjs',
+      'npm test 2>&1 | tail -20',
+      "cat <<'EOF' > /tmp/review-4668.md\n## Review\nEOF",
+      'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)',
+      'cd src && ls',
+      `bash -c "gh pr view 4668"`,
+      `bash -lc 'git status'`,
+      `python3 -c "print(1)"`,
+      'echo hi',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('a symlink in the repo that points out of it denies (realpath)', () => {
+    const deps = {
+      readOptIn,
+      pluginRoot: () => '/test/plugin-root',
+      home: () => '/Users/me',
+      realpath: (p: string) => (p.startsWith('/test/project/link') ? p.replace('/test/project/link', '/Users/me/.claude/projects') : p),
+    };
+    expect(denied(reviewPostGate(bash('cat link/p/s.jsonl', tr()), ctx, deps))).toBe(true);
+  });
+  test('Write to the transcripts dir by a firmlink or symlink path denies', () => {
+    const w = (file_path: string) => ({ tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL }) as HookInput;
+    expect(denied(reviewPostGate(w('/System/Volumes/Data/Users/me/.claude/projects/p/s.jsonl'), ctx))).toBe(true);
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: (p: string) => (p.startsWith('/tmp/l') ? p.replace('/tmp/l', '/Users/me/.claude') : p) };
+    expect(denied(reviewPostGate(w('/tmp/l/projects/p/s.jsonl'), ctx, deps))).toBe(true);
   });
 });
 

@@ -61,6 +61,7 @@ import { outputDeny, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { posix } from 'node:path';
+import { realPath } from '../lib/real-path.js';
 
 const HOOK = 'review-post-gate';
 const SKILL_NAMES = ['/ork:review-pr'] as const;
@@ -382,12 +383,16 @@ function shellWords(text: string): string[] {
     if (quote) {
       cur += c;
       if (c === quote) quote = '';
-      else if (quote === '"' && c === '\\' && k + 1 < text.length) cur += text[(k += 1)];
+      else if (quote === '"' && c === '\\' && k + 1 < text.length) {
+        k += 1;
+        cur += text[k];
+      }
     } else if (c === "'" || c === '"') {
       quote = c;
       cur += c;
     } else if (c === '\\' && k + 1 < text.length) {
-      cur += c + text[(k += 1)];
+      k += 1;
+      cur += c + text[k];
     } else if (/\s/.test(c)) {
       if (cur) out.push(cur);
       cur = '';
@@ -452,7 +457,13 @@ export function resolveCommand(part: string): string[] | null {
 }
 
 // The only awk program that passes: a pure field print ({print}, {print $1, $NF}).
-const AWK_FIELD_PRINT = /^\{\s*print(?:\s+\$(?:\d+|NF)(?:\s*,?\s*\$(?:\d+|NF))*)?\s*;?\s*\}$/;
+function isAwkFieldPrint(program: string): boolean {
+  // No nested quantifiers (CodeQL ReDoS at 41ed231d): collapse blanks, then split.
+  const m = program.replace(/\s+/g, ' ').trim().match(/^\{ ?print\b([^;}]*);? ?\}$/);
+  if (!m) return false;
+  const fields = m[1].trim();
+  return fields === '' || fields.split(/ ?, ?| /).every((f) => /^\$(?:\d+|NF)$/.test(f));
+}
 
 /**
  * Why this resolved command runs an inline interpreter program, or null
@@ -486,7 +497,7 @@ function inlineProgram(w: string[]): string | null {
       if (/^-f/.test(args[k])) return why;
       k += /^-[Fv]$/.test(args[k]) ? 2 : 1;
     }
-    return AWK_FIELD_PRINT.test(args[k] ?? '') ? null : why;
+    return isAwkFieldPrint(args[k] ?? '') ? null : why;
   }
   return null;
 }
@@ -726,6 +737,8 @@ export interface ReviewPostGateDeps {
   home?: () => string;
   /** CDPATH from the environment: set, a relative cd target is not resolvable. */
   cdpath?: () => string;
+  /** The real path (symlinks and firmlinks resolved), for the path compares. */
+  realpath?: (p: string) => string;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -733,6 +746,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   pluginRoot: () => (process.env.CLAUDE_PLUGIN_ROOT ?? '').trim().replace(/\/+$/, ''),
   home: () => process.env.HOME ?? '',
   cdpath: () => process.env.CDPATH ?? '',
+  realpath: realPath,
 };
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
@@ -783,7 +797,7 @@ function resolvePath(word: string, cwd: string, home: string): string | null {
     w = home + w.replace(HOME_ALIAS, '');
   }
   const abs = w.startsWith('/') ? w : cwd ? `${cwd}/${w}` : null;
-  return abs === null ? null : posix.normalize(abs).replace(/(.)\/+$/, '$1');
+  return abs === null ? null : posix.normalize(abs).replace(/^\/system\/volumes\/data(?=\/)/, '').replace(/(.)\/+$/, '$1');
 }
 
 /** Every path word of a command, each resolved against the cwd it runs in. */
@@ -838,7 +852,10 @@ function pathTargets(input: HookInput, deps: ReviewPostGateDeps): PathTargets {
   const cut = tp.lastIndexOf('/projects/');
   if (cut > 0) config.add(tp.slice(0, cut));
   const root = deps.pluginRoot() ? posix.normalize(deps.pluginRoot().toLowerCase()).replace(/\/+$/, '') : '';
-  return { configDirs: [...config], codeDirs: root ? [`${root}/hooks`, `${root}/skills/review-pr`] : [] };
+  const code = root ? [`${root}/hooks`, `${root}/skills/review-pr`] : [];
+  // A protected dir may itself be a symlink: compare its real path too.
+  const real = (d: string) => (deps.realpath ? deps.realpath(d).toLowerCase() : d);
+  return { configDirs: [...new Set([...config].flatMap((d) => [d, real(d)]))], codeDirs: [...new Set(code.flatMap((d) => [d, real(d)]))] };
 }
 
 /** Which target a path reaches: 'config', 'code', or null. */
@@ -899,7 +916,8 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     const fp = input.tool_input?.file_path ?? (input.tool_input as { notebook_path?: unknown } | undefined)?.notebook_path;
     const targets = pathTargets(input, deps);
     const p = typeof fp === 'string' ? resolvePath(fp, (input.cwd ?? '').toLowerCase(), (deps.home?.() ?? '').toLowerCase()) : null;
-    const hit = p === null ? null : targetOf(p, targets);
+    const real = p !== null && deps.realpath ? deps.realpath(p).toLowerCase() : null;
+    const hit = p === null ? null : (targetOf(p, targets) ?? (real ? targetOf(real, targets) : null));
     const isTranscript = typeof fp === 'string' && typeof input.transcript_path === 'string' && pathFold(fp) === pathFold(input.transcript_path);
     if (hit === 'config' || isTranscript) return deny(ctx, input, TRANSCRIPT_DENY);
     if (hit === 'code' || (typeof fp === 'string' && /(?:^|\/)post-review\.mjs$/i.test(fp))) {
@@ -926,6 +944,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x) };
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -941,9 +960,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     // copied over or removed.
     if (!hits.includes('code') || plainGuardCall) continue;
     const quiet = seg.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
-    const w = resolveCommand(quiet) ?? [];
-    const runsScript = /^(?:node|python[0-9.]*)$/.test(baseName(w[0] ?? '')) && inlineProgram(w) === null;
-    if (/[<>]/.test(quiet) || !(isReadOnly(quiet.trim()) || runsScript)) {
+    if (/[<>]/.test(quiet) || allowlistReason(quiet, allowCtx) !== null) {
       return deny(ctx, input, 'review-pr may only read the gate code (hooks, skills/review-pr): the post gate runs from it.');
     }
   }
@@ -955,13 +972,17 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
       `review-pr runs gh read-only (${why} is a write). Posts go through scripts/post-review.mjs, and only when the user typed --post. Do not retry another way: print the review and stop.`,
     );
   }
-  if (!GUARD_SCRIPT.test(command)) return outputSilentSuccess();
+  if (!GUARD_SCRIPT.test(command)) {
+    const notListed = allowlistReason(command, allowCtx);
+    if (notListed) return deny(ctx, input, `${ALLOW_DENY} (${notListed}).`);
+    return outputSilentSuccess();
+  }
   if (!GUARD_CALL.test(command.trim())) {
     // Named but not run as `node <path>/post-review.mjs`: only a pure read is
     // fine, every segment a read and no redirect, so the file cannot reach node
     // on stdin (cat <script> | node -) or be copied (HOLD 6079468845, Codex P1).
     const quiet = command.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
-    if (!/[<>]/.test(quiet) && segments(quiet).every(isReadOnly)) return outputSilentSuccess();
+    if (!/[<>]/.test(quiet) && segments(quiet).every(isReadOnly) && allowlistReason(command, allowCtx) === null) return outputSilentSuccess();
     return deny(ctx, input, 'Run post-review.mjs only as `node <path>/post-review.mjs ...`, one plain command, so this gate reads what runs.');
   }
 
@@ -1018,3 +1039,312 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   ctx.log(HOOK, `post allowed: user opt-in present for PR ${pr}`);
   return outputSilentSuccess();
 }
+
+// ---------------------------------------------------------------------------
+// ALLOWLIST (HOLD 6085798647, the floor's design change). Six rounds showed a
+// denylist over shell text cannot close this class. While the gate is armed,
+// a Bash or Monitor call passes only when it parses cleanly into simple
+// commands from a fixed read-only set; everything else denies.
+// ---------------------------------------------------------------------------
+
+interface Word {
+  /** The word as bash passes it: quotes removed. */
+  text: string;
+  /** An unquoted glob character (* ? [) is in the word. */
+  glob: boolean;
+  /** A plain $NAME is in the word. */
+  variable: boolean;
+}
+
+type Tokens = { ok: true; commands: Word[][] } | { ok: false; why: string };
+
+const NAME_CHAR = /[A-Za-z0-9_]/;
+
+/**
+ * Split a command line into simple commands of words. Refused, with a reason:
+ * any expansion but a plain $NAME ($( ), backticks, ${ }, $'', $"", <( )),
+ * a subshell or group, a heredoc or any redirect but 2>/dev/null, >/dev/null
+ * and 2>&1, a background &, a tilde, an unquoted backslash or comment, an
+ * unterminated quote. Separators: ; && || | and newline.
+ */
+export function tokenizeAllowed(command: string): Tokens {
+  const commands: Word[][] = [];
+  let words: Word[] = [];
+  let cur = '';
+  let started = false;
+  let glob = false;
+  let variable = false;
+  const endWord = () => {
+    if (started) words.push({ text: cur, glob, variable });
+    cur = '';
+    started = false;
+    glob = false;
+    variable = false;
+  };
+  const endCommand = () => {
+    endWord();
+    if (words.length) commands.push(words);
+    words = [];
+  };
+  const dollar = (s: string, k: number): number => {
+    // A plain $NAME only; returns the index after it, or -1.
+    let j = k + 1;
+    while (j < s.length && NAME_CHAR.test(s[j])) j += 1;
+    return j > k + 1 && /[A-Za-z_]/.test(s[k + 1]) ? j : -1;
+  };
+  const text = command.replace(/\\\n/g, '');
+  let k = 0;
+  while (k < text.length) {
+    const c = text[k];
+    if (c === "'") {
+      const end = text.indexOf("'", k + 1);
+      if (end < 0) return { ok: false, why: 'an unterminated quote' };
+      cur += text.slice(k + 1, end);
+      started = true;
+      k = end + 1;
+      continue;
+    }
+    if (c === '"') {
+      let j = k + 1;
+      for (; j < text.length && text[j] !== '"'; j += 1) {
+        const d = text[j];
+        if (d === '`') return { ok: false, why: 'a command substitution' };
+        if (d === '\\') {
+          j += 1;
+          if (j < text.length) cur += /["\\$]/.test(text[j]) ? text[j] : `\\${text[j]}`;
+          continue;
+        }
+        if (d === '$') {
+          const after = dollar(text, j);
+          if (after < 0) return { ok: false, why: 'an expansion other than a plain $NAME' };
+          cur += text.slice(j, after);
+          variable = true;
+          j = after - 1;
+          continue;
+        }
+        cur += d;
+      }
+      if (j >= text.length) return { ok: false, why: 'an unterminated quote' };
+      started = true;
+      k = j + 1;
+      continue;
+    }
+    if (c === ' ' || c === '\t') {
+      endWord();
+      k += 1;
+      continue;
+    }
+    if (c === '\n' || c === ';') {
+      endCommand();
+      k += 1;
+      continue;
+    }
+    if (c === '|') {
+      if (text[k + 1] === '&') return { ok: false, why: 'a |& pipe' };
+      endCommand();
+      k += text[k + 1] === '|' ? 2 : 1;
+      continue;
+    }
+    if (c === '&') {
+      if (text[k + 1] !== '&') return { ok: false, why: 'a background & or an &> redirect' };
+      endCommand();
+      k += 2;
+      continue;
+    }
+    if (c === '>' || c === '<') {
+      // Only 2>/dev/null, >/dev/null, 1>/dev/null and 2>&1, as one word.
+      const fd = started && /^\d$/.test(cur) ? cur : '';
+      const m = text.slice(k).match(/^(>\/dev\/null|>&1)(?=[\s;&|]|$)/);
+      if (c === '<' || !m || (m[1] === '>&1' && fd !== '2') || (fd && !/^[12]$/.test(fd))) {
+        return { ok: false, why: 'a redirect other than 2>/dev/null, >/dev/null or 2>&1' };
+      }
+      if (fd) {
+        cur = '';
+        started = false;
+      } else {
+        endWord();
+      }
+      k += m[1].length;
+      continue;
+    }
+    if (c === '$') {
+      const after = dollar(text, k);
+      if (after < 0) return { ok: false, why: 'an expansion other than a plain $NAME' };
+      cur += text.slice(k, after);
+      started = true;
+      variable = true;
+      k = after;
+      continue;
+    }
+    if ('`(){}\\!'.includes(c)) return { ok: false, why: `an unquoted ${c}` };
+    if (c === '#' && !started) return { ok: false, why: 'a comment' };
+    if (c === '~' && !started) return { ok: false, why: 'a tilde' };
+    if ('*?['.includes(c)) glob = true;
+    cur += c;
+    started = true;
+    k += 1;
+  }
+  endCommand();
+  return { ok: true, commands };
+}
+
+const READ_CMDS = new Set(['ls', 'cat', 'head', 'tail', 'wc', 'grep', 'rg', 'test']);
+const FILTER_CMDS = new Set(['sort', 'uniq', 'cut', 'tr', 'nl']);
+const GH_PR_READ = new Set(['view', 'diff', 'checks', 'list']);
+const GIT_READ = new Set(['log', 'diff', 'show', 'status', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
+const SKILL_SCRIPTS: Record<string, string> = {
+  node: 'collect-rules.mjs',
+  python3: 'verdict_writeback.py',
+  bash: 'resolve-target.sh',
+};
+
+export interface AllowContext {
+  /** The call's cwd, the repo the paths must stay inside. */
+  cwd: string;
+  /** CLAUDE_PLUGIN_ROOT, '' when unset. */
+  root: string;
+  /** The real path of a path (symlinks and firmlinks resolved), or the path. */
+  realpath: (p: string) => string;
+}
+
+/** Why a path argument leaves the repo cwd, or null. */
+function pathOutside(arg: Word, ctx: AllowContext): string | null {
+  const t = arg.text;
+  if (arg.variable) return `a variable in a path (${t})`;
+  if (t.startsWith('~')) return `a tilde path (${t})`;
+  if (t.split('/').some((c) => c === '..')) return `a .. path (${t})`;
+  // A glob segment that starts with . can match . and .. (bash before globskipdots).
+  if (arg.glob && t.split('/').some((c) => c.startsWith('.') && /[*?[]/.test(c))) return `a dot glob (${t})`;
+  if (!ctx.cwd) return 'no cwd to resolve paths against';
+  const abs = posix.normalize(t.startsWith('/') ? t : `${ctx.cwd}/${t}`);
+  const root = posix.normalize(ctx.cwd);
+  const inside = (p: string, base: string) => p === base || p.startsWith(`${base.replace(/\/$/, '')}/`);
+  // The repo, or a temp dir (a fetched diff or JSON); checked by real path, so
+  // a symlink in either cannot point out of it.
+  const real = arg.glob ? abs : ctx.realpath(abs);
+  const temp = (x: string) => /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/.test(x);
+  if (!(inside(abs, root) && (arg.glob || inside(real, ctx.realpath(root)))) && !(temp(abs) && temp(real))) {
+    return `a path outside the repo and the temp dir (${t})`;
+  }
+  return null;
+}
+
+/** Positional args (not options) of a read command, all paths, checked. */
+function pathsInside(args: Word[], ctx: AllowContext, skipFirst = false): string | null {
+  let skipped = !skipFirst;
+  for (const a of args) {
+    if (a.text.startsWith('-')) {
+      // An option may not carry a path, a variable or a tilde (-C$HOME, --file=/x).
+      if (a.variable || /[/~]/.test(a.text)) return `an option with a path or variable (${a.text})`;
+      continue;
+    }
+    if (!skipped) {
+      skipped = true;
+      continue;
+    }
+    const why = pathOutside(a, ctx);
+    if (why) return why;
+  }
+  return null;
+}
+
+/** Why a simple command is not on the read-only allowlist, or null. */
+export function notAllowed(words: Word[], ctx: AllowContext): string | null {
+  const [first, ...args] = words;
+  const cmd = first.text;
+  if (/=/.test(cmd) && !first.text.startsWith('-')) return 'an environment assignment';
+  if (first.variable || first.glob) return 'a command word built at run time';
+  if (READ_CMDS.has(cmd)) {
+    if (cmd === 'rg' && args.some((a) => /^--pre(?:-glob)?(?:=|$)/.test(a.text))) return 'rg --pre runs a command';
+    // grep's and rg's first positional is the pattern unless -e or -f gives it.
+    const patternGiven = args.some((a) => /^-(?:[A-Za-z]*[ef]|-regexp|-file)/.test(a.text));
+    return pathsInside(args, ctx, (cmd === 'grep' || cmd === 'rg') && !patternGiven);
+  }
+  // sed only as one whole sed -n 'N,Mp' <file> (GNU sed's e command runs a shell).
+  if (cmd === 'sed') {
+    const ok = args.length === 3 && args[0].text === '-n' && /^\d+(?:,\d+)?p$/.test(args[1].text);
+    return ok ? pathOutside(args[2], ctx) : "sed other than sed -n 'N,Mp' <file>";
+  }
+  if (FILTER_CMDS.has(cmd)) {
+    if (cmd === 'sort' && args.some((a) => /^-(?:[A-Za-z]*[oT]|-output|-temporary-directory|-compress-program)/.test(a.text))) return 'sort writing a file';
+    if (cmd === 'uniq' && args.filter((a) => !a.text.startsWith('-')).length > 1) return 'uniq writing a file';
+    if (cmd === 'tr') return args.some((a) => a.variable) ? 'a variable in tr' : null;
+    return pathsInside(args, ctx);
+  }
+  if (cmd === 'jq') {
+    // The filter is the first positional; --arg/--argjson take two values.
+    let filterSeen = false;
+    for (let i = 0; i < args.length; i += 1) {
+      const a = args[i];
+      if (/^--(?:arg|argjson)$/.test(a.text)) {
+        i += 2;
+        continue;
+      }
+      if (/^-(?:f|L|-from-file|-rawfile|-slurpfile)$/.test(a.text)) return 'jq reading a program or extra file';
+      if (a.text.startsWith('-')) {
+        if (a.variable || /[/~]/.test(a.text)) return `an option with a path or variable (${a.text})`;
+        continue;
+      }
+      if (!filterSeen) {
+        filterSeen = true;
+        continue;
+      }
+      const why = pathOutside(a, ctx);
+      if (why) return why;
+    }
+    return null;
+  }
+  if (cmd === 'awk') {
+    const program = args.find((a) => !a.text.startsWith('-'));
+    if (args.some((a) => /^-(?:f|-file)/.test(a.text)) || !program || !isAwkFieldPrint(program.text)) return 'an awk program other than a pure field print';
+    return pathsInside(args.filter((a) => /^-F/.test(a.text) === false), ctx, true);
+  }
+  if (cmd === 'gh') {
+    let at = 0;
+    while (at < args.length && /^(?:-R|--repo)$/.test(args[at].text)) at += 2;
+    while (at < args.length && /^--repo=/.test(args[at].text)) at += 1;
+    const [sub, verb] = args.slice(at).map((a) => a.text);
+    if (sub === 'pr' && GH_PR_READ.has(verb ?? '')) return null;
+    if (GH_READ[sub ?? '']?.includes(verb ?? '') || GH_READ_ANY_VERB.has(sub ?? '')) return null;
+    if (sub === 'api') {
+      const rest = args.slice(at + 1).map((a) => a.text).join(' ');
+      return ghApiWrite(rest) ?? (/(?:^|\s)--hostname\b/.test(rest) ? 'gh api to another host' : null);
+    }
+    return `${`gh ${sub ?? ''} ${verb ?? ''}`.trim()} is not a gh read on the list`;
+  }
+  if (cmd === 'git') {
+    const sub = args[0]?.text ?? '';
+    if (sub === 'fetch') {
+      const rest = args.slice(1).map((a) => a.text);
+      return rest.length === 2 && rest[0] === 'origin' && /^[A-Za-z0-9._/-]+$/.test(rest[1]) && !rest[1].startsWith('-') ? null : 'git fetch other than git fetch origin <branch>';
+    }
+    if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
+    for (const a of args.slice(1)) {
+      if (/^--(?:output|ext-diff|textconv|exec|upload-pack|config-env)/.test(a.text)) return `git ${sub} ${a.text}`;
+    }
+    if (sub === 'grep' && gitGrepPager(`git grep ${args.slice(1).map((a) => a.text).join(' ')}`)) return 'git grep with a pager command';
+    const dash = args.findIndex((a) => a.text === '--');
+    return dash < 0 ? null : pathsInside(args.slice(dash + 1), ctx);
+  }
+  // The skill's own scripts, by their exact pinned path, as one plain call.
+  const script = SKILL_SCRIPTS[cmd];
+  if (script && ctx.root && args[0]?.text === `${ctx.root}/skills/review-pr/scripts/${script}`) {
+    return args.slice(1).some((a) => a.glob) ? 'a glob in a skill script call' : null;
+  }
+  return `${cmd} is not on the read-only list`;
+}
+
+/** Why a Bash command is not on the allowlist, or null when every simple command is. */
+export function allowlistReason(command: string, ctx: AllowContext): string | null {
+  const parsed = tokenizeAllowed(command);
+  if (!parsed.ok) return parsed.why;
+  if (parsed.commands.length === 0) return 'an empty command';
+  for (const words of parsed.commands) {
+    const why = notAllowed(words, ctx);
+    if (why) return why;
+  }
+  return null;
+}
+
+const ALLOW_DENY =
+  'review-pr runs Bash only as simple read-only commands: gh pr view|diff|checks|list, gh repo view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, file list, merge-base), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep on paths in the repo, sort, uniq, cut, tr, nl, an awk field print, and the skill scripts by their pinned path. No cd, assignments, subshells, expansions but $NAME, or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here';
