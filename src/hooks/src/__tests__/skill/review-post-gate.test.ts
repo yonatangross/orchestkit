@@ -12,12 +12,13 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
 import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
+import { realPath } from '../../lib/real-path.js';
 
 let dir: string;
 const savedRoot = process.env.CLAUDE_PLUGIN_ROOT;
@@ -1281,7 +1282,8 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       'git fetch origin main',
       "jq -r '.files[].path' f.json",
       'grep -rn TODO src',
-      'ls ./**/docker-compose*.yml 2>/dev/null',
+      // A glob path now denies (conductor145 at 348161fb); rg -g is the read that stays.
+      "rg --files -g '**/docker-compose*.yml' 2>/dev/null",
       'cat src/x.ts | head -20',
       "awk '{print $1}' f.txt | sort | uniq -c",
       'wc -l src/x.ts 2>&1',
@@ -1388,7 +1390,7 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
     for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *', 'ls **/docker-compose*.yml 2>/dev/null']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    for (const cmd of ['rg TODO ./*', 'cat src/*.ts', 'ls -- *.md', 'git diff -- *.ts']) {
+    for (const cmd of ['rg TODO ./src', 'cat src/x.ts', 'ls -- src', 'git diff -- src/x.ts']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1430,6 +1432,46 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
     }
     for (const cmd of ['npm run test', 'npm run lint', 'poetry run pytest tests/', 'claude ultrareview 4668 --json']) {
       expect(at(cmd), cmd).toBe(true);
+    }
+  });
+});
+
+describe('(conductor145 at 348161fb) a path is read only by a name the gate can resolve', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  test('an unquoted glob in a path argument denies (its matches are not resolved through symlinks)', () => {
+    for (const cmd of ['cat src/*.ts', 'cat link/*/s.jsonl', 'ls ./**/docker-compose*.yml', 'rg TODO ./*', 'git diff -- *.ts', 'ls -- *.md', 'head -n 5 src/?.ts', 'test -f src/*.ts']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ["rg -g '*.ts' TODO src", 'grep -rn --include=*.ts TODO src', 'cat src/x.ts', "rg --files -g '**/docker-compose*.yml' 2>/dev/null", "cat 'src/*.ts'"]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('a flag that follows symlinks while it walks a dir denies', () => {
+    for (const cmd of ['rg -L TODO .', 'rg --follow TODO .', 'rg -nL TODO src', 'grep -R TODO .', 'grep -nR TODO src']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at('grep -rn TODO src')).toBe(false);
+  });
+  test('(should 4) realPath follows a dangling link to where it points', () => {
+    const home = mkdtempSync(join(tmpdir(), 'review-post-gate-home-'));
+    try {
+      mkdirSync(join(home, '.claude'));
+      const link = join(dir, 'dl');
+      symlinkSync(join(home, '.claude', 'new.jsonl'), link);
+      expect(realPath(link)).toBe(join(realpathSync.native(home), '.claude', 'new.jsonl'));
+      const w = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: link, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => home, realpath: realPath };
+      expect(denied(reviewPostGate(w, ctx, deps))).toBe(true);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+  test('(should 5) an unresolved $CLAUDE_SKILL_DIR denies with a reason that names it', () => {
+    for (const cmd of ['bash $CLAUDE_SKILL_DIR/scripts/resolve-target.sh 4668', 'node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo /test/project']) {
+      const r = reviewPostGate(bash(cmd, tr()), ctx) as { hookSpecificOutput?: { permissionDecision?: string; permissionDecisionReason?: string } };
+      expect(r.hookSpecificOutput?.permissionDecision, cmd).toBe('deny');
+      expect(r.hookSpecificOutput?.permissionDecisionReason, cmd).toMatch(/CLAUDE_SKILL_DIR/);
     }
   });
 });
