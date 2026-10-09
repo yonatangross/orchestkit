@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA bugs, hooks: 4 red-first fixes</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>GA bugs, hooks: 4 red-first fixes</h1>
+  <p class="lede">4 fixes on one branch. Each fix landed as two commits: a test that failed first, then the change that made it pass. A second agent re-ran each test red, then green.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Issue</th><th>What</th><th>Before the fix</th><th>After</th></tr><tr><td>#4561</td><td>A &#x27;warning&#x27; helper that exited 2 is deleted, and exit 2 is linted</td><td class='bad'>Tests  2 failed | 2 passed (4): &quot;expected [ &#x27;lib/log.ts&#x27; ] to deeply equal []&quot; and &quot;expected {...} to not have property outputStderrWar</td><td class='ok'>Test Files  3 passed (3), Tests  61 passed (61) (no-exit-2.test.ts + common.test.ts + issue-reference-checker.test.ts); </td></tr><tr><td>#4651</td><td>Thrash counted per agent, shown by project path, warned once per new edit</td><td class='bad'>Tests  4 failed | 17 passed (21): three subagents one edit each fired; message lacked &#x27;scripts/deploy/validate-deploy.sh&#x27;; second prompt with no new e</td><td class='ok'>Tests  21 passed (21); typecheck clean; cross-instance-test-validator + telemetry-schemas tests 87 passed (87)</td></tr><tr><td>#4649</td><td>A build task routed to a read-only agent gets advice, not an ask</td><td class='bad'>Tests  14 failed | 57 passed (71): &quot;expected &#x27;ask&#x27; not to be &#x27;ask&#x27;&quot; for &#x27;Security review then fix, commit and open a PR&#x27;</td><td class='ok'>Tests  71 passed (71); neighbors (bypass-mode-ask-gate, sync-task-dispatcher, advisory-dispatcher-output) 4 files 90 pas</td></tr><tr><td>#4239</td><td>jev replays record the redaction profile and join client rows</td><td class='bad'>Tests  4 failed | 70 passed (74); TypeError: joinReplayRecords is not a function (redactionProfile likewise missing, records carried no redaction_profile)</td><td class='ok'>Tests  74 passed (74)</td></tr></table></section>
+  <section class="card"><h2>What changed</h2><ul><li><b>#4561</b>: Deleted outputStderrWarning (stderr write plus process.exit(2)) from lib/log.ts, its lib/common.ts re-export, its 3 tests in common.test.ts (plus now-unused vi/beforeEach imports), both mocks in fixtures/mock-common.ts, and the output.ts outputWarning doc line that recommended it. New guard test no-exit-2.test.ts scans every non-test .ts under src/hooks/src (comments stripped) for process.exit(2) against an empty ALL</li><li><b>#4651</b>: I followed the skeptic&#x27;s correction. On main the detector already counts edits by absolute path, so edits to different worktree paths were never counted as one file. They only looked alike because the message printed the bare file name. The three defects the tests catch and the fix closes:
+(a) There was no agent dimension. Subagents share the parent session id, so their edits were pooled. edit-history-tracker no</li><li><b>#4649</b>: task-agent-advisor.ts now exports READ_ONLY_SPECIALISTS (security-auditor, debug-investigator, code-quality-reviewer), BUILD_INTENT_PATTERN (implement, commit, push, fix, patch, apply fix, write code, edit files, open/create/raise a PR, with bounded suffixes so &quot;fixture&quot; does not match) and hasBuildIntent(). When a general-purpose spawn matches a read-only specialist AND the prompt shows build intent, the h</li><li><b>#4239</b>: What changed:
+- route-judgment.ts adds redactionProfile(tokens), which returns sha256 of the sorted client token list, or &#x27;none&#x27; when the list is empty. The profile is written as redaction_profile on every jev-route record that hashed a prompt: the settled verdict and the egress verdict. Early verdicts (no key, budget) hashed nothing, so they record null.
+- New export joinReplayRecords(records, cases, {clie</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+</body>
+</html>
