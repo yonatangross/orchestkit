@@ -324,7 +324,7 @@ const SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'mksh', 'ash', 'yash
 const RUNNERS = new Set([...SHELLS, 'source', '.', 'eval', 'xargs']);
 const PREFIX_WORDS = new Set([
   'env', 'command', 'exec', 'builtin', 'nohup', 'time', 'sudo', 'doas', 'stdbuf', 'nice', 'timeout',
-  'setsid', 'chronic', 'ionice', 'caffeinate', 'unbuffer', 'flock', 'su', 'runuser', 'script',
+  'setsid', 'chronic', 'ionice', 'caffeinate', 'unbuffer', 'flock', 'su', 'runuser', 'script', 'chroot',
 ]);
 // Runners whose own argument is a command string run by a shell (flock -c,
 // su -c, script -c), or always is (watch, parallel): the gate cannot read it.
@@ -362,6 +362,12 @@ function commandWords(part: string): string[] {
   return toks.slice(i);
 }
 
+/** A word that runs a command or a script: a shell, interpreter, runner or prefix. */
+function isRunnerWord(t: string): boolean {
+  const b = baseName(t);
+  return SHELLS.has(b) || RUNNERS.has(b) || PREFIX_WORDS.has(b) || STRING_RUNNERS.has(b) || b === 'git' || INTERPRETER.test(` ${b} `);
+}
+
 function runsUnseenScript(part: string): string | null {
   const w = commandWords(part);
   // A program word built at run time ($SHELL, ${S:-sh}, `x`), also behind a
@@ -383,16 +389,17 @@ function runsUnseenScript(part: string): string | null {
   if (PREFIX_WORDS.has(cmd) && w.some((t) => COMMAND_FLAG.test(t)) && ['flock', 'su', 'runuser', 'script'].includes(cmd)) {
     return `${cmd} -c runs a command string`;
   }
+  // find runs the words after -exec, -execdir, -ok and -okdir, with this
+  // command's stdin (printf ... | find . -exec sh \;).
+  if (cmd === 'find' && w.some((t, i) => /^-(?:exec|execdir|ok|okdir)$/.test(t) && isRunnerWord(w[i + 1] ?? ''))) {
+    return 'find -exec into a shell, an interpreter or a runner';
+  }
   if (!RUNNERS.has(cmd)) return null;
   if (cmd === 'eval') return 'eval';
   if (cmd === 'xargs') {
     // xargs runs the next word as a command with words from stdin: into a
     // shell, an interpreter or another runner it runs stdin (xargs env sh).
-    const runs = w.slice(1).some((t) => {
-      const b = baseName(t);
-      return SHELLS.has(b) || RUNNERS.has(b) || PREFIX_WORDS.has(b) || STRING_RUNNERS.has(b) || b === 'git' || INTERPRETER.test(` ${b} `);
-    });
-    return runs ? 'xargs into a shell, an interpreter or a runner' : null;
+    return w.slice(1).some(isRunnerWord) ? 'xargs into a shell, an interpreter or a runner' : null;
   }
   if (cmd === 'source' || cmd === '.') {
     const f = w[1];
@@ -445,6 +452,12 @@ function checkShellPrograms(command: string): { why: string | null; rest: string
       end = i + w[0].length;
     }
     if (GUARD_SCRIPT.test(program)) return { why: 'post-review.mjs inside sh -c', rest: command };
+    // The words after the program are its arguments: a positional parameter
+    // in the program runs them ($@, $*, $1), which this check cannot read.
+    const trailing = (command.slice(end).match(/^[^;&|\n]*/)?.[0] ?? '').trim();
+    if (trailing && /\$(?:[@*#]|\d|\{[@*#\d])/.test(program)) {
+      return { why: 'a positional parameter in an sh -c program with trailing words', rest: command };
+    }
     const why = rawWriteReason(program);
     if (why) return { why, rest: command };
     out += `${command.slice(last, start)}sh -c :`;
@@ -496,7 +509,13 @@ export function rawWriteReason(full: string): string | null {
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
         // A checked sh -c program (replaced by `sh -c :` above).
-        if (CHECKED.test(commandWords(part).join(' '))) continue;
+        if (CHECKED.test(commandWords(part).join(' '))) {
+          // The checked program is gone; its trailing words are still checked.
+          const after = part.replace(/^[\s\S]*?sh -c :/, '').trim();
+          const trail = after && (ghWrite(` ${after}`) ?? verbWrite(after) ?? httpWrite(after) ?? foldedWrite(after));
+          if (trail) return trail;
+          continue;
+        }
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
         if (plainGuard || isGhRead(part)) continue;

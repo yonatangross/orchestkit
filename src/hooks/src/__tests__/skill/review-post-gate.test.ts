@@ -831,6 +831,29 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       'gh auth status --show-token',
     ]);
   });
+  test('(product-6 at 3ea98fcb) words after an sh -c program, find -exec, chroot', () => {
+    const P = "printf 'g%s pr com%sent 4678 -b synthetic' h m";
+    deniedAll([
+      // (a) the words after the program are its arguments.
+      `sh -c 'find . -maxdepth 0 -exec "$@" \\;' _ gh pr comment 4678 -b synthetic`,
+      `sh -c 'xargs "$@"' _ gh pr comment 4678 -b synthetic`,
+      `sh -c '"$@"' _ g''h pr com''ment 4678`,
+      `sh -c '$1 $2' _ x y`,
+      `bash -c 'echo "$*"' _ a b`,
+      // (b) find runs the words after -exec, -execdir, -ok, -okdir.
+      `${P} | find . -maxdepth 0 -exec sh \\;`,
+      `${P} | find . -maxdepth 0 -exec sh {} +`,
+      `${P} | find . -maxdepth 0 -execdir bash \\;`,
+      `${P} | find . -maxdepth 0 -ok env sh \\;`,
+      // (c) chroot is a prefix word.
+      `${P} | chroot / sh`,
+    ]);
+  });
+  test('control: an sh -c program with plain trailing words and no positional parameter, find -exec a reader', () => {
+    for (const cmd of ["sh -c 'echo hi' _", "bash -c 'git status'", 'find . -name x.ts -exec grep -n foo {} +', 'find . -maxdepth 1 -type f']) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
   test('control: bash -n is a syntax check only, GH_PAGER=cat and plain git reads pass', () => {
     for (const cmd of ['bash -n scripts/x.sh', 'bash -n < /tmp/x.sh', 'GH_PAGER=cat gh pr diff 4668', 'git log --oneline -3', 'gh auth status', 'printf x | xargs echo']) {
       expect(isRawPost(cmd), cmd).toBe(false);
