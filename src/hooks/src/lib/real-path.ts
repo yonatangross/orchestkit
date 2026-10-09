@@ -10,10 +10,40 @@ import { posix } from 'node:path';
 
 const FIRMLINK = /^\/system\/volumes\/data(?=\/)/i;
 
-export function realPath(p: string, depth = 0): string {
-  const abs = posix.normalize(p).replace(FIRMLINK, '');
-  // Resolve the longest prefix that exists, then append the rest unchanged.
-  const parts = abs.split('/');
+/**
+ * Walk the path one name at a time, as the kernel does: a link is resolved
+ * before a .. after it, and a dangling link is followed to where a write
+ * would land (HOLD 6086210644 should 4). At most 40 links.
+ */
+function walk(p: string, budget: { links: number }): string {
+  let cur = '/';
+  for (const name of p.split('/')) {
+    if (name === '' || name === '.') continue;
+    if (name === '..') {
+      cur = posix.dirname(cur);
+      continue;
+    }
+    const next = posix.join(cur, name);
+    let link: string | null = null;
+    try {
+      if (lstatSync(next).isSymbolicLink()) link = readlinkSync(next);
+    } catch {
+      // Not there: the rest of the path is new names under cur.
+    }
+    if (link !== null && budget.links > 0) {
+      budget.links -= 1;
+      cur = walk(posix.resolve(cur, link), budget);
+    } else {
+      cur = next;
+    }
+  }
+  return cur;
+}
+
+export function realPath(p: string): string {
+  const walked = walk(p.replace(FIRMLINK, ''), { links: 40 });
+  // Then the canonical spelling (case, firmlink) of the longest prefix that exists.
+  const parts = walked.split('/');
   for (let i = parts.length; i > 1; i -= 1) {
     const head = parts.slice(0, i).join('/') || '/';
     try {
@@ -21,18 +51,8 @@ export function realPath(p: string, depth = 0): string {
       const tail = parts.slice(i).join('/');
       return tail ? posix.join(real, tail) : real;
     } catch {
-      // A dangling link has no real path, but a write through it lands where
-      // it points (HOLD 6086210644 should 4): follow it, 40 links at most.
-      try {
-        if (depth < 40 && lstatSync(head).isSymbolicLink()) {
-          const target = posix.resolve(posix.dirname(head), readlinkSync(head));
-          const tail = parts.slice(i).join('/');
-          return realPath(tail ? posix.join(target, tail) : target, depth + 1);
-        }
-      } catch {
-        // Not there at all: try a shorter prefix.
-      }
+      // Not there: try a shorter prefix.
     }
   }
-  return abs;
+  return walked.replace(FIRMLINK, '');
 }

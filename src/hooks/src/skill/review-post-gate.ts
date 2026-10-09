@@ -916,7 +916,10 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     const fp = input.tool_input?.file_path ?? (input.tool_input as { notebook_path?: unknown } | undefined)?.notebook_path;
     const targets = pathTargets(input, deps);
     const p = typeof fp === 'string' ? resolvePath(fp, (input.cwd ?? '').toLowerCase(), (deps.home?.() ?? '').toLowerCase()) : null;
-    const real = p !== null && deps.realpath ? deps.realpath(p).toLowerCase() : null;
+    // realPath gets the path as typed: it resolves a link before a .. after
+    // it, as the kernel does; the normalized p would drop the link first.
+    const raw = typeof fp === 'string' ? (fp.startsWith('/') ? fp : `${input.cwd ?? ''}/${fp}`) : '';
+    const real = p !== null && deps.realpath ? deps.realpath(raw).toLowerCase() : null;
     const hit = p === null ? null : (targetOf(p, targets) ?? (real ? targetOf(real, targets) : null));
     const isTranscript = typeof fp === 'string' && typeof input.transcript_path === 'string' && pathFold(fp) === pathFold(input.transcript_path);
     if (hit === 'config' || isTranscript) return deny(ctx, input, TRANSCRIPT_DENY);
@@ -1173,13 +1176,9 @@ export function tokenizeAllowed(command: string): Tokens {
       continue;
     }
     if (c === '$') {
-      const after = dollar(text, k);
-      if (after < 0) return { ok: false, why: 'an expansion other than a plain $NAME' };
-      cur += text.slice(k, after);
-      started = true;
-      variable = true;
-      k = after;
-      continue;
+      // Unquoted, bash splits the value into words, so a value the gate cannot
+      // see can add flags (X='-X POST'); quoted, it stays one word (HOLD 6087117284).
+      return { ok: false, why: dollar(text, k) < 0 ? 'an expansion other than a plain $NAME' : 'an unquoted $NAME (bash splits it into words; quote it)' };
     }
     if ('`(){}\\!'.includes(c)) return { ok: false, why: `an unquoted ${c}` };
     if (c === '#' && !started) return { ok: false, why: 'a comment' };
@@ -1241,7 +1240,8 @@ const FLAGS: Record<string, FlagSpec> = {
   cut: spec('sn', { d: TEXT, f: TEXT, c: TEXT, b: TEXT }, ['only-delimited', 'complement'], { delimiter: TEXT, fields: TEXT, characters: TEXT, bytes: TEXT, 'output-delimiter': TEXT }),
   tr: spec('cCds', {}, ['complement', 'delete', 'squeeze-repeats']),
   nl: spec('', { b: TEXT, n: TEXT, w: NUM, s: TEXT, v: NUM, i: NUM }, []),
-  jq: spec('rjcnseSCMaR', {}, ['raw-output', 'join-output', 'compact-output', 'null-input', 'slurp', 'exit-status', 'sort-keys', 'color-output', 'monochrome-output', 'ascii-output', 'raw-input', 'tab', 'seq'], { indent: NUM }),
+  // No jq -n: input comes from a file or a pipe (HOLD 6087117284).
+  jq: spec('rjcseSCMaR', {}, ['raw-output', 'join-output', 'compact-output', 'slurp', 'exit-status', 'sort-keys', 'color-output', 'monochrome-output', 'ascii-output', 'raw-input', 'tab', 'seq'], { indent: NUM }),
   awk: spec('', { F: TEXT }, []),
   'gh pr view': spec('c', GH_OUT_SHORT, ['comments'], GH_OUT),
   'gh pr diff': spec('', { R: TEXT }, ['name-only', 'patch', 'color'], { repo: TEXT }),
@@ -1354,6 +1354,26 @@ export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs
   return out;
 }
 
+// A jq program can read the environment (env, $ENV, $ ENV) or load a module
+// from disk (import, include); jq has no eval, so a word check is complete.
+const JQ_OUTSIDE = /\$\s*(?:ENV|__prog_args)\b|\b(?:env|import|include|get_search_list|get_jq_origin|get_prog_origin|modulemeta|input_filename)\b/;
+
+function jqProgramReason(program: string | undefined): string | null {
+  return program !== undefined && JQ_OUTSIDE.test(program) ? `a jq program that reads the environment or a module (${program})` : null;
+}
+
+/** The value of each gh --jq or -q in a word list. */
+function ghJqPrograms(words: Word[]): string[] {
+  const out: string[] = [];
+  words.forEach((w, i) => {
+    const t = w.text;
+    if (t === '--jq' || t === '-q') out.push(words[i + 1]?.text ?? '');
+    else if (t.startsWith('--jq=')) out.push(t.slice(5));
+    else if (/^-[^-]*q./.test(t)) out.push(t.slice(t.indexOf('q') + 1));
+  });
+  return out;
+}
+
 /** Each path word must stay in the repo or the temp dir. */
 function pathsOk(paths: Word[], ctx: AllowContext): string | null {
   for (const p of paths) {
@@ -1405,6 +1425,55 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   return null;
 }
 
+const REF = /^[A-Za-z0-9._/][A-Za-z0-9._/-]*$/;
+
+/**
+ * verdict_writeback.py writes into its dir, so the dir is the job dir Claude
+ * Code made ("$CLAUDE_JOB_DIR", quoted) or a temp dir, never the repo, where
+ * a committed link could aim the write at the transcript (HOLD 6087117284).
+ */
+function writebackArgs(rest: Word[], ctx: AllowContext): string | null {
+  const words = [...rest];
+  const at = words.findIndex((a) => a.text === '--entity-type');
+  if (at >= 0) {
+    if (!REF.test(words[at + 1]?.text ?? '') || words[at + 1].variable) return 'verdict_writeback.py --entity-type needs a plain name';
+    words.splice(at, 2);
+  }
+  if (words.length !== 1) return 'verdict_writeback.py takes one review dir';
+  const [d] = words;
+  if (d.variable) return d.text === '$CLAUDE_JOB_DIR' ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
+  const temp = (x: string) => /^\/(?:private\/)?(?:tmp|var\/folders)\//.test(x);
+  return d.text.startsWith('/') && !d.text.split('/').includes('..') && temp(d.text) && temp(ctx.realpath(d.text)) ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
+}
+
+/**
+ * collect-rules.mjs reads rules from --repo and the home dir, so --repo is
+ * the cwd or a dir above it (git rev-parse --show-toplevel), --home is not
+ * given, and the other flags take a plain ref (HOLD 6087117284 should 4).
+ */
+function collectRulesArgs(rest: Word[], ctx: AllowContext): string | null {
+  for (let i = 0; i < rest.length; i += 1) {
+    const t = rest[i].text;
+    if (t === '--standards' || t === '--no-user') continue;
+    const v = rest[i + 1];
+    if (t === '--repo') {
+      if (!v || v.variable || !v.text.startsWith('/') || v.text.split('/').includes('..')) return 'collect-rules.mjs --repo needs the absolute repo root';
+      const repo = ctx.realpath(posix.normalize(v.text)).replace(/\/+$/, '');
+      const cwd = ctx.realpath(posix.normalize(ctx.cwd)).replace(/\/+$/, '');
+      if (!repo || !(cwd === repo || cwd.startsWith(`${repo}/`))) return `collect-rules.mjs --repo must be this repo (${v.text})`;
+      i += 1;
+      continue;
+    }
+    if (['--default-branch', '--pr-base', '--base-ref'].includes(t)) {
+      if (!v || v.variable || !REF.test(v.text)) return `collect-rules.mjs ${t} needs a plain ref`;
+      i += 1;
+      continue;
+    }
+    return `collect-rules.mjs ${t} is not on its flag list`;
+  }
+  return null;
+}
+
 /** Why a simple command is not on the read-only allowlist, or null. */
 export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   const [first, ...args] = words;
@@ -1438,6 +1507,8 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     }
     const p = parseFlags('jq', rest, FLAGS.jq);
     if (typeof p === 'string') return p;
+    const envWhy = jqProgramReason(p.positionals[0]?.text);
+    if (envWhy) return envWhy;
     return pathsOk([...p.positionals.slice(1), ...p.afterDash], ctx);
   }
   if (cmd === 'gh') {
@@ -1453,6 +1524,10 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     const rest = args.slice(at + (sub === 'api' ? 1 : 2));
     const p = parseFlags(key, rest, s);
     if (typeof p === 'string') return p;
+    for (const program of ghJqPrograms(rest)) {
+      const envWhy = jqProgramReason(program);
+      if (envWhy) return envWhy;
+    }
     return sub === 'api' ? ghApiWrite(rest.map((a) => a.text).join(' ')) : null;
   }
   if (cmd === 'git') {
@@ -1487,7 +1562,11 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   // The skill's own scripts, by their exact pinned path, as one plain call.
   const script = SKILL_SCRIPTS[cmd];
   if (script && ctx.root && args[0]?.text === `${ctx.root}/skills/review-pr/scripts/${script}`) {
-    return args.slice(1).some((a) => a.glob) ? 'a glob in a skill script call' : null;
+    const rest = args.slice(1);
+    if (rest.some((a) => a.glob)) return 'a glob in a skill script call';
+    if (script === 'verdict_writeback.py') return writebackArgs(rest, ctx);
+    if (script === 'collect-rules.mjs') return collectRulesArgs(rest, ctx);
+    return null;
   }
   return `${cmd} is not on the read-only list`;
 }
@@ -1505,4 +1584,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but $NAME, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME', a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
