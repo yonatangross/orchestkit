@@ -113,7 +113,7 @@ export function chainUserCommandArgs(
   // Anchored to the whole entry, the shape CC writes for a typed command:
   // a notification or other text that only contains the tags never counts.
   const commandRe = new RegExp(
-    `^(?:<command-message>[^<]*</command-message>\\n)?<command-name>(?:${names.map(escapeRe).join('|')})</command-name>(?:\\n?<command-args>([^<]*)</command-args>)?\\s*$`,
+    `^(?:<command-message>[^<]*</command-message>\\n)?<command-name>(?:${names.map(escapeRe).join('|')})</command-name>(?:\\n?<command-args>([\\s\\S]*)</command-args>)?\\s*$`,
   );
   const seen = new Set<string>();
   let cur: Entry | undefined = start;

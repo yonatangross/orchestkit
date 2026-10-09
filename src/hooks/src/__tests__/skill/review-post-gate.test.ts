@@ -20,11 +20,16 @@ import { reviewPostGate, isRawPost, readOptIn } from '../../skill/review-post-ga
 import { createTestContext } from '../fixtures/test-context.js';
 
 let dir: string;
+const savedRoot = process.env.CLAUDE_PLUGIN_ROOT;
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'review-post-gate-'));
+  // The gate pins the script to CLAUDE_PLUGIN_ROOT itself (HOLD 6078660476).
+  process.env.CLAUDE_PLUGIN_ROOT = '/test/plugin-root';
 });
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
+  if (savedRoot === undefined) delete process.env.CLAUDE_PLUGIN_ROOT;
+  else process.env.CLAUDE_PLUGIN_ROOT = savedRoot;
 });
 
 const TOOL = 'toolu_gate_test';
@@ -456,7 +461,93 @@ describe('(HOLD 6078202120) interpreter lists, false denies, opt-in anchor, pinn
     for (const path of ['/tmp/x/post-review.mjs', '/opt/ork/skills/review-pr/scripts/post-review.mjs', '/test/plugin-root/x/post-review.mjs']) {
       expect(denied(reviewPostGate(bash(`${GUARD.replace(/\S+post-review\.mjs/, path)} --post`, t), ctx))).toBe(true);
     }
-    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), createTestContext({ pluginRoot: '' })))).toBe(true);
+  });
+});
+
+describe('(HOLD 6078660476) git grep pager flags, one interpreter rule, fail-closed pin', () => {
+  const P = '/test/plugin-root/skills/review-pr/scripts/post-review.mjs';
+  test('git grep with -O in a short cluster or any prefix of --open-files-in-pager runs a command', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of [
+      "git grep -nO'gh pr comment 4668 -b hi #' x",
+      'git grep -iO"gh pr comment 4668 -b hi #" x',
+      "git grep --open='gh pr comment 4668 -b hi #' x",
+      "git grep --op='gh pr comment 4668 -b hi #' x",
+      "git grep --open-files='gh pr comment 4668 -b hi #' x",
+      `git grep -nO'node ${P} --pr 4668 --post #' x`,
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+    }
+    expect(denied(reviewPostGate(bash('git grep -n "pr review" src/', t), ctx))).toBe(false);
+    expect(denied(reviewPostGate(bash('git grep --or -e x -e y', t), ctx))).toBe(false);
+  });
+  test('an interpreter that names gh or a GitHub host is a write, whatever builds the list', () => {
+    const t = transcript([typed('4668 --post --post-verdict')]);
+    for (const cmd of [
+      `python3 -c "import subprocess; subprocess.run(['gh','pr']+['comment','4668','-b','hi'])"`,
+      `perl -e 'system(("gh","pr"),"comment","4668","-b","hi")'`,
+      `node -e "require('child_process').execFileSync('gh',['pr'].concat('comment','4668','-b','hi'))"`,
+      "python3 - <<'PY'\nimport subprocess\nsubprocess.run([\n  'gh',\n  'pr',\n  'comment',\n  '4668',\n  '-b',\n  'hi',\n])\nPY",
+      `python3 -c "import urllib.request as u; u.urlopen(u.Request('https://api.github.com/repos/o/r/issues/1/comments', data=b'{}'))"`,
+      `python3 -c "import subprocess, urllib.request as u; t = subprocess.run(['gh', 'auth', 'token'], capture_output=True).stdout; u.urlopen(u.Request('https://api.github.com/repos/o/r/issues/1/comments', data=b'{}', headers={'Authorization': b'token ' + t}))"`,
+      `ruby -e 'system(*%w[gh pr].concat(%w[comment 4668]))'`,
+      `deno eval "new Deno.Command('gh', { args: ['pr'].concat(['comment', '4668']) }).outputSync()"`,
+      `bun -e "Bun.spawnSync(['gh'].concat(['pr', 'comment', '4668']))"`,
+      `python3 -c "import subprocess; subprocess.run(['g'+'h','pr','comment','4668'])"`,
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+    }
+  });
+  test('interpreter calls that name neither gh nor GitHub still run', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of [
+      'python3 -c "print(1 + 1)"',
+      'node -e "console.log(JSON.parse(process.argv[1]).a)" \'{"a":1}\'',
+      'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)',
+      'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
+      'bash -c "gh pr view 4668"',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
+    }
+  });
+  test('the pin reads CLAUDE_PLUGIN_ROOT itself: unset means deny, not the project dir', () => {
+    const t = transcript([typed('4668 --post')]);
+    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), ctx))).toBe(false);
+    delete process.env.CLAUDE_PLUGIN_ROOT;
+    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), ctx))).toBe(true);
+    const inProject = GUARD.replace('/test/plugin-root', ROOT);
+    expect(denied(reviewPostGate(bash(`${inProject} --post`, t), createTestContext({ pluginRoot: ROOT })))).toBe(true);
+  });
+  test('Write or Edit of the script, or anything under the skill dir, is denied', () => {
+    const t = transcript([typed('4668 --post')]);
+    const w = (file_path: string, tool_name = 'Write') => ({ tool_name, session_id: 's', tool_input: { file_path, content: 'x' }, transcript_path: t }) as HookInput;
+    expect(denied(reviewPostGate(w(P), ctx))).toBe(true);
+    expect(denied(reviewPostGate(w('/test/plugin-root/skills/review-pr/SKILL.md', 'Edit'), ctx))).toBe(true);
+    expect(denied(reviewPostGate(w('/tmp/x/post-review.mjs'), ctx))).toBe(true);
+    expect(denied(reviewPostGate(w(join(dir, 'review.md')), ctx))).toBe(false);
+  });
+  test('reads that ended a run: gh api GET with -f, release/workflow view, label list', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of [
+      'gh api -X GET search/issues -f q=repo:o/r',
+      'gh api --method GET search/issues -F per_page=5',
+      'gh release view v1',
+      'gh workflow view ci.yml',
+      'gh label list',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
+    }
+    for (const cmd of ['gh api search/issues -f q=x', 'gh api -X GET repos/o/r/issues --input b.json', 'gh api -X GET -X POST repos/o/r/issues -f t=x']) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('a < in the typed args still reads the opt-in', () => {
+    expect(readOptIn(transcript([typed('4668 --post note: a < b')]), TOOL).post).toBe(true);
+  });
+  test('(low) a graphql URL endpoint is graphql', () => {
+    expect(isRawPost('gh api https://api.github.com/graphql')).toBe(true);
+    expect(isRawPost('gh api repos/o/r/contents/src/graphql/schema.ts')).toBe(false);
   });
 });
 

@@ -10,8 +10,14 @@
  *      view/list/status, repo view, run view/list/watch, search, auth status).
  *      `gh api` runs only as a plain GET: no method flag other than GET, no
  *      -f/-F/--field/--raw-field/--input (also in a short-flag cluster), and
- *      no graphql at all. Any curl, wget or httpie/xh call to a GitHub host is
- *      denied. Every other gh verb is denied while the skill runs.
+ *      no graphql at all (a GET may carry -f/-F as query fields). Any curl,
+ *      wget or httpie/xh call to a GitHub host is denied. Every other gh verb
+ *      is denied while the skill runs.
+ *   1b. Any command that runs a non-shell interpreter (python, node, perl,
+ *      ruby, deno, bun and the like, inline or from a heredoc) is a write when
+ *      it names a GitHub host, names gh as a word, or spells a gh write verb
+ *      pair, read with newlines and every non-word character folded to spaces.
+ *      One rule for the class, so the way a list is built does not matter.
  *   2. The one write path is scripts/post-review.mjs, and only when:
  *      - the USER typed --post on the /ork:review-pr line that sits on this
  *        tool call's parentUuid chain (lib/review-opt-in.ts);
@@ -19,8 +25,10 @@
  *        command (a number, or the same full github.com pull URL); a bare
  *        number also needs the shell at the session project root, because gh
  *        resolves it against the cwd's repo;
- *      - the call runs the plugin's own copy, <plugin root>/skills/review-pr/
- *        scripts/post-review.mjs, never a copy written elsewhere;
+ *      - the call runs the plugin's own copy, $CLAUDE_PLUGIN_ROOT/skills/
+ *        review-pr/scripts/post-review.mjs, never a copy written elsewhere;
+ *        with CLAUDE_PLUGIN_ROOT unset nothing posts, and Write/Edit may not
+ *        touch the skill dir or any post-review.mjs;
  *      - the call is one plain command (letters, digits, - _ . / : and
  *        spaces), so the shell cannot hand the script a flag the text never
  *        spells: no quotes, escapes, globs, braces, $, backtick or chaining;
@@ -54,7 +62,7 @@ const GUARD_CALL = /^node\s+\S*\/post-review\.mjs(?:\s|$)/;
 // A segment that only reads a file or history (cat the script, grep for
 // "pr review", git log --grep, git grep): never a guard call, never a write.
 // Only verbs with no flag that runs a command: no less/more (+!cmd); git grep
-// counts only without -O (EXEC_FLAG).
+// counts only without its pager flag (gitGrepPager).
 // sed counts only as one whole `sed -n 'N,Mp' <file>` (GNU sed's e runs a shell).
 const READ_VERB =
   /^(?:cat|head|tail|wc|nl|ls|stat|file|diff|grep|egrep|fgrep|rg|test|git\s+(?:log|show|diff|blame|status|ls-files|cat-file|grep))(?:\s|$)/;
@@ -64,9 +72,26 @@ const READ_SED = /^sed\s+-n\s+(['"]?)\d+(?:,\d+)?p\1\s+[^\s;|&<>]+$/;
 const EXEC_FLAG = /(?:^|\s)(?:-O\S*|--open-files-in-pager\S*|--pre(?:-glob)?(?:=|\s|$)|--ext-diff\b|--textconv\b|--output(?:=|\s|$))/;
 const READ_FAMILY = /^(?:git|rg|grep|egrep|fgrep|sed|less|more)(?:\s|$)/;
 
+/**
+ * git grep runs a pager command from -O in any short cluster (-nO'cmd') or
+ * from any unique prefix of --open-files-in-pager (--open=cmd, --op=cmd).
+ */
+function gitGrepPager(segment: string): boolean {
+  if (!/^git\s+grep(?:\s|$)/.test(segment)) return false;
+  return segment
+    .replace(/['"\\]/g, '')
+    .split(/\s+/)
+    .some((t) => /^-[^-\s]*O/.test(t) || (/^--[a-z-]+/.test(t) && 'open-files-in-pager'.startsWith(t.slice(2).split('=')[0])));
+}
+
+/** A read verb with a flag that runs a command. The shell removes quotes first. */
+function runsCommand(segment: string): boolean {
+  return (READ_FAMILY.test(segment) && EXEC_FLAG.test(segment.replace(/['"\\]/g, ''))) || gitGrepPager(segment);
+}
+
 function isReadOnly(segment: string): boolean {
   if (READ_SED.test(segment)) return true;
-  return READ_VERB.test(segment) && !EXEC_FLAG.test(segment.replace(/['"\\]/g, ''));
+  return READ_VERB.test(segment) && !runsCommand(segment);
 }
 
 const TRANSCRIPT_DIR = /\.claude\/projects\b/;
@@ -87,39 +112,48 @@ const GH_READ: Record<string, readonly string[]> = {
   repo: ['view'],
   run: ['view', 'list', 'watch'],
   auth: ['status'],
+  release: ['view', 'list'],
+  workflow: ['view', 'list'],
+  label: ['list'],
 };
 const GH_READ_ANY_VERB = new Set(['search', 'help', '--version', 'version']);
 
 // Any field or input flag, also glued to its value (-fbody=x, -Fq=@f, --input=f).
 const GITHUB_HOST = /\b(?:api\.github\.com|uploads\.github\.com|github\.com)\b/i;
 
+// The GraphQL endpoint as gh api takes it: graphql, /graphql, or a URL to it.
+const GRAPHQL_ENDPOINT = /^(?:https?:\/\/[^/\s]+(?:\/api)?)?\/?graphql\/?(?:[?#].*)?$/i;
+
 /**
  * Why `gh api` with these args writes, or null. Reads token by token, so a
- * short-flag cluster counts too (-iX POST, -iXPATCH, -fbody=x).
+ * short-flag cluster counts too (-iX POST, -iXPATCH, -fbody=x). Field flags
+ * are query fields on an explicit GET (gh api -X GET search/issues -f q=x).
  */
 function ghApiWrite(rest: string): string | null {
   const toks = rest.split(/\s+/).filter(Boolean);
-  // graphql as the endpoint word only: a path like repos/o/r/contents/src/graphql/x is a read.
-  if (toks.some((t) => /^\/?graphql(?:[/?#]|$)/i.test(t.replace(/^['"]|['"]$/g, '')))) return 'gh api graphql';
+  const unq = (t: string) => t.replace(/^['"]|['"]$/g, '');
+  if (toks.some((t) => GRAPHQL_ENDPOINT.test(unq(t)))) return 'gh api graphql';
+  const methods: string[] = [];
+  let fields = false;
   for (let i = 0; i < toks.length; i += 1) {
-    const t = toks[i].replace(/^['"]|['"]$/g, '');
-    if (/^--(?:field|raw-field|input)(?:=|$)/.test(t)) return 'gh api with a field or input flag';
+    const t = unq(toks[i]);
+    if (/^--input(?:=|$)/.test(t)) return 'gh api with an input flag';
+    if (/^--(?:field|raw-field)(?:=|$)/.test(t)) fields = true;
     const long = t.match(/^--method(?:=(.*))?$/);
     if (long) {
-      const v = (long[1] ?? toks[i + 1] ?? '').replace(/^['"]|['"]$/g, '');
-      if (v.toUpperCase() !== 'GET') return `gh api --method ${v || '?'}`;
+      methods.push(unq(long[1] ?? toks[i + 1] ?? ''));
       continue;
     }
     if (/^-[A-Za-z]+/.test(t) && !t.startsWith('--')) {
       const cluster = t.slice(1);
-      if (/[fF]/.test(cluster.split('X')[0])) return 'gh api with a field or input flag';
+      if (/[fF]/.test(cluster.split('X')[0])) fields = true;
       const x = cluster.indexOf('X');
-      if (x >= 0) {
-        const v = (cluster.slice(x + 1) || toks[i + 1] || '').replace(/^['"]|['"]$/g, '');
-        if (v.toUpperCase() !== 'GET') return `gh api -X ${v || '?'}`;
-      }
+      if (x >= 0) methods.push(unq(cluster.slice(x + 1) || toks[i + 1] || ''));
     }
   }
+  const other = methods.find((v) => v.toUpperCase() !== 'GET');
+  if (other !== undefined) return `gh api --method ${other || '?'}`;
+  if (fields && methods.length === 0) return 'gh api with a field flag';
   return null;
 }
 
@@ -173,12 +207,36 @@ function httpWrite(segment: string): string | null {
   return GITHUB_HOST.test(segment) ? 'an HTTP client call to GitHub' : null;
 }
 
+// A non-shell interpreter, by name or path (/usr/bin/python3, python3.12).
+const INTERPRETER =
+  /(?:^|[\s;&|(`/])(?:python[0-9.]*|pypy[0-9.]*|node|nodejs|deno|bun|perl|ruby|irb|php|lua|luajit|Rscript|osascript|awk|gawk|mawk|nawk|tclsh)(?=[\s;&|)<]|$)/;
+
+/**
+ * Why a command that runs an interpreter writes to GitHub, or null. One rule
+ * for the class: the list can be built any way (+, concat, nested parens, a
+ * heredoc one item per line), so the whole command is read with newlines and
+ * every non-word character folded to spaces.
+ */
+function interpreterWrite(command: string): string | null {
+  if (!INTERPRETER.test(command)) return null;
+  if (GITHUB_HOST.test(command)) return 'an interpreter call that names a GitHub host';
+  const folded = ` ${command.replace(/[^A-Za-z0-9_]+/g, ' ')} `;
+  if (/\sgh\s/.test(folded)) return 'an interpreter call that names gh';
+  const m = folded.match(WRITE_VERB);
+  return m ? `an interpreter call with a gh write verb (${m[0].trim()})` : null;
+}
+
 /**
  * Why the command writes to GitHub by any path but the guard script, or null.
  * No quoted text is skipped: `echo "$(gh pr comment ...)"` runs the post, so a
  * harmless `echo "gh pr review"` is denied too (fail closed).
  */
 export function rawWriteReason(command: string): string | null {
+  // The guard call is node + a file and one plain command, so it holds no
+  // inline code; its --pr URL names github.com on purpose.
+  const plainGuard = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
+  const interp = plainGuard ? null : interpreterWrite(command);
+  if (interp) return interp;
   for (const seg of segments(command)) {
     // Command substitution and subshells: scan their insides as segments too.
     const inner = [seg, ...[...seg.matchAll(/\$\(([^()]*)\)|`([^`]*)`|\(([^()]*)\)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? '')];
@@ -186,7 +244,7 @@ export function rawWriteReason(command: string): string | null {
       for (const part of segments(s)) {
         // A read verb with a flag that runs a command is not a read.
         // The shell removes quotes first, so "--pre" and '-O...' are the flags.
-        if (READ_FAMILY.test(part) && EXEC_FLAG.test(part.replace(/['"\\]/g, ''))) return 'a read verb with a flag that runs a command';
+        if (runsCommand(part)) return 'a read verb with a flag that runs a command';
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
@@ -243,9 +301,16 @@ export function readOptIn(transcriptPath: string | undefined, toolUseId: string 
 
 export interface ReviewPostGateDeps {
   readOptIn: (transcriptPath: string | undefined, toolUseId: string | undefined) => OptIn;
+  /** CLAUDE_PLUGIN_ROOT exactly, '' when unset: no fallback to the project dir. */
+  pluginRoot: () => string;
 }
 
-const DEFAULT_DEPS: ReviewPostGateDeps = { readOptIn };
+const DEFAULT_DEPS: ReviewPostGateDeps = {
+  readOptIn,
+  pluginRoot: () => (process.env.CLAUDE_PLUGIN_ROOT ?? '').trim().replace(/\/+$/, ''),
+};
+
+const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
 
 function touchesTranscript(text: string, transcriptPath: string | undefined): boolean {
   if (transcriptPath && text.includes(transcriptPath)) return true;
@@ -276,6 +341,10 @@ export function reviewPostGate(
   if (input.tool_name === 'Write' || input.tool_name === 'Edit' || input.tool_name === 'NotebookEdit') {
     const fp = input.tool_input?.file_path;
     if (typeof fp === 'string' && touchesTranscript(fp, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
+    const root = deps.pluginRoot();
+    if (typeof fp === 'string' && (/(?:^|\/)post-review\.mjs$/.test(fp) || (root && fp.startsWith(`${root}/skills/review-pr/`)))) {
+      return deny(ctx, input, 'review-pr may not write post-review.mjs or its own skill dir: the post gate trusts that file.');
+    }
     return outputSilentSuccess();
   }
   if (typeof input.tool_name === 'string' && input.tool_name.startsWith('mcp__')) {
@@ -318,9 +387,9 @@ export function reviewPostGate(
 
   // Only the plugin's own copy: a copy written elsewhere skips the script's checks.
   const path = command.trim().split(/\s+/)[1];
-  const root = ctx.pluginRoot.replace(/\/+$/, '');
-  if (!root || path !== `${root}/skills/review-pr/scripts/post-review.mjs`) {
-    return deny(ctx, input, `Run the plugin's own post-review.mjs (${root || 'plugin root unknown'}/skills/review-pr/scripts/post-review.mjs), not a copy.`);
+  const root = deps.pluginRoot();
+  if (!root || path !== `${root}/${SCRIPT_REL}`) {
+    return deny(ctx, input, `Run the plugin's own post-review.mjs (${root ? `${root}/${SCRIPT_REL}` : 'CLAUDE_PLUGIN_ROOT is unset, so nothing posts'}), not a copy.`);
   }
 
   if (REPO_FLAG.test(command)) {
