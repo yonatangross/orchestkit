@@ -61,27 +61,12 @@ assess frontend/src/components/Dashboard
 
 ## Argument Resolution
 
-### Step 0: resolve a conversational reference first
+### Step 0: resolve a pronoun target first
 
-`$ARGUMENTS` is often not a path. For a bare pronoun or deictic (`them`, `this`, `that`,
-`these`, `they`, `same`, `the above`, `the last one`, `what we just did`) or an empty target
-after flags are stripped, the subject is in the conversation. Read back for the NEAREST
-concrete one (a file just discussed, a diff or PR just opened, a component just investigated)
-and announce the resolution in one line, so a wrong guess costs a correction rather than a
-turn: *"Reading 'them' as the 3 pretool guards we just probed; say otherwise and I'll switch."*
-
-**Refusing is the bug, not the safe option.** Asking "what does this refer to?" when the
-previous turn named the subject burns a round-trip re-deriving what is already on screen.
-Measured 2026-08-28: the operator sent `assess them throguhly` one message after "bug in
-orchestkit hooks", mid-investigation of `pretool/bash/dangerous-command-blocker`, and this
-skill replied that "them" had "no antecedent anywhere in this conversation". It had two.
-
-Ask only when the conversation is genuinely empty (a fresh session opening with a bare
-pronoun). Every other case: resolve and announce.
-
-> Not unique to this skill: `verify`, `cover`, `fix-issue`, `review-pr` and `implement` all
-> read `$ARGUMENTS` as a literal path or topic, and no skill mentions resolving a reference.
-> Tracked separately; this one fixes its own door.
+`$ARGUMENTS` is often not a path. Load `Read("../../shared/rules/target-resolution.md")`
+and follow its inline half: a bare pronoun or deictic (`them`, `this`, `the above`) or an
+empty target is read back to the nearest concrete subject in the conversation, announced
+in one line, and assessed. Ask only when the conversation is empty.
 
 ```python
 TARGET = "$ARGUMENTS"  # Full argument string, e.g., "backend/app/services/auth.py"

@@ -54,6 +54,8 @@ cover --real-services checkout pipeline
 
 ## Argument Resolution
 
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
+
 ```python
 SCOPE = "$ARGUMENTS"  # e.g., "authentication flow"
 

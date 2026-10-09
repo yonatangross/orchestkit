@@ -51,6 +51,8 @@ implement dashboard analytics
 
 ## Argument Resolution
 
+**Check the target first, before any other step.** This skill forks and cannot see the conversation. Load `Read("../../shared/rules/target-resolution.md")`: if the target, flags stripped, is a bare pronoun or deictic (`this`, `them`, `that one`) or empty, return exactly `TARGET_UNRESOLVED: <word>` and stop. The caller resolves it and re-invokes.
+
 ```python
 FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
 # $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)

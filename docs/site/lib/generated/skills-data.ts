@@ -408,7 +408,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.9.0",
-    "sha256": "a2488bb3cd15b88cd22afaf83181a1f3b00fbe1ef6ff0fef02a2d9e139e6e0f6",
+    "sha256": "629c5abaac0b40e14d1ec7567f0ea9e556d09982ecdfce53de6d831d3701bc65",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "9bf54093ce29df3b376be6106ec9ae05b611cb92c714aa89db08cfac66926e34",
+    "sha256": "11e46218c4b67253cab7a6b6112bd6210010ba91db777937bf90dd7653ffe0e1",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1227,7 +1227,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.3.0",
-    "sha256": "b85f668ded662a4dd032be8b80db7bbfa25608cbfec15d17abc74e4f5e834d62",
+    "sha256": "f77a89dbda8146b37640972e8ec34ff7041b8b60f9a0e6cb2950a2b1bbd5f33d",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2438,7 +2438,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "c2e012f7ebfcb456cb113a170bb56bfe27d08995453039c9438ff5ba0ec08b05",
+    "sha256": "52f0c5f581551fa610afc520e5117ba314d4a08361c0c517ad9f928976c96379",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2771,7 +2771,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "017a62b303be32e678a10a1962690cb0575b70b4bbc55bc8f2e20e878c60c80d",
+    "sha256": "bd5320bb6a05af0b028c85db42091836be0e2193d80b60fabe57e92bfdbf861b",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4284,7 +4284,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "9d3d5ac96db4ac43c9412eb8f83e6b4990b809f5891a8317d86017a036738b1b",
+    "sha256": "d0d40b6d9ee066f74bc866ee0e2e56be2d7d9ee8920805652f9582e147b4b6ed",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5097,7 +5097,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "b46cf48cde4e421d68df9e474821b1fd553b3867ac2675cc757994828ff54b0a",
+    "sha256": "0c7a4094a61de1d98e282556f6c9283e7d454080bc59edde53aef6092119152c",
     "author": "OrchestKit",
     "tags": [
       "verification",

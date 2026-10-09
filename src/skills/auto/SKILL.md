@@ -155,6 +155,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 - **No recursion.** `auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
+- **A pronoun target is yours to resolve.** Pass a concrete target, not `this` or `them`: read it back from the conversation and announce it in one line. If a routed skill returns `TARGET_UNRESOLVED: <word>`, resolve `<word>` the same way and invoke the skill again; never relay the sentinel to the user (`Read("../../shared/rules/target-resolution.md")`).
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
 - **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.

@@ -638,8 +638,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "STEP 0",
-            "label": "resolve a conversational reference first",
-            "does": "$ARGUMENTS is often not a path. For a bare pronoun or deictic (them, this, that,",
+            "label": "resolve a pronoun target first",
+            "does": "$ARGUMENTS is often not a path. Load Read(\"../../shared/rules/target-resolution.md\")",
             "out": null,
             "tag": null
           },
