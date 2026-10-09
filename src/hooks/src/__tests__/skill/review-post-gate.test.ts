@@ -1489,7 +1489,7 @@ describe('(HOLD 6087117284) script arguments, jq input, unquoted $NAME, link the
     }
   });
   test('should 4: collect-rules.mjs reads only this repo and the real home', () => {
-    for (const cmd of [`node ${S}/collect-rules.mjs --repo /Users/other/repo`, `node ${S}/collect-rules.mjs --repo /test/project --home /Users/other`, `node ${S}/collect-rules.mjs --repo /test/project --base-ref x --no-such-flag`]) {
+    for (const cmd of [`node ${S}/collect-rules.mjs --repo /opt/other/repo`, `node ${S}/collect-rules.mjs --repo /test/project --home /opt/other`, `node ${S}/collect-rules.mjs --repo /test/project --base-ref x --no-such-flag`]) {
       expect(at(cmd), cmd).toBe(true);
     }
     for (const cmd of [`node ${S}/collect-rules.mjs --repo /test/project`, `node ${S}/collect-rules.mjs --repo /test/project --standards --default-branch main --pr-base main`, `node ${S}/collect-rules.mjs --repo /test/project --no-user`]) {
