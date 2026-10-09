@@ -770,6 +770,34 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(false);
     }
   });
+  test('(XREVIEW HOLD 6080821044) a shell option with an argument, a quoted shell word, a prefix option argument', () => {
+    const P = "printf 'g%s pr com%sent 4678 -b synthetic' h m";
+    deniedAll([
+      "bash -c -O extglob 'gh pr comment 4678 -b synthetic'",
+      `${P} | 'sh'`,
+      `${P} | env 'sh'`,
+      `${P} | command 'sh'`,
+      `${P} | . '/dev/stdin'`,
+      `${P} | env -u X sh`,
+      // The same class: any shell call the parser cannot fully classify denies.
+      "bash -O extglob -c 'gh pr comment 4678 -b synthetic'",
+      "bash +O extglob -c 'echo hi'",
+      "bash --rcfile /tmp/x -c 'echo hi'",
+      "bash --init-file /tmp/x",
+      "\"bash\" -c 'echo hi'",
+      `${P} | \\sh`,
+      `${P} | "/bin/sh"`,
+      `${P} | env -C /tmp sh`,
+      `${P} | sudo -u root sh`,
+      `${P} | timeout -s KILL 5 sh`,
+      `${P} | command eval`,
+    ]);
+  });
+  test('control: a script file after a no-argument flag, a prefix on a non-shell, a readable sh -c', () => {
+    for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', "bash -c 'gh pr view 4668'", 'nice -n 5 bash scripts/x.sh']) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
   test('the guard script inside sh -c is not the guard call, even with the opt-in', () => {
     const t = transcript([typed('4668 --post')]);
     const cmd = "bash -c 'node /test/plugin-root/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md --post'";

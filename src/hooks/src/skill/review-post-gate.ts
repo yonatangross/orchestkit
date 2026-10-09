@@ -310,52 +310,65 @@ function splitHeredocs(command: string): Heredocs | null {
   return { main: keep.join('\n'), joined, body };
 }
 
-// A shell that reads its script from stdin (| bash, bash < f, sh -s, sh -),
-// or eval: the text it runs is not in this command.
-const SHELL = /^(?:\S*\/)?(?:ba|z|da|k|mk)?sh(?:\s+([\s\S]*))?$/;
-const SHELL_WORD = /(?:^|[\s/])(?:ba|z|da|k|mk)?sh(?:\s|$)/;
-const EVAL = /^eval(?:\s|$)/;
-const SOURCE = /^(?:source|\.)\s+(\S+)/;
+// Shell, source, eval and xargs calls (HOLD 6079468845, XREVIEW 6080480743 and
+// 6080821044). The words are read after quote removal ('sh', \sh, "/bin/sh")
+// and after assignments and prefix words (env -u X sh, nice -n 5 sh: the
+// first runner word after a prefix is the command, whatever the prefix's
+// option arguments are). Only two shell forms are classified: a checked sh -c
+// program, or a script file after no-argument flags. Any other shell call
+// denies: stdin, /dev/stdin, a process substitution, a redirect, or an option
+// the gate cannot classify (-O extglob, +O, -o, --rcfile, --init-file).
+const SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'mksh', 'ash', 'yash', 'fish', 'csh', 'tcsh']);
+const RUNNERS = new Set([...SHELLS, 'source', '.', 'eval', 'xargs']);
+const PREFIX_WORDS = new Set([
+  'env', 'command', 'exec', 'builtin', 'nohup', 'time', 'sudo', 'doas', 'stdbuf', 'nice', 'timeout',
+  'setsid', 'chronic', 'ionice', 'caffeinate', 'unbuffer',
+]);
 // A file name that is the shell's own stdin or a process substitution.
 const STDIN_FILE = /^(?:\/dev\/stdin|\/dev\/fd\/\d+|\/proc\/self\/fd\/\d+|<\()/;
-// Words that run the next word as the command (env sh, command sh, nice -n 5 sh).
-const PREFIX =
-  /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*|(?:\S*\/)?(?:env|command|exec|builtin|nohup|time|sudo|doas|stdbuf|nice|timeout|setsid|chronic|ionice|caffeinate)|-[A-Za-z-]+(?:=\S*)?|\d+(?:\.\d+)?[smhd]?)\s+/;
+const NO_ARG_FLAG = /^-[elxuv]+$/;
+// A program this gate already checked, replaced by `sh -c :`.
+const CHECKED = /^sh -c :(?:\s|$)/;
+const baseName = (t: string): string => t.replace(/^.*\//, '');
 
-/** The segment with leading assignments and prefix words removed. */
-function stripPrefixes(part: string): string {
-  let s = part;
-  for (let prev = ''; prev !== s; ) {
-    prev = s;
-    s = s.replace(PREFIX, '');
+/** The segment's words from its command word on, quotes removed. */
+function commandWords(part: string): string[] {
+  const toks = part.replace(/['"\\]/g, '').split(/\s+/).filter(Boolean);
+  let i = 0;
+  while (i < toks.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[i])) i += 1;
+  if (i < toks.length && PREFIX_WORDS.has(baseName(toks[i]))) {
+    const j = toks.findIndex((t, k) => k > i && RUNNERS.has(baseName(t)));
+    return j < 0 ? toks.slice(i) : toks.slice(j);
   }
-  return s;
+  return toks.slice(i);
 }
 
 function runsUnseenScript(part: string): string | null {
-  const s = stripPrefixes(part);
-  if (EVAL.test(s)) return 'eval';
-  const src = s.match(SOURCE);
-  if (src && STDIN_FILE.test(src[1])) return 'source of stdin';
-  // xargs builds a command from stdin: into a shell or an interpreter it runs it.
-  if (/^(?:\S*\/)?xargs(?:\s|$)/.test(s) && (SHELL_WORD.test(s) || INTERPRETER.test(s))) return 'xargs into a shell or an interpreter';
-  if (CHECKED.test(s)) return null;
-  const m = s.match(SHELL);
-  if (!m) return null;
-  const raw = (m[1] ?? '').split(/\s+/).filter(Boolean);
-  if (raw.some((t) => STDIN_FILE.test(t))) return 'a shell that reads its script from stdin';
-  const toks = (m[1] ?? '').replace(/<+\s*\S+/g, ' ').split(/\s+/).filter(Boolean);
-  const flags = toks.filter((t) => t.startsWith('-'));
-  // Every readable sh -c program was replaced by `sh -c :`; one left here was not.
-  if (flags.some((f) => /^-[A-Za-z]*c/.test(f))) return 'an sh -c program the gate cannot read';
-  const stdin = flags.some((f) => f === '-' || /^-[A-Za-z]*s/.test(f)) || toks.length === flags.length;
-  return stdin ? 'a shell that reads its script from stdin' : null;
+  const w = commandWords(part);
+  const cmd = baseName(w[0] ?? '');
+  if (!RUNNERS.has(cmd)) return null;
+  if (cmd === 'eval') return 'eval';
+  if (cmd === 'xargs') {
+    const runs = w.slice(1).some((t) => SHELLS.has(baseName(t)) || INTERPRETER.test(` ${baseName(t)} `));
+    return runs ? 'xargs into a shell or an interpreter' : null;
+  }
+  if (cmd === 'source' || cmd === '.') {
+    const f = w[1];
+    return f === undefined || /^[-<]/.test(f) || STDIN_FILE.test(f) ? 'source of stdin' : null;
+  }
+  if (CHECKED.test(w.join(' '))) return null;
+  let k = 1;
+  while (k < w.length && NO_ARG_FLAG.test(w[k])) k += 1;
+  const op = w[k];
+  if (op === undefined || op.startsWith('<') || STDIN_FILE.test(op)) return 'a shell that reads its script from stdin';
+  if (/^[-+]/.test(op)) return 'a shell call the gate cannot classify';
+  return null;
 }
 
-// A shell word with a flag cluster that holds c: its next word is a program.
-const SHELL_C_AT = /(^|[\s;&|(`])((?:\S*\/)?(?:ba|z|da|k|mk)?sh)((?:\s+(?:[-+]o\s+[A-Za-z_]+|--?[A-Za-z][A-Za-z-]*|\+[A-Za-z]+))+)\s+/g;
-// A program this gate already checked, replaced by `sh -c :`.
-const CHECKED = /^sh -c :(?:\s|$)/;
+// A shell word, then only no-argument flags, one holding c: the next word is
+// the program. Any other option before the program is not parsed here, so the
+// call is left for runsUnseenScript, which denies it.
+const SHELL_C_AT = /(^|[\s;&|(`])((?:\S*\/)?(?:ba|z|da|k|mk)?sh)((?:\s+-[elxuvc]+)+)\s+/g;
 
 /**
  * Every sh -c program, parsed before the command is split (a ; or | inside
@@ -370,7 +383,7 @@ function checkShellPrograms(command: string): { why: string | null; rest: string
   let last = 0;
   for (const m of command.matchAll(SHELL_C_AT)) {
     const at = m.index ?? 0;
-    if (at < last || !m[3].split(/\s+/).some((t) => /^-[A-Za-z]*c[A-Za-z]*$/.test(t))) continue;
+    if (at < last || !m[3].includes('c')) continue;
     const start = at + m[1].length;
     const i = at + m[0].length;
     const q = command[i];
@@ -440,7 +453,7 @@ export function rawWriteReason(full: string): string | null {
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
         // A checked sh -c program (replaced by `sh -c :` above).
-        if (CHECKED.test(stripPrefixes(part))) continue;
+        if (CHECKED.test(commandWords(part).join(' '))) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
         if (plainGuard || isGhRead(part)) continue;
