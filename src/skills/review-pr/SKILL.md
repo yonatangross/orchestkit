@@ -95,17 +95,9 @@ AskUserQuestion(
 - **Performance focus** → `"performance"`: the full set plus frontend-performance-engineer
 - **Quick review** → `"quick"`: a single code-quality reviewer
 
-### "Ultra" mode → defer to `claude ultrareview` (CC 2.1.120+, #1542)
+### "Ultra" mode runs outside this skill
 
-If the user asks for an "ultra" / "deep" / "thorough" review and the host is on CC ≥ 2.1.120, **defer to the native subcommand** instead of re-implementing the multi-agent loop in skill instructions:
-
-```bash
-claude ultrareview "$PR_REF" --json
-```
-
-The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `test-coverage`, `architecture`) with structured output and a determinate verdict (`approve` | `comment` | `request-changes`). On CC < 2.1.120 the subcommand doesn't exist — fall back to the parallel-agents path below.
-
-This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
+If the user asks for an "ultra" / "deep" / "thorough" review, do not run it from here: the post gate denies `claude ultrareview` like every command off its read list, and an ultra review is user-triggered and billed. Tell the user to type `/code-review ultra <PR>` (or run `claude ultrareview <PR> --json` in their own shell, CC 2.1.120+), and stop. Use this skill for focused modes (security-only, perf-only), project context and the KG writeback.
 
 > **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill used to set `background: false` (#3093); it now runs inline (no `context: fork`), because Claude Code drops a forked skill's frontmatter hooks (measured on 2.1.294). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
 
@@ -225,11 +217,11 @@ Relevant skills activated automatically:
 
 ## Phase 2.5: /ultrareview Gate (asked BEFORE the review call)
 
-The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" runs `/ultrareview` alongside Phase 3; its findings merge in Phase 5 labelled "Ultrareview:".
+The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" asks the user to type `/code-review ultra <PR>` themselves (the skill cannot run it); findings they paste back merge in Phase 5 labelled "Ultrareview:".
 
 ## Phase 3: Parallel Code Review (Workflow)
 
-Do NOT hand-roll the reviewers. Start Phase 4 validation in the background, then run the executor:
+Do NOT hand-roll the reviewers. Read CI first (Phase 4), then run the executor:
 
 ```python
 Workflow(
@@ -298,9 +290,19 @@ Skip agents for domains not present in the diff. This saves ~33% tokens on domai
 
 Fallback modes only: progressive output, partial results and CI streaming, `Read("references/progressive-and-partial-results.md")`. Prompts: [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md), [Agent Prompts, Agent Teams Mode](rules/agent-prompts-agent-teams.md), and the optional 7th [AI Code Review Agent](rules/ai-code-review-agent.md).
 
-## Phase 4: Run Validation
+## Phase 4: Read CI (ground truth)
 
-Load validation commands: `Read("references/validation-commands.md")`. Run them in the background while Phase 3 runs. Failing required checks known before the call go in as `failingChecks`; a red found after it caps both verdicts at request-changes here in the shell. Ground truth is never refuted.
+CI is the only test evidence this skill has: the post gate denies local tests, lint and builds. Read the PR's checks:
+
+```bash
+gh pr checks <PR_NUMBER> --required
+gh pr view <PR_NUMBER> --json statusCheckRollup
+gh run view <RUN_ID> --log-failed
+```
+
+`<RUN_ID>` comes from a failed check's `detailsUrl`. Run each line as it stands: the gate denies a `#` comment.
+
+Failing required checks go in as `failingChecks`; a red found after the call caps both verdicts at request-changes here in the shell. A pending check is "not seen yet", never green. Ground truth is never refuted, and the report says CI is its only test evidence.
 
 ## Phase 4.5: Adversarial Refutation (effort-gated)
 
@@ -359,7 +361,7 @@ node ${CLAUDE_SKILL_DIR}/scripts/post-review.mjs --pr 4668 --event comment --bod
 # --event approve or request-changes, or a LAND/HOLD/XREVIEW first line, also needs --post-verdict, and only when the user typed it.
 ```
 
-The skill's `skill/review-post-gate` hook enforces this in code: it denies raw `gh pr review`, `gh pr comment` and review or comment API writes, and denies `post-review.mjs` unless the call runs the plugin's own copy and the user's own `/ork:review-pr` line, as the turn that started this work, carries `--post` and exactly the same PR token, a number or the same github.com pull URL, typed right after the command (a bare number also needs the shell at the session project root, since gh resolves it against the cwd's repo) (and `--post-verdict` for an approve or a verdict line). gh runs read-only otherwise: every gh write verb, `gh api` with a write method, an input flag or a field flag without an explicit GET, any graphql call, and any other command (an interpreter, a wrapper such as npx or bash -c) that names gh, a GitHub host or a gh write verb pair are denied. The script also refuses a body file outside a system temp dir, over 64 KB, or holding a secret shape, and hands gh the checked bytes on stdin. It does not read gh auth, so it holds with a full gh login. A heredoc body is data only when the heredoc is a clean match (one `<<` or `<<-` on the line, unquoted, in its last segment, with a terminator line, and no `$(` or backtick in an unquoted body); any other heredoc is scanned as commands. A heredoc into any receiver that is not a pure read is code and is read whole. Paths follow one rule: the command is split on shell separators, the working directory starts at the call's own and follows `cd` and `pushd`, ANSI-C quoting is decoded, and every word is resolved, normalized and case-folded before it is compared with the protected targets: the Claude config dir of the session transcript (and `~/.claude`), which may not be touched at all, and the plugin's `hooks` and `skills/review-pr`, which may be read or run but not written. A project's own `.claude` is not a target. An `sh -c` or `bash -lc` program is parsed as a nested command line under the same rules (a write, an interpreter or a protected path inside it denies; one the gate cannot read denies). Every inline interpreter program is denied whatever it holds, because a list of dangerous calls cannot catch a computed name: `python -c` or a program on stdin, `node -e`/`-p`, `perl -e`, `ruby -e`, `php -r`, `deno eval`, `osascript`, and any awk program but a pure field print (`awk '{print $1}'`). A script file passes; its contents are out of reach of a text check. Each segment's command word is resolved as bash runs it (quotes removed, every redirect dropped, assignments and prefix words such as `env`, `nice`, `flock` skipped); a run-time word or an option before a shell word after a prefix cannot be resolved and is denied. A shell that reads stdin in any spelling (`| bash`, `sh -s`, `</dev/stdin sh`, `/dev/./stdin`, a relative `dev/stdin`), `xargs`, `find -exec` or `watch` into a shell, `git -c`, and `eval` are denied, and `post-review.mjs` is named only by its exact `node` call or by a pure read with no redirect. Residual: the hook reads the command TEXT, so a post from a renamed copy of the script, from a script file written first, or through a name built at run time is not seen; it stops an over-eager post, not a determined one, and removing the write credential (#4677) is the fail-closed layer. Some reads are denied to stay closed (an interpreter or wrapper that only prints gh or a GitHub URL, `which gh`, a heredoc into a quoted path, `sh -c 'echo "$1"' _ x`, `watch -n 1 date`, `nice -n 5 bash x.sh`). The hook runner blocks instead of passing when the hook's bundle or handler is missing or comes from another cached version, when the hook throws, and when its input is empty, late, oversize, not JSON or holds no tool call. `xargs` into a word built at run time (`xargs $G`) is denied like `xargs` into a shell. Above all, Bash is an ALLOWLIST while the skill runs (#4678): a call passes only when it parses into simple read-only commands (gh pr view, diff, checks or list and the other gh reads, gh api GET, the git reads, git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill's own scripts by their pinned path); anything else is denied, including cd, assignments, subshells and `sh -c`, any expansion but a plain `$NAME`, a heredoc, and a redirect but `2>/dev/null` and `2>&1`. Write the review body with the Write tool, not a heredoc, and run project tests and builds outside this skill. It is a skill-scoped hook, so it runs only because this skill runs inline: Claude Code drops a forked skill's frontmatter hooks. If a post is denied, do not retry another way.
+The skill's `skill/review-post-gate` hook enforces this in code. While the skill runs, Bash is an ALLOWLIST (#4678): a call passes only as simple read-only commands (gh pr view, diff, checks or list, gh run view or list and the other gh reads, gh api GET, the git reads, git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, and the skill scripts by their pinned path), each with only the flags on its list, on paths in the repo or the temp dir. Everything else denies: project tests and builds, cd, assignments, subshells and `sh -c`, inline interpreter programs, any expansion but a plain `$NAME`, a glob at the start of a word (write `./*`), a heredoc, and a redirect but `2>/dev/null` and `2>&1`. Write the review body with the Write tool. `post-review.mjs` passes only as the plugin's own copy by its exact `node` call, when the user's own `/ork:review-pr` line carries `--post` and the same PR token (and `--post-verdict` for an approve or a verdict line); raw `gh pr review`, `gh pr comment` and API writes always deny. Write and Edit of the Claude config dir, the plugin's `hooks` and `skills/review-pr` deny, and the hook runner blocks when the hook cannot load or its input is bad. The script refuses a body file outside a temp dir, over 64 KB, or holding a secret shape. Residual: the hook reads command text, so it stops an over-eager post, not a determined one; removing the write credential (#4677) is the fail-closed layer. It is a skill-scoped hook, so it runs only because this skill runs inline: Claude Code drops a forked skill's frontmatter hooks. If a call is denied, do not retry another way.
 
 ## Phase 8c — Verdict KG writeback (signal-fired, optional)
 
@@ -469,7 +471,6 @@ Load on demand with `Read("references/<file>")`:
 | `ultrareview-gate.md` | Phase 2.5 /ultrareview trigger eval, prompt, opt-out |
 | `progressive-and-partial-results.md` | Progressive output, partial results, CI streaming (fallback modes) |
 | `orchestration-mode-selection.md` | Agent tool vs Agent Teams |
-| `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
 Rules: `Read("rules/<file>")`:

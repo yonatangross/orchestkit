@@ -47,7 +47,7 @@ Why `AskUserQuestion` and not a `--ultra` flag: the user relies on voice, so "ye
 
 ## After user response
 
-- **Yes** → invoke `/ultrareview` on the working tree. Merge its findings with Phase 3 agent results in Phase 5 synthesis (label them as "Ultrareview:").
+- **Yes** → ask the user to type `/code-review ultra <PR>` themselves: it is user-triggered and billed, and the post gate denies it from inside this skill. Merge any findings they paste back with Phase 3 results in Phase 5 (label them "Ultrareview:").
 - **No** → proceed to Phase 3 unchanged.
 - **Skip for this session** → write `.claude/state/ultrareview-usage.json`:
   ```json
