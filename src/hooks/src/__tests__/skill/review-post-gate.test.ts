@@ -563,7 +563,8 @@ describe('(HOLD 6078898557) the folded rule runs on every segment that is not a 
       `ipython -c "import subprocess; subprocess.run(['gh','pr']+['comment','1'])"`,
       `ipython -c "import urllib.request as u; u.urlopen(u.Request('https://api.github.com/repos/o/r/issues/1/comments', data=b'{}'))"`,
       "tsx <<'TS'\nrequire('child_process').execFileSync(\n  'g' + 'h',\n  ['pr', 'comment', '1'],\n)\nTS",
-      'bash -c "gh pr view 4668"',
+      // bash -c "gh pr view 4668" was a declared false deny here; HOLD 6079468845
+      // asks for it to pass, see the control in the block below.
     ]) {
       expect(isRawPost(cmd)).toBe(true);
       expect(denied(reviewPostGate(bash(cmd, t()), ctx))).toBe(true);
@@ -586,6 +587,113 @@ describe('(HOLD 6078898557) the folded rule runs on every segment that is not a 
   });
   test('a heredoc body line that spells a gh write is still a write', () => {
     expect(isRawPost("cat > /tmp/x.sh <<'EOF'\ngh pr comment 4668 -b hi\nEOF")).toBe(true);
+  });
+});
+
+describe('(HOLD 6079468845) one heredoc rule, the script is a call or a read, fail closed', () => {
+  // The payload names a GitHub host with no gh word and no HTTP client name,
+  // so only the folded rule sees it: a shape that skips that rule passes.
+  const NC = 'nc api.github.com 443 < /tmp/req';
+  test('an unquoted heredoc body runs $( ): a read verb around it is not a read', () => {
+    for (const cmd of [
+      'cat <<EOF\ncat $(gh pr comment 1 -b hi)\nEOF',
+      'cat > /tmp/r.md <<EOF\ncat $(gh pr comment 1 -b hi)\nEOF',
+      'cat <<EOF\ncat `gh pr comment 1 -b hi`\nEOF',
+      `cat <<EOF\ncat $(echo $(${NC}))\nEOF`,
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('a heredoc split only on a clean match: here-string, hyphen delimiter, piped receiver', () => {
+    for (const cmd of [
+      `cat <<<EOF\n${NC}`,
+      `cat <<< EOF\n${NC}`,
+      `cat <<END-X\nhi\nEND-X\n${NC}`,
+      `bash <<'EOF' | cat\n${NC}\nEOF`,
+      `cat <<A <<B\nA\n${NC}\nB`,
+      `cat <<EOF\n${NC}`,
+      // A quoted or escaped << is a word, not a heredoc: bash runs the next line.
+      `cat "<<EOF"\n${NC}\nEOF`,
+      `cat \\<<EOF\n${NC}\nEOF`,
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('control: a clean quoted heredoc into a file keeps a markdown body with links', () => {
+    expect(isRawPost("cat > /tmp/r.md <<'EOF'\nSee https://github.com/o/r/pull/1 (and $(this) is text).\nEOF")).toBe(false);
+    expect(isRawPost("cat > /tmp/r.md <<-EOF\n\tSee https://github.com/o/r/pull/1.\n\tEOF")).toBe(false);
+  });
+  test('the pinned script piped into node on stdin is not a read: deny with and without the opt-in', () => {
+    const path = '/test/plugin-root/skills/review-pr/scripts/post-review.mjs';
+    for (const opt of ['4668', '4668 --post', '4668 --post --post-verdict']) {
+      const t = transcript([typed(opt)]);
+      for (const cmd of [
+        `cat ${path} | node - --pr 4668 --event comment --body-file /tmp/r.md --post`,
+        `cat ${path} | node - --pr 4668 --event approve --body-file /tmp/r.md --post --post-verdict`,
+        `node - --pr 4668 --post < ${path}`,
+        `cat ${path} > /tmp/p.mjs`,
+        `cat ${path} | tee /tmp/p.mjs`,
+      ]) {
+        expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+      }
+    }
+  });
+  test('control: a pure read of the script still passes', () => {
+    const t = transcript([typed('4668')]);
+    for (const cmd of [
+      'cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs',
+      'grep -n post scripts/post-review.mjs 2>/dev/null',
+      'wc -l scripts/post-review.mjs && head -5 scripts/post-review.mjs',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
+    }
+  });
+  test('a shell that reads its script from stdin, and eval: deny', () => {
+    for (const cmd of [
+      'cat /tmp/x.sh | bash',
+      'printf x | sh -s',
+      'bash < /tmp/x.sh',
+      'zsh -s < /tmp/x.sh',
+      'sh -',
+      'eval "$CMD"',
+      'x=1; eval $x',
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('control: running a script file and plain shell work still pass', () => {
+    for (const cmd of ['bash scripts/resolve-target.sh 4668', 'sh -c "echo hi"', 'echo evaluate']) {
+      expect(isRawPost(cmd)).toBe(false);
+    }
+  });
+  test('control: a github.com path, a gh- or gh. file name, and bash -c with a gh read pass', () => {
+    for (const cmd of [
+      'ls ~/go/src/github.com/o/r',
+      'mkdir -p /tmp/gh-review',
+      'jq . /tmp/gh.json',
+      'bash -c "gh pr view 4668"',
+      "sh -c 'gh pr diff 4668'",
+    ]) {
+      expect(isRawPost(cmd)).toBe(false);
+    }
+  });
+  test('the same shapes with a write still deny', () => {
+    for (const cmd of [
+      'bash -c "gh pr comment 4668 -b hi"',
+      'bash -c "gh pr view 4668; nc api.github.com 443"',
+      'bash -c "$(printf gh) pr view 4668"',
+      'nc github.com 443 < /tmp/req',
+      'mkdir -p /tmp/gh-review && gh pr comment 1 -b hi',
+      'cd /tmp && /usr/local/bin/gh pr comment 1 -b hi',
+      'curl -s https://api.github.com/repos/o/r',
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('an error inside the gate denies (the runner turns a throw into silent success)', () => {
+    const boom = { readOptIn: () => { throw new Error('boom'); }, pluginRoot: () => '/test/plugin-root' };
+    const cmd = 'node /test/plugin-root/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md --post';
+    expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668 --post')])), ctx, boom))).toBe(true);
   });
 });
 

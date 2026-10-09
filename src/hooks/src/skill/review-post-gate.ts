@@ -16,7 +16,11 @@
  *   1b. Every segment that is not a known read (a read verb, or a direct gh
  *      read) is a write when it names a GitHub host, names gh as a word, or
  *      spells a gh write verb pair, read with every non-word character folded
- *      to spaces. A heredoc body counts as part of the command it feeds. One
+ *      to spaces. A heredoc body counts as part of the command it feeds, and
+ *      only a clean heredoc is split out (else the whole command is scanned).
+ *      A segment with $( or a backtick is never a read; a shell reading
+ *      stdin and eval are denied; a command that names post-review.mjs is
+ *      its exact node call or a pure read with no redirect. One
  *      rule for any interpreter or wrapper (tsx, ipython, npx, bash -c), so
  *      neither its name nor the way it builds a list matters. A command that
  *      names a known interpreter is also read whole, newlines folded.
@@ -91,7 +95,11 @@ function runsCommand(segment: string): boolean {
   return (READ_FAMILY.test(segment) && EXEC_FLAG.test(segment.replace(/['"\\]/g, ''))) || gitGrepPager(segment);
 }
 
+// Command or process substitution runs a command inside any verb (HOLD 6079468845).
+const SUBSTITUTION = /\$\(|`|[<>]\(/;
+
 function isReadOnly(segment: string): boolean {
+  if (SUBSTITUTION.test(segment)) return false;
   if (READ_SED.test(segment)) return true;
   return READ_VERB.test(segment) && !runsCommand(segment);
 }
@@ -122,6 +130,9 @@ const GH_READ_ANY_VERB = new Set(['search', 'help', '--version', 'version']);
 
 // Any field or input flag, also glued to its value (-fbody=x, -Fq=@f, --input=f).
 const GITHUB_HOST = /\b(?:api\.github\.com|uploads\.github\.com|github\.com)\b/i;
+// The host as a directory under one slash (~/go/src/github.com/o/r) is a path,
+// not a URL: a URL has // before it, a bare host has nothing.
+const GITHUB_HOST_NOT_PATH = /(?<![^/\s]\/)\b(?:api\.github\.com|uploads\.github\.com|github\.com)\b/i;
 
 // The GraphQL endpoint as gh api takes it: graphql, /graphql, or a URL to it.
 const GRAPHQL_ENDPOINT = /^(?:https?:\/\/[^/\s]+(?:\/api)?)?\/?graphql\/?(?:[?#].*)?$/i;
@@ -234,8 +245,9 @@ function interpreterWrite(command: string): string | null {
  * so ['gh','pr'].concat(...) and 'g' + 'h' read as words.
  */
 function foldedWrite(segment: string): string | null {
-  if (GITHUB_HOST.test(segment)) return 'a command that names a GitHub host';
-  const folded = ` ${segment.replace(/[^A-Za-z0-9_]+/g, ' ')} `;
+  if (GITHUB_HOST_NOT_PATH.test(segment)) return 'a command that names a GitHub host';
+  // gh glued to - or . and a word is a file name (/tmp/gh-review, gh.json), not gh.
+  const folded = ` ${segment.replace(/\bgh(?=[-.][A-Za-z0-9])/g, 'gh_').replace(/[^A-Za-z0-9_]+/g, ' ')} `;
   if (/\sgh\s/.test(folded)) return 'a command that names gh';
   const m = folded.match(WRITE_VERB);
   return m ? `a command with a gh write verb (${m[0].trim()})` : null;
@@ -258,25 +270,62 @@ interface Heredocs {
   body: string[];
 }
 
-function splitHeredocs(command: string): Heredocs {
+// One heredoc as bash reads it: << or <<- (not <<<), a whole word delimiter,
+// quoted or not, then a space or the end of the line (not END-X).
+const HEREDOC = /(?:^|[^<])<<(-?)[ \t]*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\2(?=\s|$)/;
+
+/**
+ * Split heredoc bodies out of the command, or null when any << is not a clean
+ * match (HOLD 6079468845): one heredoc on the line, in its last segment (no
+ * pipe after it), a terminator line bash ends on, and, for an unquoted
+ * delimiter, no $( or backtick in the body (bash runs them). On null the
+ * caller scans the whole command, every line a segment.
+ */
+function splitHeredocs(command: string): Heredocs | null {
   const keep: string[] = [];
   const joined: string[] = [];
   const body: string[] = [];
   const lines = command.split('\n');
   for (let i = 0; i < lines.length; i += 1) {
     keep.push(lines[i]);
-    const m = lines[i].match(/<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/);
-    if (!m) continue;
+    if (!lines[i].includes('<<')) continue;
+    const m = lines[i].match(HEREDOC);
+    if (!m || (lines[i].match(/<</g) ?? []).length !== 1) return null;
+    // A quote or backslash before the << can make it a word, not a heredoc.
+    if (/['"\\]/.test(lines[i].slice(0, lines[i].indexOf('<<')))) return null;
+    const receiver = segments(lines[i]).pop();
+    if (receiver === undefined || !receiver.includes('<<')) return null;
+    const ends = (l: string) => (m[1] ? l.replace(/^\t+/, '') : l) === m[3];
     let j = i + 1;
     const own: string[] = [];
-    for (; j < lines.length && lines[j].trim() !== m[2]; j += 1) own.push(lines[j]);
-    const receiver = segments(lines[i]).pop();
-    if (receiver !== undefined && !isReadOnly(receiver)) joined.push(`${receiver} ${own.join(' ')}`);
+    for (; j < lines.length && !ends(lines[j]); j += 1) own.push(lines[j]);
+    if (j >= lines.length) return null;
+    if (!m[2] && own.some((l) => /\$\(|`/.test(l))) return null;
+    if (!isReadOnly(receiver)) joined.push(`${receiver} ${own.join(' ')}`);
     body.push(...own);
     i = j;
   }
   return { main: keep.join('\n'), joined, body };
 }
+
+// A shell that reads its script from stdin (| bash, bash < f, sh -s, sh -),
+// or eval: the text it runs is not in this command.
+const SHELL = /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*\/)?(?:ba|z|da|k|mk)?sh(?:\s+([\s\S]*))?$/;
+const EVAL = /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:builtin\s+|command\s+)?eval(?:\s|$)/;
+function runsUnseenScript(part: string): string | null {
+  if (EVAL.test(part)) return 'eval';
+  const m = part.match(SHELL);
+  if (!m) return null;
+  const toks = (m[1] ?? '').replace(/<+\s*\S+/g, ' ').split(/\s+/).filter(Boolean);
+  const flags = toks.filter((t) => t.startsWith('-'));
+  if (flags.some((f) => /^-[A-Za-z]*c/.test(f))) return null;
+  const stdin = flags.some((f) => f === '-' || /^-[A-Za-z]*s/.test(f)) || toks.length === flags.length;
+  return stdin ? 'a shell that reads its script from stdin' : null;
+}
+
+// sh -c '<text>' with no quote, $, backtick or backslash inside: the text is
+// the command, so it is checked as one (bash -c "gh pr view 1" is a read).
+const SHELL_C = /^(?:\S*\/)?(?:ba|z|da|k)?sh\s+-c\s+(["'])([^"'\\$`]*)\1$/;
 
 /**
  * Why the command writes to GitHub by any path but the guard script, or null.
@@ -289,7 +338,8 @@ export function rawWriteReason(command: string): string | null {
   const plainGuard = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   const interp = plainGuard ? null : interpreterWrite(command);
   if (interp) return interp;
-  const docs = splitHeredocs(command);
+  // Not a clean heredoc: scan the whole command, every line a segment.
+  const docs = splitHeredocs(command) ?? { main: command, joined: [], body: [] };
   // A body line is data (a review body with a github.com link is fine), but a
   // line that spells a gh write keeps the old checks: it may be run later.
   for (const line of docs.body) {
@@ -306,8 +356,16 @@ export function rawWriteReason(command: string): string | null {
         // A read verb with a flag that runs a command is not a read.
         // The shell removes quotes first, so "--pre" and '-O...' are the flags.
         if (runsCommand(part)) return 'a read verb with a flag that runs a command';
+        const unseen = runsUnseenScript(part);
+        if (unseen) return unseen;
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
+        const shellC = part.match(SHELL_C);
+        if (shellC) {
+          const inner = rawWriteReason(shellC[2]);
+          if (inner) return inner;
+          continue;
+        }
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
         if (plainGuard || isGhRead(part)) continue;
@@ -402,6 +460,15 @@ export function reviewPostGate(
   ctx: HookContext = NOOP_CTX,
   deps: ReviewPostGateDeps = DEFAULT_DEPS,
 ): HookResult {
+  // run-hook.mjs turns a throw into silent success, so an error here denies.
+  try {
+    return gate(input, ctx, deps);
+  } catch (err) {
+    return deny(ctx, input, `review-post-gate failed (${err instanceof Error ? err.message : String(err)}), so it denies. Print the review and stop.`);
+  }
+}
+
+function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): HookResult {
   if (input.tool_name === 'Write' || input.tool_name === 'Edit' || input.tool_name === 'NotebookEdit') {
     const fp = input.tool_input?.file_path;
     if (typeof fp === 'string' && touchesTranscript(fp, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
@@ -435,9 +502,11 @@ export function reviewPostGate(
   }
   if (!GUARD_SCRIPT.test(command)) return outputSilentSuccess();
   if (!GUARD_CALL.test(command.trim())) {
-    // Named but not run as `node <path>/post-review.mjs`: a read is fine,
-    // any other form (env node, bash -c, running the file) is denied.
-    if (segments(command).every((seg) => !GUARD_SCRIPT.test(seg) || isReadOnly(seg))) return outputSilentSuccess();
+    // Named but not run as `node <path>/post-review.mjs`: only a pure read is
+    // fine, every segment a read and no redirect, so the file cannot reach node
+    // on stdin (cat <script> | node -) or be copied (HOLD 6079468845, Codex P1).
+    const quiet = command.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
+    if (!/[<>]/.test(quiet) && segments(quiet).every(isReadOnly)) return outputSilentSuccess();
     return deny(ctx, input, 'Run post-review.mjs only as `node <path>/post-review.mjs ...`, one plain command, so this gate reads what runs.');
   }
 
