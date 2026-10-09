@@ -791,6 +791,15 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       `${P} | sudo -u root sh`,
       `${P} | timeout -s KILL 5 sh`,
       `${P} | command eval`,
+      // product-6 HOLD 6081164375: a quoted, escaped or variable program word.
+      `${P} | "sh"`,
+      `${P} | 'bash'`,
+      `${P} | s''h`,
+      `${P} | $SHELL`,
+      `${P} | "$SHELL"`,
+      `${P} | env $SHELL`,
+      `${P} | \${SHELL:-sh}`,
+      '$SHELL -c "$X"',
     ]);
   });
   test('control: a script file after a no-argument flag, a prefix on a non-shell, a readable sh -c', () => {

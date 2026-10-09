@@ -345,6 +345,12 @@ function commandWords(part: string): string[] {
 
 function runsUnseenScript(part: string): string | null {
   const w = commandWords(part);
+  // A program word built at run time ($SHELL, ${S:-sh}, `x`), also behind a
+  // prefix (env $SHELL): the gate cannot resolve it (product-6 HOLD 6081164375).
+  const runtime = (t: string) => /[$`]/.test(t);
+  if (runtime(w[0] ?? '') || (PREFIX_WORDS.has(baseName(w[0] ?? '')) && w.slice(1).some(runtime))) {
+    return 'a program word built at run time';
+  }
   const cmd = baseName(w[0] ?? '');
   if (!RUNNERS.has(cmd)) return null;
   if (cmd === 'eval') return 'eval';
