@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1406,13 +1406,15 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count 171 to 169, skill-scoped 19 to 17, 2026-10-08, #4682): deleted `skill/pr-context-loader` and `skill/review-dimensions-loader`, and their handlers. review-pr was their only user, and on main it ran as `context: fork`, where Claude Code drops a skill's frontmatter hooks, so neither ever ran (runs 913b0ab4 and c6fae215). Running review-pr inline would have turned them on: the PR context loader runs `gh pr view` with no number, which reads the checked-out branch's PR (title, base, head, 1000 characters of body), not the PR under review; the dimensions loader added a second output contract beside the workflow's findings schema (HOLD 6064156428). The skill reads its resolved target itself in Phase 1. Entries-map total 182 to 180.
 
 (count unchanged at 171, 2026-10-01): `prompt/antipattern-warning`'s `materializeAntipatternRules` also skips the project write when any ancestor dir of the project (up to, not including, the filesystem root) holds a byte-identical `.claude/rules/antipatterns.md`. CC loads `.claude/rules` from every ancestor of the session dir, so the 2026-09-24 global-copy check still left one copy per nested project or worktree when the global copy was absent or different; one session on 2026-10-01 loaded four identical copies. A differing ancestor copy still writes, and an identical copy in a sibling dir does not count. 3 cases added. No hooks.json registration moved.
 
