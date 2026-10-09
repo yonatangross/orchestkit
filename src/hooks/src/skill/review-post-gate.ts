@@ -19,6 +19,8 @@
  *        command (a number, or the same full github.com pull URL); a bare
  *        number also needs the shell at the session project root, because gh
  *        resolves it against the cwd's repo;
+ *      - the call runs the plugin's own copy, <plugin root>/skills/review-pr/
+ *        scripts/post-review.mjs, never a copy written elsewhere;
  *      - the call is one plain command (letters, digits, - _ . / : and
  *        spaces), so the shell cannot hand the script a flag the text never
  *        spells: no quotes, escapes, globs, braces, $, backtick or chaining;
@@ -50,11 +52,12 @@ const GUARD_SCRIPT = /\bpost-review\.mjs\b/;
 // The one form that runs the script: `node <path>/post-review.mjs ...`.
 const GUARD_CALL = /^node\s+\S*\/post-review\.mjs(?:\s|$)/;
 // A segment that only reads a file or history (cat the script, grep for
-// "pr review", git log --grep): never a guard call, never a write. Only verbs
-// with no flag that runs a command: no less/more (+!cmd), no git grep (-O).
+// "pr review", git log --grep, git grep): never a guard call, never a write.
+// Only verbs with no flag that runs a command: no less/more (+!cmd); git grep
+// counts only without -O (EXEC_FLAG).
 // sed counts only as one whole `sed -n 'N,Mp' <file>` (GNU sed's e runs a shell).
 const READ_VERB =
-  /^(?:cat|head|tail|wc|nl|ls|stat|file|diff|grep|egrep|fgrep|rg|test|git\s+(?:log|show|diff|blame|status|ls-files|cat-file))(?:\s|$)/;
+  /^(?:cat|head|tail|wc|nl|ls|stat|file|diff|grep|egrep|fgrep|rg|test|git\s+(?:log|show|diff|blame|status|ls-files|cat-file|grep))(?:\s|$)/;
 const READ_SED = /^sed\s+-n\s+(['"]?)\d+(?:,\d+)?p\1\s+[^\s;|&<>]+$/;
 // Flags that make a read verb run a command: git grep -O/--open-files-in-pager,
 // rg --pre/--pre-glob, git --ext-diff/--textconv, and --output (writes a file).
@@ -95,8 +98,9 @@ const GITHUB_HOST = /\b(?:api\.github\.com|uploads\.github\.com|github\.com)\b/i
  * short-flag cluster counts too (-iX POST, -iXPATCH, -fbody=x).
  */
 function ghApiWrite(rest: string): string | null {
-  if (/\bgraphql\b/.test(rest)) return 'gh api graphql';
   const toks = rest.split(/\s+/).filter(Boolean);
+  // graphql as the endpoint word only: a path like repos/o/r/contents/src/graphql/x is a read.
+  if (toks.some((t) => /^\/?graphql(?:[/?#]|$)/i.test(t.replace(/^['"]|['"]$/g, '')))) return 'gh api graphql';
   for (let i = 0; i < toks.length; i += 1) {
     const t = toks[i].replace(/^['"]|['"]$/g, '');
     if (/^--(?:field|raw-field|input)(?:=|$)/.test(t)) return 'gh api with a field or input flag';
@@ -149,7 +153,9 @@ const API_WORD = /(?:^|[\s"'`)}\\])api\s+([\s\S]*)$/;
 function verbWrite(raw: string): string | null {
   // The shell removes quotes and backslashes before it runs a word, so
   // p''r rev''iew and "pr" "comment" run as pr review and pr comment.
-  const segment = raw.replace(/['"\\]/g, '');
+  // An interpreter takes the words as a list (['gh','pr','comment'],
+  // system("gh","issue","comment")), so a comma or bracket separates words too.
+  const segment = raw.replace(/['"\\]/g, '').replace(/[,[\]]/g, ' ');
   const m = segment.match(WRITE_VERB);
   if (m) return `a gh write verb (${m[0].trim()})`;
   const api = segment.match(API_WORD);
@@ -308,6 +314,13 @@ export function reviewPostGate(
       input,
       'Call post-review.mjs as one plain command: letters, digits, - _ . / : and spaces only (no quotes, escapes, globs, braces, ~, =, $, redirects or chaining), so this gate reads exactly what runs.',
     );
+  }
+
+  // Only the plugin's own copy: a copy written elsewhere skips the script's checks.
+  const path = command.trim().split(/\s+/)[1];
+  const root = ctx.pluginRoot.replace(/\/+$/, '');
+  if (!root || path !== `${root}/skills/review-pr/scripts/post-review.mjs`) {
+    return deny(ctx, input, `Run the plugin's own post-review.mjs (${root || 'plugin root unknown'}/skills/review-pr/scripts/post-review.mjs), not a copy.`);
   }
 
   if (REPO_FLAG.test(command)) {

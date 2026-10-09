@@ -5,9 +5,11 @@
  * when the user typed --post. The opt-in must come from the user, so an entry
  * counts only when all of these hold:
  *
- *   1. It is a non-meta `user` entry whose content is a STRING holding
- *      `<command-name>/name</command-name>` and `<command-args>...</command-args>`
- *      (measured on CC 2.1.294, transcript d89b7eec). Skill bodies are isMeta
+ *   1. It is a non-meta `user` entry whose content is a STRING that IS the
+ *      command, start to end: an optional `<command-message>`, then
+ *      `<command-name>/name</command-name>`, then `<command-args>...</command-args>`
+ *      (measured on CC 2.1.294, transcript d89b7eec). Text that only contains
+ *      the tags (a task notification is such an entry) does not count. Skill bodies are isMeta
  *      with array content, tool results are array content, assistant text is
  *      type `assistant`: none of them match.
  *   2. It sits on the parentUuid chain of the assistant entry that holds THIS
@@ -108,7 +110,11 @@ export function chainUserCommandArgs(
     }
   }
   if (start === null) return null;
-  const nameRe = new RegExp(`<command-name>(?:${names.map(escapeRe).join('|')})</command-name>`);
+  // Anchored to the whole entry, the shape CC writes for a typed command:
+  // a notification or other text that only contains the tags never counts.
+  const commandRe = new RegExp(
+    `^(?:<command-message>[^<]*</command-message>\\n)?<command-name>(?:${names.map(escapeRe).join('|')})</command-name>(?:\\n?<command-args>([^<]*)</command-args>)?\\s*$`,
+  );
   const seen = new Set<string>();
   let cur: Entry | undefined = start;
   while (cur) {
@@ -120,9 +126,9 @@ export function chainUserCommandArgs(
     if (cur.type === 'user' && cur.isMeta !== true) {
       if (typeof content === 'string') {
         // The nearest human turn: the command, or nothing.
-        if (cur.message?.role !== 'user' || !nameRe.test(content)) return null;
-        const m = content.match(/<command-args>([\s\S]*?)<\/command-args>/);
-        return (m?.[1] ?? '').split(/\s+/).filter(Boolean);
+        const m = cur.message?.role === 'user' ? content.match(commandRe) : null;
+        if (!m) return null;
+        return (m[1] ?? '').split(/\s+/).filter(Boolean);
       }
       const onlyToolResults =
         Array.isArray(content) &&

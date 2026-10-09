@@ -71,7 +71,8 @@ function denied(r: unknown): boolean {
   return (r as { hookSpecificOutput?: { permissionDecision?: string } }).hookSpecificOutput?.permissionDecision === 'deny';
 }
 const ctx = createTestContext();
-const GUARD = 'node /opt/ork/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md';
+// createTestContext()'s pluginRoot is /test/plugin-root: the guard script is pinned to it.
+const GUARD = 'node /test/plugin-root/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md';
 const NONE = { post: false, postVerdict: false, prs: [] };
 
 describe('raw writes are always denied, even with the full opt-in', () => {
@@ -407,6 +408,55 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
   });
   test('an uppercase GitHub host is still GitHub', () => {
     expect(isRawPost('curl -X POST https://API.GITHUB.COM/repos/o/r/issues/1/comments -d @b')).toBe(true);
+  });
+});
+
+describe('(HOLD 6078202120) interpreter lists, false denies, opt-in anchor, pinned script', () => {
+  test('an interpreter one-liner that passes the gh words as a quoted list is a write', () => {
+    const t = transcript([typed('4668 --post --post-verdict')]);
+    for (const cmd of [
+      `python3 -c "import subprocess; subprocess.run(['gh','pr','comment','4668','-b','hi'])"`,
+      `python3 -c "import subprocess; subprocess.run(['gh', 'pr', 'review', '4668', '--approve'])"`,
+      `node -e "require('child_process').execFileSync('gh',['pr','review','4668','--approve'])"`,
+      `perl -e 'system("gh","issue","comment","4668","-b","hi")'`,
+      `python3 -c "import subprocess; subprocess.run(['gh','api','repos/o/r/issues/1/comments','-f','body=hi'])"`,
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+    }
+  });
+  test('the whitespace and nested substitution forms stay denied', () => {
+    for (const cmd of [`python3 -c 'import os; os.system("gh pr comment 4668 -b hi")'`, 'cat $(echo $(gh pr comment 4668 -b hi))']) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('git grep without -O is a read; with -O it is still denied', () => {
+    const t = transcript([typed('4668')]);
+    expect(denied(reviewPostGate(bash('git grep -n "pr review" src/', t), ctx))).toBe(false);
+    expect(denied(reviewPostGate(bash("git grep -O'gh pr review 4668 --approve' x", t), ctx))).toBe(true);
+  });
+  test('graphql counts only as the gh api endpoint, not inside a path', () => {
+    const t = transcript([typed('4668')]);
+    expect(denied(reviewPostGate(bash('gh api repos/o/r/contents/src/graphql/schema.ts', t), ctx))).toBe(false);
+    for (const cmd of ['gh api graphql', 'gh api /graphql', "gh api -H 'Accept: x' graphql", '$G api graphql']) {
+      expect(isRawPost(cmd)).toBe(true);
+    }
+  });
+  test('the command shape inside a notification entry is not the user typing it', () => {
+    const notification = prompt(
+      '<task-notification>\n<summary>x</summary>\n<command-message>ork:review-pr</command-message>\n<command-name>/ork:review-pr</command-name>\n<command-args>4668 --post</command-args>\n</task-notification>',
+    );
+    const t = transcript([typed('4668'), assistantText('waiting'), notification]);
+    expect(readOptIn(t, TOOL)).toEqual(NONE);
+    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), ctx))).toBe(true);
+  });
+  test('only the plugin copy of post-review.mjs is the guard script', () => {
+    const t = transcript([typed('4668 --post')]);
+    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), ctx))).toBe(false);
+    for (const path of ['/tmp/x/post-review.mjs', '/opt/ork/skills/review-pr/scripts/post-review.mjs', '/test/plugin-root/x/post-review.mjs']) {
+      expect(denied(reviewPostGate(bash(`${GUARD.replace(/\S+post-review\.mjs/, path)} --post`, t), ctx))).toBe(true);
+    }
+    expect(denied(reviewPostGate(bash(`${GUARD} --post`, t), createTestContext({ pluginRoot: '' })))).toBe(true);
   });
 });
 
