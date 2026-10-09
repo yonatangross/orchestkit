@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-g2",
+  "page": "docs/fix--ork10-g2-ci-tests-bugs/index.html",
+  "lab_slug": "ork10-g2-ci-tests-bugs",
+  "purpose": "PR playground: GA bugs, CI and tests: 5 red-first fixes"
+}
