@@ -1340,6 +1340,98 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
   });
 });
 
+describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on that command list', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  test('rg --hostname-bin runs a program: both spellings deny', () => {
+    expect(at('rg --hostname-bin ./scripts/x.sh x .')).toBe(true);
+    expect(at('rg --hostname-bin=sh x src')).toBe(true);
+    expect(at('rg -n TODO src')).toBe(false);
+  });
+  test('a flag not on the list denies, for each command in the read set', () => {
+    for (const cmd of [
+      'rg -z TODO src',
+      'rg --search-zip TODO src',
+      'rg --ignore-file=x TODO src',
+      'gh pr view 4668 --web',
+      'gh pr view 4668 -w',
+      'gh pr diff 4668 --web',
+      'gh run view 1 --web',
+      'gh api repos/o/r --hostname x.example',
+      'gh api repos/o/r --input f.json',
+      'gh release view v1',
+      'gh search prs x --web',
+      'git log --no-such-flag',
+      'git diff --ext-diff',
+      'git show -O x',
+      'git status --no-such-flag',
+      'sort -S 1G f.txt',
+      'sort --files0-from=f.txt',
+      "sed -n -e '1p' f.txt",
+      "sed --debug -n '1p' f.txt",
+      "jq --args '.x' f.json",
+      "jq --seq-x '.x' f.json",
+      'grep -f patterns.txt src',
+      'head --no-such-flag f.txt',
+      'wc --files0-from=f.txt',
+      'cut --no-such-flag f.txt',
+      'uniq --no-such-flag f.txt',
+      'ls --hyperlink=x',
+      'cat --no-such-flag f.txt',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('a word that bash can expand into a flag denies (a leading glob before --)', () => {
+    for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['rg TODO ./*', 'cat src/*.ts', 'ls -- *.md', 'git diff -- *.ts']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('control: the flags the skill and a reviewer use pass', () => {
+    for (const cmd of [
+      'rg -n -i --type ts -g src/** TODO src',
+      'rg -nC3 --hidden -e x -e y src',
+      'rg --files src',
+      'grep -rn -A 2 --include=*.ts TODO src',
+      'head -n 20 f.txt',
+      'head -20 f.txt',
+      'tail -n +5 f.txt',
+      'sort -rn -k2,2 -t : f.txt',
+      'cut -d : -f1 f.txt',
+      "jq -r --arg n x '.[] | select(.name == $n)' f.json",
+      'git log --oneline -n 5 --format=%H%x09%s main..HEAD',
+      'git diff --stat --name-only main...HEAD -- src',
+      'git show --stat HEAD',
+      'git status -sb',
+      'git blame -L 10,20 src/x.ts',
+      'gh pr view 4668 --json baseRefName --jq .baseRefName',
+      'gh pr diff 4668 --name-only',
+      'gh pr checks 4668 --watch 2>&1',
+      'gh pr list --state open --limit 5 --json number',
+      'gh -R o/r pr view 4668',
+      'gh api repos/o/r/pulls/4668/files --paginate -q .[].filename',
+    ]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('Phase 4 reads CI as ground truth: the CI reads pass, local test runs deny', () => {
+    for (const cmd of [
+      'gh pr checks 4668',
+      'gh pr checks 4668 --required',
+      'gh run view 123 --log-failed',
+      'gh pr view 4668 --json statusCheckRollup',
+    ]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+    for (const cmd of ['npm run test', 'npm run lint', 'poetry run pytest tests/', 'claude ultrareview 4668 --json']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
