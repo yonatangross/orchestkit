@@ -220,7 +220,51 @@ if [[ -f "$MARKETPLACE_JSON" ]]; then
     fi
 fi
 
-# 6. Idempotence: stamper should produce zero mutations on an already-stamped tree.
+# 6. .github/workflows/plugin-validation.yml :: CC install pins (#4686)
+#
+# The CC Plugin Validate and restricted smoke jobs install Claude Code to run
+# `claude plugin validate` and the smoke lane. Their comments said "pinned to
+# our supported floor", but the version was a literal (2.1.251) that nothing
+# stamped or checked, so it stayed behind when the floor moved to 2.1.277 and
+# CI validated the plugin on a build users are not allowed to run.
+#
+# Every `@anthropic-ai/claude-code@<version>` reference must either be the
+# literal SoT floor or a non-literal read of supported_floor from
+# shared/cc-support.json. Zero references is a FAIL, never a vacuous pass.
+PV_YML="$PROJECT_ROOT/.github/workflows/plugin-validation.yml"
+if [[ ! -f "$PV_YML" ]]; then
+    log_fail "plugin-validation.yml" "missing"
+else
+    PIN_LINES=""
+    PIN_RC=0
+    if ! PIN_LINES=$(grep -nE '@anthropic-ai/claude-code@' "$PV_YML"); then PIN_RC=$?; fi
+    PIN_TOTAL=$(printf '%s' "$PIN_LINES" | awk 'NF{n++} END{print n+0}')
+    if [[ "$PIN_RC" -gt 1 ]]; then
+        log_fail "plugin-validation.yml CC pins" "could not observe (grep rc=$PIN_RC)"
+    elif [[ "$PIN_TOTAL" -eq 0 ]]; then
+        log_fail "plugin-validation.yml CC pins" "zero @anthropic-ai/claude-code@ references; the probe cannot pass vacuously"
+    else
+        PIN_BAD=0
+        while IFS= read -r pin_line; do
+            [[ -n "$pin_line" ]] || continue
+            ref="${pin_line#*@anthropic-ai/claude-code@}"
+            if [[ "$ref" =~ ^([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+                if [[ "${BASH_REMATCH[1]}" != "$SOT" ]]; then
+                    log_fail "plugin-validation.yml CC pin" "line ${pin_line%%:*} installs ${BASH_REMATCH[1]}, want the floor '$SOT' (read supported_floor from shared/cc-support.json)"
+                    PIN_BAD=$((PIN_BAD + 1))
+                fi
+            elif ! grep -qE "supported_floor" "$PV_YML" || ! grep -qF "shared/cc-support.json" "$PV_YML"; then
+                log_fail "plugin-validation.yml CC pin" "line ${pin_line%%:*} is not a literal floor and the workflow never reads supported_floor from shared/cc-support.json"
+                PIN_BAD=$((PIN_BAD + 1))
+            fi
+        done <<< "$PIN_LINES"
+        if [[ "$PIN_BAD" -eq 0 ]]; then
+            log_pass "plugin-validation.yml CC pins track the floor ($PIN_TOTAL references)"
+        fi
+    fi
+fi
+
+# 7. Idempotence: stamper should produce zero mutations on an already-stamped tree.
 set +e
 STAMP_OUT=$(node "$PROJECT_ROOT/scripts/stamp-cc-support.mjs" 2>&1)
 STAMP_RC=$?
