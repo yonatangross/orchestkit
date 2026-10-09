@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166) (2026-10-09)
+
+
+### Features
+
+* **review-pr:** standards pass with a review-only standards file ([#4671](https://github.com/yonatangross/orchestkit/issues/4671)) ([cfbd187](https://github.com/yonatangross/orchestkit/commit/cfbd1873953c05149db532cfebf3e56c2248224e))
+
+
+### Bug Fixes
+
+* **ci:** cache and bound the docs Playwright install ([#4667](https://github.com/yonatangross/orchestkit/issues/4667)) ([379e1e7](https://github.com/yonatangross/orchestkit/commit/379e1e7199f18204e8b76e45b50966488e7fed1f))
+* **review-pr:** run inline so its frontmatter hooks run ([#4682](https://github.com/yonatangross/orchestkit/issues/4682)) ([1713ea0](https://github.com/yonatangross/orchestkit/commit/1713ea03a837b323e5a75071773f8dff25c1119f))
+* **tests:** restore exec bit on git-isolate.sh ([#4681](https://github.com/yonatangross/orchestkit/issues/4681)) ([7626a41](https://github.com/yonatangross/orchestkit/commit/7626a416e31fb71b372f3c5ba0708d842b189a70))
+
+
+### Documentation
+
+* **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 ([#4662](https://github.com/yonatangross/orchestkit/issues/4662)) ([732f9a5](https://github.com/yonatangross/orchestkit/commit/732f9a59f3a94dd3f387dc58a0d7d763bfcf3eeb))
+* **lab:** playground for the Playwright install hang ([#4665](https://github.com/yonatangross/orchestkit/issues/4665)) ([#4669](https://github.com/yonatangross/orchestkit/issues/4669)) ([eda91e5](https://github.com/yonatangross/orchestkit/commit/eda91e5f80df11c854f012ddcd10bf17057a3791))
+
 ## [10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165) (2026-10-07)
 
 

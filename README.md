@@ -630,6 +630,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166)** · 2026-10-09
+
+- **review-pr:** standards pass with a review-only standards file (#4671)
+- **ci:** cache and bound the docs Playwright install (#4667)
+- **review-pr:** run inline so its frontmatter hooks run (#4682)
+- **tests:** restore exec bit on git-isolate.sh (#4681)
+- **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 (#4662)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165)** · 2026-10-07
 
 - **prompt-focus:** where your attention went, from your own prompts (#4657)
@@ -660,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159)** · 2026-10-06
 
 - **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees (#4642)
-
-**[v10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158)** · 2026-10-05
-
-- **test:** nested pre-push hook runs in full mode (#4635)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
