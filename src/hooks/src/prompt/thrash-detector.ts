@@ -20,7 +20,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { isAbsolute, join, relative } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, outputNotify } from '../lib/common.js';
 import { getEditHistoryPath } from '../posttool/write/edit-history-tracker.js';
@@ -41,6 +41,38 @@ interface EditEntry {
   f: string;
   tool?: string;
   sid?: string;
+  /** Editing subagent's agent_id; absent for the main thread (#4651). */
+  agent?: string;
+}
+
+/** Newest warned edit time per session, so a repeat needs a newer edit (#4651). */
+type WarnedState = Record<string, number>;
+
+function getWarnedStatePath(projectDir: string): string {
+  return join(projectDir, '.claude', 'state', 'thrash-warned.json');
+}
+
+function readWarnedState(path: string): WarnedState {
+  if (!existsSync(path)) return {};
+  try {
+    const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const out: WarnedState = {};
+    for (const [k, v] of Object.entries(raw)) {
+      if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Path relative to the project when inside it, else the absolute path. */
+function displayPath(file: string, projectDir: string): string {
+  if (!projectDir) return file;
+  const rel = relative(projectDir, file);
+  if (!rel || rel.startsWith('..') || isAbsolute(rel)) return file;
+  return rel;
 }
 
 /**
@@ -79,17 +111,23 @@ function readAndTrimHistory(path: string): EditEntry[] {
 
 /**
  * Analyze the last WINDOW_ENTRIES events and return files that hit the
- * thrash threshold.
+ * thrash threshold. Counts are per (file, agent): subagents share the
+ * parent's session id, and one edit each by three agents is not a loop
+ * (#4651). The returned map is keyed by file with the highest per-agent
+ * count.
  */
 function findThrashingFiles(entries: EditEntry[]): Map<string, number> {
   const window = entries.slice(-WINDOW_ENTRIES);
-  const counts = new Map<string, number>();
+  const counts = new Map<string, { file: string; count: number }>();
   for (const e of window) {
-    counts.set(e.f, (counts.get(e.f) || 0) + 1);
+    const key = `${e.f}\u0000${e.agent ?? ''}`;
+    const cur = counts.get(key);
+    if (cur) cur.count += 1;
+    else counts.set(key, { file: e.f, count: 1 });
   }
   const thrashing = new Map<string, number>();
-  for (const [file, count] of counts.entries()) {
-    if (count >= THRASH_THRESHOLD) thrashing.set(file, count);
+  for (const { file, count } of counts.values()) {
+    if (count >= THRASH_THRESHOLD && count > (thrashing.get(file) ?? 0)) thrashing.set(file, count);
   }
   return thrashing;
 }
@@ -109,9 +147,29 @@ export function thrashDetector(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const thrashing = findThrashingFiles(sessionEntries);
   if (thrashing.size === 0) return outputSilentSuccess();
 
+  // Warn once per new edit (#4651): the window does not move on a prompt
+  // with no edit, so without this the same warning repeats every turn.
+  const newestThrashEdit = sessionEntries
+    .slice(-WINDOW_ENTRIES)
+    .filter(e => thrashing.has(e.f))
+    .reduce((max, e) => Math.max(max, e.t), 0);
+  const warnedPath = getWarnedStatePath(ctx.projectDir);
+  const warned = readWarnedState(warnedPath);
+  if (newestThrashEdit <= (warned[sid] ?? -Infinity)) return outputSilentSuccess();
+  try {
+    // Keep only sessions still present in the bounded history.
+    const live = new Set(entries.map(e => e.sid ?? ''));
+    const next: WarnedState = {};
+    for (const [k, v] of Object.entries(warned)) if (live.has(k)) next[k] = v;
+    next[sid] = newestThrashEdit;
+    writeFileSync(warnedPath, JSON.stringify(next), 'utf8');
+  } catch {
+    // best-effort: a failed write only means the warning may repeat
+  }
+
   const lines = Array.from(thrashing.entries())
     .sort((a, b) => b[1] - a[1])
-    .map(([file, count]) => `  - ${basename(file)}: ${count} edits in the last ${WINDOW_ENTRIES} events`);
+    .map(([file, count]) => `  - ${displayPath(file, ctx.projectDir)}: ${count} edits in the last ${WINDOW_ENTRIES} events`);
 
   ctx.log(HOOK_NAME, `Thrash detected on ${thrashing.size} file(s)`);
 

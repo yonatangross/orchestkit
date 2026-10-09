@@ -12,7 +12,8 @@
  * MAX_ENTRIES by periodic truncation on read. Each record carries the
  * writing session's id (`sid`) so the read side can scope its window to
  * one session — concurrent sessions in the same project must not see
- * each other's edits (#2919).
+ * each other's edits (#2919). Subagent edits also carry `agent` (the
+ * payload's agent_id) so the read side counts each agent apart (#4651).
  */
 
 import { appendFileSync, mkdirSync } from 'node:fs';
@@ -39,7 +40,9 @@ export function editHistoryTracker(input: HookInput, ctx: HookContext = NOOP_CTX
     const p = getEditHistoryPath(ctx.projectDir);
     mkdirSync(dirname(p), { recursive: true });
     const sid = input.session_id || ctx.sessionId || '';
-    const entry = JSON.stringify({ t: Date.now(), f: filePath, tool: toolName, sid });
+    // Subagents share the parent's session id; agent_id tells them apart (#4651).
+    const agent = input.agent_id || undefined;
+    const entry = JSON.stringify({ t: Date.now(), f: filePath, tool: toolName, sid, agent });
     appendFileSync(p, `${entry}\n`);
   } catch (err) {
     ctx.log(HOOK_NAME, `Append failed: ${(err as Error).message}`);
