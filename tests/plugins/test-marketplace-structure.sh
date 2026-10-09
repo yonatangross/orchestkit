@@ -178,20 +178,31 @@ echo "  Mod entries: ${MOD_ENTRY_COUNT:-0}, mod directories: $MOD_DIRS"
 if [[ $PLUGIN_COUNT -eq 0 ]]; then
   echo "❌ ERROR: marketplace.json lists zero plugins; Tests 1 to 5 examined nothing"
   ERRORS=$((ERRORS + 1))
-elif [[ $((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) -ne $PLUGIN_DIRS ]]; then
-  echo "⚠ WARNING: Mismatch between marketplace entries ($((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) outside mods/) and plugin directories ($PLUGIN_DIRS)"
-  WARNINGS=$((WARNINGS + 1))
-elif [[ ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
+else
+  # Two independent checks, never one elif chain: when they were chained, the
+  # warn-only plugin-dir mismatch short-circuited the mod-count error, so a
+  # mods/<name>/ dir with no entry exited 0 whenever plugins/ also held an extra
+  # dir (#4597).
+  COUNTS_MATCH=1
+  if [[ $((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) -ne $PLUGIN_DIRS ]]; then
+    echo "⚠ WARNING: Mismatch between marketplace entries ($((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) outside mods/) and plugin directories ($PLUGIN_DIRS)"
+    WARNINGS=$((WARNINGS + 1))
+    COUNTS_MATCH=0
+  fi
   # A mod dir with no marketplace entry cannot be installed at all (the mod
   # exists on disk but `claude plugin install <name>@<marketplace>` finds no
   # entry): memory-lens shipped in #4530 with no entry and stayed loadable
   # by --plugin-dir only while this check only warned. An entry with no dir
   # is a dangling install pointer. Both directions are errors.
-  echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
-  echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>'"
-  ERRORS=$((ERRORS + 1))
-else
-  echo "✓ Marketplace entries match plugin directories"
+  if [[ ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
+    echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
+    echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>'"
+    ERRORS=$((ERRORS + 1))
+    COUNTS_MATCH=0
+  fi
+  if [[ $COUNTS_MATCH -eq 1 ]]; then
+    echo "✓ Marketplace entries match plugin directories"
+  fi
 fi
 
 # Summary
