@@ -329,9 +329,11 @@ describe('the transcripts dir cannot be touched while the skill runs', () => {
     expect(denied(reviewPostGate(w(join(dir, 'review.md')), ctx))).toBe(false);
   });
   test('documented limit: a path built at run time is not seen by the text check', () => {
-    // "$HOME/.claude/proj""ects" never spells the dir. The chain check above is
-    // what stops an appended fake line; an in-place edit stays out of reach (#4677).
-    const cmd = 'P="$HOME/.claude/proj""ects"; ls "$P"';
+    // Quote removal now reads "$HOME/.claude/proj""ects" as the dir (HOLD 6083798707 M4).
+    expect(denied(reviewPostGate(bash('P="$HOME/.claude/proj""ects"; ls "$P"', transcript([typed('4668')])), ctx))).toBe(true);
+    // A name held in a variable is still out of reach of a text check; the chain
+    // check stops an appended fake line, an in-place edit stays out of reach (#4677).
+    const cmd = 'D=.claude; ls "$HOME/$D/projects"';
     expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
   });
 });
@@ -954,6 +956,8 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
       expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
     }
   };
+  const tool = (tool_name: string, tool_input: Record<string, unknown>) =>
+    ({ tool_name, session_id: 's', cwd: ROOT, tool_input, transcript_path: transcript([typed('4668 --post --post-verdict')]), tool_use_id: TOOL }) as HookInput;
   test('P1 1: a quoted redirect target is one word, dropped whole', () => {
     deniedAll([`${P} | sh 2>"synthetic -n"`, `${P} | 2>"synthetic word" sh`, `${P} | sh 2>'a -n'`]);
     // Control: a dropped redirect leaves sh -n, a syntax check that runs nothing.
@@ -979,6 +983,34 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
     expect(resolveCommand('{ sh')).toEqual(['sh']);
     expect(resolveCommand('then sh')).toEqual(['sh']);
     expect(resolveCommand('x) sh')).toEqual(['sh']);
+  });
+  test('(HOLD 6083798707) M1: a wrapper word before a shell is not resolved, so it denies', () => {
+    deniedAll([`${P} | arch -arm64 sh`, `${P} | busybox sh`, `${P} | if :; then sh; fi`, `${P} | foo sh`, `${P} | echo x | sh`]);
+  });
+  test('(HOLD 6083798707) M4: path spellings of the transcripts dir, the script name, the hook code', () => {
+    const tr = transcript([typed('4668 --post')]);
+    for (const cmd of [
+      "cat ~/.claude/'projects'/p/s.jsonl",
+      'cat ~/.claude/"projects"/p/s.jsonl',
+      'cat ~/.claude/proj*/p/s.jsonl',
+      'cat ~/.claude/pro\\jects/p/s.jsonl',
+      'ls ~/.claude/{projects,x}',
+      'grep -r x ~/.cl*',
+      'node /test/plugin-root/skills/review-pr/scripts/Post-Review.mjs --pr 4668 --post',
+      'cp /tmp/x.mjs /test/plugin-root/hooks/dist/skill.mjs',
+      'echo x > /test/plugin-root/hooks/bin/run-hook.mjs',
+      'rm /test/plugin-root/hooks/dist/skill.mjs',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, tr), ctx)), cmd).toBe(true);
+    }
+    for (const fp of ['/test/plugin-root/hooks/dist/skill.mjs', '/test/plugin-root/hooks/bin/run-hook.mjs', '/x/scripts/Post-Review.MJS']) {
+      expect(denied(reviewPostGate(tool('Write', { file_path: fp, content: 'x' }), ctx)), fp).toBe(true);
+    }
+  });
+  test('control (HOLD 6083798707): reads that name a shell word or the hook code still pass', () => {
+    for (const cmd of ['grep -n bash scripts/x.sh', 'cat /test/plugin-root/hooks/bin/run-hook.mjs', 'ls ~/.claude/plugins', 'git log --grep sh']) {
+      expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);
+    }
   });
   test('control: quoted words with spaces, a continued plain command, an if around a read', () => {
     for (const cmd of ['git commit -m "a b" --dry-run', 'git log \\\n  --oneline -3', 'if test -f x; then cat x; fi', '{ git status; } 2>&1 | tail -3']) {

@@ -65,7 +65,8 @@ import { posix } from 'node:path';
 const HOOK = 'review-post-gate';
 const SKILL_NAMES = ['/ork:review-pr'] as const;
 
-const GUARD_SCRIPT = /\bpost-review\.mjs\b/;
+// APFS folds case: Post-Review.mjs opens the same file.
+const GUARD_SCRIPT = /\bpost-review\.mjs\b/i;
 // The one form that runs the script: `node <path>/post-review.mjs ...`.
 const GUARD_CALL = /^node\s+\S*\/post-review\.mjs(?:\s|$)/;
 // A segment that only reads a file or history (cat the script, grep for
@@ -368,6 +369,8 @@ const NO_ARG_FLAG = /^-[elxuvn]+$/;
 const CHECKED = /^sh -c :(?:\s|$)/;
 const baseName = (t: string): string => t.replace(/^.*\//, '');
 
+// Command words that only read: a shell word after them is data (grep -n bash f).
+const READ_WORDS = new Set(['cat', 'head', 'tail', 'wc', 'nl', 'ls', 'stat', 'file', 'diff', 'grep', 'egrep', 'fgrep', 'rg', 'test', 'which', 'type']);
 const COMPOUND = new Set(['{', '}', '!', '(', ')', 'if', 'then', 'else', 'elif', 'fi', 'while', 'until', 'do', 'done', 'for', 'esac', 'select', 'coproc', 'function']);
 
 /** Words split on unquoted blanks, quotes and escapes kept in each word. */
@@ -472,6 +475,12 @@ function runsUnseenScript(part: string): string | null {
     if (v && !['', 'cat', 'less', 'more'].includes(v[1])) return 'a pager, editor or ssh variable set to a command';
   }
   const cmd = baseName(w[0] ?? '');
+  // A shell or runner word after a command word that is not a known read or
+  // a word this classifier reads (arch -arm64 sh, busybox sh): the gate does
+  // not know that wrapper, so it cannot prove the shell does not run.
+  if (!RUNNERS.has(cmd) && !READ_WORDS.has(cmd) && !['find', 'git'].includes(cmd) && w.slice(1).some((t) => t !== '.' && RUNNERS.has(baseName(t)))) {
+    return 'a shell word after a command the gate cannot resolve';
+  }
   // git -c and --config-env set alias, pager or hook commands (git -c alias.x=!sh x).
   if (cmd === 'git' && w.some((t) => t === '-c' || /^--config-env(?:=|$)/.test(t))) return 'git -c or --config-env';
   if (STRING_RUNNERS.has(cmd)) return `${cmd} runs a command string`;
@@ -676,9 +685,16 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
 
 function touchesTranscript(text: string, transcriptPath: string | undefined): boolean {
-  const t = pathFold(text);
-  if (transcriptPath && t.includes(pathFold(transcriptPath))) return true;
-  return TRANSCRIPT_DIR.test(t);
+  // Read the text as written and with quotes and escapes removed (~/.claude/'projects').
+  const tp = transcriptPath ? pathFold(transcriptPath) : '';
+  for (const t of [pathFold(text), pathFold(text.replace(/['"\\]/g, ''))]) {
+    if (tp && t.includes(tp)) return true;
+    if (TRANSCRIPT_DIR.test(t)) return true;
+    // A glob or brace in a .claude child or in a hidden dir name can expand
+    // to the transcripts dir (~/.claude/proj*, ~/.claude/{projects,x}, ~/.cl*).
+    if (/\.claude\/[^\s/]*[*?[{]/.test(t) || /(?:^|[\s/~=])\.[^\s/]*[*?[{]/.test(t)) return true;
+  }
+  return false;
 }
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
@@ -716,7 +732,13 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     const fp = input.tool_input?.file_path ?? (input.tool_input as { notebook_path?: unknown } | undefined)?.notebook_path;
     if (typeof fp === 'string' && touchesTranscript(fp, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
     const root = deps.pluginRoot();
-    if (typeof fp === 'string' && (/(?:^|\/)post-review\.mjs$/.test(fp) || (root && fp.startsWith(`${root}/skills/review-pr/`)))) {
+    // The gate's own code: the hook bundle and runner (the plugin's hooks dir,
+    // or any hooks/dist or hooks/bin), compared case-folded (APFS).
+    const f = typeof fp === 'string' ? pathFold(fp) : '';
+    if (f && ((root && f.startsWith(`${pathFold(root)}/hooks/`)) || /\/hooks\/(?:dist|bin)\//.test(f))) {
+      return deny(ctx, input, 'review-pr may not write the hook code (hooks/dist, hooks/bin): the post gate runs from it.');
+    }
+    if (typeof fp === 'string' && (/(?:^|\/)post-review\.mjs$/i.test(fp) || (root && f.startsWith(`${pathFold(root)}/skills/review-pr/`)))) {
       return deny(ctx, input, 'review-pr may not write post-review.mjs or its own skill dir: the post gate trusts that file.');
     }
     return outputSilentSuccess();
@@ -737,6 +759,15 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   if (!command) return outputSilentSuccess();
   if (touchesTranscript(command, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
 
+  // The hook code (bundle, runner) may be read, never written, copied over or removed.
+  const folded = pathFold(command.replace(/['"\\]/g, ''));
+  const hookRoot = deps.pluginRoot() ? `${pathFold(deps.pluginRoot())}/hooks/` : '';
+  if ((hookRoot && folded.includes(hookRoot)) || /\/hooks\/(?:dist|bin)\//.test(folded)) {
+    const quietHook = command.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
+    if (/[<>]/.test(quietHook) || !segments(quietHook).every(isReadOnly)) {
+      return deny(ctx, input, 'review-pr may only read the hook code (hooks/dist, hooks/bin): the post gate runs from it.');
+    }
+  }
   const why = rawWriteReason(command);
   if (why) {
     return deny(

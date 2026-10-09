@@ -554,6 +554,8 @@ process.stdin.on('data', (chunk) => {
     // printing. It sits outside the try/catch below, so the >512KB guard added
     // for an image paste (#620) crashed the hook rather than degrading it (#3415).
     process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${hookName}" - large payload (image paste?)\n`);
+    // #4678: a gate that sees {} would allow; it blocks an input it cannot read.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got an input over the size limit');
     try {
       // Try to parse what we have — likely incomplete JSON, so fall back to empty
       const parsedInput = input.trim() ? JSON.parse(input) : {};

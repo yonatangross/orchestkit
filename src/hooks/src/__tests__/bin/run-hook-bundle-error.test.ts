@@ -116,6 +116,22 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     expect(r.stdout).not.toMatch(/"continue":\s*true/);
   });
 
+  it('(#4678) exits 2 for skill/review-post-gate when stdin is over the size limit', async () => {
+    // A working handler that would allow: the oversize input must not reach it as {}.
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+    const big = JSON.stringify({ hook_event_name: 'PreToolUse', session_id: 's', cwd: '/tmp', tool_name: 'Bash', tool_input: { command: `echo ${'x'.repeat(600 * 1024)}` } });
+    const r = await new Promise<{ code: number | null; stdout: string }>((resolve) => {
+      const child = spawn('node', [runner, 'skill/review-post-gate'], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+      let stdout = '';
+      child.stdout.on('data', (c) => { stdout += String(c); });
+      child.on('close', (code) => resolve({ code, stdout }));
+      child.stdin.on('error', () => {});
+      child.stdin.end(big);
+    });
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+  });
+
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
     expect(r.code).toBe(1);
