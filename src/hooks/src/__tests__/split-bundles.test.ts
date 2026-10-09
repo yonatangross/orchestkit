@@ -489,7 +489,9 @@ describe('Cross-Bundle Consistency', () => {
     //              only user; once it ran inline, the first loaded the checked-out
     //              branch's PR into a review of another PR, the second a second
     //              output contract.
-    expect(totalHooks).toBe(180); // 182 - 2 (#4682 review-pr loaders)
+    // 180 -> 181: #4297 pretool/task/route-observer, async Agent route
+    //              observation moved out of the sync task dispatcher.
+    expect(totalHooks).toBe(181); // 180 + 1 (#4297 route-observer)
   });
 });
 

@@ -56,6 +56,9 @@ import { toolInvocationLinter } from '../pretool/tool-invocation-linter.js';
 // PreTool/Workflow hooks (1) — M170 agent activation (#3126)
 import { workflowAgentTypeAdvisor } from '../pretool/task/workflow-agenttype-advisor.js';
 
+// PreTool/Agent route observer (1), async telemetry (#4297)
+import { routeObserver } from '../pretool/task/route-observer.js';
+
 // PreTool/Cron hooks (1) — CI/headless guard
 
 // Unified dispatchers (3) — consolidate sequential hooks into single process
@@ -117,6 +120,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Workflow hooks (1) — M170 agent activation (#3126)
   'pretool/task/workflow-agenttype-advisor': workflowAgentTypeAdvisor,
+
+  // PreTool/Agent route observer (1), async telemetry (#4297)
+  'pretool/task/route-observer': routeObserver,
 
   // PreTool/Cron hooks (1) — CI/headless guard
 

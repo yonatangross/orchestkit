@@ -27,6 +27,7 @@ paths:
 - PreToolUse: < 50ms | PostToolUse: < 100ms | Permission: < 10ms
 - Use `async: true` + `timeout` in hooks.json for non-blocking hooks
 - No file I/O in hot-path hooks (pretool, permission) — pre-compute state in SessionStart instead
+- Telemetry-only PreToolUse handlers that touch the filesystem must be registered `async: true` (route observation: `pretool/skill/skill-tracker`, `pretool/task/route-observer`, #4297)
 
 ## Cache Safety
 - SAFE: `additionalContext` injection, `<system-reminder>` tags, async hooks

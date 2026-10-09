@@ -1,11 +1,11 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (20 hooks)."
+description: "Hooks triggered on PreToolUse events (21 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**20 hooks** registered for the `PreToolUse` lifecycle event.
+**21 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -13,13 +13,14 @@ description: "Hooks triggered on PreToolUse events (20 hooks)."
 | `webhook-forwarder` | `Bash` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `sync-write-edit-dispatcher` | `Write\|Edit` | Injects | Consolidates 5 Write\|Edit PreToolUse hooks into a single dispatcher. |
 | `webhook-forwarder` | `Write\|Edit` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
-| `skill-tracker` | `Skill` | Silent | Logs Skill tool invocations with analytics |
+| `skill-tracker` | `Skill` | Fire-and-forget | Logs Skill tool invocations with analytics |
 | `webhook-forwarder` | `Skill` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `context7-tracker` | `mcp__context7__*` | Blocks | Tracks context7 library lookups and injects cache state as additionalContext CC 2.1.9 Enhanced |
 | `webhook-forwarder` | `mcp__context7__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `memory-validator` | `mcp__memory__*` | Blocks | Validates memory operations to prevent accidental data loss |
 | `webhook-forwarder` | `mcp__memory__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `sync-task-dispatcher` | `Agent` | Injects | Consolidates 3 Task PreToolUse hooks into a single dispatcher. |
+| `route-observer` | `Agent` | Fire-and-forget | Route Observer: async PreToolUse Agent hook (#4297). |
 | `webhook-forwarder` | `Agent` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `tldr-summary` | `Read` | Injects | Intercepts Read calls on large files (&gt;500 lines or &gt;2000 tokens) and injects a structural summary as additionalContext. Claude sees the summary as a roadmap alongside the full file content. |
 | `webhook-forwarder` | `Read` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

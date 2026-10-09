@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->170<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1406,13 +1406,15 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->170<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count 169 to 170, global 152 to 153, 2026-10-09, #4297): Jev route executor observation moved off the PreToolUse hot path. `pretool/skill/skill-tracker` (Skill) is registered `async: true` again; it only writes telemetry and always returns silent success. The Agent observation moved out of the sync `pretool/task/sync-task-dispatcher` into the new `pretool/task/route-observer` (PreToolUse Agent, async 5s), registered in both hooks.json and the pretool entries map, so a blocked Agent attempt is still recorded. Async hook count 108 to 110; entries-map total 180 to 181.
 
 (count unchanged at 169, 2026-10-09, #4633): `lifecycle/pre-compact-task-done-prompt` no longer blocks a manual `/compact`. It blocked at about 90% context, overrode a choice the user had just made, and told them to type the same `/compact` again. A softer one-line notice has no clean channel on PreCompact, because a non-blocking hook's stdout becomes the summarizer's custom instructions (#3321), so the fire path now returns silent success. It still writes the telemetry row (`fired: true`, new `nudgeShown: false`) and the #1476 nudge-outcome marker, so the cooldown and the resolver keep their inputs and the row says the nudge was never shown. Moving the /clear nudge to a surface that fires before the user decides is a follow-up.
 
