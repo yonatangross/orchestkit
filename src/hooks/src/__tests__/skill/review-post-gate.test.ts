@@ -1062,12 +1062,23 @@ describe('(HOLD 6084435284) M1: a glob counts only in an unquoted word that can 
       `jq -r '.[].filename' /tmp/files.json`,
       `jq '.items[]' /tmp/x.json`,
       `gh api repos/o/r/pulls/4668/files --jq ".[].filename"`,
+      `gh pr checks 4668 --json name --jq '.[] | .name'`,
     ]) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);
     }
   });
   test('the unquoted glob forms still deny', () => {
-    for (const cmd of ['cat ~/.claude/proj*/p/s.jsonl', 'grep -r x ~/.cl*', 'ls ~/.claude/{projects,x}', 'cat $HOME/.c?aude/projects/x']) {
+    for (const cmd of [
+      'cat ~/.claude/proj*/p/s.jsonl',
+      'grep -r x ~/.cl*',
+      'ls ~/.claude/{projects,x}',
+      'cat $HOME/.c?aude/projects/x',
+      // Into the dir itself, then a relative path (the dir name never meets projects).
+      'cd ~/.claude && cat projects/p/s.jsonl',
+      'cd ~/.claude/; cat proj*/p/s.jsonl',
+      'pushd "$HOME/.claude" && ls',
+      'grep -r x ~/.claude',
+    ]) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(true);
     }
   });

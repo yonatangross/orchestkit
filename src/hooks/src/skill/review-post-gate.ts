@@ -709,6 +709,9 @@ function touchesTranscript(text: string, transcriptPath: string | undefined): bo
       word.replace(/'[^']*'|"[^"]*"/g, (q) => q.slice(1, -1).replace(/[*?[{]/g, '_')).replace(/\\./g, '_'),
     );
     if (/\.claude\/[^/]*[*?[{]/.test(bare) || /(?:^|\/)\.[^/]*[*?[{]/.test(bare)) return true;
+    // The .claude dir itself (cd ~/.claude && cat projects/x, grep -r x ~/.claude):
+    // a relative path or a recursive read from there reaches the transcripts.
+    if (/(?:^|\/)\.claude\/?$/.test(pathFold(word.replace(/['"\\]/g, '').replace(/[;&|)]+$/, '')))) return true;
   }
   return false;
 }
