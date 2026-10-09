@@ -1294,6 +1294,19 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       expect(at(cmd), cmd).toBe(false);
     }
   });
+  test('(HOLD 6085938817) the CDPATH class: no cd passes, so no CDPATH value changes the outcome', () => {
+    for (const cmd of [
+      'CDPATH+=~; cd .claude && sed -n 1p projects/p/s.jsonl',
+      'printf -v CDPATH %s ~; cd .claude && sed -n 1p projects/p/s.jsonl',
+      'read CDPATH <<< ~; cd .claude && sed -n 1p projects/p/s.jsonl',
+      'for CDPATH in ~; do cd .claude && sed -n 1p projects/p/s.jsonl; done',
+      'CDPATH=~ cd .claude && sed -n 1p projects/p/s.jsonl',
+      'export CDPATH=~; cd .claude && ls',
+      'CDPATH=/x:~ pushd .claude',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
   test('read cost, measured: reads that passed before the allowlist and now deny', () => {
     for (const cmd of [
       'cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs',
