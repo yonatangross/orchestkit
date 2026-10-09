@@ -1007,6 +1007,13 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
       expect(denied(reviewPostGate(tool('Write', { file_path: fp, content: 'x' }), ctx)), fp).toBe(true);
     }
   });
+  test('(product-7 at 3b72b789) a Bash or Monitor call with no command denies', () => {
+    for (const t of ['Bash', 'Monitor']) {
+      for (const ti of [{}, { command: '' }, { command: 42 }]) {
+        expect(denied(reviewPostGate(tool(t, ti), ctx)), `${t} ${JSON.stringify(ti)}`).toBe(true);
+      }
+    }
+  });
   test('control (HOLD 6083798707): reads that name a shell word or the hook code still pass', () => {
     for (const cmd of ['grep -n bash scripts/x.sh', 'cat /test/plugin-root/hooks/bin/run-hook.mjs', 'ls ~/.claude/plugins', 'git log --grep sh']) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);

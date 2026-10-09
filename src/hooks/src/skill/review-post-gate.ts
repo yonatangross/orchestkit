@@ -756,7 +756,8 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   // bash removes backslash-newline first, so every check reads the joined text
   // (.claude/pro\<newline>jects is .claude/projects).
   const command = typeof input.tool_input?.command === 'string' ? input.tool_input.command.replace(/\\\n/g, '') : '';
-  if (!command) return outputSilentSuccess();
+  // A Bash or Monitor call with no command string is not a call the gate can read.
+  if (!command) return deny(ctx, input, 'review-pr: a Bash or Monitor call with no command is denied (the gate cannot read it).');
   if (touchesTranscript(command, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
 
   // The hook code (bundle, runner) may be read, never written, copied over or removed.

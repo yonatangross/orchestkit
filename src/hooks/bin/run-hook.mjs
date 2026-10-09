@@ -511,6 +511,8 @@ const MAX_STDIN_BYTES = 512 * 1024;
 const timeout = setTimeout(() => {
   if (!stdinClosed) {
     stdinClosed = true;
+    // #4678: a gate that sees {} would allow; late or absent input blocks.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got no input in time');
     if (!process.stdin.isTTY && inputBytes === 0) {
       process.stderr.write(
         `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
@@ -572,10 +574,13 @@ process.stdin.on('end', () => {
   clearTimeout(timeout);
   if (!stdinClosed) {
     stdinClosed = true;
+    // #4678: an empty or unparseable input blocks this gate (it would see {}).
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && !input.trim()) failMissing('got an empty input');
     try {
       const parsedInput = input.trim() ? JSON.parse(input) : {};
       runHook(normalizeInput(parsedInput));
     } catch (err) {
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got input that is not JSON');
       // JSON parse error - output error message but continue
       console.log(JSON.stringify({
         continue: true,
@@ -589,6 +594,7 @@ process.stdin.on('error', () => {
   clearTimeout(timeout);
   if (!stdinClosed) {
     stdinClosed = true;
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('could not read its input');
     runHook(normalizeInput({}));
   }
 });

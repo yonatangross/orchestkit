@@ -132,6 +132,32 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     expect(r.stdout).not.toMatch(/"continue":\s*true/);
   });
 
+  // A working handler that would allow: input the gate cannot read must not reach it.
+  const allowGate = () =>
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+  function feed(hook: string, send: (stdin: NodeJS.WritableStream) => void): Promise<{ code: number | null; stdout: string }> {
+    return new Promise((resolve) => {
+      const child = spawn('node', [runner, hook], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+      let stdout = '';
+      child.stdout.on('data', (c) => { stdout += String(c); });
+      child.on('close', (code) => resolve({ code, stdout }));
+      child.stdin.on('error', () => {});
+      send(child.stdin);
+    });
+  }
+  it('(#4678) exits 2 for skill/review-post-gate on an empty pipe, non-JSON or late input', async () => {
+    allowGate();
+    for (const send of [
+      (w: NodeJS.WritableStream) => w.end(''),
+      (w: NodeJS.WritableStream) => w.end('not json'),
+      (w: NodeJS.WritableStream) => setTimeout(() => w.end(payload()), 1000),
+    ]) {
+      const r = await feed('skill/review-post-gate', send);
+      expect(r.code).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    }
+  }, 15000);
+
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
     expect(r.code).toBe(1);
