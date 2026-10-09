@@ -89,6 +89,31 @@ export const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp 
   { agent: 'ork:backend-system-architect', pattern: /\b((rest|graphql) api|api endpoints?|microservice|fastapi|backend (service|architecture))/i },
 ];
 
+/**
+ * Specialists whose frontmatter grants no Write or Edit (disallowedTools:
+ * [Write, Edit, MultiEdit]). They can plan and review but cannot build, so a
+ * build-shaped task must not be pushed toward them (#4649). Exported so tests
+ * cross-check every entry against src/agents/ frontmatter.
+ */
+export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
+  'ork:security-auditor',
+  'ork:debug-investigator',
+  'ork:code-quality-reviewer',
+]);
+
+/**
+ * Build intent: the task asks to change code or ship it (write, implement,
+ * fix, commit, push, open a PR). Suffixes are bounded so `fixture` and
+ * `pushover` do not match. Exported for tests.
+ */
+export const BUILD_INTENT_PATTERN =
+  /\b(?:implement\w*|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
+
+/** True when the task text asks to build (change code or ship it). */
+export function hasBuildIntent(description: string, prompt: string): boolean {
+  return BUILD_INTENT_PATTERN.test(`${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`);
+}
+
 /** Bound the prompt scan so regex work stays inside the PreToolUse budget. */
 const NUDGE_SCAN_MAX_CHARS = 2000;
 
@@ -158,6 +183,15 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
     const prompt = (toolInput.prompt as string) || '';
     const specialist = matchSpecialistDomain(description, prompt);
     if (specialist) {
+      // A read-only specialist cannot write, commit or open a PR. When the task
+      // asks to build, say so instead of asking to redirect (#4649).
+      if (READ_ONLY_SPECIALISTS.has(specialist) && hasBuildIntent(description, prompt)) {
+        ctx.log(HOOK_NAME, `build task matches read-only ${specialist}; advising, not asking`);
+        return outputAllowWithContext(
+          `plan/review: prefer \`${specialist}\` (it has no Write or Edit tools); ` +
+            `build: keep \`general-purpose\` for the write, commit and PR steps.`,
+        );
+      }
       ctx.log(HOOK_NAME, `general-purpose task matches ${specialist} domain — asking to redirect`);
       // ENFORCE (not just whisper): the advisory note was provably ignored
       // (telemetry: 14% specialist vs 74% generic). `ask` turns it into an
