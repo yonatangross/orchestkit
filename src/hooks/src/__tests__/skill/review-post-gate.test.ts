@@ -506,7 +506,6 @@ describe('(HOLD 6078660476) git grep pager flags, one interpreter rule, fail-clo
       'node -e "console.log(JSON.parse(process.argv[1]).a)" \'{"a":1}\'',
       'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)',
       'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
-      'bash -c "gh pr view 4668"',
     ]) {
       expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(false);
     }
@@ -548,6 +547,45 @@ describe('(HOLD 6078660476) git grep pager flags, one interpreter rule, fail-clo
   test('(low) a graphql URL endpoint is graphql', () => {
     expect(isRawPost('gh api https://api.github.com/graphql')).toBe(true);
     expect(isRawPost('gh api repos/o/r/contents/src/graphql/schema.ts')).toBe(false);
+  });
+});
+
+describe('(HOLD 6078898557) the folded rule runs on every segment that is not a known read', () => {
+  const t = () => transcript([typed('4668 --post --post-verdict')]);
+  test('interpreters outside any list name gh or GitHub: deny', () => {
+    const js = `-e "require('child_process').execFileSync('gh',['pr'].concat('comment','1'))"`;
+    for (const cmd of [
+      `tsx ${js}`,
+      `ts-node ${js}`,
+      `npx tsx ${js}`,
+      `pnpm dlx tsx ${js}`,
+      `bunx tsx ${js}`,
+      `ipython -c "import subprocess; subprocess.run(['gh','pr']+['comment','1'])"`,
+      `ipython -c "import urllib.request as u; u.urlopen(u.Request('https://api.github.com/repos/o/r/issues/1/comments', data=b'{}'))"`,
+      "tsx <<'TS'\nrequire('child_process').execFileSync(\n  'g' + 'h',\n  ['pr', 'comment', '1'],\n)\nTS",
+      'bash -c "gh pr view 4668"',
+    ]) {
+      expect(isRawPost(cmd)).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, t()), ctx))).toBe(true);
+    }
+  });
+  test('a direct gh read, a plain guard call and plain shell work still pass', () => {
+    const tr = transcript([typed('https://github.com/o/r/pull/4668 --post')]);
+    expect(denied(reviewPostGate(bash(`${GUARD.replace('--pr 4668', '--pr https://github.com/o/r/pull/4668')} --post`, tr), ctx))).toBe(false);
+    for (const cmd of [
+      'gh pr view https://github.com/o/r/pull/4668 --json title',
+      'GH_PAGER=cat gh pr diff 4668',
+      'gh api repos/o/r/pulls/4668/files --paginate',
+      'cd /test/project && git status',
+      'mkdir -p /tmp/review && echo done',
+      "cat > /tmp/review-4668.md <<'EOF'\n## Review\nSee https://github.com/o/r/pull/1, and gh pr view shows it.\nEOF",
+      "cat > /tmp/review-4668.md <<'EOF'\n| file | note |\n|---|---|\n| a.ts | see (https://github.com/o/r/blob/x/a.ts); ok & done |\nEOF",
+    ]) {
+      expect(isRawPost(cmd)).toBe(false);
+    }
+  });
+  test('a heredoc body line that spells a gh write is still a write', () => {
+    expect(isRawPost("cat > /tmp/x.sh <<'EOF'\ngh pr comment 4668 -b hi\nEOF")).toBe(true);
   });
 });
 

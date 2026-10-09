@@ -13,11 +13,13 @@
  *      no graphql at all (a GET may carry -f/-F as query fields). Any curl,
  *      wget or httpie/xh call to a GitHub host is denied. Every other gh verb
  *      is denied while the skill runs.
- *   1b. Any command that runs a non-shell interpreter (python, node, perl,
- *      ruby, deno, bun and the like, inline or from a heredoc) is a write when
- *      it names a GitHub host, names gh as a word, or spells a gh write verb
- *      pair, read with newlines and every non-word character folded to spaces.
- *      One rule for the class, so the way a list is built does not matter.
+ *   1b. Every segment that is not a known read (a read verb, or a direct gh
+ *      read) is a write when it names a GitHub host, names gh as a word, or
+ *      spells a gh write verb pair, read with every non-word character folded
+ *      to spaces. A heredoc body counts as part of the command it feeds. One
+ *      rule for any interpreter or wrapper (tsx, ipython, npx, bash -c), so
+ *      neither its name nor the way it builds a list matters. A command that
+ *      names a known interpreter is also read whole, newlines folded.
  *   2. The one write path is scripts/post-review.mjs, and only when:
  *      - the USER typed --post on the /ork:review-pr line that sits on this
  *        tool call's parentUuid chain (lib/review-opt-in.ts);
@@ -227,6 +229,56 @@ function interpreterWrite(command: string): string | null {
 }
 
 /**
+ * Why a segment that is not a known read names GitHub or gh, or null. Every
+ * non-word character (quotes, commas, brackets, +, dots) is folded to a space,
+ * so ['gh','pr'].concat(...) and 'g' + 'h' read as words.
+ */
+function foldedWrite(segment: string): string | null {
+  if (GITHUB_HOST.test(segment)) return 'a command that names a GitHub host';
+  const folded = ` ${segment.replace(/[^A-Za-z0-9_]+/g, ' ')} `;
+  if (/\sgh\s/.test(folded)) return 'a command that names gh';
+  const m = folded.match(WRITE_VERB);
+  return m ? `a command with a gh write verb (${m[0].trim()})` : null;
+}
+
+/** A direct gh call (optionally by path or after VAR=x) that ghWrite reads as a read. */
+function isGhRead(segment: string): boolean {
+  return /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*\/)?gh(?:\s|$)/.test(segment) && ghWrite(segment) === null;
+}
+
+interface Heredocs {
+  /** The command with every heredoc body removed. */
+  main: string;
+  /**
+   * Each heredoc whose receiver is not a read, as one segment: the receiver,
+   * then the body unsplit (a | or ; in a body is text, not a pipe).
+   */
+  joined: string[];
+  /** The body lines: data, not commands, unless the receiver runs them. */
+  body: string[];
+}
+
+function splitHeredocs(command: string): Heredocs {
+  const keep: string[] = [];
+  const joined: string[] = [];
+  const body: string[] = [];
+  const lines = command.split('\n');
+  for (let i = 0; i < lines.length; i += 1) {
+    keep.push(lines[i]);
+    const m = lines[i].match(/<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/);
+    if (!m) continue;
+    let j = i + 1;
+    const own: string[] = [];
+    for (; j < lines.length && lines[j].trim() !== m[2]; j += 1) own.push(lines[j]);
+    const receiver = segments(lines[i]).pop();
+    if (receiver !== undefined && !isReadOnly(receiver)) joined.push(`${receiver} ${own.join(' ')}`);
+    body.push(...own);
+    i = j;
+  }
+  return { main: keep.join('\n'), joined, body };
+}
+
+/**
  * Why the command writes to GitHub by any path but the guard script, or null.
  * No quoted text is skipped: `echo "$(gh pr comment ...)"` runs the post, so a
  * harmless `echo "gh pr review"` is denied too (fail closed).
@@ -237,7 +289,16 @@ export function rawWriteReason(command: string): string | null {
   const plainGuard = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   const interp = plainGuard ? null : interpreterWrite(command);
   if (interp) return interp;
-  for (const seg of segments(command)) {
+  const docs = splitHeredocs(command);
+  // A body line is data (a review body with a github.com link is fine), but a
+  // line that spells a gh write keeps the old checks: it may be run later.
+  for (const line of docs.body) {
+    if (isReadOnly(line.trim())) continue;
+    const why = ghWrite(line.trim()) ?? verbWrite(line.trim()) ?? httpWrite(line.trim());
+    if (why) return why;
+  }
+  // The command that takes a heredoc is read with its body (python3 - <<PY).
+  for (const seg of [...segments(docs.main), ...docs.joined]) {
     // Command substitution and subshells: scan their insides as segments too.
     const inner = [seg, ...[...seg.matchAll(/\$\(([^()]*)\)|`([^`]*)`|\(([^()]*)\)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? '')];
     for (const s of inner) {
@@ -249,6 +310,9 @@ export function rawWriteReason(command: string): string | null {
         if (isReadOnly(part)) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
+        if (plainGuard || isGhRead(part)) continue;
+        const folded = foldedWrite(part);
+        if (folded) return folded;
       }
     }
   }
