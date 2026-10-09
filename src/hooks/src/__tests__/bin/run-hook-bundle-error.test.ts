@@ -96,6 +96,13 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     expect(typeof rows[0].t_bundle_ms).toBe('number');
   }, 20000);
 
+  it('(#4678) exits 2 for skill/review-post-gate: an unloadable skill bundle must not let a post through', async () => {
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), 'export const hooks = {\n', 'utf8');
+    const r = await run('skill/review-post-gate');
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/hook "skill\/review-post-gate" bundle at .*skill\.mjs exists but failed to load/);
+  });
+
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
     expect(r.code).toBe(1);

@@ -236,6 +236,9 @@ const SECURITY_HOOKS = new Set([
   // these dispatchers and turn every Bash / Write-Edit guard into a no-op.
   'pretool/bash/sync-bash-dispatcher',
   'pretool/write-edit/sync-write-edit-dispatcher',
+  // #4678: /ork:review-pr posts only through this gate, so an unloadable skill
+  // bundle must block (exit 2), not fail open (exit 1).
+  'skill/review-post-gate',
 ]);
 
 /**
