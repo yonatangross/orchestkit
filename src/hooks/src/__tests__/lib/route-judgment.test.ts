@@ -621,6 +621,7 @@ describe('log line', () => {
   it('has the agreed shape', () => {
     const v: RouteVerdict = {
       decided_by: 'jev',
+      redaction_profile: null,
       intent: 'dev_fix',
       conf: 0.83,
       top3: [

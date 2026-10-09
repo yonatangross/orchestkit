@@ -31,6 +31,7 @@ const BUILD_PROMPT = 'fix the flaky retry logic in the upload endpoint and add a
 function verdict(partial: Partial<RouteVerdict>): RouteVerdict {
   return {
     decided_by: 'table',
+    redaction_profile: null,
     intent: null,
     conf: null,
     top3: [],
