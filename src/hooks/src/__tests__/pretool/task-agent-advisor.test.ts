@@ -9,7 +9,7 @@
  * pre-existing synonym and casing suggestions.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { describe, test, expect } from 'vitest';
@@ -20,6 +20,8 @@ import {
   isDeterministicRunTask,
   ORK_AGENT_SYNONYMS,
   SPECIALIST_DOMAINS,
+  READ_ONLY_SPECIALISTS,
+  BUILD_INTENT_PATTERN,
 } from '../../pretool/task/task-agent-advisor.js';
 
 // Repo-root src/agents/, resolved from this test file's location
@@ -244,6 +246,91 @@ describe('advisor maps cross-checked against src/agents/ (map existence)', () =>
       expect(agent.startsWith('ork:')).toBe(true);
       const file = join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`);
       expect(existsSync(file)).toBe(true);
+    },
+  );
+});
+
+/**
+ * Parse an agent file's frontmatter into its granted and disallowed tool names.
+ * Only the two keys this check needs; comments and non-list lines are skipped.
+ */
+function agentToolGrants(agent: string): { tools: string[]; disallowed: string[] } {
+  const raw = readFileSync(join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`), 'utf8');
+  const fm = raw.split(/^-{3}$/m)[1] ?? '';
+  const tools: string[] = [];
+  let disallowed: string[] = [];
+  let inTools = false;
+  for (const line of fm.split('\n')) {
+    const inline = /^disallowedTools:\s*\[(.*)\]/.exec(line);
+    if (inline) {
+      disallowed = inline[1].split(',').map((t) => t.trim()).filter(Boolean);
+      inTools = false;
+      continue;
+    }
+    if (/^tools:\s*$/.test(line)) { inTools = true; continue; }
+    if (/^\S/.test(line)) { inTools = false; continue; }
+    const item = /^\s+-\s+(\S+)/.exec(line);
+    if (inTools && item) tools.push(item[1]);
+  }
+  return { tools, disallowed };
+}
+
+describe('#4649 routing hint checks build intent against the agent tools', () => {
+  test('a build task matching a read-only specialist does NOT ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Security review then fix, commit and open a PR',
+      }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    const ctx = contextOf(result);
+    expect(ctx).toContain('plan/review: prefer `ork:security-auditor`');
+    expect(ctx).toContain('build: keep `general-purpose`');
+  });
+
+  test.each([
+    ['run a security audit on the upload endpoint, then implement the fixes', 'ork:security-auditor'],
+    ['find the root cause of the crash and push a fix', 'ork:debug-investigator'],
+    ['review this PR and commit the suggested changes', 'ork:code-quality-reviewer'],
+  ])('build intent + read-only match "%s" is advisory, not ask', (description, agent) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(`plan/review: prefer \`${agent}\``);
+  });
+
+  test('a read-only match WITHOUT build intent still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  test('build intent with a writable specialist still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'write unit tests for the parser and commit them' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:test-generator');
+  });
+
+  test('BUILD_INTENT_PATTERN matrix', () => {
+    expect(BUILD_INTENT_PATTERN.test('commit and push')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('open a PR')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('implement the change')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('then fix it')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('find the root cause')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('audit the fixture loader')).toBe(false);
+  });
+
+  test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(
+    'READ_ONLY_SPECIALISTS membership of %s matches its frontmatter tools',
+    (agent) => {
+      const { tools, disallowed } = agentToolGrants(agent);
+      expect(tools.length).toBeGreaterThan(0);
+      const canWrite = ['Write', 'Edit'].some((t) => tools.includes(t) && !disallowed.includes(t));
+      expect(READ_ONLY_SPECIALISTS.has(agent)).toBe(!canWrite);
     },
   );
 });
