@@ -1186,6 +1186,19 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
       expect(at(cmd), cmd).toBe(true);
     }
   });
+  test('a relative cd target with CDPATH set in the command or the env denies', () => {
+    for (const cmd of ["CDPATH=~ cd .claude && sed -n 1p projects/p/s.jsonl", 'export CDPATH=~; cd .claude && ls', 'CDPATH=/x:~ pushd .claude']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    const saved = process.env.CDPATH;
+    process.env.CDPATH = '/Users/me';
+    try {
+      expect(at('cd .claude && ls')).toBe(true);
+    } finally {
+      if (saved === undefined) delete process.env.CDPATH;
+      else process.env.CDPATH = saved;
+    }
+  });
   test('control: a plain cd still passes', () => {
     for (const cmd of ['cd src && ls', 'cd /test/project/docs; ls', 'cd && ls']) {
       expect(at(cmd), cmd).toBe(false);

@@ -724,12 +724,15 @@ export interface ReviewPostGateDeps {
   pluginRoot: () => string;
   /** HOME, for ~ and the default config dir ~/.claude. */
   home?: () => string;
+  /** CDPATH from the environment: set, a relative cd target is not resolvable. */
+  cdpath?: () => string;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
   readOptIn,
   pluginRoot: () => (process.env.CLAUDE_PLUGIN_ROOT ?? '').trim().replace(/\/+$/, ''),
   home: () => process.env.HOME ?? '',
+  cdpath: () => process.env.CDPATH ?? '',
 };
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
@@ -791,7 +794,10 @@ export function commandPaths(command: string, startCwd: string, home: string): s
 const UNRESOLVED_CD = '\u0000unresolved-cd';
 
 /** Each segment with its resolved path words. */
-function pathSegments(command: string, startCwd: string, home: string): Array<{ seg: string; paths: string[] }> {
+function pathSegments(command: string, startCwd: string, home: string, envCdpath = false): Array<{ seg: string; paths: string[] }> {
+  // With CDPATH set, bash looks a relative cd target up in it (CDPATH=~ cd
+  // .claude lands in ~/.claude), so such a target cannot be resolved here.
+  const cdpath = envCdpath || /(?:^|[\s;&|(])(?:export\s+)?CDPATH=/.test(command);
   const out: Array<{ seg: string; paths: string[] }> = [];
   const h = home.toLowerCase().replace(/\/+$/, '');
   let cwd = startCwd ? posix.normalize(startCwd.toLowerCase()) : '';
@@ -812,7 +818,8 @@ function pathSegments(command: string, startCwd: string, home: string): Array<{ 
       const target = words.slice(at + 1).find((w) => !/^-./.test(w));
       // A target the gate cannot resolve (cd -, $D, a backtick, ~user) would
       // leave every later relative path unseen: the segment is marked unresolved.
-      if (target !== undefined && (target === '-' || /[$`]/.test(target) || /^~[^/]/.test(target))) {
+      const viaCdpath = cdpath && target !== undefined && !/^(?:\/|~|\.{1,2}(?:\/|$))/.test(target);
+      if (target !== undefined && (target === '-' || /[$`]/.test(target) || /^~[^/]/.test(target) || viaCdpath)) {
         out.push({ seg: UNRESOLVED_CD, paths: [] });
         cwd = '';
       } else {
@@ -924,7 +931,8 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   // and inlined (a cd inside it); a hit in either counts.
   const views = checkShellPrograms(command);
   const pathViews = [...new Set([views.rest, views.flat, command])];
-  for (const { seg, paths } of pathViews.flatMap((v) => pathSegments(v, input.cwd ?? '', deps.home?.() ?? ''))) {
+  const envCdpath = Boolean((deps.cdpath?.() ?? '').trim());
+  for (const { seg, paths } of pathViews.flatMap((v) => pathSegments(v, input.cwd ?? '', deps.home?.() ?? '', envCdpath))) {
     if (seg === UNRESOLVED_CD) return deny(ctx, input, 'review-pr: a cd or pushd target the gate cannot resolve (cd -, a variable, a command) is denied, because the paths after it would be unseen.');
     const hits = paths.map((p) => targetOf(p, targets));
     if (hits.includes('config')) return deny(ctx, input, TRANSCRIPT_DENY);
