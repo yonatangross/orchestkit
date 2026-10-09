@@ -802,6 +802,40 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       '$SHELL -c "$X"',
     ]);
   });
+  test('(HOLD 6081556826) stdin path spellings, a variable script path, runners before a shell, git config', () => {
+    const P = "printf 'g%s pr com%sent 4678 -b synthetic' h m";
+    deniedAll([
+      // M1: any spelling of the shell's stdin, and a variable path, as the script.
+      `${P} | bash /dev/./stdin`,
+      `${P} | bash //dev/stdin`,
+      `${P} | bash /dev/../dev/stdin`,
+      `${P} | bash /proc/thread-self/fd/0`,
+      `${P} | bash /proc/123/fd/0`,
+      `${P} | bash /dev/fd/0`,
+      `${P} | bash "$F"`,
+      `${P} | . /dev/./stdin`,
+      `${P} | source "$F"`,
+      // M2: runners before a shell resolve to the shell, else deny.
+      `${P} | xargs env sh -c ':'`,
+      `${P} | xargs env sh`,
+      `${P} | xargs nice sh`,
+      `${P} | flock /tmp/l sh`,
+      `flock /tmp/l -c "${P} | sh"`,
+      `watch -n 1 "${P} | sh"`,
+      "git -c alias.x='!sh' x",
+      'git -c alias.x=!sh x',
+      'git -c core.pager=sh log',
+      'GIT_PAGER=sh git log',
+      // SHOULD: a token print.
+      'gh auth status -t',
+      'gh auth status --show-token',
+    ]);
+  });
+  test('control: bash -n is a syntax check only, GH_PAGER=cat and plain git reads pass', () => {
+    for (const cmd of ['bash -n scripts/x.sh', 'bash -n < /tmp/x.sh', 'GH_PAGER=cat gh pr diff 4668', 'git log --oneline -3', 'gh auth status', 'printf x | xargs echo']) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
   test('control: a script file after a no-argument flag, a prefix on a non-shell, a readable sh -c', () => {
     for (const cmd of ['bash -e scripts/x.sh 4668', 'env -u X node scripts/x.mjs', "bash -c 'gh pr view 4668'", 'nice -n 5 bash scripts/x.sh']) {
       expect(isRawPost(cmd), cmd).toBe(false);

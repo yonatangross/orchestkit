@@ -60,6 +60,7 @@ import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputDeny, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
+import { posix } from 'node:path';
 
 const HOOK = 'review-post-gate';
 const SKILL_NAMES = ['/ork:review-pr'] as const;
@@ -187,6 +188,7 @@ function ghWrite(segment: string): string | null {
   const rest = `${verb} ${m[4] ?? ''}`;
   if (GH_READ_ANY_VERB.has(sub)) return null;
   if (sub === 'api') return ghApiWrite(rest);
+  if (sub === 'auth' && verb === 'status' && /(?:^|\s)(?:-t|--show-token)(?:\s|$)/.test(rest)) return 'gh auth status with a token print';
   const reads = GH_READ[sub];
   if (reads?.includes(verb)) return null;
   return `gh ${sub}${verb ? ` ${verb}` : ''}`;
@@ -322,11 +324,28 @@ const SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'mksh', 'ash', 'yash
 const RUNNERS = new Set([...SHELLS, 'source', '.', 'eval', 'xargs']);
 const PREFIX_WORDS = new Set([
   'env', 'command', 'exec', 'builtin', 'nohup', 'time', 'sudo', 'doas', 'stdbuf', 'nice', 'timeout',
-  'setsid', 'chronic', 'ionice', 'caffeinate', 'unbuffer',
+  'setsid', 'chronic', 'ionice', 'caffeinate', 'unbuffer', 'flock', 'su', 'runuser', 'script',
 ]);
+// Runners whose own argument is a command string run by a shell (flock -c,
+// su -c, script -c), or always is (watch, parallel): the gate cannot read it.
+const STRING_RUNNERS = new Set(['watch', 'parallel']);
+const COMMAND_FLAG = /^(?:-[A-Za-z]*c|--command(?:=.*)?)$/;
+// Variables that make git or gh run a command (a pager, an editor, ssh).
+const RUNS_VAR =
+  /^(?:export\s+)?(?:GIT_PAGER|PAGER|GH_PAGER|GIT_EDITOR|GIT_SEQUENCE_EDITOR|EDITOR|VISUAL|GH_EDITOR|GIT_EXTERNAL_DIFF|GIT_SSH_COMMAND|GIT_SSH|GIT_ASKPASS|SSH_ASKPASS|BROWSER|GH_BROWSER)=(.*)$/;
 // A file name that is the shell's own stdin or a process substitution.
-const STDIN_FILE = /^(?:\/dev\/stdin|\/dev\/fd\/\d+|\/proc\/self\/fd\/\d+|<\()/;
-const NO_ARG_FLAG = /^-[elxuv]+$/;
+const STDIN_FILE = /^(?:\/dev\/stdin|\/dev\/fd\/\d+|\/proc\/[^/]+\/fd\/\d+)$/;
+/**
+ * A script path the gate cannot trust: the shell's stdin in any spelling
+ * (/dev/./stdin, //dev/stdin, /proc/thread-self/fd/0), a process
+ * substitution, a redirect, or a path built at run time ("$F").
+ */
+function unseenScriptPath(f: string): boolean {
+  if (/^[-<]/.test(f) || /[$`]/.test(f)) return true;
+  return f.startsWith('/') && STDIN_FILE.test(posix.normalize(f));
+}
+// No-argument flags; -n is a syntax check that runs nothing (never with -i).
+const NO_ARG_FLAG = /^-[elxuvn]+$/;
 // A program this gate already checked, replaced by `sh -c :`.
 const CHECKED = /^sh -c :(?:\s|$)/;
 const baseName = (t: string): string => t.replace(/^.*\//, '');
@@ -351,23 +370,41 @@ function runsUnseenScript(part: string): string | null {
   if (runtime(w[0] ?? '') || (PREFIX_WORDS.has(baseName(w[0] ?? '')) && w.slice(1).some(runtime))) {
     return 'a program word built at run time';
   }
+  // A pager, editor or ssh variable set to a command (GIT_PAGER=sh git log).
+  const all = part.replace(/['"\\]/g, '').split(/\s+/);
+  for (let t = 0; t < all.length; t += 1) {
+    const v = (all[t] === 'export' ? '' : all[t]).match(RUNS_VAR);
+    if (v && !['', 'cat', 'less', 'more'].includes(v[1])) return 'a pager, editor or ssh variable set to a command';
+  }
   const cmd = baseName(w[0] ?? '');
+  // git -c and --config-env set alias, pager or hook commands (git -c alias.x=!sh x).
+  if (cmd === 'git' && w.some((t) => t === '-c' || /^--config-env(?:=|$)/.test(t))) return 'git -c or --config-env';
+  if (STRING_RUNNERS.has(cmd)) return `${cmd} runs a command string`;
+  if (PREFIX_WORDS.has(cmd) && w.some((t) => COMMAND_FLAG.test(t)) && ['flock', 'su', 'runuser', 'script'].includes(cmd)) {
+    return `${cmd} -c runs a command string`;
+  }
   if (!RUNNERS.has(cmd)) return null;
   if (cmd === 'eval') return 'eval';
   if (cmd === 'xargs') {
-    const runs = w.slice(1).some((t) => SHELLS.has(baseName(t)) || INTERPRETER.test(` ${baseName(t)} `));
-    return runs ? 'xargs into a shell or an interpreter' : null;
+    // xargs runs the next word as a command with words from stdin: into a
+    // shell, an interpreter or another runner it runs stdin (xargs env sh).
+    const runs = w.slice(1).some((t) => {
+      const b = baseName(t);
+      return SHELLS.has(b) || RUNNERS.has(b) || PREFIX_WORDS.has(b) || STRING_RUNNERS.has(b) || b === 'git' || INTERPRETER.test(` ${b} `);
+    });
+    return runs ? 'xargs into a shell, an interpreter or a runner' : null;
   }
   if (cmd === 'source' || cmd === '.') {
     const f = w[1];
-    return f === undefined || /^[-<]/.test(f) || STDIN_FILE.test(f) ? 'source of stdin' : null;
+    return f === undefined || unseenScriptPath(f) ? 'source of stdin or a run-time path' : null;
   }
   if (CHECKED.test(w.join(' '))) return null;
   let k = 1;
   while (k < w.length && NO_ARG_FLAG.test(w[k])) k += 1;
   const op = w[k];
-  if (op === undefined || op.startsWith('<') || STDIN_FILE.test(op)) return 'a shell that reads its script from stdin';
-  if (/^[-+]/.test(op)) return 'a shell call the gate cannot classify';
+  if (op !== undefined && /^[-+]/.test(op)) return 'a shell call the gate cannot classify';
+  if (w.slice(1, k).some((f) => f.includes('n'))) return null;
+  if (op === undefined || unseenScriptPath(op)) return 'a shell that reads its script from stdin or a run-time path';
   return null;
 }
 
