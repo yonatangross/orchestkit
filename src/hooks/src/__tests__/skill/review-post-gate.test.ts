@@ -697,6 +697,99 @@ describe('(HOLD 6079468845) one heredoc rule, the script is a call or a read, fa
   });
 });
 
+describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind a prefix or in sh -c', () => {
+  const none = () => transcript([typed('4678')]);
+  const deniedAll = (cmds: string[]) => {
+    for (const cmd of cmds) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
+    }
+  };
+  test('Codex: an executable heredoc body is code, read whole (no read exemption for a fragment)', () => {
+    deniedAll([
+      "tsx <<'TS'\nlet cat;cat = require('child_process').execFileSync('gh', ['pr'].concat('comment','4678','-b','synthetic'))\nTS",
+      "tsx <<-'TS'\n\tlet cat;cat = require('child_process').execFileSync('gh', ['pr'].concat('comment','4678','-b','synthetic'))\n\tTS",
+    ]);
+  });
+  test('Codex: a shell reading stdin behind env or command, or inside sh -c', () => {
+    deniedAll([
+      "printf 'g%s pr com%sent 4678 -b synthetic' h m | env sh",
+      "printf 'g%s pr com%sent 4678 -b synthetic' h m | command sh",
+      "bash -c \"printf 'g%s pr com%sent 4678 -b synthetic' h m | sh\"",
+    ]);
+  });
+  test('the same class: other prefixes, /dev/stdin, xargs into a shell, an sh -c program the gate cannot read', () => {
+    deniedAll([
+      "printf x | exec sh",
+      "printf x | nohup bash",
+      "printf x | nice -n 5 sh",
+      "printf x | timeout 5 sh",
+      "printf x | env -i PATH=/usr/bin sh",
+      "printf x | bash /dev/stdin",
+      "printf x | source /dev/stdin",
+      "printf x | . /dev/stdin",
+      "printf 'g%s pr comment 1' h | xargs -I{} sh -c '{}'",
+      "printf x | xargs bash",
+      'X=$(printf g%s h); sh -c "$X pr comment 1"',
+      "sh -c $CMD",
+      "bash -lc \"printf x | sh\"",
+      "env bash <<'EOF'\necho hi\nEOF",
+      // An option between the shell and -c, or the end-of-options marker before the program.
+      `sh -o pipefail -c "printf 'g%s pr com%sent 1' h m | sh"`,
+      `bash --norc -c "printf 'g%s pr com%sent 1' h m | sh"`,
+      'X=$(printf g%s h); sh -c -- "$X pr com""ment 1"',
+    ]);
+  });
+  test('product-6 at ad3f7934: a heredoc body line that starts with a read verb is still code', () => {
+    const body = (lead: string) => `const ${lead} = require('child_process');\n${lead}\n  .execFileSync('gh', ['pr'].concat('comment','1'))`;
+    deniedAll([
+      `tsx <<'TS'\n${body('cat')}\nTS`,
+      `tsx <<'TS'\n${body('ls')}\nTS`,
+      `node <<'JS'\n${body('echo')}\nJS`,
+      "tsx <<'TS'\nconst x = 1; grep\n  ; require('child_process').execFileSync('gh', ['pr'].concat('comment','1'))\nTS",
+    ]);
+  });
+  test('product-6 at ad3f7934: shell forms that run a program built at run time', () => {
+    deniedAll([
+      `sh -c "$(printf 'g%s pr com%sent 1' h m)"`,
+      `bash <(printf 'g%s pr com%sent 1' h m)`,
+      `source /dev/stdin <<< "$(printf 'g%s pr com%sent 1' h m)"`,
+      `printf 'g%s pr com%sent 1' h m | xargs -I{} sh -c {}`,
+    ]);
+  });
+  test('control (product-6): reads with a pipe, a read of the guard, a review heredoc', () => {
+    for (const cmd of [
+      'git log --oneline -5 | cat',
+      'npm test 2>&1 | tail -20',
+      'gh pr diff 4668 | head -200',
+      "cat <<'EOF' > /tmp/review-4668.md\n## Review\n1. The loop at a.ts:12 never ends.\nEOF",
+    ]) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+    for (const cmd of ['cat /test/plugin-root/skills/review-pr/scripts/post-review.mjs', 'grep -n post /test/plugin-root/skills/review-pr/scripts/post-review.mjs | head -5']) {
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(false);
+    }
+  });
+  test('the guard script inside sh -c is not the guard call, even with the opt-in', () => {
+    const t = transcript([typed('4668 --post')]);
+    const cmd = "bash -c 'node /test/plugin-root/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md --post'";
+    expect(denied(reviewPostGate(bash(cmd, t), ctx))).toBe(true);
+  });
+  test('control: sh -c with a readable program, a heredoc into a non-shell, prefixes on a non-shell', () => {
+    for (const cmd of [
+      'bash -c "gh pr view 4668"',
+      "sh -c 'echo hi; ls'",
+      "bash -lc 'git status'",
+      "python3 - <<'PY'\nprint(1)\nPY",
+      'env FOO=1 node scripts/x.mjs',
+      'nice -n 5 bash scripts/resolve-target.sh 4668',
+      'printf x | xargs echo',
+    ]) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;

@@ -17,7 +17,9 @@
  *      read) is a write when it names a GitHub host, names gh as a word, or
  *      spells a gh write verb pair, read with every non-word character folded
  *      to spaces. A heredoc body counts as part of the command it feeds, and
- *      only a clean heredoc is split out (else the whole command is scanned).
+ *      only a clean heredoc is split out (else the whole command is scanned);
+ *      a heredoc into a receiver that is not a pure read is code, read whole.
+ *      Each sh -c program is parsed first and checked as its own command.
  *      A segment with $( or a backtick is never a read; a shell reading
  *      stdin and eval are denied; a command that names post-review.mjs is
  *      its exact node call or a pure read with no redirect. One
@@ -310,32 +312,103 @@ function splitHeredocs(command: string): Heredocs | null {
 
 // A shell that reads its script from stdin (| bash, bash < f, sh -s, sh -),
 // or eval: the text it runs is not in this command.
-const SHELL = /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*\/)?(?:ba|z|da|k|mk)?sh(?:\s+([\s\S]*))?$/;
-const EVAL = /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:builtin\s+|command\s+)?eval(?:\s|$)/;
+const SHELL = /^(?:\S*\/)?(?:ba|z|da|k|mk)?sh(?:\s+([\s\S]*))?$/;
+const SHELL_WORD = /(?:^|[\s/])(?:ba|z|da|k|mk)?sh(?:\s|$)/;
+const EVAL = /^eval(?:\s|$)/;
+const SOURCE = /^(?:source|\.)\s+(\S+)/;
+// A file name that is the shell's own stdin or a process substitution.
+const STDIN_FILE = /^(?:\/dev\/stdin|\/dev\/fd\/\d+|\/proc\/self\/fd\/\d+|<\()/;
+// Words that run the next word as the command (env sh, command sh, nice -n 5 sh).
+const PREFIX =
+  /^(?:[A-Za-z_][A-Za-z0-9_]*=\S*|(?:\S*\/)?(?:env|command|exec|builtin|nohup|time|sudo|doas|stdbuf|nice|timeout|setsid|chronic|ionice|caffeinate)|-[A-Za-z-]+(?:=\S*)?|\d+(?:\.\d+)?[smhd]?)\s+/;
+
+/** The segment with leading assignments and prefix words removed. */
+function stripPrefixes(part: string): string {
+  let s = part;
+  for (let prev = ''; prev !== s; ) {
+    prev = s;
+    s = s.replace(PREFIX, '');
+  }
+  return s;
+}
+
 function runsUnseenScript(part: string): string | null {
-  if (EVAL.test(part)) return 'eval';
-  const m = part.match(SHELL);
+  const s = stripPrefixes(part);
+  if (EVAL.test(s)) return 'eval';
+  const src = s.match(SOURCE);
+  if (src && STDIN_FILE.test(src[1])) return 'source of stdin';
+  // xargs builds a command from stdin: into a shell or an interpreter it runs it.
+  if (/^(?:\S*\/)?xargs(?:\s|$)/.test(s) && (SHELL_WORD.test(s) || INTERPRETER.test(s))) return 'xargs into a shell or an interpreter';
+  if (CHECKED.test(s)) return null;
+  const m = s.match(SHELL);
   if (!m) return null;
+  const raw = (m[1] ?? '').split(/\s+/).filter(Boolean);
+  if (raw.some((t) => STDIN_FILE.test(t))) return 'a shell that reads its script from stdin';
   const toks = (m[1] ?? '').replace(/<+\s*\S+/g, ' ').split(/\s+/).filter(Boolean);
   const flags = toks.filter((t) => t.startsWith('-'));
-  if (flags.some((f) => /^-[A-Za-z]*c/.test(f))) return null;
+  // Every readable sh -c program was replaced by `sh -c :`; one left here was not.
+  if (flags.some((f) => /^-[A-Za-z]*c/.test(f))) return 'an sh -c program the gate cannot read';
   const stdin = flags.some((f) => f === '-' || /^-[A-Za-z]*s/.test(f)) || toks.length === flags.length;
   return stdin ? 'a shell that reads its script from stdin' : null;
 }
 
-// sh -c '<text>' with no quote, $, backtick or backslash inside: the text is
-// the command, so it is checked as one (bash -c "gh pr view 1" is a read).
-const SHELL_C = /^(?:\S*\/)?(?:ba|z|da|k)?sh\s+-c\s+(["'])([^"'\\$`]*)\1$/;
+// A shell word with a flag cluster that holds c: its next word is a program.
+const SHELL_C_AT = /(^|[\s;&|(`])((?:\S*\/)?(?:ba|z|da|k|mk)?sh)((?:\s+(?:[-+]o\s+[A-Za-z_]+|--?[A-Za-z][A-Za-z-]*|\+[A-Za-z]+))+)\s+/g;
+// A program this gate already checked, replaced by `sh -c :`.
+const CHECKED = /^sh -c :(?:\s|$)/;
+
+/**
+ * Every sh -c program, parsed before the command is split (a ; or | inside
+ * the quotes is the program's, not this command's). A program is checked as
+ * a command of its own; one the gate cannot read (a $, backtick or backslash
+ * in double quotes, an unquoted word that is not plain) denies. On null the
+ * returned text has each checked program replaced by `sh -c :`.
+ */
+function checkShellPrograms(command: string): { why: string | null; rest: string } {
+  const unreadable = { why: 'an sh -c program the gate cannot read', rest: command };
+  let out = '';
+  let last = 0;
+  for (const m of command.matchAll(SHELL_C_AT)) {
+    const at = m.index ?? 0;
+    if (at < last || !m[3].split(/\s+/).some((t) => /^-[A-Za-z]*c[A-Za-z]*$/.test(t))) continue;
+    const start = at + m[1].length;
+    const i = at + m[0].length;
+    const q = command[i];
+    let program: string;
+    let end: number;
+    if (q === "'" || q === '"') {
+      end = command.indexOf(q, i + 1);
+      if (end < 0) return unreadable;
+      program = command.slice(i + 1, end);
+      if (q === '"' && /[$`\\]/.test(program)) return unreadable;
+      end += 1;
+    } else {
+      const w = command.slice(i).match(/^[A-Za-z0-9_\-./:]+(?=[\s;&|)]|$)/);
+      if (!w || w[0].startsWith('-')) return unreadable;
+      program = w[0];
+      end = i + w[0].length;
+    }
+    if (GUARD_SCRIPT.test(program)) return { why: 'post-review.mjs inside sh -c', rest: command };
+    const why = rawWriteReason(program);
+    if (why) return { why, rest: command };
+    out += `${command.slice(last, start)}sh -c :`;
+    last = end;
+  }
+  return { why: null, rest: out + command.slice(last) };
+}
 
 /**
  * Why the command writes to GitHub by any path but the guard script, or null.
  * No quoted text is skipped: `echo "$(gh pr comment ...)"` runs the post, so a
  * harmless `echo "gh pr review"` is denied too (fail closed).
  */
-export function rawWriteReason(command: string): string | null {
+export function rawWriteReason(full: string): string | null {
   // The guard call is node + a file and one plain command, so it holds no
   // inline code; its --pr URL names github.com on purpose.
-  const plainGuard = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
+  const plainGuard = GUARD_CALL.test(full.trim()) && PLAIN_CALL.test(full.trim());
+  const programs = plainGuard ? { why: null, rest: full } : checkShellPrograms(full);
+  if (programs.why) return programs.why;
+  const command = programs.rest;
   const interp = plainGuard ? null : interpreterWrite(command);
   if (interp) return interp;
   // Not a clean heredoc: scan the whole command, every line a segment.
@@ -347,8 +420,14 @@ export function rawWriteReason(command: string): string | null {
     const why = ghWrite(line.trim()) ?? verbWrite(line.trim()) ?? httpWrite(line.trim());
     if (why) return why;
   }
-  // The command that takes a heredoc is read with its body (python3 - <<PY).
-  for (const seg of [...segments(docs.main), ...docs.joined]) {
+  // A heredoc into any receiver that is not a pure read is code (tsx <<TS):
+  // the receiver and body are read whole, never split on ; or newlines, so
+  // no fragment of the body gets a read exemption (XREVIEW HOLD 6080480743).
+  for (const code of docs.joined) {
+    const why = ghWrite(code) ?? verbWrite(code) ?? httpWrite(code) ?? foldedWrite(code);
+    if (why) return why;
+  }
+  for (const seg of segments(docs.main)) {
     // Command substitution and subshells: scan their insides as segments too.
     const inner = [seg, ...[...seg.matchAll(/\$\(([^()]*)\)|`([^`]*)`|\(([^()]*)\)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? '')];
     for (const s of inner) {
@@ -360,12 +439,8 @@ export function rawWriteReason(command: string): string | null {
         if (unseen) return unseen;
         // A search or a history read names write verbs without running them.
         if (isReadOnly(part)) continue;
-        const shellC = part.match(SHELL_C);
-        if (shellC) {
-          const inner = rawWriteReason(shellC[2]);
-          if (inner) return inner;
-          continue;
-        }
+        // A checked sh -c program (replaced by `sh -c :` above).
+        if (CHECKED.test(stripPrefixes(part))) continue;
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
         if (plainGuard || isGhRead(part)) continue;
