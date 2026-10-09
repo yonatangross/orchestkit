@@ -6,7 +6,6 @@ maxTurns: 30
 effort: medium
 color: blue
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read

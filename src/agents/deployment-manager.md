@@ -5,7 +5,6 @@ model: sonnet
 maxTurns: 20
 effort: low
 memory: project
-isolation: worktree
 color: green
 tools:
   - Bash

@@ -6,7 +6,6 @@ maxTurns: 50
 effort: medium
 color: yellow
 memory: project
-isolation: worktree
 tools:
   - Read
   - Edit

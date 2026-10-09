@@ -207,7 +207,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "git-operations-engineer",
-    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.",
+    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "plugins": [
       "ork"
     ],
@@ -279,7 +279,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "release-engineer",
-    "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",
+    "description": "Release and versioning specialist for GitHub releases, milestones, changelogs, semantic versioning and release automation. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "plugins": [
       "ork"
     ],
