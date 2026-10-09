@@ -19,7 +19,8 @@
 //   single pass is never a fallback and that skipping the fan-out ends the
 //   run as BLOCKED.
 //
-//   Fails if: any SKILL.md that calls `Workflow(` sets `context: fork`; or one
+//   Fails if: any SKILL.md that calls `Workflow(` (or ships a workflows/*.js
+//   script, #4696) sets `context: fork`; or one
 //   of the skills in FIXED stops calling Workflow( (the list would be stale)
 //   or loses its fan-out rule line; or no skill calls Workflow( at all (the
 //   scan would be broken).
@@ -31,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const SKILLS = path.join(ROOT, 'src', 'skills');
-const FIXED = ['assess', 'audit-full', 'cover', 'verify'];
+const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'verify'];
 
 const frontmatter = (text) => {
   const m = /^---\n([\s\S]*?)\n---\n/.exec(text);
@@ -44,7 +45,11 @@ for (const name of readdirSync(SKILLS).sort()) {
   const file = path.join(SKILLS, name, 'SKILL.md');
   if (!existsSync(file)) continue;
   const text = readFileSync(file, 'utf8');
-  if (!/\bWorkflow\(/.test(text)) continue;
+  // A skill also runs Workflow when it ships a workflows/*.js script (brainstorm,
+  // #4696): its body names the script file, not a literal Workflow( call.
+  const wfDir = path.join(SKILLS, name, 'workflows');
+  const shipsScript = existsSync(wfDir) && readdirSync(wfDir).some((f) => f.endsWith('.js'));
+  if (!/\bWorkflow\(/.test(text) && !shipsScript) continue;
   callers.set(name, text);
   if (/^context:\s*fork\s*$/m.test(frontmatter(text))) {
     failures.push(`src/skills/${name}/SKILL.md: calls Workflow( but sets context: fork (a fork has no Workflow tool, #4672)`);
@@ -59,7 +64,7 @@ if (callers.size === 0) {
 for (const name of FIXED) {
   const text = callers.get(name);
   if (text === undefined) {
-    failures.push(`src/skills/${name}/SKILL.md: no longer calls Workflow(; update FIXED in this test`);
+    failures.push(`src/skills/${name}/SKILL.md: no longer calls Workflow( or ships a workflows/*.js script; update FIXED in this test`);
     continue;
   }
   const line = text.split('\n').find((l) => l.startsWith('**Fan-out rule:**'));
