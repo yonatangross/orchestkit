@@ -30,28 +30,65 @@ log_pass() { echo -e "  ${GREEN}✓${NC} $1"; TESTS_PASSED=$((TESTS_PASSED + 1))
 log_fail() { echo -e "  ${RED}✗${NC} $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
 log_section() { echo -e "\n${YELLOW}$1${NC}"; }
 
-# Helper to run the content-secret-scanner hook via the TypeScript runner
+# ORK_HOOK_RUNNER swaps the runner for a stub; only
+# tests/unit/test-security-starved-stdin-harness-error.sh sets it.
+RUNNER="${ORK_HOOK_RUNNER:-$PROJECT_ROOT/src/hooks/bin/run-hook.mjs}"
+SCANNER_KEY='pretool/write-edit/content-secret-scanner'
+
+# Printed instead of the hook's answer when the run-hook.mjs stdin watchdog
+# fired: the hook ran on {} and its answer is not a verdict (#3415, #4352).
+STARVED='ORK_HARNESS_STARVED'
+
+# Run the scanner on one payload. Stderr is kept, not discarded: it is the
+# only place a starved run shows up, and under load a starved run used to read
+# as "NOT blocked" (#4352). The verdict is in stdout; run-hook.mjs exits 0, and
+# an empty answer fails every expect_blocked below.
+run_scanner() { # run_scanner <json-payload>
+  local err out rc=0
+  err=$(mktemp "${TMPDIR:-/tmp}/ork-secret-scan-stderr.XXXXXX")
+  out=$(printf '%s' "$1" | node "$RUNNER" "$SCANNER_KEY" 2>"$err") || rc=$?
+  if ork_stdin_starved "$err"; then
+    printf '%s %s\n' "$STARVED" "$(tr '\n' ' ' <"$err")"
+  else
+    (( rc == 0 )) || echo "run-hook.mjs exited $rc: $(tr '\n' ' ' <"$err")" >&2
+    printf '%s\n' "$out"
+  fi
+  rm -f "$err"
+}
+
 run_scanner_write() {
   local file_path="$1"
   local content="$2"
-  local input
-  input=$(jq -n --arg fp "$file_path" --arg c "$content" \
-    '{"tool_name":"Write","tool_input":{"file_path":$fp,"content":$c}}')
-  echo "$input" | node "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs" pretool/write-edit/content-secret-scanner 2>/dev/null || true
+  run_scanner "$(jq -n --arg fp "$file_path" --arg c "$content" \
+    '{"tool_name":"Write","tool_input":{"file_path":$fp,"content":$c}}')"
 }
 
 run_scanner_edit() {
   local file_path="$1"
   local new_string="$2"
-  local input
-  input=$(jq -n --arg fp "$file_path" --arg ns "$new_string" \
-    '{"tool_name":"Edit","tool_input":{"file_path":$fp,"old_string":"placeholder","new_string":$ns}}')
-  echo "$input" | node "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs" pretool/write-edit/content-secret-scanner 2>/dev/null || true
+  run_scanner "$(jq -n --arg fp "$file_path" --arg ns "$new_string" \
+    '{"tool_name":"Edit","tool_input":{"file_path":$fp,"old_string":"placeholder","new_string":$ns}}')"
 }
 
 is_blocked() {
   local result="$1"
   [[ "$result" == *'"continue": false'* ]] || [[ "$result" == *'"continue":false'* ]]
+}
+
+# A starved run fails the suite as a HARNESS ERROR, never as a hook result.
+harness_error() { # harness_error <label> <result>
+  [[ "$2" == "$STARVED"* ]] || return 1
+  log_fail "HARNESS ERROR: $1: run-hook.mjs stdin watchdog fired, the hook ran on an EMPTY payload, no verdict. ${2#"$STARVED" }"
+}
+
+expect_blocked() { # expect_blocked <label> <result>
+  if harness_error "$1" "$2"; then return 0; fi
+  if is_blocked "$2"; then log_pass "$1 blocked"; else log_fail "$1 NOT blocked"; fi
+}
+
+expect_allowed() { # expect_allowed <label> <result> <pass-suffix>
+  if harness_error "$1" "$2"; then return 0; fi
+  if is_blocked "$2"; then log_fail "$1 incorrectly blocked"; else log_pass "$1 allowed$3"; fi
 }
 
 # ============================================================================
@@ -64,84 +101,44 @@ echo "╚═══════════════════════�
 
 log_section "Test 1: Block OpenAI API key in source file"
 result=$(run_scanner_write "/app/src/config.ts" 'const key = "sk-abcdefghijklmnopqrstuvwxyz1234567890";')
-if is_blocked "$result"; then
-  log_pass "OpenAI API key blocked"
-else
-  log_fail "OpenAI API key NOT blocked"
-fi
+expect_blocked "OpenAI API key" "$result"
 
 log_section "Test 2: Block AWS access key"
 result=$(run_scanner_write "/app/src/aws.ts" 'AWS_KEY=AKIAIOSFODNN7EXAMPLE')
-if is_blocked "$result"; then
-  log_pass "AWS access key blocked"
-else
-  log_fail "AWS access key NOT blocked"
-fi
+expect_blocked "AWS access key" "$result"
 
 log_section "Test 3: Block GitHub PAT"
 result=$(run_scanner_write "/app/deploy.sh" 'TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1234')
-if is_blocked "$result"; then
-  log_pass "GitHub PAT blocked"
-else
-  log_fail "GitHub PAT NOT blocked"
-fi
+expect_blocked "GitHub PAT" "$result"
 
 log_section "Test 4: Block private key block"
 result=$(run_scanner_write "/app/key.pem" '-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA...')
-if is_blocked "$result"; then
-  log_pass "Private key block blocked"
-else
-  log_fail "Private key block NOT blocked"
-fi
+expect_blocked "Private key block" "$result"
 
 log_section "Test 5: Block JWT token"
 result=$(run_scanner_write "/app/src/auth.ts" 'const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";')
-if is_blocked "$result"; then
-  log_pass "JWT token blocked"
-else
-  log_fail "JWT token NOT blocked"
-fi
+expect_blocked "JWT token" "$result"
 
 log_section "Test 6: Block contextual secret assignment"
 result=$(run_scanner_write "/app/src/config.ts" 'api_key="super_secret_key_value_1234567890"')
-if is_blocked "$result"; then
-  log_pass "Contextual secret assignment blocked"
-else
-  log_fail "Contextual secret assignment NOT blocked"
-fi
+expect_blocked "Contextual secret assignment" "$result"
 
 log_section "Test 7: Allow normal code (no secrets)"
 result=$(run_scanner_write "/app/src/utils.ts" 'export function add(a: number, b: number): number { return a + b; }')
-if is_blocked "$result"; then
-  log_fail "Normal code incorrectly blocked"
-else
-  log_pass "Normal code allowed"
-fi
+expect_allowed "Normal code" "$result" ""
 
 log_section "Test 8: Allow test fixtures (excluded path)"
 result=$(run_scanner_write "/app/__tests__/fixtures/mock-key.ts" 'const key = "sk-abcdefghijklmnopqrstuvwxyz1234567890";')
-if is_blocked "$result"; then
-  log_fail "Test fixture incorrectly blocked"
-else
-  log_pass "Test fixture allowed (excluded path)"
-fi
+expect_allowed "Test fixture" "$result" " (excluded path)"
 
 log_section "Test 9: Allow markdown docs (excluded extension)"
 result=$(run_scanner_write "/app/docs/auth.md" 'Use your API key: sk-abcdefghijklmnopqrstuvwxyz1234567890')
-if is_blocked "$result"; then
-  log_fail "Markdown doc incorrectly blocked"
-else
-  log_pass "Markdown doc allowed (excluded extension)"
-fi
+expect_allowed "Markdown doc" "$result" " (excluded extension)"
 
 log_section "Test 10: Block secret in Edit (new_string)"
 result=$(run_scanner_edit "/app/src/config.ts" 'const stripe = "pk_live_AAAAABBBBBCCCCCDDDDDEEEEE";')
-if is_blocked "$result"; then
-  log_pass "Secret in Edit new_string blocked"
-else
-  log_fail "Secret in Edit new_string NOT blocked"
-fi
+expect_blocked "Secret in Edit new_string" "$result"
 
 # ============================================================================
 # SUMMARY
