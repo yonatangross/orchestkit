@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "6bd2ac7caddc1ff11f2070b6714c3637d41b36430cbae2f1dd6f9a2cb2f19140",
+    "sha256": "45662c4d8f1219413f40e52eb7940f6fedb95db4011e21b013653e41cbeb1f51",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -708,6 +708,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [
       "AskUserQuestion",
       "Agent",
+      "Workflow",
       "Read",
       "Grep",
       "Glob",
@@ -2771,7 +2772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "bd5320bb6a05af0b028c85db42091836be0e2193d80b60fabe57e92bfdbf861b",
+    "sha256": "94c0cad95b43e8bee5f2a7e07ffc5ddab8faf088054cd965eb62a544c8dba8cd",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2838,6 +2839,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "manual-worktree-pattern.md",
         "micro-planning-guide.md",
         "orchestration-modes.md",
+        "phase-6-pattern-check.md",
         "scope-creep-detection.md",
         "team-worktree-setup.md",
         "test-requirements-matrix.md",

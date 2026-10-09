@@ -9,7 +9,7 @@ context: fork
 background: false
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 user-invocable: true
-allowed-tools: "AskUserQuestion Agent Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 model: sonnet
 metadata:

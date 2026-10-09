@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: brainstorm
 background: false
-allowed-tools: "AskUserQuestion Agent Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md

@@ -278,11 +278,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 Load agent prompts: `Read("references/agent-phases.md")`
 
-**Phase 6 pattern check.** The fork cannot run `pattern-consistency-enforcer` on each Write/Edit (#4683), so run it once over every changed file; a `"continue":false` result names a violation to fix before Phase 7:
-
-```bash
-{ git -c core.quotePath=false diff --name-only <start-sha>; git -c core.quotePath=false ls-files --others --exclude-standard; } | sort -u | while read -r f; do [ -f "$f" ] && jq -n --arg p "$PWD/$f" --rawfile c "$f" '{tool_name:"Write",tool_input:{file_path:$p,content:$c}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer; done
-```
+**Phase 6 pattern check.** The fork cannot run the enforcer per Write/Edit (#4683); pipe each changed file into `node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer` once, as `Read("references/phase-6-pattern-check.md")` shows.
 
 For Agent Teams mode: `Read("references/agent-teams-phases.md")`
 > **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).
