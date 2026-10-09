@@ -242,7 +242,7 @@ function httpWrite(segment: string): string | null {
 
 // A non-shell interpreter, by name or path (/usr/bin/python3, python3.12).
 const INTERPRETER =
-  /(?:^|[\s;&|(`/])(?:python[0-9.]*|pypy[0-9.]*|node|nodejs|deno|bun|perl|ruby|irb|php|lua|luajit|Rscript|osascript|awk|gawk|mawk|nawk|tclsh)(?=[\s;&|)<]|$)/;
+  /(?:^|[\s;&|(`/])(?:python[0-9.]*|pypy[0-9.]*|ipython[0-9.]*|node|nodejs|tsx|ts-node|deno|bun|perl|ruby|irb|php|lua|luajit|Rscript|osascript|awk|gawk|mawk|nawk|tclsh|jshell|swift)(?=[\s;&|)<]|$)/;
 
 /**
  * Why a command that runs an interpreter writes to GitHub, or null. One rule
@@ -250,8 +250,17 @@ const INTERPRETER =
  * heredoc one item per line), so the whole command is read with newlines and
  * every non-word character folded to spaces.
  */
+// A primitive that runs a command from interpreter code: the command can be
+// built at run time (sprintf("%c%c",115,104)) and read the piped stdin, so no
+// gh word or host needs to appear (XREVIEW HOLD 6084214694).
+const RUNS_CODE =
+  /\b(?:system|exec[A-Za-z]*|popen|spawn[A-Za-z]*|fork|child_process|subprocess|shell_exec|passthru|proc_open|pcntl_exec|getline|qx|Open3|Kernel|eval)\b|IO\.popen|Deno\.(?:run|Command)|Bun\.spawn|do\s+shell\s+script|%x[({[<]/;
+// A | inside a quoted program pipes to a command (awk print | "sh", perl open "|x").
+const PIPE_IN_QUOTES = /'[^']*\|[^']*'|"[^"]*\|[^"]*"/;
+
 function interpreterWrite(command: string): string | null {
   if (!INTERPRETER.test(command)) return null;
+  if (RUNS_CODE.test(command) || PIPE_IN_QUOTES.test(command)) return 'an interpreter call that can run a command';
   if (GITHUB_HOST.test(command)) return 'an interpreter call that names a GitHub host';
   const folded = ` ${command.replace(/[^A-Za-z0-9_]+/g, ' ')} `;
   if (/\sgh\s/.test(folded)) return 'an interpreter call that names gh';

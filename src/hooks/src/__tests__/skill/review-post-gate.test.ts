@@ -1026,6 +1026,35 @@ describe('(XREVIEW HOLD 6083707239) shell word boundaries, line continuation, co
   });
 });
 
+describe('(XREVIEW HOLD 6084214694) an interpreter that can run a command denies, with no gh word', () => {
+  const none = () => transcript([typed('4678')]);
+  test('Codex repro and the same class, with a placeholder payload', () => {
+    for (const cmd of [
+      `printf 'echo placeholder\\n' | awk 'BEGIN { system(sprintf("%c%c", 115, 104)) }'`,
+      `printf 'echo placeholder' | awk '{ print | "sh" }'`,
+      `awk 'BEGIN { "date" | getline d }'`,
+      `python3 -c "import os; os.system(chr(115)+chr(104))"`,
+      `python3 -c "__import__('subprocess').run('x')"`,
+      `node -e "require('child_process').execSync('x')"`,
+      `perl -e 'qx{x}'`,
+      `perl -e 'open(F, "|x")'`,
+      `ruby -e '%x(x)'`,
+      `ruby -e 'IO.popen("x")'`,
+      `php -r 'shell_exec("x");'`,
+      `osascript -e 'do shell script "x"'`,
+      `python3 - <<'PY'\nimport os\nos.execvp('x', ['x'])\nPY`,
+    ]) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+      expect(denied(reviewPostGate(bash(cmd, none()), ctx)), cmd).toBe(true);
+    }
+  });
+  test('control: interpreter calls that only compute or read pass', () => {
+    for (const cmd of [`awk '{print $1}' f.txt | sort`, `python3 -c "print(1)"`, 'node scripts/x.mjs', `jq -r .x f.json`, `awk -F, '{s+=$2} END {print s}' f.csv`]) {
+      expect(isRawPost(cmd), cmd).toBe(false);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
