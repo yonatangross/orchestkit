@@ -1548,6 +1548,49 @@ describe('(own check at c91d5000) a flag value is read the way the parser reads 
   });
 });
 
+describe('(HOLD 6088683660, codex24 6088466165) link payloads, variables that steer, git paths', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  test('P1 1: realPath agrees with the kernel when a link payload holds a link then ..', () => {
+    const home = mkdtempSync(join(tmpdir(), 'review-post-gate-home-'));
+    try {
+      mkdirSync(join(home, '.claude', 'projects'), { recursive: true });
+      writeFileSync(join(home, '.claude', 'settings.json'), '{}');
+      symlinkSync(join(home, '.claude', 'projects'), join(dir, 'hop'));
+      symlinkSync('hop/../settings.json', join(dir, 'pay'));
+      symlinkSync('./hop/./../settings.json', join(dir, 'pay2'));
+      for (const name of ['pay', 'pay2']) {
+        expect(realPath(join(dir, name)), name).toBe(realpathSync.native(join(dir, name)));
+      }
+      const raw = `${dir}/pay`;
+      const w = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: raw, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => home, realpath: realPath };
+      expect(denied(reviewPostGate(w, ctx, deps))).toBe(true);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+      rmSync(join(dir, 'hop'), { force: true });
+      rmSync(join(dir, 'pay'), { force: true });
+      rmSync(join(dir, 'pay2'), { force: true });
+    }
+  });
+  test('P1 2: a quoted variable before -- denies, since the command can read it as its program or a flag', () => {
+    for (const cmd of ['jq "$XREVIEW_PROGRAM" f.json', 'jq -- "$XREVIEW_PROGRAM" f.json', 'gh api repos/o/r "$XREVIEW_METHOD"', 'gh api -- "$XREVIEW_ENDPOINT"', 'gh pr view "$PR"', 'rg "$X" src', 'grep "$X" f.json', 'git log "$X"', 'head "$N" f.json']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['rg -- "$X" src', 'grep -- "$X" f.json', "jq -r '.title' f.json", 'gh pr view 4668']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('should: a git read names no path outside the repo before --', () => {
+    for (const cmd of ['git diff /dev/null /opt/other/secret', 'git diff HEAD ../x', 'git diff --stat /dev/null /etc/hosts', 'git log /opt/other']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['git diff main..HEAD', 'git log origin/main...HEAD --oneline', 'git show HEAD:src/a.ts', 'git diff HEAD -- src/a.ts']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
