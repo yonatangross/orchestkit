@@ -489,7 +489,10 @@ describe('Cross-Bundle Consistency', () => {
     //              only user; once it ran inline, the first loaded the checked-out
     //              branch's PR into a review of another PR, the second a second
     //              output contract.
-    expect(totalHooks).toBe(180); // 182 - 2 (#4682 review-pr loaders)
+    // 180 -> 179: #4683 skill/plan-context-loader deleted. visualize-plan was
+    //              its only user, it never ran in that fork, and STEP 0's
+    //              scripts/detect-plan-context.sh already reports the same.
+    expect(totalHooks).toBe(179); // 180 - 1 (#4683 visualize-plan loader)
   });
 });
 

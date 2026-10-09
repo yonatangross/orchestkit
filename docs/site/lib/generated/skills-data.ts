@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "86ca6d687b0c2aa99fd25cce07e718cdd75336e228b030611f0c6dce53b9aba8",
+    "sha256": "6bd2ac7caddc1ff11f2070b6714c3637d41b36430cbae2f1dd6f9a2cb2f19140",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -708,7 +708,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [
       "AskUserQuestion",
       "Agent",
-      "Workflow",
       "Read",
       "Grep",
       "Glob",
@@ -2334,7 +2333,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "8cf57e8accbdf183abdd31b9e52d7a1971ec759caf86752cf2e8fdf14ef60e49",
+    "sha256": "ef9b58215cc9802ebcc8c99b842cb61d2e2d989c34fe07e59ff646bfa799527b",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2439,7 +2438,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "fb276e379b8130fa4bbab457d3fc6d9c3ee1d63c398bc276722b14d9b8570c03",
+    "sha256": "c2e012f7ebfcb456cb113a170bb56bfe27d08995453039c9438ff5ba0ec08b05",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2772,7 +2771,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "be16e04cb54ccb18afd7a237780f7743fb682326c0008ad0df4f8e8a4557c999",
+    "sha256": "017a62b303be32e678a10a1962690cb0575b70b4bbc55bc8f2e20e878c60c80d",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4471,7 +4470,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.1.0",
-    "sha256": "3bbb420cdbc7850a6832657d6baae243d15c5bfc3a83104e295e4fdd017bfec0",
+    "sha256": "5a8fb89b6e3a0d42c9b5633773358f2959d54fd8869eeec8fc9dec63a72b54f0",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -5187,7 +5186,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "d0c50f25e347b2458282552510bfcd725cdc7217434e3b156efbfc1940f5be0e",
+    "sha256": "0cd7fb5c1cf9d40f952eb5aa8d6c2740e74b9918e160d2544264439148fb8a58",
     "author": "OrchestKit",
     "tags": [
       "visualization",

@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Skill hooks (36: 22 validators + 14 once:true context loaders)
+// Skill hooks (35: 22 validators + 13 once:true context loaders)
 import { coverageCheck } from '../skill/coverage-check.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
@@ -19,7 +19,7 @@ import { patternConsistencyEnforcer } from '../skill/pattern-consistency-enforce
 import { redactSecrets } from '../skill/redact-secrets.js';
 
 // once:true context loaders (CC 2.1.69)
-import { issueContextLoader, commitConventionLoader, planContextLoader } from '../skill/context-loaders-git.js';
+import { issueContextLoader, commitConventionLoader } from '../skill/context-loaders-git.js';
 import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from '../skill/context-loaders-env.js';
 // once:true standards loaders (CC 2.1.72 cache-opt)
 import { implementStandardsLoader, verifyScoringRubricLoader, brainstormInstructionsLoader } from '../skill/context-loaders-standards.js';
@@ -39,7 +39,6 @@ export const hooks: Record<string, HookFn> = {
   // once:true context loaders (CC 2.1.69)
   'skill/issue-context-loader': issueContextLoader,
   'skill/commit-convention-loader': commitConventionLoader,
-  'skill/plan-context-loader': planContextLoader,
   'skill/repo-structure-indexer': repoStructureIndexer,
   'skill/test-framework-detector': testFrameworkDetector,
   'skill/project-convention-loader': projectConventionLoader,

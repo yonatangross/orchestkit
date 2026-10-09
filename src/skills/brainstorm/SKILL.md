@@ -9,21 +9,9 @@ context: fork
 background: false
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 user-invocable: true
-allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+allowed-tools: "AskUserQuestion Agent Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Agent"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
-          once: true
-    - matcher: "Agent"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/brainstorm-instructions-loader"
-          once: true
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -66,6 +54,13 @@ Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 ---
 
 ## STEP 0: Project Context Discovery
+
+**Load context first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/prior-decisions-loader
+echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
+```
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 

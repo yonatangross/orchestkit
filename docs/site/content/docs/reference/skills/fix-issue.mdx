@@ -43,6 +43,12 @@ ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 
 **Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
 
+**Load the branch's issue first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/issue-context-loader
+```
+
 ```python
 # Probe MCPs (parallel — all in ONE message):
 # memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:

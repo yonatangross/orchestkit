@@ -16,7 +16,11 @@
  *   fanout      = ids imported (transitively) by reachable dispatcher files
  *   agentScoped = ids referenced by src/agents markdown frontmatter hooks
  *   skillScoped = ids referenced by SKILL.md frontmatter hooks
- *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped
+ *   skillBody   = ids a SKILL.md body runs itself as a step, written
+ *                 `run-hook.mjs" <id>` (#4683: a context: fork skill never
+ *                 runs frontmatter hooks, so it runs its loaders in the body).
+ *                 Reachable, but not counted as hooks: nothing registers them.
+ *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody
  *
  * FAIL conditions:
  *   1. GHOST:  closure references an id that is NOT registered (runtime failure)
@@ -189,6 +193,18 @@ function parseMarkdownHookRefs(files) {
   return { ids, refCount };
 }
 
+/** `run-hook.mjs" <id>` steps in skill bodies (the quote is the marker) → Set of ids */
+function parseSkillBodyRuns(files) {
+  const ids = new Set();
+  const re = /run-hook\.mjs"\s+([\w/.-]+)/g;
+  for (const f of files) {
+    const content = readFileSync(f, 'utf-8');
+    let m;
+    while ((m = re.exec(content)) !== null) ids.add(m[1]);
+  }
+  return ids;
+}
+
 function agentFiles() {
   const dir = join(repoRoot, 'src', 'agents');
   return readdirSync(dir)
@@ -248,6 +264,7 @@ function main() {
   const registered = parseEntryFiles();
   const agents = parseMarkdownHookRefs(agentFiles());
   const skills = parseMarkdownHookRefs(skillFiles());
+  const skillBody = parseSkillBodyRuns(skillFiles());
 
   const failures = checkMarkdownHookShapes([...agentFiles(), ...skillFiles()]);
 
@@ -264,13 +281,13 @@ function main() {
   failures.push(...checkSchemaKeys(JSON.parse(readFileSync(hooksJsonPath, 'utf-8'))));
 
   // Closure
-  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids]);
+  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids, ...skillBody]);
   const closure = dispatcherFanout(seeds, registered);
 
   // 1. GHOSTS — referenced but not registered → fails at runtime
   const ghosts = [...seeds].filter(id => !registered.has(id)).sort();
   if (ghosts.length > 0) {
-    failures.push(`GHOSTS (${ghosts.length}): referenced by hooks.json/frontmatter but NOT in any entries map — these FAIL AT RUNTIME:\n    ${ghosts.join('\n    ')}`);
+    failures.push(`GHOSTS (${ghosts.length}): referenced by hooks.json/frontmatter/skill body steps but NOT in any entries map, so these FAIL AT RUNTIME:\n    ${ghosts.join('\n    ')}`);
   }
 
   // 2/3. DEAD vs ratchet baseline
@@ -283,7 +300,7 @@ function main() {
 
   if (newDead.length > 0) {
     failures.push(
-      `NEW DEAD HOOKS (${newDead.length}): registered but unreachable from hooks.json ∪ agent/skill frontmatter ∪ dispatcher fan-out.\n` +
+      `NEW DEAD HOOKS (${newDead.length}): registered but unreachable from hooks.json ∪ agent/skill frontmatter ∪ skill body steps ∪ dispatcher fan-out.\n` +
       `  Wire each into a dispatch path, or delete it. Do NOT add to the baseline — it only shrinks.\n    ${newDead.join('\n    ')}`,
     );
   }
@@ -320,6 +337,7 @@ function main() {
   console.log(`hooks.json dispatch cmds  : ${commandCount} (${directIds.size} unique ids)`);
   console.log(`agent-scoped refs         : ${agents.refCount} (${agents.ids.size} unique ids)`);
   console.log(`skill-scoped refs         : ${skills.refCount} (${skills.ids.size} unique ids)`);
+  console.log(`skill body steps          : ${skillBody.size} unique ids (reachable, not counted)`);
   console.log(`reachable closure         : ${closure.size}`);
   console.log(`dead (grandfathered)      : ${dead.length - newDead.length} of baseline ${baseline.size}`);
   console.log('');

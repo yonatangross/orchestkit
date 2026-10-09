@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: brainstorm
 background: false
-allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+allowed-tools: "AskUserQuestion Agent Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md
@@ -38,6 +38,13 @@ Full procedure + handoff-file table: `Read("skills/brainstorm/references/mcp-pro
 
 
 ## STEP 0: Project Context Discovery
+
+**Load context first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/prior-decisions-loader
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
+```
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 
