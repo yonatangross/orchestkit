@@ -20,6 +20,9 @@
 #     command, args, async, asyncRewake, shell, continueOnBlock,
 #     url, headers, allowedEnvVars, server, tool, input, prompt, model
 #   (per-hook `if` is documented by CC; matcher-group `if` is NOT, see #4060/#4062)
+#   type-only keys: continueOnBlock is valid on type "prompt" only. CC 2.1.295
+#   has it in the prompt-hook schema and runner and drops it on command hooks;
+#   Claude Desktop refuses the whole plugin when a command hook carries it.
 #
 # This suite is broader than test-hooks-schema-keys.sh (#4060 matcher-group
 # only on src/hooks/hooks.json via validate-registry.mjs). Do not route the
@@ -53,6 +56,8 @@ const HOOK = new Set([
   "url", "headers", "allowedEnvVars", "server", "tool", "input",
   "prompt", "model",
 ]);
+// Keys CC accepts only on one hook type (key -> allowed types).
+const TYPE_ONLY = { continueOnBlock: new Set(["prompt"]) };
 const data = JSON.parse(fs.readFileSync(abs, "utf8"));
 const errs = [];
 for (const k of Object.keys(data)) {
@@ -79,6 +84,10 @@ if (hooksObj && typeof hooksObj === "object" && !Array.isArray(hooksObj)) {
           if (!HOOK.has(k)) {
             errs.push(
               `FAIL: ${rel} hooks.${event}[${i}].hooks[${j}] unknown key "${k}"`,
+            );
+          } else if (TYPE_ONLY[k] && !TYPE_ONLY[k].has(h.type)) {
+            errs.push(
+              `FAIL: ${rel} hooks.${event}[${i}].hooks[${j}] key "${k}" not valid on type "${h.type}"`,
             );
           }
         }
@@ -240,6 +249,52 @@ if check_hooks_json "$TMP/hook-entry-shell-ok.json" "src/hooks/hooks.json" >"$ou
   echo "PASS: per-hook shell on temp copy is allowlisted (does not fail)"
 else
   echo "FAIL: per-hook shell should be allowlisted but check failed:"
+  sed 's/^/    /' "$out"
+  FAILED=$((FAILED + 1))
+fi
+
+# 7. Negative: continueOnBlock on a command hook (Claude Desktop refuses the
+# plugin for it). Must FAIL naming the key and the type.
+node -e '
+const fs = require("fs");
+const d = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const entry = d.hooks.PreToolUse[0].hooks[0];
+if (!entry || entry.type !== "command") {
+  console.error("hooks.PreToolUse[0].hooks[0] is not a command hook");
+  process.exit(2);
+}
+entry.continueOnBlock = true;
+fs.writeFileSync(process.argv[2], JSON.stringify(d, null, 2));
+' "$SRC_JSON" "$TMP/command-continue-on-block.json"
+CHECKED=$((CHECKED + 1))
+out="$TMP/neg-command-cob.txt"
+set +e
+check_hooks_json "$TMP/command-continue-on-block.json" "src/hooks/hooks.json" >"$out" 2>&1
+rc=$?
+set -e
+if [[ "$rc" -ne 0 ]] && grep -Fq 'hooks.PreToolUse[0].hooks[0] key "continueOnBlock" not valid on type "command"' "$out"; then
+  echo "PASS: continueOnBlock on a command hook fails, naming the key and type"
+else
+  echo "FAIL: command-hook continueOnBlock negative control did not fail as required (exit $rc)"
+  sed 's/^/    /' "$out" || true
+  FAILED=$((FAILED + 1))
+fi
+
+# 8. Allowlist sanity: continueOnBlock on a prompt hook must PASS.
+node -e '
+const fs = require("fs");
+const d = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+d.hooks.PreToolUse[0].hooks.push({
+  type: "prompt", prompt: "Check $ARGUMENTS", continueOnBlock: true,
+});
+fs.writeFileSync(process.argv[2], JSON.stringify(d, null, 2));
+' "$SRC_JSON" "$TMP/prompt-continue-on-block-ok.json"
+CHECKED=$((CHECKED + 1))
+out="$TMP/pos-prompt-cob.txt"
+if check_hooks_json "$TMP/prompt-continue-on-block-ok.json" "src/hooks/hooks.json" >"$out" 2>&1; then
+  echo "PASS: continueOnBlock on a prompt hook is allowlisted (does not fail)"
+else
+  echo "FAIL: continueOnBlock on a prompt hook should pass but check failed:"
   sed 's/^/    /' "$out"
   FAILED=$((FAILED + 1))
 fi
