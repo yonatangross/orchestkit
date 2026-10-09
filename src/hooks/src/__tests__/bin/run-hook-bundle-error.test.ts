@@ -158,6 +158,40 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     }
   }, 15000);
 
+  it('(HOLD 6084834846 M1) exits 2 for skill/review-post-gate when the handler throws, or stdin is [] or {}', async () => {
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => { throw new Error('boom'); } };\n", 'utf8');
+    let r = await feed('skill/review-post-gate', (w) => w.end(payload()));
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    allowGate();
+    for (const body of ['[]', '{}']) {
+      r = await feed('skill/review-post-gate', (w) => w.end(body));
+      expect(r.code, body).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    }
+  });
+
+  it('(HOLD 6084834846 should) exits 2 for skill/review-post-gate instead of using another version from the cache', async () => {
+    const base = mkdtempSync(join(tmpdir(), 'bundle-cache.'));
+    try {
+      mkdirSync(join(base, '1.0.0', 'hooks', 'bin'), { recursive: true });
+      mkdirSync(join(base, '2.0.0', 'hooks', 'dist'), { recursive: true });
+      for (const f of RUNNER_FILES) copyFileSync(join(BIN_DIR, f), join(base, '1.0.0', 'hooks', 'bin', f));
+      writeFileSync(join(base, '2.0.0', 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+      const r = await new Promise<{ code: number | null; stdout: string }>((resolve) => {
+        const child = spawn('node', [join(base, '1.0.0', 'hooks', 'bin', 'run-hook.mjs'), 'skill/review-post-gate'], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+        let stdout = '';
+        child.stdout.on('data', (c) => { stdout += String(c); });
+        child.on('close', (code) => resolve({ code, stdout }));
+        child.stdin.end(payload());
+      });
+      expect(r.code).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
     expect(r.code).toBe(1);

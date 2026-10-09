@@ -1084,6 +1084,33 @@ describe('(HOLD 6084435284) M1: a glob counts only in an unquoted word that can 
   });
 });
 
+describe('(HOLD 6084834846) ANSI-C quoting, cd into .claude, a deny that survives a log error, xargs $G', () => {
+  const tr = () => transcript([typed('4668 --post')]);
+  test('M2: $\'...\' is decoded before the path tests', () => {
+    for (const cmd of [
+      "cat ~/.claude/$'projects'/p/s.jsonl",
+      "cat ~/.claude/$'\\x70rojects'/p/s.jsonl",
+      "cat ~/.claude/$'\\160rojects'/p/s.jsonl",
+      "cp /tmp/x /test/plugin-root/$'hooks'/dist/skill.mjs",
+      'cat ~/.claude/$"projects"/p/s.jsonl',
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, tr()), ctx)), cmd).toBe(true);
+    }
+  });
+  test('M3: a relative path after cd into .claude denies', () => {
+    expect(denied(reviewPostGate(bash("cd ~/.claude && perl -pi -e 's/a/b/' projects/-p/s.jsonl", tr()), ctx))).toBe(true);
+  });
+  test('M1: a log that throws still denies (the deny result is built first)', () => {
+    const throwing = { ...ctx, logPermission: () => { throw new Error('log down'); } } as typeof ctx;
+    expect(denied(reviewPostGate(bash('gh pr comment 1 -b x', tr()), throwing))).toBe(true);
+  });
+  test('should: xargs into a word built at run time denies', () => {
+    for (const cmd of ['printf x | xargs $G', 'printf x | xargs "$G"', 'printf x | xargs `echo sh`']) {
+      expect(isRawPost(cmd), cmd).toBe(true);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;

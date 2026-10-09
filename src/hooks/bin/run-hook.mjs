@@ -467,6 +467,12 @@ function failMissing(what) {
   process.exit(2);
 }
 
+// #4678: this gate runs only from its own version's bundle, never a cached
+// older or newer one that may lack its rules.
+if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && effectiveDistDir !== distDir) {
+  failMissing("would load another version's bundle from the plugin cache");
+}
+
 if (!hooks) {
   // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
   if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no bundle');
@@ -578,6 +584,9 @@ process.stdin.on('end', () => {
     if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && !input.trim()) failMissing('got an empty input');
     try {
       const parsedInput = input.trim() ? JSON.parse(input) : {};
+      // #4678: [] or {} carries no tool call; the gate would see nothing and allow.
+      const emptyCall = Array.isArray(parsedInput) || !parsedInput || typeof parsedInput !== 'object' || Object.keys(parsedInput).length === 0;
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && emptyCall) failMissing('got an input with no tool call');
       runHook(normalizeInput(parsedInput));
     } catch (err) {
       if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got input that is not JSON');
@@ -878,6 +887,13 @@ async function runHook(parsedInput) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
     success = false;
+    // #4678: the post gate blocks on its own error (a throw in the handler or
+    // in buildContext); every other hook keeps the silent success below.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) {
+      process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" failed (${err.message}), so it blocks.\n`);
+      process.exitCode = 2;
+      return;
+    }
     // On any error, output silent success to not block Claude Code
     // Error path: the synthetic error result has no hookSpecificOutput so
     // sanitizeOutput is a no-op here — but we call it consistently so that

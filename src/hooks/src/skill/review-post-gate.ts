@@ -506,7 +506,8 @@ function runsUnseenScript(part: string): string | null {
   if (cmd === 'xargs') {
     // xargs runs the next word as a command with words from stdin: into a
     // shell, an interpreter or another runner it runs stdin (xargs env sh).
-    return w.slice(1).some(isRunnerWord) ? 'xargs into a shell, an interpreter or a runner' : null;
+    // A word built at run time ($G, "$G", a backtick) can be any runner too.
+    return w.slice(1).some((t) => isRunnerWord(t) || /[$`]/.test(t)) ? 'xargs into a shell, an interpreter, a runner or a run-time word' : null;
   }
   if (cmd === 'source' || cmd === '.') {
     const f = w[1];
@@ -693,7 +694,25 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
 
-function touchesTranscript(text: string, transcriptPath: string | undefined): boolean {
+/**
+ * ANSI-C ($'...') and locale ($"...") quoting decoded to plain quoted text, so a
+ * path test reads what bash opens ($'\x70rojects' is projects, HOLD 6084834846 M2).
+ */
+function decodeAnsiC(text: string): string {
+  const esc: Record<string, string> = { n: '\n', t: '\t', r: '\r', e: '\x1b', a: '\x07', b: '\b', f: '\f', v: '\v' };
+  return text
+    .replace(/\$'((?:[^'\\]|\\.)*)'/g, (_m, body: string) =>
+      `'${body.replace(/\\(x[0-9a-fA-F]{1,2}|u[0-9a-fA-F]{1,4}|[0-7]{1,3}|.)/g, (_e, c: string) => {
+        if (/^x/.test(c) || /^u/.test(c)) return String.fromCharCode(parseInt(c.slice(1), 16));
+        if (/^[0-7]/.test(c)) return String.fromCharCode(parseInt(c, 8));
+        return esc[c] ?? c;
+      })}'`,
+    )
+    .replace(/\$"/g, '"');
+}
+
+function touchesTranscript(raw: string, transcriptPath: string | undefined): boolean {
+  const text = decodeAnsiC(raw);
   // Read the text as written and with quotes and escapes removed (~/.claude/'projects').
   const tp = transcriptPath ? pathFold(transcriptPath) : '';
   for (const t of [pathFold(text), pathFold(text.replace(/['"\\]/g, ''))]) {
@@ -719,8 +738,15 @@ const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
 function deny(ctx: HookContext, input: HookInput, reason: string): HookResult {
-  ctx.logPermission('deny', reason, input);
-  return outputDeny(reason);
+  // Build the result first: a log that throws must not turn a deny into an
+  // error the runner reports as success (HOLD 6084834846 M1).
+  const result = outputDeny(reason);
+  try {
+    ctx.logPermission('deny', reason, input);
+  } catch {
+    // The deny stands; the log is best effort.
+  }
+  return result;
 }
 
 /** The --pr value of the guard call, exactly as the script will see it, or null. */
@@ -741,7 +767,7 @@ export function reviewPostGate(
   try {
     return gate(input, ctx, deps);
   } catch (err) {
-    return deny(ctx, input, `review-post-gate failed (${err instanceof Error ? err.message : String(err)}), so it denies. Print the review and stop.`);
+    return outputDeny(`review-post-gate failed (${err instanceof Error ? err.message : String(err)}), so it denies. Print the review and stop.`);
   }
 }
 
@@ -780,7 +806,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   if (touchesTranscript(command, input.transcript_path)) return deny(ctx, input, TRANSCRIPT_DENY);
 
   // The hook code (bundle, runner) may be read, never written, copied over or removed.
-  const folded = pathFold(command.replace(/['"\\]/g, ''));
+  const folded = pathFold(decodeAnsiC(command).replace(/['"\\]/g, ''));
   const hookRoot = deps.pluginRoot() ? `${pathFold(deps.pluginRoot())}/hooks/` : '';
   if ((hookRoot && folded.includes(hookRoot)) || /\/hooks\/(?:dist|bin)\//.test(folded)) {
     const quietHook = command.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
