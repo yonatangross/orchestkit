@@ -1279,6 +1279,8 @@ interface ParsedArgs {
   afterDash: Word[];
   /** Flags given, by name (single letter for a short flag). */
   given: Set<string>;
+  /** Each value a flag took, as the parser took it. */
+  values: Array<{ name: string; value: string }>;
 }
 
 /** A word bash can expand into a word that starts with - (a glob at its start). */
@@ -1296,7 +1298,7 @@ function flagValue(name: string, kind: ArgKind, value: Word | string | undefined
 
 /** Split the args of a command by its flag list; a flag not on the list is a reason. */
 export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs | string {
-  const out: ParsedArgs = { positionals: [], afterDash: [], given: new Set() };
+  const out: ParsedArgs = { positionals: [], afterDash: [], given: new Set(), values: [] };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     const t = a.text;
@@ -1329,9 +1331,11 @@ export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs
       }
       if (!kind) return `${label} --${name} is not on the flags allowed for ${label}`;
       if (eq < 0) i += 1;
-      const why = flagValue(`--${name}`, kind, eq < 0 ? args[i] : t.slice(eq + 1));
+      const value = eq < 0 ? args[i] : t.slice(eq + 1);
+      const why = flagValue(`--${name}`, kind, value);
       if (why) return why;
       out.given.add(name);
+      out.values.push({ name, value: typeof value === 'string' ? value : (value?.text ?? '') });
       continue;
     }
     if (s.numeric && /^-\d+$/.test(t)) continue;
@@ -1345,9 +1349,11 @@ export function parseFlags(label: string, args: Word[], s: FlagSpec): ParsedArgs
       if (!kind) return `${label} -${c} is not on the flags allowed for ${label}`;
       const glued = t.slice(k + 1);
       if (!glued) i += 1;
-      const why = flagValue(`-${c}`, kind, glued ? glued : args[i]);
+      const value = glued ? glued : args[i];
+      const why = flagValue(`-${c}`, kind, value);
       if (why) return why;
       out.given.add(c);
+      out.values.push({ name: c, value: typeof value === 'string' ? value : (value?.text ?? '') });
       break;
     }
   }
@@ -1360,18 +1366,6 @@ const JQ_OUTSIDE = /\$\s*(?:ENV|__prog_args)\b|\b(?:env|import|include|get_searc
 
 function jqProgramReason(program: string | undefined): string | null {
   return program !== undefined && JQ_OUTSIDE.test(program) ? `a jq program that reads the environment or a module (${program})` : null;
-}
-
-/** The value of each gh --jq or -q in a word list. */
-function ghJqPrograms(words: Word[]): string[] {
-  const out: string[] = [];
-  words.forEach((w, i) => {
-    const t = w.text;
-    if (t === '--jq' || t === '-q') out.push(words[i + 1]?.text ?? '');
-    else if (t.startsWith('--jq=')) out.push(t.slice(5));
-    else if (/^-[^-]*q./.test(t)) out.push(t.slice(t.indexOf('q') + 1));
-  });
-  return out;
 }
 
 /** Each path word must stay in the repo or the temp dir. */
@@ -1448,8 +1442,8 @@ function writebackArgs(rest: Word[], ctx: AllowContext): string | null {
 
 /**
  * collect-rules.mjs reads rules from --repo and the home dir, so --repo is
- * the cwd or a dir above it (git rev-parse --show-toplevel), --home is not
- * given, and the other flags take a plain ref (HOLD 6087117284 should 4).
+ * the cwd itself, --home is not given, and the other flags take a plain ref
+ * (HOLD 6087117284 should 4).
  */
 function collectRulesArgs(rest: Word[], ctx: AllowContext): string | null {
   for (let i = 0; i < rest.length; i += 1) {
@@ -1460,7 +1454,8 @@ function collectRulesArgs(rest: Word[], ctx: AllowContext): string | null {
       if (!v || v.variable || !v.text.startsWith('/') || v.text.split('/').includes('..')) return 'collect-rules.mjs --repo needs the absolute repo root';
       const repo = ctx.realpath(posix.normalize(v.text)).replace(/\/+$/, '');
       const cwd = ctx.realpath(posix.normalize(ctx.cwd)).replace(/\/+$/, '');
-      if (!repo || !(cwd === repo || cwd.startsWith(`${repo}/`))) return `collect-rules.mjs --repo must be this repo (${v.text})`;
+      // Only the cwd itself: any dir above it would read rules from outside the repo.
+      if (!repo || cwd !== repo) return `collect-rules.mjs --repo must be this repo, the cwd (${v.text})`;
       i += 1;
       continue;
     }
@@ -1507,9 +1502,11 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     }
     const p = parseFlags('jq', rest, FLAGS.jq);
     if (typeof p === 'string') return p;
-    const envWhy = jqProgramReason(p.positionals[0]?.text);
+    // The program is the first word that is not a flag, before or after --.
+    const [program, ...files] = [...p.positionals, ...p.afterDash];
+    const envWhy = jqProgramReason(program?.text);
     if (envWhy) return envWhy;
-    return pathsOk([...p.positionals.slice(1), ...p.afterDash], ctx);
+    return pathsOk(files, ctx);
   }
   if (cmd === 'gh') {
     let at = 0;
@@ -1524,8 +1521,8 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     const rest = args.slice(at + (sub === 'api' ? 1 : 2));
     const p = parseFlags(key, rest, s);
     if (typeof p === 'string') return p;
-    for (const program of ghJqPrograms(rest)) {
-      const envWhy = jqProgramReason(program);
+    for (const { name, value } of p.values) {
+      const envWhy = name === 'q' || name === 'jq' ? jqProgramReason(value) : null;
       if (envWhy) return envWhy;
     }
     return sub === 'api' ? ghApiWrite(rest.map((a) => a.text).join(' ')) : null;

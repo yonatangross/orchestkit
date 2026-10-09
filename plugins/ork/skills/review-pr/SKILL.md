@@ -321,7 +321,7 @@ Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (faili
 Runs when `RULES_MODE` or `STANDARDS_MODE` is true, or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:
 
 ```python
-REPO = Bash("git rev-parse --show-toplevel")  # run first; pass the printed path, never $(...)
+REPO = Bash("git rev-parse --show-toplevel")  # run first; pass the printed path, never $(...); the gate passes --repo only when it is the cwd
 SOURCES = Bash("node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo <REPO>")  # project + ~/.claude CLAUDE.md and rules/*.md
 Workflow(scriptPath="${CLAUDE_SKILL_DIR}/workflows/rule-check.js",
          args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff base...head)",
