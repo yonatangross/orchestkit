@@ -1055,6 +1055,24 @@ describe('(XREVIEW HOLD 6084214694) an interpreter that can run a command denies
   });
 });
 
+describe('(HOLD 6084435284) M1: a glob counts only in an unquoted word that can name a path', () => {
+  test('control: quoted jq filters that start with . and hold [ pass', () => {
+    for (const cmd of [
+      `gh pr view 4668 --json files --jq '.files[].path'`,
+      `jq -r '.[].filename' /tmp/files.json`,
+      `jq '.items[]' /tmp/x.json`,
+      `gh api repos/o/r/pulls/4668/files --jq ".[].filename"`,
+    ]) {
+      expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(false);
+    }
+  });
+  test('the unquoted glob forms still deny', () => {
+    for (const cmd of ['cat ~/.claude/proj*/p/s.jsonl', 'grep -r x ~/.cl*', 'ls ~/.claude/{projects,x}', 'cat $HOME/.c?aude/projects/x']) {
+      expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx)), cmd).toBe(true);
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;

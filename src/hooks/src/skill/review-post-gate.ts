@@ -699,9 +699,16 @@ function touchesTranscript(text: string, transcriptPath: string | undefined): bo
   for (const t of [pathFold(text), pathFold(text.replace(/['"\\]/g, ''))]) {
     if (tp && t.includes(tp)) return true;
     if (TRANSCRIPT_DIR.test(t)) return true;
-    // A glob or brace in a .claude child or in a hidden dir name can expand
-    // to the transcripts dir (~/.claude/proj*, ~/.claude/{projects,x}, ~/.cl*).
-    if (/\.claude\/[^\s/]*[*?[{]/.test(t) || /(?:^|[\s/~=])\.[^\s/]*[*?[{]/.test(t)) return true;
+  }
+  // A glob or brace in a .claude child or a hidden dir name can expand to the
+  // transcripts dir (~/.claude/proj*, ~/.claude/{projects,x}, ~/.cl*). Bash
+  // expands only unquoted, unescaped glob characters, so quoted text in a word
+  // (a jq filter '.files[].path') is neutralized first (HOLD 6084435284 M1).
+  for (const word of shellWords(text)) {
+    const bare = pathFold(
+      word.replace(/'[^']*'|"[^"]*"/g, (q) => q.slice(1, -1).replace(/[*?[{]/g, '_')).replace(/\\./g, '_'),
+    );
+    if (/\.claude\/[^/]*[*?[{]/.test(bare) || /(?:^|\/)\.[^/]*[*?[{]/.test(bare)) return true;
   }
   return false;
 }
