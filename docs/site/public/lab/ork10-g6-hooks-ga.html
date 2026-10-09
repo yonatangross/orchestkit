@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA bugs, hooks wave 2: 3 red-first fixes</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="GA bugs, hooks wave 2: 3 red-first fixes"><meta property="og:description" content="3 red-first fixes: #4633, #4297, #4630"><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/ork10-g6-hooks-ga.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="GA bugs, hooks wave 2: 3 red-first fixes"><meta name="twitter:description" content="3 red-first fixes: #4633, #4297, #4630"><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <div class="top"><div><h1>GA bugs, hooks wave 2: 3 red-first fixes</h1>
+  <p class="lede">3 fixes on one branch. Each fix landed as two commits: a test that failed first, then the change that made it pass. A second agent re-ran each test red, then green.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Issue</th><th>What</th><th>Before the fix</th><th>After</th></tr><tr><td>#4633</td><td>A manual /compact is never blocked; telemetry kept, nothing printed</td><td class='bad'>Test Files  1 failed (1) | Tests  10 failed | 13 passed (23) (AssertionError: expected false not to be false, on result.continue in expectPassThrough)</td><td class='ok'>Test Files  1 passed (1) | Tests  23 passed (23); with e2e precompact-stdout-contract.test.ts: Tests 31 passed (31); nud</td></tr><tr><td>#4297</td><td>Route observation moved to async PreToolUse handlers; labels and failure shape fixed</td><td class='bad'>route-observer.test.ts: Tests 4 failed (4). Failures: Skill observer not async, sync-task-dispatcher still references observeRouteExecutor, route-observer not w</td><td class='ok'>vitest across 9 adjacent files (route-observer, route-pairing, async-registry, split-bundles, sync-task-dispatcher, skil</td></tr><tr><td>#4630</td><td>Every agent is routed or listed as not routed; dead workflows regex fixed</td><td class='bad'>Test Files  1 failed (1) | Tests  24 failed | 65 passed (89)</td><td class='ok'>Tests  93 passed (93)</td></tr></table></section>
+  <section class="card"><h2>What changed</h2><ul><li><b>#4633</b>: I followed the approved plan (Option 0). On the fire path, pre-compact-task-done-prompt used to return decision:&#x27;block&#x27; with the &quot;Compact paused&quot; text. It now returns outputSilentSuccess() and logs &#x27;nudge-eligible, not blocking (#4633)&#x27;. I deleted buildStopReason. It prints nothing on stdout, because on PreCompact any stdout from a non-blocking hook becomes the summarizer&#x27;s instruct</li><li><b>#4297</b>: I followed the approved plan.
+
+1. Skill observation: the PreToolUse Skill entry pretool/skill/skill-tracker is now `async: true`. It is telemetry only and always returns silent success.
+2. Agent observation: observeRouteExecutor moved out of the sync sync-task-dispatcher into a new async hook, pretool/task/route-observer (Agent matcher, 5 s timeout). It is registered in both hooks.json and entries/pretool.ts, so a bl</li><li><b>#4630</b>: Redo after the skeptic rejection. I reset to 0a4a79794 and rebuilt on the earlier attempt, then closed the three shapes it missed.
+
+All five task shapes from the issue now get a nudge, never silence and never ask. Each has a test on its exact string:
+- &quot;Read example-bot.yml workflow&quot;, &quot;Read the bot workflow file example-bot.yml&quot;, &quot;Read the migrations apply script&quot; and &quot;Read apply-db</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
