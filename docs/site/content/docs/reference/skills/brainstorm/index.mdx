@@ -210,6 +210,8 @@ Full level table + detection rules: `Read("references/effort-scaling.md")`
 
 **Phase 2 always runs at effort `low`**, whatever the level above: in-the-loop ideation is where low effort pays, scoring is not. The skill has no `effort:` frontmatter on purpose (it would lower Phase 4 too); `workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator instead. Details in the same reference.
 
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; this skill runs inline (#4696) because a fork has no Workflow tool. If none of them spawns a generator, end the run as BLOCKED and say why.
+
 ---
 
 **Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.

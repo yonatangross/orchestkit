@@ -4,9 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
-context: fork
-# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
-background: false
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 user-invocable: true
 allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
@@ -223,6 +220,8 @@ Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/
 Full level table + detection rules: `Read("references/effort-scaling.md")`
 
 **Phase 2 always runs at effort `low`**, whatever the level above: in-the-loop ideation is where low effort pays, scoring is not. The skill has no `effort:` frontmatter on purpose (it would lower Phase 4 too); `workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator instead. Details in the same reference.
+
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; this skill runs inline (#4696) because a fork has no Workflow tool. If none of them spawns a generator, end the run as BLOCKED and say why.
 
 ---
 
