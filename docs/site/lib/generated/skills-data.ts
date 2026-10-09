@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "11e46218c4b67253cab7a6b6112bd6210010ba91db777937bf90dd7653ffe0e1",
+    "sha256": "8cbd3b91c48f8a33ee89fd62ba7256c1cbc5d63d2af1d51cbf146983c9fce93b",
     "author": "OrchestKit",
     "tags": [
       "router",

@@ -53,7 +53,7 @@ so there is no "too obvious for auto".
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
 | **cover** | coverage, untested, get to N% | `cover --target N` |
 | **e2e** | e2e, in the browser, browser test, playwright | `expect` (run on the diff); `cover` when no e2e tests exist yet |
-| **design** | design, architect, how should we, explore, idea | `brainstorm` |
+| **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
 | **build** | build, implement, create, add feature, from ticket | `implement` |
 | **review** | review, PR, MR, pull request, #N | `review-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
