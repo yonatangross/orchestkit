@@ -847,6 +847,11 @@ describe('(XREVIEW HOLD 6080480743) executable heredoc whole, stdin shell behind
       `${P} | find . -maxdepth 0 -ok env sh \\;`,
       // (c) chroot is a prefix word.
       `${P} | chroot / sh`,
+      // A prefix word must not hide find, git or watch (security review at 32ad507c).
+      `${P} | env find . -maxdepth 0 -exec sh \\;`,
+      `${P} | nice find . -maxdepth 0 -exec sh {} +`,
+      "env git -c alias.x='!sh' x",
+      `env watch "${P} | sh"`,
     ]);
   });
   test('control: an sh -c program with plain trailing words and no positional parameter, find -exec a reader', () => {

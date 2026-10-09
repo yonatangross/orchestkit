@@ -356,7 +356,10 @@ function commandWords(part: string): string[] {
   let i = 0;
   while (i < toks.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[i])) i += 1;
   if (i < toks.length && PREFIX_WORDS.has(baseName(toks[i]))) {
-    const j = toks.findIndex((t, k) => k > i && RUNNERS.has(baseName(t)));
+    // Stop at any word this classifier reads, so a prefix cannot hide find,
+    // git or watch (env find . -exec sh, env git -c alias.x=!sh x).
+    const stop = (t: string) => RUNNERS.has(t) || STRING_RUNNERS.has(t) || t === 'find' || t === 'git';
+    const j = toks.findIndex((t, k) => k > i && stop(baseName(t)));
     return j < 0 ? toks.slice(i) : toks.slice(j);
   }
   return toks.slice(i);
