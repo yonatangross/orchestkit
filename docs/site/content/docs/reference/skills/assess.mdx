@@ -276,6 +276,8 @@ Write(".claude/chain/02-evaluation.json", result)
 
 Fallback (no Workflow tool, `ORCHESTKIT_FORCE_TASK_TOOL=1`, or the cross-model lane below): `Read("references/agent-spawn-definitions.md")` for Agent tool and Agent Teams spawns, then run Phase 2.5 by hand.
 
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call or the Agent tool fallback; if neither spawns an assessor, end the run as BLOCKED and say why.
+
 **Composite Score:** Weighted average of the scored dimensions (see quality-model.md).
 
 ---

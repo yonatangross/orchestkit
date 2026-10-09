@@ -100,6 +100,8 @@ Workflow({
 
 It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits, only reach for map-reduce when it genuinely doesn't.
 
+**Fan-out rule:** a single pass is never a fallback for an over-budget repo. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load.
+
 ---
 
 ## STEP 2: Load Codebase into Context

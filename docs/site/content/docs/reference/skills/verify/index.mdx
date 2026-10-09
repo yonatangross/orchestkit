@@ -105,6 +105,8 @@ Load details: `Read("references/orchestration-mode.md")` for env var check logic
 
 Default: **Workflow** (star, `workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
 
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a verifier, end the run as BLOCKED and say why.
+
 ---
 
 ### MCP Probe + Resume
