@@ -99,11 +99,12 @@ describe('ask-fallback-injector (#1795, SessionStart)', () => {
     expect(ctx).toContain('upstream');
   });
 
-  it('reminder wrapped in <system-reminder> tags (CC system-reminder injection contract)', () => {
+  it('reminder carries no literal system-reminder tag (CC 2.1.292 escapes it, #4689)', () => {
     process.env.ORK_ASK_FALLBACK = 'text';
     const ctx = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext as string;
-    expect(ctx.startsWith('<system-reminder>')).toBe(true);
-    expect(ctx.endsWith('</system-reminder>')).toBe(true);
+    expect(ctx).not.toContain('<system-reminder');
+    expect(ctx).not.toContain('</system-reminder');
+    expect(ctx.startsWith('[ORK_ASK_FALLBACK=text]')).toBe(true);
   });
 
   it('input shape — works with minimal HookInput (no optional fields beyond required)', () => {
