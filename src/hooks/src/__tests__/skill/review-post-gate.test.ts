@@ -1476,6 +1476,56 @@ describe('(conductor145 at 348161fb) a path is read only by a name the gate can 
   });
 });
 
+describe('(HOLD 6087117284) script arguments, jq input, unquoted $NAME, link then ..', () => {
+  const tr = () => transcript([typed('4668')]);
+  const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  test('must 1: verdict_writeback.py takes only "$CLAUDE_JOB_DIR" or a temp dir', () => {
+    for (const cmd of [`python3 ${S}/verdict_writeback.py /test/project/review`, `python3 ${S}/verdict_writeback.py review`, `python3 ${S}/verdict_writeback.py /Users/me/.claude`, `python3 ${S}/verdict_writeback.py "$HOME"`]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of [`python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`, `python3 ${S}/verdict_writeback.py /tmp/review-4668`]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('should 4: collect-rules.mjs reads only this repo and the real home', () => {
+    for (const cmd of [`node ${S}/collect-rules.mjs --repo /Users/other/repo`, `node ${S}/collect-rules.mjs --repo /test/project --home /Users/other`, `node ${S}/collect-rules.mjs --repo /test/project --base-ref x --no-such-flag`]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of [`node ${S}/collect-rules.mjs --repo /test/project`, `node ${S}/collect-rules.mjs --repo /test/project --standards --default-branch main --pr-base main`, `node ${S}/collect-rules.mjs --repo /test/project --no-user`]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('must 2: jq cannot read the environment or a module, in jq and in gh --jq', () => {
+    for (const cmd of ['jq -nr env.GH_TOKEN', 'jq -n env', 'jq -nr "$ENV.GH_TOKEN"', "jq '$ENV' f.json", "jq 'env | keys' f.json", "jq '$ ENV.X' f.json", 'jq -r env.GH_TOKEN f.json', "jq 'import \"x\" as $d; $d' f.json", "jq 'include \"x\"; .' f.json", 'gh api repos/o/r --jq env.GH_TOKEN', "gh pr view 4668 --json title -q '$ENV.GH_TOKEN'"]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ["jq -r '.files[].path' f.json", "gh pr view 4668 --json title | jq -r '.title'", "gh api repos/o/r --jq '.environment'"]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('must 3: an unquoted $NAME denies in any argv (bash splits it into words)', () => {
+    for (const cmd of ['gh api repos/a/b/issues/1/comments $X', 'git log $X', 'rg $X src', 'cat $F', 'gh pr view $PR_NUMBER']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at('gh pr view 4668')).toBe(false);
+  });
+  test('realPath resolves a link before a .. after it, as the kernel does', () => {
+    const home = mkdtempSync(join(tmpdir(), 'review-post-gate-home-'));
+    try {
+      mkdirSync(join(home, '.claude', 'projects'), { recursive: true });
+      symlinkSync(join(home, '.claude', 'projects'), join(dir, 'lnk'));
+      const raw = `${dir}/lnk/../settings.json`;
+      expect(realPath(raw)).toBe(join(realpathSync.native(home), '.claude', 'settings.json'));
+      const w = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: raw, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => home, realpath: realPath };
+      expect(denied(reviewPostGate(w, ctx, deps))).toBe(true);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
