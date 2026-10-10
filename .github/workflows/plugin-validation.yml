@@ -320,13 +320,16 @@ jobs:
       - name: Install Claude Code CLI
         id: install-cc
         run: |
-          # Pin to exact version + --ignore-scripts (supply chain mitigation — Scorecard #130, #132)
-          # Pinned to our supported floor (2.1.251, shared/cc-support.json) — older versions
+          # Pin to exact version + --ignore-scripts (supply chain mitigation, Scorecard #130, #132).
+          # Pinned to our supported floor, read from supported_floor in shared/cc-support.json
+          # so it cannot drift below the floor again (#4686). A failed install fails this step;
+          # it no longer reads as "CLI not available" and skips validation green. Older versions
           # don't recognize the experimental.{monitors,themes} block format introduced in
           # CC 2.1.129 and emit a hard error during plugin validate.
           # Scorecard pinned-deps (npmCommand): accepted risk — npm has no SHA-pin; --ignore-scripts
           # mitigates the postinstall. Dropped from code-scanning by the SARIF filter in scorecard.yml.
-          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts 2>/dev/null || true
+          CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+          npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}" --ignore-scripts
           # `--ignore-scripts` skips the package's own postinstall which
           # fetches the native `claude` binary. Without this explicit
           # invocation, the wrapper installs but `command -v claude` finds
@@ -336,7 +339,7 @@ jobs:
           # the binary.
           INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           if [ -f "$INSTALL_CJS" ]; then
-            node "$INSTALL_CJS" 2>/dev/null || true
+            node "$INSTALL_CJS"
           fi
           if command -v claude &>/dev/null && claude --version &>/dev/null; then
             CC_VERSION=$(claude --version 2>/dev/null || echo "unknown")
@@ -392,9 +395,11 @@ jobs:
       - name: Install Claude Code CLI
         run: |
           # Same pin and pattern as CC Plugin Validate: the support floor
-          # (2.1.251, shared/cc-support.json), --ignore-scripts, then install.cjs
-          # to fetch the native binary the skipped postinstall would have.
-          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts
+          # (supported_floor in shared/cc-support.json, #4686), --ignore-scripts,
+          # then install.cjs to fetch the native binary the skipped postinstall
+          # would have.
+          CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+          npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}" --ignore-scripts
           INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           [ -f "$INSTALL_CJS" ] && node "$INSTALL_CJS"
           claude --version

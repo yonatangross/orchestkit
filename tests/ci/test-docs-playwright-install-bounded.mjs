@@ -23,6 +23,11 @@
  *   bounded:  every step that runs `playwright install` (browser or deps)
  *             has timeout-minutes of at most 5 and retries once, each
  *             attempt under its own `timeout`.
+ *   cache-bounded: the ms-playwright cache step has timeout-minutes of at
+ *             most 5 and sets SEGMENT_DOWNLOAD_TIMEOUT_MINS below that cap,
+ *             so a stalled restore cannot sit on the action's 10 minute
+ *             default segment timeout (#4670). Not proven: whether the
+ *             step timeout also covers the post-step cache save.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -58,6 +63,24 @@ const cache = steps.find(
 if (!cache) fail('cache', 'no actions/cache step for ~/.cache/ms-playwright');
 else if (!/playwright/i.test(String(cache.with?.key || '')) || !/\$\{\{\s*steps\.[\w-]+\.outputs\.version\s*\}\}/.test(String(cache.with?.key || ''))) {
   fail('cache', `cache key does not name the Playwright version: ${cache.with?.key}`);
+}
+
+// cache-bounded
+if (cache) {
+  const tm = Number(cache['timeout-minutes']);
+  if (!(tm >= 1 && tm <= 5)) {
+    fail('cache-bounded', `cache step "${cache.name}" has timeout-minutes ${cache['timeout-minutes']}, want 1 to 5`);
+  }
+  if (cache['continue-on-error'] !== true) {
+    fail('cache-bounded', `cache step "${cache.name}" must set continue-on-error: true, so a timed-out restore is a miss, not a red job`);
+  }
+  const seg = Number(cache.env?.SEGMENT_DOWNLOAD_TIMEOUT_MINS);
+  if (!(seg >= 1 && (!(tm > 0) || seg < tm))) {
+    fail(
+      'cache-bounded',
+      `cache step "${cache.name}" env SEGMENT_DOWNLOAD_TIMEOUT_MINS is ${cache.env?.SEGMENT_DOWNLOAD_TIMEOUT_MINS}, want 1 or more and below timeout-minutes`,
+    );
+  }
 }
 
 // no-combo

@@ -69,7 +69,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+# ORK_HOOK_RUNNER swaps the runner for a stub; only
+# tests/unit/test-security-starved-stdin-harness-error.sh sets it.
+RUNNER="${ORK_HOOK_RUNNER:-$PROJECT_ROOT/src/hooks/bin/run-hook.mjs}"
 
 PASS=0
 FAIL=0
@@ -291,7 +293,11 @@ probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
   got="$(find "$root" -mindepth 1 -maxdepth 1 -exec basename {} \; | sort | tr '\n' ',')"
   got="${got%,}"
 
-  if [[ "$got" == "$want" ]]; then
+  # A starved run never read the session_id, so its listing is no result for
+  # either outcome (#4352). It fails the suite, named for what it is.
+  if ork_stdin_starved "$err"; then
+    log_fail "$label: HARNESS ERROR, run-hook.mjs stdin watchdog fired, the dispatcher ran on an EMPTY payload, no verdict. Stderr: $(tr '\n' ' ' <"$err")"
+  elif [[ "$got" == "$want" ]]; then
     log_pass "$label (-> $got)"
   else
     log_fail "$label — expected tmp entry '$want', got '$got'"

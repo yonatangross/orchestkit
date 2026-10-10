@@ -347,6 +347,14 @@ ork_run_with_budget() {
   fi
 }
 
+# True when a run-hook.mjs stderr file shows the 100 ms stdin watchdog fired
+# (#3415): the hook ran on {} and "measured nothing", so whatever it answered
+# is not a verdict. A starved run is a harness error, never a pass or a fail of
+# the hook under test (#4352). Usage: ork_stdin_starved <stderr-file>
+ork_stdin_starved() {
+  grep -qiE 'measured nothing|0 bytes' "$1"
+}
+
 # Ask a LIVE hook for its permission decision.
 # Usage: decision=$(hook_decision "pretool/bash/dangerous-command-blocker" "$json_input")
 # Echoes: deny | ask | allow
@@ -462,7 +470,7 @@ hook_decision() {
   # that measured nothing and an `expect deny` one failed with the cause two
   # lines away from the miss. ERROR is the honest answer: it fails BOTH shapes
   # of assertion and names why.
-  if grep -qiE 'measured nothing|0 bytes' "$err_file"; then
+  if ork_stdin_starved "$err_file"; then
     echo "ERROR"
     echo "hook '$hook_key' timed out after 0.1s: run-hook.mjs stdin watchdog fired before the payload was read (machine under load?), so the hook ran on an EMPTY payload and its answer is not a verdict. Hook stderr: $(tr '\n' ' ' <"$err_file")" >&2
     rm -f "$err_file"

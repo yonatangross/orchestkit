@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA bugs, CI and tests: 5 red-first fixes</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>GA bugs, CI and tests: 5 red-first fixes</h1>
+  <p class="lede">5 fixes on one branch. Each fix landed as two commits: a test that failed first, then the change that made it pass. A second agent re-ran each test red, then green.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Issue</th><th>What</th><th>Before the fix</th><th>After</th></tr><tr><td>#4686</td><td>CI installs CC at the supported floor, not 2.1.251</td><td class='bad'>plugin-validation.yml CC pin: line 329 installs 2.1.251, want the floor &#x27;2.1.277&#x27;; line 397 installs 2.1.251 ... Results: 9 passed, 2 failed</td><td class='ok'>plugin-validation.yml CC pins track the floor (2 references) ... Results: 10 passed, 0 failed</td></tr><tr><td>#4600</td><td>Pre-push version gate accepts lane/ branches</td><td class='bad'>FAIL: version-skip-pattern control arm exited 1 (want 0) | RESULT gate=version-skip-pattern hook_control=0 wf_control=0 lane_hook_control=1 lane_wf_control=1 ..</td><td class='ok'>RESULT gate=version-skip-pattern hook_control=0 wf_control=0 lane_hook_control=0 lane_wf_control=0 hook_fault=1 wf_fault</td></tr><tr><td>#4670</td><td>docs.yml Playwright cache step is bounded</td><td class='bad'>FAIL cache-bounded: cache step &quot;Cache Playwright browsers&quot; has timeout-minutes undefined, want 1 to 5 / FAIL cache-bounded: cache step &quot;Cache Pla</td><td class='ok'>PASS: docs Playwright install is cached and bounded (2 install steps) (exit 0); sibling tests/ci/test-docs-yml-filter-pa</td></tr><tr><td>#4597</td><td>Missing mod entry fails even behind a plugin-dir warning</td><td class='bad'>FAIL: marketplace-structure fault2 arm exited 0 (the gate passed on absent input) / RESULT gate=marketplace-structure control=0 fault=1 fault2=0 mods_control=0 </td><td class='ok'>PASS: RESULT gate=marketplace-structure control=0 fault=1 fault2=1 mods_control=0 / Fault arms: 8 passed, 0 failed (of 8</td></tr><tr><td>#4352</td><td>A starved hook run is a harness error, not a pass or fail</td><td class='bad'>✗ secret scanning did not report a HARNESS ERROR for a starved run (exit=1)</td><td class='ok'>3 passed, 0 failed (exit=0); neighbours: test-additional-security.sh 51 passed 0 failed, test-secret-scanning.sh 10 pass</td></tr></table></section>
+  <section class="card"><h2>What changed</h2><ul><li><b>#4686</b>: The literal 2.1.251 pin was in two places, not one: the CC Plugin Validate job (line 329) and the CC Restricted Smoke job (line 397). Both now read the version at runtime with `CC_FLOOR=$(jq -er &#x27;.supported_floor&#x27; shared/cc-support.json)` and install &quot;@anthropic-ai/claude-code@${CC_FLOOR}&quot;. Both jobs already check out the repo, so the file is there. I picked a runtime read over stamping because it</li><li><b>#4600</b>: Fix: `lane` added to the prefix group in VERSION_SKIP_PATTERN (scripts/ci/version-skip-pattern.sh), header comment updated to cite #4600. Both consumers (bin/git-hooks/pre-push and version-check.yml) source that one file, so no other edits were needed. Test: the fault arm gains lane_hook_control and lane_wf_control arms for branch lane/ork-glyph-js-art-1 (the branch measured in the issue). PR body should note: the wo</li><li><b>#4670</b>: Added a cache-bounded arm to tests/ci/test-docs-playwright-install-bounded.mjs. It requires the ms-playwright actions/cache step to have timeout-minutes between 1 and 5, plus an env SEGMENT_DOWNLOAD_TIMEOUT_MINS of 1 or more that is below that cap. In .github/workflows/docs.yml, the &#x27;Cache Playwright browsers&#x27; step now has timeout-minutes: 3 and env SEGMENT_DOWNLOAD_TIMEOUT_MINS: &#x27;2&#x27;. The PR body </li><li><b>#4597</b>: Test 6 in tests/plugins/test-marketplace-structure.sh used to be an if/elif chain. The chain is now split, and the zero-plugins error stays first. In its else branch, the plugin-dir mismatch (still only a WARNING) and the mod-count mismatch (ERROR) are two separate ifs, and the &quot;match&quot; line prints only when both pass. The fault arm probe gets two new arms that share one tree: an extra plugins/_extra dir plu</li><li><b>#4352</b>: Fixes Part A of #4352 for all three tests the issue names. The SQL-injection suite was already handled. This change covers the other two.
+
+What changed:
+- tests/fixtures/test-helpers.sh has a new shared helper, ork_stdin_starved &lt;stderr-file&gt;. It greps the stderr for &#x27;measured nothing|0 bytes&#x27;. hook_decision now uses it too.
+- tests/security/test-secret-scanning.sh keeps the scanner&#x27;s stderr inst</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+</body>
+</html>

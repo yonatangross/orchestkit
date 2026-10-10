@@ -284,6 +284,13 @@ jobs:
       - name: Cache Playwright browsers
         id: pw-cache
         if: steps.gate.outputs.run == 'true'
+        # A stalled cache transfer must not hold the required job (#4670).
+        # The action's default segment timeout is 10 minutes. A timed-out
+        # restore is a cache miss: the install steps below still run.
+        timeout-minutes: 3
+        continue-on-error: true
+        env:
+          SEGMENT_DOWNLOAD_TIMEOUT_MINS: '2'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: ~/.cache/ms-playwright
