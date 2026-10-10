@@ -908,16 +908,17 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 # CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
+# Writers get isolation="worktree" at creation (#4557); the reviewer only reads.
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
      prompt="Design backend architecture. Message frontend-dev when API contract ready.")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-dev",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
      prompt="Design frontend architecture. Wait for API contract from backend-architect.")
 
 Agent(subagent_type="ork:test-generator", name="test-engineer",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
 
 Agent(subagent_type="ork:code-quality-reviewer", name="code-reviewer",
@@ -940,7 +941,7 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 - **test-engineer** writes tests incrementally as contracts stabilize. Reports failing tests directly to the responsible teammate.
 - **code-reviewer** reviews code as it lands. Flags issues to the author directly.
 
-Optionally set up per-teammate worktrees to prevent file conflicts:
+Every writer teammate (backend, frontend, test) MUST be created with `isolation="worktree"`, as in Phase 4 above: ork agents carry no frontmatter isolation (#4557), so without it the teammates edit one tree at the same time. If you lay out the worktrees by hand instead, the lead creates them before spawning:
 
 ```python
 # Lead sets up worktrees (for features with > 5 files).

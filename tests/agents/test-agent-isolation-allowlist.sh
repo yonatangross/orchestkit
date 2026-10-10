@@ -79,6 +79,20 @@ for name in $ALLOWED; do
   esac
 done
 
+# Callers opt in per spawn instead: every writer spawn in a "Correct" template
+# under src/skills/implement must pass isolation (#4557, codex HOLD 6101554389).
+writer_re='Agent[(]subagent_type="ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
+bare=$(awk -v re="$writer_re" '
+  FNR == 1 { ok = 0; open_ = 0 }
+  /^\*\*Correct/ { ok = 1 } /^\*\*Incorrect/ || /^#{2,} / { ok = 0 }
+  ok && $0 ~ re { open_ = 1; buf = ""; start = FNR }
+  open_ { buf = buf $0 }
+  open_ && /run_in_background/ { open_ = 0; if (buf !~ /isolation="worktree"/) print FILENAME ":" start }
+' $(find "$REPO_ROOT/src/skills/implement" -name '*.md'))
+writers_seen=$(grep -rlE "^\*\*Correct" "$REPO_ROOT/src/skills/implement" | xargs grep -cE "$writer_re" | awk -F: '{n += $2} END {print n + 0}')
+[[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in any Correct template; the caller check cannot pass vacuously"
+for loc in $bare; do fail "writer spawn without isolation=\"worktree\" at ${loc#"$REPO_ROOT/"}"; done
+
 echo "agents with isolation:${found:- none}"
 if [[ $FAIL_COUNT -gt 0 ]]; then
   echo "RESULT: $FAIL_COUNT failure(s)"

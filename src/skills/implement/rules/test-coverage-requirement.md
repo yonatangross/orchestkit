@@ -43,14 +43,14 @@ Agent(subagent_type="ork:frontend-ui-developer",
 ```python
 # Phase 5: Implementation + Tests (parallel)
 Agent(subagent_type="ork:backend-system-architect",
-  prompt="Implement user auth endpoints", run_in_background=True)
+  prompt="Implement user auth endpoints", run_in_background=True, isolation="worktree")
 Agent(subagent_type="ork:frontend-ui-developer",
-  prompt="Implement login form", run_in_background=True)
+  prompt="Implement login form", run_in_background=True, isolation="worktree")
 Agent(subagent_type="ork:test-generator",
   prompt="Generate tests for user auth: unit tests for endpoints,
   integration tests for auth flow, component tests for login form.
   Change types: API endpoint + UI component (see Test Requirements Matrix)",
-  run_in_background=True)
+  run_in_background=True, isolation="worktree")
 
 # GATE: Verify before Phase 6
 for agent in [backend, frontend, test_gen]:
