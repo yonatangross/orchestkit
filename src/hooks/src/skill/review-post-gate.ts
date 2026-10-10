@@ -893,6 +893,25 @@ function steersCommand(p: string, home: string, xdg: string): boolean {
   return gitDir !== '' && (p === gitDir || p.startsWith(`${gitDir}/`));
 }
 
+/**
+ * Whether a real path is the real path of a file steersCommand protects by
+ * name: a protected name can be a link to an ordinary-named file, which git
+ * still reads as config (codex22 XREVIEW 6095395160 P2-1). real is lowercase.
+ */
+function reachesConfig(real: string, cwd: string, deps: ReviewPostGateDeps): boolean {
+  const rp = deps.realpath;
+  if (!rp) return false;
+  const home = (deps.home?.() ?? '').replace(/\/+$/, '');
+  const configHome = (deps.xdgConfig?.() ?? '').replace(/\/+$/, '') || (home ? `${home}/.config` : '');
+  const named = [home && `${home}/.gitconfig`, configHome && `${configHome}/git`];
+  if (cwd) named.push(...['.git', '.git/config', '.git/hooks', '.git/info', '.gitattributes', '.gitmodules', '.mcp.json', '.claude/settings.json', '.claude/settings.local.json'].map((n) => `${cwd}/${n}`));
+  return named.some((n) => {
+    if (!n) return false;
+    const t = rp(n).toLowerCase();
+    return real === t || real.startsWith(`${t}/`);
+  });
+}
+
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
@@ -949,7 +968,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     const home = (deps.home?.() ?? '').toLowerCase().replace(/\/+$/, '');
     const xdg = (deps.xdgConfig?.() ?? '').toLowerCase();
     const homeReal = home && deps.realpath ? deps.realpath(home).toLowerCase() : home;
-    if (p !== null && (steersCommand(p, home, xdg) || (real !== null && (steersCommand(real, home, xdg) || steersCommand(real, homeReal, xdg))))) {
+    if (p !== null && (steersCommand(p, home, xdg) || (real !== null && (steersCommand(real, home, xdg) || steersCommand(real, homeReal, xdg) || reachesConfig(real, input.cwd ?? '', deps))))) {
       return deny(ctx, input, 'review-pr may not write git config, git hooks, attributes, or the project Claude settings or .mcp.json: a later read would run what they name.');
     }
     return outputSilentSuccess();
