@@ -151,15 +151,21 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(calculateCost('sonnet', MTOK).total).toBeCloseTo(12.0, 5); // $2 + $10
   });
 
-  it('prices claude-sonnet-5-5 at $2/$10 per MTok (cache 0.2/2.5)', () => {
-    // platform.claude.com pricing page, read 2026-09-28: $2 in, $10 out,
-    // $0.20 cache read, $2.50 5-minute cache write.
+  it('prices claude-sonnet-5-5 at $2/$10 per MTok (cache 0.1/2.5)', () => {
+    // platform.claude.com pricing page, read 2026-10-10: $2 in, $10 out,
+    // $0.10 cache read (0.05x input, footnote 2), $2.50 5-minute cache write.
+    // CC 2.1.296 re-priced Sonnet 5.5 cache reads from $0.20 to $0.10.
     expect(getCostConfig().models['claude-sonnet-5-5']).toEqual({
       input_per_mtok: 2.0,
       output_per_mtok: 10.0,
-      cache_read_per_mtok: 0.2,
+      cache_read_per_mtok: 0.1,
       cache_write_per_mtok: 2.5,
     });
+  });
+
+  it('keeps Opus 5.5 and Sonnet 5 cache reads at $0.20 (pricing page 2026-10-10)', () => {
+    expect(getCostConfig().models['claude-opus-5-5'].cache_read_per_mtok).toBe(0.2);
+    expect(getCostConfig().models['claude-sonnet-5'].cache_read_per_mtok).toBe(0.2);
   });
 
   it('prices claude-sonnet-5-5 on its own row, never through the unknown-model fallback', () => {
