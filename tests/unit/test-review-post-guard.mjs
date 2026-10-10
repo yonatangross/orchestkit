@@ -136,6 +136,21 @@ const VERDICTS = [
   '- hold: two blockers\n',
   'Hold.\n',
   '_verdict_ xreview\n',
+  // One rule (HOLD 6099092719, codex22 6099058888): a verdict word among the
+  // first four words of any line, split on \n and \r.
+  'hold, see the blockers below\n',
+  'land; CI is green\n',
+  'xreview\u2026 needs a second reader\n',
+  'Final verdict: HOLD\n',
+  'Verdict is HOLD\n',
+  'Recommendation: HOLD\n',
+  '| Verdict | HOLD |\n',
+  '**Verdict:** \u2705 LAND\n',
+  '*hold*\n',
+  'Summary\rHOLD\n',
+  // Prose refused by design: the word stands alone among the first four.
+  'hold on, one nit\n',
+  'Hold-out set is fine\n',
 ];
 
 test('3. a verdict-shaped line without --post-verdict: refused, gh never runs', () => {
@@ -148,7 +163,7 @@ test('3. a verdict-shaped line without --post-verdict: refused, gh never runs', 
 });
 
 test('3b. a word that only starts like a verdict is not a verdict', () => {
-  for (const text of ['Holding this for a later pass.\n', 'Landing notes: fine.\n', 'hold on, one nit\n', 'Verdicts differ by reviewer.\n', '1. Landing page copy\n']) {
+  for (const text of ['Holding this for a later pass.\n', 'Landing notes: fine.\n', 'Verdicts differ by reviewer.\n', '1. Landing page copy\n', 'Two findings and one nit, all minor; we can hold\n']) {
     const r = run(['--pr', '4668', '--event', 'comment', '--body-file', body(text), '--post']);
     assert.equal(r.status, 0, `${JSON.stringify(text)}: exit ${r.status}, stderr: ${r.stderr}`);
     assert.equal(r.calls.length, 1);

@@ -2244,6 +2244,8 @@ describe('(product-11 HOLD 6098834922) link count errors, the throw path, a temp
     const run = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx, base));
     expect(run('bash /tmp/x/skills/review-pr/scripts/resolve-target.sh https://github.com/o/r/pull/1')).toBe(true);
     expect(run(`bash ${S}/resolve-target.sh https://github.com/o$(id)/r/pull/1`)).toBe(true);
+    // A name RESOLVE_URL must not take: % (o%41), so this row can fail if the class widens.
+    expect(run(`bash ${S}/resolve-target.sh https://github.com/o%41/r/pull/1`)).toBe(true);
     expect(run(`bash ${S}/resolve-target.sh https://github.com/o/r/pull/1`)).toBe(false);
   });
 });
