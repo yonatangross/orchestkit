@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.171",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** drop continueOnBlock from 4 command hooks for Desktop ([#4685](https://github.com/yonatangross/orchestkit/issues/4685)) ([8c426ee](https://github.com/yonatangross/orchestkit/commit/8c426eefa10dbcc05ae30cd42c98571d6bafa389))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.170",
     "date": "2026-10-10",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170",
