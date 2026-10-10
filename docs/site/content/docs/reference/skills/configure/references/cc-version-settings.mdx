@@ -1158,6 +1158,10 @@ Upstream doc: https://code.claude.com/docs/en/auto-mode-classifier-billing
 CC 2.1.280 adds `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` to change the 2,048-character cap on MCP
 tool descriptions and server instructions for every MCP server in the session.
 
+CC 2.1.296 raises the default cap on MCP tool descriptions sent up front and on server
+instructions from 2,048 to 4,096 characters. Since CC 2.1.295, descriptions the model loads through
+tool search are cut at 16,384 characters.
+
 **Action for OrchestKit**: keep the default. The cap exists so verbose servers cannot flood context;
 raise it only for a server whose truncated description was measured to break tool selection.
 
