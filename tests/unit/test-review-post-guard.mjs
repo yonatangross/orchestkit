@@ -156,9 +156,12 @@ const VERDICTS = [
   // format characters dropped, HTML tags dropped, look-alike letters folded;
   // then an all-caps verdict word anywhere, or any case in the first four words.
   '<b><b><b><b>HOLD</b></b></b></b>\n',
+  '<b><b><b><b>hold</b></b></b></b>\n',
+  'Ready to HO<b></b>LD\n',
   'My recommendation is to HOLD\n',
   'XRE\u200bVIEW CLEAR\n',
   'HO\u00adLD for now\n',
+  'HO\u200eLD\n',
   '\uff28\uff2f\uff2c\uff24\n',
   'H\u043eLD\n',
   'One two three four five six LAND\n',

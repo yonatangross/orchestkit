@@ -28,20 +28,38 @@ import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync, 
 import path from 'node:path';
 
 const EVENTS = { approve: '--approve', 'request-changes': '--request-changes', comment: '--comment' };
-// One verdict rule (HOLD 6099092719, codex22 XREVIEW 6099058888): a line,
-// split on \n and \r, is a verdict line when one of its first four words is
-// land, hold or xreview in any case. A word is a run of letters, so list
-// markers, emphasis, table pipes, digits and emoji never count, and Holding or
-// Landing is a different word. That covers a bare verdict ("hold, see below")
-// and a short label before one ("Final verdict: HOLD", "| Verdict | HOLD |").
-// Prose with the word early ("hold on", "Hold-out set") is refused by design.
+// The verdict line rule, structural (product-11 HOLD 6099340056, codex22
+// XREVIEW 6099321110). Each line (split on \n and \r) is first made to read as
+// it renders: NFKC (fullwidth letters become ASCII), format characters dropped
+// (zero-width space, soft hyphen), HTML tags dropped, and Cyrillic and Greek
+// look-alike letters folded to Latin. Then it is a verdict line when LAND, HOLD
+// or XREVIEW in capitals stands anywhere as a word, or when land, hold or
+// xreview in any case is one of its first four words. A word is a run of
+// letters, so list markers, pipes, emphasis, digits and emoji never count.
+// Prose refused by design: "hold on, one nit", "Hold-out set", "Land access".
 const VERDICT_WORDS = new Set(['land', 'hold', 'xreview']);
-const isVerdictLine = (line) =>
+const LOOKALIKE = {
+  'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'Х': 'X', 'І': 'I',
+  'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'х': 'x', 'і': 'i', 'ԁ': 'd', 'һ': 'h', 'ѵ': 'v', 'ԝ': 'w',
+  'Α': 'A', 'Β': 'B', 'Ε': 'E', 'Η': 'H', 'Ι': 'I', 'Κ': 'K', 'Μ': 'M', 'Ν': 'N', 'Ο': 'O', 'Ρ': 'P', 'Τ': 'T', 'Χ': 'X',
+  'ο': 'o', 'ν': 'v',
+};
+const asRendered = (line) =>
   line
+    .normalize('NFKC')
+    .replace(/\p{Cf}/gu, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/[Ͱ-ϿЀ-ԯ]/g, (c) => LOOKALIKE[c] ?? c);
+const CAPS_ANYWHERE = /(?<!\p{L})(?:LAND|HOLD|XREVIEW)(?!\p{L})/u;
+const isVerdictLine = (line) => {
+  const t = asRendered(line);
+  if (CAPS_ANYWHERE.test(t)) return true;
+  return t
     .split(/[^\p{L}]+/u)
     .filter((w) => w !== '')
     .slice(0, 4)
     .some((w) => VERDICT_WORDS.has(w.toLowerCase()));
+};
 const MAX_BODY_BYTES = 65536; // GitHub's own body limit is 65,536 characters
 const SECRET_SHAPES = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}/,
