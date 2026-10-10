@@ -128,6 +128,37 @@ cat > "$FX/referrers.json" <<'EOF'
   {"referrer": "duckduckgo.com", "count": 6, "uniques": 5}
 ]
 EOF
+# local referrers: the API reports whatever host names the 14-day window saw,
+# and a private board served on a *.localhost name leaks it into a public
+# repo's ledger and PR body (one such name shipped in #4621). The script
+# drops them before the row is written and keeps only the dropped count.
+cat > "$FX/referrers-local.json" <<'EOF'
+[
+  {"referrer": "google.com", "count": 30, "uniques": 22},
+  {"referrer": "board.localhost", "count": 9, "uniques": 1},
+  {"referrer": "localhost", "count": 4, "uniques": 2},
+  {"referrer": "127.0.0.1", "count": 3, "uniques": 3},
+  {"referrer": "::1", "count": 2, "uniques": 1},
+  {"referrer": "api.localhost", "count": 1, "uniques": 1},
+  {"referrer": "duckduckgo.com", "count": 6, "uniques": 5}
+]
+EOF
+# Edge shapes of a local host (CodeRabbit review on #4626): a trailing dot,
+# all of 127.0.0.0/8, 0.0.0.0, IPv4-mapped and expanded ::1. The two public
+# near-misses must survive: a parser that over-matches fails them.
+cat > "$FX/referrers-local-edge.json" <<'EOF'
+[
+  {"referrer": "example.com", "count": 8, "uniques": 6},
+  {"referrer": "x.localhost.", "count": 1, "uniques": 1},
+  {"referrer": "localhost.", "count": 1, "uniques": 1},
+  {"referrer": "https://x.localhost.:3000/", "count": 1, "uniques": 1},
+  {"referrer": "127.0.0.2", "count": 1, "uniques": 1},
+  {"referrer": "0.0.0.0", "count": 1, "uniques": 1},
+  {"referrer": "[::ffff:127.0.0.1]", "count": 1, "uniques": 1},
+  {"referrer": "0:0:0:0:0:0:0:1", "count": 1, "uniques": 1},
+  {"referrer": "localhost.example.com", "count": 2, "uniques": 2}
+]
+EOF
 # fault fixtures
 printf 'not json at all\n' > "$FX/clones-garbage.json"
 # bad types: .count is a string; buckets valid and in-window
@@ -168,6 +199,7 @@ if jq -e '.clones.total == 77 and .clones.uniques == 70' "$OUT" > /dev/null; the
 if jq -e '.popular_paths.items | length == 2' "$OUT" > /dev/null; then ok "control: 2 popular paths"; else bad "control: popular paths wrong"; fi
 if jq -e '.popular_paths.items[1].title == ""' "$OUT" > /dev/null; then ok "control: null title normalized to empty string"; else bad "control: null title not normalized"; fi
 if jq -e '.referrers.items | length == 2' "$OUT" > /dev/null; then ok "control: 2 referrers"; else bad "control: referrers wrong"; fi
+if jq -e '.referrers.local_dropped == 0' "$OUT" > /dev/null; then ok "control: local_dropped is 0"; else bad "control: local_dropped wrong: $(jq '.referrers' "$OUT")"; fi
 if jq -e '.generated_at == "2026-09-14T06:00:00.000Z"' "$OUT" > /dev/null; then ok "control: generated_at pinned to the clock"; else bad "control: generated_at wrong: $(jq -r '.generated_at' "$OUT")"; fi
 if grep -q '^row=written$' "$GHOUT" && grep -q '^week=2026-09-07$' "$GHOUT"; then ok "control: GITHUB_OUTPUT row=written + week"; else bad "control: GITHUB_OUTPUT wrong: $(cat "$GHOUT" 2>/dev/null)"; fi
 
@@ -177,6 +209,57 @@ if [ "$RC" -eq 0 ]; then ok "idempotency: second run exits 0"; else bad "idempot
 if grep -q '^row=skipped$' "$WORK/control/ghout2"; then ok "idempotency: GITHUB_OUTPUT row=skipped"; else bad "idempotency: ghout2 wrong: $(cat "$WORK/control/ghout2" 2>/dev/null)"; fi
 if cmp -s "$WORK/control/first-row.jsonl" "$OUT"; then ok "idempotency: file byte-identical after skip"; else bad "idempotency: file changed on skip"; fi
 if [ "$(wc -l < "$OUT")" -eq 1 ]; then ok "idempotency: still exactly one row"; else bad "idempotency: duplicate row appended"; fi
+
+# --- local referrers: dropped from the row, counted, never named ----------------
+# Regression arm for #4621: a referrer like board.localhost is a private host
+# name that must not land in the public ledger or the PR body. The row keeps
+# the count only (.referrers.local_dropped), never a host string.
+LDIR="$WORK/local"
+mkdir -p "$LDIR"
+run_traffic "$LDIR/stdout" "$LDIR/stderr" "$LDIR/ghout" "$LDIR/snapshots.jsonl" \
+  TRAFFIC_STUB_REFERRERS_FILE=referrers-local.json
+LOUT="$LDIR/snapshots.jsonl"
+
+if [ "$RC" -eq 0 ]; then ok "local: exit 0"; else bad "local: exit $RC (expected 0); stderr: $(cat "$LDIR/stderr")"; fi
+if [ -f "$LOUT" ]; then ok "local: row file written"; else bad "local: row file missing"; fi
+if jq -e '.referrers.items | length == 2' "$LOUT" > /dev/null; then
+  ok "local: only the 2 public referrers survive"
+else
+  bad "local: items wrong: $(jq '.referrers.items' "$LOUT" 2>/dev/null)"
+fi
+if jq -e '[.referrers.items[].referrer] | sort == ["duckduckgo.com", "google.com"]' "$LOUT" > /dev/null; then
+  ok "local: surviving referrers are the public hosts"
+else
+  bad "local: a private host survived: $(jq -r '.referrers.items[].referrer' "$LOUT" 2>/dev/null | tr '\n' ' ')"
+fi
+if jq -e '.referrers.local_dropped == 5' "$LOUT" > /dev/null; then
+  ok "local: local_dropped counts the 5 dropped hosts"
+else
+  bad "local: local_dropped wrong: $(jq '.referrers.local_dropped' "$LOUT" 2>/dev/null)"
+fi
+if ! grep -qE 'localhost|127\.0\.0\.1|::1' "$LOUT"; then
+  ok "local: no local host string anywhere in the row"
+else
+  bad "local: row still names a local host: $(grep -oE '"referrer":"[^"]*"' "$LOUT" | tr '\n' ' ')"
+fi
+
+# --- local referrer edge shapes ------------------------------------------------
+EDIR="$WORK/local-edge"
+mkdir -p "$EDIR"
+run_traffic "$EDIR/stdout" "$EDIR/stderr" "$EDIR/ghout" "$EDIR/snapshots.jsonl" \
+  TRAFFIC_STUB_REFERRERS_FILE=referrers-local-edge.json
+EOUT="$EDIR/snapshots.jsonl"
+if [ "$RC" -eq 0 ]; then ok "local edge: exit 0"; else bad "local edge: exit $RC; stderr: $(cat "$EDIR/stderr")"; fi
+if jq -e '[.referrers.items[].referrer] | sort == ["example.com", "localhost.example.com"]' "$EOUT" > /dev/null; then
+  ok "local edge: the 7 local shapes are dropped, the 2 public hosts survive"
+else
+  bad "local edge: survivors wrong: $(jq -r '.referrers.items[].referrer' "$EOUT" 2>/dev/null | tr '\n' ' ')"
+fi
+if jq -e '.referrers.local_dropped == 7' "$EOUT" > /dev/null; then
+  ok "local edge: local_dropped counts the 7"
+else
+  bad "local edge: local_dropped wrong: $(jq '.referrers.local_dropped' "$EOUT" 2>/dev/null)"
+fi
 
 # --- fault arms: every one must exit non-zero and write NOTHING ------------------
 FAULT_CASES=(
