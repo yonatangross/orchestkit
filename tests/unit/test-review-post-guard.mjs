@@ -161,6 +161,7 @@ const VERDICTS = [
   // Angle brackets that are not a tag must not hide a verdict (regression at 5b5b66c2).
   'a < HOLD > b\n',
   'Risk < 2 HOLD > gate\n',
+  'Merge order: x <HOLD> y\n',
   'My recommendation is to HOLD\n',
   'XRE\u200bVIEW CLEAR\n',
   'HO\u00adLD for now\n',

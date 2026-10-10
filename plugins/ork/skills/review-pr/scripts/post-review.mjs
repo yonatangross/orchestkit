@@ -44,22 +44,27 @@ const LOOKALIKE = {
   'Α': 'A', 'Β': 'B', 'Ε': 'E', 'Η': 'H', 'Ι': 'I', 'Κ': 'K', 'Μ': 'M', 'Ν': 'N', 'Ο': 'O', 'Ρ': 'P', 'Τ': 'T', 'Χ': 'X',
   'ο': 'o', 'ν': 'v',
 };
-const asRendered = (line) =>
+const folded = (line) =>
   line
     .normalize('NFKC')
     .replace(/\p{Cf}/gu, '')
-    .replace(/<[^>]*>/g, '')
     .replace(/[Ͱ-ϿЀ-ԯ]/g, (c) => LOOKALIKE[c] ?? c);
+// Both views count: with HTML tags (a < or </ then a letter) dropped, as a page
+// renders them, and with every character kept, so a bare "a < HOLD > b" whose
+// brackets are not a tag still reads as a verdict.
+const views = (line) => {
+  const t = folded(line);
+  return [t, t.replace(/<\/?[A-Za-z][^>]*>/g, '')];
+};
 const CAPS_ANYWHERE = /(?<!\p{L})(?:LAND|HOLD|XREVIEW)(?!\p{L})/u;
-const isVerdictLine = (line) => {
-  const t = asRendered(line);
-  if (CAPS_ANYWHERE.test(t)) return true;
-  return t
+const verdictIn = (t) =>
+  CAPS_ANYWHERE.test(t) ||
+  t
     .split(/[^\p{L}]+/u)
     .filter((w) => w !== '')
     .slice(0, 4)
     .some((w) => VERDICT_WORDS.has(w.toLowerCase()));
-};
+const isVerdictLine = (line) => views(line).some(verdictIn);
 const MAX_BODY_BYTES = 65536; // GitHub's own body limit is 65,536 characters
 const SECRET_SHAPES = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}/,
