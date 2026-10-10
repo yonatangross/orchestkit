@@ -125,6 +125,10 @@ registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 
 `registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving**, useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported. This skill is verified against `@json-render/mcp` **0.20.0**, which shipped zero code change: every published file is byte-identical to 0.19.0 apart from the version and its pinned `@json-render/core` dependency. New capability in that release therefore belongs to core and react, not to this package. What reaches an MCP-rendered iframe indirectly is named slots and nested repeats, plus a fix so named `onSuccess`/`onError` chained actions actually receive their configured `params`.
 
+## Smallest Proof: One Tool, UI Resource Plus Text Fallback
+
+`scripts/glyph-card-server.mjs` is a dependency-free MCP server (stdio, or `--http <port>` for Streamable HTTP) with one tool, `render_glyph_card`. The tool lists `_meta.ui.resourceUri` (plus the legacy `ui/resourceUri` and the ChatGPT alias `openai/outputTemplate`), serves a `ui://` resource as `text/html;profile=mcp-app`, and returns a glyph text card in `content` with the same rows in `structuredContent`. Hosts without UI use the text; MCP Apps hosts draw the card. One caveat: Claude Code passes `structuredContent` JSON to the model when it is present, so the text card is not what the model sees there. The HTTP mode refuses any non-local Host or Origin with 403 unless you name one host with `--allow-host <host>`, so a tunnel serves only that name. Unit tests: `tests/unit/test-mcp-glyph-card.mjs`.
+
 ## Client-Side Iframe App
 
 The iframe app receives specs from the MCP host and renders them:
