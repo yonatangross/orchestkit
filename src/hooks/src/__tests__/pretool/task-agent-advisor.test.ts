@@ -359,6 +359,10 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     ['Do not commit: add regression tests for the SQL injection.'],
     ['Never push: replace interpolated SQL with parameters.'],
     ['Please write a SQL injection regression test.'],
+    // codex HOLD 6103186316: no fixed word count between verb and noun.
+    ['Please write a new SQL injection regression unit test.'],
+    ['Please add a new SQL injection regression unit test.'],
+    ['Write a focused SQL injection parameterization regression test.'],
   ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
@@ -374,6 +378,9 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     // codex HOLD 6102229680 P2-3: a prohibition carries across ", or".
     ['Security review only. Do not fix the bug, or push changes.'],
     ['Security review: implementation details only.'],
+    // The noun must sit in the verb's own clause.
+    ['Security review. Write a summary for the team. Tests are out of scope.'],
+    ['Security review; add a note to the report; the code stays as is.'],
   ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));

@@ -111,7 +111,10 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
  * refactor, rewrite, apply a fix or patch, add or write tests or code, edit
  * code or files, open a PR. Suffixes are bounded so `implementation`,
  * `fixture`, `pushover` and `replacement` do not match. One -ly adverb may sit
- * between ("please carefully fix").
+ * between ("please carefully fix"). apply, add and write need their object
+ * noun (a fix or patch; tests or code) later in the SAME clause, with no word
+ * count: "write a new SQL injection regression unit test". The clause ends at
+ * . ; : ! ? , or a newline, so a noun in the next clause does not count.
  *
  * ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): when unsure,
  * read build intent. A miss asks the human to redirect a code change to a
@@ -124,7 +127,7 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
  */
 export const BUILD_INTENT_PATTERN = new RegExp(
   String.raw`(?:^|[.;:!?,]|\b(?:and|then|or|but|also|please|now|first|next|finally|so|to|you|let's|lets|go|me|just)\b|\b(?:must|should|can|could|will|would|need|needs|want|wants|have|has|going|able|asked|try|sure)(?: to)?\b)\s*(?:\w+ly\s+)?` +
-    String.raw`(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|apply(?:ing)? (?:\w+ ){0,2}(?:fix|patch|change|diff|suggestion)\w*|(?:add|write)(?:ing)? (?:\w+ ){0,5}(?:tests?|code|checks?|validation|guards?|fix|patch)|edit(?:ing)? (?:the )?(?:code|files?)|(?:open|create|raise)(?:ing)? (?:a |the )?(?:pr|pull request))\b`,
+    String.raw`(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|apply(?:ing)?\b[^.;:!?,\n]*?\b(?:fix|patch|change|diff|suggestion)\w*|(?:add|write)(?:ing)?\b[^.;:!?,\n]*?\b(?:tests?|code|checks?|validation|guards?|fix|patch)|edit(?:ing)? (?:the )?(?:code|files?)|(?:open|create|raise)(?:ing)? (?:a |the )?(?:pr|pull request))\b`,
   'im',
 );
 
