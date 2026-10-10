@@ -2172,3 +2172,47 @@ describe('(product-10 HOLD 6098152787, codex 6098111473) .claude under chain, CL
     expect(write(join(kit, 'new.md'), kit)).toBe(false);
   });
 });
+
+describe('(product-11 HOLD 6098583393) chain slice, link count dep, PR URL, deny keeps the turn, job dir reason', () => {
+  const tr = () => transcript([typed('4668')]);
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const writeAt = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return reviewPostGate(input, ctx, { ...base, ...extra });
+  };
+  test('should 2 (p11b): a link below the chain dir denies in a cwd with U+0130 letters', () => {
+    for (const name of ['\u0130\u0130repo', 'asciirepo']) {
+      const repo = join(dir, name);
+      const chain = join(repo, '.claude', 'chain');
+      mkdirSync(join(repo, '.git'), { recursive: true });
+      mkdirSync(join(chain, '.claude', 'agents'), { recursive: true });
+      symlinkSync(join(chain, '.claude', 'agents'), join(chain, 'lnk'));
+      expect(denied(writeAt(join(chain, 'lnk', 'a.md'), repo)), name).toBe(true);
+      expect(denied(writeAt(join(chain, 'capabilities.json'), repo)), name).toBe(false);
+    }
+  });
+  test('must 1: the link count comes from deps', () => {
+    const kit = join(dir, 'kit');
+    mkdirSync(kit);
+    expect(denied(writeAt(join(kit, 'body.md'), kit, { linkCount: () => 2 }))).toBe(true);
+    expect(denied(writeAt(join(kit, 'body.md'), kit, { linkCount: () => 1 }))).toBe(false);
+  });
+  test('should 3 (CR 4237744105): resolve-target.sh takes a PR URL', () => {
+    const run = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx, base));
+    expect(run(`bash ${S}/resolve-target.sh https://github.com/o/r/pull/123`)).toBe(false);
+    expect(run('bash /tmp/x.sh https://github.com/o/r/pull/123')).toBe(true);
+    expect(run(`bash ${S}/resolve-target.sh https://github.com/o/r/pull/123/files`)).toBe(true);
+  });
+  test('should 4 (CR 4237744111): a deny blocks the call and keeps the turn', () => {
+    const r = reviewPostGate(bash('gh pr comment 4668 --body x', tr()), ctx, base) as { continue?: boolean; stopReason?: string };
+    expect(denied(r)).toBe(true);
+    expect(r.continue).toBe(true);
+    expect(r.stopReason).toBeUndefined();
+  });
+  test('should 5: an unset job dir deny names CLAUDE_JOB_DIR', () => {
+    const r = reviewPostGate(bash(`python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`, tr()), ctx, { ...base, jobDir: () => '' }) as { hookSpecificOutput?: { permissionDecisionReason?: string } };
+    expect(denied(r)).toBe(true);
+    expect(r.hookSpecificOutput?.permissionDecisionReason ?? '').toMatch(/CLAUDE_JOB_DIR is unset/);
+  });
+});
