@@ -122,6 +122,10 @@ const VERDICTS = [
   '\n\n**HOLD** two blockers\n',
   '# LAND\n\nall green\n',
   '> HOLD, see below\n',
+  // A verdict word behind an emoji or below the first line (HOLD 6097900519 should 4).
+  '\u{1F534} HOLD two blockers\n',
+  'Summary first.\n\nHOLD: two blockers\n',
+  '\u2705 LAND\n',
 ];
 
 test('3. verdict-shaped first line without --post-verdict: refused, gh never runs', () => {

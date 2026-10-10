@@ -2074,3 +2074,46 @@ describe('(codex22 XREVIEW 6097518008) a ~user env value fails closed', () => {
     expect(read(['~/.gitconfig'])).toBe(false);
   });
 });
+
+describe('(product-10 HOLD 6097900519) .claude writes outside the chain dir, one job dir rule', () => {
+  const tr = () => transcript([typed('4668')]);
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const write = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, { ...base, ...extra }));
+  };
+  const run = (cmd: string, extra: Record<string, unknown> = {}) => denied(reviewPostGate(bash(cmd, tr()), ctx, { ...base, ...extra }));
+  test('must 1: a non-git temp cwd cannot write .claude skills, agents or commands', () => {
+    const kit = join(dir, 'kit');
+    mkdirSync(kit);
+    for (const f of [join(kit, '.claude', 'skills', 'p', 'SKILL.md'), join(kit, '.claude', 'agents', 'a.md'), join(kit, '.claude', 'commands', 'c.md'), join(dir, 'other', '.claude', 'agents', 'a.md'), join(kit, '.claude', 'chain', 'x.json')]) {
+      expect(write(f, kit), f).toBe(true);
+    }
+    expect(write(join(kit, 'body.md'), kit)).toBe(false);
+    expect(write(join(kit, 'claude', 'notes.md'), kit)).toBe(false);
+  });
+  test('must 1 control: the chain dir of a repo cwd is still writable', () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, '.claude', 'chain'), { recursive: true });
+    expect(write(join(repo, '.claude', 'chain', 'capabilities.json'), repo)).toBe(false);
+    expect(write(join(repo, '.claude', 'skills', 'p', 'SKILL.md'), repo)).toBe(true);
+  });
+  test('should 3: verdict_writeback.py takes the job dir only where Write may use it', () => {
+    const home = join(dir, 'h');
+    mkdirSync(join(home, '.cfg'), { recursive: true });
+    mkdirSync(join(dir, 'r', '.git'), { recursive: true });
+    mkdirSync(join(dir, 'jobs', '1'), { recursive: true });
+    const cmd = `python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`;
+    const at = (job: string) => run(cmd, { home: () => home, jobDir: () => job });
+    expect(at(join(home, '.cfg'))).toBe(true);
+    expect(at(join(dir, 'r'))).toBe(true);
+    expect(at(join(dir, 'x', '.claude', 'job'))).toBe(true);
+    expect(at(join(dir, 'jobs', '1'))).toBe(false);
+  });
+  test('should 5: a renamed copy of post-review.mjs neither copies nor runs', () => {
+    expect(run(`cp ${S}/post-review.mjs /tmp/x.mjs`)).toBe(true);
+    expect(run('node /tmp/x.mjs --pr 4668 --event comment --body-file /tmp/b.md --post')).toBe(true);
+  });
+});
