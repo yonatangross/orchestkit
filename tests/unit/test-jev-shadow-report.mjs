@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { canonical, decisionSha256, normalize, summarize, readRows } from '../../scripts/jev-shadow-report.mjs';
+import { canonical, decisionSha256, normalize, summarize, readRows, validateLegacyShadow } from '../../scripts/jev-shadow-report.mjs';
 
 const route = (extra = {}) => ({ intent: 'dev_fix', conf: 0.9, floor: 0.8, flag: 'shadow', ...extra });
 const labelFor = (row, fields) => ({ ...fields, decision_sha256: decisionSha256(row) });
@@ -173,4 +173,34 @@ try {
   ].map(JSON.stringify).join('\n'));
   assert.throws(() => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { stdio: 'pipe' }), /Duplicate label source/);
 } finally { rmSync(dir, { recursive: true, force: true }); }
+// #4297: executor-target route labels share the vocabulary of new route picks.
+{
+  const executorRow = { seam: 'route', mode: 'shadow', jev_pick: 'skill:ork:fix-issue', incumbent_pick: 'skill:ork:implement',
+    agree: false, jev_confidence: 0.9, floor: 0.8, decided_by: 'jev', session_id: 's', prompt_id: 'p' };
+  const agreed = normalize(executorRow, 'executor', labelFor(executorRow, { incumbent: 'skill:ork:fix-issue' }));
+  assert.equal(agreed.invalidLabel, false, 'executor-target label is valid on an executor-target row');
+  assert.equal(agreed.agree, true, 'matching executor-target label counts as agreement');
+  assert.equal(agreed.highDisagreement, false);
+  const agentLabel = normalize(executorRow, 'executor', labelFor(executorRow, { correct: 'agent:Explore' }));
+  assert.equal(agentLabel.invalidLabel, false, 'agent executor targets are valid route labels');
+  assert.equal(normalize(executorRow, 'executor', labelFor(executorRow, { correct: 'no_executor' })).invalidLabel, false);
+  const crossed = normalize(executorRow, 'executor', labelFor(executorRow, { incumbent: 'dev_fix' }));
+  assert.equal(crossed.invalidLabel, true, 'an intent-ID label cannot be compared with an executor-target pick');
+  assert.equal(crossed.agree, false, 'the invalid label leaves the recorded comparison untouched');
+  const legacy = route({ incumbent_intent: 'dev_build' });
+  assert.equal(normalize(legacy, 'legacy', labelFor(legacy, { incumbent: 'skill:ork:fix-issue' })).invalidLabel, true,
+    'an executor-target label cannot be compared with an intent-ID pick');
+  assert.equal(normalize(legacy, 'legacy', labelFor(legacy, { incumbent: 'dev_fix' })).agree, true);
+}
+
+// #4297: only the documented failure object counts as a structured incumbent.
+{
+  const base = { jev_pick: 'bugfix', jev_confidence: 0.9, agree: null, floor: 0.8, decided_by: 'jev' };
+  const failure = { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' };
+  assert.deepEqual(validateLegacyShadow({ ...base, incumbent_pick: failure }), []);
+  for (const bad of [{}, { status: 'no_valid_result', choice: null }, { status: 'no_valid_result', choice: null, reason: '' },
+    { status: 'ok', choice: null, reason: 'x' }, { status: 'no_valid_result', choice: 'bugfix', reason: 'x' }]) {
+    assert.ok(validateLegacyShadow({ ...base, incumbent_pick: bad }).includes('invalid:incumbent_pick'), JSON.stringify(bad));
+  }
+}
 console.log('PASS: Jev shadow report counts, confidence bands, labels, legacy unknowns, malformed rows and CLI');

@@ -7,6 +7,7 @@ import { FILE_ROUTE_RECORDS, routeJudgment, routeSessionDir, type RouteRecord } 
 import { metricsDispatcher } from '../../posttool/metrics-dispatcher.js';
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import { syncTaskDispatcher } from '../../pretool/task/sync-task-dispatcher.js';
+import { routeObserver } from '../../pretool/task/route-observer.js';
 import { sessionSummary } from '../../stop/session-summary.js';
 import { NOOP_CTX } from '../../lib/context.js';
 vi.mock('../../lib/analytics-buffer.js', () => ({ bufferWrite: vi.fn() }));
@@ -39,7 +40,7 @@ function toolInput(promptId: string, skill: string, sessionId = 'session-a', ext
 }
 function observe(promptId: string, skill: string, sessionId = 'session-a', extra: Partial<HookInput> = {}) {
   const input = toolInput(promptId, skill, sessionId, extra);
-  return input.tool_name === 'Agent' ? syncTaskDispatcher(input) : skillTracker(input, { ...NOOP_CTX, projectDir });
+  return input.tool_name === 'Agent' ? routeObserver(input) : skillTracker(input, { ...NOOP_CTX, projectDir });
 }
 function stop(promptId: string, extra: Partial<HookInput> = {}) {
   return sessionSummary({ prompt_id: promptId, session_id: 'session-a', project_dir: projectDir, tool_name: '', tool_input: {}, last_assistant_message: 'Answered inline.', ...extra });
@@ -56,11 +57,11 @@ function contract(records: RouteRecord[]) {
 }
 
 describe('route prompt correlation through registered PreToolUse and Stop hooks', () => {
-  it('observes Skill synchronously before execution so Stop cannot overtake it', () => {
+  it('observes Skill from an async PreToolUse handler, off the hot path (#4297)', () => {
     const config = JSON.parse(readFileSync(new URL('../../../hooks.json', import.meta.url), 'utf8'));
     const registration = config.hooks.PreToolUse.find((entry: { matcher?: string }) => entry.matcher === 'Skill').hooks.find((hook: { args?: string[] }) => hook.args?.includes('pretool/skill/skill-tracker'));
     expect(registration).toBeDefined();
-    expect(registration.async).not.toBe(true);
+    expect(registration.async).toBe(true);
   });
   it('writes pending then actual Skill comparison and dedupes retries and later executors', async () => {
     await judge('prompt-a');
@@ -128,8 +129,9 @@ describe('route prompt correlation through registered PreToolUse and Stop hooks'
   });
   it('keeps requested first Agent when its gate blocks and a later Skill completes', async () => {
     await judge('blocked-choice');
-    const denied = observe('blocked-choice', '', 'session-a', { tool_name: 'Agent', tool_input: { subagent_type: 'Explore', model: 'haiku' } });
-    expect(denied.continue).toBe(false);
+    const agentCall = toolInput('blocked-choice', '', 'session-a', { tool_name: 'Agent', tool_input: { subagent_type: 'Explore', model: 'haiku' } });
+    expect(syncTaskDispatcher(agentCall).continue).toBe(false);
+    observe('blocked-choice', '', 'session-a', { tool_name: 'Agent', tool_input: { subagent_type: 'Explore', model: 'haiku' } });
     await observe('blocked-choice', 'ork:implement');
     await metricsDispatcher(toolInput('blocked-choice', 'ork:implement'));
     stop('blocked-choice');

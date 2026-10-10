@@ -9,17 +9,19 @@
  * pre-existing synonym and casing suggestions.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { describe, test, expect } from 'vitest';
-import type { HookInput } from '../../types.js';
+import { describe, test, expect, vi } from 'vitest';
+import type { HookInput, HookContext } from '../../types.js';
+import { NOOP_CTX } from '../../lib/context.js';
 import {
   taskAgentAdvisor,
   matchSpecialistDomain,
   isDeterministicRunTask,
   ORK_AGENT_SYNONYMS,
   SPECIALIST_DOMAINS,
+  NOT_ROUTED,
 } from '../../pretool/task/task-agent-advisor.js';
 
 // Repo-root src/agents/, resolved from this test file's location
@@ -246,4 +248,133 @@ describe('advisor maps cross-checked against src/agents/ (map existence)', () =>
       expect(existsSync(file)).toBe(true);
     },
   );
+});
+
+describe('#4630 routing gaps', () => {
+  test.each([
+    'read .github/workflows/example-bot.yml',
+    'repo/.github/workflows/x.yml',
+  ])('workflow path "%s" routes to ork:ci-cd-engineer', (text) => {
+    expect(matchSpecialistDomain(text, '')).toBe('ork:ci-cd-engineer');
+  });
+
+  test.each([
+    ['rebase the feature branch onto main and resolve conflicts', 'ork:git-operations-engineer'],
+    ['rebase the release branch onto main', 'ork:git-operations-engineer'],
+    ['fix the deploy workflow', 'ork:ci-cd-engineer'],
+    ['write the changelog and cut a release for 2.3.0', 'ork:release-engineer'],
+    ['plan a blue-green deploy to production with a rollback procedure', 'ork:deployment-manager'],
+    ['write a terraform module for the VPC', 'ork:infrastructure-architect'],
+    ['update the script under migrations/ that applies the orders change', 'ork:database-engineer'],
+    ['check alembic/versions for a missing down revision', 'ork:database-engineer'],
+    ['write a react component for the settings page', 'ork:frontend-ui-developer'],
+  ])('%s routes to %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    'Create a git worktree for the fix',
+    'merge the meeting notes into one summary',
+    'summarize the release of the movie',
+  ])('negative: "%s" matches no new specialist row', (text) => {
+    const agent = matchSpecialistDomain(text, '');
+    expect(['ork:git-operations-engineer', 'ork:release-engineer', 'ork:deployment-manager']).not.toContain(agent);
+  });
+
+  test('worktree creation on general-purpose gets the Bash nudge, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Create a git worktree for the fix' }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('Bash');
+    expect(contextOf(result)).toContain('git worktree add');
+  });
+
+  test('reading one file on general-purpose gets the Read/Explore nudge, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read apply-db.sh' }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('Read');
+    expect(contextOf(result)).toContain('Explore');
+  });
+
+  test('read nudge does not fire on an authoring task', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read apply-db.sh and implement the retry' }),
+    );
+    expect(contextOf(result)).not.toContain('Explore');
+  });
+
+  test('bypassPermissions match stays advisory and logs a matched-in-bypass miss', () => {
+    const log = vi.fn();
+    const ctx: HookContext = { ...NOOP_CTX, log };
+    const input = { ...makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }), permission_mode: 'bypassPermissions' } as HookInput;
+    const result = taskAgentAdvisor(input, ctx);
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('ork:security-auditor');
+    expect(log).toHaveBeenCalledWith('task-agent-advisor', expect.stringContaining('matched-in-bypass'));
+  });
+
+  test('general-purpose with no match logs a general-purpose-no-match record', () => {
+    const log = vi.fn();
+    const ctx: HookContext = { ...NOOP_CTX, log };
+    taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: 'summarize the meeting notes' }), ctx);
+    expect(log).toHaveBeenCalledWith('task-agent-advisor', expect.stringContaining('general-purpose-no-match'));
+  });
+
+  // The issue's own measured task shapes: every one must get a route or a nudge.
+  test.each([
+    ['Read example-bot.yml workflow', 'Read'],
+    ['Read the bot workflow file example-bot.yml', 'Read'],
+    ['Read the migrations apply script', 'Read'],
+    ['Read apply-db.sh', 'Read'],
+    ['Create a git worktree for the fix', 'git worktree add'],
+  ])('issue shape "%s" on general-purpose gets a nudge, not silence or ask', (description, expected) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(expected);
+  });
+
+  // File shapes, not only domain words, route when the task acts on the file.
+  test.each([
+    ['Fix the example-bot.yml workflow', 'ork:ci-cd-engineer'],
+    ['Update the bot workflow file example-bot.yml', 'ork:ci-cd-engineer'],
+    ['Update the migrations apply script', 'ork:database-engineer'],
+    ['Change apply-db.sh to retry on lock timeout', 'ork:database-engineer'],
+    ['Rename 0042_add_orders_migration.sql', 'ork:database-engineer'],
+  ])('file shape "%s" routes to %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    'rebase the timeline in the video',
+    'read the docs on workflow engines',
+    'summarize the bird migration study',
+  ])('negative: "%s" stays unrouted', (text) => {
+    expect(matchSpecialistDomain(text, '')).toBeNull();
+  });
+
+  test('a read nudge does not fire on a multi-step investigation', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read the migrations apply script and explain why it deadlocks' }),
+    );
+    expect(contextOf(result)).not.toContain('Reading a file needs no subagent');
+  });
+
+  test('every agent in src/agents is routed or listed in NOT_ROUTED, with no overlap', () => {
+    const onDisk = readdirSync(AGENTS_DIR)
+      .filter((f) => f.endsWith('.md') && f !== 'README.md')
+      .map((f) => `ork:${f.replace(/\.md$/, '')}`)
+      .sort();
+    const routed = new Set(SPECIALIST_DOMAINS.map((d) => d.agent));
+    const notRouted = Object.keys(NOT_ROUTED);
+    expect(notRouted.filter((a) => routed.has(a))).toEqual([]);
+    expect([...routed, ...notRouted].sort()).toEqual(onDisk);
+    for (const reason of Object.values(NOT_ROUTED)) expect(reason.length).toBeGreaterThan(0);
+  });
 });

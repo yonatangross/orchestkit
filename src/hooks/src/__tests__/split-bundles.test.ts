@@ -491,7 +491,9 @@ describe('Cross-Bundle Consistency', () => {
     //              output contract.
     // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
     //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
-    expect(totalHooks).toBe(181); // 180 + 1 (#4675 review-post-gate)
+    // 180 -> 181: #4297 pretool/task/route-observer, async Agent route
+    //              observation moved out of the sync task dispatcher.
+    expect(totalHooks).toBe(182); // Both added handlers survive the main merge.
   });
 });
 

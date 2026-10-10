@@ -1,0 +1,11 @@
+{
+  "slug": "ork10-g6-hooks-ga",
+  "source": "docs/fix--ork10-g6-hooks-ga/index.html",
+  "title": "GA bugs, hooks wave 2: 3 red-first fixes",
+  "description": "3 red-first fixes: #4633, #4297, #4630",
+  "tags": [
+    "bug",
+    "ga"
+  ],
+  "date": "2026-10-09"
+}
