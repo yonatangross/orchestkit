@@ -93,6 +93,12 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
+**Load the stack snapshot first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/setup-env-detector
+```
+
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
 Load `Read("skills/setup/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.

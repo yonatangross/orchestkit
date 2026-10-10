@@ -3,10 +3,8 @@ description: "Generate tests that do not exist yet. Analyzes coverage gaps, then
 argument-hint: "[scope-or-feature]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: cover
-background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
 
@@ -32,6 +30,8 @@ cover --real-services checkout pipeline
 ```
 
 ## Argument Resolution
+
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
 
 ```python
 SCOPE = "$ARGUMENTS"  # e.g., "authentication flow"
@@ -314,6 +314,8 @@ Workflow(
 )
 # One invocation per tier that has failures.
 ```
+
+**Fan-out rule:** a single pass is never a fallback. Each tier with failures goes through the heal-loop Workflow call; if it does not run, end the run as BLOCKED and say why.
 
 **The iteration bound is enforced by the script, not by instruction.** `heal-loop.js`
 runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that

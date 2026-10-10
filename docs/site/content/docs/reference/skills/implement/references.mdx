@@ -1,11 +1,11 @@
 ---
 title: "Implement: References"
-description: "20 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
+description: "21 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Phase 6 Pattern Check; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
 ---
 
 > Part of the [Implement](/docs/reference/skills/implement) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-## References (20)
+## References (21)
 
 ### Agent Phases
 
@@ -1745,6 +1745,18 @@ else:
 ## Fallback
 
 If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Agent tool mode for remaining phases. The approaches are compatible, work done in Teams mode transfers to Agent tool continuation.
+
+
+### Phase 6 Pattern Check
+
+# Phase 6 pattern check (fork-safe)
+
+The fork cannot run `pattern-consistency-enforcer` on each Write/Edit (#4683), so run it once over every changed file; a `"continue":false` result names a violation to fix before Phase 7:
+
+```bash
+{ git -c core.quotePath=false diff --name-only <start-sha>; git -c core.quotePath=false ls-files --others --exclude-standard; } | sort -u | while read -r f; do [ -f "$f" ] && jq -n --arg p "$PWD/$f" --rawfile c "$f" '{tool_name:"Write",tool_input:{file_path:$p,content:$c}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer; done
+```
+
 
 
 ### Scope Creep Detection

@@ -638,8 +638,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "STEP 0",
-            "label": "resolve a conversational reference first",
-            "does": "$ARGUMENTS is often not a path. For a bare pronoun or deictic (them, this, that,",
+            "label": "resolve a pronoun target first",
+            "does": "$ARGUMENTS is often not a path. Load Read(\"../../shared/rules/target-resolution.md\")",
             "out": null,
             "tag": null
           },
@@ -1172,7 +1172,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0",
             "label": "Project Context Discovery",
-            "does": "BEFORE creating tasks or selecting agents, detect the project tier. This becomes the complexity ceiling for all downstream decisions.",
+            "does": "Load context first. A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its additionalContext in mind:",
             "out": null,
             "tag": null
           },

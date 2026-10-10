@@ -3,10 +3,8 @@ description: "Design exploration using parallel agents through a 7-phase process
 argument-hint: "[topic-or-idea]"
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 model: sonnet
-context: fork
 user-invocable: true
 name: brainstorm
-background: false
 allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
 ---
 
@@ -38,6 +36,13 @@ Full procedure + handoff-file table: `Read("skills/brainstorm/references/mcp-pro
 
 
 ## STEP 0: Project Context Discovery
+
+**Load context first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/prior-decisions-loader
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
+```
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 
@@ -197,6 +202,8 @@ Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/
 Full level table + detection rules: `Read("skills/brainstorm/references/effort-scaling.md")`
 
 **Phase 2 always runs at effort `low`**, whatever the level above: in-the-loop ideation is where low effort pays, scoring is not. The skill has no `effort:` frontmatter on purpose (it would lower Phase 4 too); `skills/brainstorm/workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator instead. Details in the same reference.
+
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; this skill runs inline (#4696) because a fork has no Workflow tool. If none of them spawns a generator, end the run as BLOCKED and say why.
 
 
 **Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.

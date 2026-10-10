@@ -30,6 +30,8 @@ verify --scope=backend database migrations
 
 ## Argument Resolution
 
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
+
 ```python
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
 SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
@@ -104,6 +106,8 @@ AskUserQuestion(
 Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
 Default: **Workflow** (star, `workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
+
+**Fan-out rule:** a single pass is never a fallback. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a verifier, end the run as BLOCKED and say why.
 
 ---
 

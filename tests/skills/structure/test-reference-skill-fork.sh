@@ -24,7 +24,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 # Non-invocable skills that run a task of their own. Adding a name here is a
 # claim that the skill body is a procedure a fork can carry out alone.
-TASK_SKILLS=" audit-full error-analysis "
+# audit-full left this list in #4672: it calls Workflow, which a fork does
+# not have, so it runs inline (tests/skills/structure/test-workflow-skills-run-inline.mjs).
+TASK_SKILLS=" error-analysis "
 
 FAILED=0
 CHECKED=0

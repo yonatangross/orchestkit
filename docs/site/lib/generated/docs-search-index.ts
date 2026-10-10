@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 162 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -263,7 +263,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 171-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 162-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -282,7 +282,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "171 Hooks: What Fires When",
+    "title": "162 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -1168,7 +1168,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/implement/references",
     "title": "Implement: References",
-    "description": "20 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
+    "description": "21 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Phase 6 Pattern Check; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
   },
   {
     "url": "/docs/reference/skills/implement/rules",

@@ -104,8 +104,10 @@ describe('Skill frontmatter hooks invariant (CC 2.1.94+)', () => {
       }
     }
 
-    // We expect to find the ~20 known frontmatter hook references
-    expect(foundRefs.length).toBeGreaterThanOrEqual(15);
+    // Floor is 8 since #4683 moved the hooks of six forked skills into body
+    // steps (CC drops a forked skill's frontmatter hooks). A drop below 8 is
+    // still a mass deletion.
+    expect(foundRefs.length).toBeGreaterThanOrEqual(8);
 
     if (missing.length > 0) {
       const report = missing
@@ -130,6 +132,6 @@ describe('Skill frontmatter hooks invariant (CC 2.1.94+)', () => {
       const fm = extractFrontmatter(content);
       if (fm) total += extractSkillHookRefs(fm).length;
     }
-    expect(total).toBeGreaterThanOrEqual(15);
+    expect(total).toBeGreaterThanOrEqual(8); // floor lowered by #4683, see above
   });
 });

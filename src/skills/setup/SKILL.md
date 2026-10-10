@@ -11,13 +11,6 @@ user-invocable: true
 disable-model-invocation: false
 allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
 skills: [configure, remember, explore, help]
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/setup-env-detector"
-          once: true
 metadata:
   category: configuration
   mcp-server: memory
@@ -114,6 +107,12 @@ Load details: `Read("references/scan-phase.md")` for full scan commands (20 para
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
 ## Phase 2: Stack Detection
+
+**Load the stack snapshot first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/setup-env-detector
+```
 
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 

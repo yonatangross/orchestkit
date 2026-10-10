@@ -32,6 +32,8 @@ fix-issue 456
 
 ## Argument Resolution
 
+**Check the target first, before any other step.** This skill forks and cannot see the conversation. Load `Read("../../shared/rules/target-resolution.md")`: if the target, flags stripped, is a bare pronoun or deictic (`this`, `them`, `that one`) or empty, return exactly `TARGET_UNRESOLVED: <word>` and stop. The caller resolves it and re-invokes.
+
 ```python
 ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 # $ARGUMENTS contains the full argument string
@@ -41,6 +43,12 @@ ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
 ## STEP -1: MCP Probe + Resume Check
 
 **Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
+
+**Load the branch's issue first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/issue-context-loader
+```
 
 ```python
 # Probe MCPs (parallel — all in ONE message):

@@ -4,8 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
-context: fork
-background: false
 user-invocable: false
 allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"
 skills: [security-patterns, architecture-patterns, quality-gates]
@@ -107,6 +105,8 @@ Workflow({
 ```
 
 It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits — only reach for map-reduce when it genuinely doesn't.
+
+**Fan-out rule:** a single pass is never a fallback for an over-budget repo. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load.
 
 ---
 

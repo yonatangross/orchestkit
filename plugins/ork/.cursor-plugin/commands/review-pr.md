@@ -28,6 +28,8 @@ review-pr feature-branch
 
 ## Argument Resolution
 
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
+
 Resolve the target with the script first, then review exactly that target (#3892). Read the mode and opt-in flags (`--rules`, `--standards`, `--post`, `--post-verdict`) from the arguments yourself and drop them, then run the script as one plain command (the post gate allows only simple read-only commands, so no assignment, loop or `$(...)`):
 
 ```bash

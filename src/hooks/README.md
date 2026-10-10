@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1408,7 +1408,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1420,6 +1420,8 @@ See the async hooks section above for detailed async hook patterns.
 (count unchanged, 2026-10-10): `pretool/read/tldr-summary` also passes through a Read with `allow_large: true` (CC 2.1.296), which asks for the whole file in one call, so a summary would only add tokens. 1 case added. No registration moved.
 
 (count unchanged at 169, 2026-10-09, #4684): removed `continueOnBlock` from 4 command hooks: PostToolUse Write/Edit `posttool/write/stale-import-detector`, `posttool/write/debt-marker-tracker`, `posttool/check-plugins-drift`, and UserPromptSubmit `prompt/goal-tracker`. CC 2.1.293 and 2.1.295 have the key in the prompt-hook schema and runner only and drop it on command hooks, so nothing changes at runtime. Claude Desktop refused the whole ork plugin for it ("only valid on type 'prompt' hooks"), so Desktop stayed on ork 9.8.0. `tests/unit/test-hooks-json-shipped-schema.sh` now fails on a type-only key on the wrong hook type. No registration moved.
+
+(count 169 to 160, skill-scoped 17 to 8, 2026-10-09, #4683): six `context: fork` skills lose their `hooks:` frontmatter, because Claude Code never runs a fork skill's frontmatter hooks (runs 913b0ab4 and c6fae215), so all nine registrations were dead. brainstorm, explore, fix-issue, implement and setup now run each loader as a body step, `echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/<id>`; implement runs `skill/pattern-consistency-enforcer` once over its changed files in Phase 6 instead of on every Write/Edit. `scripts/validate-registry.mjs` counts a `run-hook.mjs" <id>` body step as reachable (and as a ghost when the id is unregistered) but not as a hook. `skill/plan-context-loader` and its handler are deleted: visualize-plan was its only user and its STEP 0 already runs `scripts/detect-plan-context.sh`, which reports the same branch, base, commits and changed files. Entries-map total 180 to 179. Guard: `tests/skills/structure/test-fork-skills-have-no-hooks.mjs`.
 
 (count 171 to 169, skill-scoped 19 to 17, 2026-10-08, #4682): deleted `skill/pr-context-loader` and `skill/review-dimensions-loader`, and their handlers. review-pr was their only user, and on main it ran as `context: fork`, where Claude Code drops a skill's frontmatter hooks, so neither ever ran (runs 913b0ab4 and c6fae215). Running review-pr inline would have turned them on: the PR context loader runs `gh pr view` with no number, which reads the checked-out branch's PR (title, base, head, 1000 characters of body), not the PR under review; the dimensions loader added a second output contract beside the workflow's findings schema (HOLD 6064156428). The skill reads its resolved target itself in Phase 1. Entries-map total 182 to 180.
 

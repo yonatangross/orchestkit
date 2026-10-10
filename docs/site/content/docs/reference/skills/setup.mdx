@@ -95,6 +95,12 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
+**Load the stack snapshot first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/setup-env-detector
+```
+
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
 Load `Read("references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
@@ -1202,7 +1208,7 @@ Computes a composite readiness score (0-10) from 6 dimensions.
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  171 hooks active
+  Hook Protection ████████░░  8/10  162 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
