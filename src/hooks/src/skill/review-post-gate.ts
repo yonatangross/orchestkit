@@ -11,8 +11,9 @@
  * scope, so no read-side gate is built for them. The GitHub write surface is an
  * allowlist (#4678 HOLDs at bce3afb6):
  *
- *   1. gh runs only its read verbs (pr view/diff/checks/list/status, issue
- *      view/list/status, repo view, run view/list/watch, search, auth status).
+ *   1. gh runs only the reads in the Bash allowlist (pr view/diff/checks/list,
+ *      issue view/list, repo view, run view/list, label list, release
+ *      view/list, workflow view/list, and gh api as a plain GET).
  *      `gh api` runs only as a plain GET: no method flag other than GET, no
  *      -f/-F/--field/--raw-field/--input (also in a short-flag cluster), and
  *      no graphql at all (a GET may carry -f/-F as query fields). Any curl,
@@ -54,10 +55,11 @@
  *      read from there.
  *
  * Nothing here reads gh auth, so the gate holds with a full gh login.
- * Known limit: it reads the command TEXT. A post from a renamed copy of the
- * script, from a script file the model wrote first, or through a path built
- * at run time (including an in-place edit of the real transcript entry) is
- * not seen. It stops an over-eager post, not a model set on getting around
+ * Known limit: it reads the command TEXT and matches only Bash, Monitor,
+ * Write, Edit, NotebookEdit and MCP calls. node, python3 and bash run only the
+ * skill's own scripts, so a renamed copy or a script the model wrote does not
+ * run; a post from the Skill, SendMessage, Agent or Workflow tools is not
+ * seen. It stops an over-eager post, not a model set on getting around
  * it; #4677 removes the write credential, which is the fail-closed layer.
  */
 
@@ -987,6 +989,26 @@ function gitMember(real: string, temps: string[]): boolean {
   return ['head', 'config', 'packed-refs'].includes(base) || names.slice(0, -1).some((n) => ['objects', 'refs', 'hooks', 'info'].includes(n));
 }
 
+/** Whether a path names a .claude dir anywhere: skills, agents and commands load from there. */
+function dotClaude(x: string): boolean {
+  return x.toLowerCase().split('/').includes('.claude');
+}
+
+/**
+ * The job dir as a root, lowercase, or '' when a write there could run later:
+ * a link in its names, HOME or a dotfile dir under it, a .claude dir, or a git
+ * work tree (codex 6096633483 P2). Write and verdict_writeback.py both use it
+ * (HOLD 6097900519 should 3).
+ */
+function jobRootOk(deps: ReviewPostGateDeps, rp: (p: string) => string, home: string, temps: string[]): string {
+  const job = (deps.jobDir?.() ?? '').replace(/\/+$/, '');
+  if (!job.startsWith('/') || job.split('/').includes('..') || hasLink(job, 1) || dotClaude(job)) return '';
+  const root = rp(job).toLowerCase();
+  const homes = home.startsWith('/') ? tempRoots([home], rp) : [];
+  if (homes.includes(root) || homes.some((h) => root.startsWith(`${h}/.`)) || dotClaude(root)) return '';
+  return inGitRepo(rp(job), { home, temps }) ? '' : root;
+}
+
 /** Whether x is a root in roots, or below one (strict: below only). */
 function underAny(x: string, roots: string[], strict = false): boolean {
   const l = x.toLowerCase();
@@ -1010,7 +1032,6 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const typed = fp.startsWith('~/') && home ? `${home}${fp.slice(1)}` : fp;
   if (!typed.startsWith('/') && !cwd) return false;
   const raw = typed.startsWith('/') ? typed : `${cwd}/${typed}`;
-  const job = (deps.jobDir?.() ?? '').replace(/\/+$/, '');
   // A root counts only where it is spelled: a link at it or in a parent
   // (.claude/chain -> .github/workflows, job-parent -> .github) would move the
   // allowed dir (codex22 XREVIEW 6095963428 P1, 6096089850 P1). The chain root
@@ -1024,11 +1045,10 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const bounds = { home, temps };
   const base = posix.normalize(cwd).replace(/\/+$/, '');
   const homes = home.startsWith('/') ? tempRoots([home], rp) : [];
-  // The job dir counts only where a write there runs nothing: not HOME, not a
-  // dotfile dir under it, not inside a git work tree (codex 6096633483 P2).
-  const jobRoot = job.startsWith('/') ? fixed(job, '/') : '';
-  const jobOk = jobRoot !== '' && !homes.includes(jobRoot) && !homes.some((h) => jobRoot.startsWith(`${h}/.`)) && !inGitRepo(rp(job), bounds);
-  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', jobOk ? jobRoot : ''].filter((r) => r !== '');
+  // The job dir counts only where a write there runs nothing (jobRootOk).
+  const jobRoot = jobRootOk(deps, rp, home, temps);
+  const chain = base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '';
+  const roots = [chain, jobRoot].filter((r) => r !== '');
   // A dir the environment names as config or PATH is not temp, wherever it is.
   const named = namedRoots(deps, rp, cwd);
   if (named === null) return false;
@@ -1038,8 +1058,13 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   // shell profile and gh config would be writable (HOLD 6096491908 must 1).
   // Named dirs and git-dir members deny first, under an allowed root too: a
   // job dir on PATH would let a write plant a command (codex 6096802137 P2).
-  const ok = (real: string) => !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && (underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)));
-  return [raw, posix.normalize(raw)].every((x) => ok(rp(x)));
+  // A .claude path is a skill, agent, command or settings file a later step
+  // loads, so only the chain dir of a repo cwd is written there, in a temp
+  // dir too (HOLD 6097900519 must 1).
+  const inChain = (real: string) => chain !== '' && underAny(real, [chain]);
+  const ok = (x: string, real: string) =>
+    !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && (inChain(real) || (!dotClaude(x) && !dotClaude(real) && (underAny(real, [jobRoot].filter((r) => r !== '')) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)))));
+  return [raw, posix.normalize(raw)].every((x) => ok(x, rp(x)));
 }
 
 const TRANSCRIPT_DENY =
@@ -1127,6 +1152,10 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   }
   const targets = pathTargets(input, deps);
   const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv) };
+  // An unset job dir keeps the old answer; a set one must pass the Write rule.
+  if ((deps.jobDir?.() ?? '') !== '') {
+    allowCtx.jobOk = jobRootOk(deps, allowCtx.realpath, allowCtx.home ?? '', allowCtx.tempDirs ?? []) !== '';
+  }
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1583,6 +1612,8 @@ export interface AllowContext {
   named?: string[] | null;
   /** The config subset (secretEnv, no PATH): never read, in the repo either; null fails closed. */
   secret?: string[] | null;
+  /** Whether "$CLAUDE_JOB_DIR" is a dir Write may use (jobRootOk); unset counts as yes. */
+  jobOk?: boolean;
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1642,7 +1673,10 @@ function writebackArgs(rest: Word[], ctx: AllowContext): string | null {
   }
   if (words.length !== 1) return 'verdict_writeback.py takes one review dir';
   const [d] = words;
-  if (d.variable) return d.text === '$CLAUDE_JOB_DIR' ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
+  if (d.variable) {
+    if (d.text !== '$CLAUDE_JOB_DIR') return `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
+    return ctx.jobOk === false ? 'verdict_writeback.py: $CLAUDE_JOB_DIR is a dir Write may not use (HOME, a dotfile or .claude dir, or a git work tree)' : null;
+  }
   const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
   const temp = (x: string) => underAny(x, temps, true);
   return d.text.startsWith('/') && !d.text.split('/').includes('..') && temp(d.text) && temp(ctx.realpath(d.text)) ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;

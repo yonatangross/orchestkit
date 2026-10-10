@@ -139,8 +139,10 @@ if (!sameInode) refuse('--body-file changed while it was checked; write a new fi
 if (size > MAX_BODY_BYTES) refuse(`--body-file is over ${MAX_BODY_BYTES} bytes.`);
 if (SECRET_SHAPES.some((re) => re.test(body))) refuse('--body-file holds a secret-shaped value (token, key or private key). Nothing was posted.');
 
-const firstLine = body.split('\n').find((l) => l.trim() !== '') ?? '';
-const bare = firstLine.replace(/^[\s>#*_`~]+/, '');
+// Every line counts, with any leading marks, emoji or markdown taken off: a
+// verdict word below a summary line or behind an emoji is still a verdict
+// (HOLD 6097900519 should 4).
+const bare = body.split('\n').map((l) => l.replace(/^[^\p{L}\p{N}]+/u, '')).find((l) => VERDICT_RE.test(l)) ?? '';
 if (opts.kind === 'review' && (opts.event === 'approve' || opts.event === 'request-changes') && !opts.postVerdict) {
   refuse(`a ${opts.event} review is a verdict. That needs --post-verdict typed by the user.`);
 }
