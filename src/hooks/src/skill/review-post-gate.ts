@@ -63,6 +63,7 @@
  * it; #4677 removes the write credential, which is the fail-closed layer.
  */
 
+import { statSync } from 'node:fs';
 import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputDeny, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -994,6 +995,21 @@ function dotClaude(x: string): boolean {
   return x.toLowerCase().split('/').includes('.claude');
 }
 
+/** Whether a path is a CLAUDE.md or CLAUDE.local.md, which a session loads as instructions. */
+function claudeMd(x: string): boolean {
+  return /^claude(?:\.local)?\.md$/i.test(posix.basename(x));
+}
+
+/** The link count of an existing file, 0 when it is absent or cannot be read. */
+function linkCount(x: string): number {
+  try {
+    return statSync(x).nlink;
+  } catch {
+    // broad: fail-open: an absent target has no other name.
+    return 0;
+  }
+}
+
 /**
  * The job dir as a root, lowercase, or '' when a write there could run later:
  * a link in its names, HOME or a dotfile dir under it, a .claude dir, or a git
@@ -1061,9 +1077,15 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   // A .claude path is a skill, agent, command or settings file a later step
   // loads, so only the chain dir of a repo cwd is written there, in a temp
   // dir too (HOLD 6097900519 must 1).
-  const inChain = (real: string) => chain !== '' && underAny(real, [chain]);
+  // Below the chain root no further .claude dir counts, by real path and by
+  // spelling (HOLD 6098152787 must, p10n).
+  const claudeIn = (x: string) => x.toLowerCase().split('/').filter((n) => n === '.claude').length;
+  const inChain = (x: string, real: string) => chain !== '' && underAny(real, [chain]) && !dotClaude(real.slice(chain.length)) && claudeIn(x) <= claudeIn(base) + 1;
   const ok = (x: string, real: string) =>
-    !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && (inChain(real) || (!dotClaude(x) && !dotClaude(real) && (underAny(real, [jobRoot].filter((r) => r !== '')) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)))));
+    !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && !claudeMd(x) && !claudeMd(real) && (inChain(x, real) || (!dotClaude(x) && !dotClaude(real) && (underAny(real, [jobRoot].filter((r) => r !== '')) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)))));
+  // A file with another hard link is that other file too, which may be one a
+  // later step runs (codex XREVIEW 6098111473 P2).
+  if (linkCount(raw) > 1) return false;
   return [raw, posix.normalize(raw)].every((x) => ok(x, rp(x)));
 }
 
@@ -1152,10 +1174,9 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
   }
   const targets = pathTargets(input, deps);
   const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv) };
-  // An unset job dir keeps the old answer; a set one must pass the Write rule.
-  if ((deps.jobDir?.() ?? '') !== '') {
-    allowCtx.jobOk = jobRootOk(deps, allowCtx.realpath, allowCtx.home ?? '', allowCtx.tempDirs ?? []) !== '';
-  }
+  // The job dir must pass the Write rule; unset, "$CLAUDE_JOB_DIR" is empty and
+  // verdict_writeback.py would write into the cwd (HOLD 6098152787 should).
+  allowCtx.jobOk = jobRootOk(deps, allowCtx.realpath, allowCtx.home ?? '', allowCtx.tempDirs ?? []) !== '';
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1612,7 +1633,7 @@ export interface AllowContext {
   named?: string[] | null;
   /** The config subset (secretEnv, no PATH): never read, in the repo either; null fails closed. */
   secret?: string[] | null;
-  /** Whether "$CLAUDE_JOB_DIR" is a dir Write may use (jobRootOk); unset counts as yes. */
+  /** Whether "$CLAUDE_JOB_DIR" is a dir Write may use (jobRootOk); the gate sets it, unset here counts as yes. */
   jobOk?: boolean;
 }
 

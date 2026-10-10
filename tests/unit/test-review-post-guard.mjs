@@ -12,7 +12,7 @@
 //   1. No --post: refused (exit 2), gh never runs.            (main: no script)
 //   2. --post and a plain body: gh pr review runs once with the event and
 //      --body-file.                                           (main: no script)
-//   3. A verdict-shaped first line (LAND, HOLD, XREVIEW, also behind markdown
+//   3. A verdict-shaped line anywhere (LAND, HOLD, XREVIEW, also behind markdown
 //      emphasis or a heading) without --post-verdict: refused, gh never runs.
 //                                                             (main: no script)
 //   4. The same body with --post --post-verdict: posted.      (main: no script)
@@ -130,7 +130,7 @@ const VERDICTS = [
   '**Verdict:** LAND, merge it\n',
 ];
 
-test('3. verdict-shaped first line without --post-verdict: refused, gh never runs', () => {
+test('3. a verdict-shaped line without --post-verdict: refused, gh never runs', () => {
   for (const text of VERDICTS) {
     const r = run(['--pr', '4668', '--event', 'comment', '--body-file', body(text), '--post']);
     assert.equal(r.status, 2, `${JSON.stringify(text)}: exit ${r.status}, stderr: ${r.stderr}`);

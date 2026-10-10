@@ -7,7 +7,7 @@
 //
 // Refuses (exit 2, gh never runs):
 //   - without --post. The skill passes --post only when the user typed it.
-//   - when the body's first non-empty line is verdict-shaped (LAND, HOLD,
+//   - when any line of the body is verdict-shaped (LAND, HOLD,
 //     XREVIEW, also behind markdown emphasis, a heading or a quote) and
 //     --post-verdict is absent.
 //   - when --body-file is not a regular file under a system temp dir after
@@ -28,7 +28,8 @@ import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync, 
 import path from 'node:path';
 
 const EVENTS = { approve: '--approve', 'request-changes': '--request-changes', comment: '--comment' };
-const VERDICT_RE = /^(?:LAND|HOLD|XREVIEW)\b/;
+// A verdict word, alone or after a "Verdict:" label (HOLD 6098152787 should).
+const VERDICT_RE = /^(?:[Vv]erdict[\s*_`:]*)?(?:LAND|HOLD|XREVIEW)\b/;
 const MAX_BODY_BYTES = 65536; // GitHub's own body limit is 65,536 characters
 const SECRET_SHAPES = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}/,
@@ -147,7 +148,7 @@ if (opts.kind === 'review' && (opts.event === 'approve' || opts.event === 'reque
   refuse(`a ${opts.event} review is a verdict. That needs --post-verdict typed by the user.`);
 }
 if (VERDICT_RE.test(bare) && !opts.postVerdict) {
-  refuse(`the first line is verdict-shaped ("${bare.slice(0, 40)}"). That needs --post-verdict typed by the user.`);
+  refuse(`a line is verdict-shaped ("${bare.slice(0, 40)}"). That needs --post-verdict typed by the user.`);
 }
 
 const args =

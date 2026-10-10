@@ -34,7 +34,7 @@ const savedXdg = process.env.XDG_CONFIG_HOME;
 // The default deps read these from the runner's env; each test starts with
 // none set and a fixed PATH, so a runner value cannot change a verdict
 // (product-10 at 789ed83e).
-const PINNED = ['GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM', 'GH_CONFIG_DIR', 'ZDOTDIR', 'BASH_ENV', 'ENV', 'PYTHONPATH', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'PATH'] as const;
+const PINNED = ['GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM', 'GH_CONFIG_DIR', 'ZDOTDIR', 'BASH_ENV', 'ENV', 'PYTHONPATH', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'PATH', 'CLAUDE_JOB_DIR'] as const;
 const savedPinned = Object.fromEntries(PINNED.map((k) => [k, process.env[k]]));
 beforeEach(() => {
   for (const k of PINNED) delete process.env[k];
@@ -44,6 +44,9 @@ beforeEach(() => {
   // A runner sets XDG_CONFIG_HOME; the git config dir follows it (HOLD 6095687461 must 1).
   delete process.env.XDG_CONFIG_HOME;
   dir = mkdtempSync(join(tmpdir(), 'review-post-gate-'));
+  // Claude Code sets the job dir; unset, verdict_writeback.py is denied (HOLD 6098152787).
+  mkdirSync(join(dir, 'session-job'));
+  process.env.CLAUDE_JOB_DIR = join(dir, 'session-job');
   // The gate pins the script to CLAUDE_PLUGIN_ROOT itself (HOLD 6078660476).
   process.env.CLAUDE_PLUGIN_ROOT = '/test/plugin-root';
 });
