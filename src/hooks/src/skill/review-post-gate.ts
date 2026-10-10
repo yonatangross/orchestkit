@@ -62,7 +62,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { tmpdir } from 'node:os';
 import { posix } from 'node:path';
-import { realPath } from '../lib/real-path.js';
+import { hasLink, realPath } from '../lib/real-path.js';
 import { inGitRepo } from '../lib/repo-root.js';
 
 const HOOK = 'review-post-gate';
@@ -953,16 +953,19 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   if (!typed.startsWith('/') && !cwd) return false;
   const raw = typed.startsWith('/') ? typed : `${cwd}/${typed}`;
   const job = (deps.jobDir?.() ?? '').replace(/\/+$/, '');
-  // A root is used only where it really is: a link in it (.claude/chain ->
-  // .github/workflows) would move the allowed dir (codex22 XREVIEW 6095963428 P1).
+  // A root counts only where it is spelled: a link at it or in a parent
+  // (.claude/chain -> .github/workflows, job-parent -> .github) would move the
+  // allowed dir (codex22 XREVIEW 6095963428 P1, 6096089850 P1). The chain root
+  // is checked below the cwd, the job dir below its first name.
   const fixed = (r: string, anchor: string) => {
-    const real = rp(r).toLowerCase();
-    return real === `${rp(anchor).replace(/\/+$/, '')}${r.slice(anchor.length)}`.toLowerCase() ? real : '';
+    if (r.split('/').includes('..')) return '';
+    const skip = anchor === '/' ? 1 : anchor.split('/').filter((n) => n !== '').length;
+    return hasLink(r, skip) ? '' : rp(r).toLowerCase();
   };
   const temps = tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), rp);
   const bounds = { home, temps };
   const base = posix.normalize(cwd).replace(/\/+$/, '');
-  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(posix.normalize(job), posix.dirname(posix.normalize(job))) : ''].filter((r) => r !== '');
+  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(job, '/') : ''].filter((r) => r !== '');
   // A temp path inside a git work tree (a checkout or worktree under /tmp) is
   // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
   const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !inGitRepo(posix.dirname(real), bounds));

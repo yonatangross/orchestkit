@@ -60,3 +60,25 @@ export function realPath(p: string): string {
   }
   return walked.replace(FIRMLINK, '');
 }
+
+/**
+ * Whether any name of p after its first `skip` names is a symlink, by lstat.
+ * An allowed root counts only when no name of its configured spelling is a
+ * link: a link in a parent moves it as surely as one at its end (codex22
+ * XREVIEW 6096089850). The first name is skipped by default, since /tmp and
+ * /var are root-owned links on macOS. A name that does not exist ends the walk.
+ */
+export function hasLink(p: string, skip = 1): boolean {
+  const names = posix.normalize(p).split('/').filter((n) => n !== '');
+  let cur = '';
+  for (let i = 0; i < names.length; i += 1) {
+    cur = `${cur}/${names[i]}`;
+    if (i < skip) continue;
+    try {
+      if (lstatSync(cur).isSymbolicLink()) return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
