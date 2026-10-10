@@ -60,6 +60,7 @@ import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputDeny, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
+import { tmpdir } from 'node:os';
 import { posix } from 'node:path';
 import { realPath } from '../lib/real-path.js';
 import { inGitRepo } from '../lib/repo-root.js';
@@ -744,6 +745,8 @@ export interface ReviewPostGateDeps {
   xdgConfig?: () => string;
   /** CLAUDE_JOB_DIR, '' when unset: verdict_writeback.py writes there. */
   jobDir?: () => string;
+  /** The temp dirs a write or read may use: /tmp and the process tmpdir. */
+  tempDirs?: () => string[];
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -753,6 +756,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   cdpath: () => process.env.CDPATH ?? '',
   xdgConfig: () => process.env.XDG_CONFIG_HOME ?? '',
   jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
+  tempDirs: () => ['/tmp', tmpdir()],
   realpath: realPath,
 };
 
@@ -916,7 +920,22 @@ function reachesConfig(real: string, cwd: string, deps: ReviewPostGateDeps): boo
   });
 }
 
-const TEMP_DIR = /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/;
+/**
+ * The temp dirs as typed and by real path, lowercase: the temp dir itself,
+ * never all of /var/folders, where caches live (codex22 XREVIEW 6095963428 P2).
+ */
+function tempRoots(dirs: string[], rp: (p: string) => string): string[] {
+  const all = dirs.filter((d) => d.startsWith('/')).flatMap((d) => [posix.normalize(d), rp(d)]);
+  return [...new Set(all.map((d) => d.replace(/\/+$/, '').toLowerCase()).filter((d) => d !== ''))];
+}
+
+/** Whether x is a root in roots, or below one (strict: below only). */
+function underAny(x: string, roots: string[], strict = false): boolean {
+  const l = x.toLowerCase();
+  return roots.some((r) => (!strict && l === r) || l.startsWith(`${r}/`));
+}
+
+const DEFAULT_TEMP = () => ['/tmp', tmpdir()];
 const WRITE_DENY =
   'review-pr writes only in the temp dir, <repo>/.claude/chain/ or $CLAUDE_JOB_DIR, by real path: any other file can be one a later step runs. Write the review body to a temp file.';
 
@@ -934,9 +953,17 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   if (!typed.startsWith('/') && !cwd) return false;
   const raw = typed.startsWith('/') ? typed : `${cwd}/${typed}`;
   const job = (deps.jobDir?.() ?? '').replace(/\/+$/, '');
-  const roots = [cwd && inGitRepo(cwd) ? `${cwd}/.claude/chain` : '', job.startsWith('/') ? job : ''].filter((r) => r !== '').map((r) => rp(r).toLowerCase());
-  const ok = (x: string) => TEMP_DIR.test(x) || roots.some((r) => x === r || x.startsWith(`${r}/`));
-  return [raw, posix.normalize(raw)].every((x) => ok(rp(x).toLowerCase()));
+  // A root is used only where it really is: a link in it (.claude/chain ->
+  // .github/workflows) would move the allowed dir (codex22 XREVIEW 6095963428 P1).
+  const fixed = (r: string, anchor: string) => {
+    const real = rp(r).toLowerCase();
+    return real === `${rp(anchor).replace(/\/+$/, '')}${r.slice(anchor.length)}`.toLowerCase() ? real : '';
+  };
+  const base = posix.normalize(cwd).replace(/\/+$/, '');
+  const roots = [base && inGitRepo(base) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(posix.normalize(job), posix.dirname(posix.normalize(job))) : '']
+    .filter((r) => r !== '')
+    .concat(tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), rp));
+  return [raw, posix.normalize(raw)].every((x) => underAny(rp(x), roots));
 }
 
 const TRANSCRIPT_DENY =
@@ -1023,7 +1050,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '' };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)) };
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1474,6 +1501,8 @@ export interface AllowContext {
   realpath: (p: string) => string;
   /** HOME: a cwd at or above it is no repo root. */
   home?: string;
+  /** The temp roots (tempRoots), lowercase; /tmp and the process tmpdir when unset. */
+  tempDirs?: string[];
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1500,7 +1529,8 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   // The repo, or a temp dir (a fetched diff or JSON); checked by real path, so
   // a symlink in either cannot point out of it.
   const real = ctx.realpath(abs);
-  const temp = (x: string) => /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/.test(x);
+  const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
+  const temp = (x: string) => underAny(x, temps);
   if (!(inside(abs, root) && inside(real, ctx.realpath(root))) && !(temp(abs) && temp(real))) {
     return `a path outside the repo and the temp dir (${t})`;
   }
@@ -1524,7 +1554,8 @@ function writebackArgs(rest: Word[], ctx: AllowContext): string | null {
   if (words.length !== 1) return 'verdict_writeback.py takes one review dir';
   const [d] = words;
   if (d.variable) return d.text === '$CLAUDE_JOB_DIR' ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
-  const temp = (x: string) => /^\/(?:private\/)?(?:tmp|var\/folders)\//.test(x);
+  const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
+  const temp = (x: string) => underAny(x, temps, true);
   return d.text.startsWith('/') && !d.text.split('/').includes('..') && temp(d.text) && temp(ctx.realpath(d.text)) ? null : `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
 }
 
