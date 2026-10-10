@@ -1863,3 +1863,37 @@ describe('(HOLD 6096491908) a HOME or a git dir under the temp dir is not temp',
     expect(write(join(dir, 'body.md'))).toBe(false);
   });
 });
+
+describe('(HOLD 6096693701, codex 6096633483) git-dir members, the job dir, env config dirs', () => {
+  const tr = () => transcript([typed('4668')]);
+  const write = (file: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '', ...extra };
+    return denied(reviewPostGate(input, ctx, deps));
+  };
+  test('must 1: a git-dir member under temp denies before HEAD and objects/ exist', () => {
+    // The order that passed at 0b1bc49c: refs and hooks first, HEAD and objects/ last.
+    for (const f of [join(dir, 'g', 'refs', 'heads', 'main'), join(dir, 'g', 'hooks', 'post-checkout'), join(dir, 'g', 'config'), join(dir, 'g', 'packed-refs'), join(dir, 'g', 'info', 'attributes'), join(dir, 'g', 'objects', 'ab', 'cd'), join(dir, 'g', 'HEAD')]) {
+      expect(write(f), f).toBe(true);
+    }
+    for (const f of [join(dir, 'body.md'), join(dir, 'review', 'notes.md'), join(dir, 'review', 'config.json')]) expect(write(f), f).toBe(false);
+  });
+  test('should (codex P2): the job dir counts only outside HOME dotfiles and git work trees', () => {
+    const home = join(dir, 'h');
+    mkdirSync(join(home, '.cfg'), { recursive: true });
+    mkdirSync(join(dir, 'r', '.git'), { recursive: true });
+    mkdirSync(join(dir, 'jobs', '1'), { recursive: true });
+    const at = (job: string, file: string) => write(file, { home: () => home, jobDir: () => job, tempDirs: () => [] });
+    expect(at(home, join(home, '.zshenv'))).toBe(true);
+    expect(at(join(home, '.cfg'), join(home, '.cfg', 'x'))).toBe(true);
+    expect(at(join(dir, 'r'), join(dir, 'r', 'x.py'))).toBe(true);
+    expect(at(join(dir, 'jobs', '1'), join(dir, 'jobs', '1', 'verdict.json'))).toBe(false);
+  });
+  test('should: a config or PATH dir named by the environment is not temp', () => {
+    const env = () => [join(dir, 'ghcfg'), join(dir, 'bin'), join(dir, 'gitcfg', 'global')];
+    for (const f of [join(dir, 'ghcfg', 'hosts.yml'), join(dir, 'bin', 'gh'), join(dir, 'gitcfg', 'global')]) {
+      expect(write(f, { configEnv: env }), f).toBe(true);
+    }
+    expect(write(join(dir, 'body.md'), { configEnv: env })).toBe(false);
+  });
+});
