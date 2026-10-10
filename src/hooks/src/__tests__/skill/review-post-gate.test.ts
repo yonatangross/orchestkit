@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { linkSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
@@ -2115,5 +2115,57 @@ describe('(product-10 HOLD 6097900519) .claude writes outside the chain dir, one
   test('should 5: a renamed copy of post-review.mjs neither copies nor runs', () => {
     expect(run(`cp ${S}/post-review.mjs /tmp/x.mjs`)).toBe(true);
     expect(run('node /tmp/x.mjs --pr 4668 --event comment --body-file /tmp/b.md --post')).toBe(true);
+  });
+});
+
+describe('(product-10 HOLD 6098152787, codex 6098111473) .claude under chain, CLAUDE.md, unset job dir, hard links', () => {
+  const tr = () => transcript([typed('4668')]);
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const write = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, { ...base, ...extra }));
+  };
+  const repoDir = () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, '.claude', 'chain'), { recursive: true });
+    return repo;
+  };
+  test('must (p10n): a .claude dir below the chain dir denies', () => {
+    const repo = repoDir();
+    const chain = join(repo, '.claude', 'chain');
+    for (const f of [join(chain, '.claude', 'agents', 'a.md'), join(chain, '.claude', 'skills', 'p', 'SKILL.md'), join(chain, 'x', '.claude', 'commands', 'c.md')]) {
+      expect(write(f, repo), f).toBe(true);
+    }
+    expect(write(join(chain, 'capabilities.json'), repo)).toBe(false);
+    expect(write(join(chain, 'sub', 'notes.md'), repo)).toBe(false);
+  });
+  test('should: CLAUDE.md and CLAUDE.local.md deny anywhere, the chain dir too', () => {
+    const repo = repoDir();
+    const kit = join(dir, 'kit');
+    mkdirSync(kit);
+    for (const [f, cwd] of [[join(kit, 'CLAUDE.md'), kit], [join(kit, 'sub', 'claude.md'), kit], [join(repo, '.claude', 'chain', 'CLAUDE.md'), repo], [join(kit, 'CLAUDE.local.md'), kit]]) {
+      expect(write(f, cwd), f).toBe(true);
+    }
+    expect(write(join(kit, 'CLAUDE.md.txt'), kit)).toBe(false);
+  });
+  test('should: verdict_writeback.py "$CLAUDE_JOB_DIR" denies when the job dir is unset', () => {
+    const cmd = `python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`;
+    mkdirSync(join(dir, 'jobs', '1'), { recursive: true });
+    const run = (extra: Record<string, unknown>) => denied(reviewPostGate(bash(cmd, tr()), ctx, { ...base, ...extra }));
+    expect(run({ jobDir: () => '' })).toBe(true);
+    expect(run({ jobDir: () => join(dir, 'jobs', '1') })).toBe(false);
+  });
+  test('codex P2: a Write target with another hard link denies', () => {
+    const kit = join(dir, 'kit');
+    mkdirSync(kit);
+    writeFileSync(join(kit, 'orig.mjs'), 'x');
+    linkSync(join(kit, 'orig.mjs'), join(kit, 'alias.mjs'));
+    writeFileSync(join(kit, 'single.md'), 'x');
+    expect(write(join(kit, 'alias.mjs'), kit)).toBe(true);
+    expect(write(join(kit, 'orig.mjs'), kit)).toBe(true);
+    expect(write(join(kit, 'single.md'), kit)).toBe(false);
+    expect(write(join(kit, 'new.md'), kit)).toBe(false);
   });
 });

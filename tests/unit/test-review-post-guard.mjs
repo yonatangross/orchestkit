@@ -126,6 +126,8 @@ const VERDICTS = [
   '\u{1F534} HOLD two blockers\n',
   'Summary first.\n\nHOLD: two blockers\n',
   '\u2705 LAND\n',
+  'Verdict: HOLD\n',
+  '**Verdict:** LAND, merge it\n',
 ];
 
 test('3. verdict-shaped first line without --post-verdict: refused, gh never runs', () => {
