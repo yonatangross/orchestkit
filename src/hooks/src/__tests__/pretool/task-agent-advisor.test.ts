@@ -353,6 +353,12 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     ['Just fix the SQL injection in users.py'],
     ['In order to fix the SQL injection, parameterize the query'],
     ['Do not commit and write tests for the query builder'],
+    // codex HOLD 6102977795: a colon ends a prohibition; write takes a longer object.
+    ['Do not push: fix the SQL injection locally.'],
+    ['Without pushing: implement the SQL injection guard.'],
+    ['Do not commit: add regression tests for the SQL injection.'],
+    ['Never push: replace interpolated SQL with parameters.'],
+    ['Please write a SQL injection regression test.'],
   ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
@@ -367,6 +373,7 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     ['Security review the bug fix'],
     // codex HOLD 6102229680 P2-3: a prohibition carries across ", or".
     ['Security review only. Do not fix the bug, or push changes.'],
+    ['Security review: implementation details only.'],
   ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
