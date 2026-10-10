@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1408,7 +1408,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->17<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1416,6 +1416,7 @@ See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
+(count 169 to 171, skill-scoped 17 to 19: two frontmatter registrations of one handler, 2026-10-08, #4675, #4678): new `skill/review-post-gate`, a PreToolUse hook in `/ork:review-pr` frontmatter only (Bash|Monitor, and Write|Edit|NotebookEdit|mcp__.*; every MCP tool but the memory server is denied, since a GitHub MCP server holds its own token; not in hooks.json, like the other skill-scoped hooks). The skill posted a review nobody asked for. The GitHub write surface is an allowlist: gh runs only its read verbs, `gh api` only as a plain GET with no field or input flag and no graphql, and any curl, wget or httpie/xh call to a GitHub host is denied. The one write path is `skills/review-pr/scripts/post-review.mjs`, allowed only when the nearest human turn on this tool call's parentUuid chain is the user's `/ork:review-pr` line with `--post` and exactly the PR typed right after the command (a bare number also needs the shell at the session project root, since gh resolves it against the cwd's repo), the call is one plain command (letters, digits, `- _ . / :` and spaces, so no quotes, escapes, globs, `$` or chaining) with no `--repo`, and an approve or verdict post also has `--post-verdict` typed (`lib/review-opt-in.ts`; a line appended to the transcript is off the chain, and a repeated uuid fails closed). Any Bash text or Write path naming `.claude/projects` is denied. It reads no gh auth, so it holds with a full gh login. Known limit: it reads command text, so a renamed copy of the script, a script file, or an in-place transcript edit through a path built at run time is not seen; #4677 removes the write credential. 63 cases.
 (count unchanged, 2026-10-10): `pretool/read/tldr-summary` also passes through a Read with `allow_large: true` (CC 2.1.296), which asks for the whole file in one call, so a summary would only add tokens. 1 case added. No registration moved.
 
 (count unchanged at 169, 2026-10-09, #4684): removed `continueOnBlock` from 4 command hooks: PostToolUse Write/Edit `posttool/write/stale-import-detector`, `posttool/write/debt-marker-tracker`, `posttool/check-plugins-drift`, and UserPromptSubmit `prompt/goal-tracker`. CC 2.1.293 and 2.1.295 have the key in the prompt-hook schema and runner only and drop it on command hooks, so nothing changes at runtime. Claude Desktop refused the whole ork plugin for it ("only valid on type 'prompt' hooks"), so Desktop stayed on ork 9.8.0. `tests/unit/test-hooks-json-shipped-schema.sh` now fails on a type-only key on the wrong hook type. No registration moved.

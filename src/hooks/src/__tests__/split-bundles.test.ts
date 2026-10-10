@@ -489,7 +489,9 @@ describe('Cross-Bundle Consistency', () => {
     //              only user; once it ran inline, the first loaded the checked-out
     //              branch's PR into a review of another PR, the second a second
     //              output contract.
-    expect(totalHooks).toBe(180); // 182 - 2 (#4682 review-pr loaders)
+    // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
+    //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
+    expect(totalHooks).toBe(181); // 180 + 1 (#4675 review-post-gate)
   });
 });
 
