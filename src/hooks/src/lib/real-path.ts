@@ -5,7 +5,7 @@
  * protected dir cannot be beaten by another spelling of the same file.
  * Lives in lib/ because it reads the file system (FH-ready rule).
  */
-import { lstatSync, readlinkSync, realpathSync } from 'node:fs';
+import { lstatSync, readlinkSync, realpathSync, statSync } from 'node:fs';
 import { posix } from 'node:path';
 
 const FIRMLINK = /^\/system\/volumes\/data(?=\/)/i;
@@ -81,4 +81,18 @@ export function hasLink(p: string, skip = 1): boolean {
     }
   }
   return false;
+}
+
+/**
+ * The link count of an existing file, 0 when it is absent or cannot be read:
+ * a file with another hard link is that other file too (codex XREVIEW
+ * 6098111473 P2).
+ */
+export function linkCount(p: string): number {
+  try {
+    return statSync(p).nlink;
+  } catch {
+    // broad: fail-open: an absent target has no other name.
+    return 0;
+  }
 }

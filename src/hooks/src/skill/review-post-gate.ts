@@ -63,14 +63,13 @@
  * it; #4677 removes the write credential, which is the fail-closed layer.
  */
 
-import { statSync } from 'node:fs';
 import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputDeny, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { tmpdir } from 'node:os';
 import { posix } from 'node:path';
-import { hasLink, realPath } from '../lib/real-path.js';
+import { hasLink, realPath, linkCount } from '../lib/real-path.js';
 import { inGitRepo } from '../lib/repo-root.js';
 
 const HOOK = 'review-post-gate';
@@ -687,6 +686,9 @@ export function rawWriteReason(input: string): string | null {
         const why = ghWrite(part) ?? verbWrite(part) ?? httpWrite(part);
         if (why) return why;
         if (plainGuard || isGhRead(part)) continue;
+        // resolve-target.sh with one PR URL names github.com as data; the
+        // allowlist still pins the script path (CR 4237744105).
+        if (RESOLVE_URL.test(part.trim())) continue;
         const folded = foldedWrite(part);
         if (folded) return folded;
       }
@@ -708,6 +710,8 @@ export interface OptIn {
 
 // The forms post-review.mjs takes for --pr, which it hands to gh unchanged.
 const PR_URL = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/\d+$/;
+/** The skill's own resolve call with one PR URL and nothing else. */
+const RESOLVE_URL = /^bash\s+\/\S*\/skills\/review-pr\/scripts\/resolve-target\.sh\s+https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/\d+$/;
 const PR_NUM = /^\d+$/;
 
 /**
@@ -757,6 +761,8 @@ export interface ReviewPostGateDeps {
   tempDirs?: () => string[];
   /** Config and PATH dirs the environment names: never temp (HOLD 6096693701). */
   configEnv?: () => string[];
+  /** The link count of a file, 0 when absent (lib/real-path.ts linkCount). */
+  linkCount?: (p: string) => number;
   /** The config subset of configEnv (no PATH lists): never read, in the repo either. */
   secretEnv?: () => string[];
 }
@@ -770,6 +776,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
   tempDirs: () => ['/tmp', tmpdir()],
   configEnv: () => envConfigDirs(process.env),
+  linkCount,
   secretEnv: () => envConfigDirs(process.env, false),
   realpath: realPath,
 };
@@ -1000,15 +1007,6 @@ function claudeMd(x: string): boolean {
   return /^claude(?:\.local)?\.md$/i.test(posix.basename(x));
 }
 
-/** The link count of an existing file, 0 when it is absent or cannot be read. */
-function linkCount(x: string): number {
-  try {
-    return statSync(x).nlink;
-  } catch {
-    // broad: fail-open: an absent target has no other name.
-    return 0;
-  }
-}
 
 /**
  * The job dir as a root, lowercase, or '' when a write there could run later:
@@ -1080,12 +1078,18 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   // Below the chain root no further .claude dir counts, by real path and by
   // spelling (HOLD 6098152787 must, p10n).
   const claudeIn = (x: string) => x.toLowerCase().split('/').filter((n) => n === '.claude').length;
-  const inChain = (x: string, real: string) => chain !== '' && underAny(real, [chain]) && !dotClaude(real.slice(chain.length)) && claudeIn(x) <= claudeIn(base) + 1;
+  // Compare and slice the same lowercase string: lowercasing can change the
+  // length (U+0130), so a slice of the original by the lowercase length is off
+  // (HOLD 6098583393 should 2).
+  const inChain = (x: string, real: string) => {
+    const l = real.toLowerCase();
+    return chain !== '' && underAny(l, [chain]) && !dotClaude(l.slice(chain.length)) && claudeIn(x) <= claudeIn(base) + 1;
+  };
   const ok = (x: string, real: string) =>
     !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && !claudeMd(x) && !claudeMd(real) && (inChain(x, real) || (!dotClaude(x) && !dotClaude(real) && (underAny(real, [jobRoot].filter((r) => r !== '')) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)))));
   // A file with another hard link is that other file too, which may be one a
   // later step runs (codex XREVIEW 6098111473 P2).
-  if (linkCount(raw) > 1) return false;
+  if ((deps.linkCount ?? linkCount)(raw) > 1) return false;
   return [raw, posix.normalize(raw)].every((x) => ok(x, rp(x)));
 }
 
@@ -1095,7 +1099,10 @@ const TRANSCRIPT_DENY =
 function deny(ctx: HookContext, input: HookInput, reason: string): HookResult {
   // Build the result first: a log that throws must not turn a deny into an
   // error the runner reports as success (HOLD 6084834846 M1).
-  const result = outputDeny(reason);
+  // The deny blocks the call but keeps the turn: the deny text asks the model
+  // to print the review, which continue:false would stop (CR 4237744111).
+  const { stopReason: _stop, ...denied } = outputDeny(reason);
+  const result: HookResult = { ...denied, continue: true };
   try {
     ctx.logPermission('deny', reason, input);
   } catch {
@@ -1192,7 +1199,10 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     // copied over or removed.
     if (!hits.includes('code') || plainGuardCall) continue;
     const quiet = seg.replace(/\s2>(?:\/dev\/null|&1)(?=\s|$)/g, ' ');
-    if (/[<>]/.test(quiet) || allowlistReason(quiet, allowCtx) !== null) {
+    const scriptWhy = /[<>]/.test(quiet) ? null : allowlistReason(quiet, allowCtx);
+    // A skill script refused for its own args says why (HOLD 6098583393 should 5).
+    if (scriptWhy?.startsWith('verdict_writeback.py: ')) return deny(ctx, input, `review-pr: ${scriptWhy}`);
+    if (/[<>]/.test(quiet) || scriptWhy !== null) {
       return deny(ctx, input, 'review-pr may only read the gate code (hooks, skills/review-pr): the post gate runs from it.');
     }
   }
@@ -1696,7 +1706,7 @@ function writebackArgs(rest: Word[], ctx: AllowContext): string | null {
   const [d] = words;
   if (d.variable) {
     if (d.text !== '$CLAUDE_JOB_DIR') return `verdict_writeback.py takes "$CLAUDE_JOB_DIR" or a temp dir, not ${d.text}`;
-    return ctx.jobOk === false ? 'verdict_writeback.py: $CLAUDE_JOB_DIR is a dir Write may not use (HOME, a dotfile or .claude dir, or a git work tree)' : null;
+    return ctx.jobOk === false ? 'verdict_writeback.py: $CLAUDE_JOB_DIR is unset, or a dir Write may not use (HOME, a dotfile or .claude dir, or a git work tree)' : null;
   }
   const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
   const temp = (x: string) => underAny(x, temps, true);
