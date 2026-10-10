@@ -4,9 +4,8 @@ compatibility: "Claude Code 2.1.277+"
 description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation methods, cross-validation of assumptions, and divergence reconciliation. Generates investor-ready materials with growth projections and confidence intervals. Use when estimating addressable markets, validating opportunity size, or preparing pitch deck market slides."
 user-invocable: false
 disable-model-invocation: false
-context: fork
-agent: product-strategist
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

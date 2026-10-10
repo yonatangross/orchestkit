@@ -1,0 +1,12 @@
+{
+  "slug": "review-standards-pass",
+  "source": "docs/feat--review-standards-pass/index.html",
+  "title": "Two-pass review: the standards pass",
+  "description": "A review-only standards file and a single-agent pass that found the fan-out's finding for about a tenth of the tokens.",
+  "tags": [
+    "review",
+    "skills",
+    "feature"
+  ],
+  "date": "2026-10-08"
+}

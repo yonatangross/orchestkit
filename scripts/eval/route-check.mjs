@@ -41,7 +41,7 @@ const TOLERANCE = 0.02;
 
 // The full known category set (matches the routing-benchmark labels + SKILL.md table).
 const KNOWN_CATEGORIES = new Set([
-  'build', 'cover', 'design', 'diagnose', 'fallback',
+  'build', 'cover', 'design', 'diagnose', 'e2e', 'fallback',
   'fix', 'improve-skill', 'optimize', 'review', 'verify',
 ]);
 
@@ -60,6 +60,36 @@ function classify(rawGoal) {
   // 1. improve-skill — a SKILL.md / named skill is the optimization target.
   //    Must precede `optimize` ("optimize the prompt for the X skill").
   if (/skill\.md/.test(g) || /\bskills?\b/.test(g)) return 'improve-skill';
+
+  // 1b. e2e: an end-to-end or browser test ask. Precedes `verify` so "verify the
+  //     flow in the browser" runs a browser plan, and precedes `diagnose` so the
+  //     request form "why don't you do proper e2e" is not read as a why-question.
+  //     A failing, flaky or timed-out e2e run is checked FIRST: a why-question
+  //     falls through to diagnose, anything else is fix (CodeRabbit
+  //     4209117569: "fail on CI" was a new run, "failing, add a retry" was
+  //     cover). Then: no e2e tests yet, or write/add/generate -> cover.
+  if (/\be2e\b|\bend[- ]to[- ]end tests?\b|\bin the browser\b|\bbrowser tests?\b|\bplaywright\b/.test(g)) {
+    // A creation request names what to test: "write e2e tests for the login
+    // error page" is cover, so the failure words are nouns there
+    // (CodeRabbit 4209764041). The test noun must follow the verb, with at
+    // most three article or quantity words ("an", "a few more"), so "add a
+    // retry to the failing e2e tests" is not a creation (HOLD 6043667415,
+    // CodeRabbit 4210572472).
+    const creation =
+      /\b(?:write|add|generate|create)\s+(?:(?:a|an|the|some|more|new|few|extra|another)\s+){0,3}(?:e2e|playwright|browser|end[- ]to[- ]end)\b[^.,;:]*\btests?\b/.test(g);
+    const failure =
+      !creation &&
+      /\bfail(?:s|ed|ing|ures?)?\b|\bflaky\b|\bbroken\b|\berrors?\b|\btim(?:e|ed) ?outs?\b|\btimed out\b|\bred\b/.test(g) &&
+      !/\bno (?:fail|errors?\b|flak|timeouts?\b)/.test(g);
+    const whyQuestion = /\bwhy (?:is|are|does|do|did)\b/.test(g);
+    if (failure || whyQuestion) {
+      if (!whyQuestion) return 'fix';
+    } else if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bcreate\b|\bmissing\b/.test(g)) {
+      return 'cover';
+    } else {
+      return 'e2e';
+    }
+  }
 
   // 2. verify — confirm existing state is green (verify/validate/make-sure/check-that).
   //    Precedes `build`/`review` so "validate the build" and "check that ..." resolve here.

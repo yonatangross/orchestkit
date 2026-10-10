@@ -52,7 +52,7 @@ valid_build = [s for s in BUILD_CATEGORY if s in live_skills]
 ### Incorrect -- showing a count without verification:
 
 ```
-OrchestKit: 109 skills available
+OrchestKit: 110 skills available
 # Count is from CLAUDE.md header, may not match actual manifest
 ```
 

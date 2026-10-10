@@ -484,7 +484,14 @@ describe('Cross-Bundle Consistency', () => {
     //             from SessionStart is the live path and is unchanged).
     // 183 -> 182: #3353 — pretool/settings-override-resolver deleted with its
     //              settings_overrides table (0 rows ever, snapshot had no reader).
-    expect(totalHooks).toBe(182); // 183 - 1 (#3353 settings-override-resolver)
+    // 182 -> 180: #4682 HOLD 6064156428: skill/pr-context-loader and
+    //              skill/review-dimensions-loader deleted. review-pr was their
+    //              only user; once it ran inline, the first loaded the checked-out
+    //              branch's PR into a review of another PR, the second a second
+    //              output contract.
+    // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
+    //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
+    expect(totalHooks).toBe(181); // 180 + 1 (#4675 review-post-gate)
   });
 });
 

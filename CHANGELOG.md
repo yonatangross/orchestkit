@@ -5,6 +5,69 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170) (2026-10-10)
+
+
+### Bug Fixes
+
+* **hooks:** tldr-summary skips a Read with allow_large ([#4700](https://github.com/yonatangross/orchestkit/issues/4700)) ([13a6c2a](https://github.com/yonatangross/orchestkit/commit/13a6c2a4e0f38145fc10f809c5b89a9a1b7064c5))
+
+## [10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169) (2026-10-10)
+
+
+### Documentation
+
+* **skills:** MCP description cap is 4,096 characters since CC 2.1.296 ([#4699](https://github.com/yonatangross/orchestkit/issues/4699)) ([9fae329](https://github.com/yonatangross/orchestkit/commit/9fae329ffcda20d528f262880e0986fee824a9ce))
+
+## [10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168) (2026-10-10)
+
+
+### Bug Fixes
+
+* **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok ([#4698](https://github.com/yonatangross/orchestkit/issues/4698)) ([7abe08a](https://github.com/yonatangross/orchestkit/commit/7abe08a783f70a7fc79d80990dc490664afac6a6))
+
+## [10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167) (2026-10-10)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.289 through 2.1.296 ([#4702](https://github.com/yonatangross/orchestkit/issues/4702)) ([c5705af](https://github.com/yonatangross/orchestkit/commit/c5705afed4951d897e7916e048d9e52f5f02cc91))
+
+## [10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166) (2026-10-09)
+
+
+### Features
+
+* **review-pr:** standards pass with a review-only standards file ([#4671](https://github.com/yonatangross/orchestkit/issues/4671)) ([cfbd187](https://github.com/yonatangross/orchestkit/commit/cfbd1873953c05149db532cfebf3e56c2248224e))
+
+
+### Bug Fixes
+
+* **ci:** cache and bound the docs Playwright install ([#4667](https://github.com/yonatangross/orchestkit/issues/4667)) ([379e1e7](https://github.com/yonatangross/orchestkit/commit/379e1e7199f18204e8b76e45b50966488e7fed1f))
+* **review-pr:** run inline so its frontmatter hooks run ([#4682](https://github.com/yonatangross/orchestkit/issues/4682)) ([1713ea0](https://github.com/yonatangross/orchestkit/commit/1713ea03a837b323e5a75071773f8dff25c1119f))
+* **tests:** restore exec bit on git-isolate.sh ([#4681](https://github.com/yonatangross/orchestkit/issues/4681)) ([7626a41](https://github.com/yonatangross/orchestkit/commit/7626a416e31fb71b372f3c5ba0708d842b189a70))
+
+
+### Documentation
+
+* **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 ([#4662](https://github.com/yonatangross/orchestkit/issues/4662)) ([732f9a5](https://github.com/yonatangross/orchestkit/commit/732f9a59f3a94dd3f387dc58a0d7d763bfcf3eeb))
+* **lab:** playground for the Playwright install hang ([#4665](https://github.com/yonatangross/orchestkit/issues/4665)) ([#4669](https://github.com/yonatangross/orchestkit/issues/4669)) ([eda91e5](https://github.com/yonatangross/orchestkit/commit/eda91e5f80df11c854f012ddcd10bf17057a3791))
+
+## [10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165) (2026-10-07)
+
+
+### Features
+
+* **prompt-focus:** where your attention went, from your own prompts ([#4657](https://github.com/yonatangross/orchestkit/issues/4657)) ([0ef71d2](https://github.com/yonatangross/orchestkit/commit/0ef71d24f9b540ad849388048626531d73c64820))
+
+## [10.0.0-beta.164](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.163...v10.0.0-beta.164) (2026-10-07)
+
+
+### Bug Fixes
+
+* **hooks:** display-lint hint is shell-aware, model-only, once per session ([#4655](https://github.com/yonatangross/orchestkit/issues/4655)) ([dc0b811](https://github.com/yonatangross/orchestkit/commit/dc0b811dab41c1141d2eee4d93064e947bb6dfff))
+* **skills:** reference skills load inline; ork:auto routes e2e asks ([#4656](https://github.com/yonatangross/orchestkit/issues/4656)) ([480e358](https://github.com/yonatangross/orchestkit/commit/480e35851fe52e3aaa33a74773a46f59c7794520))
+
 ## [10.0.0-beta.163](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163) (2026-10-07)
 
 

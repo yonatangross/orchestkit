@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
 context: fork
+background: false
 user-invocable: false
 allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"
 skills: [security-patterns, architecture-patterns, quality-gates]
