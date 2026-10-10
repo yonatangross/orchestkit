@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
   "version": "10.0.0-beta.170",
-  "description": "The Complete AI Development Toolkit - 110 skills, 36 agents, 38 commands, 160 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 110 skills, 36 agents, 38 commands, 162 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com"

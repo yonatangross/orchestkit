@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 152 global + 0 agent-scoped + 8 skill-scoped = 160 total hooks. Agent-scoped is 0 by design since #3461: CC's plugin-agent loader ignores `hooks:` in frontmatter, so ork's own 45 declarations never fired and were removed. The key still works in a consumer's own .claude/agents/, which is what the agent-hooks skill documents. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
+  "description": "OrchestKit hooks - 152 global + 0 agent-scoped + 10 skill-scoped = 162 total hooks. Agent-scoped is 0 by design since #3461: CC's plugin-agent loader ignores `hooks:` in frontmatter, so ork's own 45 declarations never fired and were removed. The key still works in a consumer's own .claude/agents/, which is what the agent-hooks skill documents. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
   "hooks": {
     "PreToolUse": [
       {
@@ -387,7 +387,6 @@
             "command": "node",
             "async": true,
             "timeout": 8,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/write/stale-import-detector",
@@ -400,7 +399,6 @@
             "command": "node",
             "async": true,
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/write/debt-marker-tracker"
@@ -410,7 +408,6 @@
             "type": "command",
             "command": "node",
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/check-plugins-drift"
@@ -721,7 +718,6 @@
             "type": "command",
             "command": "node",
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "prompt/goal-tracker"

@@ -489,10 +489,12 @@ describe('Cross-Bundle Consistency', () => {
     //              only user; once it ran inline, the first loaded the checked-out
     //              branch's PR into a review of another PR, the second a second
     //              output contract.
+    // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
+    //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
     // 180 -> 179: #4683 skill/plan-context-loader deleted. visualize-plan was
     //              its only user, it never ran in that fork, and STEP 0's
     //              scripts/detect-plan-context.sh already reports the same.
-    expect(totalHooks).toBe(179); // 180 - 1 (#4683 visualize-plan loader)
+    expect(totalHooks).toBe(180); // Main adds the post gate; this branch removes one loader.
   });
 });
 

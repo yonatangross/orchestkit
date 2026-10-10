@@ -3,10 +3,20 @@ name: review-pr
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
 description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
-argument-hint: "[pr-number-or-branch]"
+argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
+hooks:
+  PreToolUse:
+    - matcher: "Bash|Monitor"
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-post-gate"
+    - matcher: "Write|Edit|NotebookEdit|mcp__.*"
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-post-gate"
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -44,12 +54,10 @@ review-pr feature-branch
 
 A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
 
-Resolve the target with the script first, then review exactly that target (#3892):
+Resolve the target with the script first, then review exactly that target (#3892). Read the mode and opt-in flags (`--rules`, `--standards`, `--post`, `--post-verdict`) from the arguments yourself and drop them, then run the script as one plain command (the post gate allows only simple read-only commands, so no assignment, loop or `$(...)`):
 
 ```bash
-RULES_MODE=false; STANDARDS_MODE=false; REST=""  # --rules / --standards select Phase 4.6; strip them before resolving
-for a in $ARGUMENTS; do case "$a" in --rules) RULES_MODE=true ;; --standards) STANDARDS_MODE=true ;; *) REST="$REST $a" ;; esac; done
-TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $REST)  # one JSON object
+bash ${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh <the arguments without the four flags>   # prints one JSON object: TARGET
 ```
 
 | `kind` | Comes from | Review source |
@@ -89,17 +97,9 @@ AskUserQuestion(
 - **Performance focus** → `"performance"`: the full set plus frontend-performance-engineer
 - **Quick review** → `"quick"`: a single code-quality reviewer
 
-### "Ultra" mode → defer to `claude ultrareview` (CC 2.1.120+, #1542)
+### "Ultra" mode runs outside this skill
 
-If the user asks for an "ultra" / "deep" / "thorough" review and the host is on CC ≥ 2.1.120, **defer to the native subcommand** instead of re-implementing the multi-agent loop in skill instructions:
-
-```bash
-claude ultrareview "$PR_REF" --json
-```
-
-The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `test-coverage`, `architecture`) with structured output and a determinate verdict (`approve` | `comment` | `request-changes`). On CC < 2.1.120 the subcommand doesn't exist — fall back to the parallel-agents path below.
-
-This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
+If the user asks for an "ultra" / "deep" / "thorough" review, do not run it from here: the post gate denies `claude ultrareview` like every command off its read list, and an ultra review is user-triggered and billed. Tell the user to type `/code-review ultra <PR>` (or run `claude ultrareview <PR> --json` in their own shell, CC 2.1.120+), and stop. Use this skill for focused modes (security-only, perf-only), project context and the KG writeback.
 
 > **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill used to set `background: false` (#3093); it now runs inline (no `context: fork`), because Claude Code drops a forked skill's frontmatter hooks (measured on 2.1.294). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
 
@@ -122,7 +122,7 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 
 ---
 
-**Finish line.** Done means: every agent's findings are checked against the diff, the validation checks ran, and the review is posted as conventional comments (praise, issue, suggestion, nitpick) with an approve or request-changes verdict, each blocking issue carrying file, line and why. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+**Finish line.** Done means: every agent's findings are checked against the diff, the validation checks ran, and the review is printed as conventional comments (praise, issue, suggestion, nitpick) with an approve or request-changes verdict, each blocking issue carrying file, line and why. It is posted to GitHub only when the user typed `--post` (Phase 6). Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
 ## CRITICAL: Task Management is MANDATORY
 
@@ -180,14 +180,10 @@ gh pr checks $PR_NUMBER
 ### Capture Scope for Agents
 
 ```bash
-# Capture changed files for agent scope injection
-CHANGED_FILES=$(gh pr diff $PR_NUMBER --name-only)
-
-# Detect affected domains
-HAS_FRONTEND=$(echo "$CHANGED_FILES" | grep -qE '\.(tsx?|jsx?|css|scss)$' && echo true || echo false)
-HAS_BACKEND=$(echo "$CHANGED_FILES" | grep -qE '\.(py|go|rs|java)$' && echo true || echo false)
-HAS_AI=$(echo "$CHANGED_FILES" | grep -qE '(llm|ai|agent|prompt|embedding)' && echo true || echo false)
+gh pr diff <PR_NUMBER> --name-only   # CHANGED_FILES, for agent scope injection
 ```
+
+From that list, decide the affected domains yourself: HAS_FRONTEND for `.ts`, `.tsx`, `.js`, `.jsx`, `.css`, `.scss`; HAS_BACKEND for `.py`, `.go`, `.rs`, `.java`; HAS_AI for paths that name llm, ai, agent, prompt or embedding.
 
 Pass `CHANGED_FILES` to every agent prompt in Phase 3. Pass domain flags to select which agents to spawn.
 
@@ -202,6 +198,8 @@ Identify: total files changed, lines added/removed, affected domains (frontend, 
 | Search for patterns | `Grep(pattern="...", path="src/")` | `bash grep` |
 | Read file content | `Read(file_path="...")` | `bash cat` |
 | Check CI status | `Bash: gh pr checks` | Polling APIs |
+
+**What the post gate guards.** The boundary is post and write: no GitHub post from Bash, Monitor or an MCP tool without `--post`, and no Write, Edit or NotebookEdit outside the temp dir, `<cwd>/.claude/chain/` and `$CLAUDE_JOB_DIR`, and never into another `.claude` dir. The Skill, SendMessage, Agent and Workflow tools are not matched, so a post another skill or a spawned agent makes is out of scope. Reads are not a boundary. The Bash read rules (which paths `cat`, `grep` and `rg` may name) are defense in depth only. The Read, Grep and Glob tools, and a recursive `grep -r`, `rg` or `ls -R` through a parent dir, are out of scope, so a token file the model can name is readable; that includes `<repo>/.git/config`, where actions/checkout can keep the CI token. The fail-closed layer is no gh write credential in the run (#4677).
 
 <use_parallel_tool_calls>
 When gathering PR context, run independent operations in parallel:
@@ -223,11 +221,11 @@ Relevant skills activated automatically:
 
 ## Phase 2.5: /ultrareview Gate (asked BEFORE the review call)
 
-The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" runs `/ultrareview` alongside Phase 3; its findings merge in Phase 5 labelled "Ultrareview:".
+The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" asks the user to type `/code-review ultra <PR>` themselves (the skill cannot run it); findings they paste back merge in Phase 5 labelled "Ultrareview:".
 
 ## Phase 3: Parallel Code Review (Workflow)
 
-Do NOT hand-roll the reviewers. Start Phase 4 validation in the background, then run the executor:
+Do NOT hand-roll the reviewers. Read CI first (Phase 4), then run the executor:
 
 ```python
 Workflow(
@@ -296,9 +294,19 @@ Skip agents for domains not present in the diff. This saves ~33% tokens on domai
 
 Fallback modes only: progressive output, partial results and CI streaming, `Read("references/progressive-and-partial-results.md")`. Prompts: [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md), [Agent Prompts, Agent Teams Mode](rules/agent-prompts-agent-teams.md), and the optional 7th [AI Code Review Agent](rules/ai-code-review-agent.md).
 
-## Phase 4: Run Validation
+## Phase 4: Read CI (ground truth)
 
-Load validation commands: `Read("references/validation-commands.md")`. Run them in the background while Phase 3 runs. Failing required checks known before the call go in as `failingChecks`; a red found after it caps both verdicts at request-changes here in the shell. Ground truth is never refuted.
+CI is the only test evidence this skill has: the post gate denies local tests, lint and builds. Read the PR's checks:
+
+```bash
+gh pr checks <PR_NUMBER> --required
+gh pr view <PR_NUMBER> --json statusCheckRollup
+gh run view <RUN_ID> --log-failed
+```
+
+`<RUN_ID>` comes from a failed check's `detailsUrl`. Run each line as it stands: the gate denies a `#` comment.
+
+Failing required checks go in as `failingChecks`; a red found after the call caps both verdicts at request-changes here in the shell. A pending check is "not seen yet", never green. Ground truth is never refuted, and the report says CI is its only test evidence.
 
 ## Phase 4.5: Adversarial Refutation (effort-gated)
 
@@ -324,7 +332,8 @@ Refuters are ALWAYS isolated spawns with no `team_name`, and ground truth (faili
 Runs when `RULES_MODE` or `STANDARDS_MODE` is true, or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:
 
 ```python
-SOURCES = Bash("node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo $(git rev-parse --show-toplevel)")  # project + ~/.claude CLAUDE.md and rules/*.md
+REPO = Bash("git rev-parse --show-toplevel")  # run first; pass the printed path, never $(...); the gate passes --repo only when it is the cwd
+SOURCES = Bash("node ${CLAUDE_SKILL_DIR}/scripts/collect-rules.mjs --repo <REPO>")  # project + ~/.claude CLAUDE.md and rules/*.md
 Workflow(scriptPath="${CLAUDE_SKILL_DIR}/workflows/rule-check.js",
          args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff base...head)",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
@@ -342,17 +351,23 @@ Combine the workflow result (and any "Ultrareview:" findings) into a structured 
 
 After synthesis, persist critical/high findings to the memory graph for cross-session learning. The Phase 8c verdict writeback (below) handles this automatically when `yg-mcp-core>=0.3.0` is installed; for interactive sessions, see `references/memory-persistence.md` for the manual `mcp__memory__create_entities` + `mcp__memory__add_observations` pattern.
 
-## Phase 6: Submit Review
+## Phase 6: Submit Review (only with --post)
 
-Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5.
+This skill never posts unless the user typed `--post` on `/ork:review-pr` (#4675). Without it, print the review and stop: the user posts it, or re-runs with `--post`. Never ask to post and never post because the review "looks done".
+
+Every post goes through `scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A verdict also needs `--post-verdict` typed by the user: `--event approve` or `request-changes`, or a body with a verdict line. `--post` is the boundary; `--post-verdict` is a should behind it (operator word on #4678). The script reads every line (split on newline and carriage return) as it renders: NFKC, format characters dropped (zero-width, soft hyphen, bidi marks), HTML tags dropped, Cyrillic and Greek look-alike letters folded. The line is a verdict line when `LAND`, `HOLD` or `XREVIEW` in capitals stands anywhere as a word, or `land`, `hold` or `xreview` in any case is one of its first four words. By design that also refuses prose like `hold on, one nit`, `Hold-out set` or `Land access`; reword the line or have the user type `--post-verdict`.
+
+**Residuals (should, behind `--post`).** Still posts without `--post-verdict`: a verdict word in lower or mixed case after the fourth word (`My recommendation is to hold`), look-alike letters outside the folded Cyrillic and Greek set, an HTML entity (`&#72;OLD`), letters spaced out (`H O L D`) or split across lines, and a verdict inside an image.
 
 ```bash
-# Approve
-gh pr review $PR_NUMBER --approve -b "Review message"
-
-# Request changes
-gh pr review $PR_NUMBER --request-changes -b "Review message"
+# Only when the user typed --post (Argument Resolution). Write the review under /tmp first.
+# CC writes the skill dir in as a literal path. The call is one plain command (letters, digits, - _ . / : and spaces): no quotes, $, globs or chaining, and --pr is exactly what the user typed.
+node ${CLAUDE_SKILL_DIR}/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/review-4668.md --post
+# --kind comment posts a PR comment instead of a review.
+# --event approve or request-changes, or a verdict line (LAND, HOLD or XREVIEW anywhere, or any case in the first four words), also needs --post-verdict, and only when the user typed it.
 ```
+
+The skill's `skill/review-post-gate` hook enforces this in code. While the skill runs, Bash is an ALLOWLIST (#4678): a call passes only as simple read-only commands (gh pr view, diff, checks or list, gh run view or list and the other gh reads, gh api GET, the git reads, git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, and the skill scripts by their pinned path), each with only the flags on its list, on paths in the repo or the temp dir. Everything else denies: project tests and builds, cd, assignments, subshells and `sh -c`, inline interpreter programs, any expansion but a quoted `"$NAME"` after `--`, a git path outside the repo, a jq program that reads `env` or `$ENV`, a glob in a path (use `rg -g`), a flag that follows links (`rg -L`, `grep -R`), a heredoc, and a redirect but `2>/dev/null` and `2>&1`. Common reads this denies: `gh auth status`, `grep -f <file>`, `cat src/*.ts` (use `rg -g`), `jq -n`. Write the review body with the Write tool. `post-review.mjs` passes only as the plugin's own copy by its exact `node` call, when the user's own `/ork:review-pr` line carries `--post` and the same PR token (and `--post-verdict` for an approve or a verdict line); raw `gh pr review`, `gh pr comment` and API writes always deny. Write, Edit and NotebookEdit pass only in the temp dir, `.claude/chain/` and `$CLAUDE_JOB_DIR`, by real path; every other file denies, since any of them can be one a later step runs (git config, a project hook script, `~/.ssh/config`). Reads need a cwd inside a git repo, and the hook runner blocks when the hook cannot load or its input is bad. The script refuses a body file outside a temp dir, over 64 KB, or holding a secret shape. Residual: the hook reads command text, so it stops an over-eager post, not a determined one; removing the write credential (#4677) is the fail-closed layer. It is a skill-scoped hook, so it runs only because this skill runs inline: Claude Code drops a forked skill's frontmatter hooks. If a call is denied, do not retry another way.
 
 ## Phase 8c — Verdict KG writeback (signal-fired, optional)
 
@@ -462,7 +477,6 @@ Load on demand with `Read("references/<file>")`:
 | `ultrareview-gate.md` | Phase 2.5 /ultrareview trigger eval, prompt, opt-out |
 | `progressive-and-partial-results.md` | Progressive output, partial results, CI streaming (fallback modes) |
 | `orchestration-mode-selection.md` | Agent tool vs Agent Teams |
-| `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
 Rules: `Read("rules/<file>")`:

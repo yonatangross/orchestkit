@@ -14,7 +14,7 @@
 //
 //   An inline skill's hooks stay registered for the rest of the session, so an
 //   inline skill may only declare `once: true` hooks, except the skills in
-//   SESSION_GUARDS, whose whole point is a hook that keeps firing.
+//   SESSION_GUARDS and review-pr post gate, whose hooks must keep firing.
 //
 //   Fails if: any src/skills/*/SKILL.md sets `context: fork` and has a `hooks:`
 //   block; or an inline skill outside SESSION_GUARDS declares a hook command
@@ -92,6 +92,8 @@ for (const name of readdirSync(SKILLS).sort()) {
   }
   if (SESSION_GUARDS.has(name)) continue;
   for (const h of commandHooks(block)) {
+    // The post gate must run on every write; this exception grants no loader.
+    if (name === 'review-pr' && h.command === '"${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-post-gate"') continue;
     if (!h.once) {
       failures.push(`src/skills/${name}/SKILL.md: inline hook without once: true stays live for the session: ${h.command}`);
     }

@@ -236,6 +236,9 @@ const SECURITY_HOOKS = new Set([
   // these dispatchers and turn every Bash / Write-Edit guard into a no-op.
   'pretool/bash/sync-bash-dispatcher',
   'pretool/write-edit/sync-write-edit-dispatcher',
+  // #4678: /ork:review-pr posts only through this gate, so an unloadable skill
+  // bundle must block (exit 2), not fail open (exit 1).
+  'skill/review-post-gate',
 ]);
 
 /**
@@ -456,8 +459,23 @@ if (bundleLoadError) {
   failBundleLoad(hookName, bundleLoadError, t1);
 }
 
+// #4678: a gate that is the only check on a write must not pass when its
+// code is absent: a missing bundle or a missing handler blocks (exit 2).
+const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+function failMissing(what) {
+  process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" ${what}, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.\n`);
+  process.exit(2);
+}
+
+// #4678: this gate runs only from its own version's bundle, never a cached
+// older or newer one that may lack its rules.
+if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && effectiveDistDir !== distDir) {
+  failMissing("would load another version's bundle from the plugin cache");
+}
+
 if (!hooks) {
   // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no bundle');
   silentExit();
 }
 
@@ -466,6 +484,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no handler in its bundle');
   silentExit();
 }
 
@@ -498,6 +517,8 @@ const MAX_STDIN_BYTES = 512 * 1024;
 const timeout = setTimeout(() => {
   if (!stdinClosed) {
     stdinClosed = true;
+    // #4678: a gate that sees {} would allow; late or absent input blocks.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got no input in time');
     if (!process.stdin.isTTY && inputBytes === 0) {
       process.stderr.write(
         `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
@@ -541,6 +562,8 @@ process.stdin.on('data', (chunk) => {
     // printing. It sits outside the try/catch below, so the >512KB guard added
     // for an image paste (#620) crashed the hook rather than degrading it (#3415).
     process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${hookName}" - large payload (image paste?)\n`);
+    // #4678: a gate that sees {} would allow; it blocks an input it cannot read.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got an input over the size limit');
     try {
       // Try to parse what we have — likely incomplete JSON, so fall back to empty
       const parsedInput = input.trim() ? JSON.parse(input) : {};
@@ -557,10 +580,16 @@ process.stdin.on('end', () => {
   clearTimeout(timeout);
   if (!stdinClosed) {
     stdinClosed = true;
+    // #4678: an empty or unparseable input blocks this gate (it would see {}).
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && !input.trim()) failMissing('got an empty input');
     try {
       const parsedInput = input.trim() ? JSON.parse(input) : {};
+      // #4678: [] or {} carries no tool call; the gate would see nothing and allow.
+      const emptyCall = Array.isArray(parsedInput) || !parsedInput || typeof parsedInput !== 'object' || Object.keys(parsedInput).length === 0;
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && emptyCall) failMissing('got an input with no tool call');
       runHook(normalizeInput(parsedInput));
     } catch (err) {
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got input that is not JSON');
       // JSON parse error - output error message but continue
       console.log(JSON.stringify({
         continue: true,
@@ -574,6 +603,7 @@ process.stdin.on('error', () => {
   clearTimeout(timeout);
   if (!stdinClosed) {
     stdinClosed = true;
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('could not read its input');
     runHook(normalizeInput({}));
   }
 });
@@ -857,6 +887,13 @@ async function runHook(parsedInput) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
     success = false;
+    // #4678: the post gate blocks on its own error (a throw in the handler or
+    // in buildContext); every other hook keeps the silent success below.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) {
+      process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" failed (${err.message}), so it blocks.\n`);
+      process.exitCode = 2;
+      return;
+    }
     // On any error, output silent success to not block Claude Code
     // Error path: the synthetic error result has no hookSpecificOutput so
     // sanitizeOutput is a no-op here — but we call it consistently so that

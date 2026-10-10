@@ -28,7 +28,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.158 compliant: 460-entry version matrix (catalogued through 2.1.158 — MessageDisplay 2.1.152, dynamic workflows + Opus 4.8 2.1.154, .claude/skills autoload 2.1.157), `MessageDisplay` event in the HookEventName union, `disallowed-tools` frontmatter. Counts: `claude plugin details ork` is the source of truth.
 - CC 2.1.162 compliant: 478-entry version matrix (catalogued through 2.1.162 — workflow→ultracode rename 2.1.160, parallel-tool independent failure + mcp secret redaction 2.1.161, agents --json waitingFor + dedicated search tools + WebFetch preapproved-domain fix 2.1.162); 2.1.159 is infra-only. Floor 2.1.183 (deliberate owner decision 2026-06-20, renewing the 2026-06-10 strict bump: strict floor=latest=latest_known, support only the newest CC; override expires 2026-09-20).
 - CC 2.1.179 adoption: `latest_known` 2.1.176 → 2.1.179 (the version matrix is now 2 stamped constants — `MIN_CC_VERSION` + `LATEST_KNOWN_CC` — after the #2229 THIN; no more hand-maintained catalogue). 2.1.178 features adopted into docs (`Tool(param:value)` permission rules e.g. `Agent(model:opus)`, MCP `disallowedTools` now enforced in subagents, nested `.claude/skills` + closest-wins precedence, workflow keyword now explicit-phrase only). 2.1.177/2.1.179 are bugfix-only (no snapshots). Subtraction pass (`shared/rules/cc-native-first.md`): 0 ork code removable — `Tool(param:value)` is orthogonal to the model-cost-advisor + fable-spend-consent hooks. Floor was 2.1.170 at that point (override); bumped to 2.1.183 in the adoption below.
-- CC 2.1.183 adoption: floor 2.1.170 → 2.1.183 (strict pin renewed 2026-06-20). **2.1.178 hard-removed the `TeamCreate`/`TeamDelete` tools** — migrated 14 agents + 9 team-mode skills to the implicit-team model (`Agent(name=...)` + `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings); `team_name` is kept as ork's `team-size-gate`/`team-member-start` key (CC 2.1.178 accepts-but-ignores it). Bare `Task` tool → `Agent` in 15 skills' allowed-tools. No new ork-consumed hook output field landed 2.1.171–2.1.183: `continueOnBlock` (2.1.177) is a hooks.json flag already in use; `reloadSkills` (2.1.173) + `MessageDisplay` (2.1.152) stay unhooked (no use case); Stop/SubagentStop `additionalContext` opt-out unchanged. Subtraction pass: 0 ork hook code removable. Follow-up: re-verify `getTeamMembers()` (`~/.claude/teams/<name>/config.json`) is still populated under implicit teams.
+- CC 2.1.183 adoption: floor 2.1.170 → 2.1.183 (strict pin renewed 2026-06-20). **2.1.178 hard-removed the `TeamCreate`/`TeamDelete` tools** — migrated 14 agents + 9 team-mode skills to the implicit-team model (`Agent(name=...)` + `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings); `team_name` is kept as ork's `team-size-gate`/`team-member-start` key (CC 2.1.178 accepts-but-ignores it). Bare `Task` tool → `Agent` in 15 skills' allowed-tools. No new ork-consumed hook output field landed 2.1.171–2.1.183: `continueOnBlock` (2.1.177) is a hooks.json flag that CC honors on prompt hooks only (measured on 2.1.295; ork carries it on no command hook, #4684); `reloadSkills` (2.1.173) + `MessageDisplay` (2.1.152) stay unhooked (no use case); Stop/SubagentStop `additionalContext` opt-out unchanged. Subtraction pass: 0 ork hook code removable. Follow-up: re-verify `getTeamMembers()` (`~/.claude/teams/<name>/config.json`) is still populated under implicit teams.
 - Event coverage: CwdChanged + FileChanged were deliberately unhooked at the time; both are hooked now (`lifecycle/cwd-changed`, `lifecycle/file-changed`), see the registry table below
 
 ---
@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->160<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->8<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -401,7 +401,9 @@ echo '{"tool_name":"Read","session_id":"test","tool_input":{}}' | \
 
 ---
 
-## Adding a hook with outputBlock + continueOnBlock
+## Adding a hook with outputBlock or an advisory
+
+`continueOnBlock` is valid on `type: "prompt"` hooks only. CC drops it on command hooks, and Claude Desktop refuses the whole plugin for it, so `tests/unit/test-hooks-json-shipped-schema.sh` fails on it (#4684). On a command hook, `outputBlock` is a full block; use `outputNotify` to warn and continue.
 
 Hooks signal three outcomes via `HookResult`:
 
@@ -1406,7 +1408,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->160<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->8<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1414,7 +1416,10 @@ See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
+(count 169 to 171, skill-scoped 17 to 19: two frontmatter registrations of one handler, 2026-10-08, #4675, #4678): new `skill/review-post-gate`, a PreToolUse hook in `/ork:review-pr` frontmatter only (Bash|Monitor, and Write|Edit|NotebookEdit|mcp__.*; every MCP tool but the memory server is denied, since a GitHub MCP server holds its own token; not in hooks.json, like the other skill-scoped hooks). The skill posted a review nobody asked for. The GitHub write surface is an allowlist: gh runs only its read verbs, `gh api` only as a plain GET with no field or input flag and no graphql, and any curl, wget or httpie/xh call to a GitHub host is denied. The one write path is `skills/review-pr/scripts/post-review.mjs`, allowed only when the nearest human turn on this tool call's parentUuid chain is the user's `/ork:review-pr` line with `--post` and exactly the PR typed right after the command (a bare number also needs the shell at the session project root, since gh resolves it against the cwd's repo), the call is one plain command (letters, digits, `- _ . / :` and spaces, so no quotes, escapes, globs, `$` or chaining) with no `--repo`, and an approve or verdict post also has `--post-verdict` typed (`lib/review-opt-in.ts`; a line appended to the transcript is off the chain, and a repeated uuid fails closed). Any Bash text or Write path naming `.claude/projects` is denied. It reads no gh auth, so it holds with a full gh login. Known limit: it reads command text, so a renamed copy of the script, a script file, or an in-place transcript edit through a path built at run time is not seen; #4677 removes the write credential. 63 cases.
 (count unchanged, 2026-10-10): `pretool/read/tldr-summary` also passes through a Read with `allow_large: true` (CC 2.1.296), which asks for the whole file in one call, so a summary would only add tokens. 1 case added. No registration moved.
+
+(count unchanged at 169, 2026-10-09, #4684): removed `continueOnBlock` from 4 command hooks: PostToolUse Write/Edit `posttool/write/stale-import-detector`, `posttool/write/debt-marker-tracker`, `posttool/check-plugins-drift`, and UserPromptSubmit `prompt/goal-tracker`. CC 2.1.293 and 2.1.295 have the key in the prompt-hook schema and runner only and drop it on command hooks, so nothing changes at runtime. Claude Desktop refused the whole ork plugin for it ("only valid on type 'prompt' hooks"), so Desktop stayed on ork 9.8.0. `tests/unit/test-hooks-json-shipped-schema.sh` now fails on a type-only key on the wrong hook type. No registration moved.
 
 (count 169 to 160, skill-scoped 17 to 8, 2026-10-09, #4683): six `context: fork` skills lose their `hooks:` frontmatter, because Claude Code never runs a fork skill's frontmatter hooks (runs 913b0ab4 and c6fae215), so all nine registrations were dead. brainstorm, explore, fix-issue, implement and setup now run each loader as a body step, `echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/<id>`; implement runs `skill/pattern-consistency-enforcer` once over its changed files in Phase 6 instead of on every Write/Edit. `scripts/validate-registry.mjs` counts a `run-hook.mjs" <id>` body step as reachable (and as a ghost when the id is unregistered) but not as a hook. `skill/plan-context-loader` and its handler are deleted: visualize-plan was its only user and its STEP 0 already runs `scripts/detect-plan-context.sh`, which reports the same branch, base, commits and changed files. Entries-map total 180 to 179. Guard: `tests/skills/structure/test-fork-skills-have-no-hooks.mjs`.
 
