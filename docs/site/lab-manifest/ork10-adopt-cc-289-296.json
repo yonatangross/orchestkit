@@ -1,0 +1,14 @@
+{
+  "slug": "ork10-adopt-cc-289-296",
+  "source": "docs/feat--ork10-adopt-cc-289-296/index.html",
+  "title": "CC 2.1.289 to 2.1.296 adoption",
+  "description": "Filter the 58 Claude Code changes from 2.1.289 to 2.1.296 by release and by what they mean for ork: doc adoption, free or no-op, or a named follow-up, and copy a selection as a prompt.",
+  "tags": [
+    "cc-adoption",
+    "triage",
+    "hooks",
+    "mcp",
+    "4690"
+  ],
+  "date": "2026-10-10"
+}
