@@ -968,7 +968,10 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(job, '/') : ''].filter((r) => r !== '');
   // A temp path inside a git work tree (a checkout or worktree under /tmp) is
   // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
-  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !inGitRepo(posix.dirname(real), bounds));
+  // A HOME under a temp dir (a container, a CI box) is HOME, never temp: its
+  // shell profile and gh config would be writable (HOLD 6096491908 must 1).
+  const homes = home.startsWith('/') ? tempRoots([home], rp) : [];
+  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds));
   return [raw, posix.normalize(raw)].every((x) => ok(rp(x)));
 }
 
@@ -1536,7 +1539,9 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   // a symlink in either cannot point out of it.
   const real = ctx.realpath(abs);
   const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
-  const temp = (x: string) => underAny(x, temps);
+  // HOME is never temp, even when it sits in a temp dir (HOLD 6096491908 must 1).
+  const homes = ctx.home?.startsWith('/') ? tempRoots([ctx.home], ctx.realpath) : [];
+  const temp = (x: string) => underAny(x, temps) && !underAny(x, homes);
   if (!(inside(abs, root) && inside(real, ctx.realpath(root))) && !(temp(abs) && temp(real))) {
     return `a path outside the repo and the temp dir (${t})`;
   }

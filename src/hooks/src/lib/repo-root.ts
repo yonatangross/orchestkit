@@ -20,6 +20,15 @@ export interface RepoWalkBounds {
 
 const key = (d: string) => posix.normalize(d).replace(/\/+$/, '').toLowerCase();
 
+/**
+ * A git dir itself (a bare repo, or one made with --separate-git-dir) has no
+ * .git entry, only HEAD and objects/; its hooks run all the same (HOLD
+ * 6096491908 should 2).
+ */
+function isGitDir(dir: string): boolean {
+  return existsSync(posix.join(dir, 'HEAD')) && existsSync(posix.join(dir, 'objects'));
+}
+
 export function inGitRepo(dir: string, bounds: RepoWalkBounds = {}): boolean {
   if (!dir.startsWith('/')) return false;
   const home = bounds.home ? key(bounds.home) : '';
@@ -28,7 +37,7 @@ export function inGitRepo(dir: string, bounds: RepoWalkBounds = {}): boolean {
   for (;;) {
     const k = key(cur);
     if (cur === '/' || k === '' || k === home) return false;
-    if (!skip.has(k) && existsSync(posix.join(cur, '.git'))) return true;
+    if (!skip.has(k) && (existsSync(posix.join(cur, '.git')) || isGitDir(cur))) return true;
     cur = posix.dirname(cur);
   }
 }
