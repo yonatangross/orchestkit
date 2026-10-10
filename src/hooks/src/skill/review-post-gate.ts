@@ -959,11 +959,14 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
     const real = rp(r).toLowerCase();
     return real === `${rp(anchor).replace(/\/+$/, '')}${r.slice(anchor.length)}`.toLowerCase() ? real : '';
   };
+  const temps = tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), rp);
+  const bounds = { home, temps };
   const base = posix.normalize(cwd).replace(/\/+$/, '');
-  const roots = [base && inGitRepo(base) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(posix.normalize(job), posix.dirname(posix.normalize(job))) : '']
-    .filter((r) => r !== '')
-    .concat(tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), rp));
-  return [raw, posix.normalize(raw)].every((x) => underAny(rp(x), roots));
+  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(posix.normalize(job), posix.dirname(posix.normalize(job))) : ''].filter((r) => r !== '');
+  // A temp path inside a git work tree (a checkout or worktree under /tmp) is
+  // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
+  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !inGitRepo(posix.dirname(real), bounds));
+  return [raw, posix.normalize(raw)].every((x) => ok(rp(x)));
 }
 
 const TRANSCRIPT_DENY =
@@ -1516,7 +1519,7 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   // the gate can resolve (conductor145 at 348161fb). rg -g filters instead.
   if (arg.glob) return `a glob in a path (${t}); name the file, or use rg -g`;
   if (!ctx.cwd) return 'no cwd to resolve paths against';
-  if (!inGitRepo(ctx.cwd)) return `the cwd (${ctx.cwd}) is in no git repo, so there is no repo to read`;
+  if (!inGitRepo(ctx.cwd, { home: ctx.home, temps: ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath) })) return `the cwd (${ctx.cwd}) is in no git repo, so there is no repo to read`;
   // The cwd is taken as the repo root, so it may not be the home dir or above it.
   const rootReal = ctx.realpath(posix.normalize(ctx.cwd)).replace(/\/+$/, '');
   const homeReal = ctx.home ? ctx.realpath(posix.normalize(ctx.home)) : '';
@@ -1690,6 +1693,9 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   if (script && ctx.root && args[0]?.text === `${ctx.root}/skills/review-pr/scripts/${script}`) {
     const rest = args.slice(1);
     if (rest.some((a) => a.glob)) return 'a glob in a skill script call';
+    // A script can echo its argument (resolve-target.sh does), so a variable
+    // there could print a secret; only the writeback job dir is one (should 3).
+    if (script !== 'verdict_writeback.py' && rest.some((a) => a.variable)) return 'a variable in a skill script call';
     if (script === 'verdict_writeback.py') return writebackArgs(rest, ctx);
     if (script === 'collect-rules.mjs') return collectRulesArgs(rest, ctx);
     return null;

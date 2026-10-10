@@ -3,17 +3,32 @@
  * above it. The review-post gate takes the cwd as the repo root, so a cwd with
  * none is no repo (#4678, HOLD 6095687461 should 4). Lives in lib/ because it
  * reads the file system (FH-ready rule).
+ *
+ * The walk stops below HOME, and a .git at /, at HOME or directly in a temp
+ * dir does not count: a stray or planted one there would make every dir under
+ * it a repo (HOLD 6096088108 should 2).
  */
 import { existsSync } from 'node:fs';
 import { posix } from 'node:path';
 
-export function inGitRepo(dir: string): boolean {
+export interface RepoWalkBounds {
+  /** HOME: the walk stops before it. */
+  home?: string;
+  /** Temp dirs: a .git directly in one does not count. */
+  temps?: string[];
+}
+
+const key = (d: string) => posix.normalize(d).replace(/\/+$/, '').toLowerCase();
+
+export function inGitRepo(dir: string, bounds: RepoWalkBounds = {}): boolean {
   if (!dir.startsWith('/')) return false;
-  let cur = posix.normalize(dir);
+  const home = bounds.home ? key(bounds.home) : '';
+  const skip = new Set((bounds.temps ?? []).map(key));
+  let cur = posix.normalize(dir).replace(/\/+$/, '') || '/';
   for (;;) {
-    if (existsSync(posix.join(cur, '.git'))) return true;
-    const up = posix.dirname(cur);
-    if (up === cur) return false;
-    cur = up;
+    const k = key(cur);
+    if (cur === '/' || k === '' || k === home) return false;
+    if (!skip.has(k) && existsSync(posix.join(cur, '.git'))) return true;
+    cur = posix.dirname(cur);
   }
 }
