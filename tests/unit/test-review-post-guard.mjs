@@ -128,6 +128,14 @@ const VERDICTS = [
   '\u2705 LAND\n',
   'Verdict: HOLD\n',
   '**Verdict:** LAND, merge it\n',
+  // The class, not two spellings (HOLD 6098834922 must 1).
+  'VERDICT: HOLD\n',
+  '**VERDICT:** LAND\n',
+  'Verdict - HOLD\n',
+  '1. HOLD\n',
+  '- hold: two blockers\n',
+  'Hold.\n',
+  '_verdict_ xreview\n',
 ];
 
 test('3. a verdict-shaped line without --post-verdict: refused, gh never runs', () => {
@@ -140,7 +148,7 @@ test('3. a verdict-shaped line without --post-verdict: refused, gh never runs', 
 });
 
 test('3b. a word that only starts like a verdict is not a verdict', () => {
-  for (const text of ['Holding this for a later pass.\n', 'Landing notes: fine.\n', 'hold on, one nit\n']) {
+  for (const text of ['Holding this for a later pass.\n', 'Landing notes: fine.\n', 'hold on, one nit\n', 'Verdicts differ by reviewer.\n', '1. Landing page copy\n']) {
     const r = run(['--pr', '4668', '--event', 'comment', '--body-file', body(text), '--post']);
     assert.equal(r.status, 0, `${JSON.stringify(text)}: exit ${r.status}, stderr: ${r.stderr}`);
     assert.equal(r.calls.length, 1);

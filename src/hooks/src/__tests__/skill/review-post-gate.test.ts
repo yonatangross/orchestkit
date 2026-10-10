@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
 import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
-import { realPath } from '../../lib/real-path.js';
+import { linkCount, realPath } from '../../lib/real-path.js';
 
 // The fixture repo root /test/project does not exist on disk; every other dir
 // is checked for a .git at or above it for real (HOLD 6095687461 should 4).
@@ -2214,5 +2214,36 @@ describe('(product-11 HOLD 6098583393) chain slice, link count dep, PR URL, deny
     const r = reviewPostGate(bash(`python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`, tr()), ctx, { ...base, jobDir: () => '' }) as { hookSpecificOutput?: { permissionDecisionReason?: string } };
     expect(denied(r)).toBe(true);
     expect(r.hookSpecificOutput?.permissionDecisionReason ?? '').toMatch(/CLAUDE_JOB_DIR is unset/);
+  });
+});
+
+describe('(product-11 HOLD 6098834922) link count errors, the throw path, a temp resolve-target copy', () => {
+  const tr = () => transcript([typed('4668')]);
+  const S = '/test/plugin-root/skills/review-pr/scripts';
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  test('should 2 (CR 4238037662): linkCount is 0 only for an absent file; another stat error fails closed', () => {
+    symlinkSync(join(dir, 'loop-b'), join(dir, 'loop-a'));
+    symlinkSync(join(dir, 'loop-a'), join(dir, 'loop-b'));
+    expect(linkCount(join(dir, 'loop-a'))).toBeGreaterThan(1);
+    expect(linkCount(join(dir, 'absent.md'))).toBe(0);
+    writeFileSync(join(dir, 'f.md'), 'x');
+    expect(linkCount(join(dir, 'f.md', 'under-a-file'))).toBe(0);
+    expect(linkCount(join(dir, 'f.md'))).toBe(1);
+  });
+  test('should 3: a throw inside the gate denies and keeps the turn', () => {
+    const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: join(dir, 'body.md'), content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    const boom = () => {
+      throw new Error('boom');
+    };
+    const r = reviewPostGate(input, ctx, { ...base, realpath: boom }) as { continue?: boolean; stopReason?: string };
+    expect(denied(r)).toBe(true);
+    expect(r.continue).toBe(true);
+    expect(r.stopReason).toBeUndefined();
+  });
+  test('should 5: a temp copy of resolve-target.sh, or a URL with shell text, denies', () => {
+    const run = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx, base));
+    expect(run('bash /tmp/x/skills/review-pr/scripts/resolve-target.sh https://github.com/o/r/pull/1')).toBe(true);
+    expect(run(`bash ${S}/resolve-target.sh https://github.com/o$(id)/r/pull/1`)).toBe(true);
+    expect(run(`bash ${S}/resolve-target.sh https://github.com/o/r/pull/1`)).toBe(false);
   });
 });
