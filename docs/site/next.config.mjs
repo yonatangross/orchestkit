@@ -32,6 +32,8 @@ const config = {
 		"/api/md/[[...slug]]": ["./content/docs/**/*.mdx"],
 		// /llms-full.txt concatenates every doc body at request time.
 		"/llms-full.txt": ["./content/docs/**/*.mdx"],
+		// The per-page link card reads the page body (skill example, agent tools) and its fonts.
+		"/api/og/[...slug]": ["./content/docs/reference/**/*.mdx", "./assets/og/*.ttf"],
 	},
 	// Map agent-discovery well-known paths to their route handlers. Done via
 	// rewrites (rather than dot-folders under app/) so the URLs are stable and

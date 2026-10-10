@@ -1,102 +1,55 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { type NextRequest } from "next/server";
+import { readDocBody } from "@/lib/docs-content";
+import { CARD, agentCardElement, docCardElement, skillCardElement } from "@/lib/og-card";
+import { agentCard, cardKind, skillCard } from "@/lib/og-card-data";
 import { source } from "@/lib/source";
-import { SITE } from "@/lib/constants";
 
-export async function GET(
-  _req: NextRequest,
-  props: { params: Promise<{ slug: string[] }> },
-) {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
+// Per-page link card. Skill pages show the skill's own example output, agent
+// pages show their tools and the agents they delegate to, other pages show the
+// title and description. Layout: ./approved-design/mockup.txt beside this route.
+// The .mdx bodies and the fonts reach the function through
+// outputFileTracingIncludes in next.config.mjs.
 
-  const title = page?.data.title ?? "Documentation";
-  const description = page?.data.description ?? "";
+// Crawlers (X, LinkedIn, Slack) fetch the card once per share; a CDN copy makes
+// the first fetch fast. A card only changes when its page changes, which ships
+// with a deploy, so a day at the edge plus a week of stale-while-revalidate is safe.
+const CACHE = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          backgroundColor: "#0A0A0A",
-          color: "#FAFAFA",
-          fontFamily: "system-ui, sans-serif",
-          padding: "80px",
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span
-            style={{
-              fontSize: "18px",
-              color: "#A5B4FC",
-              fontWeight: 600,
-              marginBottom: "24px",
-              textTransform: "uppercase",
-              letterSpacing: "2px",
-            }}
-          >
-            {SITE.name}
-          </span>
-          <span
-            style={{
-              fontSize: "56px",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              maxWidth: "900px",
-            }}
-          >
-            {title}
-          </span>
-          {description && (
-            <span
-              style={{
-                fontSize: "24px",
-                color: "#A1A1AA",
-                marginTop: "20px",
-                maxWidth: "800px",
-                lineHeight: 1.4,
-              }}
-            >
-              {description.length > 120
-                ? `${description.slice(0, 120)}...`
-                : description}
-            </span>
-          )}
-        </div>
+const font = (name: string) => readFile(join(process.cwd(), "assets", "og", name));
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-          }}
-        >
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "10px",
-              backgroundColor: "#6366F1",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "22px",
-              fontWeight: 800,
-              color: "#FAFAFA",
-            }}
-          >
-            O
-          </div>
-          <span style={{ fontSize: "20px", color: "#71717A" }}>
-            orchestkit.dev
-          </span>
-        </div>
-      </div>
-    ),
-    { width: 1200, height: 630 },
-  );
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string[] }> }) {
+	const params = await props.params;
+	const page = source.getPage(params.slug);
+	const title = page?.data.title ?? "Documentation";
+	const description = page?.data.description ?? "";
+	const kind = page ? cardKind(params.slug) : "doc";
+	const name = params.slug?.[2] ?? "";
+
+	const [bold, medium, mono, body] = await Promise.all([
+		font("Geist-Bold.ttf"),
+		font("Geist-Medium.ttf"),
+		font("GeistMono-Regular.ttf"),
+		kind === "doc" || !page ? Promise.resolve(null) : readDocBody(page.slugs),
+	]);
+
+	const element =
+		kind === "skill"
+			? skillCardElement(title, `ork:${name}`, skillCard(description, body ?? ""))
+			: kind === "agent"
+				? agentCardElement(title, `ork:${name}`, agentCard(description, body ?? ""))
+				: docCardElement(title, description);
+
+	return new ImageResponse(element, {
+		...CARD,
+		emoji: "twemoji",
+		fonts: [
+			{ name: "Geist", data: bold, weight: 700, style: "normal" },
+			{ name: "Geist", data: medium, weight: 500, style: "normal" },
+			{ name: "Geist Mono", data: mono, weight: 400, style: "normal" },
+		],
+		headers: { "Cache-Control": CACHE },
+	});
 }
