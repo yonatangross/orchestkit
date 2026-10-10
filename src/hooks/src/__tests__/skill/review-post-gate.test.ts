@@ -1636,6 +1636,32 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     }
     expect(at('git diff HEAD README.md')).toBe(false);
   });
+  test('codex22 P2-1: a protected config file is caught by its own real path too', () => {
+    const home = join(dir, 'home');
+    mkdirSync(home);
+    writeFileSync(join(dir, 'global.cfg'), '');
+    symlinkSync(join(dir, 'global.cfg'), join(home, '.gitconfig'));
+    mkdirSync(join(dir, 'realxdg', 'git'), { recursive: true });
+    symlinkSync(join(dir, 'realxdg'), join(dir, 'xdg'));
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    writeFileSync(join(dir, 'repo-config.cfg'), '');
+    symlinkSync(join(dir, 'repo-config.cfg'), join(repo, '.git', 'config'));
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => home, realpath: realPath, xdgConfig: () => join(dir, 'xdg') };
+    const at = (file: string) => {
+      const input = { tool_name: 'Write', session_id: 's', cwd: repo, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      return denied(reviewPostGate(input, ctx, deps));
+    };
+    for (const f of [join(dir, 'global.cfg'), join(dir, 'realxdg', 'git', 'config'), join(dir, 'repo-config.cfg')]) {
+      expect(at(f), f).toBe(true);
+    }
+    expect(at(join(dir, 'other.cfg'))).toBe(false);
+  });
+  test('codex22 P2-2, declared limit (#4701): a file an existing [include] names is not known to the gate', () => {
+    // The gate does not parse git config; a pre-existing include target is
+    // the same class as a config written before the skill ran.
+    expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
+  });
   test('should 5: the home dir or above is no repo root', () => {
     const at = (cmd: string, cwd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
     for (const cwd of ['/Users/me', '/Users', '/']) {
