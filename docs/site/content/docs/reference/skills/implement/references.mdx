@@ -592,6 +592,8 @@ Example: `implement-user-auth`, `implement-dashboard-analytics`
 
 ### Teammate Spawn Prompts
 
+Spawn each writer teammate (backend-architect, frontend-dev, test-engineer) with `isolation="worktree"` (#4557): ork agents carry no frontmatter isolation, so without it they edit one tree at the same time. The code-reviewer only reads and needs none.
+
 #### 1. backend-architect (backend-system-architect)
 ```
 You are the backend-architect specialist on this team.
@@ -821,7 +823,7 @@ test-engineer      → .worktrees/tests/
 code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
-**When to skip worktrees:** Small features (&lt; 5 files), or when teammates work on non-overlapping directories.
+**Do not skip worktrees:** every writer teammate needs its own, either `isolation="worktree"` at spawn or the manual layout above (#4557). Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
 
 ---
 

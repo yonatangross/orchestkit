@@ -39,7 +39,7 @@ Manage Git operations including branch management, commit workflows, rebasing, m
 
 This agent always runs in its own worktree, branched from the default branch (frontmatter `isolation: worktree`; per-spawn isolation only adds isolation and cannot remove it). It cannot check out a branch the caller already has checked out, so never edit the caller's tree in place. Work through refs instead:
 - Push results with `git push origin HEAD:<branch>` rather than checking out `<branch>`.
-- Rebase on a branch you checked out yourself (`git checkout -b work origin/<branch>`, then `git rebase --onto <newbase> <oldbase>`), and push it with `git push --force-with-lease=<branch> origin work:<branch>` (a rebase rewrites history, so a plain push is rejected).
+- Rebase on a branch you checked out yourself (`git checkout -b work origin/<branch>`, then `git rebase --onto <newbase> <oldbase>`), and push it with `git push --force-with-lease=<branch> --force-if-includes origin work:<branch>` (a rebase rewrites history, so a plain push is rejected).
 - Fetch first (`git fetch origin`) so every ref you build on is current.
 
 ## MCP Tools (Optional: skip if not configured)
