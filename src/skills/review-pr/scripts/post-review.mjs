@@ -52,9 +52,22 @@ const folded = (line) =>
 // Both views count: with HTML tags (a < or </ then a letter) dropped, as a page
 // renders them, and with every character kept, so a bare "a < HOLD > b" whose
 // brackets are not a tag still reads as a verdict.
+// A tag span is skipped in one pass by index, not removed with a replace, so
+// no removal can join the text around it into a new tag (CodeQL
+// js/incomplete-multi-character-sanitization on 5b5b66c2).
+const dropTags = (t) => {
+  let out = '';
+  for (let i = 0; i < t.length; i += 1) {
+    const open = t[i] === '<' && /[A-Za-z]/.test(t[i + 1] === '/' ? (t[i + 2] ?? '') : (t[i + 1] ?? ''));
+    const close = open ? t.indexOf('>', i) : -1;
+    if (close < 0) out += t[i];
+    else i = close;
+  }
+  return out;
+};
 const views = (line) => {
   const t = folded(line);
-  return [t, t.replace(/<\/?[A-Za-z][^>]*>/g, '')];
+  return [t, dropTags(t)];
 };
 const CAPS_ANYWHERE = /(?<!\p{L})(?:LAND|HOLD|XREVIEW)(?!\p{L})/u;
 const verdictIn = (t) =>
