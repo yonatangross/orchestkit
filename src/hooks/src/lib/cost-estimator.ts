@@ -94,13 +94,35 @@ function getUserPricingConfig(): PricingConfig {
       return {
         ...DEFAULT_PRICING,
         ...userConfig,
-        models: { ...DEFAULT_PRICING.models, ...userConfig.models },
+        models: { ...DEFAULT_PRICING.models, ...normalizeUserModels(userConfig.models) },
       };
     } catch {
       // Fall through to defaults
     }
   }
   return DEFAULT_PRICING;
+}
+
+/**
+ * Key user rows the way lookups resolve names: lookups rewrite a dotted
+ * claude-* name ("claude-opus-5.5") before the exact match, so a row kept
+ * under the dotted key was never read. When a file has both spellings of
+ * one model, the row already in canonical form wins.
+ */
+function normalizeUserModels(models: unknown): Record<string, ModelPricing> {
+  if (!models || typeof models !== 'object' || Array.isArray(models)) return {};
+  const rows = Object.entries(models as Record<string, ModelPricing>).filter(
+    ([id]) => id !== '__proto__' && id !== 'constructor',
+  );
+  const out: Record<string, ModelPricing> = {};
+  for (const [id, row] of rows) {
+    if (resolveModelKey(id) === id) out[id] = row;
+  }
+  for (const [id, row] of rows) {
+    const key = resolveModelKey(id);
+    if (!(key in out)) out[key] = row;
+  }
+  return out;
 }
 
 // ============================================================================

@@ -563,6 +563,24 @@ describe('managed modelPricing (#3878)', () => {
     expect(getPricing('claude-opus-5').input_per_mtok).toBe(3);
   });
 
+  it('a dotted user row (claude-opus-5.5) prices the model under either spelling', () => {
+    // #4698 review: resolveModelKey rewrites the dotted name before the exact
+    // lookup, so an un-normalized user row was skipped for the vocab row (4).
+    const OPUS_55_USER = { input_per_mtok: 9, output_per_mtok: 45, cache_read_per_mtok: 0.9, cache_write_per_mtok: 11.25 };
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER } }));
+    expect(getPricing('claude-opus-5.5')).toEqual(OPUS_55_USER);
+    expect(getPricing('claude-opus-5-5')).toEqual(OPUS_55_USER);
+    // A hyphenated user row for the same model wins over its dotted twin.
+    _virtualFiles.set(
+      USER,
+      JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER, 'claude-opus-5-5': { ...OPUS_55_USER, input_per_mtok: 7 } } }),
+    );
+    expect(getPricing('claude-opus-5.5').input_per_mtok).toBe(7);
+    // Gemini rows are dotted on purpose and stay as written.
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'gemini-3.8-flash': { ...OPUS_55_USER, input_per_mtok: 0.5 } } }));
+    expect(getPricing('gemini-3.8-flash').input_per_mtok).toBe(0.5);
+  });
+
   it('multiplier is applied last, on top of overrides and the user file alike', () => {
     _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5': { input_per_mtok: 4, output_per_mtok: 20, cache_read_per_mtok: 0.4, cache_write_per_mtok: 5 } } }));
     setManaged({ modelPricing: { multiplier: 0.5, overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
