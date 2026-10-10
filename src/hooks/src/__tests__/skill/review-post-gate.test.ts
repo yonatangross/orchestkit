@@ -16,7 +16,7 @@ import { linkSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, wr
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs, rawWriteReason, allowlistReason } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 import { linkCount, realPath } from '../../lib/real-path.js';
 
@@ -2247,5 +2247,27 @@ describe('(product-11 HOLD 6098834922) link count errors, the throw path, a temp
     // A name RESOLVE_URL must not take: % (o%41), so this row can fail if the class widens.
     expect(run(`bash ${S}/resolve-target.sh https://github.com/o%41/r/pull/1`)).toBe(true);
     expect(run(`bash ${S}/resolve-target.sh https://github.com/o/r/pull/1`)).toBe(false);
+  });
+});
+
+describe('(product-11 HOLD 6099624377) gh api method and fields from parsed words, not re-joined text', () => {
+  const ROWS = [
+    `gh api repos/yonatangross/orchestkit/issues/4678/comments -f 'body=LGTM -XGET'`,
+    `gh api repos/o/r/pulls/4678/reviews -f event=APPROVE -f 'body=ok --method=GET'`,
+    `gh api repos/o/r/issues/1/comments -f "body=x -X GET"`,
+  ];
+  const actx = { cwd: ROOT, root: '/test/plugin-root', realpath: (x: string) => x, home: '/Users/me' };
+  test('MUST: a method word inside a quoted field value is data, so the call is a POST and denies', () => {
+    const tr = transcript([typed('4668')]);
+    for (const cmd of ROWS) {
+      expect(denied(reviewPostGate(bash(cmd, tr), ctx)), cmd).toBe(true);
+      expect(allowlistReason(cmd, actx), `allowlist: ${cmd}`).not.toBeNull();
+      expect(rawWriteReason(cmd), `raw: ${cmd}`).not.toBeNull();
+    }
+  });
+  test('control: a real GET with fields still passes both layers', () => {
+    const cmd = 'gh api repos/o/r/issues/1/comments -X GET -f per_page=5';
+    expect(allowlistReason(cmd, actx)).toBeNull();
+    expect(rawWriteReason(cmd)).toBeNull();
   });
 });
