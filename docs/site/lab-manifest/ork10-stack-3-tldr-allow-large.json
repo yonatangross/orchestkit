@@ -1,0 +1,10 @@
+{
+  "slug": "ork10-stack-3-tldr-allow-large",
+  "source": "docs/fix--ork10-stack-3-tldr-allow-large/index.html",
+  "title": "tldr-summary skips a Read with allow_large",
+  "description": "The tldr-summary Read hook now passes through a Read with allow_large (CC 2.1.296), like it already did for offset and limit reads.",
+  "tags": [
+    "hooks"
+  ],
+  "date": "2026-10-09"
+}

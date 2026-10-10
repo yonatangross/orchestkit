@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
+
+- **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
+
 **[v10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168)** · 2026-10-10
 
 - **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok (#4698)
@@ -664,11 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162)** · 2026-10-07
 
 - **deps:** sharp 0.35.5 in docs/site for advisory 1241331 (#4653)
-
-**[v10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161)** · 2026-10-06
-
-- **deps-dev:** bump vitest (#4611)
-- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4613)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
