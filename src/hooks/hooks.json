@@ -387,7 +387,6 @@
             "command": "node",
             "async": true,
             "timeout": 8,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/write/stale-import-detector",
@@ -400,7 +399,6 @@
             "command": "node",
             "async": true,
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/write/debt-marker-tracker"
@@ -410,7 +408,6 @@
             "type": "command",
             "command": "node",
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/check-plugins-drift"
@@ -721,7 +718,6 @@
             "type": "command",
             "command": "node",
             "timeout": 5,
-            "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "prompt/goal-tracker"
