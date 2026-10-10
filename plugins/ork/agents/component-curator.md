@@ -1,7 +1,7 @@
 ---
 name: component-curator
 description: "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency."
-model: sonnet
+model: haiku
 maxTurns: 25
 effort: low
 background: true

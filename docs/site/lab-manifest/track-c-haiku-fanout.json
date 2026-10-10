@@ -1,0 +1,13 @@
+{
+  "slug": "track-c-haiku-fanout",
+  "source": "docs/feat--track-c-haiku-fanout/index.html",
+  "title": "Where subagent tokens go, and what a Haiku pin can touch",
+  "description": "681 local subagent transcripts from 7 days: which agent types carry the tokens, which are read-only enough to pin to Haiku 5.5, and which must never be pinned (forks).",
+  "tags": [
+    "haiku",
+    "subagents",
+    "cost",
+    "haiku55-adopt"
+  ],
+  "date": "2026-10-08"
+}

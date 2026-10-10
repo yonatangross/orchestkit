@@ -76,7 +76,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "haiku",
     "category": "frontend"
   },
   {
