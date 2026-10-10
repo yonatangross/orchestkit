@@ -3,11 +3,10 @@ name: user-research
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done."
-context: fork
-agent: product-strategist
 user-invocable: false
 disable-model-invocation: false
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

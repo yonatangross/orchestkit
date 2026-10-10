@@ -4,12 +4,11 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
 skills: [scope-appropriate-architecture]
-context: fork
-agent: backend-system-architect
 user-invocable: false
 disable-model-invocation: false
 effort: high
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

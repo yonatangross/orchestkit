@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>review-pr posts only when you type --post</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  code { font: 13px ui-monospace, monospace; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+  .wrap { display:grid; grid-template-columns: 180px 1fr; gap: 24px; max-width: 1100px; margin: 0 auto; }
+  nav.rail { position: sticky; top: 16px; align-self: start; font-size: 14px; padding-top: 32px; }
+  nav.rail a { display:block; color: var(--mute); text-decoration:none; padding: 3px 0; }
+  nav.rail a:hover { color: var(--ink); }
+  @media (max-width: 1000px) { .wrap { grid-template-columns: 1fr; } nav.rail { position: static; padding-top: 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <a href="#verdict">Verdict</a>
+  <a href="#flow">How a post is decided</a>
+  <a href="#allow">What runs, what is denied</a>
+  <a href="#tests">Tests</a>
+  <a href="#limit">Limit</a>
+</nav>
+<main>
+<div class="top">
+  <div>
+    <h1>review-pr posts only when you type --post</h1>
+    <p class="lede">orchestkit #4675, PR #4678. A review run posted a review nobody asked for; posting is now opt-in in code.</p>
+  </div>
+  <button id="theme" type="button">Dark</button>
+</div>
+
+<section class="card" id="verdict">
+  <h2>Verdict</h2>
+  <p><span class="ok">No post without your word.</span> <code>/ork:review-pr 4668</code> prints the review and stops. <code>/ork:review-pr 4668 --post</code> may post a comment or a request-changes review to PR 4668 only. An approve, or a first line that reads LAND, HOLD or XREVIEW, also needs <code>--post-verdict</code>.</p>
+</section>
+
+<section class="card" id="flow">
+  <h2>How a post is decided</h2>
+<pre>you type  /ork:review-pr 4668 --post
+   │
+   ▼  (CC writes that turn to the transcript; every later entry links to it by parentUuid)
+model calls  node post-review.mjs --pr 4668 --event comment --body-file /tmp/r.md --post
+   │
+   ▼  skill/review-post-gate (PreToolUse)
+   ├─ the nearest human turn on THIS call's chain is your /ork:review-pr line?   no → deny
+   ├─ you typed --post?                                                           no → deny
+   ├─ --pr is exactly the PR you typed after the command, once?                  no → deny
+   ├─ a bare number, and the shell is at the session project root?               no → deny
+   ├─ approve or post-verdict in the call, and you typed --post-verdict?          no → deny
+   └─ one plain command (letters, digits, - _ . / : space), no --repo?           no → deny
+   │
+   ▼  post-review.mjs
+   ├─ body file: one regular file under /tmp, no second hard link, same inode as checked, &lt;= 64 KB, no key shapes
+   └─ gh gets the checked bytes on stdin (--body-file -)</pre>
+</section>
+
+<section class="card" id="allow">
+  <h2>What runs, what is denied, while the skill runs</h2>
+  <table>
+    <tr><th>Command</th><th>Gate</th></tr>
+    <tr><td><code>gh pr view / diff / checks / list</code>, <code>gh api</code> GET</td><td class="ok">runs</td></tr>
+    <tr><td><code>gh pr review</code>, <code>gh pr comment</code>, <code>gh pr close / merge / edit</code>, any other gh verb</td><td class="bad">denied</td></tr>
+    <tr><td><code>gh api</code> with POST, PATCH, PUT, DELETE, <code>-f</code>, <code>-F</code>, <code>--input</code>, or graphql</td><td class="bad">denied</td></tr>
+    <tr><td>any <code>curl</code>, <code>wget</code>, <code>http</code> or <code>xh</code> call to a GitHub host</td><td class="bad">denied</td></tr>
+    <tr><td>any Bash text or Write path naming <code>.claude/projects</code></td><td class="bad">denied</td></tr>
+    <tr><td>any MCP tool except the memory server (a GitHub MCP server holds its own token)</td><td class="bad">denied</td></tr>
+  </table>
+</section>
+
+<section class="card" id="tests">
+  <h2>Tests</h2>
+  <table>
+    <tr><th>Suite</th><th>Result</th><th>Fails on</th></tr>
+    <tr><td><code>tests/unit/test-review-post-guard.mjs</code></td><td class="ok">12 passed</td><td>main (no script); 5e on bce3afb6</td></tr>
+    <tr><td><code>src/hooks/src/__tests__/skill/review-post-gate.test.ts</code></td><td class="ok">63 passed</td><td>bce3afb6: 22 cases; isMeta and string-content mutants: 1 each</td></tr>
+  </table>
+</section>
+
+<section class="card" id="limit">
+  <h2>Limit</h2>
+  <p>The gate reads command text while the model holds a full gh login. A renamed copy of <code>post-review.mjs</code>, a script file written first, or an in-place edit of the real transcript entry through a path built at run time is not seen. It stops an over-eager post, not a model set on getting around it. The fail-closed layer is no gh write credentials in the run: <a href="https://github.com/yonatangross/orchestkit/issues/4677">#4677</a>.</p>
+</section>
+</main>
+</div>
+<script>
+  const b = document.getElementById('theme');
+  b.addEventListener('click', () => {
+    const d = document.documentElement;
+    const dark = d.dataset.theme === 'dark';
+    d.dataset.theme = dark ? 'light' : 'dark';
+    b.textContent = dark ? 'Dark' : 'Light';
+  });
+</script>
+</body>
+</html>

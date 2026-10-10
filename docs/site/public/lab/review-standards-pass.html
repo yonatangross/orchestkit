@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two-pass review: the standards pass</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+  .wrap { display:grid; grid-template-columns: 180px 1fr; gap: 24px; max-width: 1100px; margin: 0 auto; }
+  nav.rail { position: sticky; top: 16px; align-self: start; font-size: 14px; padding-top: 32px; }
+  nav.rail a { display:block; color: var(--mute); text-decoration:none; padding: 3px 0; }
+  nav.rail a:hover { color: var(--ink); }
+  @media (max-width: 1000px) { .wrap { grid-template-columns: 1fr; } nav.rail { position: static; padding-top: 12px; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Two-pass review: the standards pass"><meta property="og:description" content="A review-only standards file and a single-agent pass that found the fan-out's finding for about a tenth of the tokens."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/review-standards-pass.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Two-pass review: the standards pass"><meta name="twitter:description" content="A review-only standards file and a single-agent pass that found the fan-out's finding for about a tenth of the tokens."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <a href="#verdict">Verdict</a><a href="#flow">Flow</a><a href="#file">Standards file</a><a href="#cost">Measured cost</a><a href="#output">Output</a>
+</nav>
+<main>
+  <div class="top">
+    <div>
+      <h1>Two-pass review: the standards pass</h1>
+      <p class="lede">The builder makes it work. A separate pass checks the repo's standards. Card pocock-two-pass, after Matt Pocock, "Fixing the PR Bottleneck".</p>
+    </div>
+    <button id="theme" type="button">Dark</button>
+  </div>
+
+  <section class="card" id="verdict">
+    <h2>Verdict</h2>
+    <p>One agent per PR, with every standard and a self-refute step, found the same finding as the 11-agent fan-out for about a tenth of the tokens. That is now the default. <code>--rules</code> stays opt-in.</p>
+  </section>
+
+  <section class="card" id="flow">
+    <h2>Flow</h2>
+<pre>builder ──▶ head ──▶ STANDARDS PASS (read-only) ──▶ findings
+                                                      │
+FIX LANE (new session, red test first, commits) ◀─────┘
+   │
+   ▼
+LAND reviewer (cross-provider) reviews the final head</pre>
+    <p>The pass never commits and never gives LAND or HOLD. FINDINGS=0 skips the fix lane. One fix round, no loop.</p>
+  </section>
+
+  <section class="card" id="file">
+    <h2>The standards file</h2>
+    <p><code>.github/review-standards.md</code>, owned by the repo. Claude Code loads <code>CLAUDE.md</code> and <code>.claude/rules/**</code> into every session, so those reach the builder. It does not load <code>.github/*.md</code>. At most 20 rules and 3 KB. A leading <code>[glob]</code> limits a rule to matching paths. The pass reads it from the PR's base branch, so a PR cannot rewrite the rules it is checked against. A repo without the file skips the pass and logs one line.</p>
+  </section>
+
+  <section class="card" id="cost">
+    <h2>Measured cost, one PR</h2>
+    <p class="lede">orchestkit#4667 at 03f6132d, 2 files, 10 standards, Opus 5.5.</p>
+    <table>
+      <tr><th>Run</th><th>Agents</th><th>Tokens</th><th></th><th>Finding</th></tr>
+      <tr><td>single agent (default)</td><td>1</td><td>107,832</td><td><span class="bar" style="width:22px"></span></td><td>S6 docs.yml:284</td></tr>
+      <tr><td>fan-out: 10 verifiers</td><td>10</td><td>996,655</td><td><span class="bar" style="width:200px"></span></td><td>S6 docs.yml:287</td></tr>
+      <tr><td>fan-out: 1 skeptic</td><td>1</td><td>103,254</td><td><span class="bar" style="width:21px"></span></td><td>upheld</td></tr>
+      <tr><td><b>fan-out total</b></td><td>11</td><td><b>1,099,909</b></td><td></td><td>same finding</td></tr>
+    </table>
+    <p>About 98k tokens of each agent is start-up context. The verifiers made 1 or 2 tool calls each, so the cost grows with the agent count, not with the work. These are token counts, not dollars, and most of the start-up context is a cache read. This is one small PR only.</p>
+  </section>
+
+  <section class="card" id="output">
+    <h2>Output</h2>
+<pre>STANDARDS PASS · orchestkit#4667 @ 03f6132d     strategy: single
+S6 (.github/review-standards.md:15) broken at .github/workflows/docs.yml:284
+    - name: Cache Playwright browsers        (no timeout-minutes)
+kept: S1 S5 S7 S8 · n/a: S2 S3 S4 S9 S10
+→ fix lane: 1 finding</pre>
+    <p>The first catch became issue #4670. Bars are to scale: width is proportional to tokens.</p>
+  </section>
+</main>
+</div>
+<script>
+  const b = document.getElementById('theme');
+  b.addEventListener('click', () => {
+    const d = document.documentElement;
+    const dark = d.dataset.theme !== 'dark';
+    d.dataset.theme = dark ? 'dark' : 'light';
+    b.textContent = dark ? 'Light' : 'Dark';
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

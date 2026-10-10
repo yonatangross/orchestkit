@@ -3,11 +3,10 @@ name: golden-dataset
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines.
-context: fork
-agent: data-pipeline-engineer
 user-invocable: false
 disable-model-invocation: true
 metadata:
+  owner-agent: "data-pipeline-engineer"
   category: document-asset-creation
   version: "2.0.0"
   author: "OrchestKit"

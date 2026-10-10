@@ -55,7 +55,7 @@ Commits, pull requests, reviews, and failing CI runs.
 |---------|--------------|------------|-------|
 | [`/ork:commit`](/docs/reference/skills/commit) | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. | low | `/ork:commit [message]` |
 | [`/ork:create-pr`](/docs/reference/skills/create-pr) | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. | medium | `/ork:create-pr [title]` |
-| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. | medium | `/ork:review-pr [pr-number-or-branch]` |
+| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
 | [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnose a failing CI run against an 11-pattern playbook. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
 | [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Daily autonomous classifier for failing PRs across your repos. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
 
@@ -163,7 +163,7 @@ You do not need to remember which reference skills exist. The command skill know
 
 ## What's Next
 
-- [71 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
+- [72 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition): how these commands orchestrate agents and skills together.
 - [How Skills Work](/docs/skills/overview): the fundamentals of the skill system.
 

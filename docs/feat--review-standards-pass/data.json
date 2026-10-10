@@ -1,0 +1,6 @@
+{
+  "serves": "pocock-two-pass",
+  "page": "docs/feat--review-standards-pass/index.html",
+  "lab_slug": "review-standards-pass",
+  "purpose": "PR playground: the two-pass review flow, the review-only standards file, and the measured cost of the single-agent pass against the fan-out"
+}

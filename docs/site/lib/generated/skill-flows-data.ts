@@ -5792,6 +5792,52 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
+  "prompt-focus": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "Quick Start Example",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Workflow",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Key Decisions",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Common Mistakes",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Rules",
+            "does": "",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
   "python-backend": {
     "tier": "sections",
     "lanes": [
@@ -6386,21 +6432,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2.5",
             "label": "/ultrareview Gate",
-            "does": "The shell owns every question, so the /ultrareview ask happens here, before Phase 3, never inside the workflow. Load the gate: Read(\"references/ultrareview-gate.md\"): triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the ORK_DISABLE_ULTRAREVIEW opt-out. If no trigger fires, skip silently. A \"Yes\" runs /ultrareview alongside Phase 3; its findings merge in Phase 5 labelled \"Ultrareview:\".",
+            "does": "The shell owns every question, so the /ultrareview ask happens here, before Phase 3, never inside the workflow. Load the gate: Read(\"references/ultrareview-gate.md\"): triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the ORK_DISABLE_ULTRAREVIEW opt-out. If no trigger fires, skip silently. A \"Yes\" asks the user to type /code-review ultra <PR> themselves (the skill cannot run it); findings they paste back merge in Phase 5 labelled \"Ultrareview:\".",
             "out": null,
             "tag": null
           },
           {
             "num": "3",
             "label": "Parallel Code Review",
-            "does": "Do NOT hand-roll the reviewers. Start Phase 4 validation in the background, then run the executor:",
+            "does": "Do NOT hand-roll the reviewers. Read CI first (Phase 4), then run the executor:",
             "out": null,
             "tag": null
           },
           {
             "num": "4",
-            "label": "Run Validation",
-            "does": "Load validation commands: Read(\"references/validation-commands.md\"). Run them in the background while Phase 3 runs. Failing required checks known before the call go in as failingChecks; a red found after it caps both verdicts at request-changes here in the shell. Ground truth is never refuted.",
+            "label": "Read CI",
+            "does": "CI is the only test evidence this skill has: the post gate denies local tests, lint and builds. Read the PR's checks:",
             "out": null,
             "tag": null
           },
@@ -6414,7 +6460,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4.6",
             "label": "Rule-check Mode",
-            "does": "Runs only when RULES_MODE is true or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:",
+            "does": "Runs when RULES_MODE or STANDARDS_MODE is true, or the user asks to check the change against their CLAUDE.md or rules. One verifier per rule over the diff at effort low, then one skeptic per violation that must cite the diff to refute it; only survivors reach the report. Run it after the Phase 3 call returns:",
             "out": null,
             "tag": null
           },
@@ -6428,7 +6474,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "6",
             "label": "Submit Review",
-            "does": "Posting stays in this shell; the workflow never writes to GitHub. Post the producer-basis verdict unless the user confirmed the post-refutation one in Phase 4.5.",
+            "does": "This skill never posts unless the user typed --post on /ork:review-pr (#4675). Without it, print the review and stop: the user posts it, or re-runs with --post. Never ask to post and never post because the review \"looks done\".",
             "out": null,
             "tag": null
           },

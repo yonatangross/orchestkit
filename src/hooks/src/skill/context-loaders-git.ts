@@ -13,39 +13,6 @@ import { safeExec } from './context-loader-utils.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
- * PR Context Loader — fetches PR for current branch via gh CLI.
- * Used by: review-pr skill (PreToolUse/Read, once:true)
- *
- * Note: Skill arguments aren't available in hook input. Uses current branch
- * to find the associated PR, which covers the common `/ork:review-pr` case.
- */
-export function prContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = hookCtx.projectDir;
-
-  // Try current branch's PR first
-  const prData = safeExec(
-    'gh pr view --json title,body,changedFiles,additions,deletions,labels,number,baseRefName,headRefName 2>/dev/null',
-    projectDir,
-  );
-  if (!prData) return outputSilentSuccess();
-
-  try {
-    const pr = JSON.parse(prData);
-    const ctx = [
-      `[PR #${pr.number} Context — loaded once]`,
-      `Title: ${pr.title}`,
-      `Base: ${pr.baseRefName} <- Head: ${pr.headRefName}`,
-      `Changed files: ${pr.changedFiles}, +${pr.additions}/-${pr.deletions}`,
-      pr.labels?.length ? `Labels: ${pr.labels.map((l: { name: string }) => l.name).join(', ')}` : '',
-      pr.body ? `\nDescription:\n${pr.body.slice(0, 1000)}` : '',
-    ].filter(Boolean).join('\n');
-    return outputWithContext(ctx);
-  } catch {
-    return outputSilentSuccess();
-  }
-}
-
-/**
  * Issue Context Loader — extracts issue number from branch name.
  * Used by: fix-issue skill (PreToolUse/Read, once:true)
  *

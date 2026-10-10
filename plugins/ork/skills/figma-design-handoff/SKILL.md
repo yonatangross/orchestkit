@@ -3,14 +3,13 @@ name: figma-design-handoff
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.
-context: fork
-agent: frontend-ui-developer
 user-invocable: false
 disable-model-invocation: true
 targets:
   - library: "style-dictionary"
     version: ">=5.5.5"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   figma-mcp-tool-count: 16
   version: "1.1.0"
