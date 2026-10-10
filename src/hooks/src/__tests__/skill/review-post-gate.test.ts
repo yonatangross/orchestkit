@@ -31,7 +31,14 @@ let dir: string;
 const savedRoot = process.env.CLAUDE_PLUGIN_ROOT;
 const savedHome = process.env.HOME;
 const savedXdg = process.env.XDG_CONFIG_HOME;
+// The default deps read these from the runner's env; each test starts with
+// none set and a fixed PATH, so a runner value cannot change a verdict
+// (product-10 at 789ed83e).
+const PINNED = ['GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM', 'GH_CONFIG_DIR', 'ZDOTDIR', 'BASH_ENV', 'ENV', 'PYTHONPATH', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'PATH'] as const;
+const savedPinned = Object.fromEntries(PINNED.map((k) => [k, process.env[k]]));
 beforeEach(() => {
+  for (const k of PINNED) delete process.env[k];
+  process.env.PATH = '/usr/bin:/bin';
   // The transcripts dir is protected under HOME (and the config dir of transcript_path).
   process.env.HOME = '/Users/me';
   // A runner sets XDG_CONFIG_HOME; the git config dir follows it (HOLD 6095687461 must 1).
@@ -42,6 +49,10 @@ beforeEach(() => {
 });
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
+  for (const k of PINNED) {
+    if (savedPinned[k] === undefined) delete process.env[k];
+    else process.env[k] = savedPinned[k];
+  }
   process.env.HOME = savedHome;
   if (savedXdg === undefined) delete process.env.XDG_CONFIG_HOME;
   else process.env.XDG_CONFIG_HOME = savedXdg;
@@ -1829,7 +1840,9 @@ describe('(HOLD 6096088108) no temp write into a work tree; repo walk bounds; sc
     const xdg = join(dir, 'xdg');
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => xdg };
     expect(write(join(xdg, 'git', 'config'), ROOT, deps)).toBe(true);
-    expect(write(join(xdg, 'notes.md'), ROOT, deps)).toBe(false);
+    // The whole XDG_CONFIG_HOME is named now (product-10 at 789ed83e).
+    expect(write(join(xdg, 'notes.md'), ROOT, deps)).toBe(true);
+    expect(write(join(dir, 'notes.md'), ROOT, deps)).toBe(false);
   });
 });
 
@@ -1922,8 +1935,10 @@ describe('(HOLD 6096848217, codex 6096802137) env config dirs on reads, XDG gh, 
     const at = { xdgConfig: () => xdg };
     expect(read(join(xdg, 'gh', 'hosts.yml'), at)).toBe(true);
     expect(write(join(xdg, 'gh', 'hosts.yml'), at)).toBe(true);
-    expect(read(join(xdg, 'notes.md'), at)).toBe(false);
-    expect(write(join(xdg, 'notes.md'), at)).toBe(false);
+    // The whole XDG_CONFIG_HOME is named now (product-10 at 789ed83e).
+    expect(read(join(xdg, 'notes.md'), at)).toBe(true);
+    expect(write(join(xdg, 'notes.md'), at)).toBe(true);
+    expect(read(join(dir, 'body.md'), at)).toBe(false);
   });
   test('should (codex P2): a named dir or git-dir member under the job dir denies', () => {
     const home = join(dir, 'h');
@@ -2000,5 +2015,43 @@ describe('(codex XREVIEW 6097088920) a PATH entry that is the repo leaves repo r
     expect(read(join(repo, 'README.md'))).toBe(false);
     expect(read('README.md')).toBe(false);
     expect(read(join(dir, 'bin', 'gh'))).toBe(true);
+  });
+});
+
+describe('(product-10 at 789ed83e) the whole XDG config dir, XDG data and state, PYTHONPATH at the repo', () => {
+  const tr = () => transcript([typed('4668')]);
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const write = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, { ...base, ...extra }));
+  };
+  const read = (file: string, cwd: string, extra: Record<string, unknown> = {}) => denied(reviewPostGate(bash(`cat ${file}`, tr(), TOOL, cwd), ctx, { ...base, ...extra }));
+  test('MUST: XDG_CONFIG_HOME/git/credentials under temp is neither read nor written', () => {
+    const xdg = join(dir, 'xdg');
+    mkdirSync(join(xdg, 'git'), { recursive: true });
+    writeFileSync(join(xdg, 'git', 'credentials'), 'https://u:tok@github.com');
+    writeFileSync(join(dir, 'body.md'), 'x');
+    const at = { xdgConfig: () => xdg };
+    expect(read(join(xdg, 'git', 'credentials'), ROOT, at)).toBe(true);
+    expect(write(join(xdg, 'git', 'credentials'), ROOT, at)).toBe(true);
+    expect(read(join(dir, 'body.md'), ROOT, at)).toBe(false);
+  });
+  test('MUST: XDG_DATA_HOME and XDG_STATE_HOME are named config', () => {
+    const got = envConfigDirs({ XDG_DATA_HOME: '/tmp/data', XDG_STATE_HOME: '/tmp/state', XDG_CONFIG_HOME: '/tmp/xdg' });
+    for (const d of ['/tmp/data', '/tmp/state', '/tmp/xdg']) expect(got, d).toContain(d);
+    const secret = envConfigDirs({ XDG_DATA_HOME: '/tmp/data', XDG_STATE_HOME: '/tmp/state', PATH: '/tmp/bin' }, false);
+    for (const d of ['/tmp/data', '/tmp/state']) expect(secret, d).toContain(d);
+    expect(secret).not.toContain('/tmp/bin');
+  });
+  test('SHOULD: PYTHONPATH at the repo denies every .claude/chain write', () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, '.claude', 'chain'), { recursive: true });
+    const f = join(repo, '.claude', 'chain', 'capabilities.json');
+    expect(write(f, repo, { configEnv: () => [repo] })).toBe(true);
+    expect(write(f, repo, { configEnv: () => [] })).toBe(false);
+  });
+  test('SHOULD: the default deps read no runner env in these tests', () => {
+    expect(envConfigDirs(process.env)).toEqual(['/usr/bin', '/bin']);
   });
 });
