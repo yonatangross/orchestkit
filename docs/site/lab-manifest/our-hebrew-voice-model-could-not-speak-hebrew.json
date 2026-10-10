@@ -1,0 +1,12 @@
+{
+  "slug": "our-hebrew-voice-model-could-not-speak-hebrew",
+  "source": "docs/feat--lab-eleven-v4/our-hebrew-voice-model-could-not-speak-hebrew.html",
+  "title": "Our Hebrew Voice Model Could Not Speak Hebrew",
+  "description": "HQ-Bench TTS track, measured 2026-09-29: ElevenLabs Multilingual v2, v3, v4 and v4 Turbo on 12 real lines (reel voiceover and a site chat assistant, 6 English, 6 Hebrew), same voice and request body. An agent cannot listen, so every clip went back through local Whisper large-v3 and was scored by character error against its source. Hebrew: v2 53.6%, v3 6.7%, v4 6.4%, v4 Turbo 6.2%. v3 was best at English (5.3%) but bills 3.6x v4 per character and is the slowest to finish. v4 Turbo delivers first audio in a median 282 ms against 1206 ms on v2. Four animations (the v2 transcript glitch, a broken-telephone pipe over the real waveform, a 100-character error grid, a real-time race to first audio), twelve embedded players with real waveforms, what Whisper heard under each, latency and cost charts. 54 clips cost about $0.15.",
+  "tags": [
+    "evals",
+    "tts",
+    "hq-bench"
+  ],
+  "date": "2026-09-29"
+}
