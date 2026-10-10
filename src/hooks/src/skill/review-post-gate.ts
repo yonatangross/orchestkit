@@ -3,7 +3,12 @@
  * /ork:review-pr only)
  *
  * #4675: /ork:review-pr posted a review nobody asked for. This gate makes
- * posting opt-in in code, not in prose. The GitHub write surface is an
+ * posting opt-in in code, not in prose.
+ *
+ * The boundary is post and write (operator word on HOLD 6097396720, "Reads not
+ * a boundary"). The Bash read rules below are defense in depth only: the Read,
+ * Grep and Glob tools and a recursive read through a parent dir are out of
+ * scope, so no read-side gate is built for them. The GitHub write surface is an
  * allowlist (#4678 HOLDs at bce3afb6):
  *
  *   1. gh runs only its read verbs (pr view/diff/checks/list/status, issue

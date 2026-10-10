@@ -197,6 +197,8 @@ Identify: total files changed, lines added/removed, affected domains (frontend, 
 | Read file content | `Read(file_path="...")` | `bash cat` |
 | Check CI status | `Bash: gh pr checks` | Polling APIs |
 
+**What the post gate guards.** The boundary is post and write: no GitHub post without `--post`, and no Write, Edit or NotebookEdit outside the temp dir, `<repo>/.claude/chain/` and `$CLAUDE_JOB_DIR`. Reads are not a boundary. The Bash read rules (which paths `cat`, `grep` and `rg` may name) are defense in depth only. The Read, Grep and Glob tools, and a recursive `grep -r`, `rg` or `ls -R` through a parent dir, are out of scope, so a token file the model can name is readable; that includes `<repo>/.git/config`, where actions/checkout can keep the CI token. The fail-closed layer is no gh write credential in the run (#4677).
+
 <use_parallel_tool_calls>
 When gathering PR context, run independent operations in parallel:
 - `gh pr view` (PR metadata), `gh pr diff` (changed files), `gh pr checks` (CI status)
