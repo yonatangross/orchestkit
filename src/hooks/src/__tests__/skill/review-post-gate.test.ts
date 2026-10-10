@@ -1615,7 +1615,8 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     for (const tool of ['Write', 'Edit', 'NotebookEdit']) {
       for (const f of files) expect(write(tool, f), `${tool} ${f}`).toBe(true);
     }
-    for (const f of [`${ROOT}/src/a.ts`, `${ROOT}/.github/workflows/ci.yml`, `${ROOT}/docs/git/config.md`, '/tmp/review-4668/body.md']) {
+    // Allowed controls sit where Write is allowed at all (HOLD 6095687461 made it an allowlist).
+    for (const f of [`${ROOT}/.claude/chain/git-notes.md`, '/tmp/review-4668/github/ci.yml', '/tmp/review-4668/git/config.md', '/tmp/review-4668/body.md']) {
       expect(write('Write', f), f).toBe(false);
     }
   });
@@ -1629,7 +1630,7 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     for (const f of [`${ROOT}/.claude/settings.json`, `${ROOT}/.claude/settings.local.json`, `${ROOT}/.mcp.json`, '.mcp.json']) {
       expect(write('Write', f), f).toBe(true);
     }
-    expect(write('Write', `${ROOT}/.claude/notes.md`)).toBe(false);
+    expect(write('Write', `${ROOT}/.claude/chain/notes.md`)).toBe(false);
   });
   test('should 4: realPath fails closed when the link budget runs out', () => {
     symlinkSync('b', join(dir, 'a'));
@@ -1639,7 +1640,7 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
   });
   test('should 2: a git positional before -- goes through the real-path check', () => {
     // A link out of the temp dir (a temp-to-temp read is allowed anyway).
-    mkdirSync(join(dir, 'cwd'));
+    mkdirSync(join(dir, 'cwd', '.git'), { recursive: true });
     writeFileSync(join(dir, 'cwd', 'README.md'), 'x');
     symlinkSync('/etc', join(dir, 'cwd', 'lnk'));
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, join(dir, 'cwd')), ctx));

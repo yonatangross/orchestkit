@@ -62,6 +62,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { posix } from 'node:path';
 import { realPath } from '../lib/real-path.js';
+import { inGitRepo } from '../lib/repo-root.js';
 
 const HOOK = 'review-post-gate';
 const SKILL_NAMES = ['/ork:review-pr'] as const;
@@ -741,6 +742,8 @@ export interface ReviewPostGateDeps {
   realpath?: (p: string) => string;
   /** XDG_CONFIG_HOME, '' when unset (git then reads ~/.config/git). */
   xdgConfig?: () => string;
+  /** CLAUDE_JOB_DIR, '' when unset: verdict_writeback.py writes there. */
+  jobDir?: () => string;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -749,6 +752,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   home: () => process.env.HOME ?? '',
   cdpath: () => process.env.CDPATH ?? '',
   xdgConfig: () => process.env.XDG_CONFIG_HOME ?? '',
+  jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
   realpath: realPath,
 };
 
@@ -912,6 +916,29 @@ function reachesConfig(real: string, cwd: string, deps: ReviewPostGateDeps): boo
   });
 }
 
+const TEMP_DIR = /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/;
+const WRITE_DENY =
+  'review-pr writes only in the temp dir, <repo>/.claude/chain/ or $CLAUDE_JOB_DIR, by real path: any other file can be one a later step runs. Write the review body to a temp file.';
+
+/**
+ * Write is an allowlist (HOLD 6095687461 must 2): every name added to a
+ * denylist left the next file a later step runs. Both the path as typed and
+ * its normalized spelling are real-pathed, since the kernel and a text
+ * normalizer read x/../y differently when x is a link (should 3).
+ */
+function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boolean {
+  if (typeof fp !== 'string' || fp === '') return false;
+  const rp = deps.realpath ?? ((x: string) => x);
+  const home = (deps.home?.() ?? '').replace(/\/+$/, '');
+  const typed = fp.startsWith('~/') && home ? `${home}${fp.slice(1)}` : fp;
+  if (!typed.startsWith('/') && !cwd) return false;
+  const raw = typed.startsWith('/') ? typed : `${cwd}/${typed}`;
+  const job = (deps.jobDir?.() ?? '').replace(/\/+$/, '');
+  const roots = [cwd && inGitRepo(cwd) ? `${cwd}/.claude/chain` : '', job.startsWith('/') ? job : ''].filter((r) => r !== '').map((r) => rp(r).toLowerCase());
+  const ok = (x: string) => TEMP_DIR.test(x) || roots.some((r) => x === r || x.startsWith(`${r}/`));
+  return [raw, posix.normalize(raw)].every((x) => ok(rp(x).toLowerCase()));
+}
+
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
@@ -968,10 +995,14 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     const home = (deps.home?.() ?? '').toLowerCase().replace(/\/+$/, '');
     const xdg = (deps.xdgConfig?.() ?? '').toLowerCase();
     const homeReal = home && deps.realpath ? deps.realpath(home).toLowerCase() : home;
-    if (p !== null && (steersCommand(p, home, xdg) || (real !== null && (steersCommand(real, home, xdg) || steersCommand(real, homeReal, xdg) || reachesConfig(real, input.cwd ?? '', deps))))) {
+    // The normalized spelling is real-pathed too: x/../cfg is <cwd>/cfg by
+    // text but <x's parent>/cfg to the kernel (HOLD 6095687461 should 3).
+    const realNorm = real !== null && deps.realpath ? deps.realpath(posix.normalize(raw)).toLowerCase() : null;
+    const steers = (x: string | null) => x !== null && (steersCommand(x, home, xdg) || steersCommand(x, homeReal, xdg) || reachesConfig(x, input.cwd ?? '', deps));
+    if (p !== null && (steersCommand(p, home, xdg) || steers(real) || steers(realNorm))) {
       return deny(ctx, input, 'review-pr may not write git config, git hooks, attributes, or the project Claude settings or .mcp.json: a later read would run what they name.');
     }
-    return outputSilentSuccess();
+    return writeAllowed(fp, input.cwd ?? '', deps) ? outputSilentSuccess() : deny(ctx, input, WRITE_DENY);
   }
   if (typeof input.tool_name === 'string' && input.tool_name.startsWith('mcp__')) {
     if (MCP_ALLOWED.test(input.tool_name)) return outputSilentSuccess();
@@ -1456,6 +1487,7 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   // the gate can resolve (conductor145 at 348161fb). rg -g filters instead.
   if (arg.glob) return `a glob in a path (${t}); name the file, or use rg -g`;
   if (!ctx.cwd) return 'no cwd to resolve paths against';
+  if (!inGitRepo(ctx.cwd)) return `the cwd (${ctx.cwd}) is in no git repo, so there is no repo to read`;
   // The cwd is taken as the repo root, so it may not be the home dir or above it.
   const rootReal = ctx.realpath(posix.normalize(ctx.cwd)).replace(/\/+$/, '');
   const homeReal = ctx.home ? ctx.realpath(posix.normalize(ctx.home)) : '';
