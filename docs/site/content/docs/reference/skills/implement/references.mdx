@@ -352,13 +352,12 @@ Agent(
      - Factory classes for test data
      - MSW handlers for frontend API mocking
 
-  5. COVERAGE ANALYSIS
-     - Run: poetry run pytest --cov=app --cov-report=term-missing
-     - Run: npm test -- --coverage
-     - Target: 80% minimum
+  5. COVERAGE TARGET
+     - Target: 80% minimum. The coordinator measures it after the merge.
 
-  Write REAL test files to disk.
-  Run tests after writing to verify they pass.
+  Write REAL test files to disk and commit them in your worktree.
+  Do NOT treat a test run here as the verdict: your worktree holds the base
+  tree, not the backend and frontend code, which merge after you return.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS""",
@@ -366,9 +365,23 @@ Agent(
 )
 ```
 
+### After Phase 5: merge, then run the tests
+
+Each writer worked in its own worktree, so no agent saw the others' code. When
+all 4 return, the coordinator merges their worktree branches into the feature
+branch (SKILL.md "Worktree-Isolated Implementation"), and only then runs the
+suite on the merged tree:
+
+```bash
+poetry run pytest --cov=app --cov-report=term-missing
+npm test -- --coverage
+```
+
+A failure here goes back to the owning agent, or to Phase 6.
+
 ### Phase 5: Teams Mode
 
-In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Each writer teammate MUST get its own worktree (`isolation="worktree"` at creation, #4557). See [Team Worktree Setup](team-worktree-setup.md).
 
 ---
 
