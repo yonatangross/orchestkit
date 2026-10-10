@@ -1832,3 +1832,34 @@ describe('(HOLD 6096088108) no temp write into a work tree; repo walk bounds; sc
     expect(write(join(xdg, 'notes.md'), ROOT, deps)).toBe(false);
   });
 });
+
+describe('(HOLD 6096491908) a HOME or a git dir under the temp dir is not temp', () => {
+  const tr = () => transcript([typed('4668')]);
+  test('must 1: HOME under the temp dir is neither written nor read as temp', () => {
+    const home = join(dir, 'home');
+    mkdirSync(join(home, '.config', 'gh'), { recursive: true });
+    writeFileSync(join(home, '.config', 'gh', 'hosts.yml'), 'x');
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => home, realpath: realPath, xdgConfig: () => '' };
+    const write = (file: string) => {
+      const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      return denied(reviewPostGate(input, ctx, deps));
+    };
+    for (const f of [join(home, '.zshenv'), join(home, '.bashrc'), home]) expect(write(f), f).toBe(true);
+    expect(denied(reviewPostGate(bash(`cat ${join(home, '.config', 'gh', 'hosts.yml')}`, tr()), ctx, deps))).toBe(true);
+    expect(write(join(dir, 'body.md'))).toBe(false);
+    expect(denied(reviewPostGate(bash(`cat ${join(dir, 'body.md')}`, tr()), ctx, deps))).toBe(false);
+  });
+  test('should 2: a bare repo or a separate git dir under the temp dir is a repo', () => {
+    for (const gd of ['origin.git', 'gd']) {
+      mkdirSync(join(dir, gd, 'objects'), { recursive: true });
+      mkdirSync(join(dir, gd, 'hooks'));
+      writeFileSync(join(dir, gd, 'HEAD'), 'ref: refs/heads/main\n');
+    }
+    const write = (file: string) => {
+      const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      return denied(reviewPostGate(input, ctx));
+    };
+    for (const f of [join(dir, 'origin.git', 'hooks', 'post-receive'), join(dir, 'gd', 'config')]) expect(write(f), f).toBe(true);
+    expect(write(join(dir, 'body.md'))).toBe(false);
+  });
+});
