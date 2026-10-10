@@ -711,7 +711,7 @@ export interface OptIn {
 // The forms post-review.mjs takes for --pr, which it hands to gh unchanged.
 const PR_URL = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/\d+$/;
 /** The skill's own resolve call with one PR URL and nothing else. */
-const RESOLVE_URL = /^bash\s+\/\S*\/skills\/review-pr\/scripts\/resolve-target\.sh\s+https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/\d+$/;
+const RESOLVE_URL = /^bash\s+\/\S*\/skills\/review-pr\/scripts\/resolve-target\.sh\s+https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/pull\/\d+$/;
 const PR_NUM = /^\d+$/;
 
 /**
@@ -1096,13 +1096,20 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
+/**
+ * A deny that blocks the call but keeps the turn: the deny text asks the model
+ * to print the review, which continue:false would stop (CR 4237744111). The
+ * throw path uses it too (HOLD 6098834922 should 3).
+ */
+function keepTurnDeny(reason: string): HookResult {
+  const { stopReason: _stop, ...denied } = outputDeny(reason);
+  return { ...denied, continue: true };
+}
+
 function deny(ctx: HookContext, input: HookInput, reason: string): HookResult {
   // Build the result first: a log that throws must not turn a deny into an
   // error the runner reports as success (HOLD 6084834846 M1).
-  // The deny blocks the call but keeps the turn: the deny text asks the model
-  // to print the review, which continue:false would stop (CR 4237744111).
-  const { stopReason: _stop, ...denied } = outputDeny(reason);
-  const result: HookResult = { ...denied, continue: true };
+  const result = keepTurnDeny(reason);
   try {
     ctx.logPermission('deny', reason, input);
   } catch {
@@ -1129,7 +1136,7 @@ export function reviewPostGate(
   try {
     return gate(input, ctx, deps);
   } catch (err) {
-    return outputDeny(`review-post-gate failed (${err instanceof Error ? err.message : String(err)}), so it denies. Print the review and stop.`);
+    return keepTurnDeny(`review-post-gate failed (${err instanceof Error ? err.message : String(err)}), so it denies. Print the review and stop.`);
   }
 }
 

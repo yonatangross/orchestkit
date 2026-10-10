@@ -28,8 +28,19 @@ import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync, 
 import path from 'node:path';
 
 const EVENTS = { approve: '--approve', 'request-changes': '--request-changes', comment: '--comment' };
-// A verdict word, alone or after a "Verdict:" label (HOLD 6098152787 should).
-const VERDICT_RE = /^(?:[Vv]erdict[\s*_`:]*)?(?:LAND|HOLD|XREVIEW)\b/;
+// A verdict line, as a class (HOLD 6098834922 must 1). Leading list markers,
+// emphasis, digits and emoji are stripped first. Then a line is a verdict when
+// it is a "Verdict" label in any case, followed by ':', '-' or space and a
+// verdict word; or a verdict word in capitals; or a verdict word in any case
+// that ends the line or meets ':', '-', '.' or '!' ("hold on" is prose).
+const VERDICT_WORD = '(?:land|hold|xreview)';
+const VERDICT_LABELLED = new RegExp(`^verdict[\\s*_\`~]*[:\\-\\u2013\\u2014]?[\\s*_\`~]*${VERDICT_WORD}\\b`, 'i');
+const VERDICT_CAPS = /^(?:LAND|HOLD|XREVIEW)\b/;
+const VERDICT_PUNCT = new RegExp(`^${VERDICT_WORD}\\s*(?:[:\\-.!]|$)`, 'i');
+const isVerdictLine = (line) => {
+  const t = line.replace(/^[^\p{L}]+/u, '');
+  return VERDICT_LABELLED.test(t) || VERDICT_CAPS.test(t) || VERDICT_PUNCT.test(t);
+};
 const MAX_BODY_BYTES = 65536; // GitHub's own body limit is 65,536 characters
 const SECRET_SHAPES = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}/,
@@ -143,11 +154,11 @@ if (SECRET_SHAPES.some((re) => re.test(body))) refuse('--body-file holds a secre
 // Every line counts, with any leading marks, emoji or markdown taken off: a
 // verdict word below a summary line or behind an emoji is still a verdict
 // (HOLD 6097900519 should 4).
-const bare = body.split('\n').map((l) => l.replace(/^[^\p{L}\p{N}]+/u, '')).find((l) => VERDICT_RE.test(l)) ?? '';
+const bare = (body.split('\n').find(isVerdictLine) ?? '').trim();
 if (opts.kind === 'review' && (opts.event === 'approve' || opts.event === 'request-changes') && !opts.postVerdict) {
   refuse(`a ${opts.event} review is a verdict. That needs --post-verdict typed by the user.`);
 }
-if (VERDICT_RE.test(bare) && !opts.postVerdict) {
+if (bare !== '' && !opts.postVerdict) {
   refuse(`a line is verdict-shaped ("${bare.slice(0, 40)}"). That needs --post-verdict typed by the user.`);
 }
 

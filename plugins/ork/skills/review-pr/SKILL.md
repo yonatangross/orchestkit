@@ -346,7 +346,7 @@ After synthesis, persist critical/high findings to the memory graph for cross-se
 
 This skill never posts unless the user typed `--post` on `/ork:review-pr` (#4675). Without it, print the review and stop: the user posts it, or re-runs with `--post`. Never ask to post and never post because the review "looks done".
 
-Every post goes through `scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A body whose first line is verdict-shaped (`LAND`, `HOLD`, `XREVIEW`) also needs `--post-verdict` typed by the user.
+Every post goes through `scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A body with a verdict-shaped line anywhere (`LAND`, `HOLD`, `XREVIEW`, also after a `Verdict:` label, a list marker or emphasis) also needs `--post-verdict` typed by the user.
 
 ```bash
 # Only when the user typed --post (Argument Resolution). Write the review under /tmp first.

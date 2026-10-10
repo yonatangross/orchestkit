@@ -84,15 +84,18 @@ export function hasLink(p: string, skip = 1): boolean {
 }
 
 /**
- * The link count of an existing file, 0 when it is absent or cannot be read:
+ * The link count of an existing file, 0 when it is absent, more than 1 when
+ * stat fails another way:
  * a file with another hard link is that other file too (codex XREVIEW
  * 6098111473 P2).
  */
 export function linkCount(p: string): number {
   try {
     return statSync(p).nlink;
-  } catch {
-    // broad: fail-open: an absent target has no other name.
-    return 0;
+  } catch (err) {
+    // Only an absent file has no other name; any other stat error (EACCES,
+    // ELOOP) fails closed as a count above 1 (CR 4238037662).
+    const code = (err as NodeJS.ErrnoException).code;
+    return code === 'ENOENT' || code === 'ENOTDIR' ? 0 : Number.POSITIVE_INFINITY;
   }
 }
