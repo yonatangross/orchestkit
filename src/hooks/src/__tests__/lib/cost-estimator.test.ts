@@ -90,6 +90,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     'claude-fable-5-1': { read: 0.025 },
     // CC 2.1.280 CHANGELOG: $4 input with $0.20/Mtok cache reads, a 0.05x read.
     'claude-opus-5-5': { read: 0.05 },
+    // Pricing page 2026-10-10, footnote 2: Sonnet 5.5 cache hits are 0.05x input ($0.10).
+    'claude-sonnet-5-5': { read: 0.05 },
     'gemini-3.8-flash': { write: 1.0 },
   };
 
