@@ -344,9 +344,10 @@ Agent(
   5. COVERAGE TARGET
      - Target: 80% minimum. The coordinator measures it after the merge.
 
-  Write REAL test files to disk and commit them in your worktree.
-  Do NOT treat a test run here as the verdict: your worktree holds the base
-  tree, not the backend and frontend code, which merge after you return.
+  Write the tests to disk and commit them in your worktree. Failures from
+  missing implementation are expected: your worktree holds the base tree, not
+  the backend and frontend code, which merge after you return. Report them,
+  never stub production code to make them pass.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS""",
