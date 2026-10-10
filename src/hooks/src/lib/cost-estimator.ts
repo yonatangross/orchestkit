@@ -298,7 +298,8 @@ export function initPricingConfig(): void {
 // ============================================================================
 
 function resolveModelKey(modelName: string): string {
-  const aliased = MODEL_ALIASES[modelName] || modelName;
+  // Own keys only: a name such as "toString" must not read Object.prototype.
+  const aliased = Object.hasOwn(MODEL_ALIASES, modelName) ? MODEL_ALIASES[modelName] : modelName;
   // Claude ids are hyphenated ("claude-opus-5-5"); a dotted spelling such as
   // "claude-opus-5.5" names the same model. Only claude-* ids are rewritten:
   // Gemini rows are dotted on purpose ("gemini-3.8-flash").
@@ -321,7 +322,7 @@ function matchPricingKey(modelName: string): string | null {
   const config = getCostConfig();
   const key = resolveModelKey(modelName);
   // Try exact match, then partial match
-  if (config.models[key]) return key;
+  if (Object.hasOwn(config.models, key)) return key;
 
   // Partial match, two directions with different rules:
   //   1. the name EXTENDS a priced id: only a session-label suffix may ride on

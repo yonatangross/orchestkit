@@ -581,6 +581,22 @@ describe('managed modelPricing (#3878)', () => {
     expect(getPricing('gemini-3.8-flash').input_per_mtok).toBe(0.5);
   });
 
+  it('prototype-named user rows never drop the valid rows beside them', () => {
+    // #4698 codex review: MODEL_ALIASES["toString"] is inherited, so a row
+    // keyed "toString" threw inside the merge and every user row was lost.
+    const ROW = { input_per_mtok: 6, output_per_mtok: 30, cache_read_per_mtok: 0.6, cache_write_per_mtok: 7.5 };
+    _virtualFiles.set(
+      USER,
+      `{"models": {"toString": ${JSON.stringify(ROW)}, "constructor": ${JSON.stringify(ROW)}, "__proto__": ${JSON.stringify(ROW)}, "claude-opus-5": ${JSON.stringify(ROW)}}}`,
+    );
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(6);
+    expect(resolveModelKey('toString')).toBe('toString');
+    expect(resolveModelKey('hasOwnProperty')).toBe('hasOwnProperty');
+    // An inherited name is not a priced row: it takes the fallback, never a function.
+    _virtualFiles.clear();
+    expect(getPricing('valueOf').input_per_mtok).toBe(getPricing('claude-sonnet-5-5').input_per_mtok);
+  });
+
   it('multiplier is applied last, on top of overrides and the user file alike', () => {
     _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5': { input_per_mtok: 4, output_per_mtok: 20, cache_read_per_mtok: 0.4, cache_write_per_mtok: 5 } } }));
     setManaged({ modelPricing: { multiplier: 0.5, overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
