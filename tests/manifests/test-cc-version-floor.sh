@@ -253,8 +253,20 @@ else
                     log_fail "plugin-validation.yml CC pin" "line ${pin_line%%:*} installs ${BASH_REMATCH[1]}, want the floor '$SOT' (read supported_floor from shared/cc-support.json)"
                     PIN_BAD=$((PIN_BAD + 1))
                 fi
-            elif ! grep -qE "supported_floor" "$PV_YML" || ! grep -qF "shared/cc-support.json" "$PV_YML"; then
-                log_fail "plugin-validation.yml CC pin" "line ${pin_line%%:*} is not a literal floor and the workflow never reads supported_floor from shared/cc-support.json"
+            elif [[ "$ref" =~ ^\$\{?([A-Za-z_][A-Za-z0-9_]*) ]]; then
+                # A variable pin: the LAST non-comment assignment of that variable
+                # above the pin must be the jq read of supported_floor. Comments
+                # that name the file do not count (a CC_FLOOR=2.1.251 under such a
+                # comment passed the old whole-file grep).
+                pin_var="${BASH_REMATCH[1]}"
+                pin_no="${pin_line%%:*}"
+                feed=$(awk -v n="$pin_no" -v v="$pin_var" 'NR < n && $0 !~ /^[[:space:]]*#/ && $0 ~ ("(^|[[:space:]])" v "=") {last=$0} END{print last}' "$PV_YML")
+                if ! [[ "$feed" =~ $pin_var=\$\(jq\ -e?r\ \'\.supported_floor\'\ shared/cc-support\.json\) ]]; then
+                    log_fail "plugin-validation.yml CC pin" "line $pin_no installs \$$pin_var, but its last assignment is '${feed#"${feed%%[![:space:]]*}"}', want $pin_var=\$(jq -er '.supported_floor' shared/cc-support.json)"
+                    PIN_BAD=$((PIN_BAD + 1))
+                fi
+            else
+                log_fail "plugin-validation.yml CC pin" "line ${pin_line%%:*} is neither a literal floor nor a variable fed from supported_floor in shared/cc-support.json"
                 PIN_BAD=$((PIN_BAD + 1))
             fi
         done <<< "$PIN_LINES"

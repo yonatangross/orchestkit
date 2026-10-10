@@ -71,6 +71,9 @@ if (cache) {
   if (!(tm >= 1 && tm <= 5)) {
     fail('cache-bounded', `cache step "${cache.name}" has timeout-minutes ${cache['timeout-minutes']}, want 1 to 5`);
   }
+  if (cache['continue-on-error'] !== true) {
+    fail('cache-bounded', `cache step "${cache.name}" must set continue-on-error: true, so a timed-out restore is a miss, not a red job`);
+  }
   const seg = Number(cache.env?.SEGMENT_DOWNLOAD_TIMEOUT_MINS);
   if (!(seg >= 1 && (!(tm > 0) || seg < tm))) {
     fail(
