@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167)** · 2026-10-10
+
+- **cc:** adopt Claude Code 2.1.289 through 2.1.296 (#4702)
+
 **[v10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166)** · 2026-10-09
 
 - **review-pr:** standards pass with a review-only standards file (#4671)
@@ -665,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.160](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.159...v10.0.0-beta.160)** · 2026-10-06
 
 - **deps-dev:** bump vitest (#4610)
-
-**[v10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159)** · 2026-10-06
-
-- **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees (#4642)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
