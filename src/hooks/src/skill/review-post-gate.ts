@@ -796,6 +796,9 @@ function namedRoots(deps: ReviewPostGateDeps, rp: (p: string) => string, cwd: st
   // bash expands a leading ~/ in a PATH entry at lookup, so HOME resolves it.
   const home = (deps.home?.() ?? '').replace(/\/+$/, '');
   const values = [...(env?.() ?? []), ...(xdg ? [xdg] : [])].map((v) => (v.startsWith('~/') && home.startsWith('/') ? `${home}${v.slice(1)}` : v));
+  // git also expands ~user/, which the gate cannot resolve: fail closed
+  // (codex22 XREVIEW 6097518008 P2).
+  if (values.some((v) => v.startsWith('~'))) return null;
   if (values.some((v) => !v.startsWith('/')) && !cwd.startsWith('/')) return null;
   return tempRoots(values.map((v) => (v.startsWith('/') ? v : posix.join(cwd, v))), rp);
 }
