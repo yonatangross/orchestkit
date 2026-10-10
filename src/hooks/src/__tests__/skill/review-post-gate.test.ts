@@ -2055,3 +2055,22 @@ describe('(product-10 at 789ed83e) the whole XDG config dir, XDG data and state,
     expect(envConfigDirs(process.env)).toEqual(['/usr/bin', '/bin']);
   });
 });
+
+describe('(codex22 XREVIEW 6097518008) a ~user env value fails closed', () => {
+  test('P2: GIT_CONFIG_GLOBAL=~runner/.gitconfig cannot be resolved, so writes and reads deny', () => {
+    const tr = () => transcript([typed('4668')]);
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    writeFileSync(join(repo, 'README.md'), 'x');
+    const deps = (env: string[]) => ({ readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '', configEnv: () => env });
+    const write = (env: string[]) => {
+      const input = { tool_name: 'Write', session_id: 's', cwd: repo, tool_input: { file_path: join(dir, 'body.md'), content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+      return denied(reviewPostGate(input, ctx, deps(env)));
+    };
+    const read = (env: string[]) => denied(reviewPostGate(bash(`cat ${join(repo, 'README.md')}`, tr(), TOOL, repo), ctx, deps(env)));
+    expect(write(['~runner/.gitconfig'])).toBe(true);
+    expect(read(['~runner/.gitconfig'])).toBe(true);
+    expect(write(['~/.gitconfig'])).toBe(false);
+    expect(read(['~/.gitconfig'])).toBe(false);
+  });
+});
