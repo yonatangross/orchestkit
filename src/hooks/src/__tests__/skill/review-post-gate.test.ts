@@ -24,7 +24,7 @@ import { realPath } from '../../lib/real-path.js';
 // is checked for a .git at or above it for real (HOLD 6095687461 should 4).
 vi.mock('../../lib/repo-root.js', async (orig) => {
   const actual = await orig<typeof import('../../lib/repo-root.js')>();
-  return { inGitRepo: (d: string) => d === '/test/project' || d.startsWith('/test/project/') || actual.inGitRepo(d) };
+  return { inGitRepo: (d: string, ...rest: Parameters<typeof actual.inGitRepo>[1][]) => d === '/test/project' || d.startsWith('/test/project/') || actual.inGitRepo(d, ...rest) };
 });
 
 let dir: string;
@@ -1771,5 +1771,51 @@ describe('(codex22 XREVIEW 6095963428) an allowed root is no link; temp is the t
     const inside = { ...input, tool_input: { file_path: join(dir, 'body.md'), content: 'x' } } as HookInput;
     expect(denied(reviewPostGate(inside, ctx))).toBe(false);
     expect(denied(reviewPostGate(bash(`cat ${join(dir, 'body.md')}`, tr()), ctx))).toBe(false);
+  });
+});
+
+describe('(HOLD 6096088108) no temp write into a work tree; repo walk bounds; script vars', () => {
+  const tr = () => transcript([typed('4668')]);
+  const write = (file: string, cwd = ROOT, deps?: Parameters<typeof reviewPostGate>[2]) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, deps));
+  };
+  test('must 1: a file of a git repo under the temp dir is not a temp write', () => {
+    const repo = join(dir, 'tmprepo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    for (const f of [join(repo, '.claude', 'hooks', 'pre.sh'), join(repo, 'scripts', 'hooks', 'x.py'), join(repo, 'README.md')]) {
+      expect(write(f), f).toBe(true);
+    }
+    expect(write(join(dir, 'body.md'))).toBe(false);
+    expect(write(join(repo, '.claude', 'chain', 'handoff.md'), repo)).toBe(false);
+  });
+  test('should 2: inGitRepo stops at HOME and skips a .git at HOME or a temp root', async () => {
+    const { inGitRepo } = await vi.importActual<typeof import('../../lib/repo-root.js')>('../../lib/repo-root.js');
+    mkdirSync(join(dir, 'h', '.git'), { recursive: true });
+    mkdirSync(join(dir, 'h', 'desk'));
+    mkdirSync(join(dir, 't', '.git'), { recursive: true });
+    mkdirSync(join(dir, 't', 'x'));
+    mkdirSync(join(dir, 'h', 'r', '.git'), { recursive: true });
+    mkdirSync(join(dir, 'h', 'r', 'sub'));
+    const opts = { home: join(dir, 'h'), temps: [join(dir, 't')] };
+    expect(inGitRepo(join(dir, 'h', 'desk'), opts)).toBe(false);
+    expect(inGitRepo(join(dir, 'h'), opts)).toBe(false);
+    expect(inGitRepo(join(dir, 't', 'x'), opts)).toBe(false);
+    expect(inGitRepo(join(dir, 'h', 'r', 'sub'), opts)).toBe(true);
+  });
+  test('should 3: a skill script call takes no variable but the writeback job dir', () => {
+    const S = '/test/plugin-root/skills/review-pr/scripts';
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of [`bash ${S}/resolve-target.sh "$GH_TOKEN"`, `node ${S}/collect-rules.mjs --repo /test/project "$X"`]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at(`bash ${S}/resolve-target.sh 4668`)).toBe(false);
+    expect(at(`python3 ${S}/verdict_writeback.py "$CLAUDE_JOB_DIR"`)).toBe(false);
+  });
+  test('should 4: the git config dir follows XDG_CONFIG_HOME inside the temp dir too', () => {
+    const xdg = join(dir, 'xdg');
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => xdg };
+    expect(write(join(xdg, 'git', 'config'), ROOT, deps)).toBe(true);
+    expect(write(join(xdg, 'notes.md'), ROOT, deps)).toBe(false);
   });
 });
