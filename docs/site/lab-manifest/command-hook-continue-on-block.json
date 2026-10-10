@@ -1,0 +1,12 @@
+{
+  "slug": "command-hook-continue-on-block",
+  "source": "docs/fix--command-hook-continue-on-block/index.html",
+  "title": "Claude Desktop loads ork again: continueOnBlock off command hooks",
+  "description": "Desktop refused ork for continueOnBlock on 4 command hooks; Claude Code honors the key on prompt hooks only, so it is removed with no CLI change.",
+  "tags": [
+    "hooks",
+    "desktop",
+    "bug"
+  ],
+  "date": "2026-10-09"
+}

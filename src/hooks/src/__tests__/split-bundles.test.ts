@@ -489,9 +489,11 @@ describe('Cross-Bundle Consistency', () => {
     //              only user; once it ran inline, the first loaded the checked-out
     //              branch's PR into a review of another PR, the second a second
     //              output contract.
+    // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
+    //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
     // 180 -> 181: #4297 pretool/task/route-observer, async Agent route
     //              observation moved out of the sync task dispatcher.
-    expect(totalHooks).toBe(181); // 180 + 1 (#4297 route-observer)
+    expect(totalHooks).toBe(182); // Both added handlers survive the main merge.
   });
 });
 

@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 170 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 172 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -263,7 +263,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 170-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 172-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -282,7 +282,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "170 Hooks: What Fires When",
+    "title": "172 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -998,7 +998,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/hook-validation",
     "title": "Doctor: Hook Validation",
-    "description": "OrchestKit uses 153 global hook entries across 29 event types, compiled into 11 bundles."
+    "description": "OrchestKit uses 149 global hook entries across 29 event types, compiled into 11 bundles."
   },
   {
     "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",

@@ -14,7 +14,7 @@
  *   - ORK_GOAL_MAX_TOKENS_PER_SESSION = 250_000
  *
  * The companion `prompt/goal-tracker` reads the brake file and refuses the
- * next `/goal` with `continueOnBlock: true` so the user can override.
+ * next `/goal`; the user overrides by deleting the brake file (#4684).
  *
  * Async: write-side only, must not block session exit.
  */
