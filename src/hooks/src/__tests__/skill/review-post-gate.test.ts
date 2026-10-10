@@ -14,7 +14,7 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
 import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -1733,5 +1733,43 @@ describe('(HOLD 6095687461) Write is an allowlist: temp dir, .claude/chain, the 
     const at = (cmd: string, cwd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
     expect(at('cat secrets.txt', join(dir, 'desk'))).toBe(true);
     expect(at('cat a.txt', join(dir, 'repo2', 'sub'))).toBe(false);
+  });
+});
+
+describe('(codex22 XREVIEW 6095963428) an allowed root is no link; temp is the temp dir only', () => {
+  const tr = () => transcript([typed('4668')]);
+  const write = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    // No temp dir here, so only the chain and job roots can allow a write.
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '', jobDir: () => '', tempDirs: () => [], ...extra };
+    return denied(reviewPostGate(input, ctx, deps));
+  };
+  test('P1: a .claude/chain that is a link to .github/workflows does not move the root', () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, '.github', 'workflows'), { recursive: true });
+    mkdirSync(join(repo, '.claude'));
+    symlinkSync(join(repo, '.github', 'workflows'), join(repo, '.claude', 'chain'));
+    expect(write(join(repo, '.claude', 'chain', 'ci.yml'), repo)).toBe(true);
+    const ok = join(dir, 'ok');
+    mkdirSync(join(ok, '.git'), { recursive: true });
+    mkdirSync(join(ok, '.claude', 'chain'), { recursive: true });
+    expect(write(join(ok, '.claude', 'chain', 'handoff.md'), ok)).toBe(false);
+  });
+  test('P1 class: a job dir that is a link does not move the root either', () => {
+    mkdirSync(join(dir, 'workflows'));
+    symlinkSync(join(dir, 'workflows'), join(dir, 'job'));
+    expect(write(join(dir, 'job', 'ci.yml'), ROOT, { jobDir: () => join(dir, 'job') })).toBe(true);
+    mkdirSync(join(dir, 'realjob'));
+    expect(write(join(dir, 'realjob', 'verdict.json'), ROOT, { jobDir: () => join(dir, 'realjob') })).toBe(false);
+  });
+  test('P2: a path beside the temp dir is no temp path, for Write and for a read', () => {
+    const beside = join(dirname(realpathSync.native(tmpdir())), 'C', 'cache.json');
+    const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: beside, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    expect(denied(reviewPostGate(input, ctx))).toBe(true);
+    expect(denied(reviewPostGate(bash(`cat ${beside}`, tr()), ctx))).toBe(true);
+    const inside = { ...input, tool_input: { file_path: join(dir, 'body.md'), content: 'x' } } as HookInput;
+    expect(denied(reviewPostGate(inside, ctx))).toBe(false);
+    expect(denied(reviewPostGate(bash(`cat ${join(dir, 'body.md')}`, tr()), ctx))).toBe(false);
   });
 });
