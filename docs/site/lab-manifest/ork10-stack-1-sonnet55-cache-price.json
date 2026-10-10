@@ -1,0 +1,11 @@
+{
+  "slug": "ork10-stack-1-sonnet55-cache-price",
+  "source": "docs/fix--ork10-stack-1-sonnet55-cache-price/index.html",
+  "title": "Sonnet 5.5 cache reads cost $0.10 per MTok",
+  "description": "Sonnet 5.5 cache reads are 0.05x input ($0.10 per MTok, pricing page 2026-10-10, CC 2.1.296); the cost table and estimator now match.",
+  "tags": [
+    "pricing",
+    "hooks"
+  ],
+  "date": "2026-10-09"
+}

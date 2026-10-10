@@ -94,13 +94,35 @@ function getUserPricingConfig(): PricingConfig {
       return {
         ...DEFAULT_PRICING,
         ...userConfig,
-        models: { ...DEFAULT_PRICING.models, ...userConfig.models },
+        models: { ...DEFAULT_PRICING.models, ...normalizeUserModels(userConfig.models) },
       };
     } catch {
       // Fall through to defaults
     }
   }
   return DEFAULT_PRICING;
+}
+
+/**
+ * Key user rows the way lookups resolve names: lookups rewrite a dotted
+ * claude-* name ("claude-opus-5.5") before the exact match, so a row kept
+ * under the dotted key was never read. When a file has both spellings of
+ * one model, the row already in canonical form wins.
+ */
+function normalizeUserModels(models: unknown): Record<string, ModelPricing> {
+  if (!models || typeof models !== 'object' || Array.isArray(models)) return {};
+  const rows = Object.entries(models as Record<string, ModelPricing>).filter(
+    ([id]) => id !== '__proto__' && id !== 'constructor',
+  );
+  const out: Record<string, ModelPricing> = {};
+  for (const [id, row] of rows) {
+    if (resolveModelKey(id) === id) out[id] = row;
+  }
+  for (const [id, row] of rows) {
+    const key = resolveModelKey(id);
+    if (!(key in out)) out[key] = row;
+  }
+  return out;
 }
 
 // ============================================================================
@@ -276,7 +298,12 @@ export function initPricingConfig(): void {
 // ============================================================================
 
 function resolveModelKey(modelName: string): string {
-  return MODEL_ALIASES[modelName] || modelName;
+  // Own keys only: a name such as "toString" must not read Object.prototype.
+  const aliased = Object.hasOwn(MODEL_ALIASES, modelName) ? MODEL_ALIASES[modelName] : modelName;
+  // Claude ids are hyphenated ("claude-opus-5-5"); a dotted spelling such as
+  // "claude-opus-5.5" names the same model. Only claude-* ids are rewritten:
+  // Gemini rows are dotted on purpose ("gemini-3.8-flash").
+  return aliased.startsWith('claude-') ? aliased.replace(/(\d)\.(\d)/g, '$1-$2') : aliased;
 }
 
 /**
@@ -290,11 +317,12 @@ function isSessionLabelSuffix(rest: string): boolean {
   return /^(\[[^\]]+\])+$/.test(rest);
 }
 
-function getPricing(modelName: string): ModelPricing {
+/** The priced row id a model name resolves to, or null when it takes the fallback. */
+function matchPricingKey(modelName: string): string | null {
   const config = getCostConfig();
   const key = resolveModelKey(modelName);
   // Try exact match, then partial match
-  if (config.models[key]) return config.models[key];
+  if (Object.hasOwn(config.models, key)) return key;
 
   // Partial match, two directions with different rules:
   //   1. the name EXTENDS a priced id: only a session-label suffix may ride on
@@ -306,10 +334,17 @@ function getPricing(modelName: string): ModelPricing {
   //      same on core #2389). An unpriced product takes the fallback instead.
   //   2. the name is a PREFIX of a priced id ("claude-opus" -> claude-opus-4-6):
   //      a family shorthand, kept as before.
-  for (const [k, v] of Object.entries(config.models)) {
-    if (key.startsWith(k) && isSessionLabelSuffix(key.slice(k.length))) return v;
-    if (k.includes(key)) return v;
+  for (const k of Object.keys(config.models)) {
+    if (key.startsWith(k) && isSessionLabelSuffix(key.slice(k.length))) return k;
+    if (k.includes(key)) return k;
   }
+  return null;
+}
+
+function getPricing(modelName: string): ModelPricing {
+  const config = getCostConfig();
+  const matched = matchPricingKey(modelName);
+  if (matched) return config.models[matched];
 
   // Default to sonnet pricing as fallback
   return (
@@ -461,6 +496,7 @@ export function formatTokens(count: number): string {
 // the vocab-derived pricing table + alias resolution + fallback behavior.
 export const __internals = {
   resolveModelKey,
+  matchPricingKey,
   getPricing,
   calculateCost,
   getManagedSettingsPath,
