@@ -739,6 +739,8 @@ export interface ReviewPostGateDeps {
   cdpath?: () => string;
   /** The real path (symlinks and firmlinks resolved), for the path compares. */
   realpath?: (p: string) => string;
+  /** XDG_CONFIG_HOME, '' when unset (git then reads ~/.config/git). */
+  xdgConfig?: () => string;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -746,6 +748,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   pluginRoot: () => (process.env.CLAUDE_PLUGIN_ROOT ?? '').trim().replace(/\/+$/, ''),
   home: () => process.env.HOME ?? '',
   cdpath: () => process.env.CDPATH ?? '',
+  xdgConfig: () => process.env.XDG_CONFIG_HOME ?? '',
   realpath: realPath,
 };
 
@@ -873,6 +876,23 @@ function targetOf(p: string, t: PathTargets): 'config' | 'code' | null {
   return null;
 }
 
+/**
+ * A file whose text git or Claude Code later runs as a command: the git dir
+ * (config, hooks), attributes and modules, the user's git config, and the
+ * project's Claude settings and MCP config. A write there steers a later
+ * allowlisted read into a post (HOLD 6095191454). p is lowercase.
+ */
+function steersCommand(p: string, home: string, xdg: string): boolean {
+  const parts = p.split('/');
+  const base = parts[parts.length - 1];
+  if (parts.includes('.git') || ['.gitattributes', '.gitmodules', '.mcp.json'].includes(base)) return true;
+  if (parts[parts.length - 2] === '.claude' && /^settings(?:\.[\w-]+)?\.json$/.test(base)) return true;
+  if (home && p === `${home}/.gitconfig`) return true;
+  const configHome = xdg || (home ? `${home}/.config` : '');
+  const gitDir = configHome ? `${configHome.replace(/\/+$/, '')}/git` : '';
+  return gitDir !== '' && (p === gitDir || p.startsWith(`${gitDir}/`));
+}
+
 const TRANSCRIPT_DENY =
   'review-pr may not touch a session transcript (.claude/projects): the --post opt-in is read from it. Do not retry another way.';
 
@@ -926,6 +946,12 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     if (hit === 'code' || (typeof fp === 'string' && /(?:^|\/)post-review\.mjs$/i.test(fp))) {
       return deny(ctx, input, 'review-pr may not write the hook code, post-review.mjs or its own skill dir: the post gate runs from them.');
     }
+    const home = (deps.home?.() ?? '').toLowerCase().replace(/\/+$/, '');
+    const xdg = (deps.xdgConfig?.() ?? '').toLowerCase();
+    const homeReal = home && deps.realpath ? deps.realpath(home).toLowerCase() : home;
+    if (p !== null && (steersCommand(p, home, xdg) || (real !== null && (steersCommand(real, home, xdg) || steersCommand(real, homeReal, xdg))))) {
+      return deny(ctx, input, 'review-pr may not write git config, git hooks, attributes, or the project Claude settings or .mcp.json: a later read would run what they name.');
+    }
     return outputSilentSuccess();
   }
   if (typeof input.tool_name === 'string' && input.tool_name.startsWith('mcp__')) {
@@ -947,7 +973,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x) };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '' };
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1396,6 +1422,8 @@ export interface AllowContext {
   root: string;
   /** The real path of a path (symlinks and firmlinks resolved), or the path. */
   realpath: (p: string) => string;
+  /** HOME: a cwd at or above it is no repo root. */
+  home?: string;
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1409,6 +1437,12 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   // the gate can resolve (conductor145 at 348161fb). rg -g filters instead.
   if (arg.glob) return `a glob in a path (${t}); name the file, or use rg -g`;
   if (!ctx.cwd) return 'no cwd to resolve paths against';
+  // The cwd is taken as the repo root, so it may not be the home dir or above it.
+  const rootReal = ctx.realpath(posix.normalize(ctx.cwd)).replace(/\/+$/, '');
+  const homeReal = ctx.home ? ctx.realpath(posix.normalize(ctx.home)) : '';
+  if (rootReal === '' || (homeReal && (homeReal === rootReal || homeReal.startsWith(`${rootReal}/`)))) {
+    return `the cwd (${ctx.cwd}) is the home dir or above it, not a repo`;
+  }
   const abs = posix.normalize(t.startsWith('/') ? t : `${ctx.cwd}/${t}`);
   const root = posix.normalize(ctx.cwd);
   const inside = (p: string, base: string) => p === base || p.startsWith(`${base.replace(/\/$/, '')}/`);
@@ -1546,9 +1580,11 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     // word before -- as a path when it is no revision, and git diff with a
     // path outside the repo diffs it as a plain file (--no-index), so a word
     // there may not leave the repo by spelling.
-    const outside = p.positionals.find((w) => w.text.startsWith('/') || w.text.split(/[/:]/).includes('..'));
+    // Out of a work tree git diff runs as --no-index, so each word there goes
+    // through the same real-path check as a path (HOLD 6095191454 should 2).
+    const outside = p.positionals.find((w) => w.text.split(/[/:]/).includes('..'));
     if (outside) return `a path outside the repo before -- in git ${sub} (${outside.text})`;
-    return pathsOk(p.afterDash, ctx);
+    return pathsOk([...p.positionals, ...p.afterDash], ctx);
   }
   // A quoted command word with a space ("gh pr view") is not a key here.
   const flags = /^[a-z]+$/.test(cmd) ? FLAGS[cmd] : undefined;

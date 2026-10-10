@@ -13,7 +13,7 @@ const FIRMLINK = /^\/system\/volumes\/data(?=\/)/i;
 /**
  * Walk the path one name at a time, as the kernel does: a link is resolved
  * before a .. after it, and a dangling link is followed to where a write
- * would land (HOLD 6086210644 should 4). At most 40 links.
+ * would land (HOLD 6086210644 should 4). At most 40 links, then it throws.
  */
 function walk(p: string, budget: { links: number }): string {
   let cur = '/';
@@ -30,7 +30,9 @@ function walk(p: string, budget: { links: number }): string {
     } catch {
       // Not there: the rest of the path is new names under cur.
     }
-    if (link !== null && budget.links > 0) {
+    if (link !== null) {
+      // Out of links fails closed: the gate turns a throw into a deny.
+      if (budget.links <= 0) throw new Error(`too many links in ${p}`);
       budget.links -= 1;
       // The payload is walked name by name too, never collapsed first: a
       // link inside it resolves before a .. after it (HOLD 6088683660).
