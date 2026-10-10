@@ -1953,7 +1953,7 @@ describe('(HOLD 6096848217, codex 6096802137) env config dirs on reads, XDG gh, 
   });
   test('should: BASH_ENV, ENV and PYTHONPATH are named config', () => {
     const got = envConfigDirs({ BASH_ENV: '/tmp/a/env.sh', ENV: '/tmp/b/env.sh', PYTHONPATH: '/tmp/py1:/tmp/py2', GH_CONFIG_DIR: '/tmp/gh', PATH: '/tmp/bin:/usr/bin', XDG_CONFIG_HOME: '/tmp/xdg' });
-    for (const d of ['/tmp/a/env.sh', '/tmp/b/env.sh', '/tmp/py1', '/tmp/py2', '/tmp/gh', '/tmp/bin', '/usr/bin', '/tmp/xdg/gh']) expect(got, d).toContain(d);
+    for (const d of ['/tmp/a/env.sh', '/tmp/b/env.sh', '/tmp/py1', '/tmp/py2', '/tmp/gh', '/tmp/bin', '/usr/bin', '/tmp/xdg']) expect(got, d).toContain(d);
     expect(envConfigDirs({ PATH: '' })).toEqual([]);
   });
 });

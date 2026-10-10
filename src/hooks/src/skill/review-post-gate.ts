@@ -768,19 +768,20 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
 
 /**
  * The config, startup and PATH files and dirs an environment names: a write
- * there runs later, a read there can be a token (HOLD 6096848217). XDG gh is
- * added by the gate itself from deps.xdgConfig.
+ * there runs later, a read there can be a token (HOLD 6096848217). The whole
+ * XDG config, data and state dirs count: git/credentials and gh tokens live
+ * there (product-10 at 789ed83e).
  */
 export function envConfigDirs(env: NodeJS.ProcessEnv, lists = true): string[] {
   const xdg = (env.XDG_CONFIG_HOME ?? '').replace(/\/+$/, '');
-  const one = [env.GIT_CONFIG_GLOBAL, env.GIT_CONFIG_SYSTEM, env.GH_CONFIG_DIR, env.ZDOTDIR, env.BASH_ENV, env.ENV, xdg ? `${xdg}/gh` : ''];
+  const one = [env.GIT_CONFIG_GLOBAL, env.GIT_CONFIG_SYSTEM, env.GH_CONFIG_DIR, env.ZDOTDIR, env.BASH_ENV, env.ENV, xdg, env.XDG_DATA_HOME, env.XDG_STATE_HOME];
   // An empty PATH or PYTHONPATH entry is the cwd, so it is named as '.'.
   const dirs = lists ? [env.PATH, env.PYTHONPATH].flatMap((v) => (v ? v.split(':').map((e) => e || '.') : [])) : [];
   return [...one, ...dirs].filter((d): d is string => !!d);
 }
 
 /**
- * The named config set as roots: configEnv and $XDG_CONFIG_HOME/gh. A relative
+ * The named config set as roots: configEnv and $XDG_CONFIG_HOME. A relative
  * value is resolved against the cwd, as gh and git resolve it; null when one
  * cannot be resolved, which the callers read as no temp at all (codex XREVIEW
  * 6097088920 P1).
@@ -789,7 +790,7 @@ function namedRoots(deps: ReviewPostGateDeps, rp: (p: string) => string, cwd: st
   const xdg = (deps.xdgConfig?.() ?? '').replace(/\/+$/, '');
   // bash expands a leading ~/ in a PATH entry at lookup, so HOME resolves it.
   const home = (deps.home?.() ?? '').replace(/\/+$/, '');
-  const values = [...(env?.() ?? []), ...(xdg ? [`${xdg}/gh`] : [])].map((v) => (v.startsWith('~/') && home.startsWith('/') ? `${home}${v.slice(1)}` : v));
+  const values = [...(env?.() ?? []), ...(xdg ? [xdg] : [])].map((v) => (v.startsWith('~/') && home.startsWith('/') ? `${home}${v.slice(1)}` : v));
   if (values.some((v) => !v.startsWith('/')) && !cwd.startsWith('/')) return null;
   return tempRoots(values.map((v) => (v.startsWith('/') ? v : posix.join(cwd, v))), rp);
 }
