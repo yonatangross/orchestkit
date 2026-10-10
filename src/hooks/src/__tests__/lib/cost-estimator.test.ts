@@ -441,6 +441,27 @@ describe('managed modelPricing (#3878)', () => {
     expect(stderr).not.toHaveBeenCalled();
   });
 
+  it('selects the Sonnet 5.5 row by key, not through the fallback (codex22 P3)', () => {
+    // The Sonnet 5.5 row IS the unknown-model fallback, so no price (list or
+    // override) can tell row from fallback. Pin the resolved row key instead.
+    const { matchPricingKey } = __internals;
+    for (const id of ['claude-sonnet-5-5', 'claude-sonnet-5-5[1m]', 'claude-sonnet-5.5', 'sonnet']) {
+      expect(matchPricingKey(id), id).toBe('claude-sonnet-5-5');
+    }
+    expect(matchPricingKey('claude-opus-5.5')).toBe('claude-opus-5-5');
+    expect(matchPricingKey('claude-unknown-9')).toBeNull();
+  });
+
+  it('normalizes dotted Claude ids to the hyphenated row (codex22 P2)', () => {
+    // getPricing('claude-opus-5.5') used to miss claude-opus-5-5 and fall back
+    // to Sonnet 5.5 rates: $2/$10/$0.10 instead of $4/$20/$0.20.
+    expect(getPricing('claude-opus-5.5')).toEqual(getCostConfig().models['claude-opus-5-5']);
+    expect(getPricing('claude-opus-5.5[1m]').input_per_mtok).toBe(4.0);
+    expect(getPricing('claude-sonnet-5.5')).toEqual(getCostConfig().models['claude-sonnet-5-5']);
+    // Non-Claude dotted ids keep their own spelling: Gemini rows are dotted.
+    expect(getPricing('gemini-3.8-flash')).toEqual(getCostConfig().models['gemini-3.8-flash']);
+  });
+
   it('override for an unknown model prices it instead of the sonnet fallback', () => {
     setManaged({ modelPricing: { overrides: { 'my-gateway-model': CONTRACT_ROW } } });
     expect(getPricing('my-gateway-model').input_per_mtok).toBe(8);
@@ -540,6 +561,40 @@ describe('managed modelPricing (#3878)', () => {
     setManaged({ modelPricing: { overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
     expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(8);
     expect(getPricing('claude-opus-5').input_per_mtok).toBe(3);
+  });
+
+  it('a dotted user row (claude-opus-5.5) prices the model under either spelling', () => {
+    // #4698 review: resolveModelKey rewrites the dotted name before the exact
+    // lookup, so an un-normalized user row was skipped for the vocab row (4).
+    const OPUS_55_USER = { input_per_mtok: 9, output_per_mtok: 45, cache_read_per_mtok: 0.9, cache_write_per_mtok: 11.25 };
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER } }));
+    expect(getPricing('claude-opus-5.5')).toEqual(OPUS_55_USER);
+    expect(getPricing('claude-opus-5-5')).toEqual(OPUS_55_USER);
+    // A hyphenated user row for the same model wins over its dotted twin.
+    _virtualFiles.set(
+      USER,
+      JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER, 'claude-opus-5-5': { ...OPUS_55_USER, input_per_mtok: 7 } } }),
+    );
+    expect(getPricing('claude-opus-5.5').input_per_mtok).toBe(7);
+    // Gemini rows are dotted on purpose and stay as written.
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'gemini-3.8-flash': { ...OPUS_55_USER, input_per_mtok: 0.5 } } }));
+    expect(getPricing('gemini-3.8-flash').input_per_mtok).toBe(0.5);
+  });
+
+  it('prototype-named user rows never drop the valid rows beside them', () => {
+    // #4698 codex review: MODEL_ALIASES["toString"] is inherited, so a row
+    // keyed "toString" threw inside the merge and every user row was lost.
+    const ROW = { input_per_mtok: 6, output_per_mtok: 30, cache_read_per_mtok: 0.6, cache_write_per_mtok: 7.5 };
+    _virtualFiles.set(
+      USER,
+      `{"models": {"toString": ${JSON.stringify(ROW)}, "constructor": ${JSON.stringify(ROW)}, "__proto__": ${JSON.stringify(ROW)}, "claude-opus-5": ${JSON.stringify(ROW)}}}`,
+    );
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(6);
+    expect(resolveModelKey('toString')).toBe('toString');
+    expect(resolveModelKey('hasOwnProperty')).toBe('hasOwnProperty');
+    // An inherited name is not a priced row: it takes the fallback, never a function.
+    _virtualFiles.clear();
+    expect(getPricing('valueOf').input_per_mtok).toBe(getPricing('claude-sonnet-5-5').input_per_mtok);
   });
 
   it('multiplier is applied last, on top of overrides and the user file alike', () => {

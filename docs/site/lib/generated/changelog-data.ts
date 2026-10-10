@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.167",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cc:** adopt Claude Code 2.1.289 through 2.1.296 ([#4702](https://github.com/yonatangross/orchestkit/issues/4702)) ([c5705af](https://github.com/yonatangross/orchestkit/commit/c5705afed4951d897e7916e048d9e52f5f02cc91))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.166",
     "date": "2026-10-09",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166",
