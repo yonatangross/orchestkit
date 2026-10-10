@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170)** · 2026-10-10
+
+- **hooks:** tldr-summary skips a Read with allow_large (#4700)
+
 **[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
 
 - **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
@@ -664,10 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **glyph:** output mode dials, done sign-off, and a try-it page (#4647)
 - **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4612)
-
-**[v10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162)** · 2026-10-07
-
-- **deps:** sharp 0.35.5 in docs/site for advisory 1241331 (#4653)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
