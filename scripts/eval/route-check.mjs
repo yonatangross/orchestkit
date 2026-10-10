@@ -225,10 +225,29 @@ function printReport(result, target, baseline) {
 // and agreement with the deterministic classifier, plus latency and cost per
 // case as the issue asks. Live when ORK_TYPESAFE_API_KEY is set (forced to
 // shadow, no session record written), else from a jev-route.jsonl record file
-// joined on the sha256 of the redacted goal.
+// joined on the sha256 of the redacted goal. Pass --clients a,b or
+// --clients-dir <dir> when the records were redacted with client names; a
+// replay whose records carry another redaction profile, or mix them, is refused.
 function argValue(flag) {
   const i = process.argv.indexOf(flag);
   return i >= 0 ? process.argv[i + 1] : null;
+}
+
+/**
+ * Client names the replay redacts with (#4239), so a record whose prompt
+ * carried a client token joins: `--clients a,b` or `--clients-dir <dir>`
+ * (the directory names inside it, as production reads <projectDir>/clients/).
+ */
+function replayClientNames(seam) {
+  const list = argValue('--clients');
+  const dir = argValue('--clients-dir');
+  if (list !== null && dir !== null) {
+    log('ERROR: pass --clients or --clients-dir, not both');
+    process.exit(2);
+  }
+  if (dir !== null) return seam.readClientNamesIn(dir);
+  if (list !== null) return list.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
 }
 
 async function loadSeam() {
@@ -237,7 +256,7 @@ async function loadSeam() {
     process.exit(2);
   }
   const seam = await import(pathToFileURL(HOOKS_BUNDLE).href);
-  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig']) {
+  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig', 'joinReplayRecords', 'readClientNamesIn']) {
     if (typeof seam[name] !== 'function') {
       log(`ERROR: bundle does not export ${name}; rebuild src/hooks`);
       process.exit(2);
@@ -256,17 +275,21 @@ async function jevVerdicts(seam, bench, recordsPath) {
   const config = seam.resolveRouteConfig({});
   const verdicts = new Map();
   if (recordsPath) {
-    const bySha = new Map();
-    for (const line of readFileSync(recordsPath, 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      const r = JSON.parse(line);
-      if (r.input_sha256) bySha.set(r.input_sha256, r);
+    const records = readFileSync(recordsPath, 'utf8')
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
+    const joined = seam.joinReplayRecords(
+      records,
+      bench.cases.map((c) => ({ id: c.id, text: c.goal })),
+      { clientNames: replayClientNames(seam), maxPromptChars: config.maxPromptChars },
+    );
+    if (joined.error) {
+      log(`ERROR: ${joined.error}`);
+      process.exit(2);
     }
-    for (const c of bench.cases) {
-      const sha = seam.sha256(seam.redactPrompt(c.goal, config.maxPromptChars, null).text);
-      if (bySha.has(sha)) verdicts.set(c.id, bySha.get(sha));
-    }
-    return { verdicts, source: `records:${recordsPath}` };
+    for (const [id, r] of joined.verdicts) verdicts.set(id, r);
+    return { verdicts, source: `records:${recordsPath} profile:${joined.profile}` };
   }
   if (!process.env.ORK_TYPESAFE_API_KEY) {
     log('ERROR: --jev needs ORK_TYPESAFE_API_KEY for a live replay, or --records <jev-route.jsonl>.');

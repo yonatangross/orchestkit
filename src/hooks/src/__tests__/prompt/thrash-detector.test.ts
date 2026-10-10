@@ -166,4 +166,63 @@ describe('thrash-detector — pure logic', () => {
       expect(result.hookSpecificOutput).toBeUndefined();
     });
   });
+
+  // #4651: subagents share the parent session id, so the window pooled their
+  // edits, the message printed a bare basename, and the same warning repeated
+  // on every later prompt even with no new edit.
+  describe('thrashDetector: per agent, project paths, no repeats (#4651)', () => {
+    let tmp: string;
+
+    beforeEach(() => {
+      tmp = mkdtempSync(join(tmpdir(), 'thrash-4651-'));
+    });
+    afterEach(() => {
+      rmSync(tmp, { recursive: true, force: true });
+    });
+
+    function seed(rows: Array<Record<string, unknown>>): string {
+      const dir = resolve(tmp, '.claude', 'state');
+      mkdirSync(dir, { recursive: true });
+      const p = resolve(dir, 'edit-history.jsonl');
+      writeFileSync(p, `${rows.map(r => JSON.stringify(r)).join('\n')}\n`, 'utf8');
+      return p;
+    }
+
+    function run(): string | undefined {
+      const result = thrashDetector(
+        { session_id: 'parent' } as never,
+        { ...NOOP_CTX, projectDir: tmp, sessionId: 'parent' },
+      );
+      return (result.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext;
+    }
+
+    test('three subagents editing one file once each is not thrash', () => {
+      const f = join(tmp, 'scripts', 'validate-deploy.sh');
+      seed(['a1', 'a2', 'a3'].map((agent, i) => ({ t: i + 1, f, tool: 'Edit', sid: 'parent', agent })));
+      expect(run()).toBeUndefined();
+    });
+
+    test('one subagent editing one file three times is still thrash', () => {
+      const f = join(tmp, 'scripts', 'validate-deploy.sh');
+      seed([1, 2, 3].map(t => ({ t, f, tool: 'Edit', sid: 'parent', agent: 'a1' })));
+      expect(run()).toContain('validate-deploy.sh');
+    });
+
+    test('names the file by its path relative to the project, not the basename', () => {
+      const f = join(tmp, 'scripts', 'deploy', 'validate-deploy.sh');
+      seed([1, 2, 3].map(t => ({ t, f, tool: 'Edit', sid: 'parent' })));
+      expect(run()).toContain('scripts/deploy/validate-deploy.sh');
+    });
+
+    test('a second prompt with no new edit since the warning stays silent', () => {
+      const f = join(tmp, 'src', 'auth.ts');
+      const p = seed([1, 2, 3].map(t => ({ t, f, tool: 'Edit', sid: 'parent' })));
+      expect(run()).toBeDefined();
+      expect(run()).toBeUndefined();
+
+      // A newer edit to the thrashing file earns the warning again.
+      writeFileSync(p, `${JSON.stringify({ t: 4, f, tool: 'Edit', sid: 'parent' })}\n`, { flag: 'a' });
+      expect(run()).toBeDefined();
+    });
+  });
 });

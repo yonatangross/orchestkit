@@ -106,20 +106,6 @@ export function logPermissionFeedback(
   }
 }
 
-/**
- * Output warning via stderr + exit(2) — visible to user only, Claude does NOT see it (CC 2.1.39).
- * Use this for informational warnings that should not influence Claude's behavior
- * (e.g., deprecation notices, non-actionable advisories).
- *
- * IMPORTANT: This function calls process.exit(2) and never returns.
- * Do NOT use inside unified dispatchers — it will crash the dispatcher process.
- * Only use in standalone hook entry points.
- */
-export function outputStderrWarning(message: string): never {
-  process.stderr.write(`\u26a0 ${message}\n`);
-  process.exit(2);
-}
-
 // -----------------------------------------------------------------------------
 // Rules File Utilities (Token Reduction — materialize to .claude/rules/)
 // -----------------------------------------------------------------------------

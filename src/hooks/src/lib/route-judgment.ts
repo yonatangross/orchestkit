@@ -206,8 +206,13 @@ export function clientTokensFromNames(names: string[]): string[] {
 
 /** Read `<projectDir>/clients/`. A project without one is the common case, not an error. */
 export function readClientDirNames(projectDir: string): string[] {
+  return readClientNamesIn(join(projectDir, 'clients'));
+}
+
+/** Directory names inside a clients dir; a missing dir yields none. */
+export function readClientNamesIn(clientsDir: string): string[] {
   try {
-    return readdirSync(join(projectDir, 'clients'), { withFileTypes: true })
+    return readdirSync(clientsDir, { withFileTypes: true })
       .filter((e) => e.isDirectory())
       .map((e) => e.name);
   } catch {
@@ -218,6 +223,19 @@ export function readClientDirNames(projectDir: string): string[] {
 export function buildClientPattern(tokens: string[]): RegExp | null {
   if (tokens.length === 0) return null;
   return new RegExp(`\\b(?:${tokens.map(escapeRegExp).join('|')})\\b`, 'gi');
+}
+
+/** Profile of a redaction with no client tokens. */
+export const REDACTION_PROFILE_NONE = 'none';
+
+/**
+ * Identifies which client tokens a prompt was redacted with, so a replay can
+ * rebuild the same pattern (#4239): sha256 of the sorted token list, or
+ * `none` when there are no tokens. Carries no client name.
+ */
+export function redactionProfile(tokens: string[]): string {
+  if (tokens.length === 0) return REDACTION_PROFILE_NONE;
+  return sha256([...tokens].sort().join('\n'));
 }
 
 export interface Redaction {
@@ -624,6 +642,8 @@ export interface RouteVerdict {
   redacted: number;
   flag: RouteMode;
   input_sha256: string | null;
+  /** Client token profile the hashed prompt was redacted with (#4239). */
+  redaction_profile: string | null;
   /** The executor the top class maps to, or null when the class has none. */
   target: RouteTarget | null;
   error: string | null;
@@ -659,6 +679,7 @@ interface Prepared {
   env: NodeJS.ProcessEnv;
   apiKey: string;
   built: BuiltRequest;
+  redactionProfile: string;
   sessionDir: string;
   dataDir: string;
   now: () => number;
@@ -682,6 +703,7 @@ function baseVerdict(config: RouteConfig, decidedBy: DecidedBy, extra: Partial<R
     redacted: 0,
     flag: config.mode,
     input_sha256: null,
+    redaction_profile: null,
     target: null,
     error: null,
     ...extra,
@@ -734,7 +756,9 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   }
 
   const clientNames = opts.clientNames ?? readClientDirNames(opts.projectDir);
-  const clientPattern = buildClientPattern(clientTokensFromNames(clientNames));
+  const clientTokens = clientTokensFromNames(clientNames);
+  const clientPattern = buildClientPattern(clientTokens);
+  const profile = redactionProfile(clientTokens);
   const built = buildRouteRequest(opts.prompt, {
     openingTurn,
     repo: basename(opts.projectDir || ''),
@@ -749,11 +773,12 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
       error: `egress ${leak}`,
       redacted: built.redacted,
       input_sha256: built.inputSha256,
+      redaction_profile: profile,
     });
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   }
-  return { prepared: { sessionId: opts.sessionId, promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
+  return { prepared: { sessionId: opts.sessionId, promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, redactionProfile: profile, sessionDir, dataDir, now, log, record } };
 }
 
 /** Parse, floor, budget, record. */
@@ -766,6 +791,7 @@ function settle(p: Prepared, result: TransportResult): RouteVerdict {
     latency_ms: Math.round(result.latencyMs),
     redacted: p.built.redacted,
     input_sha256: p.built.inputSha256,
+    redaction_profile: p.redactionProfile,
   };
   let verdict: RouteVerdict;
   if (!result.ok) {
@@ -821,6 +847,52 @@ export function routeJudgmentSync(opts: RouteJudgmentOptions): RouteVerdict {
 }
 
 // ---------------------------------------------------------------------------
+// Replay join (#4239)
+// ---------------------------------------------------------------------------
+
+export interface ReplayJoin<R> {
+  verdicts: Map<string, R>;
+  /** Profile the replay redacted with, from the supplied client names. */
+  profile: string;
+  /** Set when the replay is refused; `verdicts` is then empty. */
+  error: string | null;
+}
+
+/**
+ * Join seam records to replay cases on the sha256 of the redacted prompt.
+ * The cases are redacted with the supplied client names, so a record whose
+ * prompt carried a client token joins. Records that predate the profile
+ * field are joined as before. A replay is refused when the records mix
+ * profiles, or when their profile differs from the supplied clients.
+ */
+export function joinReplayRecords<R extends { input_sha256?: string | null; redaction_profile?: string | null }>(
+  records: R[],
+  cases: Array<{ id: string; text: string }>,
+  opts: { clientNames: string[]; maxPromptChars: number },
+): ReplayJoin<R> {
+  const tokens = clientTokensFromNames(opts.clientNames);
+  const profile = redactionProfile(tokens);
+  const verdicts = new Map<string, R>();
+  const joinable = records.filter((r) => typeof r.input_sha256 === 'string' && r.input_sha256);
+  const recorded = new Set(joinable.map((r) => r.redaction_profile ?? null));
+  if (recorded.size > 1) {
+    return { verdicts, profile, error: `records mix redaction profiles (${[...recorded].map(String).sort().join(', ')}); replay one profile at a time` };
+  }
+  const [only] = recorded;
+  if (typeof only === 'string' && only !== profile) {
+    return { verdicts, profile, error: `records carry redaction profile ${only}, the supplied clients give ${profile}; pass the clients list or dir the records were made with` };
+  }
+  const bySha = new Map<string, R>();
+  for (const r of joinable) bySha.set(r.input_sha256 as string, r);
+  const pattern = buildClientPattern(tokens);
+  for (const c of cases) {
+    const hit = bySha.get(sha256(redactPrompt(c.text, opts.maxPromptChars, pattern).text));
+    if (hit) verdicts.set(c.id, hit);
+  }
+  return { verdicts, profile, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Record and log line
 // ---------------------------------------------------------------------------
 
@@ -850,6 +922,8 @@ export interface RouteRecord {
   error: string | null;
   ts: string;
   input_sha256: string | null;
+  /** sha256 of the sorted client token list the prompt was redacted with, `none` when empty. */
+  redaction_profile: string | null;
   intent: RouteIntent | null;
   conf: number | null;
   top3: Array<[RouteIntent, number]>;
@@ -892,6 +966,7 @@ export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
     error: v.error,
     ts: new Date(now).toISOString(),
     input_sha256: v.input_sha256,
+    redaction_profile: v.redaction_profile ?? null,
     intent: v.intent,
     conf: v.conf,
     top3: v.top3,

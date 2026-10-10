@@ -423,7 +423,6 @@ export function outputError(message: string): HookResult {
 /**
  * Output warning message via JSON stdout -- visible to both user and Claude (CC 2.1.7+).
  * Use this when Claude needs to see and act on the warning (e.g., cost advice, quality gates).
- * For user-only warnings where Claude should NOT see the message, use outputStderrWarning.
  */
 export function outputWarning(message: string): HookResult {
   return { continue: true, systemMessage: `\u26a0 ${message}` };

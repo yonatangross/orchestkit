@@ -55,4 +55,18 @@ describe('edit-history-tracker', () => {
     const lines = readFileSync(getEditHistoryPath(tmp), 'utf8').trim().split('\n');
     expect(lines.map((l: string) => JSON.parse(l).tool)).toEqual(['Edit', 'MultiEdit']);
   });
+
+  // #4651: subagents share the parent session id; the agent id is what tells
+  // their edits apart for the thrash detector.
+  test('records the editing agent id when the payload carries one', () => {
+    const input = {
+      tool_name: 'Edit',
+      session_id: 's',
+      agent_id: 'agent-7',
+      tool_input: { file_path: '/x.ts' },
+    } as never;
+    editHistoryTracker(input, { ...NOOP_CTX, projectDir: tmp });
+    const parsed = JSON.parse(readFileSync(getEditHistoryPath(tmp), 'utf8').trim());
+    expect(parsed.agent).toBe('agent-7');
+  });
 });
