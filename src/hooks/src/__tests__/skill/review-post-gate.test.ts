@@ -11,7 +11,7 @@
  * and 6059108928 (reviewer-estate-72).
  */
 
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -20,12 +20,22 @@ import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths } fr
 import { createTestContext } from '../fixtures/test-context.js';
 import { realPath } from '../../lib/real-path.js';
 
+// The fixture repo root /test/project does not exist on disk; every other dir
+// is checked for a .git at or above it for real (HOLD 6095687461 should 4).
+vi.mock('../../lib/repo-root.js', async (orig) => {
+  const actual = await orig<typeof import('../../lib/repo-root.js')>();
+  return { inGitRepo: (d: string) => d === '/test/project' || d.startsWith('/test/project/') || actual.inGitRepo(d) };
+});
+
 let dir: string;
 const savedRoot = process.env.CLAUDE_PLUGIN_ROOT;
 const savedHome = process.env.HOME;
+const savedXdg = process.env.XDG_CONFIG_HOME;
 beforeEach(() => {
   // The transcripts dir is protected under HOME (and the config dir of transcript_path).
   process.env.HOME = '/Users/me';
+  // A runner sets XDG_CONFIG_HOME; the git config dir follows it (HOLD 6095687461 must 1).
+  delete process.env.XDG_CONFIG_HOME;
   dir = mkdtempSync(join(tmpdir(), 'review-post-gate-'));
   // The gate pins the script to CLAUDE_PLUGIN_ROOT itself (HOLD 6078660476).
   process.env.CLAUDE_PLUGIN_ROOT = '/test/plugin-root';
@@ -33,6 +43,8 @@ beforeEach(() => {
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
   process.env.HOME = savedHome;
+  if (savedXdg === undefined) delete process.env.XDG_CONFIG_HOME;
+  else process.env.XDG_CONFIG_HOME = savedXdg;
   if (savedRoot === undefined) delete process.env.CLAUDE_PLUGIN_ROOT;
   else process.env.CLAUDE_PLUGIN_ROOT = savedRoot;
 });
@@ -1662,6 +1674,11 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     // the same class as a config written before the skill ran.
     expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
   });
+  test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };
+    const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: '/opt/xdg/git/config', content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    expect(denied(reviewPostGate(input, ctx, deps))).toBe(true);
+  });
   test('should 5: the home dir or above is no repo root', () => {
     const at = (cmd: string, cwd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
     for (const cwd of ['/Users/me', '/Users', '/']) {
@@ -1675,5 +1692,45 @@ describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
     expect(denied(reviewPostGate(input, ctx))).toBe(false);
+  });
+});
+
+describe('(HOLD 6095687461) Write is an allowlist: temp dir, .claude/chain, the job dir', () => {
+  const tr = () => transcript([typed('4668')]);
+  const write = (file: string, cwd = ROOT, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '', jobDir: () => '/opt/job', ...extra };
+    return denied(reviewPostGate(input, ctx, deps));
+  };
+  test('must 2: a file a later step runs denies, and so does any other repo or home file', () => {
+    for (const f of [`${ROOT}/scripts/hooks/block-destructive-command.py`, `${ROOT}/.claude/hooks/pre.sh`, '/Users/me/.ssh/config', '/Users/me/.claude.json', '/Users/me/.zshrc', `${ROOT}/src/a.ts`, `${ROOT}/.claude/chain/../settings.json`, '/opt/job/../other/x']) {
+      expect(write(f), f).toBe(true);
+    }
+    for (const f of ['/tmp/review-4668/body.md', join(dir, 'body.md'), `${ROOT}/.claude/chain/handoff.md`, '/opt/job/verdict.json']) {
+      expect(write(f), f).toBe(false);
+    }
+    // No job dir set: nothing under it passes.
+    expect(write('/opt/job/verdict.json', ROOT, { jobDir: () => '' })).toBe(true);
+  });
+  test('must 2: a link out of the temp dir is caught by its real path', () => {
+    symlinkSync('/etc', join(dir, 'out'));
+    expect(write(join(dir, 'out', 'x'))).toBe(true);
+  });
+  test('should 3: the normalized path is real-pathed too', () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    writeFileSync(join(repo, '.git', 'config'), '');
+    symlinkSync(dir, join(repo, 'x'));
+    symlinkSync('.git/config', join(repo, 'cfg'));
+    // The kernel reads x/../cfg as <tmpdir>/cfg; by text it is <repo>/cfg, the git config.
+    expect(write(`${repo}/x/../cfg`, repo)).toBe(true);
+  });
+  test('should 4: a cwd with no .git at or above it is no repo root', () => {
+    mkdirSync(join(dir, 'desk'));
+    mkdirSync(join(dir, 'repo2', '.git'), { recursive: true });
+    mkdirSync(join(dir, 'repo2', 'sub'));
+    const at = (cmd: string, cwd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
+    expect(at('cat secrets.txt', join(dir, 'desk'))).toBe(true);
+    expect(at('cat a.txt', join(dir, 'repo2', 'sub'))).toBe(false);
   });
 });
