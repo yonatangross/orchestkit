@@ -1591,6 +1591,60 @@ describe('(HOLD 6088683660, codex24 6088466165) link payloads, variables that st
   });
 });
 
+describe('(HOLD 6095191454) config that runs a command is not writable; git paths by real path', () => {
+  const tr = () => transcript([typed('4668')]);
+  const write = (tool: string, file: string, cwd = ROOT) => {
+    const key = tool === 'NotebookEdit' ? 'notebook_path' : 'file_path';
+    const input = { tool_name: tool, session_id: 's', cwd, tool_input: { [key]: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx));
+  };
+  test('must 1: git config, hooks and attributes deny for Write, Edit and NotebookEdit', () => {
+    const files = [`${ROOT}/.git/config`, `${ROOT}/.git/hooks/post-checkout`, `${ROOT}/.git/info/attributes`, '.git/config', `${ROOT}/.gitattributes`, `${ROOT}/src/.gitattributes`, `${ROOT}/.gitmodules`, '/Users/me/.gitconfig', '/Users/me/.config/git/config', '/Users/me/.config/git/attributes'];
+    for (const tool of ['Write', 'Edit', 'NotebookEdit']) {
+      for (const f of files) expect(write(tool, f), `${tool} ${f}`).toBe(true);
+    }
+    for (const f of [`${ROOT}/src/a.ts`, `${ROOT}/.github/workflows/ci.yml`, `${ROOT}/docs/git/config.md`, '/tmp/review-4668/body.md']) {
+      expect(write('Write', f), f).toBe(false);
+    }
+  });
+  test('must 1: a link to the git dir is caught by its real path', () => {
+    mkdirSync(join(dir, 'repo', '.git'), { recursive: true });
+    writeFileSync(join(dir, 'repo', '.git', 'config'), '');
+    symlinkSync('.git/config', join(dir, 'repo', 'cfg'));
+    expect(write('Edit', join(dir, 'repo', 'cfg'), join(dir, 'repo'))).toBe(true);
+  });
+  test('should 3: project settings and .mcp.json deny', () => {
+    for (const f of [`${ROOT}/.claude/settings.json`, `${ROOT}/.claude/settings.local.json`, `${ROOT}/.mcp.json`, '.mcp.json']) {
+      expect(write('Write', f), f).toBe(true);
+    }
+    expect(write('Write', `${ROOT}/.claude/notes.md`)).toBe(false);
+  });
+  test('should 4: realPath fails closed when the link budget runs out', () => {
+    symlinkSync('b', join(dir, 'a'));
+    symlinkSync('a', join(dir, 'b'));
+    expect(() => realPath(join(dir, 'a', 'x'))).toThrow();
+    expect(write('Write', join(dir, 'a', 'x'), dir)).toBe(true);
+  });
+  test('should 2: a git positional before -- goes through the real-path check', () => {
+    // A link out of the temp dir (a temp-to-temp read is allowed anyway).
+    mkdirSync(join(dir, 'cwd'));
+    writeFileSync(join(dir, 'cwd', 'README.md'), 'x');
+    symlinkSync('/etc', join(dir, 'cwd', 'lnk'));
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, join(dir, 'cwd')), ctx));
+    for (const cmd of ['git diff lnk/hosts README.md', 'git diff --stat lnk/hosts README.md']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    expect(at('git diff HEAD README.md')).toBe(false);
+  });
+  test('should 5: the home dir or above is no repo root', () => {
+    const at = (cmd: string, cwd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, cwd), ctx));
+    for (const cwd of ['/Users/me', '/Users', '/']) {
+      expect(at('cat .ssh/id_ed25519', cwd), cwd).toBe(true);
+    }
+    expect(at('cat src/a.ts', ROOT)).toBe(false);
+  });
+});
+
 describe('non-Bash tools pass through', () => {
   test('Read is not checked', () => {
     const input = { tool_name: 'Read', session_id: 's', tool_input: { file_path: '/x' } } as HookInput;
