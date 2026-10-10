@@ -28,19 +28,20 @@ import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync, 
 import path from 'node:path';
 
 const EVENTS = { approve: '--approve', 'request-changes': '--request-changes', comment: '--comment' };
-// A verdict line, as a class (HOLD 6098834922 must 1). Leading list markers,
-// emphasis, digits and emoji are stripped first. Then a line is a verdict when
-// it is a "Verdict" label in any case, followed by ':', '-' or space and a
-// verdict word; or a verdict word in capitals; or a verdict word in any case
-// that ends the line or meets ':', '-', '.' or '!' ("hold on" is prose).
-const VERDICT_WORD = '(?:land|hold|xreview)';
-const VERDICT_LABELLED = new RegExp(`^verdict[\\s*_\`~]*[:\\-\\u2013\\u2014]?[\\s*_\`~]*${VERDICT_WORD}\\b`, 'i');
-const VERDICT_CAPS = /^(?:LAND|HOLD|XREVIEW)\b/;
-const VERDICT_PUNCT = new RegExp(`^${VERDICT_WORD}\\s*(?:[:\\-.!]|$)`, 'i');
-const isVerdictLine = (line) => {
-  const t = line.replace(/^[^\p{L}]+/u, '');
-  return VERDICT_LABELLED.test(t) || VERDICT_CAPS.test(t) || VERDICT_PUNCT.test(t);
-};
+// One verdict rule (HOLD 6099092719, codex22 XREVIEW 6099058888): a line,
+// split on \n and \r, is a verdict line when one of its first four words is
+// land, hold or xreview in any case. A word is a run of letters, so list
+// markers, emphasis, table pipes, digits and emoji never count, and Holding or
+// Landing is a different word. That covers a bare verdict ("hold, see below")
+// and a short label before one ("Final verdict: HOLD", "| Verdict | HOLD |").
+// Prose with the word early ("hold on", "Hold-out set") is refused by design.
+const VERDICT_WORDS = new Set(['land', 'hold', 'xreview']);
+const isVerdictLine = (line) =>
+  line
+    .split(/[^\p{L}]+/u)
+    .filter((w) => w !== '')
+    .slice(0, 4)
+    .some((w) => VERDICT_WORDS.has(w.toLowerCase()));
 const MAX_BODY_BYTES = 65536; // GitHub's own body limit is 65,536 characters
 const SECRET_SHAPES = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}/,
@@ -154,7 +155,7 @@ if (SECRET_SHAPES.some((re) => re.test(body))) refuse('--body-file holds a secre
 // Every line counts, with any leading marks, emoji or markdown taken off: a
 // verdict word below a summary line or behind an emoji is still a verdict
 // (HOLD 6097900519 should 4).
-const bare = (body.split('\n').find(isVerdictLine) ?? '').trim();
+const bare = (body.split(/\r\n|\r|\n/).find(isVerdictLine) ?? '').trim();
 if (opts.kind === 'review' && (opts.event === 'approve' || opts.event === 'request-changes') && !opts.postVerdict) {
   refuse(`a ${opts.event} review is a verdict. That needs --post-verdict typed by the user.`);
 }

@@ -147,7 +147,8 @@ const VERDICTS = [
   '| Verdict | HOLD |\n',
   '**Verdict:** \u2705 LAND\n',
   '*hold*\n',
-  'Summary\rHOLD\n',
+  // HOLD is word 6 unless the line splits on \r, so this row needs the \r split.
+  'Summary of the review below\rHOLD\n',
   // Prose refused by design: the word stands alone among the first four.
   'hold on, one nit\n',
   'Hold-out set is fine\n',
