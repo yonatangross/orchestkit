@@ -1414,6 +1414,8 @@ See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
+(count unchanged, 2026-10-10): `pretool/read/tldr-summary` also passes through a Read with `allow_large: true` (CC 2.1.296), which asks for the whole file in one call, so a summary would only add tokens. 1 case added. No registration moved.
+
 (count 169 to 170, global 152 to 153, 2026-10-09, #4297): Jev route executor observation moved off the PreToolUse hot path. `pretool/skill/skill-tracker` (Skill) is registered `async: true` again; it only writes telemetry and always returns silent success. The Agent observation moved out of the sync `pretool/task/sync-task-dispatcher` into the new `pretool/task/route-observer` (PreToolUse Agent, async 5s), registered in both hooks.json and the pretool entries map, so a blocked Agent attempt is still recorded. Async hook count 108 to 110; entries-map total 180 to 181.
 
 (count unchanged at 169, 2026-10-09, #4633): `lifecycle/pre-compact-task-done-prompt` no longer blocks a manual `/compact`. It blocked at about 90% context, overrode a choice the user had just made, and told them to type the same `/compact` again. A softer one-line notice has no clean channel on PreCompact, because a non-blocking hook's stdout becomes the summarizer's custom instructions (#3321), so the fire path now returns silent success. It still writes the telemetry row (`fired: true`, new `nudgeShown: false`) and the #1476 nudge-outcome marker, so the cooldown and the resolver keep their inputs and the row says the nudge was never shown. Moving the /clear nudge to a surface that fires before the user decides is a follow-up.
