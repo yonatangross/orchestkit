@@ -181,11 +181,15 @@ function unquote(word: string): string {
     const c = word[k];
     if (quote) {
       if (c === quote) quote = '';
-      else if (quote === '"' && c === '\\' && k + 1 < word.length) out += word[(k += 1)];
-      else out += c;
+      else if (quote === '"' && c === '\\' && k + 1 < word.length) {
+        k += 1;
+        out += word[k];
+      } else out += c;
     } else if (c === "'" || c === '"') quote = c;
-    else if (c === '\\' && k + 1 < word.length) out += word[(k += 1)];
-    else out += c;
+    else if (c === '\\' && k + 1 < word.length) {
+      k += 1;
+      out += word[k];
+    } else out += c;
   }
   return out;
 }
