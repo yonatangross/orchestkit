@@ -1,0 +1,43 @@
+/* rail.css: the side sections rail, a glyph page partial (see README.md beside it).
+ * Logical properties only: on a dir="rtl" page the rail sits on the right.
+ * Inline it in the page (a <style> block), never link it, so the page keeps its rail
+ * wherever it is opened, file:// included. */
+/* Token defaults at zero specificity: any :root or [data-theme] block on the page wins. */
+:where(:root) { --bg: #f6f6f4; --panel: #ffffff; --chip: #f1f1ee; --line: #e2e2dd; --ink: #16181d; --muted: #4b5563; --faint: #8b93a1; --accent: #b7791f; --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; --mono: ui-monospace, "SF Mono", Menlo, monospace; }
+/* The rail is sized border-box, so a page without a global border-box reset does not slide under it. */
+.pk-rail, .pk-rail * { box-sizing: border-box; }
+html { scroll-padding-top: 16px; }
+body { padding-inline-start: 248px; }
+.pk-rail { position: fixed; inset-block: 0; inset-inline-start: 0; width: 248px; overflow-y: auto; padding: 22px 12px 22px 20px; border-inline-end: 1px solid var(--line); background: var(--bg); z-index: 30; scrollbar-width: thin; }
+[dir="rtl"] .pk-rail { padding: 22px 20px 22px 12px; }
+.pk-rail-title { display: block; font: 700 15px/1.2 var(--sans); color: var(--ink); text-decoration: none; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.pk-rail-title span { display: block; margin-top: 3px; font: 600 11px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; }
+.pk-rail-progress { height: 3px; border-radius: 2px; background: var(--line); margin: 14px 0 12px; overflow: hidden; }
+.pk-rail-progress i { display: block; height: 100%; width: 0; background: var(--accent); }
+.pk-rail-list { list-style: none; margin: 0; padding: 0; }
+.pk-rail-sec { display: flex; gap: 9px; align-items: baseline; padding: 7px 8px; border-radius: 9px; border-inline-start: 3px solid transparent; color: var(--muted); text-decoration: none; font: 600 13.5px/1.3 var(--sans); }
+.pk-rail-sec b { font: 700 11px/1.3 var(--mono); color: var(--faint); min-width: 18px; }
+.pk-rail-sec:hover { background: var(--chip); color: var(--ink); }
+.pk-rail-sec[aria-current="true"] { background: var(--panel); color: var(--ink); font-weight: 700; border-inline-start-color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
+.pk-rail-sec[aria-current="true"] b { color: var(--ink); }
+.pk-rail-foot { margin: 14px 8px 0; font: 500 11px/1.4 var(--mono); color: var(--muted); }
+.pk-rail-toggle { display: none; }
+.pk-rail a:focus-visible, .pk-rail-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.pk-skip { position: absolute; inset-block-start: 8px; inset-inline-start: -9999px; z-index: 40; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--ink); background: var(--panel); color: var(--ink); font: 700 13px/1.2 var(--sans); text-decoration: none; }
+.pk-skip:focus { inset-inline-start: 8px; outline: 2px solid var(--ink); outline-offset: 2px; }
+#pk-main:focus { outline: none; }
+.pk-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (max-width: 999px) {
+  body { padding-inline-start: 0; }
+  .pk-rail { position: sticky; inset-block: 0 auto; inset-inline-start: auto; width: auto; border-inline-end: 0; border-bottom: 1px solid var(--line); padding: 8px 16px; overflow: visible; }
+  [dir="rtl"] .pk-rail { padding: 8px 16px; }
+  .pk-rail-title, .pk-rail-progress, .pk-rail-foot { display: none; }
+  .pk-rail-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); font: 600 13px/1.2 var(--sans); cursor: pointer; }
+  .pk-rail-toggle span { color: var(--muted); font: 600 11px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+  .pk-rail-list { display: none; max-height: 62vh; overflow-y: auto; margin-top: 8px; }
+  .pk-rail.open .pk-rail-list { display: block; }
+  html { scroll-padding-top: 64px; }
+  .theme-toggle { top: auto; bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media print { .pk-rail { display: none; } body { padding-inline-start: 0; } }
