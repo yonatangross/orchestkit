@@ -110,10 +110,20 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
  * implementation". Verbs: implement, commit, push, fix, patch, replace,
  * refactor, rewrite, apply a fix or patch, add or write tests or code, edit
  * code or files, open a PR. Suffixes are bounded so `implementation`,
- * `fixture`, `pushover` and `replacement` do not match. Exported for tests.
+ * `fixture`, `pushover` and `replacement` do not match. One -ly adverb may sit
+ * between ("please carefully fix").
+ *
+ * ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): when unsure,
+ * read build intent. A miss asks the human to redirect a code change to a
+ * read-only agent; a false positive only swaps that ask for a note. So the
+ * joining words include to, you, let's, go, me and just ("your task is to
+ * fix", "can you fix", "let's fix"), and review-only prompts such as "say what
+ * to fix" are KNOWN false positives, pinned in the tests. Verbs outside the
+ * list (update, change, remove, sanitize) are a known miss.
+ * Exported for tests.
  */
 export const BUILD_INTENT_PATTERN = new RegExp(
-  String.raw`(?:^|[.;:!?,]|\b(?:and|then|or|but|also|please|now|first|next|finally|so)\b|\b(?:must|should|can|could|will|would|need|needs|want|wants|have|has|going|able|asked|try|sure)(?: to)?\b)\s*` +
+  String.raw`(?:^|[.;:!?,]|\b(?:and|then|or|but|also|please|now|first|next|finally|so|to|you|let's|lets|go|me|just)\b|\b(?:must|should|can|could|will|would|need|needs|want|wants|have|has|going|able|asked|try|sure)(?: to)?\b)\s*(?:\w+ly\s+)?` +
     String.raw`(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|apply(?:ing)? (?:\w+ ){0,2}(?:fix|patch|change|diff|suggestion)\w*|(?:add|write)(?:ing)? (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?|fix|patch)|edit(?:ing)? (?:the )?(?:code|files?)|(?:open|create|raise)(?:ing)? (?:a |the )?(?:pr|pull request))\b`,
   'im',
 );
@@ -129,12 +139,14 @@ export const AFFIRMATIVE_REMINDER_PATTERN =
 /**
  * A real prohibition ("do not commit or push", "never edit the code",
  * "without changing the API") runs from the negation to the next clause break
- * or to but, then, instead or however. It is removed before the build-intent
- * test, so a review that forbids writes stays review-only, and "do not push
- * but write tests" keeps its write. Exported for tests.
+ * or to and, but, then, instead or however. A comma followed by or/nor does not
+ * end it ("do not fix the bug, or push changes" forbids both). It is removed
+ * before the build-intent test, so a review that forbids writes stays
+ * review-only, and "do not push but write tests" keeps its write. Exported
+ * for tests.
  */
 export const NEGATED_CLAUSE_PATTERN =
-  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b.*?(?=[.;,!?\n]|\b(?:but|then|instead|however)\b|$)/gi;
+  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b.*?(?=[.;!?\n]|,(?!\s*(?:or|nor)\b)|\b(?:and|but|then|instead|however)\b|$)/gi;
 
 /** True when the task text asks to build (change code or ship it). */
 export function hasBuildIntent(description: string, prompt: string): boolean {

@@ -336,6 +336,23 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     ['Implement the endpoint, never skip tests'],
     ['fix the bug; do not push'],
     ['Add the guard without changing the API'],
+    // product-13 HOLD 6102436178: conversational build shapes, true at 63d5.
+    ['Your task is to implement the parameterized query'],
+    ['Can you fix the SQL injection in the login query'],
+    ['I need you to fix the SQL injection vulnerability'],
+    ['I want you to patch the query builder'],
+    ["Let's fix the SQL injection in users.py"],
+    ['Go fix the SQL injection in users.py'],
+    ['Help me fix the SQL injection'],
+    // codex HOLD 6102229680 P2-1 and agy 6102200262.
+    ['Your task is to fix the SQL injection vulnerability in app/db.py.'],
+    ['Please carefully fix the SQL injection vulnerability in app/db.py.'],
+    ['We need you to implement the SQL injection guard in app/db.py.'],
+    ['You are to replace interpolated SQL with parameterized queries in app/db.py.'],
+    ['Security review and remember to fix the SQL injection vulnerability.'],
+    ['Just fix the SQL injection in users.py'],
+    ['In order to fix the SQL injection, parameterize the query'],
+    ['Do not commit and write tests for the query builder'],
   ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
@@ -348,10 +365,28 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     ['Security review of a possible fix'],
     ['Security review of our fix'],
     ['Security review the bug fix'],
+    // codex HOLD 6102229680 P2-3: a prohibition carries across ", or".
+    ['Security review only. Do not fix the bug, or push changes.'],
   ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
     expect(decisionOf(result)).toBe('ask');
+  });
+
+  // The ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): a miss
+  // asks the human to redirect a code change to a read-only agent, a false
+  // positive only swaps that ask for a note. So these review-only prompts are
+  // KNOWN false positives, pinned so a change to them is a decision, not drift.
+  test.each([
+    ['Tell me what you fixed last week'],
+    ['Review the diff and say what to fix'],
+    ['Report what you would refactor'],
+    ['Check how to fix it, report only, do not fix'],
+    ['Security review of whether to fix or replace the vulnerable query.'],
+    ['Security review of commit and push permissions.'],
+    ['Security review of the fix and patch plan.'],
+  ])('accepted false positive "%s" reads as build intent', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
   });
 
   test('a read-only match WITHOUT build intent still asks', () => {
