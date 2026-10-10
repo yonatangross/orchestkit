@@ -759,9 +759,27 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   xdgConfig: () => process.env.XDG_CONFIG_HOME ?? '',
   jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
   tempDirs: () => ['/tmp', tmpdir()],
-  configEnv: () => [process.env.GIT_CONFIG_GLOBAL, process.env.GIT_CONFIG_SYSTEM, process.env.GH_CONFIG_DIR, process.env.ZDOTDIR, ...(process.env.PATH ?? '').split(':')].filter((d): d is string => !!d),
+  configEnv: () => envConfigDirs(process.env),
   realpath: realPath,
 };
+
+/**
+ * The config, startup and PATH files and dirs an environment names: a write
+ * there runs later, a read there can be a token (HOLD 6096848217). XDG gh is
+ * added by the gate itself from deps.xdgConfig.
+ */
+export function envConfigDirs(env: NodeJS.ProcessEnv): string[] {
+  const xdg = (env.XDG_CONFIG_HOME ?? '').replace(/\/+$/, '');
+  const one = [env.GIT_CONFIG_GLOBAL, env.GIT_CONFIG_SYSTEM, env.GH_CONFIG_DIR, env.ZDOTDIR, env.BASH_ENV, env.ENV, xdg ? `${xdg}/gh` : ''];
+  const lists = [env.PATH, env.PYTHONPATH].flatMap((v) => (v ?? '').split(':'));
+  return [...one, ...lists].filter((d): d is string => !!d);
+}
+
+/** The named config set as roots: configEnv and $XDG_CONFIG_HOME/gh. */
+function namedRoots(deps: ReviewPostGateDeps, rp: (p: string) => string): string[] {
+  const xdg = (deps.xdgConfig?.() ?? '').replace(/\/+$/, '');
+  return tempRoots([...(deps.configEnv?.() ?? []), ...(xdg ? [`${xdg}/gh`] : [])], rp);
+}
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
 
@@ -990,12 +1008,14 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const jobOk = jobRoot !== '' && !homes.includes(jobRoot) && !homes.some((h) => jobRoot.startsWith(`${h}/.`)) && !inGitRepo(rp(job), bounds);
   const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', jobOk ? jobRoot : ''].filter((r) => r !== '');
   // A dir the environment names as config or PATH is not temp, wherever it is.
-  const named = tempRoots(deps.configEnv?.() ?? [], rp);
+  const named = namedRoots(deps, rp);
   // A temp path inside a git work tree (a checkout or worktree under /tmp) is
   // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
   // A HOME under a temp dir (a container, a CI box) is HOME, never temp: its
   // shell profile and gh config would be writable (HOLD 6096491908 must 1).
-  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !underAny(real, named) && !gitMember(real, temps) && !inGitRepo(posix.dirname(real), bounds));
+  // Named dirs and git-dir members deny first, under an allowed root too: a
+  // job dir on PATH would let a write plant a command (codex 6096802137 P2).
+  const ok = (real: string) => !underAny(real, named) && !gitMember(real, [...temps, ...roots]) && (underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds)));
   return [raw, posix.normalize(raw)].every((x) => ok(rp(x)));
 }
 
@@ -1083,7 +1103,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)) };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x)) };
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1536,6 +1556,8 @@ export interface AllowContext {
   home?: string;
   /** The temp roots (tempRoots), lowercase; /tmp and the process tmpdir when unset. */
   tempDirs?: string[];
+  /** The named config set (namedRoots), lowercase: never temp, read or write. */
+  named?: string[];
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1565,7 +1587,9 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
   // HOME is never temp, even when it sits in a temp dir (HOLD 6096491908 must 1).
   const homes = ctx.home?.startsWith('/') ? tempRoots([ctx.home], ctx.realpath) : [];
-  const temp = (x: string) => underAny(x, temps) && !underAny(x, homes);
+  // A config dir the environment names is not temp either (HOLD 6096848217 must 1).
+  const named = ctx.named ?? [];
+  const temp = (x: string) => underAny(x, temps) && !underAny(x, homes) && !underAny(x, named);
   if (!(inside(abs, root) && inside(real, ctx.realpath(root))) && !(temp(abs) && temp(real))) {
     return `a path outside the repo and the temp dir (${t})`;
   }
