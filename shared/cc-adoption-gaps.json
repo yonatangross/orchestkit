@@ -1,5 +1,770 @@
 [
   {
+    "version": "2.1.289",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "read_deny_symlink_ide",
+        "category": "fix",
+        "description": "Read deny rules now apply to files @-mentioned, changed or selected in the IDE through a symlink.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `Read` deny rules not applying to files @-mentioned, changed, or selected in the IDE through a symlink",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for the Read() deny rules in ork's operator payload. Recorded in the doctor matrix row for 2.1.289 (#4662)."
+      },
+      {
+        "feature_slug": "bash_deny_env_prefix_sandbox",
+        "category": "fix",
+        "description": "Bash deny and ask rules no longer miss a command behind an env var prefix with an expanded value when the sandbox auto-allows commands.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed Bash deny and ask rules missing a command behind an environment variable prefix with an expanded value (e.g. `TZ=\"$HOME\" rm -rf build`) when the sandbox auto-allows commands",
+        "relevance": "end-user",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: run ork's operator deny payload against the env-prefix form (e.g. TZ=\"$HOME\" rm -rf build); the doctor row names the check, it has not been run."
+      },
+      {
+        "feature_slug": "bash_deny_bare_assignment_sandbox",
+        "category": "fix",
+        "description": "A Bash deny or ask rule is no longer skipped under sandbox auto-allow when a bare variable assignment comes before the command.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed a Bash deny or ask rule being skipped under sandbox auto-allow when a bare variable assignment came before the command",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Same class as the env-prefix fix; free upside for the Bash(rm -rf ...) denies in the operator payload."
+      },
+      {
+        "feature_slug": "mods_load_first_session_after_upgrade",
+        "category": "fix",
+        "description": "Installed mods now load in the first session after a Claude Code upgrade.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed installed mods not loading in the first session after an upgrade",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Before 2.1.289 secrets-veil masking and lesson-cards were absent in the first session after an upgrade; free upside for ork's four mods."
+      },
+      {
+        "feature_slug": "agent_spawn_teammates_agent_id",
+        "category": "new_attr",
+        "description": "agent.spawn for teammates, one agent id across plugin hook events, and idle and waiting states in $.agent.list().",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `agent.spawn` for teammates, one agent id across plugin hook events, and idle and waiting states in `$.agent.list()`",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: re-measure whether pre-compact-guard.ts still needs its duplicate agent_id 'start' row dedup once ids are stable across hook events."
+      },
+      {
+        "feature_slug": "mod_ui_render_row_throw",
+        "category": "fix",
+        "description": "A value a mod's ui.render hook wrote that makes a row throw no longer ends the session; the engine draws its own row.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed sessions ending with \"unrecoverable interface error\" when a value a mod's `ui.render` hook wrote made a row throw while drawn; the engine now draws its own row instead",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free resilience upside for lesson-cards (ui.render on ToolUse rows)."
+      },
+      {
+        "feature_slug": "mod_async_handler_throw",
+        "category": "fix",
+        "description": "Supervised and background sessions no longer end when a plugin's on-screen handler throws asynchronously.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed supervised and background sessions ending when a plugin's on-screen handler threw asynchronously",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free resilience upside for promote-lights (async ui.render and clock.every handlers)."
+      },
+      {
+        "feature_slug": "plugin_validate_marketplace_manifest",
+        "category": "fix",
+        "description": "claude plugin validate no longer skips the plugin when the folder also holds a marketplace manifest.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed `claude plugin validate` skipping the plugin when the folder also holds a marketplace manifest",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork's validate job targets the marketplace manifest and plugins/ork holds no marketplace.json, so the skipped case never applied."
+      },
+      {
+        "feature_slug": "nested_compound_deny_managed_mod",
+        "category": "fix",
+        "description": "A deny or ask rule on a nested part of a compound shell command now holds over a user-installed mod's approval on managed machines.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a deny or ask rule on a nested part of a compound shell command not holding over a user-installed mod's approval on managed machines",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork mod approves tool calls (secrets-veil masks results after next(e)); nothing to change."
+      }
+    ],
+    "raw_bullets_count": 27,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.290",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "web_search_refills_env",
+        "category": "new_env",
+        "description": "The WebSearch budget refills 100 calls per hour instead of a hard 200 per session; CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR sets the rate, 0 turns it off.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Changed the interactive session's WebSearch budget to refill over time (100 calls/hour; `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR` sets the rate, 0 turns it off) instead of ending after 200 calls",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md (the 2.1.290 matrix row named this doc adoption but the section was missing)."
+      },
+      {
+        "feature_slug": "bash_wildcard_readonly_prompt",
+        "category": "new_perm",
+        "description": "Bash permission checks now ask for read-only commands whose wildcard arguments the shell expands (rg, git grep).",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed Bash permission checks auto-approving some read-only commands (such as `rg` or `git grep`) whose arguments the shell would still expand as wildcards; these now prompt for approval",
+        "relevance": "end-user",
+        "disposition": "watch",
+        "ork_disposition_note": "Probed 2026-10-08 on 2.1.294 (matrix row): a headless wildcard git grep is denied, a plain one runs. Follow-up: unattended callers that glob rg need an allow rule; re-run the operator payload coverage test."
+      },
+      {
+        "feature_slug": "permission_after_pretooluse_rewrite",
+        "category": "breaking",
+        "description": "Permission rules and safety checks now apply to a tool call after a PreToolUse hook rewrote its input.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed some permission rules and safety checks not being applied to a tool call after a PreToolUse hook rewrote its input",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork's headless-responder and write-edit dispatcher return updatedInput, so allow and deny rules now see the rewritten form. Probed PASS with a generic rewrite hook; follow-up: test the RTK rewrite form."
+      },
+      {
+        "feature_slug": "teammate_agent_id_teammateidle",
+        "category": "breaking",
+        "description": "In-process teammate agent_id is now the agent ID (name@team moves to teammate_id) and TeammateIdle no longer fires from a teammate's subagents or forks.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed an in-process teammate's `agent_id` in Agent results to its agent ID (its `name@team` address stays in `teammate_id`); TeammateIdle hooks no longer fire from its subagents or forks",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: ork registers TeammateIdle hooks that count idle events; the 2026-10-08 probe was INCONCLUSIVE and needs an interactive agent team."
+      },
+      {
+        "feature_slug": "plugin_validate_gating_hooks",
+        "category": "new_attr",
+        "description": "claude plugin validate lists each gating-site mod hook and whether it has a .catch (gatingHooks in JSON output).",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added to `claude plugin validate`: each hook a mod registers at a gating site is listed with whether it has a `.catch` (`gatingHooks` under `--json`)",
+        "relevance": "plugin-author",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up (mods code): run validate in JSON mode on ork's mods and add .catch to the tool.call guards it lists without one. Not in this PR (runtime code)."
+      },
+      {
+        "feature_slug": "webfetch_offset_large_pages",
+        "category": "fix",
+        "description": "WebFetch no longer drops text past 100k characters; it reports the unread amount and takes an offset.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed WebFetch silently dropping page text past 100,000 characters; it now says how much was unread and takes an `offset` to read on",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for research agents that fetch long pages."
+      },
+      {
+        "feature_slug": "background_agents_mac_sleep",
+        "category": "fix",
+        "description": "Background agents no longer fail with Agent stalled, and Workflow subagents no longer restart, after the Mac sleeps.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed background agents failing with \"Agent stalled\" and Workflow tool subagents restarting from their prompt when a Mac woke from sleep",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for ork's Workflow fan-out skills on laptops."
+      },
+      {
+        "feature_slug": "background_subagent_worktree_access",
+        "category": "fix",
+        "description": "Background subagents keep write and Bash access in their worktree when the main session switches worktree.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed background subagents losing write and Bash access in their worktree after the main session enters or exits a different worktree",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for ork's 25 isolation: worktree agents."
+      },
+      {
+        "feature_slug": "skills_found_by_skill_md_name",
+        "category": "fix",
+        "description": "Skills are found by their SKILL.md name when the folder name differs.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed skills not being found when asked for by the name in SKILL.md when their folder has a different name (for example a non-English name): the skill listing now shows both names",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Every ork SKILL.md name matches its folder (changelog watch scan: 0 of 110 differ)."
+      },
+      {
+        "feature_slug": "pyright_asks",
+        "category": "new_perm",
+        "description": "The Bash tool now asks before running pyright (no longer treated as read-only).",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed the Bash tool to ask for permission before running `pyright`, which is no longer treated as a read-only command",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork hook or headless harness runs pyright through the Bash tool."
+      }
+    ],
+    "raw_bullets_count": 190,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.291",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "session_loss_floor_note",
+        "category": "fix",
+        "description": "2.1.288 could lose the last messages of a session on quit, and 2.1.290 could drop cloud permission answers; both fixed.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed a regression in 2.1.288 where the last messages of a session could be lost when quitting",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "The doctor matrix row for 2.1.291 says never to set supported_floor inside 2.1.288 to 2.1.290; recorded again in the cc-support.json override note."
+      }
+    ],
+    "raw_bullets_count": 2,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.292",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "agent_tool_effort_param",
+        "category": "new_attr",
+        "description": "The Agent tool takes an effort parameter, so one subagent can run at a named effort.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added an `effort` parameter to the Agent tool, so Claude runs a sub-agent at the effort level you ask for",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up: effort-scaled skills could pass effort per spawn instead of per session (relates to #4052 and #4051). The spawn guard reads subagent_type only, so the extra key is harmless today."
+      },
+      {
+        "feature_slug": "plugin_install_marketplace_flag",
+        "category": "new_command",
+        "description": "claude plugin install takes a marketplace source and adds the marketplace before installing, in one command.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `--marketplace <source>` to `claude plugin install`: adds the marketplace if needed, under the same policy checks as `claude plugin marketplace add`, then installs the plugin from it",
+        "relevance": "end-user",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up (docs): collapse ork's two-step install instructions into one command once the floor reaches 2.1.292; the floor is 2.1.277, so both forms stay documented for now."
+      },
+      {
+        "feature_slug": "stdio_mcp_protocol_negotiation",
+        "category": "changed_default",
+        "description": "Local (stdio) MCP servers negotiate protocol 2026-07-28 by default; MCP_PROTOCOL_NEGOTIATION=legacy opts out; slow servers are remembered for 7 days.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed local (stdio) MCP server connections to negotiate protocol version 2026-07-28 by default on every install, including Bedrock, Vertex and Foundry; `MCP_PROTOCOL_NEGOTIATION=legacy` opts out",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. Probed 2026-10-08: server/discover first, fallback to initialize 2025-11-25 (matrix row)."
+      },
+      {
+        "feature_slug": "hook_output_system_reminder_escaped",
+        "category": "breaking",
+        "description": "<system-reminder> tags written in hook output are escaped before they reach Claude.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Improved hook output handling: `<system-reminder>` tags written in a hook's output are escaped before they reach Claude",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up (hook code): lifecycle/ask-fallback-injector.ts wraps its text in a literal system-reminder tag (ORK_ASK_FALLBACK=text); on 2.1.292+ Claude sees it escaped. Drop the wrapper; not in this PR (runtime code)."
+      },
+      {
+        "feature_slug": "overloaded_retry_base_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS sets a longer base delay for 529 retries.",
+        "gap_score": 3,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS` environment variable to set a longer base delay for the backoff when retrying an overloaded (529) request",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md beside the 2.1.296 max-delay variable."
+      },
+      {
+        "feature_slug": "p_waits_background_commands",
+        "category": "changed_default",
+        "description": "One-shot claude -p now waits for background commands and scheduled wakeups instead of stopping them after 5 s.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed one-shot `claude -p` and Agent SDK runs stopping a background command 5 seconds after the final result, and one-shot `claude -p` runs dropping a scheduled wakeup; both are now waited for",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: ork's headless harnesses (bare-eval, ci-sentinel) may take longer to exit when a run starts a background command; watch their wall time."
+      },
+      {
+        "feature_slug": "mod_hook_reject_after_next_interrupted",
+        "category": "breaking",
+        "description": "A mod hook that called next(e) and then failed during an interrupted turn now rejects the call.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a mod's hook that called `next(e)` and then failed while the turn was interrupted letting the call through; the call is now rejected",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: a throw in secrets-veil after next(e) now rejects the call instead of passing unmasked output; confirm the masking path never throws."
+      },
+      {
+        "feature_slug": "mcp_tool_name_128_dropped",
+        "category": "fix",
+        "description": "An MCP tool with a name over 128 characters is dropped with a named error instead of failing every request.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed an MCP tool with a name longer than 128 characters making every request fail; that tool is now left out and an MCP error names it",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no MCP server, so no ork tool name is at risk."
+      }
+    ],
+    "raw_bullets_count": 92,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.293",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "haiku_5_5_default",
+        "category": "new_attr",
+        "description": "Claude Haiku 5.5 is the default Haiku model on the Anthropic API (1M context, $0.10/$0.50 per MTok); adaptive thinking, rejects sampling parameters and prefill.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor",
+          "analytics"
+        ],
+        "reference_changelog_line": "Added Claude Haiku 5.5 (`claude-haiku-5-5`), now the default Haiku model on the Anthropic API \u2014 1M context, $0.10/$0.50 per Mtok ($0.50/$2.50 for prompts over 100K)",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up in flight: #4660 (vocab and pricing row) and #4661 (alias), both OPEN on 2026-10-10. Claude Code's own haiku alias already resolves to Haiku 5.5 (probe 2026-10-08)."
+      },
+      {
+        "feature_slug": "plugin_eval_docker_desktop",
+        "category": "fix",
+        "description": "claude plugin eval no longer refuses every Bash-granting run on Macs with Docker Desktop links.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed `claude plugin eval` refusing every Bash-granting run on Macs with Docker Desktop (links under `~/.docker/bin`); the refusal now names which part of a credential store held the link",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Probed PASS 2026-10-08 on 2.1.294 (matrix row)."
+      },
+      {
+        "feature_slug": "rules_load_on_bash_reads",
+        "category": "changed_default",
+        "description": "Path-scoped rules and nested CLAUDE.md now load when Claude reads a file through cat, head, tail, sed -n or grep in Bash.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed path-scoped rules and nested CLAUDE.md files not loading when Claude views a file with a single-file cat, head, tail, sed -n or grep command in the Bash tool instead of the Read tool",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: ork ships path-scoped rules; InstructionsLoaded may fire more often in Bash-heavy sessions; check rules-size-check for noise."
+      },
+      {
+        "feature_slug": "http_mcp_memory_leak",
+        "category": "fix",
+        "description": "An HTTP MCP connection no longer keeps every sent request in memory until close.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a memory leak where an HTTP MCP connection kept every request it had sent until it closed",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for long sessions with HTTP MCP servers."
+      },
+      {
+        "feature_slug": "subagent_status_line_agent_type",
+        "category": "new_attr",
+        "description": "agentType is added to the subagentStatusLine payload.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `agentType` to the `subagentStatusLine` payload, so scripts can tell custom subagent types apart",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no subagentStatusLine."
+      }
+    ],
+    "raw_bullets_count": 56,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.294",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "prompt_agent_hooks_instruction_block",
+        "category": "fix",
+        "description": "prompt and agent hooks written as instructions no longer allow what they should block.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed `prompt` and `agent` hooks written as instructions (such as \"Block commands that...\") allowing what they should block",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no prompt or agent type hook (0 in src/hooks/hooks.json); recorded in the 2.1.294 matrix row."
+      },
+      {
+        "feature_slug": "stop_prompt_hooks_judged",
+        "category": "changed_default",
+        "description": "prompt hooks on Stop and SubagentStop written as instructions are judged so Claude is less likely to stop early.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Improved how `prompt` hooks on Stop and SubagentStop written as instructions (such as \"Carry on if the build is broken\") are judged, so Claude is less likely to stop early",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork's Stop hooks are command hooks; unaffected."
+      }
+    ],
+    "raw_bullets_count": 2,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.295",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "hook_on_failure_block",
+        "category": "new_attr",
+        "description": "Command and HTTP hooks take onFailure: \"block\": a hook that cannot start, times out or exits with an unexpected code blocks the action. The default still lets the action through.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `onFailure: \"block\"` for command and HTTP hooks: a hook that can't start, times out, or exits with an unexpected code blocks the action instead of letting it through",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. Follow-up (hooks.json): 0 of 152 ork hook entries set onFailure; add \"block\" to the security guard hooks only, never to telemetry hooks, once the floor reaches 2.1.295. Not in this PR (runtime config)."
+      },
+      {
+        "feature_slug": "tool_search_mcp_description_16384",
+        "category": "changed_default",
+        "description": "MCP tool descriptions the model loads through tool search are cut at 16,384 characters instead of 2,048.",
+        "gap_score": 3,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Changed MCP tool descriptions the model loads through tool search to be cut at 16,384 characters instead of 2,048",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md with the 2.1.296 up-front cap."
+      },
+      {
+        "feature_slug": "retry_watchdog_max_wait_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS limits how long unattended retry mode waits out 429 and 529 errors.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` to limit how long unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) waits out 429 and 529 errors",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. Follow-up (docs): bare-eval tells overnight batches to set CLAUDE_CODE_RETRY_WATCHDOG=1; name the cap there too."
+      },
+      {
+        "feature_slug": "skill_allowed_tools_effort_p_runs",
+        "category": "fix",
+        "description": "A skill's allowed-tools and effort are no longer dropped when the Skill tool finishes before the response stream ends, which denied the skill's Bash commands in -p runs.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed a skill's `allowed-tools` and `effort` being dropped when the Skill tool finished before the response stream ended, which denied the skill's Bash commands in `-p` runs",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Upside for headless runs of ork skills; 43 ork skills set effort in frontmatter, so headless cost and latency may shift. Watch eval wall time."
+      },
+      {
+        "feature_slug": "forked_skill_workflow_results",
+        "category": "fix",
+        "description": "Forked skills invoked from Workflow subagents return their results to the invoking agent instead of the main conversation.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed forked skills invoked from Workflow subagents delivering their results to the main conversation instead of the invoking agent",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for ork's Workflow fan-out skills."
+      },
+      {
+        "feature_slug": "workflow_scriptpath_refusal",
+        "category": "changed_default",
+        "description": "The Workflow tool's scriptPath refusal now says to pass the script inline; scriptPath needs a Read tool.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Improved the Workflow tool's `scriptPath` refusal: it now says to pass the script inline via `script`, the route that works in sessions without a Read tool",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: 6 ork SKILL.md files dispatch workflows by scriptPath; in a session or agent without Read they are refused and the inline script is the fallback."
+      },
+      {
+        "feature_slug": "subagent_32_skills_preload",
+        "category": "changed_default",
+        "description": "Subagents preload at most 32 skills from the skills field, each once.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed subagents to preload at most 32 skills from the `skills` field, each once; a subagent with the Skill tool can still invoke the rest",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "The longest ork agent skills list has 13 entries (frontend-ui-developer)."
+      },
+      {
+        "feature_slug": "worktree_subagent_own_branch",
+        "category": "fix",
+        "description": "Subagents in their own linked worktree see their own git branch, status and commits, not the parent's.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed subagents in their own linked worktree being shown the parent session's git branch, status and recent commits",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for ork's 25 isolation: worktree agents."
+      },
+      {
+        "feature_slug": "background_force_color",
+        "category": "fix",
+        "description": "Commands and hooks in background sessions no longer inherit FORCE_COLOR=3.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed commands and hooks in background sessions inheriting `FORCE_COLOR=3`, which put color escape codes into the output Claude reads",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside: no ANSI codes in ork hook output read in background sessions."
+      },
+      {
+        "feature_slug": "async_sessionstart_context_resume",
+        "category": "fix",
+        "description": "An async SessionStart hook's unchanged context is no longer added again on every resume.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed an async SessionStart hook's unchanged context being added to the conversation again on every resume",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for ork's SessionStart context hooks."
+      }
+    ],
+    "raw_bullets_count": 143,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
+    "version": "2.1.296",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "read_allow_large",
+        "category": "new_attr",
+        "description": "The Read tool takes allow_large to read a text file past the usual size limits in one call.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added an `allow_large` option to the Read tool so Claude can read a text file past the usual size limits in one call when it needs the whole file and the context has room",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up (hook code): pretool/read/tldr-summary.ts still injects a summary on an allow_large whole-file read; the skip is on branch fix/ork10-stack-3-tldr-allow-large (not merged). Not in this PR."
+      },
+      {
+        "feature_slug": "sonnet_5_5_cache_read_price",
+        "category": "changed_default",
+        "description": "/cost, the status line, the max budget flag and SDK cost price Sonnet 5.5 cache reads at $0.10 per MTok (was $0.20).",
+        "gap_score": 10,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Updated `/cost`, the status line, `--max-budget-usd` and the SDK's cost figures to price Sonnet 5.5 cache reads at $0.10 per million tokens (was $0.20)",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up (vocab): models.vocab.json still prices claude-sonnet-5-5 cache reads at 0.2; the fix is on branch fix/ork10-stack-1-sonnet55-cache-price (not merged). Not in this PR."
+      },
+      {
+        "feature_slug": "mcp_description_cap_4096",
+        "category": "changed_default",
+        "description": "The default limit on MCP tool descriptions sent up front and on MCP server instructions rises from 2,048 to 4,096 characters.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Changed the default limit on MCP tool descriptions sent up front and on MCP server instructions from 2,048 to 4,096 characters",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. The CONTRIBUTING-SKILLS.md line is updated on branch docs/ork10-stack-2-mcp-desc-limit."
+      },
+      {
+        "feature_slug": "workflow_subagent_model_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL runs every workflow agent on one model while other subagents keep theirs.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` to run every workflow agent on one model while other subagents keep theirs",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. 6 of 8 ork workflow scripts pass a per-stage model; which wins against the variable is unconfirmed."
+      },
+      {
+        "feature_slug": "subagent_autocompact_window",
+        "category": "new_attr",
+        "description": "autoCompactWindow is allowed in subagent frontmatter and in agents flag definitions, so a subagent can auto-compact earlier than the main window.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Added `autoCompactWindow` to subagent frontmatter and `--agents` definitions, so a subagent can auto-compact earlier than the main conversation's window",
+        "relevance": "plugin-author",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md. No ork agent sets it; whether plugin agents honour the key is unconfirmed."
+      },
+      {
+        "feature_slug": "overloaded_retry_max_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS sets a longer maximum backoff for 529 retries.",
+        "gap_score": 3,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS` environment variable to set a longer maximum delay for the backoff when retrying an overloaded (529) request",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/references/cc-version-settings.md beside the 2.1.292 base-delay variable."
+      },
+      {
+        "feature_slug": "debug_unknown_agent_frontmatter",
+        "category": "new_attr",
+        "description": "Debug output names unrecognized frontmatter fields in custom agent files, with a typo hint.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Improved `--debug` output to name unrecognized frontmatter fields in custom agent files, with a hint for likely typos",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "Follow-up: one debug run over ork's 36 agents is a cheap check of which frontmatter keys CC actually reads."
+      },
+      {
+        "feature_slug": "plugin_same_name_hooks_note",
+        "category": "new_attr",
+        "description": "/plugin notes a plugin whose hooks are left out because another enabled plugin has the same name.",
+        "gap_score": 3,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Added a note in `/plugin` on a plugin whose hooks are left out because another enabled plugin has the same name",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free diagnostic for users who enable two ork channels at once."
+      },
+      {
+        "feature_slug": "esc_userpromptsubmit_headless",
+        "category": "fix",
+        "description": "Esc during a UserPromptSubmit hook or a mod's prompt.submit hook no longer ends headless sessions, clears the prompt or lets the unchecked prompt through.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Esc or an interrupt during a `UserPromptSubmit` hook or a mod's `prompt.submit` hook ending headless sessions, clearing the typed prompt, or letting the unchecked prompt through",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside: ork's UserPromptSubmit hooks can no longer be bypassed by an interrupt."
+      },
+      {
+        "feature_slug": "haiku_55_token_counts",
+        "category": "fix",
+        "description": "Token counts for Haiku 5.5 and other adaptive-thinking-only models are fixed.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed token counts for Haiku 5.5 and other models that take only adaptive thinking, which failed behind some gateways and were counted with budget thinking elsewhere",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for haiku-pinned ork agents once the alias moves (#4661)."
+      },
+      {
+        "feature_slug": "workflow_crlf_scripts",
+        "category": "fix",
+        "description": "The Workflow tool accepts script files with CRLF line endings.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed the Workflow tool refusing script files with CRLF line endings, such as files checked out on Windows",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free upside for Windows users of ork's workflow scripts."
+      },
+      {
+        "feature_slug": "debug_hook_timing",
+        "category": "new_attr",
+        "description": "Debug output for command hooks logs command, plugin, outcome and duration when they finish.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Improved `--debug` output for hooks: command hooks on tool calls, prompts, SessionStart and Stop now log their command, plugin, outcome and duration when they finish, so a slow hook is identifiable",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free diagnostic that complements ork's hook-timing telemetry."
+      },
+      {
+        "feature_slug": "managed_pretooluse_continue_false",
+        "category": "fix",
+        "description": "Managed-settings PreToolUse hooks that deny with continue: false, and managed prompt hooks that block, now end the turn.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed managed-settings `PreToolUse` hooks that deny a tool call with `\"continue\": false`, and managed `prompt` hooks that block one, refusing the call but not ending the turn",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork hooks are plugin hooks, not managed settings; nothing to change."
+      }
+    ],
+    "raw_bullets_count": 79,
+    "triaged_by": "hand, lane ork10-adopt-cc-289-296, 2026-10-10 (GH-4690)"
+  },
+  {
     "version": "2.1.285",
     "parse_failed": false,
     "features": [

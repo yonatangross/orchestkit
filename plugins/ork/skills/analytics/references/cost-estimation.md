@@ -12,7 +12,7 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 | claude-opus-5-5 | $4.00 | $20.00 | $0.20 | $5.00 |
 | claude-opus-5 | $5.00 | $25.00 | $0.50 | $6.25 |
 | claude-opus-4-8 | $5.00 | $25.00 | $0.50 | $6.25 |
-| claude-sonnet-5-5 | $2.00 | $10.00 | $0.20 | $2.50 |
+| claude-sonnet-5-5 | $2.00 | $10.00 | $0.10 | $2.50 |
 | claude-sonnet-5 (legacy) | $2.00 | $10.00 | $0.20 | $2.50 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
@@ -20,7 +20,7 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 
 > `gemini-3.8-flash` (Google, GA 2026-09-02) is the first non-Claude row. It is priced so gateway or managed-override usage lands on its own row instead of the sonnet fallback. The figures are a promo through 2026-12-31; Google doubles them to $1.50 / $7.50 / $0.15 on 2027-01-01, so re-stamp the vocab row and this mirror that day. Cache write is the input rate (Google bills cache creation at input plus per-hour storage, no write premium). `gemini-3.8-flash-cyber` is not available: gated behind the Fairwind Program, not GA, no public price, no row.
 
-> `claude-sonnet-5-5` (Sonnet 5.5) is the current `sonnet` alias target from 2026-09-28 and the unknown-model fallback row. It is $2/$10 with a $0.20 cache read and a $2.50 5-minute cache write; the 1-hour cache write is $4.00 and has no column here. It superseded `claude-sonnet-5`, which stays served as legacy at the same price.
+> `claude-sonnet-5-5` (Sonnet 5.5) is the current `sonnet` alias target from 2026-09-28 and the unknown-model fallback row. It is $2/$10 with a $0.10 cache read (0.05x input per the pricing page, read 2026-10-10; was $0.20) and a $2.50 5-minute cache write; the 1-hour cache write is $4.00 and has no column here. It superseded `claude-sonnet-5`, which stays served as legacy at the same $2/$10 list price but keeps a $0.20 cache read.
 
 > `claude-sonnet-5` is $2/$10 per MTok. This was the launch rate and was scheduled to rise to $3/$15 on 2026-09-01, so this table carried the higher sticker on purpose. The 2026-08-10 platform release notes cancelled that increase and made $2/$10 standard, so the sticker was wrong from that date until it was corrected on 2026-08-21. Note that `claude-sonnet-4-6` stays at $3/$15; the two Sonnets no longer share a price.
 
