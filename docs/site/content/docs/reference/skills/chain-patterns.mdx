@@ -147,13 +147,13 @@ Launch agents with `run_in_background=true` and output results as each returns, 
 > **Skill-side twin (CC 2.1.218+):** skills with `context: fork` also background by default; the per-skill opt-out is `background: false` in frontmatter. ork's rule: every `user-invocable: true` fork skill declares it (a human typed the command and is waiting, verdict gates and AskUserQuestion turns need the interactive loop), while model-invoked fork skills deliberately keep the background default, which is the 2.1.218 win. When authoring a pipeline skill, decide this explicitly rather than inheriting whatever the current default is (#3093).
 
 ```python
-# Launch all agents in ONE message with run_in_background=true
+# Launch all agents in ONE message with run_in_background=true; writers get isolation="worktree"
 Agent(subagent_type="ork:backend-system-architect",
-  prompt="...", run_in_background=true, name="backend")
+  prompt="...", run_in_background=true, isolation="worktree", name="backend")
 Agent(subagent_type="ork:frontend-ui-developer",
-  prompt="...", run_in_background=true, name="frontend")
+  prompt="...", run_in_background=true, isolation="worktree", name="frontend")
 Agent(subagent_type="ork:test-generator",
-  prompt="...", run_in_background=true, name="tests")
+  prompt="...", run_in_background=true, isolation="worktree", name="tests")
 
 # As each agent completes, output its findings immediately.
 # CC delivers background agent results as notifications —

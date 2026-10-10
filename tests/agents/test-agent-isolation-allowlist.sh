@@ -32,7 +32,22 @@ fm_key() {
   frontmatter "$1" | awk -v k="$2:" 'index($0, k) == 1 {print tolower($0); exit}'
 }
 
+# True when the isolation line is exactly `isolation: worktree` (any other
+# value, such as `true` or `none`, is not the supported setting).
+value_ok() {
+  [[ "$(fm_key "$1" isolation | sed 's/[[:space:]]*$//')" == "isolation: worktree" ]]
+}
+
 echo "=== Agent isolation allowlist (#4557) ==="
+
+# Self-check: value_ok must reject a wrong value, or the exact-value check
+# below would pass anything.
+tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/iso-allowlist.XXXXXX")
+trap 'rm -rf "$tmp_dir"' EXIT
+printf '%s\n' '---' 'name: probe' 'isolation: true' '---' > "$tmp_dir/probe.md"
+if value_ok "$tmp_dir/probe.md"; then fail "value_ok accepted 'isolation: true'"; fi
+printf '%s\n' '---' 'name: probe' 'isolation: worktree' '---' > "$tmp_dir/probe.md"
+value_ok "$tmp_dir/probe.md" || fail "value_ok rejected 'isolation: worktree'"
 
 found=""
 for agent_file in "$AGENTS_DIR"/*.md; do
@@ -56,6 +71,7 @@ for name in $ALLOWED; do
     *" $name "*) ;;
     *) fail "$name lost its isolation: worktree key" ;;
   esac
+  value_ok "$f" || fail "$name isolation value is '$(fm_key "$f" isolation)', expected exactly 'isolation: worktree'"
   desc="$(fm_key "$f" description)"
   case "$desc" in
     *"git repository"*) ;;

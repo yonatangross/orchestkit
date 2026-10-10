@@ -188,7 +188,7 @@ See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn promp
 
 **128K consolidation:** Backend is 1 agent (was 2), frontend is 1 agent (was 3 incl. styling). Each produces complete working code in a single pass.
 
-All 5 agents launch in ONE message with `run_in_background=true`.
+All 5 agents launch in ONE message with `run_in_background=true`. Every agent that writes code also gets `isolation="worktree"`: ork agents carry no frontmatter isolation (#4557), so without it the parallel writers share your tree. Merge each worktree back as SKILL.md "Worktree-Isolated Implementation" describes.
 
 ### Agent 1: Backend — Complete Implementation
 ```python
@@ -227,7 +227,7 @@ Agent(
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 backend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -272,7 +272,7 @@ Agent(
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 frontend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -298,7 +298,7 @@ Agent(
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 AI spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -351,7 +351,7 @@ Agent(
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -413,7 +413,7 @@ Agent(
   5. Fix any integration issues found
 
   This is verification, not new implementation.""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -431,7 +431,7 @@ Agent(
   5. Fix any integration issues found
 
   This is verification, not new implementation.""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 

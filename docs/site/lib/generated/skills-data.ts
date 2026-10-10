@@ -897,7 +897,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill.",
     "version": "1.0.0",
-    "sha256": "1ac3db0b7a02cab0f5c106224ebc673374e2ff66d3818db2d6b5c41e9bb99705",
+    "sha256": "40e4c5a63a2c902b5f3fa34cd537199452b5143074d671a012e040f3bd77ba14",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
