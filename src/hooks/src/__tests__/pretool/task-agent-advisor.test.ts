@@ -324,6 +324,36 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     expect(decisionOf(result)).toBe('ask');
   });
 
+  // codex HOLD 6101944326 and agy 6101938077: one security match from the
+  // description, the probe in the prompt; classifier and hook both pinned.
+  const SQL_DESC = 'Address SQL injection vulnerability';
+  test.each([
+    ['Apply this fix for the SQL injection vulnerability'],
+    ['Do not forget to fix the SQL injection vulnerability'],
+    ['Never skip implementing the endpoint'],
+    ['Without delay fix the SQL injection vulnerability'],
+    ['Do not commit or push but write unit tests for the query builder'],
+    ['Implement the endpoint, never skip tests'],
+    ['fix the bug; do not push'],
+    ['Add the guard without changing the API'],
+  ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).not.toBe('ask');
+  });
+
+  test.each([
+    ['Security review of commit abc123'],
+    ['Security review of fixes in this PR'],
+    ['Security review of a possible fix'],
+    ['Security review of our fix'],
+    ['Security review the bug fix'],
+  ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
   test('a read-only match WITHOUT build intent still asks', () => {
     const result = taskAgentAdvisor(
       makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),

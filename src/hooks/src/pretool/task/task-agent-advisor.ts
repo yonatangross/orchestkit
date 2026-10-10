@@ -102,28 +102,45 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Build intent: the task asks to change code or ship it (write, implement,
- * fix, replace, refactor, rewrite, add tests or code, commit, push, open a
- * PR). Suffixes are bounded so `implementation`, `fixture`, `pushover` and
- * `replacement` do not match, and `add` needs a code object so "add findings
- * to the report" stays review-only. A verb right after a determiner is a noun
- * ("review the fix", "check this commit"), so it does not count. Exported for
- * tests.
+ * Build intent: the task tells the agent to change code or ship it. A build
+ * verb counts only in VERB POSITION: at the start of a clause, after a
+ * joining word (and, then, but, please, ...), or after a modal (must, should,
+ * need to, ...). In object position it is a noun under review: "review of
+ * commit abc123", "review of our fix", "review the bug fix", "the auth
+ * implementation". Verbs: implement, commit, push, fix, patch, replace,
+ * refactor, rewrite, apply a fix or patch, add or write tests or code, edit
+ * code or files, open a PR. Suffixes are bounded so `implementation`,
+ * `fixture`, `pushover` and `replacement` do not match. Exported for tests.
  */
-export const BUILD_INTENT_PATTERN =
-  /\b(?<!\b(?:the|a|an|this|that|these|those|your|its|their|each|any) )(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|add (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?)|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
+export const BUILD_INTENT_PATTERN = new RegExp(
+  String.raw`(?:^|[.;:!?,]|\b(?:and|then|or|but|also|please|now|first|next|finally|so)\b|\b(?:must|should|can|could|will|would|need|needs|want|wants|have|has|going|able|asked|try|sure)(?: to)?\b)\s*` +
+    String.raw`(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|apply(?:ing)? (?:\w+ ){0,2}(?:fix|patch|change|diff|suggestion)\w*|(?:add|write)(?:ing)? (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?|fix|patch)|edit(?:ing)? (?:the )?(?:code|files?)|(?:open|create|raise)(?:ing)? (?:a |the )?(?:pr|pull request))\b`,
+  'im',
+);
 
 /**
- * A negated clause ("do not commit or push", "never edit the code") runs from
- * the negation to the next clause break. It is removed before the build-intent
- * test, so a review that forbids writes stays review-only. Exported for tests.
+ * Reminders that read like a negation but ask for the work: "do not forget
+ * to fix", "never skip implementing", "without delay fix". They become a
+ * clause break, so the verb after them is in verb position. Exported for tests.
+ */
+export const AFFIRMATIVE_REMINDER_PATTERN =
+  /\b(?:(?:do not|don't|dont|never) (?:forget|fail|neglect|hesitate) to|never (?:skip|omit)|without (?:further )?(?:delay|waiting))\b/gi;
+
+/**
+ * A real prohibition ("do not commit or push", "never edit the code",
+ * "without changing the API") runs from the negation to the next clause break
+ * or to but, then, instead or however. It is removed before the build-intent
+ * test, so a review that forbids writes stays review-only, and "do not push
+ * but write tests" keeps its write. Exported for tests.
  */
 export const NEGATED_CLAUSE_PATTERN =
-  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b[^.;,!?\n]*/gi;
+  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b.*?(?=[.;,!?\n]|\b(?:but|then|instead|however)\b|$)/gi;
 
 /** True when the task text asks to build (change code or ship it). */
 export function hasBuildIntent(description: string, prompt: string): boolean {
-  const text = `${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`.replace(NEGATED_CLAUSE_PATTERN, ' ');
+  const text = `${description.slice(0, NUDGE_SCAN_MAX_CHARS)}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`
+    .replace(AFFIRMATIVE_REMINDER_PATTERN, '.')
+    .replace(NEGATED_CLAUSE_PATTERN, ' ');
   return BUILD_INTENT_PATTERN.test(text);
 }
 
