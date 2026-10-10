@@ -85,10 +85,12 @@ done
 # run_in_background=true/True, created as a teammate (team_name=), or the
 # design-import Phase 4 loop. A call block ends when its parentheses balance,
 # so a one-line or multi-line call is read whole. Skipped: **Incorrect**
-# examples, agent-phases.md Phase 4 (architecture specs, no file writes), and
-# prompts that cd into a manual worktree.
+# examples, agent-phases.md Phase 4 (architecture specs, no file writes),
+# prompts that cd into a manual worktree, and fix-issue spawns other than
+# test-generator (design only). Isolated writers in implement, design-import
+# and fix-issue must also be told to commit.
 writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
-caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md")
+caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md")
 scan=$(awk -v re="$writer_re" '
   FNR == 1 { inc = 0; open_ = 0; skip = 0; loop = 0 }
   FILENAME ~ /agent-phases[.]md$/ && /^## Phase 4/ { skip = 1 }
@@ -96,7 +98,7 @@ scan=$(awk -v re="$writer_re" '
   FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 4/ { loop = 1 }
   FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 5/ { loop = 0 }
   !open_ && /^[*][*]Incorrect/ { inc = 1 }
-  !open_ && (/^[*][*]Correct/ || /^#{2,} /) { inc = 0 }
+  !open_ && (/^[*][*]Correct/ || /^##+ /) { inc = 0 }
   !open_ && /Agent[(]/ { open_ = 1; buf = ""; depth = 0; start = FNR }
   open_ {
     buf = buf " " $0
@@ -104,16 +106,18 @@ scan=$(awk -v re="$writer_re" '
     if (depth <= 0) {
       open_ = 0
       if (inc || skip || buf !~ re) next
+      # fix-issue: only test-generator writes; the backend and frontend experts design.
+      if (FILENAME ~ /fix-issue\// && buf !~ /ork:test-generator/) next
       print "SEEN"
       conc = (buf ~ /run_in_background=(true|True)/ || buf ~ /team_name=/ || loop)
       if (conc && buf !~ /isolation="worktree"/ && buf !~ /cd [{][a-z_]*wt[}]/) print FILENAME ":" start
       # A worktree branch is merged, so an uncommitted file is lost: the
       # implement and design-import writers must be told to commit.
-      if (buf ~ /isolation="worktree"/ && FILENAME ~ /(agent-phases|design-import\/SKILL)[.]md$/ && buf !~ /[Cc]ommit/) print "NOCOMMIT " FILENAME ":" start
+      if (buf ~ /isolation="worktree"/ && FILENAME ~ /(agent-phases|agent-teams-phases|design-import\/SKILL|fix-phases|agent-teams-rca)[.]md$/ && buf !~ /[Cc]ommit/) print "NOCOMMIT " FILENAME ":" start
     }
   }
 ' $caller_files)
-writers_seen=$(printf '%s\n' "$scan" | grep -c '^SEEN$' || true)
+writers_seen=$(printf '%s\n' "$scan" | awk '$0 == "SEEN" { n++ } END { print n + 0 }')
 [[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in the caller templates; the caller check cannot pass vacuously"
 for loc in $(printf '%s\n' "$scan" | grep '^NOCOMMIT ' | cut -d' ' -f2 || true); do
   fail "isolated writer at ${loc#"$REPO_ROOT/"} is not told to commit before it returns"

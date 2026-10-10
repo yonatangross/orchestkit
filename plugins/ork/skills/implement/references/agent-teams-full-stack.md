@@ -45,6 +45,8 @@ Implement the backend for: {feature description}
 - When database schema is ready, update the shared task list.
 - If you change the API contract after sharing it, message frontend-dev immediately.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - All code must pass ruff + type checking
@@ -78,6 +80,8 @@ Implement the frontend for: {feature description}
   so they can write integration tests.
 - If the API contract changes, adapt and message test-engineer about the update.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - TypeScript strict mode, no `any` types
@@ -110,6 +114,8 @@ Build the test suite for: {feature description}
   - API issues → message backend-architect
   - UI issues → message frontend-dev
 - Update the shared task list with coverage metrics as tests pass.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - 80% minimum coverage target
@@ -258,14 +264,18 @@ code-reviewer      → Primary tree (read-only, reviews all)
 
 After all teammates complete (or when all tasks are done):
 
-1. **Merge worktrees** (if used):
+1. **Merge worktrees.** Check each writer worktree is clean first
+   (`git -C <worktree> status --porcelain` prints nothing; if not, commit what
+   is there). Merge the branch each teammate messaged you: with
+   `isolation="worktree"` Claude Code names it, and `feat/{feature}/<role>`
+   exists only in the manual layout above.
    ```bash
    git checkout feat/{feature}
-   git merge --squash feat/{feature}/backend
+   git merge --squash <backend-architect branch>
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash feat/{feature}/frontend
+   git merge --squash <frontend-dev branch>
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash feat/{feature}/tests
+   git merge --squash <test-engineer branch>
    git commit -m "test({feature}): complete test suite"
    ```
 

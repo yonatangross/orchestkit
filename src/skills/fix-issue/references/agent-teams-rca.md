@@ -37,12 +37,19 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-expert",
      Share component changes with test-planner.""")
 
 Agent(subagent_type="ork:test-generator", name="test-planner",
-     team_name="fix-issue-{number}",
+     team_name="fix-issue-{number}", isolation="worktree",
      prompt="""Plan regression tests for issue #{number}.
      When root-cause-tracer confirms the root cause, write a failing test that reproduces it.
      When backend-expert or frontend-expert share fix designs, plan verification tests.
-     Start with the regression test BEFORE the fix is applied (TDD approach).""")
+     Start with the regression test BEFORE the fix is applied (TDD approach).
+     Commit the test in your worktree and message the lead your branch name and
+     commit sha. Uncommitted files are not merged.""")
 ```
+
+test-planner is the one teammate that writes files, so it runs in its own
+worktree (#4557). The lead checks that worktree is clean
+(`git -C <worktree> status --porcelain`), commits any leftovers, and merges
+its branch before the fix is written.
 
 **Team teardown** after fix is implemented and validated:
 ```python

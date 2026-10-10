@@ -143,16 +143,26 @@ Agent(
   2. Identify edge cases that must be covered
   3. Match test types to the fix using the Test Requirements Matrix
 
+  Commit the test in your worktree before you return, and end your reply with
+  your branch name and commit sha. Uncommitted files are not merged.
+
   SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
 
   Issue: #$ARGUMENTS
   """,
   run_in_background=True,
+  isolation="worktree",
   max_turns=25
 )
 ```
 
 Each agent outputs structured findings and a SUMMARY line.
+
+The test-generator writes a file while 4 other agents run, so it works in its
+own worktree (`isolation="worktree"`, #4557). When it returns, check its
+worktree is clean (`git -C <worktree> status --porcelain` prints nothing; if
+not, commit what is there), then merge its branch before the fix is written,
+so the failing regression test is in the tree the fix is verified against.
 
 ### Agent Teams Alternative
 

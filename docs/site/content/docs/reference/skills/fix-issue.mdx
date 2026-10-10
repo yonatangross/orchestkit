@@ -963,12 +963,19 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-expert",
      Share component changes with test-planner.""")
 
 Agent(subagent_type="ork:test-generator", name="test-planner",
-     team_name="fix-issue-{number}",
+     team_name="fix-issue-{number}", isolation="worktree",
      prompt="""Plan regression tests for issue #{number}.
      When root-cause-tracer confirms the root cause, write a failing test that reproduces it.
      When backend-expert or frontend-expert share fix designs, plan verification tests.
-     Start with the regression test BEFORE the fix is applied (TDD approach).""")
+     Start with the regression test BEFORE the fix is applied (TDD approach).
+     Commit the test in your worktree and message the lead your branch name and
+     commit sha. Uncommitted files are not merged.""")
 ```
+
+test-planner is the one teammate that writes files, so it runs in its own
+worktree (#4557). The lead checks that worktree is clean
+(`git -C <worktree> status --porcelain`), commits any leftovers, and merges
+its branch before the fix is written.
 
 **Team teardown** after fix is implemented and validated:
 ```python
@@ -1272,16 +1279,26 @@ Agent(
   2. Identify edge cases that must be covered
   3. Match test types to the fix using the Test Requirements Matrix
 
+  Commit the test in your worktree before you return, and end your reply with
+  your branch name and commit sha. Uncommitted files are not merged.
+
   SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
 
   Issue: #$ARGUMENTS
   """,
   run_in_background=True,
+  isolation="worktree",
   max_turns=25
 )
 ```
 
 Each agent outputs structured findings and a SUMMARY line.
+
+The test-generator writes a file while 4 other agents run, so it works in its
+own worktree (`isolation="worktree"`, #4557). When it returns, check its
+worktree is clean (`git -C <worktree> status --porcelain` prints nothing; if
+not, commit what is there), then merge its branch before the fix is written,
+so the failing regression test is in the tree the fix is verified against.
 
 ### Agent Teams Alternative
 

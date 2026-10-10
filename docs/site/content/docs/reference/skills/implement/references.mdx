@@ -658,6 +658,8 @@ Implement the backend for: {feature description}
 - When database schema is ready, update the shared task list.
 - If you change the API contract after sharing it, message frontend-dev immediately.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - All code must pass ruff + type checking
@@ -691,6 +693,8 @@ Implement the frontend for: {feature description}
   so they can write integration tests.
 - If the API contract changes, adapt and message test-engineer about the update.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - TypeScript strict mode, no `any` types
@@ -723,6 +727,8 @@ Build the test suite for: {feature description}
   - API issues → message backend-architect
   - UI issues → message frontend-dev
 - Update the shared task list with coverage metrics as tests pass.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - 80% minimum coverage target
@@ -871,14 +877,18 @@ code-reviewer      → Primary tree (read-only, reviews all)
 
 After all teammates complete (or when all tasks are done):
 
-1. **Merge worktrees** (if used):
+1. **Merge worktrees.** Check each writer worktree is clean first
+   (`git -C <worktree> status --porcelain` prints nothing; if not, commit what
+   is there). Merge the branch each teammate messaged you: with
+   `isolation="worktree"` Claude Code names it, and `feat/{feature}/<role>`
+   exists only in the manual layout above.
    ```bash
    git checkout feat/{feature}
-   git merge --squash feat/{feature}/backend
+   git merge --squash <backend-architect branch>
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash feat/{feature}/frontend
+   git merge --squash <frontend-dev branch>
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash feat/{feature}/tests
+   git merge --squash <test-engineer branch>
    git commit -m "test({feature}): complete test suite"
    ```
 
@@ -953,15 +963,18 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 # Writers get isolation="worktree" at creation (#4557); the reviewer only reads.
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
-     prompt="Design backend architecture. Message frontend-dev when API contract ready.")
+     prompt="Design backend architecture. Message frontend-dev when API contract ready. "
+            "Commit your work in your worktree and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-dev",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
-     prompt="Design frontend architecture. Wait for API contract from backend-architect.")
+     prompt="Design frontend architecture. Wait for API contract from backend-architect. "
+            "Commit your work in your worktree and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:test-generator", name="test-engineer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
-     prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
+     prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize. "
+            "Commit your work in your worktree and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
@@ -1031,13 +1044,20 @@ SendMessage(to="code-reviewer",
 
 After Phase 6 completes in Agent Teams mode, tear down the team:
 
-### 1. Merge Worktrees (if used)
+### 1. Merge Worktrees
+
+Each writer teammate worked in its own worktree. With `isolation="worktree"`,
+Claude Code names that worktree's branch, so merge the branch each teammate
+messaged you, not a `feat/{feature}/<role>` name (those exist only in the
+manual layout). For each one, check the worktree is clean first
+(`git -C <worktree> status --porcelain` prints nothing; if not, commit what is
+there), then merge:
 
 ```bash
 git checkout feat/{feature}
-git merge --squash feat/{feature}/backend && git commit -m "feat({feature}): backend"
-git merge --squash feat/{feature}/frontend && git commit -m "feat({feature}): frontend"
-git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test suite"
+git merge --squash <backend-architect branch> && git commit -m "feat({feature}): backend"
+git merge --squash <frontend-dev branch>      && git commit -m "feat({feature}): frontend"
+git merge --squash <test-engineer branch>     && git commit -m "test({feature}): test suite"
 ```
 
 ### 2. Shut Down Teammates
