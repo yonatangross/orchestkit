@@ -161,7 +161,8 @@ Each agent outputs structured findings and a SUMMARY line.
 The test-generator writes a file while 4 other agents run, so it works in its
 own worktree (`isolation="worktree"`, #4557). When it returns, check its
 worktree is clean (`git -C <worktree> status --porcelain` prints nothing; if
-not, commit what is there) and keep its branch name. Phase 6 creates the fix
+not, commit what is there) and keep its branch name as `REGRESSION_TEST_BRANCH`
+(empty when no test was written). Phase 6 creates the fix
 branch fresh from base, so it merges this branch as its FIRST step; that puts
 the failing regression test in the tree the fix is verified against.
 
@@ -210,8 +211,9 @@ BASE_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d: -f2 | tr -d 
 git checkout $BASE_BRANCH && git pull origin $BASE_BRANCH
 git checkout -b issue/$ARGUMENTS-fix
 
-# FIRST: bring in the Phase 4 regression test (the test-generator's branch)
-git merge --no-edit <regression-test branch>
+# FIRST: bring in the Phase 4 regression test, only if Phase 4 returned a
+# branch (step 1 below covers the no-test case)
+[ -n "$REGRESSION_TEST_BRANCH" ] && git merge --no-edit "$REGRESSION_TEST_BRANCH"
 ```
 
 ### CRITICAL: Regression Test Required

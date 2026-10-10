@@ -632,7 +632,7 @@ Example: `implement-user-auth`, `implement-dashboard-analytics`
 
 ### Teammate Spawn Prompts
 
-Spawn each writer teammate (backend-architect, frontend-dev, test-engineer) with `isolation="worktree"` (#4557): ork agents carry no frontmatter isolation, so without it they edit one tree at the same time. The code-reviewer only reads and needs none.
+Each writer teammate (backend-architect, frontend-dev, test-engineer) works in its own manual worktree, `.worktrees/<role>` on `feat/{feature}/<role>`, which the lead creates before spawning (see "Per-Teammate Worktree Setup" below; #4557). Do not pass `isolation` on a teammate call: a call with `name` and `isolation` launches a plain subagent, not a teammate (Claude Code docs: sub-agents, agent-teams). Add the "Your Working Directory" block from [Team Worktree Setup](team-worktree-setup.md) to each writer prompt. The code-reviewer only reads and needs none.
 
 #### 1. backend-architect (backend-system-architect)
 ```
@@ -869,7 +869,7 @@ test-engineer      → .worktrees/tests/
 code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
-**Do not skip worktrees:** every writer teammate needs its own, either `isolation="worktree"` at spawn or the manual layout above (#4557). Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
+**Do not skip worktrees:** every writer teammate needs its own, in the manual layout above (#4557); teammates cannot take `isolation` on the call. Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
 
 ---
 
@@ -878,17 +878,15 @@ code-reviewer      → Primary tree (read-only, reviews all)
 After all teammates complete (or when all tasks are done):
 
 1. **Merge worktrees.** Check each writer worktree is clean first
-   (`git -C <worktree> status --porcelain` prints nothing; if not, commit what
-   is there). Merge the branch each teammate messaged you: with
-   `isolation="worktree"` Claude Code names it, and `feat/{feature}/<role>`
-   exists only in the manual layout above.
+   (`git -C .worktrees/<role> status --porcelain` prints nothing; if not,
+   commit what is there). Merge each teammate's `feat/{feature}/<role>` branch.
    ```bash
    git checkout feat/{feature}
-   git merge --squash <backend-architect branch>
+   git merge --squash feat/{feature}/backend
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash <frontend-dev branch>
+   git merge --squash feat/{feature}/frontend
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash <test-engineer branch>
+   git merge --squash feat/{feature}/tests
    git commit -m "test({feature}): complete test suite"
    ```
 
@@ -960,21 +958,30 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 # CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
-# Writers get isolation="worktree" at creation (#4557); the reviewer only reads.
+# Teammates take NO isolation on the call: a call with `name` and `isolation`
+# launches a plain subagent, not a teammate (Claude Code docs: sub-agents,
+# agent-teams). Writers work in manual worktrees the lead creates first.
+Bash("git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main")
+Bash("git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main")
+Bash("git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main")
+
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design backend architecture. Message frontend-dev when API contract ready. "
-            "Commit your work in your worktree and message the lead your branch name and commit sha.")
+            "Work only in .worktrees/backend/: cd there and check that pwd and git branch --show-current show it and feat/{feature}/backend before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-dev",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design frontend architecture. Wait for API contract from backend-architect. "
-            "Commit your work in your worktree and message the lead your branch name and commit sha.")
+            "Work only in .worktrees/frontend/: cd there and check that pwd and git branch --show-current show it and feat/{feature}/frontend before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:test-generator", name="test-engineer",
-     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE, isolation="worktree",
+     team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize. "
-            "Commit your work in your worktree and message the lead your branch name and commit sha.")
+            "Work only in .worktrees/tests/: cd there and check that pwd and git branch --show-current show it and feat/{feature}/tests before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
@@ -996,10 +1003,10 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 - **test-engineer** writes tests incrementally as contracts stabilize. Reports failing tests directly to the responsible teammate.
 - **code-reviewer** reviews code as it lands. Flags issues to the author directly.
 
-Every writer teammate (backend, frontend, test) MUST be created with `isolation="worktree"`, as in Phase 4 above: ork agents carry no frontmatter isolation (#4557), so without it the teammates edit one tree at the same time. If you lay out the worktrees by hand instead, the lead creates them before spawning:
+Every writer teammate (backend, frontend, test) works in the manual worktree the lead created before the Phase 4 spawns: ork agents carry no frontmatter isolation (#4557), and a teammate cannot take `isolation` on its call (a call with `name` and `isolation` launches a plain subagent, not a teammate). The layout, for reference:
 
 ```python
-# Lead sets up worktrees (for features with > 5 files).
+# Lead sets up worktrees BEFORE the Phase 4 spawns (done above).
 # INSIDE the repo at .worktrees/<task> — a sibling ../{project}-backend is outside
 # the session's project directory, so the teammate's cd is silently bounced back to
 # the primary tree and it commits there instead (platform#9870, #3319).
@@ -1046,18 +1053,16 @@ After Phase 6 completes in Agent Teams mode, tear down the team:
 
 ### 1. Merge Worktrees
 
-Each writer teammate worked in its own worktree. With `isolation="worktree"`,
-Claude Code names that worktree's branch, so merge the branch each teammate
-messaged you, not a `feat/{feature}/<role>` name (those exist only in the
-manual layout). For each one, check the worktree is clean first
-(`git -C <worktree> status --porcelain` prints nothing; if not, commit what is
-there), then merge:
+Each writer teammate worked in its manual worktree, on the branch it messaged
+you (`feat/{feature}/<role>`). For each one, check the worktree is clean first
+(`git -C .worktrees/<role> status --porcelain` prints nothing; if not, commit
+what is there), then merge:
 
 ```bash
 git checkout feat/{feature}
-git merge --squash <backend-architect branch> && git commit -m "feat({feature}): backend"
-git merge --squash <frontend-dev branch>      && git commit -m "feat({feature}): frontend"
-git merge --squash <test-engineer branch>     && git commit -m "test({feature}): test suite"
+git merge --squash feat/{feature}/backend  && git commit -m "feat({feature}): backend"
+git merge --squash feat/{feature}/frontend && git commit -m "feat({feature}): frontend"
+git merge --squash feat/{feature}/tests    && git commit -m "test({feature}): test suite"
 ```
 
 ### 2. Shut Down Teammates

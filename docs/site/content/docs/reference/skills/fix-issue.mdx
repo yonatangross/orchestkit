@@ -962,21 +962,29 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-expert",
      If backend-expert changes API contracts, adapt the frontend fix accordingly.
      Share component changes with test-planner.""")
 
+# test-planner writes files: the lead creates its worktree first. No isolation
+# on the call: a call with `name` and `isolation` launches a plain subagent,
+# not a teammate (Claude Code docs: sub-agents, agent-teams).
+Bash("git worktree add .worktrees/regression-test -b issue/{number}-regression-test origin/main")
+
 Agent(subagent_type="ork:test-generator", name="test-planner",
-     team_name="fix-issue-{number}", isolation="worktree",
+     team_name="fix-issue-{number}",
      prompt="""Plan regression tests for issue #{number}.
      When root-cause-tracer confirms the root cause, write a failing test that reproduces it.
      When backend-expert or frontend-expert share fix designs, plan verification tests.
      Start with the regression test BEFORE the fix is applied (TDD approach).
-     Commit the test in your worktree and message the lead your branch name and
-     commit sha. Uncommitted files are not merged.""")
+     Work only in .worktrees/regression-test/: cd there and check pwd and
+     git branch --show-current before any write. Commit the test there and
+     message the lead your branch name and commit sha.""")
 ```
 
-test-planner is the one teammate that writes files, so it runs in its own
-worktree (#4557). The lead checks that worktree is clean
-(`git -C <worktree> status --porcelain`) and commits any leftovers. The fix
+test-planner is the one teammate that writes files, so it works in the manual
+worktree `.worktrees/regression-test` (#4557). The lead checks that worktree is
+clean (`git -C .worktrees/regression-test status --porcelain`) and commits any
+leftovers. The fix
 branch is created fresh from base in Phase 6, so the lead merges the
-test-planner's branch as the FIRST step after `git checkout -b issue/N-fix`
+test-planner's branch (`REGRESSION_TEST_BRANCH=issue/{number}-regression-test`)
+as the FIRST step after `git checkout -b issue/N-fix`
 ([fix-phases.md](fix-phases.md) Phase 6), before any fix is written.
 
 **Team teardown** after fix is implemented and validated:
@@ -1299,7 +1307,8 @@ Each agent outputs structured findings and a SUMMARY line.
 The test-generator writes a file while 4 other agents run, so it works in its
 own worktree (`isolation="worktree"`, #4557). When it returns, check its
 worktree is clean (`git -C <worktree> status --porcelain` prints nothing; if
-not, commit what is there) and keep its branch name. Phase 6 creates the fix
+not, commit what is there) and keep its branch name as `REGRESSION_TEST_BRANCH`
+(empty when no test was written). Phase 6 creates the fix
 branch fresh from base, so it merges this branch as its FIRST step; that puts
 the failing regression test in the tree the fix is verified against.
 
@@ -1348,8 +1357,9 @@ BASE_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d: -f2 | tr -d 
 git checkout $BASE_BRANCH && git pull origin $BASE_BRANCH
 git checkout -b issue/$ARGUMENTS-fix
 
-# FIRST: bring in the Phase 4 regression test (the test-generator's branch)
-git merge --no-edit <regression-test branch>
+# FIRST: bring in the Phase 4 regression test, only if Phase 4 returned a
+# branch (step 1 below covers the no-test case)
+[ -n "$REGRESSION_TEST_BRANCH" ] && git merge --no-edit "$REGRESSION_TEST_BRANCH"
 ```
 
 ### CRITICAL: Regression Test Required

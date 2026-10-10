@@ -19,7 +19,7 @@ Example: `implement-user-auth`, `implement-dashboard-analytics`
 
 ### Teammate Spawn Prompts
 
-Spawn each writer teammate (backend-architect, frontend-dev, test-engineer) with `isolation="worktree"` (#4557): ork agents carry no frontmatter isolation, so without it they edit one tree at the same time. The code-reviewer only reads and needs none.
+Each writer teammate (backend-architect, frontend-dev, test-engineer) works in its own manual worktree, `.worktrees/<role>` on `feat/{feature}/<role>`, which the lead creates before spawning (see "Per-Teammate Worktree Setup" below; #4557). Do not pass `isolation` on a teammate call: a call with `name` and `isolation` launches a plain subagent, not a teammate (Claude Code docs: sub-agents, agent-teams). Add the "Your Working Directory" block from [Team Worktree Setup](team-worktree-setup.md) to each writer prompt. The code-reviewer only reads and needs none.
 
 #### 1. backend-architect (backend-system-architect)
 ```
@@ -256,7 +256,7 @@ test-engineer      → .worktrees/tests/
 code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
-**Do not skip worktrees:** every writer teammate needs its own, either `isolation="worktree"` at spawn or the manual layout above (#4557). Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
+**Do not skip worktrees:** every writer teammate needs its own, in the manual layout above (#4557); teammates cannot take `isolation` on the call. Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
 
 ---
 
@@ -265,17 +265,15 @@ code-reviewer      → Primary tree (read-only, reviews all)
 After all teammates complete (or when all tasks are done):
 
 1. **Merge worktrees.** Check each writer worktree is clean first
-   (`git -C <worktree> status --porcelain` prints nothing; if not, commit what
-   is there). Merge the branch each teammate messaged you: with
-   `isolation="worktree"` Claude Code names it, and `feat/{feature}/<role>`
-   exists only in the manual layout above.
+   (`git -C .worktrees/<role> status --porcelain` prints nothing; if not,
+   commit what is there). Merge each teammate's `feat/{feature}/<role>` branch.
    ```bash
    git checkout feat/{feature}
-   git merge --squash <backend-architect branch>
+   git merge --squash feat/{feature}/backend
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash <frontend-dev branch>
+   git merge --squash feat/{feature}/frontend
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash <test-engineer branch>
+   git merge --squash feat/{feature}/tests
    git commit -m "test({feature}): complete test suite"
    ```
 
