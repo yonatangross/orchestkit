@@ -103,11 +103,13 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
 
 /**
  * Build intent: the task asks to change code or ship it (write, implement,
- * fix, commit, push, open a PR). Suffixes are bounded so `fixture` and
- * `pushover` do not match. Exported for tests.
+ * fix, replace, refactor, rewrite, add tests or code, commit, push, open a
+ * PR). Suffixes are bounded so `fixture`, `pushover` and `replacement` do not
+ * match, and `add` needs a code object so "add findings to the report" stays
+ * review-only. Exported for tests.
  */
 export const BUILD_INTENT_PATTERN =
-  /\b(?:implement\w*|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
+  /\b(?:implement\w*|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|add (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?)|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
 
 /** True when the task text asks to build (change code or ship it). */
 export function hasBuildIntent(description: string, prompt: string): boolean {

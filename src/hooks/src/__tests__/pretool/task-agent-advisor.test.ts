@@ -300,6 +300,18 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     expect(contextOf(result)).toContain(`plan/review: prefer \`${agent}\``);
   });
 
+  test('an explicit code change (replace, add tests) with a read-only match is advisory, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Address SQL injection vulnerability',
+        prompt: 'Replace interpolated SQL with parameterized queries in app/db.py and add regression tests.',
+      }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('plan/review: prefer `ork:security-auditor`');
+  });
+
   test('a read-only match WITHOUT build intent still asks', () => {
     const result = taskAgentAdvisor(
       makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
@@ -322,6 +334,12 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     expect(BUILD_INTENT_PATTERN.test('then fix it')).toBe(true);
     expect(BUILD_INTENT_PATTERN.test('find the root cause')).toBe(false);
     expect(BUILD_INTENT_PATTERN.test('audit the fixture loader')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('Replace interpolated SQL with parameterized queries')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add regression tests')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('refactor the upload handler')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('rewrite the query builder')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add your findings to the report')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('list replacement candidates')).toBe(false);
   });
 
   test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(
