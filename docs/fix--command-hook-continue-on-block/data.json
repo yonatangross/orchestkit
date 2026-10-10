@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-4685",
+  "page": "docs/fix--command-hook-continue-on-block/index.html",
+  "lab_slug": "command-hook-continue-on-block",
+  "purpose": "PR playground for #4685: why Claude Desktop skipped ork and why dropping continueOnBlock from 4 command hooks changes nothing on the CLI"
+}

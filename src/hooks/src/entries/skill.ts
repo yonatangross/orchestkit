@@ -10,13 +10,14 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Skill hooks (36: 22 validators + 14 once:true context loaders)
+// Skill hooks (37: 23 validators + 14 once:true context loaders)
 import { coverageCheck } from '../skill/coverage-check.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
 import { evidenceCollector } from '../skill/evidence-collector.js';
 import { patternConsistencyEnforcer } from '../skill/pattern-consistency-enforcer.js';
 import { redactSecrets } from '../skill/redact-secrets.js';
+import { reviewPostGate } from '../skill/review-post-gate.js';
 
 // once:true context loaders (CC 2.1.69)
 import { issueContextLoader, commitConventionLoader, planContextLoader } from '../skill/context-loaders-git.js';
@@ -36,6 +37,7 @@ export const hooks: Record<string, HookFn> = {
   'skill/evidence-collector': evidenceCollector,
   'skill/pattern-consistency-enforcer': patternConsistencyEnforcer,
   'skill/redact-secrets': redactSecrets,
+  'skill/review-post-gate': reviewPostGate,
   // once:true context loaders (CC 2.1.69)
   'skill/issue-context-loader': issueContextLoader,
   'skill/commit-convention-loader': commitConventionLoader,
