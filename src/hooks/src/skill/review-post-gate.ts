@@ -169,9 +169,30 @@ const GRAPHQL_ENDPOINT = /^(?:https?:\/\/[^/\s]+(?:\/api)?)?\/?graphql\/?(?:[?#]
  * short-flag cluster counts too (-iX POST, -iXPATCH, -fbody=x). Field flags
  * are query fields on an explicit GET (gh api -X GET search/issues -f q=x).
  */
+/**
+ * A shell word with its quotes and escapes taken off, as the program gets it:
+ * text inside a field value ('body=x -XGET') never reads as a flag (HOLD
+ * 6099624377).
+ */
+function unquote(word: string): string {
+  let out = '';
+  let quote = '';
+  for (let k = 0; k < word.length; k += 1) {
+    const c = word[k];
+    if (quote) {
+      if (c === quote) quote = '';
+      else if (quote === '"' && c === '\\' && k + 1 < word.length) out += word[(k += 1)];
+      else out += c;
+    } else if (c === "'" || c === '"') quote = c;
+    else if (c === '\\' && k + 1 < word.length) out += word[(k += 1)];
+    else out += c;
+  }
+  return out;
+}
+
 function ghApiWrite(rest: string): string | null {
-  const toks = rest.split(/\s+/).filter(Boolean);
-  const unq = (t: string) => t.replace(/^['"]|['"]$/g, '');
+  const toks = shellWords(rest).map(unquote);
+  const unq = (t: string) => t;
   if (toks.some((t) => GRAPHQL_ENDPOINT.test(unq(t)))) return 'gh api graphql';
   const methods: string[] = [];
   let fields = false;
@@ -193,6 +214,21 @@ function ghApiWrite(rest: string): string | null {
   }
   const other = methods.find((v) => v.toUpperCase() !== 'GET');
   if (other !== undefined) return `gh api --method ${other || '?'}`;
+  if (fields && methods.length === 0) return 'gh api with a field flag';
+  return null;
+}
+
+/**
+ * gh api from the parsed flags: the method is the value -X or --method took,
+ * and a field flag without a GET method makes gh send a POST. Never from the
+ * words joined back into text (HOLD 6099624377).
+ */
+function ghApiParsed(p: ParsedArgs): string | null {
+  if ([...p.positionals, ...p.afterDash].some((w) => GRAPHQL_ENDPOINT.test(w.text))) return 'gh api graphql';
+  const methods = p.values.filter((v) => v.name === 'X' || v.name === 'method').map((v) => v.value);
+  const other = methods.find((v) => v.toUpperCase() !== 'GET');
+  if (other !== undefined) return `gh api --method ${other || '?'}`;
+  const fields = ['f', 'F', 'field', 'raw-field'].some((n) => p.given.has(n));
   if (fields && methods.length === 0) return 'gh api with a field flag';
   return null;
 }
@@ -1808,7 +1844,7 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
       const envWhy = name === 'q' || name === 'jq' ? jqProgramReason(value) : null;
       if (envWhy) return envWhy;
     }
-    return sub === 'api' ? ghApiWrite(rest.map((a) => a.text).join(' ')) : null;
+    return sub === 'api' ? ghApiParsed(p) : null;
   }
   if (cmd === 'git') {
     const sub = args[0]?.text ?? '';
