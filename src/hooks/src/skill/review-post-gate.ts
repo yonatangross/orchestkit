@@ -747,6 +747,8 @@ export interface ReviewPostGateDeps {
   jobDir?: () => string;
   /** The temp dirs a write or read may use: /tmp and the process tmpdir. */
   tempDirs?: () => string[];
+  /** Config and PATH dirs the environment names: never temp (HOLD 6096693701). */
+  configEnv?: () => string[];
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -757,6 +759,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   xdgConfig: () => process.env.XDG_CONFIG_HOME ?? '',
   jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
   tempDirs: () => ['/tmp', tmpdir()],
+  configEnv: () => [process.env.GIT_CONFIG_GLOBAL, process.env.GIT_CONFIG_SYSTEM, process.env.GH_CONFIG_DIR, process.env.ZDOTDIR, ...(process.env.PATH ?? '').split(':')].filter((d): d is string => !!d),
   realpath: realPath,
 };
 
@@ -929,6 +932,21 @@ function tempRoots(dirs: string[], rp: (p: string) => string): string[] {
   return [...new Set(all.map((d) => d.replace(/\/+$/, '').toLowerCase()).filter((d) => d !== ''))];
 }
 
+/**
+ * Whether a temp path names a git-dir member below its temp root: HEAD,
+ * config or packed-refs, or a name under objects/, refs/, hooks/ or info/.
+ * By name, so the order the members are written in does not matter (HOLD
+ * 6096693701 must 1).
+ */
+function gitMember(real: string, temps: string[]): boolean {
+  const l = real.toLowerCase();
+  const root = temps.filter((r) => l.startsWith(`${r}/`)).sort((a, b) => b.length - a.length)[0];
+  if (root === undefined) return false;
+  const names = l.slice(root.length + 1).split('/');
+  const base = names[names.length - 1];
+  return ['head', 'config', 'packed-refs'].includes(base) || names.slice(0, -1).some((n) => ['objects', 'refs', 'hooks', 'info'].includes(n));
+}
+
 /** Whether x is a root in roots, or below one (strict: below only). */
 function underAny(x: string, roots: string[], strict = false): boolean {
   const l = x.toLowerCase();
@@ -965,13 +983,19 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const temps = tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), rp);
   const bounds = { home, temps };
   const base = posix.normalize(cwd).replace(/\/+$/, '');
-  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', job.startsWith('/') ? fixed(job, '/') : ''].filter((r) => r !== '');
+  const homes = home.startsWith('/') ? tempRoots([home], rp) : [];
+  // The job dir counts only where a write there runs nothing: not HOME, not a
+  // dotfile dir under it, not inside a git work tree (codex 6096633483 P2).
+  const jobRoot = job.startsWith('/') ? fixed(job, '/') : '';
+  const jobOk = jobRoot !== '' && !homes.includes(jobRoot) && !homes.some((h) => jobRoot.startsWith(`${h}/.`)) && !inGitRepo(rp(job), bounds);
+  const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', jobOk ? jobRoot : ''].filter((r) => r !== '');
+  // A dir the environment names as config or PATH is not temp, wherever it is.
+  const named = tempRoots(deps.configEnv?.() ?? [], rp);
   // A temp path inside a git work tree (a checkout or worktree under /tmp) is
   // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
   // A HOME under a temp dir (a container, a CI box) is HOME, never temp: its
   // shell profile and gh config would be writable (HOLD 6096491908 must 1).
-  const homes = home.startsWith('/') ? tempRoots([home], rp) : [];
-  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !inGitRepo(posix.dirname(real), bounds));
+  const ok = (real: string) => underAny(real, roots) || (underAny(real, temps) && !underAny(real, homes) && !underAny(real, named) && !gitMember(real, temps) && !inGitRepo(posix.dirname(real), bounds));
   return [raw, posix.normalize(raw)].every((x) => ok(rp(x)));
 }
 
