@@ -138,10 +138,13 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Task Patterns
 
 ```
-# Spawn teammate into shared task list
+# Spawn teammate into shared task list. A teammate that writes files gets its
+# own worktree (#4557); the lead merges its branch before dependent tasks start.
 Agent(
-  prompt="You are the backend architect...",
+  prompt="You are the backend architect... Commit your work in your worktree and "
+         "message the lead your branch name and commit sha.",
   team_name="my-feature",
+  isolation="worktree",
   name="backend-architect",
   subagent_type="ork:backend-system-architect"
 )

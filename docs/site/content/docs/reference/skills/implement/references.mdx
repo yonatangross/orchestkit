@@ -1970,16 +1970,18 @@ Include the worktree path in each teammate's spawn prompt:
 
 | Teammate | Worktree | Working Directory |
 |----------|----------|-------------------|
-| backend-architect | `../{project}-backend/` | Full project access, writes to backend dirs |
-| frontend-dev | `../{project}-frontend/` | Full project access, writes to frontend dirs |
-| test-engineer | `../{project}-tests/` | Full project access, writes to test dirs |
+| backend-architect | `{project}/.worktrees/backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `{project}/.worktrees/frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `{project}/.worktrees/tests/` | Full project access, writes to test dirs |
 | code-reviewer | Main worktree | Read-only, reviews across all worktrees |
 
 **Spawn prompt addition:**
 
 ```
 ## Your Working Directory
-Work EXCLUSIVELY in: /path/to/{project}-backend/
+Work EXCLUSIVELY in: /path/to/{project}/.worktrees/backend/
+Before any write, run `pwd` and `git branch --show-current`. If they are not
+that path and feat/{feature}/backend, stop and message the lead.
 Do NOT modify files in other worktrees.
 Commit your changes to the feat/{feature}/backend branch.
 ```
@@ -2050,12 +2052,10 @@ Not every Agent Teams session needs worktrees. Skip when:
 | Condition | Skip Worktrees? | Reason |
 |-----------|-----------------|--------|
 | Read-only roles only (audit, review) | Yes | No file writes = no conflicts |
-| Small feature (&lt; 5 files) | Yes | File overlap unlikely |
-| Teammates work in non-overlapping directories | Yes | Natural isolation |
 | Single-stack scope (backend-only or frontend-only) | Yes | One writer, others are reviewers |
 | Research/debugging task | Yes | Exploration, not implementation |
 
-When skipping worktrees, teammates work in the same directory. The lead should assign **clear file ownership** in spawn prompts to prevent conflicts:
+Two or more teammates that write at the same time ALWAYS need worktrees (#4557): ork agents carry no frontmatter isolation, and a small feature or separate directories still share the lockfile, the build output and the git index. Skip only for the rows above (no writer, or a single writer). Then the other teammates read, and the lead still assigns **clear file ownership** in spawn prompts:
 
 ```
 ## File Ownership

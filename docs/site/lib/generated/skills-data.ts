@@ -1525,7 +1525,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-import",
     "description": "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead.",
     "version": "1.0.0",
-    "sha256": "3eea0b0109107fd2ceb28da7cfdd9899678d6b7ba311e04cfa08ec91aae7f78d",
+    "sha256": "6c1970859e5d0c235f0baa1a2cfba0d1de348ff74ad3b33642f9c52377d1eee7",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -4667,7 +4667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "c881301b5b5ee6950421c85087db9d697f7693628e97dd7c87de5ea863ff385b",
+    "sha256": "8abdc7c13816006fbe3e543d5070f48e83570fb6fc24f71f08e19620e927546e",
     "author": "OrchestKit",
     "tags": [
       "task-management",

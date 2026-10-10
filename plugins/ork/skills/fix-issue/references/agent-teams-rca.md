@@ -48,8 +48,10 @@ Agent(subagent_type="ork:test-generator", name="test-planner",
 
 test-planner is the one teammate that writes files, so it runs in its own
 worktree (#4557). The lead checks that worktree is clean
-(`git -C <worktree> status --porcelain`), commits any leftovers, and merges
-its branch before the fix is written.
+(`git -C <worktree> status --porcelain`) and commits any leftovers. The fix
+branch is created fresh from base in Phase 6, so the lead merges the
+test-planner's branch as the FIRST step after `git checkout -b issue/N-fix`
+([fix-phases.md](fix-phases.md) Phase 6), before any fix is written.
 
 **Team teardown** after fix is implemented and validated:
 ```python

@@ -204,6 +204,7 @@ for component in payload["components"]:
           """,
           run_in_background=True,
           isolation="worktree",
+          max_turns=25,
         )
 ````
 

@@ -79,41 +79,54 @@ for name in $ALLOWED; do
   esac
 done
 
-# Callers opt in per spawn instead (#4557, codex HOLD 6101554389 and
-# 6101854689). In the caller templates below, a writer spawn that runs
-# concurrently must pass isolation="worktree". Concurrent means: marked
+# Callers opt in per spawn instead (#4557, codex HOLD 6101554389, 6101854689,
+# 6102187489, 6102749088). In the caller templates below, a writer spawn that
+# runs concurrently must pass isolation="worktree". Concurrent means: marked
 # run_in_background=true/True, created as a teammate (team_name=), or the
 # design-import Phase 4 loop. A call block ends when its parentheses balance,
-# so a one-line or multi-line call is read whole. Skipped: **Incorrect**
-# examples, agent-phases.md Phase 4 (architecture specs, no file writes),
-# prompts that cd into a manual worktree, and fix-issue spawns other than
-# test-generator (design only). Isolated writers in implement, design-import
-# and fix-issue must also be told to commit.
+# counted OUTSIDE quoted strings, so a "1)" list marker in a prompt cannot end
+# the block early. Skipped: **Incorrect** examples, agent-phases.md Phase 4
+# (architecture specs, no file writes), prompts that cd into a manual
+# worktree, and fix-issue spawns other than test-generator (design only).
+# Isolated or manual-worktree writers in implement, design-import, fix-issue
+# and task-dependency-patterns must also be told to commit: "commit your/the/
+# it/them/any" or "commit +" ("do not commit", "uncommitted" and "commit sha"
+# do not count).
 writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
-caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md")
+caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/references/monitor-patterns.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md" "$REPO_ROOT/src/skills/task-dependency-patterns/SKILL.md")
 scan=$(awk -v re="$writer_re" '
-  FNR == 1 { inc = 0; open_ = 0; skip = 0; loop = 0 }
+  # Parentheses on this line outside """...""" (state carried across lines)
+  # and outside "..." or single-quoted strings.
+  function code_parens(line,    n, i, seg, out, t, o, c) {
+    n = split(line, seg, /"""/); out = ""
+    for (i = 1; i <= n; i++) { if (!tq) out = out seg[i]; if (i < n) tq = !tq }
+    gsub(/"[^"]*"/, "", out); gsub(/\047[^\047]*\047/, "", out)
+    t = out; o = gsub(/[(]/, "", t); t = out; c = gsub(/[)]/, "", t)
+    return o - c
+  }
+  FNR == 1 { inc = 0; open_ = 0; skip = 0; loop = 0; tq = 0 }
   FILENAME ~ /agent-phases[.]md$/ && /^## Phase 4/ { skip = 1 }
   FILENAME ~ /agent-phases[.]md$/ && /^## Phase 5/ { skip = 0 }
   FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 4/ { loop = 1 }
   FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 5/ { loop = 0 }
   !open_ && /^[*][*]Incorrect/ { inc = 1 }
   !open_ && (/^[*][*]Correct/ || /^##+ /) { inc = 0 }
-  !open_ && /Agent[(]/ { open_ = 1; buf = ""; depth = 0; start = FNR }
+  !open_ && /Agent[(]/ { open_ = 1; buf = ""; depth = 0; start = FNR; tq = 0 }
   open_ {
     buf = buf " " $0
-    t = $0; o = gsub(/[(]/, "", t); t = $0; c = gsub(/[)]/, "", t); depth += o - c
+    depth += code_parens($0)
     if (depth <= 0) {
       open_ = 0
       if (inc || skip || buf !~ re) next
       # fix-issue: only test-generator writes; the backend and frontend experts design.
       if (FILENAME ~ /fix-issue\// && buf !~ /ork:test-generator/) next
       print "SEEN"
+      manual = (buf ~ /cd [{][a-z_]*wt[}]/)
       conc = (buf ~ /run_in_background=(true|True)/ || buf ~ /team_name=/ || loop)
-      if (conc && buf !~ /isolation="worktree"/ && buf !~ /cd [{][a-z_]*wt[}]/) print FILENAME ":" start
-      # A worktree branch is merged, so an uncommitted file is lost: the
-      # implement and design-import writers must be told to commit.
-      if (buf ~ /isolation="worktree"/ && FILENAME ~ /(agent-phases|agent-teams-phases|design-import\/SKILL|fix-phases|agent-teams-rca)[.]md$/ && buf !~ /[Cc]ommit/) print "NOCOMMIT " FILENAME ":" start
+      if (conc && buf !~ /isolation="worktree"/ && !manual) print FILENAME ":" start
+      # A worktree branch is merged, so an uncommitted file is lost.
+      told = buf; gsub(/([Dd]o not|[Dd]on.t|[Nn]ever) commit/, "", told)
+      if ((buf ~ /isolation="worktree"/ || manual) && FILENAME ~ /(agent-phases|agent-teams-phases|manual-worktree-pattern|design-import\/SKILL|fix-phases|agent-teams-rca|task-dependency-patterns\/SKILL)[.]md$/ && told !~ /(^|[^A-Za-z])[Cc]ommit (your|the|it|them|any|[+])/) print "NOCOMMIT " FILENAME ":" start
     }
   }
 ' $caller_files)
