@@ -16,7 +16,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs } from '../../skill/review-post-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 import { realPath } from '../../lib/real-path.js';
 
@@ -1895,5 +1895,50 @@ describe('(HOLD 6096693701, codex 6096633483) git-dir members, the job dir, env 
       expect(write(f, { configEnv: env }), f).toBe(true);
     }
     expect(write(join(dir, 'body.md'), { configEnv: env })).toBe(false);
+  });
+});
+
+describe('(HOLD 6096848217, codex 6096802137) env config dirs on reads, XDG gh, job root order', () => {
+  const tr = () => transcript([typed('4668')]);
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const write = (file: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, { ...base, ...extra }));
+  };
+  const read = (file: string, extra: Record<string, unknown> = {}) => denied(reviewPostGate(bash(`cat ${file}`, tr()), ctx, { ...base, ...extra }));
+  test('must 1: a GH_CONFIG_DIR under temp is not read as temp', () => {
+    mkdirSync(join(dir, 'ghcfg'));
+    writeFileSync(join(dir, 'ghcfg', 'hosts.yml'), 'x');
+    writeFileSync(join(dir, 'body.md'), 'x');
+    const env = () => [join(dir, 'ghcfg')];
+    expect(read(join(dir, 'ghcfg', 'hosts.yml'), { configEnv: env })).toBe(true);
+    expect(read(join(dir, 'body.md'), { configEnv: env })).toBe(false);
+  });
+  test('must 1: XDG_CONFIG_HOME/gh under temp is neither read nor written as temp', () => {
+    const xdg = join(dir, 'xdg');
+    mkdirSync(join(xdg, 'gh'), { recursive: true });
+    writeFileSync(join(xdg, 'gh', 'hosts.yml'), 'x');
+    writeFileSync(join(xdg, 'notes.md'), 'x');
+    const at = { xdgConfig: () => xdg };
+    expect(read(join(xdg, 'gh', 'hosts.yml'), at)).toBe(true);
+    expect(write(join(xdg, 'gh', 'hosts.yml'), at)).toBe(true);
+    expect(read(join(xdg, 'notes.md'), at)).toBe(false);
+    expect(write(join(xdg, 'notes.md'), at)).toBe(false);
+  });
+  test('should (codex P2): a named dir or git-dir member under the job dir denies', () => {
+    const home = join(dir, 'h');
+    const job = join(home, 'bin');
+    mkdirSync(job, { recursive: true });
+    const at = (file: string, extra: Record<string, unknown> = {}) => write(file, { home: () => home, jobDir: () => job, tempDirs: () => [], ...extra });
+    expect(at(join(job, 'gh'), { configEnv: () => [job] })).toBe(true);
+    expect(at(join(job, 'hooks', 'post-checkout'))).toBe(true);
+    expect(at(join(job, 'HEAD'))).toBe(true);
+    expect(at(join(job, 'gh'))).toBe(false);
+    expect(at(join(job, 'verdict.json'), { configEnv: () => [join(dir, 'other')] })).toBe(false);
+  });
+  test('should: BASH_ENV, ENV and PYTHONPATH are named config', () => {
+    const got = envConfigDirs({ BASH_ENV: '/tmp/a/env.sh', ENV: '/tmp/b/env.sh', PYTHONPATH: '/tmp/py1:/tmp/py2', GH_CONFIG_DIR: '/tmp/gh', PATH: '/tmp/bin:/usr/bin', XDG_CONFIG_HOME: '/tmp/xdg' });
+    for (const d of ['/tmp/a/env.sh', '/tmp/b/env.sh', '/tmp/py1', '/tmp/py2', '/tmp/gh', '/tmp/bin', '/usr/bin', '/tmp/xdg/gh']) expect(got, d).toContain(d);
+    expect(envConfigDirs({ PATH: '' })).toEqual([]);
   });
 });
