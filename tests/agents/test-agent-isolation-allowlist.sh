@@ -79,19 +79,49 @@ for name in $ALLOWED; do
   esac
 done
 
-# Callers opt in per spawn instead: every writer spawn in a "Correct" template
-# under src/skills/implement must pass isolation (#4557, codex HOLD 6101554389).
-writer_re='Agent[(]subagent_type="ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
-bare=$(awk -v re="$writer_re" '
-  FNR == 1 { ok = 0; open_ = 0 }
-  /^\*\*Correct/ { ok = 1 } /^\*\*Incorrect/ || /^#{2,} / { ok = 0 }
-  ok && $0 ~ re { open_ = 1; buf = ""; start = FNR }
-  open_ { buf = buf $0 }
-  open_ && /run_in_background/ { open_ = 0; if (buf !~ /isolation="worktree"/) print FILENAME ":" start }
-' $(find "$REPO_ROOT/src/skills/implement" -name '*.md'))
-writers_seen=$(grep -rlE "^\*\*Correct" "$REPO_ROOT/src/skills/implement" | xargs grep -cE "$writer_re" | awk -F: '{n += $2} END {print n + 0}')
-[[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in any Correct template; the caller check cannot pass vacuously"
-for loc in $bare; do fail "writer spawn without isolation=\"worktree\" at ${loc#"$REPO_ROOT/"}"; done
+# Callers opt in per spawn instead (#4557, codex HOLD 6101554389 and
+# 6101854689). In the caller templates below, a writer spawn that runs
+# concurrently must pass isolation="worktree". Concurrent means: marked
+# run_in_background=true/True, created as a teammate (team_name=), or the
+# design-import Phase 4 loop. A call block ends when its parentheses balance,
+# so a one-line or multi-line call is read whole. Skipped: **Incorrect**
+# examples, agent-phases.md Phase 4 (architecture specs, no file writes), and
+# prompts that cd into a manual worktree.
+writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
+caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md")
+scan=$(awk -v re="$writer_re" '
+  FNR == 1 { inc = 0; open_ = 0; skip = 0; loop = 0 }
+  FILENAME ~ /agent-phases[.]md$/ && /^## Phase 4/ { skip = 1 }
+  FILENAME ~ /agent-phases[.]md$/ && /^## Phase 5/ { skip = 0 }
+  FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 4/ { loop = 1 }
+  FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 5/ { loop = 0 }
+  !open_ && /^[*][*]Incorrect/ { inc = 1 }
+  !open_ && (/^[*][*]Correct/ || /^#{2,} /) { inc = 0 }
+  !open_ && /Agent[(]/ { open_ = 1; buf = ""; depth = 0; start = FNR }
+  open_ {
+    buf = buf " " $0
+    t = $0; o = gsub(/[(]/, "", t); t = $0; c = gsub(/[)]/, "", t); depth += o - c
+    if (depth <= 0) {
+      open_ = 0
+      if (inc || skip || buf !~ re) next
+      print "SEEN"
+      conc = (buf ~ /run_in_background=(true|True)/ || buf ~ /team_name=/ || loop)
+      if (conc && buf !~ /isolation="worktree"/ && buf !~ /cd [{][a-z_]*wt[}]/) print FILENAME ":" start
+      # A worktree branch is merged, so an uncommitted file is lost: the
+      # implement and design-import writers must be told to commit.
+      if (buf ~ /isolation="worktree"/ && FILENAME ~ /(agent-phases|design-import\/SKILL)[.]md$/ && buf !~ /[Cc]ommit/) print "NOCOMMIT " FILENAME ":" start
+    }
+  }
+' $caller_files)
+writers_seen=$(printf '%s\n' "$scan" | grep -c '^SEEN$' || true)
+[[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in the caller templates; the caller check cannot pass vacuously"
+for loc in $(printf '%s\n' "$scan" | grep '^NOCOMMIT ' | cut -d' ' -f2 || true); do
+  fail "isolated writer at ${loc#"$REPO_ROOT/"} is not told to commit before it returns"
+done
+for loc in $(printf '%s\n' "$scan" | grep -v -e '^SEEN$' -e '^NOCOMMIT ' || true); do
+  fail "concurrent writer spawn without isolation=\"worktree\" at ${loc#"$REPO_ROOT/"}"
+done
+echo "caller templates: $writers_seen writer spawns checked"
 
 echo "agents with isolation:${found:- none}"
 if [[ $FAIL_COUNT -gt 0 ]]; then

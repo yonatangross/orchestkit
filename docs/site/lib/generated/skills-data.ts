@@ -1525,7 +1525,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-import",
     "description": "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead.",
     "version": "1.0.0",
-    "sha256": "a7e462a94c912f21d9915d9540b5ab3b0ce590f1162712b0c950d7563d9c1913",
+    "sha256": "3eea0b0109107fd2ceb28da7cfdd9899678d6b7ba311e04cfa08ec91aae7f78d",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -2772,7 +2772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "be16e04cb54ccb18afd7a237780f7743fb682326c0008ad0df4f8e8a4557c999",
+    "sha256": "fc2974ec0746d995fad47e4ed0b2a270fda2afec6b540c6211748c5ffd000795",
     "author": "OrchestKit",
     "tags": [
       "implementation",

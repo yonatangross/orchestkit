@@ -323,7 +323,7 @@ Bash(command="npm run build 2>&1", run_in_background=true)
 Monitor(pid=build_task_id)
 
 # For background agents with test suites:
-Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
+Agent(subagent_type="ork:test-generator", run_in_background=true, isolation="worktree", ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
