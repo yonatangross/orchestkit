@@ -1942,3 +1942,45 @@ describe('(HOLD 6096848217, codex 6096802137) env config dirs on reads, XDG gh, 
     expect(envConfigDirs({ PATH: '' })).toEqual([]);
   });
 });
+
+describe('(codex XREVIEW 6097088920) relative env paths resolve against the cwd', () => {
+  const tr = () => transcript([typed('4668')]);
+  const base = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '' };
+  const write = (file: string, cwd: string, extra: Record<string, unknown> = {}) => {
+    const input = { tool_name: 'Write', session_id: 's', cwd, tool_input: { file_path: file, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
+    return denied(reviewPostGate(input, ctx, { ...base, ...extra }));
+  };
+  const read = (file: string, cwd: string, extra: Record<string, unknown> = {}) => denied(reviewPostGate(bash(`cat ${file}`, tr(), TOOL, cwd), ctx, { ...base, ...extra }));
+  test('P1: GH_CONFIG_DIR=../gh from a checkout under temp is not temp', () => {
+    const repo = join(dir, 'job', 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(dir, 'job', 'gh'));
+    writeFileSync(join(dir, 'job', 'gh', 'hosts.yml'), 'x');
+    writeFileSync(join(dir, 'body.md'), 'x');
+    const at = { configEnv: () => ['../gh'] };
+    expect(read(join(dir, 'job', 'gh', 'hosts.yml'), repo, at)).toBe(true);
+    expect(write(join(dir, 'job', 'gh', 'hosts.yml'), repo, at)).toBe(true);
+    expect(read(join(dir, 'body.md'), repo, at)).toBe(false);
+    expect(write(join(dir, 'body.md'), repo, at)).toBe(false);
+  });
+  test('P1: XDG_CONFIG_HOME=./x names <cwd>/x/gh, read and write, in the repo too', () => {
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, 'x', 'gh'), { recursive: true });
+    writeFileSync(join(repo, 'x', 'gh', 'hosts.yml'), 'x');
+    writeFileSync(join(repo, 'README.md'), 'x');
+    const at = { xdgConfig: () => './x' };
+    expect(read(join(repo, 'x', 'gh', 'hosts.yml'), repo, at)).toBe(true);
+    expect(read('x/gh/hosts.yml', repo, at)).toBe(true);
+    expect(write(join(repo, 'x', 'gh', 'hosts.yml'), repo, at)).toBe(true);
+    expect(read(join(repo, 'README.md'), repo, at)).toBe(false);
+  });
+  test('P1: a relative value with no cwd to resolve it fails closed', () => {
+    expect(write(join(dir, 'body.md'), '', { configEnv: () => ['../gh'] })).toBe(true);
+    expect(write(join(dir, 'body.md'), '', { configEnv: () => [join(dir, 'gh')] })).toBe(false);
+  });
+  test('P1: an empty PATH entry is the cwd', () => {
+    expect(envConfigDirs({ PATH: '/usr/bin::/bin' })).toContain('.');
+    expect(envConfigDirs({ PATH: '/usr/bin:' })).toContain('.');
+  });
+});
