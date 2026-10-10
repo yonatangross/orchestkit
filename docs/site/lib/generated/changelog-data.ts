@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.170",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** tldr-summary skips a Read with allow_large ([#4700](https://github.com/yonatangross/orchestkit/issues/4700)) ([13a6c2a](https://github.com/yonatangross/orchestkit/commit/13a6c2a4e0f38145fc10f809c5b89a9a1b7064c5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.169",
     "date": "2026-10-10",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169",
