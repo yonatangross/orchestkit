@@ -1763,6 +1763,19 @@ describe('(codex22 XREVIEW 6095963428) an allowed root is no link; temp is the t
     mkdirSync(join(dir, 'realjob'));
     expect(write(join(dir, 'realjob', 'verdict.json'), ROOT, { jobDir: () => join(dir, 'realjob') })).toBe(false);
   });
+  test('codex22 6096089850 P1: a link in a parent of the job dir does not move the root', () => {
+    // CLAUDE_JOB_DIR=<tmp>/job-parent/workflows with <tmp>/job-parent -> <repo>/.github.
+    mkdirSync(join(dir, 'repo', '.github', 'workflows'), { recursive: true });
+    symlinkSync(join(dir, 'repo', '.github'), join(dir, 'job-parent'));
+    const job = join(dir, 'job-parent', 'workflows');
+    expect(write(join(job, 'ci.yml'), ROOT, { jobDir: () => job })).toBe(true);
+    // The same rule for the chain root: a link at .claude moves it too.
+    const repo = join(dir, 'chainrepo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(repo, '.github', 'chain'), { recursive: true });
+    symlinkSync(join(repo, '.github'), join(repo, '.claude'));
+    expect(write(join(repo, '.claude', 'chain', 'ci.yml'), repo)).toBe(true);
+  });
   test('P2: a path beside the temp dir is no temp path, for Write and for a read', () => {
     const beside = join(dirname(realpathSync.native(tmpdir())), 'C', 'cache.json');
     const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: beside, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
