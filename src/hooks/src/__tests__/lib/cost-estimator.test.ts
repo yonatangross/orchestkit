@@ -441,6 +441,27 @@ describe('managed modelPricing (#3878)', () => {
     expect(stderr).not.toHaveBeenCalled();
   });
 
+  it('selects the Sonnet 5.5 row by key, not through the fallback (codex22 P3)', () => {
+    // The Sonnet 5.5 row IS the unknown-model fallback, so no price (list or
+    // override) can tell row from fallback. Pin the resolved row key instead.
+    const { matchPricingKey } = __internals;
+    for (const id of ['claude-sonnet-5-5', 'claude-sonnet-5-5[1m]', 'claude-sonnet-5.5', 'sonnet']) {
+      expect(matchPricingKey(id), id).toBe('claude-sonnet-5-5');
+    }
+    expect(matchPricingKey('claude-opus-5.5')).toBe('claude-opus-5-5');
+    expect(matchPricingKey('claude-unknown-9')).toBeNull();
+  });
+
+  it('normalizes dotted Claude ids to the hyphenated row (codex22 P2)', () => {
+    // getPricing('claude-opus-5.5') used to miss claude-opus-5-5 and fall back
+    // to Sonnet 5.5 rates: $2/$10/$0.10 instead of $4/$20/$0.20.
+    expect(getPricing('claude-opus-5.5')).toEqual(getCostConfig().models['claude-opus-5-5']);
+    expect(getPricing('claude-opus-5.5[1m]').input_per_mtok).toBe(4.0);
+    expect(getPricing('claude-sonnet-5.5')).toEqual(getCostConfig().models['claude-sonnet-5-5']);
+    // Non-Claude dotted ids keep their own spelling: Gemini rows are dotted.
+    expect(getPricing('gemini-3.8-flash')).toEqual(getCostConfig().models['gemini-3.8-flash']);
+  });
+
   it('override for an unknown model prices it instead of the sonnet fallback', () => {
     setManaged({ modelPricing: { overrides: { 'my-gateway-model': CONTRACT_ROW } } });
     expect(getPricing('my-gateway-model').input_per_mtok).toBe(8);
