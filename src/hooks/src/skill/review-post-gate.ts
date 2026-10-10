@@ -749,6 +749,8 @@ export interface ReviewPostGateDeps {
   tempDirs?: () => string[];
   /** Config and PATH dirs the environment names: never temp (HOLD 6096693701). */
   configEnv?: () => string[];
+  /** The config subset of configEnv (no PATH lists): never read, in the repo either. */
+  secretEnv?: () => string[];
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -760,6 +762,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   jobDir: () => process.env.CLAUDE_JOB_DIR ?? '',
   tempDirs: () => ['/tmp', tmpdir()],
   configEnv: () => envConfigDirs(process.env),
+  secretEnv: () => envConfigDirs(process.env, false),
   realpath: realPath,
 };
 
@@ -768,17 +771,27 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
  * there runs later, a read there can be a token (HOLD 6096848217). XDG gh is
  * added by the gate itself from deps.xdgConfig.
  */
-export function envConfigDirs(env: NodeJS.ProcessEnv): string[] {
+export function envConfigDirs(env: NodeJS.ProcessEnv, lists = true): string[] {
   const xdg = (env.XDG_CONFIG_HOME ?? '').replace(/\/+$/, '');
   const one = [env.GIT_CONFIG_GLOBAL, env.GIT_CONFIG_SYSTEM, env.GH_CONFIG_DIR, env.ZDOTDIR, env.BASH_ENV, env.ENV, xdg ? `${xdg}/gh` : ''];
-  const lists = [env.PATH, env.PYTHONPATH].flatMap((v) => (v ?? '').split(':'));
-  return [...one, ...lists].filter((d): d is string => !!d);
+  // An empty PATH or PYTHONPATH entry is the cwd, so it is named as '.'.
+  const dirs = lists ? [env.PATH, env.PYTHONPATH].flatMap((v) => (v ? v.split(':').map((e) => e || '.') : [])) : [];
+  return [...one, ...dirs].filter((d): d is string => !!d);
 }
 
-/** The named config set as roots: configEnv and $XDG_CONFIG_HOME/gh. */
-function namedRoots(deps: ReviewPostGateDeps, rp: (p: string) => string): string[] {
+/**
+ * The named config set as roots: configEnv and $XDG_CONFIG_HOME/gh. A relative
+ * value is resolved against the cwd, as gh and git resolve it; null when one
+ * cannot be resolved, which the callers read as no temp at all (codex XREVIEW
+ * 6097088920 P1).
+ */
+function namedRoots(deps: ReviewPostGateDeps, rp: (p: string) => string, cwd: string, env = deps.configEnv): string[] | null {
   const xdg = (deps.xdgConfig?.() ?? '').replace(/\/+$/, '');
-  return tempRoots([...(deps.configEnv?.() ?? []), ...(xdg ? [`${xdg}/gh`] : [])], rp);
+  // bash expands a leading ~/ in a PATH entry at lookup, so HOME resolves it.
+  const home = (deps.home?.() ?? '').replace(/\/+$/, '');
+  const values = [...(env?.() ?? []), ...(xdg ? [`${xdg}/gh`] : [])].map((v) => (v.startsWith('~/') && home.startsWith('/') ? `${home}${v.slice(1)}` : v));
+  if (values.some((v) => !v.startsWith('/')) && !cwd.startsWith('/')) return null;
+  return tempRoots(values.map((v) => (v.startsWith('/') ? v : posix.join(cwd, v))), rp);
 }
 
 const SCRIPT_REL = 'skills/review-pr/scripts/post-review.mjs';
@@ -1008,7 +1021,8 @@ function writeAllowed(fp: unknown, cwd: string, deps: ReviewPostGateDeps): boole
   const jobOk = jobRoot !== '' && !homes.includes(jobRoot) && !homes.some((h) => jobRoot.startsWith(`${h}/.`)) && !inGitRepo(rp(job), bounds);
   const roots = [base && inGitRepo(base, bounds) ? fixed(`${base}/.claude/chain`, base) : '', jobOk ? jobRoot : ''].filter((r) => r !== '');
   // A dir the environment names as config or PATH is not temp, wherever it is.
-  const named = namedRoots(deps, rp);
+  const named = namedRoots(deps, rp, cwd);
+  if (named === null) return false;
   // A temp path inside a git work tree (a checkout or worktree under /tmp) is
   // that repo's file, which a project hook may run (HOLD 6096088108 must 1).
   // A HOME under a temp dir (a container, a CI box) is HOME, never temp: its
@@ -1103,7 +1117,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x)) };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv) };
   const plainGuardCall = GUARD_CALL.test(command.trim()) && PLAIN_CALL.test(command.trim());
   // Two views of the command: each sh -c program blanked (the cwd outside it)
   // and inlined (a cd inside it); a hit in either counts.
@@ -1556,8 +1570,10 @@ export interface AllowContext {
   home?: string;
   /** The temp roots (tempRoots), lowercase; /tmp and the process tmpdir when unset. */
   tempDirs?: string[];
-  /** The named config set (namedRoots), lowercase: never temp, read or write. */
-  named?: string[];
+  /** The named config set (namedRoots), lowercase: never read or written; null fails closed. */
+  named?: string[] | null;
+  /** The config subset (secretEnv, no PATH): never read, in the repo either; null fails closed. */
+  secret?: string[] | null;
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1587,8 +1603,13 @@ function pathOutside(arg: Word, ctx: AllowContext): string | null {
   const temps = ctx.tempDirs ?? tempRoots(DEFAULT_TEMP(), ctx.realpath);
   // HOME is never temp, even when it sits in a temp dir (HOLD 6096491908 must 1).
   const homes = ctx.home?.startsWith('/') ? tempRoots([ctx.home], ctx.realpath) : [];
-  // A config dir the environment names is not temp either (HOLD 6096848217 must 1).
+  // A config dir the environment names is never read, in the repo or temp; a
+  // PATH dir only stops being temp, since an empty PATH entry is the repo
+  // (HOLD 6096848217 must 1). A value that cannot be resolved denies.
+  if (ctx.named === null || ctx.secret === null) return `an environment config path the gate cannot resolve (no cwd), so ${t} is not read`;
   const named = ctx.named ?? [];
+  const secret = ctx.secret ?? [];
+  if (underAny(abs, secret) || underAny(real, secret)) return `a config path the environment names (${t})`;
   const temp = (x: string) => underAny(x, temps) && !underAny(x, homes) && !underAny(x, named);
   if (!(inside(abs, root) && inside(real, ctx.realpath(root))) && !(temp(abs) && temp(real))) {
     return `a path outside the repo and the temp dir (${t})`;

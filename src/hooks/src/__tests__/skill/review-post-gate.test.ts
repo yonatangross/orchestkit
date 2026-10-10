@@ -1978,9 +1978,27 @@ describe('(codex XREVIEW 6097088920) relative env paths resolve against the cwd'
   test('P1: a relative value with no cwd to resolve it fails closed', () => {
     expect(write(join(dir, 'body.md'), '', { configEnv: () => ['../gh'] })).toBe(true);
     expect(write(join(dir, 'body.md'), '', { configEnv: () => [join(dir, 'gh')] })).toBe(false);
+    // A ~/ entry (bash expands it in PATH) resolves against HOME, with no cwd.
+    expect(write(join(dir, 'body.md'), '', { configEnv: () => ['~/.dotnet/tools'] })).toBe(false);
   });
   test('P1: an empty PATH entry is the cwd', () => {
     expect(envConfigDirs({ PATH: '/usr/bin::/bin' })).toContain('.');
     expect(envConfigDirs({ PATH: '/usr/bin:' })).toContain('.');
+  });
+});
+
+describe('(codex XREVIEW 6097088920) a PATH entry that is the repo leaves repo reads open', () => {
+  test('an empty PATH entry denies no repo read, a temp PATH dir is still not temp', () => {
+    const tr = () => transcript([typed('4668')]);
+    const repo = join(dir, 'repo');
+    mkdirSync(join(repo, '.git'), { recursive: true });
+    mkdirSync(join(dir, 'bin'));
+    writeFileSync(join(repo, 'README.md'), 'x');
+    writeFileSync(join(dir, 'bin', 'gh'), 'x');
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '', configEnv: () => ['.', join(dir, 'bin')], secretEnv: () => [] };
+    const read = (file: string) => denied(reviewPostGate(bash(`cat ${file}`, tr(), TOOL, repo), ctx, deps));
+    expect(read(join(repo, 'README.md'))).toBe(false);
+    expect(read('README.md')).toBe(false);
+    expect(read(join(dir, 'bin', 'gh'))).toBe(true);
   });
 });
