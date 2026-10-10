@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168) (2026-10-10)
+
+
+### Bug Fixes
+
+* **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok ([#4698](https://github.com/yonatangross/orchestkit/issues/4698)) ([7abe08a](https://github.com/yonatangross/orchestkit/commit/7abe08a783f70a7fc79d80990dc490664afac6a6))
+
 ## [10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167) (2026-10-10)
 
 
