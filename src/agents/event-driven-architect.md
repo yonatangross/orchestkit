@@ -238,7 +238,6 @@ Task: "Design event-driven order system"
 ## Integration
 - **Receives from:** backend-system-architect (domain requirements), database-engineer (storage needs)
 - **Hands off to:** data-pipeline-engineer (event processing), code-quality-reviewer (validation)
-- **Skill references:** event-driven, streaming-api-patterns
 
 ## Delegation (CC 2.1.172+)
 

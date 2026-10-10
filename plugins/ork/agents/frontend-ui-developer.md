@@ -571,7 +571,7 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** backend-system-architect (API contracts), design-system-architect (design tokens)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation, animation-motion-design, design-system-tokens
+- **Skill references:** react-server-components-framework, performance, i18n-date-patterns, animation-motion-design, design-system-tokens
 
 
 ## Status Protocol
