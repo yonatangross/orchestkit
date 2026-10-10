@@ -22,6 +22,7 @@ import {
   SPECIALIST_DOMAINS,
   READ_ONLY_SPECIALISTS,
   BUILD_INTENT_PATTERN,
+  hasBuildIntent,
 } from '../../pretool/task/task-agent-advisor.js';
 
 // Repo-root src/agents/, resolved from this test file's location
@@ -312,6 +313,17 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     expect(contextOf(result)).toContain('plan/review: prefer `ork:security-auditor`');
   });
 
+  test.each([
+    ['Security review of the auth implementation'],
+    ['Security review of this PR, do not commit or push'],
+    ['security review the fix'],
+    ['security review; never edit the code'],
+  ])('review-only or negated "%s" is not build intent, so it still asks', (description) => {
+    expect(hasBuildIntent(description, '')).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
   test('a read-only match WITHOUT build intent still asks', () => {
     const result = taskAgentAdvisor(
       makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
@@ -340,6 +352,9 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     expect(BUILD_INTENT_PATTERN.test('rewrite the query builder')).toBe(true);
     expect(BUILD_INTENT_PATTERN.test('add your findings to the report')).toBe(false);
     expect(BUILD_INTENT_PATTERN.test('list replacement candidates')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('implementing the endpoint')).toBe(true);
+    expect(hasBuildIntent('fix the bug, do not push', '')).toBe(true);
+    expect(hasBuildIntent('review the commit history', '')).toBe(false);
   });
 
   test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(

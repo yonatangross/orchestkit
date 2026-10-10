@@ -104,16 +104,27 @@ export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
 /**
  * Build intent: the task asks to change code or ship it (write, implement,
  * fix, replace, refactor, rewrite, add tests or code, commit, push, open a
- * PR). Suffixes are bounded so `fixture`, `pushover` and `replacement` do not
- * match, and `add` needs a code object so "add findings to the report" stays
- * review-only. Exported for tests.
+ * PR). Suffixes are bounded so `implementation`, `fixture`, `pushover` and
+ * `replacement` do not match, and `add` needs a code object so "add findings
+ * to the report" stays review-only. A verb right after a determiner is a noun
+ * ("review the fix", "check this commit"), so it does not count. Exported for
+ * tests.
  */
 export const BUILD_INTENT_PATTERN =
-  /\b(?:implement\w*|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|add (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?)|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
+  /\b(?<!\b(?:the|a|an|this|that|these|those|your|its|their|each|any) )(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|add (?:\w+ ){0,2}(?:tests?|code|checks?|validation|guards?)|apply (?:the )?(?:fix|patch|change)\w*|write (?:the )?(?:code|fix|patch)|edit (?:the )?(?:code|files?)|(?:open|create|raise) (?:a |the )?(?:pr|pull request))\b/i;
+
+/**
+ * A negated clause ("do not commit or push", "never edit the code") runs from
+ * the negation to the next clause break. It is removed before the build-intent
+ * test, so a review that forbids writes stays review-only. Exported for tests.
+ */
+export const NEGATED_CLAUSE_PATTERN =
+  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b[^.;,!?\n]*/gi;
 
 /** True when the task text asks to build (change code or ship it). */
 export function hasBuildIntent(description: string, prompt: string): boolean {
-  return BUILD_INTENT_PATTERN.test(`${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`);
+  const text = `${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`.replace(NEGATED_CLAUSE_PATTERN, ' ');
+  return BUILD_INTENT_PATTERN.test(text);
 }
 
 /** Bound the prompt scan so regex work stays inside the PreToolUse budget. */
