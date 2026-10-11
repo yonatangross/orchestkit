@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.171](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171) (2026-10-11)
+
+
+### Features
+
+* **hooks:** add claude-haiku-5-5 to the model vocab and pricing ([#4660](https://github.com/yonatangross/orchestkit/issues/4660)) ([4621212](https://github.com/yonatangross/orchestkit/commit/4621212a9c27932366b4faf79c9089dcc97f3129))
+* **models:** advance the haiku alias to claude-haiku-5-5 ([#4661](https://github.com/yonatangross/orchestkit/issues/4661)) ([5c4c961](https://github.com/yonatangross/orchestkit/commit/5c4c961f93e93be075602060991f92c8516b8d6a))
+
+
+### Bug Fixes
+
+* **agents:** drop skill references that name no existing skill ([#4709](https://github.com/yonatangross/orchestkit/issues/4709)) ([0e2bcab](https://github.com/yonatangross/orchestkit/commit/0e2bcabcabba76ae7ba1b144c72f5a5543f8feb3))
+* **ci:** five GA-blocking CI and test bugs, red-first ([#4687](https://github.com/yonatangross/orchestkit/issues/4687)) ([fc17326](https://github.com/yonatangross/orchestkit/commit/fc17326a5f471b372cd5507e6e51d7e112f96e85))
+* drop the system-reminder wrapper; isolation only on 2 git agents ([#4695](https://github.com/yonatangross/orchestkit/issues/4695)) ([1894035](https://github.com/yonatangross/orchestkit/commit/189403579209a806c2e2aff1e126455e1b91e1a0))
+* **git-hooks:** src guard accepts a counterpart changed on the branch ([#4710](https://github.com/yonatangross/orchestkit/issues/4710)) ([f59bc76](https://github.com/yonatangross/orchestkit/commit/f59bc769dd6120df3084bd58bfb810c4771dc878))
+* **hooks:** drop continueOnBlock from 4 command hooks for Desktop ([#4685](https://github.com/yonatangross/orchestkit/issues/4685)) ([8c426ee](https://github.com/yonatangross/orchestkit/commit/8c426eefa10dbcc05ae30cd42c98571d6bafa389))
+* **hooks:** four GA-blocking hook bugs, red-first ([#4688](https://github.com/yonatangross/orchestkit/issues/4688)) ([59093c3](https://github.com/yonatangross/orchestkit/commit/59093c3b786f3e8bd5541e895f11b237852bf788))
+* **hooks:** ork cursor pins and [#4688](https://github.com/yonatangross/orchestkit/issues/4688) follow-ups ([#4713](https://github.com/yonatangross/orchestkit/issues/4713)) ([f65f016](https://github.com/yonatangross/orchestkit/commit/f65f0166ca1a2a709e5b3ede246bd1a62da8d465))
+* **review-pr:** post only when the user types --post ([#4678](https://github.com/yonatangross/orchestkit/issues/4678)) ([d2a3a8f](https://github.com/yonatangross/orchestkit/commit/d2a3a8ff92368181adc0aa454fa09b86d9dc7e47))
+* **skills:** inline fan-out skills, hook-free forks, shared target rule ([#4693](https://github.com/yonatangross/orchestkit/issues/4693)) ([8a4716e](https://github.com/yonatangross/orchestkit/commit/8a4716e4309716919947cd8676a52387f921a5c2))
+
 ## [10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170) (2026-10-10)
 
 
