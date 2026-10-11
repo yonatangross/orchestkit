@@ -195,7 +195,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     // and the family shorthand must stay on the Haiku 4.5 row.
     expect(getPricing('claude-haiku-5-5').output_per_mtok).toBe(0.5);
     expect(getPricing('claude-haiku-4-5').input_per_mtok).toBe(1.0);
-    expect(resolveModelKey('haiku')).toBe('claude-haiku-4-5-20251001'); // alias advance is a follow-up
+    // `haiku` advanced claude-haiku-4-5-20251001 -> claude-haiku-5-5 on 2026-10-07 (CC 2.1.293 maps it the same way).
+    expect(resolveModelKey('haiku')).toBe('claude-haiku-5-5');
   });
 
   it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {

@@ -1188,7 +1188,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "68b29d64d7213d39b4a056426a52cc9149a07716617067871eef4bcdaa6f951f",
+    "sha256": "bed86bbf8cc89658314cc7d6529566f944fecf3ab9810910c797cbe7a3c88f5c",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -4357,7 +4357,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "scope-appropriate-architecture",
     "description": "Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier.",
     "version": "1.0.0",
-    "sha256": "da2564f9963ca1687c2ca6a8210c9dcf96de11f94bb3864891b49697218c57fc",
+    "sha256": "beff8175b8b80b74f9eb9c3f0106a98af96ae6e16279fefb98da141f278bdafc",
     "author": "OrchestKit",
     "tags": [
       "architecture",

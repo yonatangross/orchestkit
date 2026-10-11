@@ -118,10 +118,10 @@ Tier 2 (Prototype) → Tier 3 (MVP)
   Add: Postgres, basic auth, error boundaries, CI
 
 Tier 3 (MVP) → Tier 4 (Growth)
-  Add: Redis cache, background jobs, monitoring, module boundaries
+  Add: Redis cache, background jobs, monitoring, module boundaries, DI container, message queues
 
 Tier 4 (Growth) → Tier 5 (Enterprise)
-  Add: DI, bounded contexts, message queues, full observability
+  Add: bounded contexts in every module (selective at Tier 4), full observability
   Extract: First microservice (only the proven bottleneck)
 ```
 

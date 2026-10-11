@@ -70,7 +70,7 @@ A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* integrator missed 
 2. **Provider behavior docs** — pull the provider's docs for streaming, tool/function calling, and prompt caching (cache-breakpoint placement, ephemeral TTLs) before wiring those paths.
 3. **Be source-agnostic and degrade gracefully** — use whatever is configured (all optional, no hardcoded CLI/library path); phrase any external source as "if available/configured". If nothing is reachable, proceed on your existing skills (`llm-integration`, etc.) — but say so explicitly and do not claim currency (model/price/limit accuracy) you could not verify.
 4. **Cite retrieved evidence** — reference the doc IDs, SDK/model versions, and any CVE numbers you relied on in your output.
-5. **Claude API facts to check first (2026-09)**: read https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes before changing tools mid-conversation (inline `tool_addition`, beta `inline-tools-2026-09-15`, Claude API only, available on Sonnet 5.5 but not on Sonnet 5). Forced `tool_choice` (`any` or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1, so use `auto` with `strict: true` tools. `thinking.type: "enabled"` with `budget_tokens` returns a 400 on Opus 5.5, Sonnet 5.5, Sonnet 5, Fable 5.1 and Mythos 5.1 (Haiku 4.5 still accepts it); use adaptive thinking. <!-- model-recency-ok: per-model contrast, Sonnet 5 lacks what Sonnet 5.5 has (platform docs 2026-09-28) -->
+5. **Claude API facts to check first (2026-09)**: read https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes before changing tools mid-conversation (inline `tool_addition`, beta `inline-tools-2026-09-15`, Claude API only, available on Sonnet 5.5 but not on Sonnet 5). Forced `tool_choice` (`any` or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1, so use `auto` with `strict: true` tools. `thinking.type: "enabled"` with `budget_tokens` returns a 400 on Opus 5.5, Sonnet 5.5, Haiku 5.5, Sonnet 5, Fable 5.1 and Mythos 5.1 (Haiku 4.5 still accepts it); use adaptive thinking. <!-- model-recency-ok: per-model contrast, Sonnet 5 lacks what Sonnet 5.5 has (platform docs 2026-09-28) -->
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
@@ -158,7 +158,7 @@ PROVIDERS = {
     "anthropic": {
         "client": Anthropic(),
         "models": {
-            "fast": "claude-haiku-4-5-20251001",
+            "fast": "claude-haiku-5-5",
             "balanced": "claude-sonnet-5-5",
             "powerful": "claude-opus-5-5"
         },
