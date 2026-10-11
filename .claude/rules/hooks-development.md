@@ -29,7 +29,8 @@ paths:
 - No file I/O in hot-path hooks (pretool, permission) — pre-compute state in SessionStart instead
 
 ## Cache Safety
-- SAFE: `additionalContext` injection, `<system-reminder>` tags, async hooks
+- SAFE: `additionalContext` injection, async hooks
+- Hook output must not carry `<system-reminder>` tags: CC 2.1.292 escapes them, so they reach the model as literal markup (#4689). CC adds its own wrapper.
 - DANGEROUS: modifying system prompt, changing tool definitions mid-session
 
 ## FH-ready handlers (2026-09-04)

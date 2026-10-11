@@ -188,7 +188,7 @@ See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn promp
 
 **128K consolidation:** Backend is 1 agent (was 2), frontend is 1 agent (was 3 incl. styling). Each produces complete working code in a single pass.
 
-All 5 agents launch in ONE message with `run_in_background=true`.
+All 5 agents launch in ONE message with `run_in_background=true`. Every agent that writes code also gets `isolation="worktree"`: ork agents carry no frontmatter isolation (#4557), so without it the parallel writers share your tree. Merge each worktree back as SKILL.md "Worktree-Isolated Implementation" describes.
 
 ### Agent 1: Backend — Complete Implementation
 ```python
@@ -223,11 +223,13 @@ Agent(
 
   Write REAL code to disk using Write/Edit tools.
   Every file must be complete and runnable.
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 backend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -267,12 +269,14 @@ Agent(
      - Zod schema tests
 
   Write REAL code to disk. Every file must be complete.
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
   Include styling inline — no separate styling agent needed.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 frontend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -295,10 +299,12 @@ Agent(
   8. Tests with VCR.py cassettes
 
   Write REAL code to disk. Skip if AI spec says "No AI needed".
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 AI spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -341,23 +347,47 @@ Agent(
      - Factory classes for test data
      - MSW handlers for frontend API mocking
 
-  5. COVERAGE ANALYSIS
-     - Run: poetry run pytest --cov=app --cov-report=term-missing
-     - Run: npm test -- --coverage
-     - Target: 80% minimum
+  5. COVERAGE TARGET
+     - Target: 80% minimum. The coordinator measures it after the merge.
 
-  Write REAL test files to disk.
-  Run tests after writing to verify they pass.
+  Write the tests to disk, commit them in your worktree before you return,
+  and end your reply with your branch name and commit sha. Failures from
+  missing implementation are expected: your worktree holds the base tree, not
+  the backend and frontend code, which merge after you return. Report them,
+  never stub production code to make them pass.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
+### After Phase 5: merge, then run the tests
+
+Each writer worked in its own worktree, so no agent saw the others' code. When
+all 4 return, the coordinator handles each returned worktree in turn:
+
+1. Check that it is clean: `git -C <worktree> status --porcelain` prints
+   nothing. If it prints files, the agent did not commit them, and a merge of
+   its branch would leave them out. Commit them there
+   (`git -C <worktree> add -A && git -C <worktree> commit -m "<agent>: uncommitted output"`)
+   and note it in the report.
+2. Merge its branch into the feature branch (SKILL.md "Worktree-Isolated
+   Implementation").
+
+Only when all 4 branches are merged does the coordinator run the suite on the
+merged tree:
+
+```bash
+poetry run pytest --cov=app --cov-report=term-missing
+npm test -- --coverage
+```
+
+A failure here goes back to the owning agent, or to Phase 6.
+
 ### Phase 5 — Teams Mode
 
-In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Each writer teammate MUST get its own manual worktree, `.worktrees/<role>` on `feat/{feature}-<role>`, created by the lead before the spawn ([Team Worktree Setup](team-worktree-setup.md), #4557). Never pass `isolation` on a teammate call: with `name` it launches a plain subagent, not a teammate.
 
 ---
 
@@ -412,8 +442,10 @@ Agent(
   4. Verify API endpoints respond correctly
   5. Fix any integration issues found
 
-  This is verification, not new implementation.""",
-  run_in_background=true
+  This is verification, not new implementation. Commit any fix in your
+  worktree before you return, and end your reply with your branch name and
+  commit sha.""",
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -430,8 +462,10 @@ Agent(
   4. Run test suite with coverage
   5. Fix any integration issues found
 
-  This is verification, not new implementation.""",
-  run_in_background=true
+  This is verification, not new implementation. Commit any fix in your
+  worktree before you return, and end your reply with your branch name and
+  commit sha.""",
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -471,6 +505,12 @@ Agent(
   run_in_background=true
 )
 ```
+
+### After Phase 6: merge the fixer worktrees
+
+The backend and frontend integration agents ran in their own worktrees. Check
+each one is clean and merge its branch, as after Phase 5, then run the
+validation commands once more on the merged tree.
 
 ### Security Checks
 - No hardcoded secrets

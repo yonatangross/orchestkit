@@ -4,7 +4,6 @@ description: Universal demo video producer that creates polished marketing video
 model: sonnet
 maxTurns: 30
 effort: medium
-isolation: worktree
 color: magenta
 memory: local
 tools:
