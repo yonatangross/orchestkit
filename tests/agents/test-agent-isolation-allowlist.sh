@@ -118,18 +118,19 @@ scan=$(awk -v re="$writer_re" '
     depth += code_parens($0)
     if (depth <= 0) {
       open_ = 0
-      if (inc || skip || buf !~ re) next
+      if (inc || skip) next
+      # The docs key on name=: a named call launches a teammate unless it passes
+      # isolation, which makes it a plain subagent (Claude Code docs: sub-agents,
+      # agent-teams). So name= plus isolation= is flagged for every agent type,
+      # except a block that is meant as a plain named subagent: no team_name=,
+      # in chain-patterns Pattern 6 or the design-import loop.
+      plain_ok = (buf !~ /team_name=/ && FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
+      if (buf ~ /name=/ && buf ~ /isolation=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
+      if (buf !~ re) next
       # fix-issue: only test-generator writes; the backend and frontend experts design.
       if (FILENAME ~ /fix-issue\// && buf !~ /ork:test-generator/) next
       print "SEEN"
       manual = (buf ~ /cd [{][a-z_]*wt[}]/ || buf ~ /Work only in [.]worktrees\//)
-      # The docs key on name=: a named call launches a teammate unless it passes
-      # isolation, which makes it a plain subagent (Claude Code docs: sub-agents,
-      # agent-teams). So name= plus isolation= is a teammate turned subagent,
-      # allowed only where a plain named subagent is the intent: chain-patterns
-      # Pattern 6 and the design-import loop.
-      plain_ok = (FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
-      if (buf ~ /name=/ && buf ~ /isolation=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
       conc = (buf ~ /run_in_background=(true|True)/ || buf ~ /team_name=/ || loop)
       if (conc && buf !~ /isolation="worktree"/ && !manual) print FILENAME ":" start
       # A worktree branch is merged, so an uncommitted file is lost.

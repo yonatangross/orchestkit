@@ -961,9 +961,9 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 # Teammates take NO isolation on the call: a call with `name` and `isolation`
 # launches a plain subagent, not a teammate (Claude Code docs: sub-agents,
 # agent-teams). Writers work in manual worktrees the lead creates first.
-Bash("git worktree add .worktrees/backend  -b feat/{feature}-backend  origin/main")
-Bash("git worktree add .worktrees/frontend -b feat/{feature}-frontend origin/main")
-Bash("git worktree add .worktrees/tests    -b feat/{feature}-tests    origin/main")
+Bash("git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}")
+Bash("git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}")
+Bash("git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}")
 
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
@@ -1006,13 +1006,14 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 Every writer teammate (backend, frontend, test) works in the manual worktree the lead created before the Phase 4 spawns: ork agents carry no frontmatter isolation (#4557), and a teammate cannot take `isolation` on its call (a call with `name` and `isolation` launches a plain subagent, not a teammate). The layout, for reference:
 
 ```python
-# Lead sets up worktrees BEFORE the Phase 4 spawns (done above).
+# The lead ran these BEFORE the Phase 4 spawns (above). Do not run them again:
+# git refuses a second branch or worktree with the same name.
 # INSIDE the repo at .worktrees/<task> — a sibling ../{project}-backend is outside
 # the session's project directory, so the teammate's cd is silently bounced back to
 # the primary tree and it commits there instead (platform#9870, #3319).
-Bash("git worktree add .worktrees/backend  -b feat/{feature}-backend  origin/main")
-Bash("git worktree add .worktrees/frontend -b feat/{feature}-frontend origin/main")
-Bash("git worktree add .worktrees/tests    -b feat/{feature}-tests    origin/main")
+#   git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}
+#   git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}
+#   git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}
 
 # Include worktree path in teammate messages
 SendMessage(to="backend-architect",
@@ -1034,8 +1035,20 @@ In Agent Teams mode, the code-reviewer teammate has already been reviewing code 
 - **Lead** runs integration tests across the merged codebase (or merged worktrees).
 - No need for separate security-auditor spawn, code-reviewer covers security checks. For high-risk features, spawn a `security-auditor` teammate in Phase 4.
 
+First merge every writer worktree into `feat/{feature}`, so the checks run on
+the teammates' commits. For each `.worktrees/<role>`, check it is clean
+(`git -C .worktrees/<role> status --porcelain` prints nothing; if not, commit
+what is there), then merge its branch:
+
+```bash
+git checkout feat/{feature}
+git merge --squash feat/{feature}-backend  && git commit -m "feat({feature}): backend"
+git merge --squash feat/{feature}-frontend && git commit -m "feat({feature}): frontend"
+git merge --squash feat/{feature}-tests    && git commit -m "test({feature}): test suite"
+```
+
 ```python
-# Lead runs integration after merging worktrees
+# Lead runs integration on the merged feat/{feature}
 Bash("npm test && npm run typecheck && npm run lint")
 
 # Collect code-reviewer verdict
@@ -1053,17 +1066,8 @@ After Phase 6 completes in Agent Teams mode, tear down the team:
 
 ### 1. Merge Worktrees
 
-Each writer teammate worked in its manual worktree, on the branch it messaged
-you (`feat/{feature}-<role>`). For each one, check the worktree is clean first
-(`git -C .worktrees/<role> status --porcelain` prints nothing; if not, commit
-what is there), then merge:
-
-```bash
-git checkout feat/{feature}
-git merge --squash feat/{feature}-backend  && git commit -m "feat({feature}): backend"
-git merge --squash feat/{feature}-frontend && git commit -m "feat({feature}): frontend"
-git merge --squash feat/{feature}-tests    && git commit -m "test({feature}): test suite"
-```
+Done at the start of Phase 6, before the integration checks. Nothing to merge
+here.
 
 ### 2. Shut Down Teammates
 
