@@ -19,6 +19,8 @@ Example: `implement-user-auth`, `implement-dashboard-analytics`
 
 ### Teammate Spawn Prompts
 
+Each writer teammate (backend-architect, frontend-dev, test-engineer) works in its own manual worktree, `.worktrees/<role>` on `feat/{feature}-<role>`, which the lead creates before spawning (see "Per-Teammate Worktree Setup" below; #4557). Do not pass `isolation` on a teammate call: a call with `name` and `isolation` launches a plain subagent, not a teammate (Claude Code docs: sub-agents, agent-teams). Add the "Your Working Directory" block from [Team Worktree Setup](team-worktree-setup.md) to each writer prompt. The code-reviewer only reads and needs none.
+
 #### 1. backend-architect (backend-system-architect)
 ```
 You are the backend-architect specialist on this team.
@@ -43,6 +45,8 @@ Implement the backend for: {feature description}
 - When database schema is ready, update the shared task list.
 - If you change the API contract after sharing it, message frontend-dev immediately.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - All code must pass ruff + type checking
@@ -76,6 +80,8 @@ Implement the frontend for: {feature description}
   so they can write integration tests.
 - If the API contract changes, adapt and message test-engineer about the update.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - TypeScript strict mode, no `any` types
@@ -108,6 +114,8 @@ Build the test suite for: {feature description}
   - API issues → message backend-architect
   - UI issues → message frontend-dev
 - Update the shared task list with coverage metrics as tests pass.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - 80% minimum coverage target
@@ -233,13 +241,13 @@ See [Team Worktree Setup](team-worktree-setup.md) for detailed instructions.
 # Worktrees live INSIDE the repo at .worktrees/<task>. A sibling path is outside the
 # session's project directory, so the teammate's cd is silently bounced back to the
 # primary tree and it commits there instead (platform#9870, #3319).
-git branch feat/{feature}/backend
-git branch feat/{feature}/frontend
-git branch feat/{feature}/tests
+git branch feat/{feature}-backend
+git branch feat/{feature}-frontend
+git branch feat/{feature}-tests
 
-git worktree add .worktrees/backend  feat/{feature}/backend
-git worktree add .worktrees/frontend feat/{feature}/frontend
-git worktree add .worktrees/tests    feat/{feature}/tests
+git worktree add .worktrees/backend  feat/{feature}-backend
+git worktree add .worktrees/frontend feat/{feature}-frontend
+git worktree add .worktrees/tests    feat/{feature}-tests
 
 # Assignment — each teammate runs pwd first to confirm the cd took
 backend-architect  → .worktrees/backend/
@@ -248,7 +256,7 @@ test-engineer      → .worktrees/tests/
 code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
-**When to skip worktrees:** Small features (< 5 files), or when teammates work on non-overlapping directories.
+**Do not skip worktrees:** every writer teammate needs its own, in the manual layout above (#4557); teammates cannot take `isolation` on the call. Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
 
 ---
 
@@ -256,14 +264,16 @@ code-reviewer      → Primary tree (read-only, reviews all)
 
 After all teammates complete (or when all tasks are done):
 
-1. **Merge worktrees** (if used):
+1. **Merge worktrees.** Check each writer worktree is clean first
+   (`git -C .worktrees/<role> status --porcelain` prints nothing; if not,
+   commit what is there). Merge each teammate's `feat/{feature}-<role>` branch.
    ```bash
    git checkout feat/{feature}
-   git merge --squash feat/{feature}/backend
+   git merge --squash feat/{feature}-backend
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash feat/{feature}/frontend
+   git merge --squash feat/{feature}-frontend
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash feat/{feature}/tests
+   git merge --squash feat/{feature}-tests
    git commit -m "test({feature}): complete test suite"
    ```
 

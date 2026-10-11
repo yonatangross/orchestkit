@@ -1,6 +1,6 @@
 ---
 name: release-engineer
-description: Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.
+description: Release and versioning specialist for GitHub releases, milestones, changelogs, semantic versioning and release automation. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).
 model: haiku
 background: true
 initialPrompt: "Check TaskList for pending release tasks. Analyze commits since last tag to determine version bump type."

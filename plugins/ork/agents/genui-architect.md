@@ -2,7 +2,6 @@
 name: genui-architect
 description: "Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs."
 model: sonnet
-isolation: worktree
 maxTurns: 30
 effort: medium
 color: purple

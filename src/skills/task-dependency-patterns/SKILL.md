@@ -145,9 +145,15 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Task Patterns
 
 ```
-# Spawn teammate into shared task list
+# Spawn teammate into shared task list. A teammate that writes files works in
+# a manual worktree the lead creates first (#4557); the lead merges its branch
+# before dependent tasks start. No isolation on the call: a call with name and
+# isolation launches a plain subagent, not a teammate (Claude Code docs).
+Bash("git worktree add .worktrees/backend -b feat/my-feature-backend feat/my-feature")
 Agent(
-  prompt="You are the backend architect...",
+  prompt="You are the backend architect... Work only in .worktrees/backend/ "
+         "(cd there, check pwd and branch first). Commit your work there and "
+         "message the lead your branch name and commit sha.",
   team_name="my-feature",
   name="backend-architect",
   subagent_type="ork:backend-system-architect"

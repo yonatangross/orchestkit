@@ -111,6 +111,8 @@ Agent(
 
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
 
+> **Isolation is additive only (#4557):** per-spawn `isolation` can add a worktree but can never remove one an agent declares in frontmatter, and a frontmatter-isolated agent fails to spawn from a non-git cwd ("Cannot create agent worktree"). So ork agents leave it off their frontmatter and the caller opts in per spawn. Only `git-operations-engineer` and `release-engineer` declare it; spawn those from inside the target repo.
+
 > **CC 2.1.157 worktree lifecycle:** `EnterWorktree` can switch between Claude-managed worktrees mid-session, and worktrees are left **unlocked** when the agent finishes, so `git worktree remove`/`prune` cleans them up without `--force`.
 
 > **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep`, it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
@@ -145,13 +147,13 @@ Launch agents with `run_in_background=true` and output results as each returns, 
 > **Skill-side twin (CC 2.1.218+):** skills with `context: fork` also background by default; the per-skill opt-out is `background: false` in frontmatter. ork's rule: every `user-invocable: true` fork skill declares it (a human typed the command and is waiting, verdict gates and AskUserQuestion turns need the interactive loop), while model-invoked fork skills deliberately keep the background default, which is the 2.1.218 win. When authoring a pipeline skill, decide this explicitly rather than inheriting whatever the current default is (#3093).
 
 ```python
-# Launch all agents in ONE message with run_in_background=true
+# Launch all agents in ONE message with run_in_background=true; writers get isolation="worktree"
 Agent(subagent_type="ork:backend-system-architect",
-  prompt="...", run_in_background=true, name="backend")
+  prompt="...", run_in_background=true, isolation="worktree", name="backend")
 Agent(subagent_type="ork:frontend-ui-developer",
-  prompt="...", run_in_background=true, name="frontend")
+  prompt="...", run_in_background=true, isolation="worktree", name="frontend")
 Agent(subagent_type="ork:test-generator",
-  prompt="...", run_in_background=true, name="tests")
+  prompt="...", run_in_background=true, isolation="worktree", name="tests")
 
 # As each agent completes, output its findings immediately.
 # CC delivers background agent results as notifications —
@@ -1585,7 +1587,7 @@ Applies to: `ork:cover`, `ork:verify`, any skill that runs a test suite longer t
 
 ```python
 # Spawn a background agent
-Agent(subagent_type="ork:test-generator", run_in_background=true,
+Agent(subagent_type="ork:test-generator", run_in_background=true, isolation="worktree",
       prompt="Generate integration tests for the auth module")
 
 # Watch its task-notification stream for partial progress (CC 2.1.98)

@@ -189,7 +189,10 @@ The agent already ran component-search per component. Read decisions from the no
 
 ## Phase 4 — Scaffold
 
-For each component with decision `scaffold` or `adapt`, invoke design-to-code:
+For each component with decision `scaffold` or `adapt`, invoke design-to-code.
+The spawns run in the background at the same time, so each one gets its own
+worktree (`isolation="worktree"`, #4557): ork agents carry no frontmatter
+isolation, and without it every component writes into your tree at once.
 
 ````python
 for component in payload["components"]:
@@ -197,6 +200,7 @@ for component in payload["components"]:
         # Compose, don't reimplement — design-to-code owns the EXTRACT/MATCH/ADAPT/RENDER pipeline
         Agent(
           subagent_type="ork:frontend-ui-developer",
+          name=f"scaffold-{component['name']}",
           description=f"Scaffold {component['name']} from bundle",
           prompt=f"""Use the design-to-code skill to scaffold this component.
 
@@ -212,9 +216,26 @@ for component in payload["components"]:
           {f"Adapt from: {component['existing_match']}" if component['decision'] == 'adapt' else ''}
 
           Write the component, mirror existing project file structure, use project tokens.
-          """
+          Commit it in your worktree before you return, and end your reply with
+          your branch name and commit sha. Uncommitted files are not merged.
+          """,
+          run_in_background=True,
+          isolation="worktree",
+          max_turns=25,
         )
 ````
+
+### Collect and merge the component worktrees
+
+Wait for every scaffold agent to return before Phase 5. For each one:
+
+1. Check its worktree is clean: `git -C <worktree> status --porcelain` prints
+   nothing. If it prints files, commit them there and note it in the report.
+2. Merge its branch into the current branch. A conflict means two components
+   wrote the same file: stop and report both paths.
+3. Confirm `component['target_path']` exists after the merge. A component whose
+   agent failed or wrote elsewhere goes into `failed_components`: it is
+   reported, not recorded as written.
 
 ## Phase 5 — Provenance
 
@@ -225,6 +246,7 @@ provenance = Read(payload["provenance_path"])
 provenance["components"] = [
     {"name": c["name"], "decision": c["decision"], "path": c["target_path"]}
     for c in payload["components"]
+    if c["name"] not in failed_components  # from "Collect and merge" step 3
 ]
 provenance["imported_at"] = now()
 Write(payload["provenance_path"], provenance)

@@ -36,13 +36,30 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-expert",
      If backend-expert changes API contracts, adapt the frontend fix accordingly.
      Share component changes with test-planner.""")
 
+# test-planner writes files: the lead creates its worktree first. No isolation
+# on the call: a call with `name` and `isolation` launches a plain subagent,
+# not a teammate (Claude Code docs: sub-agents, agent-teams).
+Bash("git worktree add .worktrees/regression-test -b issue/{number}-regression-test origin/main")
+
 Agent(subagent_type="ork:test-generator", name="test-planner",
      team_name="fix-issue-{number}",
      prompt="""Plan regression tests for issue #{number}.
      When root-cause-tracer confirms the root cause, write a failing test that reproduces it.
      When backend-expert or frontend-expert share fix designs, plan verification tests.
-     Start with the regression test BEFORE the fix is applied (TDD approach).""")
+     Start with the regression test BEFORE the fix is applied (TDD approach).
+     Work only in .worktrees/regression-test/: cd there and check pwd and
+     git branch --show-current before any write. Commit the test there and
+     message the lead your branch name and commit sha.""")
 ```
+
+test-planner is the one teammate that writes files, so it works in the manual
+worktree `.worktrees/regression-test` (#4557). The lead checks that worktree is
+clean (`git -C .worktrees/regression-test status --porcelain`) and commits any
+leftovers. The fix
+branch is created fresh from base in Phase 6, so the lead merges the
+test-planner's branch (`REGRESSION_TEST_BRANCH=issue/{number}-regression-test`)
+as the FIRST step after `git checkout -b issue/N-fix`
+([fix-phases.md](fix-phases.md) Phase 6), before any fix is written.
 
 **Team teardown** after fix is implemented and validated:
 ```python
