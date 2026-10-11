@@ -1,0 +1,11 @@
+{
+  "slug": "opus55-prune-facts",
+  "source": "docs/chore--opus55-prune-facts/index.html",
+  "title": "Agents: skill references that name no skill",
+  "description": "8 dead skill names removed from 9 agent bodies, 1 renamed",
+  "tags": [
+    "agents",
+    "cleanup"
+  ],
+  "date": "2026-10-11"
+}

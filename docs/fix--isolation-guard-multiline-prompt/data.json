@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--isolation-guard-multiline-prompt/index.html",
+  "lab_slug": "isolation-guard-multiline-prompt",
+  "purpose": "PR playground: the isolation guard reads prompts that span lines"
+}

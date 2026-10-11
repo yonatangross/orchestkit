@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agents: skill references that name no skill</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Agents: skill references that name no skill"><meta property="og:description" content="8 dead skill names removed from 9 agent bodies, 1 renamed"><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/opus55-prune-facts.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Agents: skill references that name no skill"><meta name="twitter:description" content="8 dead skill names removed from 9 agent bodies, 1 renamed"><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <div class="top"><div><h1>Agents: skill references that name no skill</h1>
+  <p class="lede">9 agent bodies named skills that do not exist in src/skills (8 under "Skill references", 1 in a body bullet). Nothing checked those names. This change removes the dead names and renames 1 to the skill that replaced it.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Before and after</h2><table><tr><th>Agent</th><th>Removed (no such skill)</th><th>Renamed</th></tr><tr><td>accessibility-specialist</td><td>design-system-starter</td><td></td></tr><tr><td>ai-safety-auditor</td><td>advanced-guardrails</td><td></td></tr><tr><td>code-quality-reviewer</td><td></td><td>security-checklist to security-patterns</td></tr><tr><td>data-pipeline-engineer</td><td>context-optimization</td><td></td></tr><tr><td>event-driven-architect</td><td>event-driven, streaming-api-patterns</td><td></td></tr><tr><td>frontend-ui-developer</td><td>type-safety-validation, design-system-starter, frontend-animation</td><td></td></tr><tr><td>security-auditor</td><td></td><td>security-checklist to security-patterns</td></tr><tr><td>security-layer-auditor</td><td>security-checklist (body bullet)</td><td></td></tr><tr><td>workflow-architect</td><td>context-optimization</td><td></td></tr></table>
+  <pre>before: 8 distinct dead names in 9 agents
+after:  0. All 25 names that stay resolve to src/skills/&lt;name&gt;/SKILL.md</pre></section>
+  <section class="card"><h2>What changed</h2><ul>
+  <li><b>src/agents</b>: body text only. The frontmatter skills lists were already clean.</li>
+  <li><b>Generated</b>: plugins/ork/agents and the docs reference pages, rebuilt from src.</li>
+  <li><b>Check</b>: each name tested with test -f src/skills/&lt;name&gt;/SKILL.md.</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

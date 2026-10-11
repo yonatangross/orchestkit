@@ -55,3 +55,11 @@ Working rules for skills that fan out subagents or run for many phases (implemen
 review-pr, fix-issue, brainstorm, swarm-migrate), from Anthropic's Opus 5.5 guidance.
 
 - `long-run-protocol.md`: named finish line, keep-going and stop rule, TASKS.md, subagent evidence check, mark what could not be confirmed
+
+## 8. Target Resolution (arguments), HIGH, 1 rule
+
+How a target-taking skill (assess, verify, implement, fix-issue, cover, review-pr) handles a pronoun
+target such as `this` or `them`: inline skills read it back from the conversation and announce it,
+forked skills return a sentinel the caller resolves (#3780).
+
+- `target-resolution.md`: detect a deictic or empty target, resolve to the nearest subject, announce in one line; forked skills return `TARGET_UNRESOLVED: <word>`
