@@ -4,7 +4,6 @@ description: "Design system architect: token hierarchies, theming strategies, co
 model: sonnet
 maxTurns: 30
 effort: medium
-isolation: worktree
 color: teal
 memory: project
 tools:

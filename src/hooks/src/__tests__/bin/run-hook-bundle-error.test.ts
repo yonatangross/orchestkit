@@ -96,6 +96,102 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     expect(typeof rows[0].t_bundle_ms).toBe('number');
   }, 20000);
 
+  it('(#4678) exits 2 for skill/review-post-gate: an unloadable skill bundle must not let a post through', async () => {
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), 'export const hooks = {\n', 'utf8');
+    const r = await run('skill/review-post-gate');
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/hook "skill\/review-post-gate" bundle at .*skill\.mjs exists but failed to load/);
+  });
+
+  it('(#4678) exits 2 for skill/review-post-gate when the skill bundle is absent', async () => {
+    const r = await run('skill/review-post-gate');
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+  });
+
+  it('(#4678) exits 2 for skill/review-post-gate when the bundle has no handler for it', async () => {
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), 'export const hooks = {};\n', 'utf8');
+    const r = await run('skill/review-post-gate');
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+  });
+
+  it('(#4678) exits 2 for skill/review-post-gate when stdin is over the size limit', async () => {
+    // A working handler that would allow: the oversize input must not reach it as {}.
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+    const big = JSON.stringify({ hook_event_name: 'PreToolUse', session_id: 's', cwd: '/tmp', tool_name: 'Bash', tool_input: { command: `echo ${'x'.repeat(600 * 1024)}` } });
+    const r = await new Promise<{ code: number | null; stdout: string }>((resolve) => {
+      const child = spawn('node', [runner, 'skill/review-post-gate'], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+      let stdout = '';
+      child.stdout.on('data', (c) => { stdout += String(c); });
+      child.on('close', (code) => resolve({ code, stdout }));
+      child.stdin.on('error', () => {});
+      child.stdin.end(big);
+    });
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+  });
+
+  // A working handler that would allow: input the gate cannot read must not reach it.
+  const allowGate = () =>
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+  function feed(hook: string, send: (stdin: NodeJS.WritableStream) => void): Promise<{ code: number | null; stdout: string }> {
+    return new Promise((resolve) => {
+      const child = spawn('node', [runner, hook], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+      let stdout = '';
+      child.stdout.on('data', (c) => { stdout += String(c); });
+      child.on('close', (code) => resolve({ code, stdout }));
+      child.stdin.on('error', () => {});
+      send(child.stdin);
+    });
+  }
+  it('(#4678) exits 2 for skill/review-post-gate on an empty pipe, non-JSON or late input', async () => {
+    allowGate();
+    for (const send of [
+      (w: NodeJS.WritableStream) => w.end(''),
+      (w: NodeJS.WritableStream) => w.end('not json'),
+      (w: NodeJS.WritableStream) => setTimeout(() => w.end(payload()), 1000),
+    ]) {
+      const r = await feed('skill/review-post-gate', send);
+      expect(r.code).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    }
+  }, 15000);
+
+  it('(HOLD 6084834846 M1) exits 2 for skill/review-post-gate when the handler throws, or stdin is [] or {}', async () => {
+    writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => { throw new Error('boom'); } };\n", 'utf8');
+    let r = await feed('skill/review-post-gate', (w) => w.end(payload()));
+    expect(r.code).toBe(2);
+    expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    allowGate();
+    for (const body of ['[]', '{}']) {
+      r = await feed('skill/review-post-gate', (w) => w.end(body));
+      expect(r.code, body).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    }
+  });
+
+  it('(HOLD 6084834846 should) exits 2 for skill/review-post-gate instead of using another version from the cache', async () => {
+    const base = mkdtempSync(join(tmpdir(), 'bundle-cache.'));
+    try {
+      mkdirSync(join(base, '1.0.0', 'hooks', 'bin'), { recursive: true });
+      mkdirSync(join(base, '2.0.0', 'hooks', 'dist'), { recursive: true });
+      for (const f of RUNNER_FILES) copyFileSync(join(BIN_DIR, f), join(base, '1.0.0', 'hooks', 'bin', f));
+      writeFileSync(join(base, '2.0.0', 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
+      const r = await new Promise<{ code: number | null; stdout: string }>((resolve) => {
+        const child = spawn('node', [join(base, '1.0.0', 'hooks', 'bin', 'run-hook.mjs'), 'skill/review-post-gate'], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
+        let stdout = '';
+        child.stdout.on('data', (c) => { stdout += String(c); });
+        child.on('close', (code) => resolve({ code, stdout }));
+        child.stdin.end(payload());
+      });
+      expect(r.code).toBe(2);
+      expect(r.stdout).not.toMatch(/"continue":\s*true/);
+    } finally {
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
     expect(r.code).toBe(1);

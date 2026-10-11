@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-stack-2",
+  "page": "docs/docs--ork10-stack-2-mcp-desc-limit/index.html",
+  "lab_slug": "ork10-stack-2-mcp-desc-limit",
+  "purpose": "PR playground: MCP description cap is 4,096 characters (CC 2.1.296)"
+}

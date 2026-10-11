@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->169<!--/ork--> hooks**
+**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -109,7 +109,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|---------|
 | **<!--ork:skills-->110<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->169<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->171<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -184,7 +184,7 @@ OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
 add-on. This section states plainly what they see, where it goes, and how to turn
 each piece off.
 
-**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->169<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
+**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->171<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
 lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
 project type, because the gates they enforce (secret-write blocking, protected-file
@@ -630,6 +630,22 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170)** · 2026-10-10
+
+- **hooks:** tldr-summary skips a Read with allow_large (#4700)
+
+**[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
+
+- **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
+
+**[v10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168)** · 2026-10-10
+
+- **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok (#4698)
+
+**[v10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167)** · 2026-10-10
+
+- **cc:** adopt Claude Code 2.1.289 through 2.1.296 (#4702)
+
 **[v10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166)** · 2026-10-09
 
 - **review-pr:** standards pass with a review-only standards file (#4671)
@@ -652,23 +668,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **glyph:** output mode dials, done sign-off, and a try-it page (#4647)
 - **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4612)
-
-**[v10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162)** · 2026-10-07
-
-- **deps:** sharp 0.35.5 in docs/site for advisory 1241331 (#4653)
-
-**[v10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161)** · 2026-10-06
-
-- **deps-dev:** bump vitest (#4611)
-- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4613)
-
-**[v10.0.0-beta.160](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.159...v10.0.0-beta.160)** · 2026-10-06
-
-- **deps-dev:** bump vitest (#4610)
-
-**[v10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159)** · 2026-10-06
-
-- **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees (#4642)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

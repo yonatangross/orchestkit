@@ -18,6 +18,62 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.170",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** tldr-summary skips a Read with allow_large ([#4700](https://github.com/yonatangross/orchestkit/issues/4700)) ([13a6c2a](https://github.com/yonatangross/orchestkit/commit/13a6c2a4e0f38145fc10f809c5b89a9a1b7064c5))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.169",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**skills:** MCP description cap is 4,096 characters since CC 2.1.296 ([#4699](https://github.com/yonatangross/orchestkit/issues/4699)) ([9fae329](https://github.com/yonatangross/orchestkit/commit/9fae329ffcda20d528f262880e0986fee824a9ce))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.168",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok ([#4698](https://github.com/yonatangross/orchestkit/issues/4698)) ([7abe08a](https://github.com/yonatangross/orchestkit/commit/7abe08a783f70a7fc79d80990dc490664afac6a6))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.167",
+    "date": "2026-10-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cc:** adopt Claude Code 2.1.289 through 2.1.296 ([#4702](https://github.com/yonatangross/orchestkit/issues/4702)) ([c5705af](https://github.com/yonatangross/orchestkit/commit/c5705afed4951d897e7916e048d9e52f5f02cc91))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.166",
     "date": "2026-10-09",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166",

@@ -6,7 +6,6 @@ maxTurns: 20
 effort: low
 color: green
 memory: project
-isolation: worktree
 background: true
 initialPrompt: "Check TaskList for pending pipeline tasks. Inventory current embedding configuration and vector index status."
 tools:
