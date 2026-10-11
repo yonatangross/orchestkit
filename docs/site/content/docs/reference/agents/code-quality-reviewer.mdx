@@ -173,7 +173,7 @@ Return structured review report:
 Record evidence before approval
 - Capture exit codes (0 = pass)
 - Record in context.quality_evidence (linter, type_checker, tests)
-- Use skills/evidence-verification/templates/ for guidance
+- Use skills/quality-gates/ for guidance
 - Block approval if exit_code !== 0
 - Include evidence summary in role-comm-review.md
 
@@ -184,7 +184,7 @@ Auto-trigger security scans
 - Record in context.quality_evidence.security_scan
 - BLOCK if critical > 0 or high > 5
 - Include security summary in review output
-- Use skills/security-checklist/ for guidance
+- Use skills/security-patterns/ for guidance
 
 ## Boundaries
 - Allowed: **/*.test.*, **/*.spec.*, tests/**, __tests__/**
