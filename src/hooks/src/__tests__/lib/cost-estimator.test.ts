@@ -179,6 +179,25 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
   });
 
+  it('prices claude-haiku-5-5 at $0.10/$0.50 per MTok (cache 0.01/0.125)', () => {
+    // platform.claude.com pricing page, read 2026-10-07, prompts up to 100K
+    // tokens; the CC 2.1.293 binary tier `haiku_55` agrees (pricing canary).
+    expect(getCostConfig().models['claude-haiku-5-5']).toEqual({
+      input_per_mtok: 0.1,
+      output_per_mtok: 0.5,
+      cache_read_per_mtok: 0.01,
+      cache_write_per_mtok: 0.125,
+    });
+  });
+
+  it('prices claude-haiku-5-5 on its own row, never through the sonnet fallback', () => {
+    // Without a row the unknown-model fallback bills it at $2/$10, 20x high,
+    // and the family shorthand must stay on the Haiku 4.5 row.
+    expect(getPricing('claude-haiku-5-5').output_per_mtok).toBe(0.5);
+    expect(getPricing('claude-haiku-4-5').input_per_mtok).toBe(1.0);
+    expect(resolveModelKey('haiku')).toBe('claude-haiku-4-5-20251001'); // alias advance is a follow-up
+  });
+
   it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {
     expect(getCostConfig().models['claude-opus-5']).toEqual({
       input_per_mtok: 5.0,
@@ -230,6 +249,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
       'claude-sonnet-5-5': 2.0,
       // Opus 5.5 launched below the $5 Opus line at $4/$20 (CC 2.1.280).
       'claude-opus-5-5': 4.0,
+      // Haiku 5.5 launched at $0.10/$0.50, a tenth of the Haiku 4.5 line (2026-10-07).
+      'claude-haiku-5-5': 0.1,
     };
     for (const id of modelsVocab.fullIds) {
       const family = Object.keys(TIER).find(f => id.includes(f));
