@@ -95,7 +95,8 @@ done
 # (that makes a plain subagent); it works in a manual .worktrees/<role>.
 writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
 caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/references/monitor-patterns.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md" "$REPO_ROOT/src/skills/task-dependency-patterns/SKILL.md")
-scan=$(awk -v re="$writer_re" '
+scan_callers() {
+  awk -v re="$writer_re" '
   # Parentheses on this line outside """...""" (state carried across lines)
   # and outside "..." or single-quoted strings.
   function code_parens(line,    n, i, seg, out, t, o, c) {
@@ -118,7 +119,7 @@ scan=$(awk -v re="$writer_re" '
     depth += code_parens($0)
     if (depth <= 0) {
       open_ = 0
-      if (inc || skip) next
+      if (inc) next
       # The docs key on name=: a named call launches a teammate unless it passes
       # isolation, which makes it a plain subagent (Claude Code docs: sub-agents,
       # agent-teams). So name= plus isolation= is flagged for every agent type,
@@ -126,7 +127,8 @@ scan=$(awk -v re="$writer_re" '
       # in chain-patterns Pattern 6 or the design-import loop.
       plain_ok = (buf !~ /team_name=/ && FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
       if (buf ~ /name=/ && buf ~ /isolation=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
-      if (buf !~ re) next
+      # The Phase 4 skip covers the writer checks below, never TEAMISO above.
+      if (skip || buf !~ re) next
       # fix-issue: only test-generator writes; the backend and frontend experts design.
       if (FILENAME ~ /fix-issue\// && buf !~ /ork:test-generator/) next
       print "SEEN"
@@ -138,7 +140,24 @@ scan=$(awk -v re="$writer_re" '
       if ((buf ~ /isolation="worktree"/ || manual) && FILENAME ~ /(agent-phases|agent-teams-phases|manual-worktree-pattern|design-import\/SKILL|fix-phases|agent-teams-rca|task-dependency-patterns\/SKILL)[.]md$/ && told !~ /(^|[^A-Za-z])[Cc]ommit (your|the|it|them|any|[+])/) print "NOCOMMIT " FILENAME ":" start
     }
   }
-' $caller_files)
+' "$@"
+}
+# shellcheck disable=SC2086  # caller_files is a newline list of paths without spaces
+scan=$(scan_callers $caller_files)
+
+# Self-check (CodeRabbit 4239736563): the Phase 4 skip in agent-phases.md is for
+# the writer checks only. A Phase 4 teammate that passes isolation on the call
+# must still be flagged, or the skip hides a teammate turned plain subagent.
+fx_dir="$tmp_dir/fx/implement/references"
+mkdir -p "$fx_dir"
+printf '%s\n' '## Phase 4: Architecture Design' \
+  'Agent(subagent_type="ork:workflow-architect", name="planner", team_name="t", isolation="worktree", prompt="p")' \
+  '## Phase 5: Implementation' > "$fx_dir/agent-phases.md"
+fx_scan=$(scan_callers "$fx_dir/agent-phases.md")
+case "$fx_scan" in
+  *"TEAMISO "*) ;;
+  *) fail "self-check: a Phase 4 teammate with isolation on the call is not flagged (the skip must not cover TEAMISO)" ;;
+esac
 writers_seen=$(printf '%s\n' "$scan" | awk '$0 == "SEEN" { n++ } END { print n + 0 }')
 [[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in the caller templates; the caller check cannot pass vacuously"
 for loc in $(printf '%s\n' "$scan" | grep '^NOCOMMIT ' | cut -d' ' -f2 || true); do
