@@ -69,4 +69,14 @@ esac
 (( RC != 0 )) || fail "additional security exited 0 on a starved run"
 ok "session_id probe: starved run is a HARNESS ERROR and fails the suite"
 
+# 4. Same starved run, the traversal escape assert: a starved hook must read
+# as a HARNESS ERROR there too, never as "did not escape the temp root"
+# (HOLD 6108285674 must 1: with "$ESCAPE_ERR" removed from the call at
+# test-additional-security.sh:329 the pass line appears and this arm fails).
+if grep -aq 'traversal session_id did not escape the temp root' "$OUT"; then
+  fail "traversal session_id graded a starved run as a pass"
+fi
+grep -aq 'traversal session_id: HARNESS ERROR' "$OUT" || { tail -15 "$OUT"; fail "traversal session_id printed no HARNESS ERROR on a starved run"; }
+ok "traversal session_id: starved run reports HARNESS ERROR, never a pass"
+
 echo "$PASS passed, 0 failed"
