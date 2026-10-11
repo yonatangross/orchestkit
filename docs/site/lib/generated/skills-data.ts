@@ -1188,7 +1188,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "bed86bbf8cc89658314cc7d6529566f944fecf3ab9810910c797cbe7a3c88f5c",
+    "sha256": "d078d8a2e756cec41a2d1ed8502184c44076648117d4b41b121cb8b2bb08e6fe",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -3019,7 +3019,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
     "version": "2.0.0",
-    "sha256": "0cd145f6b3c5f7c0c04702975462fc06c0035b90e2e5e3b2e22987677d2dd2f0",
+    "sha256": "79bd8fe92bc5896ea32e26b427dcd4300221c4874b8239a37f19ad887f669bf8",
     "author": "OrchestKit",
     "tags": [
       "llm",
@@ -4358,7 +4358,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "scope-appropriate-architecture",
     "description": "Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier.",
     "version": "1.0.0",
-    "sha256": "beff8175b8b80b74f9eb9c3f0106a98af96ae6e16279fefb98da141f278bdafc",
+    "sha256": "da2564f9963ca1687c2ca6a8210c9dcf96de11f94bb3864891b49697218c57fc",
     "author": "OrchestKit",
     "tags": [
       "architecture",

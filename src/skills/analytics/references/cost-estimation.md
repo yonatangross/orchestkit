@@ -15,6 +15,7 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 | claude-sonnet-5-5 | $2.00 | $10.00 | $0.10 | $2.50 |
 | claude-sonnet-5 (legacy) | $2.00 | $10.00 | $0.20 | $2.50 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-haiku-5-5 | $0.10 | $0.50 | $0.01 | $0.125 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
 | gemini-3.8-flash | $0.75 | $3.75 | $0.075 | $0.75 |
 
