@@ -89,6 +89,77 @@ export const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp 
   { agent: 'ork:backend-system-architect', pattern: /\b((rest|graphql) api|api endpoints?|microservice|fastapi|backend (service|architecture))/i },
 ];
 
+/**
+ * Specialists whose frontmatter grants no Write or Edit (disallowedTools:
+ * [Write, Edit, MultiEdit]). They can plan and review but cannot build, so a
+ * build-shaped task must not be pushed toward them (#4649). Exported so tests
+ * cross-check every entry against src/agents/ frontmatter.
+ */
+export const READ_ONLY_SPECIALISTS: ReadonlySet<string> = new Set([
+  'ork:security-auditor',
+  'ork:debug-investigator',
+  'ork:code-quality-reviewer',
+]);
+
+/**
+ * Build intent: the task tells the agent to change code or ship it. A build
+ * verb counts only in VERB POSITION: at the start of a clause, after a
+ * joining word (and, then, but, please, ...), or after a modal (must, should,
+ * need to, ...). In object position it is a noun under review: "review of
+ * commit abc123", "review of our fix", "review the bug fix", "the auth
+ * implementation". Verbs: implement, commit, push, fix, patch, replace,
+ * refactor, rewrite, apply a fix or patch, add or write tests or code, edit
+ * code or files, open a PR. Suffixes are bounded so `implementation`,
+ * `fixture`, `pushover` and `replacement` do not match. One -ly adverb may sit
+ * between ("please carefully fix"). apply, add and write need their object
+ * noun (a fix or patch; tests or code) later in the SAME clause, with no word
+ * count: "write a new SQL injection regression unit test". The clause ends at
+ * . ; : ! ? , or a newline, so a noun in the next clause does not count.
+ *
+ * ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): when unsure,
+ * read build intent. A miss asks the human to redirect a code change to a
+ * read-only agent; a false positive only swaps that ask for a note. So the
+ * joining words include to, you, let's, go, me and just ("your task is to
+ * fix", "can you fix", "let's fix"), and review-only prompts such as "say what
+ * to fix" are KNOWN false positives, pinned in the tests. Verbs outside the
+ * list (update, change, remove, sanitize) are a known miss.
+ * Exported for tests.
+ */
+export const BUILD_INTENT_PATTERN = new RegExp(
+  String.raw`(?:^|[.;:!?,]|\b(?:and|then|or|but|also|please|now|first|next|finally|so|to|you|let's|lets|go|me|just)\b|\b(?:must|should|can|could|will|would|need|needs|want|wants|have|has|going|able|asked|try|sure)(?: to)?\b)\s*(?:\w+ly\s+)?` +
+    String.raw`(?:implement(?:s|ed|ing)?|commit(?:s|ted|ting)?|push(?:es|ed|ing)?|fix(?:es|ed|ing)?|patch(?:es|ed|ing)?|replac(?:e|es|ed|ing)|refactor(?:s|ed|ing)?|rewrit(?:e|es|ing|ten)|apply(?:ing)?\b[^.;:!?,\n]*?\b(?:fix|patch|change|diff|suggestion)\w*|(?:add|write)(?:ing)?\b[^.;:!?,\n]*?\b(?:tests?|code|checks?|validation|guards?|fix|patch)|edit(?:ing)? (?:the )?(?:code|files?)|(?:open|create|raise)(?:ing)? (?:a |the )?(?:pr|pull request))\b`,
+  'im',
+);
+
+/**
+ * Reminders that read like a negation but ask for the work: "do not forget
+ * to fix", "never skip implementing", "without delay fix". They become a
+ * clause break, so the verb after them is in verb position. Exported for tests.
+ */
+export const AFFIRMATIVE_REMINDER_PATTERN =
+  /\b(?:(?:do not|don't|dont|never) (?:forget|fail|neglect|hesitate) to|never (?:skip|omit)|without (?:further )?(?:delay|waiting))\b/gi;
+
+/**
+ * A real prohibition ("do not commit or push", "never edit the code",
+ * "without changing the API") runs from the negation to the next clause break
+ * (a colon included, as in BUILD_INTENT_PATTERN) or to and, but, then, instead
+ * or however. A comma followed by or/nor does not
+ * end it ("do not fix the bug, or push changes" forbids both). It is removed
+ * before the build-intent test, so a review that forbids writes stays
+ * review-only, and "do not push but write tests" keeps its write. Exported
+ * for tests.
+ */
+export const NEGATED_CLAUSE_PATTERN =
+  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|without|no need to)\b.*?(?=[.;:!?\n]|,(?!\s*(?:or|nor)\b)|\b(?:and|but|then|instead|however)\b|$)/gi;
+
+/** True when the task text asks to build (change code or ship it). */
+export function hasBuildIntent(description: string, prompt: string): boolean {
+  const text = `${description.slice(0, NUDGE_SCAN_MAX_CHARS)}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`
+    .replace(AFFIRMATIVE_REMINDER_PATTERN, '.')
+    .replace(NEGATED_CLAUSE_PATTERN, ' ');
+  return BUILD_INTENT_PATTERN.test(text);
+}
+
 /** Bound the prompt scan so regex work stays inside the PreToolUse budget. */
 const NUDGE_SCAN_MAX_CHARS = 2000;
 
@@ -158,6 +229,15 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
     const prompt = (toolInput.prompt as string) || '';
     const specialist = matchSpecialistDomain(description, prompt);
     if (specialist) {
+      // A read-only specialist cannot write, commit or open a PR. When the task
+      // asks to build, say so instead of asking to redirect (#4649).
+      if (READ_ONLY_SPECIALISTS.has(specialist) && hasBuildIntent(description, prompt)) {
+        ctx.log(HOOK_NAME, `build task matches read-only ${specialist}; advising, not asking`);
+        return outputAllowWithContext(
+          `plan/review: prefer \`${specialist}\` (it has no Write or Edit tools); ` +
+            `build: keep \`general-purpose\` for the write, commit and PR steps.`,
+        );
+      }
       ctx.log(HOOK_NAME, `general-purpose task matches ${specialist} domain — asking to redirect`);
       // ENFORCE (not just whisper): the advisory note was provably ignored
       // (telemetry: 14% specialist vs 74% generic). `ask` turns it into an

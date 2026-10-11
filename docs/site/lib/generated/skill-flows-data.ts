@@ -2402,7 +2402,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Scaffold",
-            "does": "For each component with decision scaffold or adapt, invoke design-to-code:",
+            "does": "For each component with decision scaffold or adapt, invoke design-to-code.",
             "out": null,
             "tag": null
           },

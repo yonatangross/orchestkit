@@ -44,9 +44,11 @@ import {
   clientTokensFromNames,
   egressScan,
   formatRouteLogLine,
+  joinReplayRecords,
   parseRouteAnswer,
   postRouteRequestSync,
   redactPrompt,
+  redactionProfile,
   resolveRouteConfig,
   resolveRouteMode,
   routeDataDir,
@@ -619,6 +621,7 @@ describe('log line', () => {
   it('has the agreed shape', () => {
     const v: RouteVerdict = {
       decided_by: 'jev',
+      redaction_profile: null,
       intent: 'dev_fix',
       conf: 0.83,
       top3: [
@@ -722,5 +725,58 @@ describe('reply audit: synchronous fail-open and paired evidence', () => {
 
   it.each(['2', '-1', 'Infinity', 'NaN'])('rejects an invalid floor %s', (floor) => {
     expect(resolveRouteConfig({ ORK_ROUTE_JEV_FLOOR: floor }).floor).toBe(0.5);
+  });
+});
+
+describe('replay join and redaction profile (#4239)', () => {
+  const CLIENT_PROMPT = 'fix the acme-corp invoice export';
+  const PLAIN_PROMPT = 'fix the flaky retry';
+
+  async function recordLive(prompt: string, promptId: string, clientNames: string[]): Promise<void> {
+    await routeJudgment({
+      prompt, promptId, sessionId: SESSION, projectDir, env: envFor('shadow'), clientNames,
+      fetchImpl: mockFetch(200, answerBody('dev_fix')),
+    });
+  }
+
+  function recordsOnDisk(): Array<Record<string, unknown>> {
+    const file = join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS);
+    return readFileSync(file, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
+  }
+
+  it('writes the profile on each record: a sha of the sorted client tokens, none when empty', async () => {
+    await recordLive(CLIENT_PROMPT, 'p-client', ['acme-corp']);
+    const [rec] = recordsOnDisk();
+    const expected = sha256([...clientTokensFromNames(['acme-corp'])].sort().join('\n'));
+    expect(rec.redaction_profile).toBe(expected);
+    expect(redactionProfile(clientTokensFromNames(['acme-corp']))).toBe(expected);
+    expect(redactionProfile([])).toBe('none');
+  });
+
+  it('joins a record that carried a client token when replayed with the same clients', async () => {
+    await recordLive(CLIENT_PROMPT, 'p-client', ['acme-corp']);
+    await recordLive(PLAIN_PROMPT, 'p-plain', ['acme-corp']);
+    const cases = [{ id: 'c1', text: CLIENT_PROMPT }, { id: 'c2', text: PLAIN_PROMPT }];
+    const maxPromptChars = resolveRouteConfig({}).maxPromptChars;
+    const joined = joinReplayRecords(recordsOnDisk(), cases, { clientNames: ['acme-corp'], maxPromptChars });
+    expect(joined.error).toBeNull();
+    expect([...joined.verdicts.keys()].sort()).toEqual(['c1', 'c2']);
+  });
+
+  it('refuses a replay whose clients do not match the recorded profile', async () => {
+    await recordLive(CLIENT_PROMPT, 'p-client', ['acme-corp']);
+    const maxPromptChars = resolveRouteConfig({}).maxPromptChars;
+    const joined = joinReplayRecords(recordsOnDisk(), [{ id: 'c1', text: CLIENT_PROMPT }], { clientNames: [], maxPromptChars });
+    expect(joined.error).toMatch(/profile/);
+    expect(joined.verdicts.size).toBe(0);
+  });
+
+  it('refuses records that mix redaction profiles', async () => {
+    await recordLive(CLIENT_PROMPT, 'p-client', ['acme-corp']);
+    await recordLive(PLAIN_PROMPT, 'p-plain', []);
+    const maxPromptChars = resolveRouteConfig({}).maxPromptChars;
+    const joined = joinReplayRecords(recordsOnDisk(), [{ id: 'c1', text: CLIENT_PROMPT }], { clientNames: ['acme-corp'], maxPromptChars });
+    expect(joined.error).toMatch(/mix/);
+    expect(joined.verdicts.size).toBe(0);
   });
 });

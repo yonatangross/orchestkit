@@ -199,7 +199,7 @@ See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn promp
 
 **128K consolidation:** Backend is 1 agent (was 2), frontend is 1 agent (was 3 incl. styling). Each produces complete working code in a single pass.
 
-All 5 agents launch in ONE message with `run_in_background=true`.
+All 5 agents launch in ONE message with `run_in_background=true`. Every agent that writes code also gets `isolation="worktree"`: ork agents carry no frontmatter isolation (#4557), so without it the parallel writers share your tree. Merge each worktree back as SKILL.md "Worktree-Isolated Implementation" describes.
 
 ### Agent 1: Backend, Complete Implementation
 ```python
@@ -234,11 +234,13 @@ Agent(
 
   Write REAL code to disk using Write/Edit tools.
   Every file must be complete and runnable.
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 backend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -278,12 +280,14 @@ Agent(
      - Zod schema tests
 
   Write REAL code to disk. Every file must be complete.
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
   Include styling inline — no separate styling agent needed.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 frontend spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -306,10 +310,12 @@ Agent(
   8. Tests with VCR.py cassettes
 
   Write REAL code to disk. Skip if AI spec says "No AI needed".
+  Commit your changes in your worktree before you return, and end your reply
+  with your branch name and commit sha. Uncommitted files are not merged.
 
   Feature: $ARGUMENTS
   Architecture: [paste Phase 4 AI spec]""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -352,23 +358,47 @@ Agent(
      - Factory classes for test data
      - MSW handlers for frontend API mocking
 
-  5. COVERAGE ANALYSIS
-     - Run: poetry run pytest --cov=app --cov-report=term-missing
-     - Run: npm test -- --coverage
-     - Target: 80% minimum
+  5. COVERAGE TARGET
+     - Target: 80% minimum. The coordinator measures it after the merge.
 
-  Write REAL test files to disk.
-  Run tests after writing to verify they pass.
+  Write the tests to disk, commit them in your worktree before you return,
+  and end your reply with your branch name and commit sha. Failures from
+  missing implementation are expected: your worktree holds the base tree, not
+  the backend and frontend code, which merge after you return. Report them,
+  never stub production code to make them pass.
   Do NOT split across responses — use full 128K output.
 
   Feature: $ARGUMENTS""",
-  run_in_background=true
+  run_in_background=true, isolation="worktree"
 )
 ```
 
+### After Phase 5: merge, then run the tests
+
+Each writer worked in its own worktree, so no agent saw the others' code. When
+all 4 return, the coordinator handles each returned worktree in turn:
+
+1. Check that it is clean: `git -C <worktree> status --porcelain` prints
+   nothing. If it prints files, the agent did not commit them, and a merge of
+   its branch would leave them out. Commit them there
+   (`git -C <worktree> add -A && git -C <worktree> commit -m "<agent>: uncommitted output"`)
+   and note it in the report.
+2. Merge its branch into the feature branch (SKILL.md "Worktree-Isolated
+   Implementation").
+
+Only when all 4 branches are merged does the coordinator run the suite on the
+merged tree:
+
+```bash
+poetry run pytest --cov=app --cov-report=term-missing
+npm test -- --coverage
+```
+
+A failure here goes back to the owning agent, or to Phase 6.
+
 ### Phase 5: Teams Mode
 
-In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Each writer teammate MUST get its own manual worktree, `.worktrees/<role>` on `feat/{feature}-<role>`, created by the lead before the spawn ([Team Worktree Setup](team-worktree-setup.md), #4557). Never pass `isolation` on a teammate call: with `name` it launches a plain subagent, not a teammate.
 
 ---
 
@@ -423,8 +453,10 @@ Agent(
   4. Verify API endpoints respond correctly
   5. Fix any integration issues found
 
-  This is verification, not new implementation.""",
-  run_in_background=true
+  This is verification, not new implementation. Commit any fix in your
+  worktree before you return, and end your reply with your branch name and
+  commit sha.""",
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -441,8 +473,10 @@ Agent(
   4. Run test suite with coverage
   5. Fix any integration issues found
 
-  This is verification, not new implementation.""",
-  run_in_background=true
+  This is verification, not new implementation. Commit any fix in your
+  worktree before you return, and end your reply with your branch name and
+  commit sha.""",
+  run_in_background=true, isolation="worktree"
 )
 ```
 
@@ -482,6 +516,12 @@ Agent(
   run_in_background=true
 )
 ```
+
+### After Phase 6: merge the fixer worktrees
+
+The backend and frontend integration agents ran in their own worktrees. Check
+each one is clean and merge its branch, as after Phase 5, then run the
+validation commands once more on the merged tree.
 
 ### Security Checks
 - No hardcoded secrets
@@ -592,6 +632,8 @@ Example: `implement-user-auth`, `implement-dashboard-analytics`
 
 ### Teammate Spawn Prompts
 
+Each writer teammate (backend-architect, frontend-dev, test-engineer) works in its own manual worktree, `.worktrees/<role>` on `feat/{feature}-<role>`, which the lead creates before spawning (see "Per-Teammate Worktree Setup" below; #4557). Do not pass `isolation` on a teammate call: a call with `name` and `isolation` launches a plain subagent, not a teammate (Claude Code docs: sub-agents, agent-teams). Add the "Your Working Directory" block from [Team Worktree Setup](team-worktree-setup.md) to each writer prompt. The code-reviewer only reads and needs none.
+
 #### 1. backend-architect (backend-system-architect)
 ```
 You are the backend-architect specialist on this team.
@@ -616,6 +658,8 @@ Implement the backend for: {feature description}
 - When database schema is ready, update the shared task list.
 - If you change the API contract after sharing it, message frontend-dev immediately.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - All code must pass ruff + type checking
@@ -649,6 +693,8 @@ Implement the frontend for: {feature description}
   so they can write integration tests.
 - If the API contract changes, adapt and message test-engineer about the update.
 - If blocked, message the lead with what you need.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - TypeScript strict mode, no `any` types
@@ -681,6 +727,8 @@ Build the test suite for: {feature description}
   - API issues → message backend-architect
   - UI issues → message frontend-dev
 - Update the shared task list with coverage metrics as tests pass.
+- Commit your work in your worktree and message the lead your branch name and
+  commit sha. Uncommitted files are not merged.
 
 ## Quality Requirements
 - 80% minimum coverage target
@@ -806,13 +854,13 @@ See [Team Worktree Setup](team-worktree-setup.md) for detailed instructions.
 # Worktrees live INSIDE the repo at .worktrees/<task>. A sibling path is outside the
 # session's project directory, so the teammate's cd is silently bounced back to the
 # primary tree and it commits there instead (platform#9870, #3319).
-git branch feat/{feature}/backend
-git branch feat/{feature}/frontend
-git branch feat/{feature}/tests
+git branch feat/{feature}-backend
+git branch feat/{feature}-frontend
+git branch feat/{feature}-tests
 
-git worktree add .worktrees/backend  feat/{feature}/backend
-git worktree add .worktrees/frontend feat/{feature}/frontend
-git worktree add .worktrees/tests    feat/{feature}/tests
+git worktree add .worktrees/backend  feat/{feature}-backend
+git worktree add .worktrees/frontend feat/{feature}-frontend
+git worktree add .worktrees/tests    feat/{feature}-tests
 
 # Assignment — each teammate runs pwd first to confirm the cd took
 backend-architect  → .worktrees/backend/
@@ -821,7 +869,7 @@ test-engineer      → .worktrees/tests/
 code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
-**When to skip worktrees:** Small features (&lt; 5 files), or when teammates work on non-overlapping directories.
+**Do not skip worktrees:** every writer teammate needs its own, in the manual layout above (#4557); teammates cannot take `isolation` on the call. Non-overlapping directories do not make a shared tree safe: builds, lockfiles and git state are still shared.
 
 ---
 
@@ -829,14 +877,16 @@ code-reviewer      → Primary tree (read-only, reviews all)
 
 After all teammates complete (or when all tasks are done):
 
-1. **Merge worktrees** (if used):
+1. **Merge worktrees.** Check each writer worktree is clean first
+   (`git -C .worktrees/<role> status --porcelain` prints nothing; if not,
+   commit what is there). Merge each teammate's `feat/{feature}-<role>` branch.
    ```bash
    git checkout feat/{feature}
-   git merge --squash feat/{feature}/backend
+   git merge --squash feat/{feature}-backend
    git commit -m "feat({feature}): backend implementation"
-   git merge --squash feat/{feature}/frontend
+   git merge --squash feat/{feature}-frontend
    git commit -m "feat({feature}): frontend implementation"
-   git merge --squash feat/{feature}/tests
+   git merge --squash feat/{feature}-tests
    git commit -m "test({feature}): complete test suite"
    ```
 
@@ -908,17 +958,30 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 # CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
+# Teammates take NO isolation on the call: a call with `name` and `isolation`
+# launches a plain subagent, not a teammate (Claude Code docs: sub-agents,
+# agent-teams). Writers work in manual worktrees the lead creates first.
+Bash("git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}")
+Bash("git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}")
+Bash("git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}")
+
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
-     prompt="Design backend architecture. Message frontend-dev when API contract ready.")
+     prompt="Design backend architecture. Message frontend-dev when API contract ready. "
+            "Work only in .worktrees/backend/: cd there and check that pwd and git branch --show-current show it and feat/{feature}-backend before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-dev",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
-     prompt="Design frontend architecture. Wait for API contract from backend-architect.")
+     prompt="Design frontend architecture. Wait for API contract from backend-architect. "
+            "Work only in .worktrees/frontend/: cd there and check that pwd and git branch --show-current show it and feat/{feature}-frontend before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:test-generator", name="test-engineer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
-     prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
+     prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize. "
+            "Work only in .worktrees/tests/: cd there and check that pwd and git branch --show-current show it and feat/{feature}-tests before any write. "
+            "Commit your work there and message the lead your branch name and commit sha.")
 
 Agent(subagent_type="ork:code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
@@ -940,21 +1003,22 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 - **test-engineer** writes tests incrementally as contracts stabilize. Reports failing tests directly to the responsible teammate.
 - **code-reviewer** reviews code as it lands. Flags issues to the author directly.
 
-Optionally set up per-teammate worktrees to prevent file conflicts:
+Every writer teammate (backend, frontend, test) works in the manual worktree the lead created before the Phase 4 spawns: ork agents carry no frontmatter isolation (#4557), and a teammate cannot take `isolation` on its call (a call with `name` and `isolation` launches a plain subagent, not a teammate). The layout, for reference:
 
 ```python
-# Lead sets up worktrees (for features with > 5 files).
+# The lead ran these BEFORE the Phase 4 spawns (above). Do not run them again:
+# git refuses a second branch or worktree with the same name.
 # INSIDE the repo at .worktrees/<task> — a sibling ../{project}-backend is outside
 # the session's project directory, so the teammate's cd is silently bounced back to
 # the primary tree and it commits there instead (platform#9870, #3319).
-Bash("git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main")
-Bash("git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main")
-Bash("git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main")
+#   git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}
+#   git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}
+#   git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}
 
 # Include worktree path in teammate messages
 SendMessage(to="backend-architect",
     message="Work in .worktrees/backend/. Run pwd to confirm before editing. "
-            "Commit to feat/{feature}/backend.")
+            "Commit to feat/{feature}-backend.")
 ```
 
 See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.
@@ -971,8 +1035,20 @@ In Agent Teams mode, the code-reviewer teammate has already been reviewing code 
 - **Lead** runs integration tests across the merged codebase (or merged worktrees).
 - No need for separate security-auditor spawn, code-reviewer covers security checks. For high-risk features, spawn a `security-auditor` teammate in Phase 4.
 
+First merge every writer worktree into `feat/{feature}`, so the checks run on
+the teammates' commits. For each `.worktrees/<role>`, check it is clean
+(`git -C .worktrees/<role> status --porcelain` prints nothing; if not, commit
+what is there), then merge its branch:
+
+```bash
+git checkout feat/{feature}
+git merge --squash feat/{feature}-backend  && git commit -m "feat({feature}): backend"
+git merge --squash feat/{feature}-frontend && git commit -m "feat({feature}): frontend"
+git merge --squash feat/{feature}-tests    && git commit -m "test({feature}): test suite"
+```
+
 ```python
-# Lead runs integration after merging worktrees
+# Lead runs integration on the merged feat/{feature}
 Bash("npm test && npm run typecheck && npm run lint")
 
 # Collect code-reviewer verdict
@@ -988,14 +1064,10 @@ SendMessage(to="code-reviewer",
 
 After Phase 6 completes in Agent Teams mode, tear down the team:
 
-### 1. Merge Worktrees (if used)
+### 1. Merge Worktrees
 
-```bash
-git checkout feat/{feature}
-git merge --squash feat/{feature}/backend && git commit -m "feat({feature}): backend"
-git merge --squash feat/{feature}/frontend && git commit -m "feat({feature}): frontend"
-git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test suite"
-```
+Done at the start of Phase 6, before the integration checks. Nothing to merge
+here.
 
 ### 2. Shut Down Teammates
 
@@ -1844,27 +1916,19 @@ Per-teammate git worktree management for Agent Teams. Extends the general [Workt
 ## Branch Naming Convention
 
 ```
-feat/{feature}/{role}
+feat/{feature}-{role}
 ```
 
 Examples:
-- `feat/user-auth/backend`
-- `feat/user-auth/frontend`
-- `feat/user-auth/tests`
-- `feat/dashboard/backend`
-- `feat/dashboard/frontend`
+- `feat/user-auth-backend`
+- `feat/user-auth-frontend`
+- `feat/user-auth-tests`
+- `feat/dashboard-backend`
+- `feat/dashboard-frontend`
 
-All branches are created from the feature branch (not main):
-
-```bash
-# Start from the feature branch
-git checkout feat/{feature}
-
-# Create role branches
-git branch feat/{feature}/backend
-git branch feat/{feature}/frontend
-git branch feat/{feature}/tests
-```
+Role branches sit BESIDE the feature branch (`feat/{feature}-backend`), never
+under it: git cannot hold `feat/{feature}` and `feat/{feature}/backend` at the
+same time. Each role branch is created once, by `git worktree add -b` below.
 
 ---
 
@@ -1878,9 +1942,9 @@ and the teammate ends up operating on the PRIMARY tree, platform#9870 (#3319).
 
 ```bash
 # Create worktrees — one per implementing teammate
-git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main
-git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main
-git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main
+git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}
+git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}
+git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}
 
 # Verify — both the registration AND that each branch is the one you asked for
 git worktree list
@@ -1907,18 +1971,20 @@ Include the worktree path in each teammate's spawn prompt:
 
 | Teammate | Worktree | Working Directory |
 |----------|----------|-------------------|
-| backend-architect | `../{project}-backend/` | Full project access, writes to backend dirs |
-| frontend-dev | `../{project}-frontend/` | Full project access, writes to frontend dirs |
-| test-engineer | `../{project}-tests/` | Full project access, writes to test dirs |
+| backend-architect | `{project}/.worktrees/backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `{project}/.worktrees/frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `{project}/.worktrees/tests/` | Full project access, writes to test dirs |
 | code-reviewer | Main worktree | Read-only, reviews across all worktrees |
 
 **Spawn prompt addition:**
 
 ```
 ## Your Working Directory
-Work EXCLUSIVELY in: /path/to/{project}-backend/
+Work EXCLUSIVELY in: /path/to/{project}/.worktrees/backend/
+Before any write, run `pwd` and `git branch --show-current`. If they are not
+that path and feat/{feature}-backend, stop and message the lead.
 Do NOT modify files in other worktrees.
-Commit your changes to the feat/{feature}/backend branch.
+Commit your changes to the feat/{feature}-backend branch.
 ```
 
 ---
@@ -1934,13 +2000,13 @@ After all teammates complete, the lead merges each role branch:
 git checkout feat/{feature}
 
 # Merge each role as a single commit
-git merge --squash feat/{feature}/backend
+git merge --squash feat/{feature}-backend
 git commit -m "feat({feature}): backend implementation"
 
-git merge --squash feat/{feature}/frontend
+git merge --squash feat/{feature}-frontend
 git commit -m "feat({feature}): frontend implementation"
 
-git merge --squash feat/{feature}/tests
+git merge --squash feat/{feature}-tests
 git commit -m "test({feature}): complete test suite"
 ```
 
@@ -1969,13 +2035,13 @@ git worktree remove ../{project}-frontend
 git worktree remove ../{project}-tests
 
 # Delete role branches
-git branch -d feat/{feature}/backend
-git branch -d feat/{feature}/frontend
-git branch -d feat/{feature}/tests
+git branch -d feat/{feature}-backend
+git branch -d feat/{feature}-frontend
+git branch -d feat/{feature}-tests
 
 # Verify cleanup
 git worktree list
-git branch --list "feat/{feature}/*"
+git branch --list "feat/{feature}-*"
 ```
 
 ---
@@ -1987,12 +2053,10 @@ Not every Agent Teams session needs worktrees. Skip when:
 | Condition | Skip Worktrees? | Reason |
 |-----------|-----------------|--------|
 | Read-only roles only (audit, review) | Yes | No file writes = no conflicts |
-| Small feature (&lt; 5 files) | Yes | File overlap unlikely |
-| Teammates work in non-overlapping directories | Yes | Natural isolation |
 | Single-stack scope (backend-only or frontend-only) | Yes | One writer, others are reviewers |
 | Research/debugging task | Yes | Exploration, not implementation |
 
-When skipping worktrees, teammates work in the same directory. The lead should assign **clear file ownership** in spawn prompts to prevent conflicts:
+Two or more teammates that write at the same time ALWAYS need worktrees (#4557): ork agents carry no frontmatter isolation, and a small feature or separate directories still share the lockfile, the build output and the git index. Skip only for the rows above (no writer, or a single writer). Then the other teammates read, and the lead still assigns **clear file ownership** in spawn prompts:
 
 ```
 ## File Ownership

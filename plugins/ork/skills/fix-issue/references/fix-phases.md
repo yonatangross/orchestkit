@@ -143,16 +143,28 @@ Agent(
   2. Identify edge cases that must be covered
   3. Match test types to the fix using the Test Requirements Matrix
 
+  Commit the test in your worktree before you return, and end your reply with
+  your branch name and commit sha. Uncommitted files are not merged.
+
   SUMMARY: End with: "RESULT: [N] tests needed — regression test targets [file:function]"
 
   Issue: #$ARGUMENTS
   """,
   run_in_background=True,
+  isolation="worktree",
   max_turns=25
 )
 ```
 
 Each agent outputs structured findings and a SUMMARY line.
+
+The test-generator writes a file while 4 other agents run, so it works in its
+own worktree (`isolation="worktree"`, #4557). When it returns, check its
+worktree is clean (`git -C <worktree> status --porcelain` prints nothing; if
+not, commit what is there) and keep its branch name as `REGRESSION_TEST_BRANCH`
+(empty when no test was written). Phase 6 creates the fix
+branch fresh from base, so it merges this branch as its FIRST step; that puts
+the failing regression test in the tree the fix is verified against.
 
 ### Agent Teams Alternative
 
@@ -198,6 +210,11 @@ BASE_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d: -f2 | tr -d 
 # Create feature branch (MANDATORY)
 git checkout $BASE_BRANCH && git pull origin $BASE_BRANCH
 git checkout -b issue/$ARGUMENTS-fix
+
+# FIRST: bring in the Phase 4 regression test, only if Phase 4 returned a
+# branch (step 1 below covers the no-test case)
+if [ -n "$REGRESSION_TEST_BRANCH" ]; then git merge --no-edit "$REGRESSION_TEST_BRANCH"
+else echo "no Phase 4 test branch: write the regression test in step 1"; fi
 ```
 
 ### CRITICAL: Regression Test Required
@@ -205,7 +222,8 @@ git checkout -b issue/$ARGUMENTS-fix
 **A fix without a test is incomplete.** Add test BEFORE implementing fix:
 
 ```bash
-# 1. Write test that reproduces the bug (should FAIL)
+# 1. Run the merged Phase 4 regression test (should FAIL); write one here
+#    only if Phase 4 produced none
 # 2. Implement the fix
 # 3. Verify test now PASSES
 ```

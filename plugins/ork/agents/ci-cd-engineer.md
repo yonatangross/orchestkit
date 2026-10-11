@@ -10,7 +10,6 @@ experimental:
   cacheTtl: 1h
 maxTurns: 30
 effort: medium
-isolation: worktree
 color: orange
 memory: project
 tools:

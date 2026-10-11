@@ -6,7 +6,6 @@ maxTurns: 25
 effort: high
 color: magenta
 memory: project
-isolation: worktree
 tools:
   - Read
   - Write
