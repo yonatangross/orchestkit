@@ -268,18 +268,20 @@ scan_cc_pins() {
             # A variable pin: the LAST non-comment assignment of that variable
             # inside the pin's own step must be the jq read of supported_floor.
             # The step start is the most recent `- name:` or `- uses:` line.
+            # Only a command-start assignment counts: `echo CC_FLOOR=$(jq ...)`
+            # prints the value, it does not feed the pin (CodeRabbit 4241672749).
             pin_var="${BASH_REMATCH[1]}"
             pin_no="${pin_line%%:*}"
             feed=$(awk -v n="$pin_no" -v v="$pin_var" '
                 NR < n && /^[[:space:]]*-[[:space:]]+(name|uses):/ {step = NR; last = ""}
-                NR < n && NR > step && $0 !~ /^[[:space:]]*#/ && $0 ~ ("(^|[[:space:]])" v "=") {last = $0}
+                NR < n && NR > step && $0 !~ /^[[:space:]]*#/ && $0 ~ ("^[[:space:]]*" v "=") {last = $0}
                 END {print last}' "$yml")
             # `#` starts a comment; whatever follows it is prose, not the
             # assignment. Judging only the code before it, a literal pin whose
             # jq text sits in a trailing comment can no longer satisfy the
             # anchored match.
             feed_code="${feed%%#*}"
-            if ! [[ "$feed_code" =~ (^|[[:space:]])$pin_var=\$\(jq\ -e?r\ \'\.supported_floor\'\ shared/cc-support\.json\)[[:space:]]*$ ]]; then
+            if ! [[ "$feed_code" =~ ^[[:space:]]*$pin_var=\$\(jq\ -e?r\ \'\.supported_floor\'\ shared/cc-support\.json\)[[:space:]]*$ ]]; then
                 echo "line $pin_no installs \$$pin_var, but its last in-step assignment is '${feed_code#"${feed_code%%[![:space:]]*}"}', want $pin_var=\$(jq -er '.supported_floor' shared/cc-support.json) inside the pin's own step"
                 bad=$((bad + 1))
             fi
@@ -314,12 +316,14 @@ else
     fi
 fi
 
-# 6c. The three shapes that brought #4686 back must each FAIL the pin scan.
-#     HOLD 6108025314 measured all three green on the merged tree. The
-#     fixtures under fixtures/cc-version-floor/ carry one shape each; a scan
-#     that passes any of them cannot fail in the way it exists to fail.
+# 6c. The shapes that brought #4686 back must each FAIL the pin scan.
+#     HOLD 6108025314 measured the first three green on the merged tree;
+#     CodeRabbit 4241672749 adds the echo shape: `echo CC_FLOOR=$(jq ...)`
+#     prints the floor instead of assigning it. The fixtures under
+#     fixtures/cc-version-floor/ carry one shape each; a scan that passes
+#     any of them cannot fail in the way it exists to fail.
 FIXTURE_DIR="$SCRIPT_DIR/fixtures/cc-version-floor"
-for shape in trailing-comment or-fallback second-job-missing; do
+for shape in trailing-comment or-fallback second-job-missing echo-assignment; do
     fx="$FIXTURE_DIR/$shape.yml"
     if [[ ! -f "$fx" ]]; then
         log_fail "check 6 fixture ($shape)" "missing fixture file"

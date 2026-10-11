@@ -38,6 +38,12 @@ run_suite() { # run_suite <suite> <starve-key or empty>
     bash "$1" >"$OUT" 2>&1 || RC=$?
 }
 
+run_suite_crash() { # run_suite_crash <suite> <crash-key>
+  RC=0
+  ORK_HOOK_RUNNER="$STUB" ORK_STUB_REAL_RUNNER="$REAL_RUNNER" ORK_STUB_CRASH_KEY="$2" \
+    bash "$1" >"$OUT" 2>&1 || RC=$?
+}
+
 # 1. Secret scanner starved: no "NOT blocked", a HARNESS ERROR, a failed suite.
 run_suite "$SECRET_SUITE" 'pretool/write-edit/content-secret-scanner'
 if grep -q 'NOT blocked' "$OUT"; then
@@ -78,5 +84,32 @@ if grep -aq 'traversal session_id did not escape the temp root' "$OUT"; then
 fi
 grep -aq 'traversal session_id: HARNESS ERROR' "$OUT" || { tail -15 "$OUT"; fail "traversal session_id printed no HARNESS ERROR on a starved run"; }
 ok "traversal session_id: starved run reports HARNESS ERROR, never a pass"
+
+# 5. Runner CRASH (not starve) on the traversal suite: the escape assert must
+# name the exit, never "did not escape the temp root" (CodeRabbit 4241672752:
+# `|| true` let a crashed runner read as a pass).
+run_suite_crash "$ADDITIONAL_SUITE" 'instructions-loaded/instructions-loaded-dispatcher'
+if grep -aq 'traversal session_id did not escape the temp root' "$OUT"; then
+  fail "traversal session_id graded a crashed run as a pass"
+fi
+grep -aq 'traversal session_id: hook runner exited' "$OUT" || { tail -15 "$OUT"; fail "traversal session_id printed no runner-exit failure on a crashed run"; }
+(( RC != 0 )) || fail "additional security exited 0 on a crashed run"
+ok "traversal session_id: crashed runner reports its exit and fails the suite"
+
+# 6. Runner CRASH on the secret scanner: a nonzero exit is a HARNESS ERROR,
+# never an "allowed" or "NOT blocked" verdict (CodeRabbit 4241672755: empty
+# stdout used to read as a result).
+run_suite_crash "$SECRET_SUITE" 'pretool/write-edit/content-secret-scanner'
+if grep -aq 'NOT blocked' "$OUT"; then
+  grep -aE 'NOT blocked' "$OUT" | head -3
+  fail "secret scanning graded a crashed run as 'NOT blocked'"
+fi
+if grep -aq ' allowed' "$OUT"; then
+  grep -aE ' allowed' "$OUT" | head -3
+  fail "secret scanning graded a crashed run as 'allowed'"
+fi
+grep -aq 'HARNESS ERROR' "$OUT" || { tail -15 "$OUT"; fail "secret scanning did not report a HARNESS ERROR for a crashed run"; }
+(( RC != 0 )) || fail "secret scanning exited 0 on a crashed run"
+ok "secret scanning: crashed runner is a HARNESS ERROR and fails the suite"
 
 echo "$PASS passed, 0 failed"

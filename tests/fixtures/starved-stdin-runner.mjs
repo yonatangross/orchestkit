@@ -3,8 +3,11 @@
 //
 // For the hook key named in ORK_STUB_STARVE_KEY it behaves like the runner's
 // 100 ms stdin watchdog (#3415): it never reads stdin, warns on stderr that the
-// hook measured nothing, and answers with an abstain payload. Every other key
-// is handed to the real runner (ORK_STUB_REAL_RUNNER) unchanged.
+// hook measured nothing, and answers with an abstain payload. For the key in
+// ORK_STUB_CRASH_KEY it exits nonzero the way a broken runner does, no
+// starvation marker, so probes cannot read the call as a pass
+// (CodeRabbit 4241672752). Every other key is handed to the real runner
+// (ORK_STUB_REAL_RUNNER) unchanged.
 import { spawnSync } from 'node:child_process';
 
 const key = process.argv[2] ?? '';
@@ -15,6 +18,10 @@ if (process.env.ORK_STUB_STARVE_KEY && key === process.env.ORK_STUB_STARVE_KEY) 
   );
   process.stdout.write('{"continue":true,"suppressOutput":true}\n');
   process.exit(0);
+}
+if (process.env.ORK_STUB_CRASH_KEY && key === process.env.ORK_STUB_CRASH_KEY) {
+  process.stderr.write(`[orchestkit] injected runner crash for hook "${key}".\n`);
+  process.exit(1);
 }
 
 const real = process.env.ORK_STUB_REAL_RUNNER;

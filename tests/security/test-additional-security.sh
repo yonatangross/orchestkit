@@ -278,9 +278,15 @@ il_input() { # il_input <session_id>
 # 100ms stdin watchdog ran the hook on {} (#3415), and without stderr that
 # failure has no evidence (#4489).
 run_instructions_loaded() { # run_instructions_loaded <tmpdir> <session_id> [stderr-file]
-  local payload; payload="$(il_input "$2")"
-  # silent: best-effort
-  printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>"${3:-/dev/null}" || true
+  local payload rc; payload="$(il_input "$2")"
+  # silent: best-effort, but the exit status is kept for the caller
+  # (CodeRabbit 4241672752): `|| true` let a crashed runner read as a pass.
+  if printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>"${3:-/dev/null}"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  RUN_INSTRUCTIONS_LOADED_RC="$rc"
 }
 
 probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
@@ -329,6 +335,8 @@ mkdir -p "$ESCAPE_ROOT/inner"
 run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned' "$ESCAPE_ERR"
 if ork_stdin_starved "$ESCAPE_ERR"; then
   log_fail "traversal session_id: HARNESS ERROR, run-hook.mjs stdin watchdog fired, the dispatcher ran on an EMPTY payload, no verdict. Stderr: $(tr '\n' ' ' <"$ESCAPE_ERR")"
+elif (( RUN_INSTRUCTIONS_LOADED_RC != 0 )); then
+  log_fail "traversal session_id: hook runner exited ${RUN_INSTRUCTIONS_LOADED_RC}"
 elif [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then
   log_fail 'traversal session_id escaped the temp root'
 else

@@ -37,20 +37,24 @@ SCANNER_KEY='pretool/write-edit/content-secret-scanner'
 
 # Printed instead of the hook's answer when the run-hook.mjs stdin watchdog
 # fired: the hook ran on {} and its answer is not a verdict (#3415, #4352).
+# A nonzero runner exit gets its own marker for the same reason: empty stdout
+# used to read as "allowed" (#4352 follow-up, CodeRabbit 4241672755).
 STARVED='ORK_HARNESS_STARVED'
+CRASHED='ORK_HARNESS_CRASHED'
 
 # Run the scanner on one payload. Stderr is kept, not discarded: it is the
 # only place a starved run shows up, and under load a starved run used to read
-# as "NOT blocked" (#4352). The verdict is in stdout; run-hook.mjs exits 0, and
-# an empty answer fails every expect_blocked below.
+# as "NOT blocked" (#4352). The verdict is in stdout; a starved or crashed
+# runner returns a harness marker instead, never a verdict.
 run_scanner() { # run_scanner <json-payload>
   local err out rc=0
   err=$(mktemp "${TMPDIR:-/tmp}/ork-secret-scan-stderr.XXXXXX")
   out=$(printf '%s' "$1" | node "$RUNNER" "$SCANNER_KEY" 2>"$err") || rc=$?
   if ork_stdin_starved "$err"; then
     printf '%s %s\n' "$STARVED" "$(tr '\n' ' ' <"$err")"
+  elif (( rc != 0 )); then
+    printf '%s %s\n' "$CRASHED" "run-hook.mjs exited $rc: $(tr '\n' ' ' <"$err")"
   else
-    (( rc == 0 )) || echo "run-hook.mjs exited $rc: $(tr '\n' ' ' <"$err")" >&2
     printf '%s\n' "$out"
   fi
   rm -f "$err"
@@ -75,10 +79,16 @@ is_blocked() {
   [[ "$result" == *'"continue": false'* ]] || [[ "$result" == *'"continue":false'* ]]
 }
 
-# A starved run fails the suite as a HARNESS ERROR, never as a hook result.
+# A starved or crashed run fails the suite as a HARNESS ERROR, never as a
+# hook result.
 harness_error() { # harness_error <label> <result>
-  [[ "$2" == "$STARVED"* ]] || return 1
-  log_fail "HARNESS ERROR: $1: run-hook.mjs stdin watchdog fired, the hook ran on an EMPTY payload, no verdict. ${2#"$STARVED" }"
+  case "$2" in
+    "$STARVED"*)
+      log_fail "HARNESS ERROR: $1: run-hook.mjs stdin watchdog fired, the hook ran on an EMPTY payload, no verdict. ${2#"$STARVED" }" ;;
+    "$CRASHED"*)
+      log_fail "HARNESS ERROR: $1: run-hook.mjs runner failure, no verdict. ${2#"$CRASHED" }" ;;
+    *) return 1 ;;
+  esac
 }
 
 expect_blocked() { # expect_blocked <label> <result>
