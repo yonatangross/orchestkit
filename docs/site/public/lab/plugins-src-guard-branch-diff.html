@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plugins-src-guard: a regen may follow its src edit</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="plugins-src-guard: a regen may follow its src edit"><meta property="og:description" content="The pre-commit guard accepts a src counterpart changed earlier on the branch (#4661)"><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/plugins-src-guard-branch-diff.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="plugins-src-guard: a regen may follow its src edit"><meta name="twitter:description" content="The pre-commit guard accepts a src counterpart changed earlier on the branch (#4661)"><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <div class="top"><div><h1>plugins-src-guard: a regen may follow its src edit</h1>
+  <p class="lede">The pre-commit guard accepted a regenerated plugins/ file only when its src/ file was staged in the same commit. A branch could never commit a regen for src/ edits it made in an earlier commit. The guard now also accepts a src/ file that changed earlier on the branch.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Case</th><th>Staged</th><th>Branch already changed</th><th>Old guard</th><th>New guard</th></tr>
+  <tr><td>11</td><td>plugins/ork/skills/auto/SKILL.md</td><td>src/skills/auto/SKILL.md</td><td class="bad">exit 1</td><td class="ok">exit 0</td></tr>
+  <tr><td>12</td><td>plugins auto + plugins doctor</td><td>src/skills/auto/SKILL.md</td><td class="bad">lists both files</td><td class="ok">exit 1, lists doctor only</td></tr>
+  <tr><td>13</td><td>plugins/ork/skills/auto/SKILL.md</td><td>src/skills/auto/references/x.md</td><td class="ok">exit 1</td><td class="ok">exit 1</td></tr></table>
+  <pre>tests/unit/test-pre-commit-plugins-src-guard.sh
+before the fix: Passed: 12  Failed: 2
+after the fix:  Passed: 14  Failed: 0</pre></section>
+  <section class="card"><h2>What changed</h2><ul>
+  <li><b>bin/git-hooks/plugins-src-guard.sh</b>: reads an optional list of paths the branch already changed from PLUGINS_SRC_GUARD_BRANCH_FILES. A src/ counterpart in that list counts the same as a staged one. Unset or empty keeps the same-commit rule.</li>
+  <li><b>bin/git-hooks/pre-commit</b>: fills that list with the paths changed between the merge base with origin/main and HEAD. No merge base (detached, shallow, no origin/main) leaves it empty, which is the strict rule.</li>
+  <li><b>Probe in a throwaway repo</b>: a src/ edit committed first, then only the plugins/ file staged. With the branch list the guard exits 0; without it, 1.</li>
+  <li><b>Not changed</b>: the CI Build drift gate still diffs a real build, so a hand edit in plugins/ is still caught there.</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
