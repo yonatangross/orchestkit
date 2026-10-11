@@ -1359,7 +1359,8 @@ git checkout -b issue/$ARGUMENTS-fix
 
 # FIRST: bring in the Phase 4 regression test, only if Phase 4 returned a
 # branch (step 1 below covers the no-test case)
-[ -n "$REGRESSION_TEST_BRANCH" ] && git merge --no-edit "$REGRESSION_TEST_BRANCH"
+if [ -n "$REGRESSION_TEST_BRANCH" ]; then git merge --no-edit "$REGRESSION_TEST_BRANCH"
+else echo "no Phase 4 test branch: write the regression test in step 1"; fi
 ```
 
 ### CRITICAL: Regression Test Required

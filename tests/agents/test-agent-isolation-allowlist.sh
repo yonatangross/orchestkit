@@ -91,7 +91,7 @@ done
 # Isolated or manual-worktree writers in implement, design-import, fix-issue
 # and task-dependency-patterns must also be told to commit: "commit your/the/
 # it/them/any" or "commit +" ("do not commit", "uncommitted" and "commit sha"
-# do not count). A teammate (team_name=) must NOT pass isolation on the call
+# do not count). A named call (name=, a teammate) must NOT pass isolation on the call
 # (that makes a plain subagent); it works in a manual .worktrees/<role>.
 writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
 caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/references/monitor-patterns.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md" "$REPO_ROOT/src/skills/task-dependency-patterns/SKILL.md")
@@ -123,10 +123,13 @@ scan=$(awk -v re="$writer_re" '
       if (FILENAME ~ /fix-issue\// && buf !~ /ork:test-generator/) next
       print "SEEN"
       manual = (buf ~ /cd [{][a-z_]*wt[}]/ || buf ~ /Work only in [.]worktrees\//)
-      # A teammate (name + team_name) must not carry isolation on the call: that
-      # launches a plain subagent instead (Claude Code docs: sub-agents,
-      # agent-teams). Teammates work in manual .worktrees/<role> worktrees.
-      if (buf ~ /team_name=/ && buf ~ /isolation=/) print "TEAMISO " FILENAME ":" start
+      # The docs key on name=: a named call launches a teammate unless it passes
+      # isolation, which makes it a plain subagent (Claude Code docs: sub-agents,
+      # agent-teams). So name= plus isolation= is a teammate turned subagent,
+      # allowed only where a plain named subagent is the intent: chain-patterns
+      # Pattern 6 and the design-import loop.
+      plain_ok = (FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
+      if (buf ~ /name=/ && buf ~ /isolation=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
       conc = (buf ~ /run_in_background=(true|True)/ || buf ~ /team_name=/ || loop)
       if (conc && buf !~ /isolation="worktree"/ && !manual) print FILENAME ":" start
       # A worktree branch is merged, so an uncommitted file is lost.
@@ -141,7 +144,7 @@ for loc in $(printf '%s\n' "$scan" | grep '^NOCOMMIT ' | cut -d' ' -f2 || true);
   fail "isolated writer at ${loc#"$REPO_ROOT/"} is not told to commit before it returns"
 done
 for loc in $(printf '%s\n' "$scan" | grep '^TEAMISO ' | cut -d' ' -f2 || true); do
-  fail "teammate spawn passes isolation on the call at ${loc#"$REPO_ROOT/"}: that launches a plain subagent, not a teammate"
+  fail "named (teammate) spawn passes isolation on the call at ${loc#"$REPO_ROOT/"}: that launches a plain subagent, not a teammate"
 done
 for loc in $(printf '%s\n' "$scan" | grep -v -e '^SEEN$' -e '^NOCOMMIT ' -e '^TEAMISO ' || true); do
   fail "concurrent writer spawn without isolation=\"worktree\" (subagent) or a manual .worktrees/<role> (teammate) at ${loc#"$REPO_ROOT/"}"

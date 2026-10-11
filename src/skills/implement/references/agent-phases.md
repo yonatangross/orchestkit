@@ -387,7 +387,7 @@ A failure here goes back to the owning agent, or to Phase 6.
 
 ### Phase 5 — Teams Mode
 
-In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Each writer teammate MUST get its own worktree (`isolation="worktree"` at creation, #4557). See [Team Worktree Setup](team-worktree-setup.md).
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Each writer teammate MUST get its own manual worktree, `.worktrees/<role>` on `feat/{feature}-<role>`, created by the lead before the spawn ([Team Worktree Setup](team-worktree-setup.md), #4557). Never pass `isolation` on a teammate call: with `name` it launches a plain subagent, not a teammate.
 
 ---
 
