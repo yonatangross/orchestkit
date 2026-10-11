@@ -187,7 +187,7 @@ Return structured review report:
 Record evidence before approval
 - Capture exit codes (0 = pass)
 - Record in context.quality_evidence (linter, type_checker, tests)
-- Use skills/quality-gates/ for guidance
+- Use skills/testing-integration/rules/verification-techniques.md for evidence-collection guidance
 - Block approval if exit_code !== 0
 - Include evidence summary in role-comm-review.md
 
