@@ -324,14 +324,18 @@ probe_session_id 'sess-abc123' \
 # The traversal payload is the one that could actually escape. Assert the
 # negative directly rather than inferring it from a directory listing.
 ESCAPE_ROOT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+ESCAPE_ERR="$(mktemp "${TMPDIR:-/tmp}/ork-escape-stderr.XXXXXX")"
 mkdir -p "$ESCAPE_ROOT/inner"
-run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned'
-if [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then
+run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned' "$ESCAPE_ERR"
+if ork_stdin_starved "$ESCAPE_ERR"; then
+  log_fail "traversal session_id: HARNESS ERROR, run-hook.mjs stdin watchdog fired, the dispatcher ran on an EMPTY payload, no verdict. Stderr: $(tr '\n' ' ' <"$ESCAPE_ERR")"
+elif [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then
   log_fail 'traversal session_id escaped the temp root'
 else
   log_pass 'traversal session_id did not escape the temp root'
 fi
 rm -rf "$ESCAPE_ROOT"
+rm -f "$ESCAPE_ERR"
 
 # ---------------------------------------------------------------------------
 # 2. Modes on hook-created files (CWE-732)
