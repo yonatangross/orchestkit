@@ -314,6 +314,85 @@ describe('matchFileEdit with the real corpus shape', () => {
     expect(matchFileEdit('svc/io.py', quiet, [httpx])).toEqual([]);
   });
 
+  // Brace globs, field for field from the live corpus. 6 of the 31 live entries
+  // use `{a,b}` in file_glob; the hq-ext guard expands it, and the mod's glob
+  // matcher read the braces as literal characters, so those entries never fired.
+  const swallow: LessonPattern = {
+    id: 'swallow-corrupts-measured-value',
+    severity: 'block',
+    category: 'prompt_quality',
+    pattern: '(?:\\$\\([^\\n)]*2>\\s*/dev/null[^\\n)]*\\|\\s*(?:wc\\s+-l|grep\\s+-c)[^\\n)]*\\)|\\$\\([^\\n)]*grep\\s+-c[^\\n)]*\\|\\|\\s*true[^\\n)]*\\))',
+    file_glob: '**/*.{sh,bash,yml,yaml}',
+    exclude_paths: ['/tests/', '.md', 'pretool-lesson-guard', '/configs/', '/scratchpad/'],
+    tool_names: ['Write', 'Edit', 'Bash'],
+    message: 'A swallowed error reads as a measured zero.',
+  };
+  const revoke: LessonPattern = {
+    id: 'revoke-before-replacement-proven',
+    severity: 'warn',
+    category: 'prompt_quality',
+    trigger_pattern: '[Rr]evoke[^\\n]{0,60}(client|credential|key|secret|token|[Oo]auth|OAUTH)|(client|credential|key|secret|token|[Oo]auth|OAUTH)[^\\n]{0,60}[Rr]evoke',
+    require_pattern: '[Vv]erif|[Pp]rove|[Pp]roven|[Gg]reen|[Ss]moke|[Rr]eplacement|[Mm]int|[Rr]ollback',
+    window_lines: 12,
+    file_glob: '**/*.{sh,bash,yml,yaml,md}',
+    exclude_paths: ['/configs/', 'pretool-lesson-guard', 'strict-mode-gates.md'],
+    message: 'Prove the replacement before revoking.',
+  };
+  const mutation: LessonPattern = {
+    id: 'mutation-without-postcondition-assert',
+    severity: 'warn',
+    category: 'prompt_quality',
+    trigger_pattern: '--remove-label|--add-label|--disable-auto-merge|gh pr merge[^\\n]{0,40}--auto|labels\\.remove|removeLabel',
+    require_pattern: '[Vv]erif|[Aa]ssert|[Cc]onfirm|re-read|[Rr]echeck|--json labels|after the change|postcondition',
+    window_lines: 12,
+    file_glob: '**/*.{sh,bash,yml,yaml}',
+    exclude_paths: ['/configs/', 'pretool-lesson-guard', 'strict-mode-gates.md'],
+    message: 'Assert the postcondition after a mutation.',
+  };
+
+  test('brace glob: swallow-corrupts-measured-value fires on its WRONG code in each extension', () => {
+    const wrong = 'N=$(rclone lsf -R --files-only "$path" 2>/dev/null | wc -l)';
+    for (const file of ['scripts/run.sh', 'scripts/run.bash', '.github/workflows/x.yml', '.github/workflows/x.yaml']) {
+      const hit = matchFileEdit(file, wrong, [swallow]);
+      expect(hit.map(m => m.id), file).toEqual(['swallow-corrupts-measured-value']);
+      expect(hit[0].severity).toBe('block');
+    }
+  });
+
+  test('brace glob: an extension outside the braces does not match', () => {
+    const wrong = 'N=$(rclone lsf -R --files-only "$path" 2>/dev/null | wc -l)';
+    expect(matchFileEdit('scripts/run.txt', wrong, [swallow])).toEqual([]);
+    expect(matchFileEdit('scripts/run.shx', wrong, [swallow])).toEqual([]);
+  });
+
+  test('brace glob: swallow stays quiet on its RIGHT code', () => {
+    const right = 'ERRORS=$(awk \'/ERROR/{n++} END{print n+0}\' "$log")';
+    expect(matchFileEdit('scripts/run.sh', right, [swallow])).toEqual([]);
+  });
+
+  test('brace glob: revoke fires on its WRONG code and not on its RIGHT code', () => {
+    const wrong = 'tailscale oauth revoke "$OLD_CLIENT_ID"';
+    const right = [
+      'NEW=$(tailscale oauth create --scopes devices:read)',
+      'gh secret set TS_OAUTH_CLIENT_ID --body "$NEW"',
+      'gh workflow run deploy.yml && gh run watch --exit-status   # green before anything is destroyed',
+      'tailscale oauth revoke "$OLD_CLIENT_ID"',
+    ].join('\n');
+    expect(matchFileEdit('ops/rotate.sh', wrong, [revoke]).map(m => m.id)).toEqual(['revoke-before-replacement-proven']);
+    expect(matchFileEdit('ops/rotate.sh', right, [revoke])).toEqual([]);
+  });
+
+  test('brace glob: mutation fires on its WRONG code and not on its RIGHT code', () => {
+    const wrong = 'gh pr edit "$PR" --remove-label promote-hold';
+    const right = [
+      'gh pr edit "$PR" --remove-label promote-hold',
+      'left=$(gh pr view "$PR" --json labels -q \'[.labels[].name] | index("promote-hold")\')',
+      '[ "$left" = "null" ] || { echo "::error::label still present on $PR"; exit 1; }',
+    ].join('\n');
+    expect(matchFileEdit('ops/label.yml', wrong, [mutation]).map(m => m.id)).toEqual(['mutation-without-postcondition-assert']);
+    expect(matchFileEdit('ops/label.yml', right, [mutation])).toEqual([]);
+  });
+
   test('a glob-only entry with no content regex still matches on the file alone', () => {
     const fileOnly: LessonPattern = { id: 'g', severity: 'warn', category: 'x', file_glob: '**/*.py', message: 'm' };
     expect(matchFileEdit('a/b.py', 'anything', [fileOnly]).map(m => m.id)).toEqual(['g']);
