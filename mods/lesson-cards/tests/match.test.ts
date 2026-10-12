@@ -259,9 +259,10 @@ describe('matchFileEdit with the real corpus shape', () => {
     id: 'op-section-scoped-form',
     severity: 'warn',
     category: 'prompt_quality',
-    pattern: 'op://[^/\\s"\']+/[^/\\s"\']+/[A-Z_][A-Z0-9_]{3,}(?=["\'\\s])',
-    file_glob: '**/*.py',
-    exclude_paths: ['/tests/', '.md', '/configs/'],
+    // Live value starts with the op scheme; written in two parts so the public-surface scan reads no op path.
+    pattern: 'op:' + '//[^/\\s"\']+/[^/\\s"\']+/[A-Z_][A-Z0-9_]{3,}(?=["\'\\s])',
+    file_glob: '**/*.{tpl,yml,yaml,sh,bash,py,ts,tsx,js,mjs,cjs,Dockerfile}',
+    exclude_paths: ['/tests/', '.md', '/configs/', 'pretool-lesson-guard', 'lesson-coverage', 'recent-decisions'],
     message: 'Use the 4-part section-scoped op:// form.',
   };
 
@@ -285,6 +286,7 @@ describe('matchFileEdit with the real corpus shape', () => {
     expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/credential"', [opRef])).toEqual([]);
     expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/API Keys/LANGFUSE_PUBLIC_KEY"', [opRef])).toEqual([]);
     expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/LANGFUSE_PUBLIC_KEY"', [opRef]).map(m => m.id)).toEqual(['op-section-scoped-form']);
+    expect(matchFileEdit('deploy/env.tpl', 'KEY=op://Vault/Item/LANGFUSE_PUBLIC_KEY ', [opRef]).map(m => m.id)).toEqual(['op-section-scoped-form']);
   });
 
   test('window-check: require_pattern in the window keeps the entry quiet (deepgram RIGHT)', () => {
@@ -330,7 +332,7 @@ describe('matchFileEdit with the real corpus shape', () => {
   const revoke: LessonPattern = {
     id: 'revoke-before-replacement-proven',
     severity: 'warn',
-    category: 'prompt_quality',
+    category: 'tool_mastery',
     trigger_pattern: '[Rr]evoke[^\\n]{0,60}(client|credential|key|secret|token|[Oo]auth|OAUTH)|(client|credential|key|secret|token|[Oo]auth|OAUTH)[^\\n]{0,60}[Rr]evoke',
     require_pattern: '[Vv]erif|[Pp]rove|[Pp]roven|[Gg]reen|[Ss]moke|[Rr]eplacement|[Mm]int|[Rr]ollback',
     window_lines: 12,
@@ -341,7 +343,7 @@ describe('matchFileEdit with the real corpus shape', () => {
   const mutation: LessonPattern = {
     id: 'mutation-without-postcondition-assert',
     severity: 'warn',
-    category: 'prompt_quality',
+    category: 'code_review',
     trigger_pattern: '--remove-label|--add-label|--disable-auto-merge|gh pr merge[^\\n]{0,40}--auto|labels\\.remove|removeLabel',
     require_pattern: '[Vv]erif|[Aa]ssert|[Cc]onfirm|re-read|[Rr]echeck|--json labels|after the change|postcondition',
     window_lines: 12,

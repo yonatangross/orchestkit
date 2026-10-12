@@ -11,15 +11,37 @@
 import type { LessonPattern, LessonBullet } from './corpus.js';
 import type { MatchedLesson } from './types.js';
 
+/** Expand every closed {a,b} group into one pattern per alternative. */
+function expandBraces(pattern: string): string[] {
+  const open = pattern.indexOf('{');
+  if (open === -1) return [pattern];
+  const close = pattern.indexOf('}', open + 1);
+  if (close === -1) return [pattern];
+  const head = pattern.slice(0, open);
+  const tail = pattern.slice(close + 1);
+  return pattern
+    .slice(open + 1, close)
+    .split(',')
+    .flatMap(part => expandBraces(head + part + tail));
+}
+
 /**
  * Simple glob pattern matching.
  * Supports:
  * - * matches any sequence of characters (except /)
  * - ** matches any sequence including /
  * - ? matches single character
+ * - {a,b} alternatives (one flat group per brace pair)
  * - literal characters match themselves
  */
 function simpleGlobMatch(str: string, pattern: string): boolean {
+  // {a,b} alternatives, as the hq-ext guard reads them (matchesFileGlob): one
+  // flat group, no nesting; a { with no closing } stays a literal character.
+  const alternatives = expandBraces(pattern);
+  if (alternatives.length > 1 || alternatives[0] !== pattern) {
+    return alternatives.some(alt => simpleGlobMatch(str, alt));
+  }
+
   // Normalize pattern and string
   const normalizedStr = str.replace(/\\/g, '/');
   const normalizedPattern = pattern.replace(/\\/g, '/');
