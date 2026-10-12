@@ -412,9 +412,10 @@ export function matchFileEdit(
       if (!matchedAny) {
         continue;
       }
-    } else if ((pat.pattern || pat.trigger_pattern) && (pat.file_glob || pat.file_match)) {
-      // The corpus's usual file entry: a file_glob plus a content test. The
-      // glob alone would fire on every matching file.
+    } else if (pat.pattern || pat.trigger_pattern) {
+      // A present content test decides, with or without a file filter, as in
+      // the guard. The glob alone would fire on every matching file. A Bash-only
+      // entry never gets here: its tool_names stops it at the top of the loop.
       if (!contentFires(pat, content)) {
         continue;
       }
