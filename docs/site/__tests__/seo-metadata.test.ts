@@ -7,7 +7,8 @@ import { HOME_TITLE, PAGE_SUMMARY } from "@/lib/constants";
 // result, and one shorter than 140 wastes the space. A page that sets
 // `seoTitle` is a page we tuned for search, so it must keep these limits.
 const DOCS = join(process.cwd(), "content", "docs");
-const DASH = /[–—]/;
+// En dash and em dash, written as escapes so this file holds neither.
+const DASH = /[\u2013\u2014]/;
 
 function mdxFiles(dir: string): string[] {
 	return readdirSync(dir).flatMap((name) => {
