@@ -318,7 +318,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     const prior = Array.isArray(result.context)
       ? (result.context as unknown[]).filter((c): c is string => typeof c === 'string' && c !== '')
       : [];
-    return { ...result, context: [...prior, context] };
+    return { ...result, context: prior.includes(context) ? prior : [...prior, context] };
   });
 
   // Wrap, never mutate: next(e) hands back an opaque engine node ({ type, ref }),
