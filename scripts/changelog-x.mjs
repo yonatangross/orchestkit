@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * changelog-x.mjs: build facts-only changelog posts for X, and post them
- * only when the run is live.
+ * changelog-x.mjs: build facts-only changelog posts for X and write them to
+ * the job summary. Preview only: nothing is posted.
  *
  * Run by .github/workflows/release-changelog-x.yml. No LLM. No `claude -p`.
  *
@@ -9,8 +9,8 @@
  *   release --version X.Y.Z [--media-wait-seconds N]
  *       One post (or a thread when there are more than 3 changes) for a
  *       stable release, from the CHANGELOG.md section for that version.
- *       Attaches release-<version>-square.gif from the GitHub release when
- *       that asset exists. Skips the media when it does not.
+ *       Names release-<version>-square.gif from the GitHub release as the
+ *       media when that asset exists.
  *   beta-digest [--now ISO] [--releases-file F]
  *       One "today in OrchestKit beta" post for the prereleases published in
  *       the 24 hours before --now. No post when there are none.
@@ -19,10 +19,9 @@
  *       in the state file, and posts each new section. With no state, it
  *       records the head version and posts nothing (no backlog flood).
  *
- * Dry-run gate: the run is live ONLY when the env DRY_RUN is exactly "false".
- * Every other value, or no value, prints the posts and posts nothing. The
- * workflow sets DRY_RUN=false only when the repository variable
- * CHANGELOG_X_ENABLED is exactly "true" and the dispatch input dry_run is off.
+ * Preview only: this build has no X client and posts nothing. A run with
+ * DRY_RUN=false (the old live switch) fails before it builds any post. Live
+ * posting ships later as a separate, reviewed change.
  *
  * Every run writes the posts to $GITHUB_STEP_SUMMARY (or stdout).
  */
@@ -89,8 +88,12 @@ function parseArgs(argv) {
   return { mode, opts };
 }
 
-export function isLive(env = process.env) {
-  return env.DRY_RUN === 'false';
+export const PREVIEW_ONLY_ERROR =
+  'Live posting is not in this build. The X changelog feed is preview only; activation ships as a separate, reviewed change.';
+
+/** Refuse a run that asks to post. DRY_RUN=false is the old live switch. */
+export function assertPreviewOnly(env = process.env) {
+  if (env.DRY_RUN === 'false') throw new Error(PREVIEW_ONLY_ERROR);
 }
 
 function gh(args, opts = {}) {
@@ -121,33 +124,17 @@ export function renderSummary({ title, live, threads, notes = [] }) {
   return lines.join('\n');
 }
 
-async function publish({ title, threads, notes, media }) {
-  const live = isLive();
+/**
+ * Write the posts to the job summary. This build is preview only: it has no
+ * X client, and it refuses a run that asks to post.
+ */
+async function publish({ title, threads, notes }) {
+  assertPreviewOnly();
   for (const thread of threads) {
     if (!allWithinLimit(thread)) throw new Error(`a post is longer than ${MAX_POST} characters`);
   }
-  summary(renderSummary({ title, live, threads, notes }));
-  if (!live || !threads.length) return [];
-
-  // Load the client only for a live run.
-  const x = await import('./lib/x-client.mjs');
-  const creds = x.credsFromEnv();
-  let mediaId;
-  if (media) {
-    try {
-      mediaId = await x.uploadGif(creds, readFileSync(media));
-    } catch (e) {
-      // The GIF is optional. Post the text without it.
-      console.log(`::warning::media upload failed, posting without media: ${e.message}`);
-    }
-  }
-  const out = [];
-  for (const [i, thread] of threads.entries()) {
-    const ids = await x.postThread(creds, thread, { mediaId: i === 0 ? mediaId : undefined });
-    out.push(ids);
-    summary(`Posted thread ${i + 1}: ${ids.map((id) => `https://x.com/i/status/${id}`).join(' ')}`);
-  }
-  return out;
+  summary(renderSummary({ title, live: false, threads, notes }));
+  return [];
 }
 
 // == release ==
@@ -170,9 +157,9 @@ async function findGif(version, waitSeconds) {
     if (names.includes(name)) {
       const dir = mkdtempSync(join(tmpdir(), 'changelog-x-'));
       gh(['release', 'download', tag, '--repo', process.env.GITHUB_REPOSITORY || 'yonatangross/orchestkit', '--pattern', name, '--dir', dir]);
-      return { path: join(dir, name), note: `Media: ${name} attached.` };
+      return { path: join(dir, name), note: `Media: ${name} found on the release.` };
     }
-    if (Date.now() >= deadline) return { path: null, note: `Media: ${name} not found, posting without media.` };
+    if (Date.now() >= deadline) return { path: null, note: `Media: ${name} not found, no media.` };
     // release-video.yml renders in parallel and uploads when it ends.
     await new Promise((r) => setTimeout(r, 60_000));
   }
@@ -188,9 +175,9 @@ async function runRelease(opts) {
   const parsed = parseChangelog(readChangelog(), version, FULL_TEXT);
   const threads = [buildReleasePosts(parsed)];
   // A dry run checks once and does not wait for the render.
-  const wait = isLive() ? Number(opts['media-wait-seconds'] || 0) : 0;
+  const wait = Number(opts['media-wait-seconds'] || 0);
   const gif = opts['no-media'] ? { path: null, note: 'Media: skipped by --no-media.' } : await findGif(version, wait);
-  await publish({ title: `X changelog: OrchestKit v${version}`, threads, notes: [gif.note], media: gif.path });
+  await publish({ title: `X changelog: OrchestKit v${version}`, threads, notes: [gif.note], });
 }
 
 // == beta digest ==
@@ -299,6 +286,7 @@ async function runUpstream(opts) {
 // == main ==
 
 async function main() {
+  assertPreviewOnly();
   const { mode, opts } = parseArgs(process.argv.slice(2));
   if (mode === 'release') return runRelease(opts);
   if (mode === 'beta-digest') return runBetaDigest(opts);

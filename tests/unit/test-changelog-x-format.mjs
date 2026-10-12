@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// changelog-x: post format, the 280 character split, and the dry-run gate
+// changelog-x: post format, the 280 character split, and the preview-only gate
 // ============================================================================
 // WHAT THIS GUARDS
 //
@@ -11,14 +11,18 @@
 //   3. More than 3 changes make a thread. 3 or fewer make one post.
 //   4. The only hashtag is #ClaudeCode. Mentions are neutralized.
 //   5. The docs link carries the UTM parameters for the version.
-//   6. The run is live only when DRY_RUN is exactly "false".
+//   6. Preview only: DRY_RUN=false is refused, and no X client ships.
 //   7. The upstream diff posts only versions newer than the last seen one.
-//   8. The OAuth 1.0a signature matches the published X example.
 //
 // No network. No X call.
 // ============================================================================
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   MAX_POST,
@@ -33,9 +37,10 @@ import {
   buildUpstreamPosts,
   allWithinLimit,
 } from '../../scripts/lib/changelog-x-format.mjs';
-import { isLive, newSince, recentPrereleases, readState, renderSummary } from '../../scripts/changelog-x.mjs';
-import { oauthHeader, credsFromEnv } from '../../scripts/lib/x-client.mjs';
+import { assertPreviewOnly, PREVIEW_ONLY_ERROR, newSince, recentPrereleases, readState, renderSummary } from '../../scripts/changelog-x.mjs';
 import { parseChangelog } from '../../scripts/changelog-to-props.mjs';
+
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'scripts', 'changelog-x.mjs');
 
 let pass = 0;
 let fail = 0;
@@ -171,9 +176,24 @@ check('upstream posts use top-level bullets only', () => {
   assert.match(posts[0], /^Claude Code 2\.1\.300 changelog: 2 entries\.\n\n- Added A\n- Fixed B/);
 });
 
-check('dry-run gate: live only when DRY_RUN is exactly "false"', () => {
-  assert.equal(isLive({ DRY_RUN: 'false' }), true);
-  for (const v of [undefined, '', 'true', 'False', 'no', '0']) assert.equal(isLive({ DRY_RUN: v }), false, String(v));
+check('preview only: DRY_RUN=false is refused, every other value runs the preview', () => {
+  assert.throws(() => assertPreviewOnly({ DRY_RUN: 'false' }), (e) => e.message === PREVIEW_ONLY_ERROR);
+  for (const v of [undefined, '', 'true', 'False', 'no', '0']) assert.doesNotThrow(() => assertPreviewOnly({ DRY_RUN: v }), String(v));
+});
+
+check('preview only: the CLI refuses DRY_RUN=false before it builds a post', () => {
+  const r = spawnSync(process.execPath, [SCRIPT, 'upstream', '--source', 'claude-code', '--state-file', '/nonexistent/state.json', '--fixture', '/nonexistent/fixture.md'], {
+    env: { ...process.env, DRY_RUN: 'false', GITHUB_STEP_SUMMARY: '', GITHUB_OUTPUT: '' },
+    encoding: 'utf8',
+  });
+  assert.notEqual(r.status, 0);
+  assert.ok(r.stderr.includes(PREVIEW_ONLY_ERROR), r.stderr);
+});
+
+check('preview only: the script has no X client and no X API host', () => {
+  const src = readFileSync(SCRIPT, 'utf8');
+  assert.doesNotMatch(src, /x-client|api\.x\.com|api\.twitter\.com|X_ACCESS_TOKEN/);
+  assert.equal(existsSync(join(dirname(SCRIPT), 'lib', 'x-client.mjs')), false);
 });
 
 check('newSince: no state records the head and posts nothing', () => {
@@ -187,6 +207,13 @@ check('newSince: no state records the head and posts nothing', () => {
 
 check('readState rejects a value that is not a version', () => {
   assert.equal(readState('/nonexistent/state.json'), null);
+  const dir = mkdtempSync(join(tmpdir(), 'changelog-x-state-'));
+  const file = join(dir, 'state.json');
+  writeFileSync(file, JSON.stringify({ last_seen: '$(touch /tmp/pwned)' }));
+  assert.equal(readState(file), null);
+  writeFileSync(file, JSON.stringify({ last_seen: '2.1.300' }));
+  assert.equal(readState(file)?.last_seen, '2.1.300');
+  rmSync(dir, { recursive: true, force: true });
 });
 
 check('recentPrereleases: last 24 hours, prerelease only, oldest first', () => {
@@ -205,28 +232,6 @@ check('renderSummary names the mode and each post length', () => {
   const md = renderSummary({ title: 'T', live: false, threads: [['hello']] });
   assert.match(md, /dry run/);
   assert.match(md, /Post 1\/1 \(5\/280\)/);
-});
-
-check('credsFromEnv names every missing secret', () => {
-  assert.throws(() => credsFromEnv({ X_API_KEY: 'k' }), /X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET/);
-});
-
-check('OAuth 1.0a signature matches the published X example', () => {
-  // Values from the X developer docs page "Creating a signature".
-  const header = oauthHeader({
-    method: 'POST',
-    url: 'https://api.twitter.com/1.1/statuses/update.json?include_entities=true',
-    creds: {
-      apiKey: 'xvz1evFS4wEEPTGEFPHBog',
-      apiSecret: 'kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw',
-      accessToken: '370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb',
-      accessSecret: 'LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE',
-    },
-    nonce: 'kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg',
-    timestamp: 1318622958,
-    bodyParams: { status: 'Hello Ladies + Gentlemen, a signed OAuth request!' },
-  });
-  assert.ok(header.includes('oauth_signature="hCtSmYh%2BiHYCEqBWrE7C7hYmtUk%3D"'), header);
 });
 
 check('weightedLength never counts a bare domain lower than a URL', () => {

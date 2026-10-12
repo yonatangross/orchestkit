@@ -3,39 +3,26 @@
 
 # Release Changelog X: a facts-only changelog feed for X (@yonyon2ai).
 #
-# INERT BY DEFAULT. Every job runs in dry-run mode and writes the posts to the
-# job summary only, until BOTH of these are true:
-#   1. The repository variable CHANGELOG_X_ENABLED is exactly "true".
-#   2. For a manual run: the dispatch input dry_run is off (it is on by default).
-#
-# HOW TO TURN IT ON
-#   1. Set the 4 repository secrets (X app with OAuth 1.0a, read and write):
-#        gh secret set X_API_KEY
-#        gh secret set X_API_SECRET
-#        gh secret set X_ACCESS_TOKEN
-#        gh secret set X_ACCESS_SECRET
-#   2. Do a dry run and read the job summary:
-#        gh workflow run release-changelog-x.yml -f mode=upstream
-#   3. Set the variable:
-#        gh variable set CHANGELOG_X_ENABLED --body true
-# To turn it off, set the variable to any other value, or delete it.
-# More detail: .github/workflows/README.md, section "X changelog feed".
+# PREVIEW ONLY. Every job writes the posts to the job summary and posts
+# nothing. This build has no X client and no X secrets, and the script
+# refuses DRY_RUN=false. Live posting ships later as a separate, reviewed
+# change. More detail: .github/workflows/README.md, section "X changelog feed".
 #
 # JOBS
 #   release-post   on release: published (stable only). One post with a
 #                  headline and the top 3 changes from the CHANGELOG.md section
-#                  for the tag; a thread when there are more than 3. Attaches
-#                  release-<version>-square.gif from release-video.yml when it
-#                  exists, else posts without media.
+#                  for the tag; a thread when there are more than 3. Names
+#                  release-<version>-square.gif from release-video.yml as the
+#                  media when it exists.
 #   beta-digest    nightly. One "today in OrchestKit beta" post when one or
 #                  more prereleases shipped in the last 24 hours. No post for
 #                  each beta.
 #   upstream       nightly. Reads the upstream anthropics/claude-code
 #                  CHANGELOG.md, compares it with the last seen version, and
-#                  posts the new sections. No LLM and no `claude -p`. The last
-#                  seen version is kept in the Actions cache; dry and live runs
-#                  use different keys. With no state, the run records the head
-#                  and posts nothing. hq-ext is a disabled source in
+#                  builds a post for each new section. No LLM and no
+#                  `claude -p`. The last seen version is kept in the Actions
+#                  cache. With no state, the run records the head and builds
+#                  no post. hq-ext is a disabled source in
 #                  scripts/changelog-x.mjs (it needs a token that can read
 #                  Yonatan-HQ/hq-ext-plugin).
 #
@@ -65,11 +52,6 @@ on:
         description: 'Version for mode=release (e.g. 10.1.0)'
         required: false
         type: string
-      dry_run:
-        description: 'Print the posts to the job summary and post nothing'
-        required: false
-        type: boolean
-        default: true
 
 concurrency:
   group: release-changelog-x-${{ github.event.release.tag_name || inputs.mode || github.event_name }}
@@ -77,11 +59,6 @@ concurrency:
 
 permissions: {}
 
-env:
-  # Live only when the variable is exactly "true" and this is not a dispatch
-  # with dry_run on. Every other case is a dry run. The script also refuses
-  # to post unless DRY_RUN is exactly "false".
-  DRY_RUN: ${{ (vars.CHANGELOG_X_ENABLED == 'true' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)) && 'false' || 'true' }}
 
 jobs:
   release-post:
@@ -93,8 +70,7 @@ jobs:
       # Read CHANGELOG.md and the release assets.
       contents: read
     runs-on: ubuntu-latest
-    # Up to 25 minutes wait for the release-video GIF, then the posts.
-    timeout-minutes: 40
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -105,16 +81,11 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Build and post
+      - name: Build the posts
         env:
           INPUT_VERSION: ${{ inputs.version }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           GH_TOKEN: ${{ github.token }}
-          # The X secrets reach the step only for a live run.
-          X_API_KEY: ${{ env.DRY_RUN == 'false' && secrets.X_API_KEY || '' }}
-          X_API_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_API_SECRET || '' }}
-          X_ACCESS_TOKEN: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_TOKEN || '' }}
-          X_ACCESS_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_SECRET || '' }}
         run: |
           set -euo pipefail
           VERSION="${INPUT_VERSION:-$RELEASE_TAG}"
@@ -123,7 +94,7 @@ jobs:
             echo "::error::no version: set the version input for mode=release"
             exit 1
           fi
-          node scripts/changelog-x.mjs release --version "$VERSION" --media-wait-seconds 1500
+          node scripts/changelog-x.mjs release --version "$VERSION"
 
   beta-digest:
     name: Nightly beta digest
@@ -145,13 +116,9 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Build and post
+      - name: Build the posts
         env:
           GH_TOKEN: ${{ github.token }}
-          X_API_KEY: ${{ env.DRY_RUN == 'false' && secrets.X_API_KEY || '' }}
-          X_API_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_API_SECRET || '' }}
-          X_ACCESS_TOKEN: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_TOKEN || '' }}
-          X_ACCESS_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_SECRET || '' }}
         run: node scripts/changelog-x.mjs beta-digest
 
   upstream:
@@ -188,26 +155,22 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0  # zizmor: ignore[cache-poisoning] holds one version string, validated, never executed
         with:
           path: .changelog-x-state/${{ matrix.source }}.json
-          key: changelog-x-state-${{ env.DRY_RUN == 'false' && 'live' || 'dry' }}-${{ matrix.source }}-${{ github.run_id }}
+          key: changelog-x-state-preview-${{ matrix.source }}-${{ github.run_id }}
           restore-keys: |
-            changelog-x-state-${{ env.DRY_RUN == 'false' && 'live' || 'dry' }}-${{ matrix.source }}-
+            changelog-x-state-preview-${{ matrix.source }}-
 
-      - name: Build and post
+      - name: Build the posts
         id: post
         env:
           SOURCE: ${{ matrix.source }}
           GH_TOKEN: ${{ github.token }}
-          X_API_KEY: ${{ env.DRY_RUN == 'false' && secrets.X_API_KEY || '' }}
-          X_API_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_API_SECRET || '' }}
-          X_ACCESS_TOKEN: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_TOKEN || '' }}
-          X_ACCESS_SECRET: ${{ env.DRY_RUN == 'false' && secrets.X_ACCESS_SECRET || '' }}
         run: node scripts/changelog-x.mjs upstream --source "$SOURCE" --state-file ".changelog-x-state/$SOURCE.json"
 
-      # Save only when the head moved, and only after every post succeeded
-      # (the script fails before it writes the state when a post fails).
+      # Save only when the head moved, and only after the preview succeeded
+      # (the script fails before it writes the state when a step fails).
       - name: Save last seen version
         if: steps.post.outputs.state_changed == 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0  # zizmor: ignore[cache-poisoning] holds one version string, validated, never executed
         with:
           path: .changelog-x-state/${{ matrix.source }}.json
-          key: changelog-x-state-${{ env.DRY_RUN == 'false' && 'live' || 'dry' }}-${{ matrix.source }}-${{ github.run_id }}
+          key: changelog-x-state-preview-${{ matrix.source }}-${{ github.run_id }}

@@ -36,14 +36,14 @@
 <body>
 <main>
   <h1>X changelog feed: what it would post</h1>
-  <p class="sub">PR: <code>release-changelog-x.yml</code>. It is inert when merged. Every job is a dry run until <code>CHANGELOG_X_ENABLED</code> is exactly <code>true</code>.</p>
+  <p class="sub">PR: <code>release-changelog-x.yml</code>. Preview only: every job writes the posts to the job summary. This build has no X client and no X secrets.</p>
 
   <section>
     <h2>The safety gate</h2>
     <div class="gate">
-      <div><div class="label">Default after merge</div><span class="ok">Dry run</span>. Posts go to the job summary only. The X secrets are passed as empty strings.</div>
+      <div><div class="label">After merge</div><span class="ok">Preview</span>. Posts go to the job summary only. The script refuses <code>DRY_RUN=false</code>.</div>
       <div><div class="label">Manual run</div><code>dry_run</code> input defaults to <code>true</code>. A manual live run needs the variable on and <code>dry_run: false</code>.</div>
-      <div><div class="label">Live</div>Only when <code>vars.CHANGELOG_X_ENABLED == 'true'</code>. No LLM call anywhere: no <code>claude -p</code>.</div>
+      <div><div class="label">Live</div>Not in this build. It ships later as a separate, reviewed change. No LLM call anywhere: no <code>claude -p</code>.</div>
     </div>
   </section>
 

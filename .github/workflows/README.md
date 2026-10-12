@@ -38,18 +38,18 @@ flow.
 
 # X changelog feed
 
-`release-changelog-x.yml` writes facts-only changelog posts for X. It is off by
-default. Every job runs as a dry run and writes the posts to the job summary
-only. It does not post to X until you turn it on.
+`release-changelog-x.yml` writes facts-only changelog posts for X to the job
+summary. It is preview only: this build has no X client and no X secrets, and
+`scripts/changelog-x.mjs` refuses `DRY_RUN=false`. Nothing is posted to X.
 
-What it posts:
+What it would post:
 
 - **Stable release** (`release: published`, not a prerelease): one post with a
   headline and the top 3 changes from the `CHANGELOG.md` section for the tag. It
   makes a thread when there are more than 3 changes. The link goes to the docs
   changelog with `utm_source=x&utm_medium=social&utm_campaign=v<version>`. The
-  post gets `release-<version>-square.gif` from `release-video.yml` when that
-  asset exists. If it does not exist after 25 minutes, the post has no media.
+  preview names `release-<version>-square.gif` from `release-video.yml` as the
+  media when that asset exists.
 - **Beta digest** (nightly, 23:30 UTC): one post when one or more prereleases
   shipped in the last 24 hours. There is no post for each beta.
 - **Upstream** (nightly, 23:30 UTC): the new sections of the
@@ -60,30 +60,11 @@ What it posts:
 
 Each post is 280 weighted characters or less. The only hashtag is `#ClaudeCode`.
 
-## Turn it on
+## Live posting
 
-1. Set the 4 repository secrets from an X app with OAuth 1.0a user context and
-   read and write access:
+Not in this build. Turning the feed on is a separate, reviewed change that adds
+the X client back. Settle these first: the `upstream` job would hold
+third-party changelog text, the X secrets and the post path in one job (a review
+step, or the job stays preview only), and one live test post on a working
+account confirms the media upload.
 
-   ```bash
-   gh secret set X_API_KEY
-   gh secret set X_API_SECRET
-   gh secret set X_ACCESS_TOKEN
-   gh secret set X_ACCESS_SECRET
-   ```
-
-2. Do a dry run and read the job summary:
-
-   ```bash
-   gh workflow run release-changelog-x.yml -f mode=upstream
-   ```
-
-3. Set the variable. The value must be exactly `true`:
-
-   ```bash
-   gh variable set CHANGELOG_X_ENABLED --body true
-   ```
-
-To turn it off, set `CHANGELOG_X_ENABLED` to another value or delete it. A
-manual run posts only when the variable is `true` and you set `dry_run` to
-`false`.
