@@ -42,7 +42,7 @@
     <h2>The safety gate</h2>
     <div class="gate">
       <div><div class="label">After merge</div><span class="ok">Preview</span>. Posts go to the job summary only. The script refuses <code>DRY_RUN=false</code>.</div>
-      <div><div class="label">Manual run</div><code>dry_run</code> input defaults to <code>true</code>. A manual live run needs the variable on and <code>dry_run: false</code>.</div>
+      <div><div class="label">Manual run</div><code>workflow_dispatch</code> with a <code>mode</code> writes the same preview. There is no live option.</div>
       <div><div class="label">Live</div>Not in this build. It ships later as a separate, reviewed change. No LLM call anywhere: no <code>claude -p</code>.</div>
     </div>
   </section>
