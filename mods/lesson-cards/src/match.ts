@@ -255,6 +255,36 @@ export function matchBashCommand(
 }
 
 /**
+ * The content test of a corpus file entry, read the way the hq-ext guard
+ * (pretool-lesson-guard evalSimple / evalWindowCheck) reads it:
+ * - simple (pattern): the regex with flag m against the whole content.
+ * - window-check (trigger_pattern): each line is tested alone, and a trigger
+ *   line fires only when require_pattern is absent from the window_lines
+ *   lines on both sides of it. No require_pattern means the trigger decides.
+ * An invalid regex never fires.
+ */
+function contentFires(pat: LessonPattern, content: string): boolean {
+  try {
+    if (pat.trigger_pattern) {
+      const trigger = new RegExp(pat.trigger_pattern);
+      const required = pat.require_pattern ? new RegExp(pat.require_pattern) : null;
+      const span = pat.window_lines ?? 0;
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (!trigger.test(lines[i])) continue;
+        if (!required) return true;
+        const window = lines.slice(Math.max(0, i - span), Math.min(lines.length, i + span + 1)).join('\n');
+        if (!required.test(window)) return true;
+      }
+      return false;
+    }
+    return new RegExp(pat.pattern as string, 'm').test(content);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Match Edit/Write args against patterns.
  *
  * Checks file_path against file_glob and new content against check_patterns.
@@ -322,16 +352,9 @@ export function matchFileEdit(
         continue;
       }
     } else if ((pat.pattern || pat.trigger_pattern) && (pat.file_glob || pat.file_match)) {
-      // The corpus's usual file entry: a file_glob plus the content regex in
-      // pattern (simple) or trigger_pattern (window-check). The glob alone
-      // would fire on every matching file.
-      let contentRegex: RegExp;
-      try {
-        contentRegex = new RegExp((pat.pattern || pat.trigger_pattern) as string, 'i');
-      } catch {
-        continue;
-      }
-      if (!contentRegex.test(content)) {
+      // The corpus's usual file entry: a file_glob plus a content test. The
+      // glob alone would fire on every matching file.
+      if (!contentFires(pat, content)) {
         continue;
       }
     } else if (!pat.file_glob && !pat.file_match) {
