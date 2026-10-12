@@ -216,6 +216,59 @@ describe('repo filtering', () => {
   });
 });
 
+// The shapes below are copied from the live corpus (hq-ext 1.65.0
+// configs/lesson-patterns.json): 18 of its 31 entries carry file_glob and a
+// content regex in `pattern` or `trigger_pattern`, and no check_patterns.
+// 2 lanes were stopped on 2026-10-12 by "Proceed anyway?" dialogs for a block
+// entry like this one firing on every .py write.
+describe('matchFileEdit with the real corpus shape', () => {
+  const langfuse: LessonPattern = {
+    id: 'langfuse-v4-client',
+    severity: 'block',
+    category: 'prompt_quality',
+    pattern: '\\.client\\.client[.\\[]|\\b(?:langfuse|lf)\\.client\\s*[.\\[]',
+    file_glob: '**/*.py',
+    exclude_paths: ['/tests/', '.md', 'pretool-lesson-guard', '/configs/'],
+    message: 'Langfuse v4 removed the .client reach-in.',
+  };
+  const window: LessonPattern = {
+    id: 'httpx-catch-builtins-only',
+    severity: 'warn',
+    category: 'quality',
+    trigger_pattern: 'except\\s+\\(?(?:ConnectionError|TimeoutError)',
+    file_glob: '**/*.py',
+    exclude_paths: ['/tests/'],
+    message: 'Catch httpx errors, not builtins.',
+  };
+
+  test('a glob-plus-pattern entry does not fire on unrelated content', () => {
+    expect(matchFileEdit('src/app/service.py', 'def add(a, b):\n    return a + b\n', [langfuse])).toEqual([]);
+  });
+
+  test('the same entry fires when the content holds its pattern', () => {
+    const hit = matchFileEdit('src/app/service.py', 'scores = langfuse.client.score.list()', [langfuse]);
+    expect(hit.map(m => m.id)).toEqual(['langfuse-v4-client']);
+  });
+
+  test('a trigger_pattern entry is tested against the content too', () => {
+    expect(matchFileEdit('src/app/io.py', 'x = 1', [window])).toEqual([]);
+    const hit = matchFileEdit('src/app/io.py', 'try:\n    pass\nexcept (ConnectionError, OSError):\n    pass', [window]);
+    expect(hit.map(m => m.id)).toEqual(['httpx-catch-builtins-only']);
+  });
+
+  test('an exclude_paths substring excludes the file', () => {
+    const body = 'scores = langfuse.client.score.list()';
+    expect(matchFileEdit('apps/api/tests/test_scores.py', body, [langfuse])).toEqual([]);
+    expect(matchFileEdit('apps/api/configs/x.py', body, [langfuse])).toEqual([]);
+    expect(matchFileEdit('apps/api/src/scores.py', body, [langfuse]).length).toBe(1);
+  });
+
+  test('a glob-only entry with no content regex still matches on the file alone', () => {
+    const fileOnly: LessonPattern = { id: 'g', severity: 'warn', category: 'x', file_glob: '**/*.py', message: 'm' };
+    expect(matchFileEdit('a/b.py', 'anything', [fileOnly]).map(m => m.id)).toEqual(['g']);
+  });
+});
+
 describe('matchFileEdit severity order', () => {
   test('a block match comes first even when a warn pattern is listed before it', () => {
     const patterns = [

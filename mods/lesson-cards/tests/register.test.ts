@@ -323,6 +323,18 @@ describe('tool.call', () => {
     expect(result.context?.[1]).toContain('lesson:cancelled-check-is-not-pass');
   });
 
+  test('keeps only non-empty string entries from the context below', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ok', context: ['ok', '', 42] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: unknown[] };
+    expect(result.context?.length).toBe(2);
+    expect(result.context?.[0]).toBe('ok');
+    expect(String(result.context?.[1])).toContain('lesson:cancelled-check-is-not-pass');
+  });
+
   test('keeps every prior context entry for an Edit match too', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
