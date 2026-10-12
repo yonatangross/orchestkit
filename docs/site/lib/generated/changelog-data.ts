@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.172",
+    "date": "2026-10-12",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**mods:** lesson-cards keeps tool.call context from hooks below ([#4726](https://github.com/yonatangross/orchestkit/issues/4726)) ([156f75c](https://github.com/yonatangross/orchestkit/commit/156f75c695a1c7fbe56223a9fa585c06fed51bc6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**traffic:** snapshot week of 2026-09-28 ([#4621](https://github.com/yonatangross/orchestkit/issues/4621)) ([c29f7b1](https://github.com/yonatangross/orchestkit/commit/c29f7b1ae71f0e29c2870bca5df96e9228695443))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.171",
     "date": "2026-10-11",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171",

@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172)** · 2026-10-12
+
+- **mods:** lesson-cards keeps tool.call context from hooks below (#4726)
+- **traffic:** snapshot week of 2026-09-28 (#4621)
+
 **[v10.0.0-beta.171](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171)** · 2026-10-11
 
 - **hooks:** add claude-haiku-5-5 to the model vocab and pricing (#4660)
@@ -667,11 +672,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165)** · 2026-10-07
 
 - **prompt-focus:** where your attention went, from your own prompts (#4657)
-
-**[v10.0.0-beta.164](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.163...v10.0.0-beta.164)** · 2026-10-07
-
-- **hooks:** display-lint hint is shell-aware, model-only, once per session (#4655)
-- **skills:** reference skills load inline; ork:auto routes e2e asks (#4656)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
