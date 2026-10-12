@@ -3,7 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import { StarLink } from "./star-link";
-import { COUNTS, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
+import { COUNTS, HOME_TITLE, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
@@ -23,11 +23,11 @@ import { HomeHeroArt } from "@/components/home-hero-art";
 // the built homepage even when the file-based opengraph-image route returned 200.
 export const metadata: Metadata = {
 	title: {
-		absolute: SITE_TITLE,
+		absolute: HOME_TITLE,
 	},
 	description: PAGE_SUMMARY.site,
 	openGraph: {
-		title: SITE_TITLE,
+		title: HOME_TITLE,
 		description: PAGE_SUMMARY.site,
 		url: SITE.domain,
 		type: "website",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 		],
 	},
 	twitter: {
-		title: SITE_TITLE,
+		title: HOME_TITLE,
 		description: PAGE_SUMMARY.site,
 		images: ["/opengraph-image"],
 	},

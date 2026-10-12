@@ -23,7 +23,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/agents/overview": {
       "title": "Agents Overview",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/agents/writing-agents": {
       "title": "Writing Agents",
@@ -127,7 +127,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/agy": {
       "title": "Antigravity",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/getting-started/claude-code": {
       "title": "Claude Code",
@@ -155,11 +155,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/hosts": {
       "title": "Hosts",
-      "inbound": 9
+      "inbound": 10
     },
     "/docs/getting-started/installation": {
       "title": "OrchestKit Installation and Setup",
-      "inbound": 6
+      "inbound": 7
     },
     "/docs/getting-started/muse": {
       "title": "Muse Code",
@@ -171,7 +171,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/sandbox": {
       "title": "Try OrchestKit Safely",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/getting-started/skills-sh": {
       "title": "OpenCode and other skills.sh clients, plus Pi",
@@ -187,11 +187,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/guides/ask-fallback": {
       "title": "AskUserQuestion picker fallback (ORK_ASK_FALLBACK=text)",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/guides/cc-adoption": {
       "title": "How we adopt every Claude Code release",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/guides/claude-fable-5": {
       "title": "Claude Fable 5 with OrchestKit",
@@ -208,6 +208,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/guides/orchestkit-with-python-fastapi": {
       "title": "Using OrchestKit with Python and FastAPI",
       "inbound": 1
+    },
+    "/docs/guides/output-modes": {
+      "title": "Output modes: try them",
+      "inbound": 3
     },
     "/docs/hooks": {
       "title": "Hooks",
@@ -226,7 +230,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/hooks/overview": {
-      "title": "171 Hooks: What Fires When",
+      "title": "162 Hooks: What Fires When",
       "inbound": 3
     },
     "/docs/hooks/safety-hooks": {
@@ -619,7 +623,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/assess": {
       "title": "Assess",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/async-jobs": {
       "title": "Async Jobs",
@@ -671,7 +675,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/careful": {
       "title": "Careful",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/chain-patterns": {
       "title": "Chain Patterns",
@@ -731,11 +735,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/cover": {
       "title": "Cover",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/create-pr": {
       "title": "Create Pr",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/reference/skills/database-patterns": {
       "title": "Database Patterns",
@@ -883,7 +887,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/error-analysis": {
       "title": "Error Analysis",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/errors": {
       "title": "Errors",
@@ -907,7 +911,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/freeze": {
       "title": "Freeze",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/github-operations": {
       "title": "Github Operations",
@@ -1003,7 +1007,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/page-serve": {
       "title": "Page Serve",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/paired-probe": {
       "title": "Paired Probe",
@@ -1031,6 +1035,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/product-frameworks": {
       "title": "Product Frameworks",
+      "inbound": 2
+    },
+    "/docs/reference/skills/prompt-focus": {
+      "title": "Prompt Focus",
       "inbound": 2
     },
     "/docs/reference/skills/python-backend": {
@@ -1067,7 +1075,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/review-pr": {
       "title": "Review Pr",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/reference/skills/scope-appropriate-architecture": {
       "title": "Scope Appropriate Architecture",
@@ -1131,7 +1139,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/verify": {
       "title": "Verify",
-      "inbound": 7
+      "inbound": 8
     },
     "/docs/reference/skills/verify/checklists": {
       "title": "Verify: Checklists",
@@ -1280,6 +1288,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/troubleshooting/hook-debugging": {
       "title": "Hook Debugging",
       "inbound": 1
+    },
+    "/docs/whats-new-v10": {
+      "title": "What's new in v10",
+      "inbound": 1
     }
   },
   "out": {
@@ -1395,7 +1407,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/foundations/overview": [
       "/docs/foundations/skills-agents-hooks",
       "/docs/getting-started/first-10-minutes",
-      "/docs/getting-started/installation"
+      "/docs/getting-started/installation",
+      "/docs/whats-new-v10"
     ],
     "/docs/foundations/skills-agents-hooks": [
       "/docs/foundations/choosing-a-plugin",
@@ -1495,7 +1508,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/guides/claude-fable-5",
       "/docs/guides/orchestkit-on-pi-codex-cursor",
       "/docs/guides/orchestkit-with-nextjs",
-      "/docs/guides/orchestkit-with-python-fastapi"
+      "/docs/guides/orchestkit-with-python-fastapi",
+      "/docs/guides/output-modes"
     ],
     "/docs/guides/ask-fallback": [],
     "/docs/guides/cc-adoption": [
@@ -1509,6 +1523,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/guides/orchestkit-with-python-fastapi": [
       "/docs/reference/skills"
+    ],
+    "/docs/guides/output-modes": [
+      "/docs/guides/ask-fallback"
     ],
     "/docs/hooks": [
       "/docs/hooks/architecture",
@@ -2025,6 +2042,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/prioritization",
       "/docs/reference/skills/product-analytics",
       "/docs/reference/skills/product-frameworks",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/python-backend",
       "/docs/reference/skills/quality-gates",
       "/docs/reference/skills/rag-retrieval",
@@ -2243,7 +2261,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/fix-issue": [],
     "/docs/reference/skills/freeze": [],
     "/docs/reference/skills/github-operations": [],
-    "/docs/reference/skills/glyph": [],
+    "/docs/reference/skills/glyph": [
+      "/docs/guides/output-modes"
+    ],
     "/docs/reference/skills/golden-dataset": [],
     "/docs/reference/skills/help": [],
     "/docs/reference/skills/i18n-date-patterns": [],
@@ -2283,6 +2303,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/prioritization": [],
     "/docs/reference/skills/product-analytics": [],
     "/docs/reference/skills/product-frameworks": [],
+    "/docs/reference/skills/prompt-focus": [],
     "/docs/reference/skills/python-backend": [],
     "/docs/reference/skills/quality-gates": [],
     "/docs/reference/skills/rag-retrieval": [],
@@ -2412,6 +2433,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/okr-design",
       "/docs/reference/skills/portless",
       "/docs/reference/skills/product-analytics",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/release-management",
       "/docs/reference/skills/setup",
       "/docs/reference/skills/telemetry-inspect",
@@ -2649,6 +2671,24 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/hooks/safety-hooks",
       "/docs/skills/writing-skills"
     ],
-    "/docs/troubleshooting/hook-debugging": []
+    "/docs/troubleshooting/hook-debugging": [],
+    "/docs/whats-new-v10": [
+      "/docs/agents/overview",
+      "/docs/getting-started/agy",
+      "/docs/getting-started/hosts",
+      "/docs/getting-started/installation",
+      "/docs/getting-started/sandbox",
+      "/docs/guides/cc-adoption",
+      "/docs/guides/output-modes",
+      "/docs/reference/skills/assess",
+      "/docs/reference/skills/careful",
+      "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-pr",
+      "/docs/reference/skills/error-analysis",
+      "/docs/reference/skills/freeze",
+      "/docs/reference/skills/page-serve",
+      "/docs/reference/skills/review-pr",
+      "/docs/reference/skills/verify"
+    ]
   }
 };

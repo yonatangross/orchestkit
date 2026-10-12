@@ -4,9 +4,19 @@
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
 import { rehypeCode, remarkGfm, remarkNpm } from "fumadocs-core/mdx-plugins";
 import lastModified from "fumadocs-mdx/plugins/last-modified";
+import { pageSchema } from "fumadocs-core/source/schema";
 
+// `seoTitle` is an optional search result title. It sets the HTML <title>,
+// og:title and twitter:title of a docs page. The `title` key stays short
+// because the sidebar, the breadcrumb and the H1 show it. Reuse the optional
+// string type of `description`, so this file does not import zod directly.
 export const docs = defineDocs({
   dir: "content/docs",
+  docs: {
+    schema: pageSchema.extend({
+      seoTitle: pageSchema.shape.description,
+    }),
+  },
 });
 
 export default defineConfig({

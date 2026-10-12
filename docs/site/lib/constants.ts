@@ -51,6 +51,11 @@ export const SITE_HOSTS = [
 
 export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length - 1} more agents`;
 
+// The homepage search result title (<title>, og:title, twitter:title). It
+// names what the reader gets. SITE_TITLE stays the OG card tagline and the
+// alt text of that card image, because the image shows that text.
+export const HOME_TITLE = `${SITE.name}: Claude Code Plugin with ${COUNTS.skills} Skills and ${COUNTS.agents} Agents`;
+
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
 // Markdown frontmatter carry the SAME description the HTML head publishes
@@ -59,7 +64,8 @@ export const PAGE_SUMMARY = {
   // Root layout `metadata.description`. The homepage sets no page-level
   // override, so this is the description of "/" itself. Counts match
   // opengraph-image.tsx (COUNTS from generated shared-data).
-  site: `${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks, for Claude Code and more coding agents. Stop explaining your stack. Start shipping.`,
+  // Keep it 140 to 160 characters: a search result cuts a longer one.
+  site: `Free, open source Claude Code plugin with ${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory. Also runs in Cursor and Codex.`,
   // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
   pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
 } as const;
