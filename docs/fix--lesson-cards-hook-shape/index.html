@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lesson-cards: keep tool.call context and stop glob-only matches | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; background: #fff; margin-bottom: 24px; }
+  th, td { border: 1px solid #e3ddd0; padding: 8px 10px; text-align: left; }
+  code { background: #efe9dd; padding: 1px 5px; }
+  .ok { color: #2f5d3a; font-weight: 600; }
+  .no { color: #8f2d21; font-weight: 600; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · LESSON-CARDS</p>
+<h1>Keep the tool.call context, and stop glob-only matches</h1>
+<p>Three faults in the lesson-cards mod, each pinned by a test written first.</p>
+
+<h2>1. A hook adds to the context, it never replaces it</h2>
+<p>With memory-lens and lesson-cards both on, lesson-cards returned its own context list and dropped the entry memory-lens had attached. Claude Code then printed "returned the wrong shape" and skipped the hook.</p>
+<table>
+  <tr><th>Context from the hook below</th><th>Context lesson-cards returns</th></tr>
+  <tr><td><code>["memory note"]</code></td><td class="ok"><code>["memory note", "[lesson:...]"]</code></td></tr>
+  <tr><td><code>["ok", "", 42]</code></td><td class="ok"><code>["ok", "[lesson:...]"]</code> (empty and non-string entries dropped)</td></tr>
+</table>
+
+<h2>2. A file entry needs its content regex, and exclude paths are substrings</h2>
+<p>In the live corpus, 18 of 31 entries carry a file glob and a content regex in <code>pattern</code> or <code>trigger_pattern</code>, with no <code>check_patterns</code>. The matcher ignored the regex, so the block entry <code>langfuse-v4-client</code> (<code>**/*.py</code>) asked "Proceed anyway?" on every Python write. Its <code>exclude_paths</code> (<code>/tests/</code>, <code>.md</code>) are plain substrings that were read as full-path globs and never matched.</p>
+<table>
+  <tr><th>Write</th><th>Before</th><th>After</th></tr>
+  <tr><td><code>service.py</code> with unrelated code</td><td class="no">fires</td><td class="ok">no match</td></tr>
+  <tr><td><code>service.py</code> containing <code>langfuse.client.score</code></td><td class="ok">fires</td><td class="ok">fires</td></tr>
+  <tr><td><code>apps/api/tests/test_scores.py</code> containing the pattern</td><td class="no">fires</td><td class="ok">excluded</td></tr>
+  <tr><td>glob-only entry, no regex at all</td><td class="ok">matches on the file</td><td class="ok">matches on the file</td></tr>
+</table>
+<p>Not covered: <code>require_pattern</code> and <code>window_lines</code> of the window-check entries are still not evaluated for file writes.</p>
+</body>
+</html>

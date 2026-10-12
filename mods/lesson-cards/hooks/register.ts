@@ -315,7 +315,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // CC reads an answer that drops an entry a hook below attached as the
     // wrong shape and skips this hook.
     const result = (next ? ((await next(e)) ?? {}) : {}) as Record<string, unknown>;
-    const prior = Array.isArray(result.context) ? (result.context as unknown[]) : [];
+    const prior = Array.isArray(result.context)
+      ? (result.context as unknown[]).filter((c): c is string => typeof c === 'string' && c !== '')
+      : [];
     return { ...result, context: [...prior, context] };
   });
 

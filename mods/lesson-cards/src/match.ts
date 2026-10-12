@@ -170,7 +170,12 @@ function pathExcluded(pattern: LessonPattern, filePath: string): boolean {
   if (!pattern.exclude_paths || pattern.exclude_paths.length === 0) {
     return false;
   }
-  return pattern.exclude_paths.some(ex => simpleGlobMatch(filePath, ex));
+  const normalized = filePath.replace(/\\/g, '/');
+  // The corpus writes plain substrings ("/tests/", ".md", "/configs/"); an
+  // entry with glob characters keeps the glob reading.
+  return pattern.exclude_paths.some(ex =>
+    /[*?[]/.test(ex) ? simpleGlobMatch(filePath, ex) : normalized.includes(ex.replace(/\\/g, '/')),
+  );
 }
 
 /**
@@ -316,8 +321,21 @@ export function matchFileEdit(
       if (!matchedAny) {
         continue;
       }
+    } else if ((pat.pattern || pat.trigger_pattern) && (pat.file_glob || pat.file_match)) {
+      // The corpus's usual file entry: a file_glob plus the content regex in
+      // pattern (simple) or trigger_pattern (window-check). The glob alone
+      // would fire on every matching file.
+      let contentRegex: RegExp;
+      try {
+        contentRegex = new RegExp((pat.pattern || pat.trigger_pattern) as string, 'i');
+      } catch {
+        continue;
+      }
+      if (!contentRegex.test(content)) {
+        continue;
+      }
     } else if (!pat.file_glob && !pat.file_match) {
-      // No file filter and no check_patterns, skip
+      // No file filter and no content test, skip
       continue;
     }
 
