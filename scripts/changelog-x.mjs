@@ -45,6 +45,8 @@ import {
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CHANGELOG_PATH = join(ROOT, 'CHANGELOG.md');
+// No 120-character video cap: the formatter cuts each bullet by X weight.
+const FULL_TEXT = { maxDescription: Infinity };
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 // Upstream sources for the `upstream` mode. Only enabled sources run.
@@ -183,7 +185,7 @@ async function runRelease(opts) {
     summary(`### X changelog: release\n\nv${version} is a prerelease. The nightly beta digest covers it. No post.`);
     return;
   }
-  const parsed = parseChangelog(readChangelog(), version);
+  const parsed = parseChangelog(readChangelog(), version, FULL_TEXT);
   const threads = [buildReleasePosts(parsed)];
   // A dry run checks once and does not wait for the render.
   const wait = isLive() ? Number(opts['media-wait-seconds'] || 0) : 0;
@@ -222,7 +224,7 @@ async function runBetaDigest(opts) {
   const betas = recent.map((r) => {
     const version = String(r.tag_name).replace(/^v/, '');
     try {
-      return { version, highlights: parseChangelog(changelog, version).highlights };
+      return { version, highlights: parseChangelog(changelog, version, FULL_TEXT).highlights };
     } catch {
       notes.push(`v${version} has no CHANGELOG.md section; counted with 0 changes.`);
       return { version, highlights: [] };

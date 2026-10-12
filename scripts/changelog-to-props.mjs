@@ -85,7 +85,10 @@ const SECTION_RE = new RegExp(
 const VERSION_HEADER_RE =
   /^## \[([^\]]+)\](?:\([^)]*\))?\s*(?:-|\()\s*(\d{4}-\d{2}-\d{2})/;
 
-export function parseChangelog(content, targetVersion) {
+// `maxDescription` caps each description for video readability. Pass Infinity
+// to keep the full text (scripts/changelog-x.mjs cuts by X weight instead, and
+// a cap here can cut a markdown link in half before it is stripped).
+export function parseChangelog(content, targetVersion, { maxDescription = 120 } = {}) {
   const lines = content.split("\n");
 
   let currentVersion = null;
@@ -180,8 +183,8 @@ export function parseChangelog(content, targetVersion) {
       description = description.replace(/`/g, "").replace(/\*\*/g, "");
 
       // Cap description length for video readability
-      if (description.length > 120) {
-        description = description.slice(0, 117) + "...";
+      if (description.length > maxDescription) {
+        description = description.slice(0, maxDescription - 3) + "...";
       }
 
       highlights.push({ category: currentCategory, title, description });

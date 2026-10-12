@@ -44,7 +44,24 @@ export function weightedLength(text) {
   return total + plainWeight(text.slice(last));
 }
 
+// X also links text with no scheme when it ends in a TLD ("x.com",
+// "CLAUDE.md" is not, "notes.new" is), and counts it as URL_WEIGHT. Matching
+// the real TLD list here is not worth it, so every word.word token with a
+// letters-only ending counts as at least URL_WEIGHT. That can count high
+// ("Node.js"), which only makes a post shorter; it never counts low.
+const BARE_DOMAIN_RE = /(?<![\w@.\/-])[A-Za-z0-9][\w-]*(?:\.[\w-]+)*\.[A-Za-z]{2,}(?![\w.-]*\w)/g;
+
 function plainWeight(s) {
+  let total = 0;
+  let last = 0;
+  for (const m of s.matchAll(BARE_DOMAIN_RE)) {
+    total += charsWeight(s.slice(last, m.index)) + Math.max(URL_WEIGHT, charsWeight(m[0]));
+    last = m.index + m[0].length;
+  }
+  return total + charsWeight(s.slice(last));
+}
+
+function charsWeight(s) {
   let w = 0;
   for (const ch of s) w += charWeight(ch.codePointAt(0));
   return w;

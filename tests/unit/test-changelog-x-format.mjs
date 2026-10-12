@@ -35,6 +35,7 @@ import {
 } from '../../scripts/lib/changelog-x-format.mjs';
 import { isLive, newSince, recentPrereleases, readState, renderSummary } from '../../scripts/changelog-x.mjs';
 import { oauthHeader, credsFromEnv } from '../../scripts/lib/x-client.mjs';
+import { parseChangelog } from '../../scripts/changelog-to-props.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -226,6 +227,33 @@ check('OAuth 1.0a signature matches the published X example', () => {
     bodyParams: { status: 'Hello Ladies + Gentlemen, a signed OAuth request!' },
   });
   assert.ok(header.includes('oauth_signature="hCtSmYh%2BiHYCEqBWrE7C7hYmtUk%3D"'), header);
+});
+
+check('weightedLength never counts a bare domain lower than a URL', () => {
+  // X links "x.com" with no scheme and counts it as 23. Counting high is safe.
+  assert.equal(weightedLength('x.com'), 23);
+  assert.equal(weightedLength('see CLAUDE.md'), 4 + 23);
+  // Version numbers are not domains.
+  assert.equal(weightedLength('v10.0.0-beta.171'), 16);
+});
+
+check('a long changelog entry keeps its links whole (no 120 character cap)', () => {
+  const url = 'https://github.com/yonatangross/orchestkit/issues/1403';
+  const md = [
+    '## [9.9.0](https://example.invalid/compare) (2026-08-10)',
+    '',
+    '### Features',
+    '',
+    `* **ci:** de-noise PR rollup signals and auto-sync the version files across every manifest (Closes [#1403](${url}))`,
+    '',
+  ].join('\n');
+  // The video keeps its cap, which cuts this link in half.
+  assert.match(parseChangelog(md, '9.9.0').highlights[0].description, /\.\.\.$/);
+  const parsed = parseChangelog(md, '9.9.0', { maxDescription: Infinity });
+  const posts = buildReleasePosts(parsed);
+  assert.ok(allWithinLimit(posts));
+  assert.ok(posts[0].includes('(Closes #1403)'), posts[0]);
+  assert.ok(!posts[0].includes('github.com/yonatangross/orchestkit/i'), posts[0]);
 });
 
 console.log(`\n  Total: ${pass + fail}  |  Passed: ${pass}  |  Failed: ${fail}`);
