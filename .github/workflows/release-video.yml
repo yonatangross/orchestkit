@@ -10,7 +10,7 @@
 # Pipeline:
 #   parse-changelog → render-videos → upload-to-release
 #
-# Artifacts: 16:9 MP4, 1:1 MP4, GIF preview
+# Artifacts: 16:9 MP4, 1:1 MP4, GIF preview, 1:1 GIF
 # All uploaded as release assets.
 
 name: Release Video
@@ -189,6 +189,12 @@ jobs:
           ffmpeg -y -i out/landscape-raw.mp4 \
             -vf "fps=10,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=64[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
             "out/release-${VERSION}-preview.gif"
+
+          # 1:1 GIF from the square render. release-changelog-x.yml attaches
+          # it to the X post for a stable release, and skips media without it.
+          ffmpeg -y -i out/square-raw.mp4 \
+            -vf "fps=10,scale=480:480:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=64[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
+            "out/release-${VERSION}-square.gif"
 
           # Clean up raw files
           rm -f out/landscape-raw.mp4 out/square-raw.mp4
