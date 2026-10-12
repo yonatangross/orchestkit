@@ -13,7 +13,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/agents",
     "title": "Agents",
-    "description": "Specialist sub-agents with their own context window, tools, and system prompt."
+    "description": "Agents are specialists with their own context window, tools and prompt. Learn when to use one, how to choose it, and how to run several in parallel."
   },
   {
     "url": "/docs/agents/multi-agent-patterns",
@@ -23,7 +23,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/agents/overview",
     "title": "Agents Overview",
-    "description": "36 specialized agents: how they activate, what they know, and when to use each."
+    "description": "Each OrchestKit agent is a specialist subagent for Claude Code. See how agents start from your prompt, which model each one uses, and which agent fits a task."
   },
   {
     "url": "/docs/agents/writing-agents",
@@ -38,7 +38,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/changelog",
     "title": "Changelog",
-    "description": "All notable changes to OrchestKit, following Keep a Changelog and Semantic Versioning."
+    "description": "Every OrchestKit release, newest first, with what changed, why it matters and the PR to open. Follows Keep a Changelog and Semantic Versioning. RSS too."
   },
   {
     "url": "/docs/cookbook/claude-design-handoff",
@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 162 hooks working together."
+    "description": "OrchestKit is one Claude Code plugin. Hooks run on every action, agents start from your prompt, and skills load the right patterns. Stop explaining your stack."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -153,7 +153,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/claude-code",
     "title": "Claude Code",
-    "description": "Install the full OrchestKit ork plugin in Claude Code. Skills, agents, hooks, /ork:doctor, and context7."
+    "description": "Add the full ork plugin to Claude Code with two commands, check it with /ork:doctor, and connect the context7 MCP server that many agents use for library docs."
   },
   {
     "url": "/docs/getting-started/codex",
@@ -178,7 +178,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/first-10-minutes",
     "title": "Your First 10 Minutes",
-    "description": "From install to your first AI-assisted commit, a guided walkthrough."
+    "description": "Run a health check, write a conventional commit, watch agents start from plain prompts, and store a decision in memory. All in your first ten minutes."
   },
   {
     "url": "/docs/getting-started/hosts",
@@ -188,12 +188,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started",
     "title": "Getting Started",
-    "description": "Install OrchestKit, run your first workflow, and learn how the pieces fit together."
+    "description": "Install OrchestKit in Claude Code or another host, run a real workflow in your first ten minutes, then learn how to find skills and configure the plugin."
   },
   {
     "url": "/docs/getting-started/installation",
     "title": "OrchestKit Installation and Setup",
-    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, OpenCode (and other skills.sh clients), Muse Code, Pi or Antigravity."
+    "description": "Copy one install command for your host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity or skills.sh. Then run /ork:setup to configure it."
   },
   {
     "url": "/docs/getting-started/muse",
@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks",
     "title": "Hooks",
-    "description": "Deterministic TypeScript checks that run around every tool call."
+    "description": "Hooks are deterministic TypeScript checks around every Claude Code tool call. They block unsafe commands, inject context and save memory with no prompt needed."
   },
   {
     "url": "/docs/hooks/lifecycle-hooks",
@@ -283,7 +283,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/overview",
     "title": "162 Hooks: What Fires When",
-    "description": "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
+    "description": "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
   },
   {
     "url": "/docs/hooks/safety-hooks",
@@ -343,7 +343,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/memory/overview",
     "title": "3-Tier Memory Architecture",
-    "description": "How OrchestKit persists decisions, patterns, and context across sessions using a layered memory system."
+    "description": "OrchestKit stores your decisions once and brings them back in later Claude Code sessions. See the three memory tiers, the confidence rule and the hooks."
   },
   {
     "url": "/docs/reference/agents/accessibility-specialist",
@@ -1543,12 +1543,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills",
     "title": "Skills",
-    "description": "Reusable capability modules that teach Claude Code a workflow once and reuse it every session."
+    "description": "Skills teach Claude Code a workflow once and reuse it in every session. Learn command skills, reference skills, skill composition and how to write your own."
   },
   {
     "url": "/docs/skills/overview",
     "title": "How Skills Work",
-    "description": "Skills are reusable knowledge modules (SKILL.md files with optional references) that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
+    "description": "A skill is a SKILL.md file of knowledge, not code. See how OrchestKit loads skills into context, which frontmatter fields matter, and how the budget scales."
   },
   {
     "url": "/docs/skills/reference-skills",
@@ -1603,6 +1603,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/troubleshooting",
     "title": "Troubleshooting",
-    "description": "Solutions for the 10 most common OrchestKit issues."
+    "description": "Fix the 10 most common OrchestKit problems: plugin not found, hooks not firing, skills not loading and more. Each issue gives the symptom, cause and fix."
+  },
+  {
+    "url": "/docs/whats-new-v10",
+    "title": "What's new in v10",
+    "description": "The main changes in the OrchestKit v10 betas: new hosts, Claude 5.5 models, a stronger PR review, test and eval skills, and safety guards you turn on."
   }
 ];
