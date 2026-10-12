@@ -335,6 +335,21 @@ describe('tool.call', () => {
     expect(String(result.context?.[1])).toContain('lesson:cancelled-check-is-not-pass');
   });
 
+  test('adds its card once when the context below already holds it', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const call = (prior: string[]) =>
+      hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ok', context: prior })) as Promise<{ context?: string[] }>;
+    const own = (await call([])).context?.[0] as string;
+    expect(own).toContain('lesson:cancelled-check-is-not-pass');
+
+    expect((await call([own])).context).toEqual([own]);
+    expect((await call(['memory', own])).context).toEqual(['memory', own]);
+    expect((await call(['memory'])).context).toEqual(['memory', own]);
+  });
+
   test('keeps every prior context entry for an Edit match too', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
