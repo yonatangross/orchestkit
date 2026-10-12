@@ -16,6 +16,17 @@
 
 </div>
 
+## Start here
+
+OrchestKit is a free, open source Claude Code plugin: skills, agents and hooks for review, testing, security and memory.
+
+```bash
+claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
+```
+
+[Docs](https://orchestkit.yonyon.ai/docs) · [What's new in v10](https://orchestkit.yonyon.ai/docs/whats-new-v10) · [yonyon.ai](https://yonyon.ai)
+<!-- X account link: add it here when the account exists. -->
+
 ---
 
 <p align="center">
