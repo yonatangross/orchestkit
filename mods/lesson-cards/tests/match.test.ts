@@ -395,6 +395,76 @@ describe('matchFileEdit with the real corpus shape', () => {
     expect(matchFileEdit('ops/label.yml', right, [mutation])).toEqual([]);
   });
 
+  // The other two corpus kinds, field for field from the live corpus. The hq-ext
+  // guard reads them with their own rules (evalBlockCheck, evalDockerfileCheck):
+  // a file_match string is a path SUFFIX and the content decides. The mod read
+  // both as "the file matches, so fire": a BLOCK on every Dockerfile write.
+  const dockerfile: LessonPattern = {
+    id: 'dockerfile-editable-install',
+    type: 'dockerfile-check',
+    severity: 'block',
+    category: 'prompt_quality',
+    file_match: 'Dockerfile',
+    message: 'Editable installs create .pth files pointing to /src. Runtime stage must COPY that src/ dir.',
+  };
+  const pnpm: LessonPattern = {
+    id: 'pnpm-major-override',
+    type: 'block-check',
+    severity: 'block',
+    category: 'prompt_quality',
+    file_match: 'package.json',
+    block_pattern: '"pnpm"\\s*:\\s*\\{[\\s\\S]*?"overrides"\\s*:\\s*\\{([\\s\\S]*?)\\}',
+    check_patterns: [
+      '"brace-expansion"\\s*:\\s*"(?:>=|\\^|~)?\\s*[5-9]',
+      '"[\\w@\\/-]+"\\s*:\\s*"(?:>=|\\^|~)?\\s*([5-9]|\\d{2,})\\.\\d+\\.\\d+"',
+    ],
+    message: 'A major-version pnpm override breaks consumer exports.',
+  };
+
+  test('dockerfile-check: unrelated Dockerfile content does not fire', () => {
+    expect(matchFileEdit('services/api/Dockerfile', 'FROM alpine\nRUN echo hi\n', [dockerfile])).toEqual([]);
+  });
+
+  test('dockerfile-check: an editable install with its src COPY is quiet (RIGHT)', () => {
+    const right = [
+      'RUN uv pip install -e /app/packages/observability-core',
+      'COPY --from=builder /app/packages/observability-core/src /app/packages/observability-core/src',
+    ].join('\n');
+    expect(matchFileEdit('services/api/Dockerfile', right, [dockerfile])).toEqual([]);
+  });
+
+  test('dockerfile-check: an editable install without the src COPY fires (WRONG)', () => {
+    const hit = matchFileEdit('services/api/Dockerfile', 'RUN uv pip install -e /app/packages/observability-core\n', [dockerfile]);
+    expect(hit.map(m => m.id)).toEqual(['dockerfile-editable-install']);
+    expect(hit[0].severity).toBe('block');
+  });
+
+  test('dockerfile-check: only a path ending in file_match is read', () => {
+    expect(matchFileEdit('services/api/Dockerfile.md', 'RUN uv pip install -e /app/packages/x\n', [dockerfile])).toEqual([]);
+  });
+
+  test('block-check: a major version outside the overrides block does not fire', () => {
+    const pkg = JSON.stringify({ dependencies: { react: '^19.0.0' }, pnpm: { overrides: { 'brace-expansion': '^4.0.1' } } }, null, 2);
+    expect(matchFileEdit('package.json', pkg, [pnpm])).toEqual([]);
+  });
+
+  test('block-check: a minor-range override is quiet (RIGHT)', () => {
+    const pkg = '{\n  "pnpm": {\n    "overrides": { "brace-expansion": "^4.0.1" }\n  }\n}';
+    expect(matchFileEdit('package.json', pkg, [pnpm])).toEqual([]);
+  });
+
+  test('block-check: a major-version override fires (WRONG)', () => {
+    const pkg = '{\n  "pnpm": {\n    "overrides": { "brace-expansion": ">=5.0.5" }\n  }\n}';
+    const hit = matchFileEdit('package.json', pkg, [pnpm]);
+    expect(hit.map(m => m.id)).toEqual(['pnpm-major-override']);
+    expect(hit[0].severity).toBe('block');
+  });
+
+  test('block-check: only a path ending in file_match is read', () => {
+    const pkg = '{\n  "pnpm": {\n    "overrides": { "brace-expansion": ">=5.0.5" }\n  }\n}';
+    expect(matchFileEdit('docs/package.json.md', pkg, [pnpm])).toEqual([]);
+  });
+
   test('a glob-only entry with no content regex still matches on the file alone', () => {
     const fileOnly: LessonPattern = { id: 'g', severity: 'warn', category: 'x', file_glob: '**/*.py', message: 'm' };
     expect(matchFileEdit('a/b.py', 'anything', [fileOnly]).map(m => m.id)).toEqual(['g']);
