@@ -307,6 +307,36 @@ function contentFires(pat: LessonPattern, content: string): boolean {
 }
 
 /**
+ * The two typed corpus kinds that carry their own rule, read the way the
+ * hq-ext guard reads them (evalBlockCheck, evalDockerfileCheck). The path
+ * must END with file_match; the content then decides.
+ * - block-check: block_pattern captures a region (group 1, else the whole
+ *   match) and check_patterns are tested against that region only.
+ * - dockerfile-check: each `uv pip install ... -e /app/packages/<pkg>` needs
+ *   a `COPY --from=builder /app/packages/<pkg>/src` in the same file.
+ * An invalid regex never fires.
+ */
+function typedCheckFires(pat: LessonPattern, filePath: string, content: string): boolean {
+  if (!pat.file_match || !filePath.endsWith(pat.file_match)) return false;
+  try {
+    if (pat.type === 'block-check') {
+      if (!pat.block_pattern) return false;
+      const block = content.match(new RegExp(pat.block_pattern));
+      if (!block) return false;
+      const body = block[1] || block[0];
+      return (pat.check_patterns ?? []).some(check => new RegExp(check).test(body));
+    }
+    const editable = /uv pip install[^\n]*-e\s+\/app\/packages\/([\w-]+)\/?/g;
+    for (const found of content.matchAll(editable)) {
+      if (!new RegExp(`COPY\\s+--from=builder\\s+/app/packages/${found[1]}/src`).test(content)) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Match Edit/Write args against patterns.
  *
  * Checks file_path against file_glob and new content against check_patterns.
@@ -327,6 +357,15 @@ export function matchFileEdit(
 
     // Check repo filter
     if (!repoAllowed(pat, currentRepo)) {
+      continue;
+    }
+
+    // block-check and dockerfile-check carry their own rule; the generic
+    // glob, exclude and check_patterns steps below do not apply to them.
+    if (pat.type === 'block-check' || pat.type === 'dockerfile-check') {
+      if (typedCheckFires(pat, filePath, content)) {
+        matches.push({ id: pat.id, severity: pat.severity, message: pat.message, fix: pat.example_fix, source: 'pattern' });
+      }
       continue;
     }
 

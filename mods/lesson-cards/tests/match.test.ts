@@ -465,7 +465,9 @@ describe('matchFileEdit with the real corpus shape', () => {
     expect(matchFileEdit('docs/package.json.md', pkg, [pnpm])).toEqual([]);
   });
 
-  test('a glob-only entry with no content regex still matches on the file alone', () => {
+  // Hand-written, untyped, no regex: the corpus has no such entry (the typed
+  // file-only kinds are tested above), so this only pins the legacy fixture form.
+  test('an untyped glob-only entry with no content regex matches on the file alone', () => {
     const fileOnly: LessonPattern = { id: 'g', severity: 'warn', category: 'x', file_glob: '**/*.py', message: 'm' };
     expect(matchFileEdit('a/b.py', 'anything', [fileOnly]).map(m => m.id)).toEqual(['g']);
   });
