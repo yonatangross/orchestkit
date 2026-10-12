@@ -21,7 +21,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, appendFileSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SNAPSHOT_DIR = join(ROOT, 'shared/cc-snapshots');
@@ -343,6 +343,6 @@ function main() {
 
 // Run only as the entry point. scripts/changelog-x.mjs imports parseVersions,
 // and an unguarded main() would snapshot files on that import.
-if (process.argv[1] !== undefined && pathToFileURL(process.argv[1]).href === import.meta.url) {
+if (process.argv[1] !== undefined && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   main();
 }
