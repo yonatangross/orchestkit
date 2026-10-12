@@ -306,6 +306,35 @@ describe('tool.call', () => {
     expect(result.context?.[0]).toContain('lesson:cancelled-check-is-not-pass');
   });
 
+  // CC reads a tool.call answer whose context lacks an entry a hook below
+  // attached as the wrong shape and skips the hook (seen live 2026-10-12 with
+  // memory-lens enabled beside lesson-cards): a hook adds to the context its
+  // next() returned, it never replaces it.
+  test('keeps the context a hook below attached and adds its own after it', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ok', context: ['memory-lens: related memory'] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { result?: string; context?: string[] };
+    expect(result.result).toBe('ok');
+    expect(result.context?.length).toBe(2);
+    expect(result.context?.[0]).toBe('memory-lens: related memory');
+    expect(result.context?.[1]).toContain('lesson:cancelled-check-is-not-pass');
+  });
+
+  test('keeps every prior context entry for an Edit match too', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ran', context: ['a', 'b'] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', old_string: 'pass', new_string: 'pytest.main()' }, next)) as { context?: string[] };
+    expect(result.context?.slice(0, 2)).toEqual(['a', 'b']);
+    expect(result.context?.length).toBe(3);
+    expect(result.context?.[2]).toContain('[lesson:no-pytest-main]');
+  });
+
   test('returns the next result unchanged when nothing matches', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$();
