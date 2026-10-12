@@ -28,6 +28,7 @@ const PATTERNS = [
     severity: 'block',
     category: 'ci',
     pattern: 'gh pr checks',
+    tool_names: ['Bash'], // as the live entry: a Bash-only rule must not reach a file write
     message: 'Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.',
     example_fix: 'Use gh pr view with --json to check mergeStateStatus.',
   },

@@ -465,6 +465,56 @@ describe('matchFileEdit with the real corpus shape', () => {
     expect(matchFileEdit('docs/package.json.md', pkg, [pnpm])).toEqual([]);
   });
 
+  // Entries with a content test and NO file filter, field for field from the
+  // live corpus (tool_names null on both). The hq-ext guard evaluates them on
+  // every file write; the mod skipped them because it needed a file filter.
+  const pgDump: LessonPattern = {
+    id: 'pg-dump-fc-gzip-redundant',
+    type: 'simple',
+    severity: 'warn',
+    category: 'prompt_quality',
+    pattern: 'pg_dump[^|\\n]*-Fc[^|\\n]*\\|\\s*gzip',
+    exclude_paths: ['/tests/', '.md', '/configs/'],
+    message: 'pg_dump -Fc already compresses; piping through gzip is redundant.',
+  };
+  const pgvector: LessonPattern = {
+    id: 'pgvector-pg-version-mismatch',
+    type: 'window-check',
+    severity: 'warn',
+    category: 'prompt_quality',
+    trigger_pattern: 'pgvector/pgvector:pg1[567]',
+    require_pattern: '(test|drill|ephemeral|legacy)',
+    window_lines: 10,
+    exclude_paths: ['/tests/', '.md'],
+    message: 'Prod uses the newest pgvector image; match it unless testing legacy.',
+  };
+
+  test('no file filter: pg-dump fires on its WRONG code in a script and is quiet on RIGHT', () => {
+    expect(matchFileEdit('ops/backup.sh', 'pg_dump -Fc db | gzip > db.sql.gz', [pgDump]).map(m => m.id)).toEqual(['pg-dump-fc-gzip-redundant']);
+    expect(matchFileEdit('ops/backup.sh', 'pg_dump -Fc db > db.dump', [pgDump])).toEqual([]);
+  });
+
+  test('no file filter: exclude_paths still excludes', () => {
+    expect(matchFileEdit('ops/tests/backup.sh', 'pg_dump -Fc db | gzip > db.sql.gz', [pgDump])).toEqual([]);
+    expect(matchFileEdit('docs/backup.md', 'pg_dump -Fc db | gzip > db.sql.gz', [pgDump])).toEqual([]);
+  });
+
+  test('no file filter: pgvector fires on an old image with no test word in its window, quiet on RIGHT', () => {
+    const wrong = 'services:\n  db:\n    image: pgvector/pgvector:pg17\n';
+    const right = 'services:\n  db:\n    image: pgvector/pgvector:pg18\n';
+    const legacy = 'services:\n  db:\n    # legacy restore drill\n    image: pgvector/pgvector:pg17\n';
+    expect(matchFileEdit('compose.yml', wrong, [pgvector]).map(m => m.id)).toEqual(['pgvector-pg-version-mismatch']);
+    expect(matchFileEdit('compose.yml', right, [pgvector])).toEqual([]);
+    expect(matchFileEdit('compose.yml', legacy, [pgvector])).toEqual([]);
+  });
+
+  test('no file filter: an Edit-only content entry fires, a Bash-only one does not', () => {
+    const editOnly: LessonPattern = { id: 'e', severity: 'warn', category: 'x', pattern: 'secret', tool_names: ['Edit'], message: 'm' };
+    const bashOnly: LessonPattern = { id: 'b', severity: 'warn', category: 'x', pattern: 'secret', tool_names: ['Bash'], message: 'm' };
+    expect(matchFileEdit('file.txt', 'secret', [editOnly]).map(m => m.id)).toEqual(['e']);
+    expect(matchFileEdit('file.txt', 'secret', [bashOnly])).toEqual([]);
+  });
+
   // Hand-written, untyped, no regex: the corpus has no such entry (the typed
   // file-only kinds are tested above), so this only pins the legacy fixture form.
   test('an untyped glob-only entry with no content regex matches on the file alone', () => {
