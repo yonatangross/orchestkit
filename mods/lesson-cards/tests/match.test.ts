@@ -216,51 +216,102 @@ describe('repo filtering', () => {
   });
 });
 
-// The shapes below are copied from the live corpus (hq-ext 1.65.0
-// configs/lesson-patterns.json): 18 of its 31 entries carry file_glob and a
-// content regex in `pattern` or `trigger_pattern`, and no check_patterns.
-// 2 lanes were stopped on 2026-10-12 by "Proceed anyway?" dialogs for a block
-// entry like this one firing on every .py write.
+// Entry fields below are copied verbatim from the live corpus (hq-ext 1.65.0
+// configs/lesson-patterns.json): id, severity, pattern, trigger_pattern,
+// require_pattern, window_lines, file_glob and exclude_paths. Only the message
+// text is shortened (one live message names a client vault; this repo is
+// public). 18 of the 31 live entries have a file_glob and a content regex and
+// no check_patterns. The hq-ext guard reads them as: `simple` = the regex with
+// flag m against the content; `window-check` = a trigger line fires only when
+// require_pattern is absent from the window_lines around it.
 describe('matchFileEdit with the real corpus shape', () => {
   const langfuse: LessonPattern = {
     id: 'langfuse-v4-client',
     severity: 'block',
     category: 'prompt_quality',
-    pattern: '\\.client\\.client[.\\[]|\\b(?:langfuse|lf)\\.client\\s*[.\\[]',
+    pattern: '\\.client\\.client[.\\[]|\\b(?:langfuse|lf|langfuse_client|self\\.langfuse|self\\.lf)\\.client\\s*[.\\[]|Langfuse\\s*\\([^)]*\\)\\s*\\.client\\s*[.\\[]',
     file_glob: '**/*.py',
     exclude_paths: ['/tests/', '.md', 'pretool-lesson-guard', '/configs/'],
     message: 'Langfuse v4 removed the .client reach-in.',
   };
-  const window: LessonPattern = {
+  const deepgram: LessonPattern = {
+    id: 'deepgram-nova3-language',
+    severity: 'block',
+    category: 'prompt_quality',
+    trigger_pattern: '["\']nova-3["\']',
+    require_pattern: '\\blanguage\\b\\s*["\']?\\s*[=:]',
+    window_lines: 10,
+    file_glob: '**/*.py',
+    message: 'nova-3 needs a language.',
+  };
+  const httpx: LessonPattern = {
     id: 'httpx-catch-builtins-only',
     severity: 'warn',
-    category: 'quality',
-    trigger_pattern: 'except\\s+\\(?(?:ConnectionError|TimeoutError)',
+    category: 'prompt_quality',
+    trigger_pattern: '^\\s*import\\s+httpx\\b|^\\s*from\\s+httpx\\b',
+    require_pattern: 'HTTPError|HTTP_PROVIDER_ERRORS|TransportError|TimeoutException|ConnectError',
+    window_lines: 30,
     file_glob: '**/*.py',
-    exclude_paths: ['/tests/'],
-    message: 'Catch httpx errors, not builtins.',
+    exclude_paths: ['/tests/', '.md', 'pretool-lesson-guard', '/configs/', 'app/core/exceptions.py'],
+    message: 'Catch the httpx errors, not builtins.',
+  };
+  const opRef: LessonPattern = {
+    id: 'op-section-scoped-form',
+    severity: 'warn',
+    category: 'prompt_quality',
+    pattern: 'op://[^/\\s"\']+/[^/\\s"\']+/[A-Z_][A-Z0-9_]{3,}(?=["\'\\s])',
+    file_glob: '**/*.py',
+    exclude_paths: ['/tests/', '.md', '/configs/'],
+    message: 'Use the 4-part section-scoped op:// form.',
   };
 
   test('a glob-plus-pattern entry does not fire on unrelated content', () => {
     expect(matchFileEdit('src/app/service.py', 'def add(a, b):\n    return a + b\n', [langfuse])).toEqual([]);
   });
 
-  test('the same entry fires when the content holds its pattern', () => {
-    const hit = matchFileEdit('src/app/service.py', 'scores = langfuse.client.score.list()', [langfuse]);
-    expect(hit.map(m => m.id)).toEqual(['langfuse-v4-client']);
-  });
-
-  test('a trigger_pattern entry is tested against the content too', () => {
-    expect(matchFileEdit('src/app/io.py', 'x = 1', [window])).toEqual([]);
-    const hit = matchFileEdit('src/app/io.py', 'try:\n    pass\nexcept (ConnectionError, OSError):\n    pass', [window]);
-    expect(hit.map(m => m.id)).toEqual(['httpx-catch-builtins-only']);
+  test('langfuse: its own RIGHT code is quiet and its WRONG code fires', () => {
+    expect(matchFileEdit('src/app/s.py', 'scores = svc.management_api.scores.get_many(trace_id=t)', [langfuse])).toEqual([]);
+    expect(matchFileEdit('src/app/s.py', 'items = langfuse.client.dataset_items.list()', [langfuse]).map(m => m.id)).toEqual(['langfuse-v4-client']);
   });
 
   test('an exclude_paths substring excludes the file', () => {
-    const body = 'scores = langfuse.client.score.list()';
+    const body = 'items = langfuse.client.dataset_items.list()';
     expect(matchFileEdit('apps/api/tests/test_scores.py', body, [langfuse])).toEqual([]);
     expect(matchFileEdit('apps/api/configs/x.py', body, [langfuse])).toEqual([]);
     expect(matchFileEdit('apps/api/src/scores.py', body, [langfuse]).length).toBe(1);
+  });
+
+  test('simple entries use flag m, not i: a lowercase field is not a top-level ref', () => {
+    expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/credential"', [opRef])).toEqual([]);
+    expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/API Keys/LANGFUSE_PUBLIC_KEY"', [opRef])).toEqual([]);
+    expect(matchFileEdit('a/b.py', 'ref = "op://Vault/Item/LANGFUSE_PUBLIC_KEY"', [opRef]).map(m => m.id)).toEqual(['op-section-scoped-form']);
+  });
+
+  test('window-check: require_pattern in the window keeps the entry quiet (deepgram RIGHT)', () => {
+    const right = 'options = PrerecordedOptions(model="nova-3", language="multi")';
+    expect(matchFileEdit('svc/stt.py', right, [deepgram])).toEqual([]);
+  });
+
+  test('window-check: a trigger with no require_pattern in the window fires (deepgram WRONG)', () => {
+    const wrong = 'options = PrerecordedOptions(model="nova-3")';
+    const hit = matchFileEdit('svc/stt.py', wrong, [deepgram]);
+    expect(hit.map(m => m.id)).toEqual(['deepgram-nova3-language']);
+    expect(hit[0].severity).toBe('block');
+  });
+
+  test('window-check: window_lines bounds where require_pattern counts', () => {
+    const filler = Array.from({ length: 12 }, (_, i) => `x${i} = ${i}`);
+    const near = ['model = "nova-3"', ...filler.slice(0, 9), 'language = "multi"'].join('\n');
+    const far = ['model = "nova-3"', ...filler, 'language = "multi"'].join('\n');
+    expect(matchFileEdit('svc/stt.py', near, [deepgram])).toEqual([]);
+    expect(matchFileEdit('svc/stt.py', far, [deepgram]).map(m => m.id)).toEqual(['deepgram-nova3-language']);
+  });
+
+  test('window-check: the trigger is read line by line, so ^ anchors every line', () => {
+    const fires = 'import os\nimport httpx\n\nclient = httpx.Client()\n';
+    const quiet = 'import httpx\n\ntry:\n    pass\nexcept httpx.HTTPError:\n    pass\n';
+    expect(matchFileEdit('svc/io.py', fires, [httpx]).map(m => m.id)).toEqual(['httpx-catch-builtins-only']);
+    expect(matchFileEdit('svc/io.py', quiet, [httpx])).toEqual([]);
   });
 
   test('a glob-only entry with no content regex still matches on the file alone', () => {
