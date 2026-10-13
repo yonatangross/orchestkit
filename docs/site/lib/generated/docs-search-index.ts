@@ -193,7 +193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "OrchestKit Installation and Setup",
-    "description": "Copy one install command for your host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity or skills.sh. Then run /ork:setup to configure it."
+    "description": "Copy one install command for your host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity or skills.sh. On Claude Code, then run /ork:setup."
   },
   {
     "url": "/docs/getting-started/muse",
@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks",
     "title": "Hooks",
-    "description": "Hooks are deterministic TypeScript checks around every Claude Code tool call. They block unsafe commands, inject context and save memory with no prompt needed."
+    "description": "Hooks are deterministic TypeScript checks on Claude Code lifecycle events, from session start to tool calls. They block unsafe commands and save memory."
   },
   {
     "url": "/docs/hooks/lifecycle-hooks",
