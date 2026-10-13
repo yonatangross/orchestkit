@@ -13,6 +13,7 @@
 
 [![MCP Toplist](https://mcptoplist.com/badge/io.github.yonatangross%2Forchestkit.svg)](https://mcptoplist.com/server/io.github.yonatangross%2Forchestkit)
 [![skills.sh](https://www.skills.sh/b/yonatangross/orchestkit)](https://www.skills.sh/yonatangross/orchestkit)
+[![Vercel OSS Program](https://vercel.com/oss/program-badge-2026.svg)](https://vercel.com/open-source-program)
 
 </div>
 
