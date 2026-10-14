@@ -6,7 +6,7 @@
 // package-lock.json and resolved again, and fumadocs-ui floated from the
 // locked 16.15.17 to 16.17.x (TS2724, no useSearchList). The fallback must
 // keep every other locked version.
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
 	chmodSync,
 	cpSync,
@@ -35,7 +35,11 @@ fi
 exit 0
 `;
 
-function runOn401(): { calls: string[]; dir: string } {
+function runOn401(vercelEnv = "preview"): {
+	calls: string[];
+	dir: string;
+	status: number;
+} {
 	const dir = mkdtempSync(join(tmpdir(), "vercel-install-"));
 	const bin = join(dir, "bin");
 	cpSync(join(SITE, "package.json"), join(dir, "package.json"));
@@ -44,20 +48,35 @@ function runOn401(): { calls: string[]; dir: string } {
 	writeFileSync(join(bin, "npm"), FAKE_NPM);
 	chmodSync(join(bin, "npm"), 0o755);
 	const log = join(dir, "npm.log");
-	execFileSync("bash", [SCRIPT], {
+	const run = spawnSync("bash", [SCRIPT], {
 		cwd: dir,
 		env: {
 			...process.env,
 			PATH: `${bin}:${process.env.PATH}`,
 			NPM_LOG: log,
 			NPM_STATE: join(dir, "state"),
+			VERCEL_ENV: vercelEnv,
 		},
 		stdio: "pipe",
 	});
-	return { calls: readFileSync(log, "utf8").trim().split("\n"), dir };
+	return {
+		calls: readFileSync(log, "utf8").trim().split("\n"),
+		dir,
+		status: run.status ?? -1,
+	};
 }
 
-describe("vercel-install.sh on a 401", () => {
+describe("vercel-install.sh on a 401 in production", () => {
+	// A prod build must never ship the no-op analytics stub: a dead token
+	// fails the build loudly instead (#4737 review).
+	it("fails the install and never swaps in the stub", () => {
+		const { calls, status } = runOn401("production");
+		expect(status).not.toBe(0);
+		expect(calls).toEqual([expect.stringMatching(/^ci /)]);
+	});
+});
+
+describe("vercel-install.sh on a 401 outside production", () => {
 	it("keeps package-lock.json, so locked versions do not float", () => {
 		const { dir } = runOn401();
 		expect(existsSync(join(dir, "package-lock.json"))).toBe(true);
