@@ -18,7 +18,9 @@ fi
 if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
   echo "vercel-install: npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit), swapping to the local stub"
   npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-  rm -f package-lock.json
+  # Update the lock in place, never delete it: a fresh resolve floated
+  # fumadocs-ui past the locked version and broke every prod build (TS2724,
+  # 2026-10-11 to 2026-10-14). Only the swapped entry changes.
   npm install --no-audit --no-fund --package-lock-only --ignore-scripts
   exec npm ci --no-audit --no-fund
 fi
