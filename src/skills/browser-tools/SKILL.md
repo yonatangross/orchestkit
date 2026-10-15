@@ -2,7 +2,7 @@
 name: browser-tools
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.
+description: Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy is enforced by the Claude Code sandbox, not by this skill. Use when automating browser workflows that need safety limits.
 user-invocable: false
 metadata:
   owner-agent: "web-research-analyst"
@@ -249,19 +249,13 @@ Snapshot, ref lifecycle, iframe traversal, batch and diff workflows are upstream
 
 ### Configuration
 
-Rate limits and behavior are configurable via environment variables:
+These variables are read by the upstream agent-browser CLI. The rate-limit and robots.txt variables this table used to list were read by the `agent-browser-safety` hook, retired 2026-08-31, and did nothing after that.
 
 | Env Var | Default | Purpose |
 |---------|---------|---------|
-| `AGENT_BROWSER_RATE_LIMIT_PER_MIN` | 10 | Requests per minute per domain |
-| `AGENT_BROWSER_RATE_LIMIT_PER_HOUR` | 100 | Requests per hour per domain |
-| `AGENT_BROWSER_BURST_LIMIT` | 3 | Max requests in 3-second window |
-| `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
-| `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
 | `AGENT_BROWSER_CONFIRM` | 1 | Use `--confirm-actions` for sensitive ops |
 | `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
 | `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
-| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
 
 ## Anti-Patterns (FORBIDDEN)
 
