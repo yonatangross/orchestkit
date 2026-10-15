@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173)** · 2026-10-15
+
+- **ci:** add a preview-only facts-only changelog feed for X (#4727)
+- **tests:** restore the exec bit on 2 tests from [#4749](https://github.com/yonatangross/orchestkit/issues/4749) (#4757)
+- **tests:** stop headless Chrome keychain prompts; pre-push CI-only mode (#4749)
+- **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates (#4723)
+- **deps:** bump the npm-minor-patch group across 1 directory with 9 updates (#4733)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172)** · 2026-10-12
 
 - **mods:** lesson-cards keeps tool.call context from hooks below (#4726)
@@ -680,10 +689,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **tests:** restore exec bit on git-isolate.sh (#4681)
 - **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 (#4662)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165)** · 2026-10-07
-
-- **prompt-focus:** where your attention went, from your own prompts (#4657)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
