@@ -287,6 +287,35 @@ for case_def in "${FAULT_CASES[@]}"; do
   fi
 done
 
+# --- the committed ledger names no local referrer ---------------------------
+# The filter above only protects rows written after it ships. A row already on
+# main keeps whatever host it carried (#4621 shipped one, #4626 review), and
+# the ledger is public. Every committed row must be free of the local and
+# loopback shapes the script drops: localhost, *.localhost, 127.*, 0.0.0.0
+# and ::1, bare or as a URL or host:port.
+LEDGER="$REPO_ROOT/docs/traffic/snapshots.jsonl"
+if [ -f "$LEDGER" ]; then
+  leaked="$(jq -r '
+    select(type == "object") as $row
+    | ($row.referrers.items // [])[]
+    | (.referrer // "" | ascii_downcase
+       | sub("^[a-z][a-z0-9+.-]*://"; "") | split("/")[0]
+       | if startswith("[") then (ltrimstr("[") | split("]")[0])
+         elif (split(":") | length) == 2 then split(":")[0]
+         else . end) as $host
+    | select($host == "localhost" or ($host | endswith(".localhost"))
+             or ($host | test("^127\\.")) or $host == "0.0.0.0" or $host == "::1")
+    | "\($row.week): a local referrer (\($host | length) chars)"
+  ' "$LEDGER")"
+  if [ -z "$leaked" ]; then
+    ok "ledger: no committed row names a local referrer"
+  else
+    bad "ledger: committed rows name a local referrer: $leaked"
+  fi
+else
+  bad "ledger: $LEDGER is missing"
+fi
+
 echo ""
 if [ "$FAIL" -gt 0 ]; then
   echo "traffic-snapshot test: $FAIL failing assertion(s), $PASS passing"
