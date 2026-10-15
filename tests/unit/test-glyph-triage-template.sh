@@ -379,6 +379,7 @@ pathlib.Path(dest).write_text(html)
 PY
 
   "$CHROME" --headless=new --disable-gpu --no-sandbox --no-first-run \
+    --use-mock-keychain --password-store=basic \
     --user-data-dir="$out/profile" --virtual-time-budget=1500 \
     --dump-dom "file://$out/planted.html" >"$out/dom.html" 2>"$out/chrome.err" &
   local chrome_pid=$!
