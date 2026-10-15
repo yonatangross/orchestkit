@@ -11,7 +11,7 @@
 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync, fstatSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { sanitizeOutput } from './output-guard.mjs';
@@ -514,7 +514,24 @@ const MAX_STDIN_BYTES = 512 * 1024;
 // zero bytes in 100ms means a payload was expected and did not arrive in time.
 // The timeout itself is NOT raised: it is a hang guard, and PreToolUse has a
 // sub-50ms budget, so a longer wait would trade a silent failure for a slow one.
-const timeout = setTimeout(() => {
+// #4769: a regular file on stdin (`node run-hook.mjs key <payload.json`, how
+// tests/security feeds the runner) is complete before the process starts, so
+// it is read here, synchronously, and the 100ms timer is never armed for it.
+// The timer still raced it: a long synchronous block after the timer was set
+// let the timers phase run before the read callback, the hook ran on {}, and
+// the auto-approve control in Security Tests read passthrough. A file over the
+// 512KB cap, or any fstat failure, falls through to the stream path below,
+// which keeps its truncation and timeout guards.
+let stdinFromFile = false;
+try {
+  const stat = fstatSync(0);
+  stdinFromFile = stat.isFile() && stat.size <= MAX_STDIN_BYTES;
+} catch {
+  // silent: fail-open (no fstat means not a plain file; the stream path handles it)
+  stdinFromFile = false;
+}
+
+const timeout = stdinFromFile ? null : setTimeout(() => {
   if (!stdinClosed) {
     stdinClosed = true;
     // #4678: a gate that sees {} would allow; late or absent input blocks.
@@ -576,8 +593,9 @@ process.stdin.on('data', (chunk) => {
   }
 });
 
-process.stdin.on('end', () => {
-  clearTimeout(timeout);
+// The complete input is in `input`: run the hook once. Called by the stream's
+// end event, and directly for a regular-file stdin (#4769).
+function finishInput() {
   if (!stdinClosed) {
     stdinClosed = true;
     // #4678: an empty or unparseable input blocks this gate (it would see {}).
@@ -597,6 +615,17 @@ process.stdin.on('end', () => {
       }));
     }
   }
+}
+
+if (stdinFromFile) {
+  input = readFileSync(0, 'utf8');
+  inputBytes = Buffer.byteLength(input);
+  finishInput();
+}
+
+process.stdin.on('end', () => {
+  clearTimeout(timeout);
+  finishInput();
 });
 
 process.stdin.on('error', () => {

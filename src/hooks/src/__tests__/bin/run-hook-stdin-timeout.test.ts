@@ -479,10 +479,12 @@ function runApprove(stdinMode: 'file' | 'pipe'): Promise<{ stdout: string; stder
     if (fd !== null) closeSync(fd);
     let stdout = '';
     let stderr = '';
-    child.stdout.on('data', (c) => {
+    // stdout and stderr are always 'pipe' here; TypeScript types them as
+    // nullable because stdin may be a file descriptor.
+    child.stdout?.on('data', (c) => {
       stdout += String(c);
     });
-    child.stderr.on('data', (c) => {
+    child.stderr?.on('data', (c) => {
       stderr += String(c);
     });
     if (child.stdin) {
