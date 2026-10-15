@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176)** · 2026-10-15
+
+- **hooks:** read a regular-file stdin before the 100ms timer (#4770)
+
 **[v10.0.0-beta.175](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.174...v10.0.0-beta.175)** · 2026-10-15
 
 - **ci:** stop arming auto-merge on Dependabot PRs (#4762)
@@ -682,10 +686,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
 
 - **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
-
-**[v10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168)** · 2026-10-10
-
-- **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok (#4698)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

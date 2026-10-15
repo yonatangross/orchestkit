@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.176",
+    "date": "2026-10-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** read a regular-file stdin before the 100ms timer ([#4770](https://github.com/yonatangross/orchestkit/issues/4770)) ([425ec7b](https://github.com/yonatangross/orchestkit/commit/425ec7b29cac7254d21e62d4085cc0138dd8080b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.175",
     "date": "2026-10-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.174...v10.0.0-beta.175",
