@@ -212,6 +212,8 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 > **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
 >
 > **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting — the skill analogue of `/reload-plugins`.
+>
+> **CC 2.1.268+**: `/plugin` install, enable and disable take effect when the menu closes, so `/reload-plugins` is no longer needed after them.
 
 ## Chain: Deeper Audit
 

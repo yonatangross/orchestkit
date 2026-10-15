@@ -1937,7 +1937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "391cec98397cd575fb2ece300b3f6b1c61cfa8846daaf77e9e8c91185e803956",
+    "sha256": "450392e63e8ed96691a4d8786144b1e69f022725fc51a3be143a1d1aeb717b3b",
     "author": "OrchestKit",
     "tags": [
       "health-check",
