@@ -1,0 +1,101 @@
+#!/usr/bin/env node
+// ============================================================================
+// Skill claims must resolve (agents-skills-audit-2026-10-15, rows B5 to B8)
+// ============================================================================
+// Four ways a skill told the reader something the installed plugin cannot do:
+//   B8  a relative `../` reference that resolves to no file
+//   B7  doctor tells the model to read shared/cc-support.json, which the
+//       build never copied into plugins/ork/shared/
+//   B5  remember promises a zero-config memory graph, while ork ships no
+//       .mcp.json and no memory server
+//   B6  browser-tools promises URL blocklisting, rate limiting and robots.txt
+//       enforcement, and documents env vars, after the hook that read them was
+//       retired on 2026-08-31 (#3835)
+// Each check reads the source tree only; no network, no build.
+// ============================================================================
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { dirname, join, normalize, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const SKILLS = join(ROOT, "src/skills");
+const failures = [];
+let checks = 0;
+const check = (ok, msg) => {
+  checks += 1;
+  if (!ok) failures.push(msg);
+};
+const read = (p) => readFileSync(join(ROOT, p), "utf8");
+
+// B8: every backticked relative path with ../ in a SKILL.md resolves
+let relRefs = 0;
+for (const name of readdirSync(SKILLS)) {
+  const file = join(SKILLS, name, "SKILL.md");
+  if (!existsSync(file)) continue;
+  const text = readFileSync(file, "utf8");
+  for (const m of text.matchAll(/`([^`\s]*\.\.\/[^`\s]*\.(?:md|json|sh|mjs|py))`/g)) {
+    const ref = m[1];
+    if (ref.startsWith("http") || ref.startsWith("$")) continue;
+    relRefs += 1;
+    check(
+      existsSync(normalize(join(SKILLS, name, ref))),
+      `B8 ${name}/SKILL.md: relative reference does not resolve: ${ref}`,
+    );
+  }
+}
+check(relRefs > 0, "B8 scan found no relative references at all (scan is blind)");
+
+// B7: doctor's single source must ship in the built plugin
+const doctor = read("src/skills/doctor/SKILL.md");
+if (doctor.includes("shared/cc-support.json")) {
+  const built = join(ROOT, "plugins/ork/shared/cc-support.json");
+  check(existsSync(built), "B7 doctor reads shared/cc-support.json but plugins/ork/shared/cc-support.json is missing");
+  if (existsSync(built)) {
+    check(
+      readFileSync(built, "utf8") === read("shared/cc-support.json"),
+      "B7 plugins/ork/shared/cc-support.json differs from shared/cc-support.json (rebuild)",
+    );
+  }
+  check(
+    /cc-support\.json/.test(read("scripts/build-plugins.sh")),
+    "B7 scripts/build-plugins.sh never copies shared/cc-support.json into the plugin",
+  );
+}
+
+// B5: no zero-config promise for a server the plugin does not ship
+const remember = read("src/skills/remember/SKILL.md");
+const shipsMemoryServer =
+  existsSync(join(ROOT, "plugins/ork/.mcp.json")) &&
+  /"memory"\s*:/.test(readFileSync(join(ROOT, "plugins/ork/.mcp.json"), "utf8"));
+if (!shipsMemoryServer && /mcp__memory__/.test(remember)) {
+  for (const phrase of [/zero-config/i, /always works/i, /works out of the box/i, /zero configuration required/i]) {
+    check(!phrase.test(remember), `B5 remember promises "${phrase.source}" but ork ships no memory MCP server`);
+  }
+}
+
+// B6: browser-tools claims only what something still enforces
+const bt = read("src/skills/browser-tools/SKILL.md");
+const desc = (bt.match(/^description:\s*(.*)$/m) || [, ""])[1];
+for (const claim of [/blocklist/i, /rate limit/i, /robots\.txt enforcement/i]) {
+  check(!claim.test(desc), `B6 browser-tools description claims "${claim.source}" with no hook enforcing it`);
+}
+// Env vars the upstream agent-browser CLI reads (agent-browser 0.39.1 --help).
+const UPSTREAM = new Set(["AGENT_BROWSER_CONFIRM", "AGENT_BROWSER_IDLE_TIMEOUT_MS", "AGENT_BROWSER_ENGINE"]);
+const srcHooks = join(ROOT, "src/hooks/src");
+const hookText = existsSync(srcHooks)
+  ? readdirSync(srcHooks, { recursive: true })
+      .filter((f) => String(f).endsWith(".ts"))
+      .map((f) => readFileSync(join(srcHooks, String(f)), "utf8"))
+      .join("\n")
+  : "";
+for (const m of bt.matchAll(/^\|\s*`((?:ORCHESTKIT_)?AGENT_BROWSER_[A-Z_]+)`/gm)) {
+  const v = m[1];
+  check(UPSTREAM.has(v) || hookText.includes(v), `B6 browser-tools documents ${v}, which nothing reads`);
+}
+
+if (failures.length) {
+  console.error(`FAIL test-skill-claims-resolve: ${failures.length} of ${checks} checks`);
+  for (const f of failures) console.error(`  - ${f}`);
+  process.exit(1);
+}
+console.log(`PASS test-skill-claims-resolve: ${checks} checks (${relRefs} relative references)`);
