@@ -3,12 +3,9 @@
 # workflow where one job reads untrusted issue/comment text while holding a
 # token secret or id-token:write.
 #
-# Three arms:
-#   1. planted UNSAFE fixture must be refused (and named);
-#   2. planted SAFE fixture (the read/model/apply split) must pass;
-#   3. the live .github/workflows/ tree must pass. This arm is the ratchet:
-#      it was red while the old claude-triage.yml was on disk and goes green
-#      with the split.
+# Every arm asserts an exact exit code AND a matched message, so a scanner
+# error (unreadable file, crash) can never read as the arm's expectation.
+# Exit codes: 0 = clean, 1 = finding(s), 2 = scanner error.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,27 +19,52 @@ trap 'rm -rf "${SCRATCH}"' EXIT
 
 fail=0
 
-# 1. The unsafe fixture must be refused, and the refusal must name the file.
-if python3 "${SCAN}" "${FIXTURES}/unsafe-model-token-and-issue-text.yml" > "${SCRATCH}/unsafe.out" 2>&1; then
-  echo "FAIL: unsafe fixture was accepted"; cat "${SCRATCH}/unsafe.out"; fail=1
-elif ! grep -qF "unsafe-model-token-and-issue-text" "${SCRATCH}/unsafe.out"; then
-  echo "FAIL: refusal does not name the fixture:"; cat "${SCRATCH}/unsafe.out"; fail=1
-else
-  echo "PASS: unsafe fixture refused and named"
-fi
+# expect <arm-name> <target> <want-rc> <needle> [needle...]
+expect() {
+  local name="$1" target="$2" want_rc="$3"; shift 3
+  local out="${SCRATCH}/${name}.out" rc
+  python3 "${SCAN}" "${target}" > "${out}" 2>&1 && rc=0 || rc=$?
+  if [ "${rc}" -ne "${want_rc}" ]; then
+    echo "FAIL[${name}]: exit ${rc}, wanted ${want_rc}"; cat "${out}"; fail=1; return
+  fi
+  local needle
+  for needle in "$@"; do
+    if ! grep -qF "${needle}" "${out}"; then
+      echo "FAIL[${name}]: output missing '${needle}':"; cat "${out}"; fail=1; return
+    fi
+  done
+  echo "PASS[${name}]"
+}
 
-# 2. The safe split must pass.
-if ! python3 "${SCAN}" "${FIXTURES}/safe-read-model-apply-split.yml" > "${SCRATCH}/safe.out" 2>&1; then
-  echo "FAIL: safe fixture was refused:"; cat "${SCRATCH}/safe.out"; fail=1
-else
-  echo "PASS: safe read/model/apply split accepted"
-fi
+# Unsafe shapes, each must be a finding (rc 1) and named.
+expect unsafe-file "${FIXTURES}/unsafe-model-token-and-issue-text.yml" 1 \
+  "unsafe-model-token-and-issue-text" "reads issue/comment text" "id-token: write" "secrets.CLAUDE_CODE_OAUTH_TOKEN"
+expect unsafe-deep-indent "${FIXTURES}/unsafe-deep-indent.yml" 1 \
+  "unsafe-deep-indent" "reads issue/comment text"
+expect unsafe-top-env "${FIXTURES}/unsafe-top-level-env.yml" 1 \
+  "unsafe-top-level-env" "reads issue/comment text" "secrets.MODEL_API_TOKEN"
+expect unsafe-inherit "${FIXTURES}/unsafe-secrets-inherit.yml" 1 \
+  "unsafe-secrets-inherit" "reads issue/comment text" "secrets: inherit"
 
-# 3. The live workflow tree must pass.
-if ! python3 "${SCAN}" "${WORKFLOWS}" > "${SCRATCH}/live.out" 2>&1; then
-  echo "FAIL: a live workflow mixes issue/comment text with a credential:"; cat "${SCRATCH}/live.out"; fail=1
+# Safe split must pass (rc 0, PASS message).
+expect safe-split "${FIXTURES}/safe-read-model-apply-split.yml" 0 "PASS"
+
+# A workflow whose jobs block yields zero parsed jobs is a scanner error
+# (rc 2), never a pass: a gate that saw nothing verified nothing.
+expect no-jobs "${FIXTURES}/bad-no-jobs.yml" 2 "no jobs"
+
+# The live tree must pass, and the PASS line must report a nonzero scan
+# count so an empty glob cannot read as a green sweep.
+live_out="${SCRATCH}/live.out"
+if python3 "${SCAN}" "${WORKFLOWS}" > "${live_out}" 2>&1; then
+  scanned=$(sed -n 's/^PASS: \([0-9][0-9]*\) workflow file.*$/\1/p' "${live_out}")
+  if [ -n "${scanned}" ] && [ "${scanned}" -gt 0 ]; then
+    echo "PASS[live-tree]: ${scanned} workflow files scanned"
+  else
+    echo "FAIL[live-tree]: no scan count in PASS line:"; cat "${live_out}"; fail=1
+  fi
 else
-  echo "PASS: all live workflows keep untrusted text away from credentials"
+  echo "FAIL[live-tree]: exit nonzero:"; cat "${live_out}"; fail=1
 fi
 
 exit "${fail}"

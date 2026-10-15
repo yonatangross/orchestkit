@@ -1,0 +1,23 @@
+# PLANTED UNSAFE FIXTURE. Same violation as unsafe-model-token-and-issue-text
+# but the jobs block is indented four spaces. A lint that only finds job keys
+# at exactly two spaces sees zero jobs here and must still flag it (or error).
+name: Unsafe deep indent fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+
+jobs:
+    triage:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Model reads the issue while holding a token
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  MODEL_TOKEN: ${{ secrets.MODEL_API_TOKEN }}
+              run: gh issue view "${{ inputs.issue_number }}" --json title,body
