@@ -28,6 +28,12 @@ ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork-hq-ci-only.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
+# The fixture commits real objects. Route every git call in this shell
+# through a throwaway config so a signed-by-default user config neither
+# prompts nor fails the fixture (#4664).
+source "$ROOT/tests/fixtures/git-isolate.sh"
+git_isolate "$WORK"
+
 FIX="$WORK/fixture"
 mkdir -p "$FIX/bin/git-hooks" "$FIX/scripts/ci" "$FIX/tests/unit" \
          "$FIX/tests/agents" "$FIX/tests/skills/structure" \
@@ -48,8 +54,6 @@ printf '#!/bin/sh\ntouch unit-tier-ran\nexit 0\n' > "$FIX/tests/unit/test-canary
 printf '{"name":"fixture","version":"0.0.0","scripts":{"build":"true"}}\n' > "$FIX/package.json"
 
 git -C "$FIX" init -q
-git -C "$FIX" config user.email fixture@test.invalid
-git -C "$FIX" config user.name fixture
 git -C "$FIX" checkout -q -b release-please--branches--main
 git -C "$FIX" add -A
 git -C "$FIX" commit -qm one
