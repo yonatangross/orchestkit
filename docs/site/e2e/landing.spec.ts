@@ -270,7 +270,9 @@ test.describe('Landing changelog', () => {
   test('whats new strip and changelog nav exist', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: "What's new" })).toBeVisible();
+    // exact: release cards on the strip render as <h3>, and a release note that
+    // says "What's new page" (#4728, beta.173) made the substring match find 2 headings.
+    await expect(page.getByRole('heading', { name: "What's new", exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: /Full changelog/i })).toBeVisible();
 
     await page.goto('/changelog');
