@@ -22,9 +22,9 @@ for (const [file, pattern] of cases) {
     }
     assert.match(rule, /only on/);
     assert.match(rule, /outside (?:this|the) allowlist/);
-    assert.match(rule, /only from user or managed settings/);
+    assert.match(rule, /only from user or managed settings \(or the shell\)/);
     assert.match(rule, /(?:plugin settings cannot|ork cannot ship)/);
-    assert.doesNotMatch(rule, /newest models|or the shell/);
+    assert.doesNotMatch(rule, /newest models/);
     console.log(`PASS ${file}`);
   } catch (error) {
     failures += 1;
