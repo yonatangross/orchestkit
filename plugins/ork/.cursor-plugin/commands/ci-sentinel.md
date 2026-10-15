@@ -137,6 +137,8 @@ Each `claude -p` invocation locks the dispatch envelope so cost-per-PR stays pre
 
 These are hardcoded in the workflow. If you need to override for a fork (e.g. you want a different `permission-mode`), edit `.github/workflows/ci-sentinel.yml` directly — intentionally not exposed as `workflow_dispatch` inputs to prevent accidental cost spikes from a one-off manual run.
 
+The install step reads `supported_floor` from `shared/cc-support.json`, so it cannot drift below the floor again (#4055). Under `-p`, PermissionRequest hooks fire from CC 2.1.268, and the unified dispatcher passes them through by default (auto-approve stays opt-in via `ORK_PERMISSION_AUTO_APPROVE`).
+
 ## Comment shape
 
 Every verdict comment looks like:
