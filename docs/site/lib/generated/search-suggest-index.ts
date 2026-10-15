@@ -470,6 +470,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/foundations/worktree",
+    "title": "Worktree isolation",
+    "headings": [
+      "What worktree.bgIsolation does",
+      "When to opt in",
+      "Recommendation: do not set it in OrchestKit",
+      "Related: the EnterWorktree bug class"
+    ]
+  },
+  {
     "url": "/docs/getting-started/agy",
     "title": "Antigravity",
     "headings": [
