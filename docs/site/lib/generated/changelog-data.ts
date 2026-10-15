@@ -18,6 +18,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.175",
+    "date": "2026-10-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.174...v10.0.0-beta.175",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** stop arming auto-merge on Dependabot PRs ([#4762](https://github.com/yonatangross/orchestkit/issues/4762)) ([c8b9bd3](https://github.com/yonatangross/orchestkit/commit/c8b9bd3db55fd2726e95bda32457262b7c2368ba))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**security:** exempt hook test fixtures from secret scanning ([#4763](https://github.com/yonatangross/orchestkit/issues/4763)) ([830bd1c](https://github.com/yonatangross/orchestkit/commit/830bd1c861a6f71ae72eb490ef20c621a715acdd))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "bump the github-actions group across 1 directory with 9 updates ([#4736](https://github.com/yonatangross/orchestkit/issues/4736)) ([7ca1fa8](https://github.com/yonatangross/orchestkit/commit/7ca1fa80961b68cfa113c3aa10fdba04b62e2474))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.174",
     "date": "2026-10-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.173...v10.0.0-beta.174",
