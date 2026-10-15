@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173) (2026-10-15)
+
+
+### Features
+
+* **ci:** add a preview-only facts-only changelog feed for X ([#4727](https://github.com/yonatangross/orchestkit/issues/4727)) ([cddea6a](https://github.com/yonatangross/orchestkit/commit/cddea6a8bb84b165af90d5f4ab4f272d533ebbda))
+
+
+### Bug Fixes
+
+* **tests:** restore the exec bit on 2 tests from [#4749](https://github.com/yonatangross/orchestkit/issues/4749) ([#4757](https://github.com/yonatangross/orchestkit/issues/4757)) ([c0eaab9](https://github.com/yonatangross/orchestkit/commit/c0eaab9f53987be58631f68f58cad414f8a9883d))
+* **tests:** stop headless Chrome keychain prompts; pre-push CI-only mode ([#4749](https://github.com/yonatangross/orchestkit/issues/4749)) ([9757155](https://github.com/yonatangross/orchestkit/commit/9757155b45ba057e47a87dfa8cde60a21c50d0bf))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#4723](https://github.com/yonatangross/orchestkit/issues/4723)) ([154520c](https://github.com/yonatangross/orchestkit/commit/154520cd1c11d02e270daffe3949ce9a426f11ff))
+* **deps:** bump the npm-minor-patch group across 1 directory with 9 updates ([#4733](https://github.com/yonatangross/orchestkit/issues/4733)) ([23e251c](https://github.com/yonatangross/orchestkit/commit/23e251c39c49e6f7bbf47b6042df4e49bffd7484))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#4719](https://github.com/yonatangross/orchestkit/issues/4719)) ([16097dd](https://github.com/yonatangross/orchestkit/commit/16097dd4dc11c770820e71f578637f199df9b8b0))
+
+
+### Documentation
+
+* **readme:** add the Vercel OSS Program badge ([#4734](https://github.com/yonatangross/orchestkit/issues/4734)) ([7005758](https://github.com/yonatangross/orchestkit/commit/7005758f69650803210f80fc65752e1d1fae8b11))
+* v10 front door with search titles, What's new page and README start ([#4728](https://github.com/yonatangross/orchestkit/issues/4728)) ([5469225](https://github.com/yonatangross/orchestkit/commit/5469225a7d9d141ed3d5992f04566f351a49e611))
+
 ## [10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172) (2026-10-12)
 
 
