@@ -3,6 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { signPayload, sanitizePayload, redactSecretValues } from '../lib/crypto.js';
+import { FAKE_ATLAS_URI, FAKE_GOOGLE_API_KEY, FAKE_MONGODB_LOCAL_URI } from './fixtures/secret-scanning-fixtures.js';
 
 describe('Crypto Utilities', () => {
   describe('signPayload', () => {
@@ -40,7 +41,7 @@ describe('Crypto Utilities', () => {
     it.each([
       [
         'mongodb Atlas host',
-        'mongosh mongodb+srv://app:hunter2secretpw@cluster0.abcde.mongodb.net',
+        `mongosh ${FAKE_ATLAS_URI}`,
         'hunter2secretpw',
       ],
       [
@@ -223,17 +224,17 @@ describe('Crypto Utilities', () => {
 
     it('redacts Google/Firebase API keys (AIza...)', () => {
       const result = sanitizePayload({
-        command: 'curl https://example.com/api?key=AIzaFAKE_TEST_KEY_NOT_REAL_000000000000',
+        command: `curl https://example.com/api?key=${FAKE_GOOGLE_API_KEY}`,
       });
-      expect(result?.command).not.toContain('AIzaFAKE_TEST_KEY_NOT_REAL_000000000000');
+      expect(result?.command).not.toContain(FAKE_GOOGLE_API_KEY);
       expect(result?.command).toContain('[REDACTED]');
     });
 
     it('redacts MongoDB connection strings', () => {
       const result = sanitizePayload({
-        command: 'mongosh mongodb+srv://testuser:fakepw@localhost/testdb',
+        command: `mongosh ${FAKE_MONGODB_LOCAL_URI}`,
       });
-      expect(result?.command).not.toContain('mongodb+srv://testuser:fakepw@localhost/testdb');
+      expect(result?.command).not.toContain(FAKE_MONGODB_LOCAL_URI);
       expect(result?.command).toContain('[REDACTED]');
     });
 

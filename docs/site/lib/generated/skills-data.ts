@@ -976,7 +976,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-sentinel",
     "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply, NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
     "version": "0.1.0",
-    "sha256": "a01948035c21c37a9def4f5e1e6fcefa8787892f2a4f5e89a1f7d661ee442821",
+    "sha256": "ba103bca24a7b55e72a3104ddbb5db9bd076376f1cde541b1eafb7c05e1bafaf",
     "author": "OrchestKit",
     "tags": [
       "ci",
