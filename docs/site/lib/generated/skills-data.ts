@@ -780,9 +780,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy is enforced by the Claude Code sandbox, not by this skill. Use when automating browser workflows that need safety limits.",
     "version": "6.1.0",
-    "sha256": "e4dd64b04885d28a9bde9f248795861c68a2cd3e36c6a5d8164d5a2ad0a7d906",
+    "sha256": "04238f4f31c2fb911804a94813f639891dcb01990b21f42c8317b9abe9da89bd",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -4156,7 +4156,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "remember",
     "description": "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream.",
     "version": "3.0.1",
-    "sha256": "4e5312eac897a446cf4f647a9485287118ed2715e9999d7f549306c5bda4db7c",
+    "sha256": "33202f9744c3561159e294f4399564da15c6e863eaa15d53f5f5a7d439ce07d0",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4712,7 +4712,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "telemetry-inspect",
     "description": "Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only, never modifies telemetry files.",
     "version": "1.0.0",
-    "sha256": "93227b6d1d3c79e23b5fdeafb59550465010ee358df0a82a0af2355b979f0a6f",
+    "sha256": "32960c6e10cf0f95b02af8a5f590f95dded398515e70a9d5460e073f011ce221",
     "author": "OrchestKit",
     "tags": [
       "telemetry",
