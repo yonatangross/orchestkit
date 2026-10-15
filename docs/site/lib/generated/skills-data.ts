@@ -4668,7 +4668,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "1690bddc0b26646371377870dc564670137f9e35f72db50a17da6c60d0825526",
+    "sha256": "11b983aed348ea2e693db94731444d6fc84cee358d8ba2d93df353bab5b333ed",
     "author": "OrchestKit",
     "tags": [
       "task-management",
