@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.174](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.173...v10.0.0-beta.174)** · 2026-10-15
+
+- **ci:** read the ci-sentinel CC pin from shared/cc-support.json (#4765)
+
 **[v10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173)** · 2026-10-15
 
 - **ci:** add a preview-only facts-only changelog feed for X (#4727)
@@ -680,15 +684,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167)** · 2026-10-10
 
 - **cc:** adopt Claude Code 2.1.289 through 2.1.296 (#4702)
-
-**[v10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166)** · 2026-10-09
-
-- **review-pr:** standards pass with a review-only standards file (#4671)
-- **ci:** cache and bound the docs Playwright install (#4667)
-- **review-pr:** run inline so its frontmatter hooks run (#4682)
-- **tests:** restore exec bit on git-isolate.sh (#4681)
-- **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 (#4662)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

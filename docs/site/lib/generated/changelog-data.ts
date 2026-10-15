@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.174",
+    "date": "2026-10-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.173...v10.0.0-beta.174",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** read the ci-sentinel CC pin from shared/cc-support.json ([#4765](https://github.com/yonatangross/orchestkit/issues/4765)) ([85a5545](https://github.com/yonatangross/orchestkit/commit/85a5545ae0c142be47c772ddc2aa1799bcf00edb))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.173",
     "date": "2026-10-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173",
