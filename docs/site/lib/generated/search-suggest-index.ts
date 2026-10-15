@@ -2332,6 +2332,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "title": "OrchestKit Reference",
     "headings": [
       "Browse by type",
+      "Find a skill",
       "Demo Compositions"
     ]
   },
