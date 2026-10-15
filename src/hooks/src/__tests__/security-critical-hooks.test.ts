@@ -20,6 +20,7 @@ import { SECURITY_HOOKS, isSecurityCritical, getSecurityHooks, assertCanToggle }
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { redactSecrets } from '../skill/redact-secrets.js';
 import { securityCommandAudit } from '../agent/security-command-audit.js';
+import { FAKE_SLACK_BOT_TOKEN } from './fixtures/secret-scanning-fixtures.js';
 
 // =============================================================================
 // Test Utilities
@@ -349,7 +350,7 @@ describe('redactSecrets', () => {
   describe('detects Slack tokens', () => {
     test('warns on xoxb- prefixed token', () => {
       const input = createHookInput({
-        tool_result: 'SLACK_TOKEN=xoxb-123456789-abcdefghijklmn',
+        tool_result: `SLACK_TOKEN=${FAKE_SLACK_BOT_TOKEN}`,
       } as Partial<HookInput>);
       const result = redactSecrets(input);
       expectSilentSuccess(result);
