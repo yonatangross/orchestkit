@@ -110,6 +110,7 @@ scan_callers() {
     gsub(/"[^"]*"/, "", out)
     if (out ~ /"/) { dq = 1; sub(/".*$/, "", out) } else dq = 0
     gsub(/\047[^\047]*\047/, "", out)
+    code_line = out
     t = out; o = gsub(/[(]/, "", t); t = out; c = gsub(/[)]/, "", t)
     return o - c
   }
@@ -120,10 +121,11 @@ scan_callers() {
   FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 5/ { loop = 0 }
   !open_ && /^[*][*]Incorrect/ { inc = 1 }
   !open_ && (/^[*][*]Correct/ || /^##+ /) { inc = 0 }
-  !open_ && /Agent[(]/ { open_ = 1; buf = ""; depth = 0; start = FNR; tq = 0; dq = 0 }
+  !open_ && /Agent[(]/ { open_ = 1; buf = ""; code_buf = ""; depth = 0; start = FNR; tq = 0; dq = 0 }
   open_ {
     buf = buf " " $0
     depth += code_parens($0)
+    code_buf = code_buf " " code_line
     if (depth <= 0) {
       open_ = 0
       if (inc) next
@@ -132,8 +134,8 @@ scan_callers() {
       # agent-teams). So name= plus isolation= is flagged for every agent type,
       # except a block that is meant as a plain named subagent: no team_name=,
       # in chain-patterns Pattern 6 or the design-import loop.
-      plain_ok = (buf !~ /team_name[ ]*=/ && FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
-      if (buf ~ /name[ ]*=/ && buf ~ /isolation[ ]*=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
+      plain_ok = (code_buf !~ /(^|[^[:alnum:]_])team_name[ ]*=/ && FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
+      if (code_buf ~ /(^|[^[:alnum:]_])(team_)?name[ ]*=/ && code_buf ~ /(^|[^[:alnum:]_])isolation[ ]*=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
       # The Phase 4 skip covers the writer checks below, never TEAMISO above.
       if (skip || buf !~ re) next
       # fix-issue: only test-generator writes; the backend and frontend experts design.
@@ -188,6 +190,31 @@ case "$fx_scan" in
   *"TEAMISO "*) ;;
   *) fail "self-check: name = \"x\" with spaces plus isolation is not flagged" ;;
 esac
+# Self-check (#4714): only teammate keys outside strings count.
+# Exercise both spacing forms, including key suffixes and quoted examples.
+for spacing in " " ""; do
+  for marker in name team_name; do
+    printf '%s\n' \
+      "Agent(${marker}${spacing}=${spacing}x, isolation${spacing}=${spacing}worktree)" > "$fx_dir/agent-phases.md"
+    fx_scan=$(scan_callers "$fx_dir/agent-phases.md")
+    case "$fx_scan" in
+      *"TEAMISO "*) ;;
+      *) fail "self-check: ${marker}${spacing}=${spacing}x plus isolation is not flagged" ;;
+    esac
+    printf '%s\n' \
+      "Agent(prompt=\"${marker}${spacing}=${spacing}x\", isolation${spacing}=${spacing}worktree)" > "$fx_dir/agent-phases.md"
+    fx_scan=$(scan_callers "$fx_dir/agent-phases.md")
+    case "$fx_scan" in
+      *"TEAMISO "*) fail "self-check: quoted ${marker}${spacing}=${spacing}x is flagged as a teammate key" ;;
+    esac
+    printf '%s\n' \
+      "Agent(other_${marker}${spacing}=${spacing}x, isolation${spacing}=${spacing}worktree)" > "$fx_dir/agent-phases.md"
+    fx_scan=$(scan_callers "$fx_dir/agent-phases.md")
+    case "$fx_scan" in
+      *"TEAMISO "*) fail "self-check: other_${marker}${spacing}=${spacing}x is flagged as a teammate key" ;;
+    esac
+  done
+done
 writers_seen=$(printf '%s\n' "$scan" | awk '$0 == "SEEN" { n++ } END { print n + 0 }')
 [[ "$writers_seen" -gt 0 ]] || fail "no writer spawn found in the caller templates; the caller check cannot pass vacuously"
 for loc in $(printf '%s\n' "$scan" | grep '^NOCOMMIT ' | cut -d' ' -f2 || true); do
