@@ -171,7 +171,9 @@ targeted_control() {
   local label="$1"; shift
   local rc=0 arm_ok=1
   reset_markers
-  run_hook ORK_PRE_PUSH_MODE=targeted "$@" || rc=$?
+  # env reads -u options only before the first NAME=value, so the caller's
+  # args go first.
+  run_hook "$@" ORK_PRE_PUSH_MODE=targeted || rc=$?
   [[ "$rc" -eq 0 ]] || { fail "$label: hook failed (rc=$rc): $(tail_out 15)"; arm_ok=0; }
   has 'unit tests selected: 1' || { fail "$label: no unit selection line: $(tail_out)"; arm_ok=0; }
   has "$SKIP_LINE" && { fail "$label: skip line printed"; arm_ok=0; }
