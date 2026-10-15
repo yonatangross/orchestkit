@@ -670,6 +670,15 @@ else
 fi
 
 # ===== Unit Tests (mirrors CI exactly) =====
+#
+# HQ_CI_ONLY=1 is the lane switch for a push whose diff is already gated by
+# CI's required checks: the unit tier is skipped, and with it every headless
+# Chrome launch (they only ever start inside unit tests). The fast checks
+# before and after this stage still run. The announce is one line, never
+# silent; unset, the hook behaves exactly as before.
+if [[ "${HQ_CI_ONLY:-}" == "1" ]]; then
+  echo "pre-push: HQ_CI_ONLY=1, unit tier skipped, CI required checks are the gate"
+else
 echo -n "  Running unit tests... "
 
 # Discover unit tests exactly the way CI does.
@@ -812,6 +821,7 @@ fi
 if ((${#CI_UNIT_TESTS[@]} > 0)); then
   echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 fi
+fi  # HQ_CI_ONLY unit-tier gate
 
 # ===== Security Tests =====
 if [[ "$PRE_PUSH_RUN_SECURITY" -eq 1 ]]; then
