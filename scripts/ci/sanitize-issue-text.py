@@ -4,21 +4,29 @@
 Input:  `gh issue view <n> --json title,body` output.
 Output: a markdown file safe to embed in a model prompt (#4747).
 
-Two removal passes, both aimed at text a reviewer cannot see but the model
-can:
+Order matters (review round 2, SHOULD 3): format characters come off FIRST.
+If comments were stripped first, an opener split by a zero-width char
+(`<!` + U+200B + two hyphens) survived the comment pass and the format
+strip then produced a well-formed comment that reached the model.
 
-- HTML comments (`<!-- ... -->`) are removed. They render invisibly on
-  github.com and are the documented carrier for hidden instructions in
-  issue bodies (Microsoft, 2026-06-05). They are replaced with a marker so
-  the model can tell something was stripped rather than guessing.
-- Unicode format characters (category Cf) are removed: zero-width spaces,
-  zero-width joiners/non-joiners, directional marks, bidi embeddings,
-  overrides and isolates, word joiners, soft hyphens, the BOM. Removing all
-  of Cf is deliberate over enumeration: any future invisible format char
-  is covered without another list edit. The cost is that emoji ZWJ
-  sequences lose their join, acceptable for triage input.
+Removal passes, in order:
 
-The output is capped at MAX_CHARS so a giant body cannot flood the prompt.
+- Unicode format characters (category Cf): zero-width spaces, joiners,
+  directional marks, bidi embeddings/overrides/isolates, word joiners, the
+  BOM, soft hyphens. All of Cf, not a named list, so future invisible
+  format chars are covered. Cost: emoji ZWJ sequences lose their join,
+  acceptable for triage input.
+- Supplementary-plane variation selectors U+E0100 to U+E01EF (category Mn,
+  the range used to smuggle text inside emoji sequences). The basic
+  variation selectors U+FE00 to U+FE0F stay: they are real emoji modifiers.
+- HTML comments, closed by two hyphens and `>` or by the abrupt close two
+  hyphens, bang, `>` (both legal per the HTML spec).
+- An UNCLOSED comment opener truncates the rest of the body. Fail closed:
+  text after an opener the regex cannot close is treated as comment
+  content, not released to the model.
+- Link reference definition lines (`[label]: target`), which render
+  invisibly in markdown and can carry a hidden URL.
+- Output capped at MAX_CHARS so a giant body cannot flood the prompt.
 
 Usage: sanitize-issue-text.py <input.json> <output.md>
 Exit 1 on malformed input so the fetch job fails loudly instead of
@@ -32,13 +40,25 @@ import unicodedata
 
 MAX_CHARS = 20000
 
-HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")
+# Supplementary variation selectors: U+E0100 to U+E01EF, category Mn.
+VS_SUPPLEMENT = re.compile("[\U000e0100-\U000e01ef]")
+
+HTML_COMMENT = re.compile(r"<!--[\s\S]*?(?:-->|--!>)")
+HTML_OPEN = re.compile(r"<!--")
+
+# Link reference definition: a line that is only `[label]: target`.
+LINK_REF_DEF = re.compile(r"^[ \t]*\[[^\]]*\]:\s*\S.*$", re.MULTILINE)
 
 
 def sanitize(title: str, body: str) -> str:
     text = "# " + title.strip() + "\n\n" + body
-    text = HTML_COMMENT.sub("[html comment removed]", text)
     text = "".join(c for c in text if unicodedata.category(c) != "Cf")
+    text = VS_SUPPLEMENT.sub("", text)
+    text = HTML_COMMENT.sub("[html comment removed]", text)
+    if HTML_OPEN.search(text):
+        idx = text.index("<!--")
+        text = text[:idx] + "[html comment removed to end]"
+    text = LINK_REF_DEF.sub("[link reference removed]", text)
     if len(text) > MAX_CHARS:
         text = text[:MAX_CHARS] + "\n\n[truncated]"
     return text

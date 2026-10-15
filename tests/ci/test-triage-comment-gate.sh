@@ -44,7 +44,11 @@ printf 'Looks good. cc @yonatangross please review.\n' > "${SCRATCH}/mention.md"
 check mention 0 "${SCRATCH}/mention.md" '`@yonatangross`'
 
 printf 'Details at https://evil.invalid/exfil and https://github.com/a/b/issues/1\n' > "${SCRATCH}/link.md"
-check outside-link 0 "${SCRATCH}/link.md" '`https://evil.invalid/exfil`' 'github.com/a/b/issues/1'
+check outside-link 0 "${SCRATCH}/link.md" '`https://evil.invalid/exfil`'
+# An allowlisted host must pass through untouched.
+if ! grep -qF 'https://github.com/a/b/issues/1' "${SCRATCH}/outside-link.safe.md" 2>/dev/null; then
+  echo "FAIL[outside-link]: allowlisted link was neutralized:"; cat "${SCRATCH}/outside-link.safe.md" 2>/dev/null; fail=1
+fi
 
 printf 'token is ghp_0123456789abcdef0123456789abcdef1234 now\n' > "${SCRATCH}/tok.md"
 check token 1 "${SCRATCH}/tok.md"

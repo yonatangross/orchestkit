@@ -17,18 +17,25 @@ Rule, per job (job-level permissions win over top-level, like Actions):
     - a `gh issue|pr|api` command fed an `issue_number` (e.g. the dispatch
       input, which is how untrusted issue text is pulled in)
 
-  AND HOLDS a credential, either of:
+  AND HOLDS a credential, any of:
     - `id-token: write` in effective permissions
-    - any `secrets.<NAME>` reference except GITHUB_TOKEN (the ambient
-      GITHUB_TOKEN is permission-scoped; named secrets are not)
+    - any `secrets.<NAME>` reference except GITHUB_TOKEN, whether in the
+      job body OR in the top-level `env:` block (every job inherits it)
+    - `secrets: inherit` on a reusable-workflow caller job
 
 A job that only POSTS a comment from a file (`gh issue comment --body-file`)
 does not read text and is not flagged by itself; a job with issues:write and
 no text source is the safe apply side of the split.
 
+Job keys are found at whatever indentation the file uses, not a hardcoded
+two spaces (review round 2, SHOULD 5). A file whose `jobs` block parses to
+zero jobs is an ERROR (exit 2), never a pass: a gate that saw nothing
+verified nothing.
+
+Exit codes: 0 = clean, 1 = finding(s), 2 = scanner error.
+
 Usage: check-workflow-issue-text.py <file-or-dir> [<file-or-dir> ...]
-Directories are scanned for *.yml and *.yaml. Exit 1 when a violation is
-found, 0 otherwise.
+Directories are scanned for *.yml and *.yaml.
 """
 
 import os
@@ -36,9 +43,9 @@ import re
 import sys
 
 TOP_KEY = re.compile(r"^([A-Za-z_-]+):")
-JOB_KEY = re.compile(r"^  ([A-Za-z_][A-Za-z0-9_-]*):")
-JOB_PERM = re.compile(r"^    permissions:(.*)$")
+JOB_PERM_INDENT = 4
 SECRET = re.compile(r"secrets\.([A-Za-z_][A-Za-z0-9_]*)")
+SECRETS_INHERIT = re.compile(r"^\s*secrets:\s*inherit\b", re.MULTILINE)
 ID_TOKEN_WRITE = re.compile(r"id-token:\s*write")
 
 INERT_REFS = re.compile(
@@ -80,15 +87,11 @@ def top_level_spans(lines):
     return result
 
 
-def perm_block(lines, perm_line_idx, key_indent):
-    """Lines belonging to a `permissions:` mapping at perm_line_idx.
-
-    Collects the inline value plus following lines indented deeper than the
-    key. Stops at the first line at or under key indent.
-    """
-    first = lines[perm_line_idx]
+def block_value(lines, key_line_idx, key_indent):
+    """The value of a `key:` line plus its deeper-indented continuation."""
+    first = lines[key_line_idx]
     block = [first.split(":", 1)[1]]
-    for line in lines[perm_line_idx + 1 :]:
+    for line in lines[key_line_idx + 1 :]:
         if line.strip() == "" or line.lstrip().startswith("#"):
             block.append(line)
             continue
@@ -99,41 +102,77 @@ def perm_block(lines, perm_line_idx, key_indent):
     return "\n".join(block)
 
 
+def job_key_indent(lines, js, je):
+    """Indent of job keys inside the jobs block, whatever the file uses."""
+    for i in range(js + 1, je):
+        line = lines[i]
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        return indent if indent > 0 else None
+    return None
+
+
 def analyze_file(path):
-    """Return a list of violation strings for one workflow file."""
-    with open(path, encoding="utf-8") as fh:
-        text = fh.read()
+    """Return (findings, errors) for one workflow file."""
+    findings = []
+    errors = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError as exc:
+        return [], [f"{path}: cannot read: {exc}"]
+
     lines = text.splitlines()
     spans = top_level_spans(lines)
 
     top_perms = ""
     if "permissions" in spans:
         s, e = spans["permissions"]
-        seg = lines[s:e]
-        first = seg[0].split(":", 1)[1]
-        top_perms = "\n".join([first] + [ln for ln in seg[1:] if ln[:1].isspace() or not ln.strip()])
+        top_perms = block_value(lines, s, 0)
 
-    findings = []
+    # Secrets in the top-level env block are inherited by every job.
+    top_env_secrets = set()
+    if "env" in spans:
+        s, e = spans["env"]
+        env_text = block_value(lines, s, 0)
+        for name in SECRET.findall(env_text):
+            if name != "GITHUB_TOKEN":
+                top_env_secrets.add(name)
+
     if "jobs" not in spans:
-        return findings
-    js, je = spans["jobs"]
+        errors.append(f"{path}: no jobs block; not a workflow the lint can verify")
+        return findings, errors
 
+    js, je = spans["jobs"]
+    indent = job_key_indent(lines, js, je)
+    if indent is None:
+        errors.append(f"{path}: 'jobs' declared but no jobs parsed")
+        return findings, errors
+
+    job_re = re.compile(r"^ {%d}([A-Za-z_][A-Za-z0-9_-]*)\s*:" % indent)
     job_bounds = []
     for i in range(js + 1, je):
-        m = JOB_KEY.match(lines[i])
+        m = job_re.match(lines[i])
         if m:
             job_bounds.append((m.group(1), i))
+    if not job_bounds:
+        errors.append(f"{path}: 'jobs' declared but no jobs parsed")
+        return findings, errors
+
     for idx, (name, start) in enumerate(job_bounds):
         end = job_bounds[idx + 1][1] if idx + 1 < len(job_bounds) else je
         job_lines = lines[start:end]
         job_text = "\n".join(job_lines)
 
         # Effective permissions: the job's own block when it declares one,
-        # otherwise the top-level block (Actions semantics).
+        # otherwise the top-level block (Actions semantics). The job-level
+        # permissions key sits at job indent + one level.
         job_perms = top_perms
+        perm_re = re.compile(r"^ {%d}permissions:(.*)$" % (indent + 2))
         for j, line in enumerate(job_lines):
-            if JOB_PERM.match(line):
-                job_perms = perm_block(job_lines, j, 4)
+            if perm_re.match(line):
+                job_perms = block_value(job_lines, j, indent + 2)
                 break
 
         reads = []
@@ -145,17 +184,20 @@ def analyze_file(path):
         creds = []
         if ID_TOKEN_WRITE.search(job_perms):
             creds.append("id-token: write")
-        for secret_name in set(SECRET.findall(job_text)):
+        if SECRETS_INHERIT.search(job_text):
+            creds.append("secrets: inherit")
+        secret_names = set(SECRET.findall(job_text)) | top_env_secrets
+        for secret_name in sorted(secret_names):
             if secret_name != "GITHUB_TOKEN":
                 creds.append(f"secrets.{secret_name}")
 
         if reads and creds:
             findings.append(
                 f"{path}: job '{name}' reads issue/comment text "
-                f"({', '.join(reads)}) while holding {', '.join(sorted(creds))}. "
+                f"({', '.join(reads)}) while holding {', '.join(sorted(set(creds)))}. "
                 "Split the job so no job holds both untrusted text and a credential (#4747)."
             )
-    return findings
+    return findings, errors
 
 
 def collect_paths(args):
@@ -174,17 +216,21 @@ def collect_paths(args):
 def main():
     if len(sys.argv) < 2:
         print(__doc__, file=sys.stderr)
-        return 1
+        return 2
     findings = []
+    errors = []
     files = collect_paths(sys.argv[1:])
     for path in files:
-        try:
-            findings.extend(analyze_file(path))
-        except OSError as exc:
-            print(f"check-workflow-issue-text: cannot read {path}: {exc}", file=sys.stderr)
-            return 1
+        f, e = analyze_file(path)
+        findings.extend(f)
+        errors.extend(e)
+    for err in errors:
+        print(f"ERROR {err}")
     for finding in findings:
         print(f"FAIL {finding}")
+    if errors:
+        print(f"{len(errors)} file(s) could not be verified")
+        return 2
     if findings:
         print(f"{len(findings)} job(s) hold untrusted issue/comment text next to a credential")
         return 1
