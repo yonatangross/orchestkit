@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Headless Chrome keychain prompts: fixed launch, CI-only pre-push</title>
+<meta name="description" content="PR for branch chore/dsp-45553-ork-fix-keychain. The glyph triage gate launched headless Chrome without keychain suppression, so every pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain, a lint watches for regressions, and HQ_CI_ONLY=1 lets a push skip the unit tier entirely.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:#0f1117;color:#e8eaf2;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.25rem;margin:0 0 .3rem}
+  .sub{color:#9aa3b8;margin:0 0 2rem;font-size:.85rem}
+  section{background:#161922;border:1px solid #272b38;border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:#7dd3fc;text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid #272b38;border-radius:5px;padding:0 4px}
+  pre{background:#0b0d13;border:1px solid #272b38;border-radius:8px;padding:.9rem 1rem;overflow-x:auto;font-size:.8rem;margin:.5rem 0}
+  .ok{color:#4ade80} .bad{color:#f87171} .dim{color:#9aa3b8} .skip{color:#fbbf24}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.4rem 0 .8rem}
+  button{background:#0b0d13;color:#e8eaf2;border:1px solid #272b38;border-radius:6px;padding:.4rem .9rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:#7dd3fc;color:#7dd3fc}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{text-align:start;padding:.3rem .5rem;border-bottom:1px solid #272b38}
+  th{color:#9aa3b8;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Headless Chrome keychain prompts</h1>
+<p class="sub">Branch <code>chore/dsp-45553-ork-fix-keychain</code>. Each pre-push launched Chrome for Testing five times (one per mutation mode) without keychain flags, so macOS showed five "Chromium Safe Storage" prompts per push.</p>
+
+<section>
+<h2>The launch, before and after</h2>
+<pre><span class="dim">"$CHROME" --headless=new --disable-gpu --no-sandbox --no-first-run \</span>
+<span class="ok">    --use-mock-keychain --password-store=basic \</span>
+<span class="dim">    --user-data-dir="$out/profile" --virtual-time-budget=1500 \</span>
+<span class="dim">    --dump-dom "file://$out/planted.html" &gt;"$out/dom.html" 2&gt;"$out/chrome.err" &amp;</span></pre>
+<p class="dim">A repo-wide sweep for <code>--headless</code>, <code>--dump-dom</code>, <code>--remote-debugging-port</code> and <code>chrome-headless-shell</code> found this is the only real browser binary launch; every other hit is docs, UI-chrome comments, or stub fixtures.</p>
+</section>
+
+<section>
+<h2>pre-push stages: toggle HQ_CI_ONLY</h2>
+<div class="controls" role="group" aria-label="toggle HQ_CI_ONLY">
+  <button id="off" aria-pressed="true">HQ_CI_ONLY unset (default)</button>
+  <button id="on" aria-pressed="false">HQ_CI_ONLY=1</button>
+</div>
+<table>
+  <thead><tr><th>Stage</th><th>unset</th><th>HQ_CI_ONLY=1</th></tr></thead>
+  <tbody id="stages"></tbody>
+</table>
+<pre id="banner" class="dim">  Running unit tests... OK (122 tests)</pre>
+</section>
+
+<section>
+<h2>The guardrail</h2>
+<p><code>tests/unit/test-chrome-headless-keychain.sh</code> fails when any launch line under <code>tests/</code> or <code>bin/</code> carries <code>--headless</code> or <code>--dump-dom</code> without <code>--use-mock-keychain</code>. <code>tests/unit/test-pre-push-hq-ci-only.sh</code> proves the skip fires only under <code>HQ_CI_ONLY=1</code> against a stubbed-tier fixture.</p>
+</section>
+</main>
+<script>
+const STAGES = [
+  ["TypeScript type check", "runs", "runs"],
+  ["Build verification", "runs", "runs"],
+  ["Import verification", "runs", "runs"],
+  ["Unit tests (Chrome lives here)", "runs", "skipped"],
+  ["Security tests", "runs", "runs"],
+  ["mdx-compile guard", "runs", "runs"],
+  ["Agent frontmatter", "runs", "runs"],
+  ["Skill structure", "runs", "runs"],
+  ["Manifest consistency", "runs", "runs"],
+  ["Token overhead budget", "runs", "runs"]
+];
+const rows = document.getElementById("stages");
+const banner = document.getElementById("banner");
+const off = document.getElementById("off");
+const on = document.getElementById("on");
+function render(ciOnly) {
+  rows.innerHTML = "";
+  for (const [name, a, b] of STAGES) {
+    const state = ciOnly ? b : a;
+    const cls = state === "skipped" ? "skip" : "ok";
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + name + "</td><td>" + a + "</td><td class=\"" + cls + "\">" + b + "</td>";
+    rows.appendChild(tr);
+  }
+  banner.textContent = ciOnly
+    ? "pre-push: HQ_CI_ONLY=1, unit tier skipped, CI required checks are the gate"
+    : "  Running unit tests... OK (122 tests)";
+  banner.className = ciOnly ? "skip" : "dim";
+  off.setAttribute("aria-pressed", String(!ciOnly));
+  on.setAttribute("aria-pressed", String(ciOnly));
+}
+off.addEventListener("click", () => render(false));
+on.addEventListener("click", () => render(true));
+render(false);
+</script>
+</body>
+</html>
