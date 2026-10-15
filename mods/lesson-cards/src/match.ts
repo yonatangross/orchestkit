@@ -11,15 +11,37 @@
 import type { LessonPattern, LessonBullet } from './corpus.js';
 import type { MatchedLesson } from './types.js';
 
+/** Expand every closed {a,b} group into one pattern per alternative. */
+function expandBraces(pattern: string): string[] {
+  const open = pattern.indexOf('{');
+  if (open === -1) return [pattern];
+  const close = pattern.indexOf('}', open + 1);
+  if (close === -1) return [pattern];
+  const head = pattern.slice(0, open);
+  const tail = pattern.slice(close + 1);
+  return pattern
+    .slice(open + 1, close)
+    .split(',')
+    .flatMap(part => expandBraces(head + part + tail));
+}
+
 /**
  * Simple glob pattern matching.
  * Supports:
  * - * matches any sequence of characters (except /)
  * - ** matches any sequence including /
  * - ? matches single character
+ * - {a,b} alternatives (one flat group per brace pair)
  * - literal characters match themselves
  */
 function simpleGlobMatch(str: string, pattern: string): boolean {
+  // {a,b} alternatives, as the hq-ext guard reads them (matchesFileGlob): one
+  // flat group, no nesting; a { with no closing } stays a literal character.
+  const alternatives = expandBraces(pattern);
+  if (alternatives.length > 1 || alternatives[0] !== pattern) {
+    return alternatives.some(alt => simpleGlobMatch(str, alt));
+  }
+
   // Normalize pattern and string
   const normalizedStr = str.replace(/\\/g, '/');
   const normalizedPattern = pattern.replace(/\\/g, '/');
@@ -170,7 +192,12 @@ function pathExcluded(pattern: LessonPattern, filePath: string): boolean {
   if (!pattern.exclude_paths || pattern.exclude_paths.length === 0) {
     return false;
   }
-  return pattern.exclude_paths.some(ex => simpleGlobMatch(filePath, ex));
+  const normalized = filePath.replace(/\\/g, '/');
+  // The corpus writes plain substrings ("/tests/", ".md", "/configs/"); an
+  // entry with glob characters keeps the glob reading.
+  return pattern.exclude_paths.some(ex =>
+    /[*?[]/.test(ex) ? simpleGlobMatch(filePath, ex) : normalized.includes(ex.replace(/\\/g, '/')),
+  );
 }
 
 /**
@@ -250,6 +277,66 @@ export function matchBashCommand(
 }
 
 /**
+ * The content test of a corpus file entry, read the way the hq-ext guard
+ * (pretool-lesson-guard evalSimple / evalWindowCheck) reads it:
+ * - simple (pattern): the regex with flag m against the whole content.
+ * - window-check (trigger_pattern): each line is tested alone, and a trigger
+ *   line fires only when require_pattern is absent from the window_lines
+ *   lines on both sides of it. No require_pattern means the trigger decides.
+ * An invalid regex never fires.
+ */
+function contentFires(pat: LessonPattern, content: string): boolean {
+  try {
+    if (pat.trigger_pattern) {
+      const trigger = new RegExp(pat.trigger_pattern);
+      const required = pat.require_pattern ? new RegExp(pat.require_pattern) : null;
+      const span = pat.window_lines ?? 0;
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (!trigger.test(lines[i])) continue;
+        if (!required) return true;
+        const window = lines.slice(Math.max(0, i - span), Math.min(lines.length, i + span + 1)).join('\n');
+        if (!required.test(window)) return true;
+      }
+      return false;
+    }
+    return new RegExp(pat.pattern as string, 'm').test(content);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The two typed corpus kinds that carry their own rule, read the way the
+ * hq-ext guard reads them (evalBlockCheck, evalDockerfileCheck). The path
+ * must END with file_match; the content then decides.
+ * - block-check: block_pattern captures a region (group 1, else the whole
+ *   match) and check_patterns are tested against that region only.
+ * - dockerfile-check: each `uv pip install ... -e /app/packages/<pkg>` needs
+ *   a `COPY --from=builder /app/packages/<pkg>/src` in the same file.
+ * An invalid regex never fires.
+ */
+function typedCheckFires(pat: LessonPattern, filePath: string, content: string): boolean {
+  if (!pat.file_match || !filePath.endsWith(pat.file_match)) return false;
+  try {
+    if (pat.type === 'block-check') {
+      if (!pat.block_pattern) return false;
+      const block = content.match(new RegExp(pat.block_pattern));
+      if (!block) return false;
+      const body = block[1] || block[0];
+      return (pat.check_patterns ?? []).some(check => new RegExp(check).test(body));
+    }
+    const editable = /uv pip install[^\n]*-e\s+\/app\/packages\/([\w-]+)\/?/g;
+    for (const found of content.matchAll(editable)) {
+      if (!new RegExp(`COPY\\s+--from=builder\\s+/app/packages/${found[1]}/src`).test(content)) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Match Edit/Write args against patterns.
  *
  * Checks file_path against file_glob and new content against check_patterns.
@@ -270,6 +357,15 @@ export function matchFileEdit(
 
     // Check repo filter
     if (!repoAllowed(pat, currentRepo)) {
+      continue;
+    }
+
+    // block-check and dockerfile-check carry their own rule; the generic
+    // glob, exclude and check_patterns steps below do not apply to them.
+    if (pat.type === 'block-check' || pat.type === 'dockerfile-check') {
+      if (typedCheckFires(pat, filePath, content)) {
+        matches.push({ id: pat.id, severity: pat.severity, message: pat.message, fix: pat.example_fix, source: 'pattern' });
+      }
       continue;
     }
 
@@ -316,8 +412,15 @@ export function matchFileEdit(
       if (!matchedAny) {
         continue;
       }
+    } else if (pat.pattern || pat.trigger_pattern) {
+      // A present content test decides, with or without a file filter, as in
+      // the guard. The glob alone would fire on every matching file. A Bash-only
+      // entry never gets here: its tool_names stops it at the top of the loop.
+      if (!contentFires(pat, content)) {
+        continue;
+      }
     } else if (!pat.file_glob && !pat.file_match) {
-      // No file filter and no check_patterns, skip
+      // No file filter and no content test, skip
       continue;
     }
 

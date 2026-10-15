@@ -241,11 +241,17 @@ export async function generateMetadata(props: {
     ? `${SITE.domain}/docs/${slugPath}.md`
     : `${SITE.domain}/docs.md`;
 
+  // A page with `seoTitle` sets the full search result title. It already
+  // names OrchestKit, so it skips the "%s | OrchestKit" template. A page
+  // without it keeps the short `title` plus the template.
+  const seoTitle = page.data.seoTitle;
+  const socialTitle = seoTitle ?? page.data.title;
+
   return {
-    title: page.data.title,
+    title: seoTitle ? { absolute: seoTitle } : page.data.title,
     description: page.data.description,
     openGraph: {
-      title: page.data.title,
+      title: socialTitle,
       description: page.data.description,
       url,
       siteName: SITE.name,
@@ -254,7 +260,7 @@ export async function generateMetadata(props: {
     },
     twitter: {
       card: "summary_large_image",
-      title: page.data.title,
+      title: socialTitle,
       description: page.data.description,
     },
     alternates: {

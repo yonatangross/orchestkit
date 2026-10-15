@@ -1,0 +1,14 @@
+# Fixture for check 6 of tests/manifests/test-cc-version-floor.sh (#4686).
+# Shape (b) of HOLD 6108025314: the jq read is followed by a literal fallback,
+# so a failed read still installs the old floor. The second install step is
+# correct. The scan must flag the first step's pin.
+steps:
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json) || CC_FLOOR=2.1.251
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"
+
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"

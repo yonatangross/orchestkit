@@ -43,6 +43,26 @@
         "Asks exactly one clarifying question instead of guessing a route",
         "Does not hand off to a specialist skill until the intent is clarified"
       ]
+    },
+    {
+      "id": "route-e2e-run",
+      "rule": "",
+      "query": "/ork:auto check the change in the browser",
+      "expectedBehavior": [
+        "Classifies the goal as the e2e intent category",
+        "Routes to /ork:expect, which runs a browser test plan on the diff",
+        "Does not call Skill(ork:testing-e2e) as the hand-off; that skill is reference guidance, not an executor"
+      ]
+    },
+    {
+      "id": "route-e2e-write",
+      "rule": "",
+      "query": "/ork:auto we have no e2e tests yet, write some",
+      "expectedBehavior": [
+        "Classifies the goal as the cover intent category",
+        "Routes to /ork:cover, whose E2E tier writes and runs new Playwright tests",
+        "Does not route to /ork:expect, which runs a plan but writes no test files"
+      ]
     }
   ]
 }

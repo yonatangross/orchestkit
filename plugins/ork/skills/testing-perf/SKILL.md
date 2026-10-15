@@ -3,8 +3,6 @@ name: testing-perf
 license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.
-context: fork
-agent: test-generator
 user-invocable: false
 disable-model-invocation: false
 targets:
@@ -13,6 +11,7 @@ targets:
   - library: "locust"
     version: ">=2.46.6"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
   version: "2.1.0"
   author: "OrchestKit"

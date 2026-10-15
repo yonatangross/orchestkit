@@ -49,9 +49,10 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputPreToolAdvisory } from '../../lib/common.js';
+import { outputSilentSuccess, outputPreToolModelHint } from '../../lib/common.js';
 import { blankQuotedContent } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { claimOncePerSession } from '../../lib/session-once.js';
 
 const HOOK_NAME = 'pretool/bash/display-lint';
 
@@ -86,10 +87,71 @@ const STAGE_SPLIT_RE = /\s*(?<!\\)(?:&&|\|\||\||;|\n)\s*/;
  * Blanking alone is insufficient: `grep -l a\|b` has no quotes at all.
  */
 function splitDisplayStages(command: string): string[] {
-  return blankQuotedContent(command)
+  // Comments go before substitutions: an unmatched `$(` or backtick inside a
+  // comment would otherwise blank every later line (CodeRabbit 4209092885).
+  return blankSubstitutions(stripComments(blankQuotedContent(command)))
     .split(STAGE_SPLIT_RE)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/**
+ * Blank the inside of `$( … )` and backtick command substitutions.
+ *
+ * A pipeline inside a substitution runs in a subshell; at the top level the
+ * shell sees ONE word. `VAL=$(git rev-parse HEAD | cut -c1-8)` is one stage,
+ * not two (ork-display-lint-bug-2026-10-07). Nesting is tracked so the first
+ * `)` of an inner `$(…)` does not end the outer one. Runs after quoted
+ * content is blanked, so a `)` inside quotes cannot close a substitution.
+ */
+function blankSubstitutions(command: string): string {
+  const out = command.split('');
+  let depth = 0;
+  let inBacktick = false;
+  for (let i = 0; i < out.length; i++) {
+    const ch = command[i];
+    if (!inBacktick && ch === '$' && command[i + 1] === '(') {
+      if (depth > 0) out[i] = ' ';
+      depth++;
+      i++;
+      if (depth > 1) out[i] = ' ';
+      continue;
+    }
+    if (depth > 0) {
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      if (depth > 0) out[i] = ' ';
+      continue;
+    }
+    if (ch === '`' && command[i - 1] !== '\\') {
+      inBacktick = !inBacktick;
+      continue;
+    }
+    if (inBacktick) out[i] = ' ';
+  }
+  return out.join('');
+}
+
+/**
+ * Drop shell comments: a `#` that starts a word, through the end of its line.
+ *
+ * Comment lines are documentation, not stages, and the operators they mention
+ * (`# build && test | ship`) are prose. Counting them turned a one-command
+ * call into an 8-stage "offender" (ork-display-lint-bug-2026-10-07). A `#`
+ * glued to a word (`$#`, `${#x}`, `a#b`) is not a comment and stays.
+ */
+function stripComments(command: string): string {
+  return command.replace(/(^|[\s;&|(])#[^\n]*/g, '$1');
+}
+
+/**
+ * The shell the Bash tool runs commands in. Claude Code uses
+ * CLAUDE_CODE_SHELL when set, otherwise the login shell in SHELL. Returns
+ * the basename (`zsh`, `bash`, …) or '' when neither is set.
+ */
+function toolShell(): string {
+  const raw = process.env.CLAUDE_CODE_SHELL || process.env.SHELL || '';
+  return raw.split('/').pop()?.toLowerCase() ?? '';
 }
 
 /** Commands that already follow the script-file pattern. */
@@ -127,7 +189,34 @@ function isPlumbingStage(stage: string): boolean {
 // so `console.log(1 << 4)` correctly stays out of the exemption.
 const HEREDOC_RE = /<<-?~?\s*(['"][A-Za-z_][A-Za-z0-9_]*['"]|[A-Za-z_][A-Za-z0-9_]*)/;
 
-export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+/**
+ * The once-per-session store, injected so the handler owns no file I/O
+ * (FH-ready). The default writes a flag file under .claude/state.
+ */
+export interface DisplayLintDeps {
+  claimOnce: (projectDir: string, name: string, sessionId: string) => boolean;
+}
+
+const DEFAULT_DEPS: DisplayLintDeps = { claimOnce: claimOncePerSession };
+
+/**
+ * True the first time this session flags a command, false after (#4652).
+ *
+ * The advice is the same paragraph every time, and a polling loop of long
+ * commands repeated it on every call. One copy per session teaches the model;
+ * the rest is noise. Without a session id there is no session to key on, so
+ * the hint is not limited.
+ */
+function firstHintThisSession(input: HookInput, ctx: HookContext, deps: DisplayLintDeps): boolean {
+  if (!input.session_id) return true;
+  return deps.claimOnce(input.project_dir || ctx.projectDir, 'display-lint', input.session_id);
+}
+
+export function displayLint(
+  input: HookInput,
+  ctx: HookContext = NOOP_CTX,
+  deps: DisplayLintDeps = DEFAULT_DEPS,
+): HookResult {
   if (process.env.ORK_DISPLAY_LINT === '0') return outputSilentSuccess();
 
   const command = input.tool_input?.command || '';
@@ -151,13 +240,22 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
 
   ctx.log(HOOK_NAME, `flagged: ${command.length} chars / ${stages.length} stages`);
 
-  // Advisory, NOT a permission decision: the command runs. Reaches the user
-  // (systemMessage) AND Claude (additionalContext) — the latter is what
-  // actually shifts future calls toward script files now that this hook no
-  // longer blocks. outputAllowWithContext() would have set
-  // permissionDecision:'allow' and skipped the permission prompt as a side
-  // effect of a cosmetic lint.
-  return outputPreToolAdvisory(
-    `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card, is safe from line-wrap splitting a flag from its argument, and gets real bash word splitting (when the Bash tool shell is zsh, the macOS default, an unquoted $var never word-splits, so a loop over $var runs once on the whole string and every iteration gets a malformed argument): write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
+  if (!firstHintThisSession(input, ctx, deps)) return outputSilentSuccess();
+
+  // Advisory, NOT a permission decision: the command runs. The hint reaches
+  // Claude only (additionalContext), which is what shifts future calls toward
+  // script files. A systemMessage copy repeated it in the user's transcript
+  // and gave the user nothing to act on (#4652). outputAllowWithContext()
+  // would have set permissionDecision:'allow' and skipped the permission
+  // prompt as a side effect of a cosmetic lint.
+  // The zsh clause is true only where the Bash tool shell IS zsh. On a bash
+  // host (Linux, or CLAUDE_CODE_SHELL=bash) it was wrong advice about a trap
+  // that host does not have (ork-display-lint-bug-2026-10-07).
+  const zshClause =
+    toolShell() === 'zsh'
+      ? ', and gets real bash word splitting (the Bash tool shell here is zsh, where an unquoted $var never word-splits, so a loop over $var runs once on the whole string and every iteration gets a malformed argument)'
+      : '';
+  return outputPreToolModelHint(
+    `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card and is safe from line-wrap splitting a flag from its argument${zshClause}: write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
   );
 }

@@ -15,9 +15,11 @@ any more and glyph hands off to a page instead.
 | Pick | Options | Default | It escalates when |
 |---|---|---|---|
 | **audience** | operator (dense, internal names allowed) or novice (plain words, an analogy first) | operator | you name a reader who is not you ("for Nir", "explain to the client", "eli5") |
-| **surface** | chat (inline, one render up to ~50 lines) or page (a served HTML explainer) | chat | the drawing needs more than ~50 lines, or it has to persist, or you asked for a file |
+| **surface** | chat (inline, one render up to ~50 lines), ask (one question, 2 to 4 options) or page (a served HTML explainer) | chat | ask: a real fork must be settled first; page: the drawing needs more than ~50 lines, or it has to persist, or you asked for a file |
 
-Both picks are announced in one line before the render, so you can override with a word.
+Both picks are announced in one line before the render (`→ chat · operator`), so you can
+override with a word or a flag. See every mode side by side on the
+[output modes page](/docs/guides/output-modes).
 
 ### The reference render: an inventory
 
@@ -118,11 +120,19 @@ is a mock-up.
 ```bash
 /ork:glyph                  # draw where the conversation is right now
 /ork:glyph <topic>          # one thing: an inventory, a comparison, a state
-/ork:glyph --eli5 <topic>   # novice audience, and a page if it needs one
-/glyph                      # same skill as /ork:glyph; renders here, does not hand off
+/ork:glyph --eli5 <topic>   # novice audience; a page unless you name a surface
+/ork:glyph --chat --eli5    # novice audience, kept inline
+/ork:glyph --ask <topic>    # one question with 2 to 4 options, then the picked branch
+/ork:glyph --page <topic>   # a served page
+/ork:glyph --decide <topic> # a DECIDE block, or a decision page with real controls
+/ork:glyph --signoff        # end with: Accept done | Show me the evidence | Not satisfied
 ```
 
-What it will never do: ask you a setup question, use a status emoji that is not in its
+A personal skill you named `glyph` stays `/glyph` and is a different skill; plugin
+skills always carry the `ork:` prefix, so the two never collide.
+
+What it will never do: ask you a setup question (the ask surface and `--signoff` ask
+about your work, never about format), use a status emoji that is not in its
 closed set (done, failed, warning, in progress, waiting, idea, hard block, goal, top
 priority, doc, agent, hook, caveat, and the three risk colours), put a domain icon
 anywhere but the leading column of a row, or stack two renders in one reply. Over about

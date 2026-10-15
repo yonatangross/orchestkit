@@ -116,9 +116,10 @@ or any character that requires a non-default monospace font.
 - The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
   this answer has shape, render it", not "draw something every turn".
 - `/ork:glyph` is the reference implementation; use it unprompted whenever
-  rule 1 applies. `glyph` and `ork:glyph` are that same skill. If either name
-  is already loaded, render in place and do not invoke the other: a second
-  invocation re-enters this file instead of drawing (GH-4159).
+  rule 1 applies. Once it is loaded, render in place and
+  do not invoke the other name (`glyph`, `/glyph`, `/ork:glyph`): a second
+  invocation re-enters a skill instead of drawing (GH-4159). A personal
+  `/glyph` is a separate skill.
 - "Where do we stand / what's next" always gets a render plus ranked next
   steps.
 

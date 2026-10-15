@@ -1,0 +1,6 @@
+{
+  "serves": "ork-output-modes-2026-10-07",
+  "page": "docs/feat--prompt-focus-skill/index.html",
+  "lab_slug": "prompt-focus-demo",
+  "purpose": "PR playground for #4657: the prompt-focus report rendered from synthetic data (prompt_focus.py demo), safe to share"
+}

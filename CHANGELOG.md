@@ -5,6 +5,176 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173) (2026-10-15)
+
+
+### Features
+
+* **ci:** add a preview-only facts-only changelog feed for X ([#4727](https://github.com/yonatangross/orchestkit/issues/4727)) ([cddea6a](https://github.com/yonatangross/orchestkit/commit/cddea6a8bb84b165af90d5f4ab4f272d533ebbda))
+
+
+### Bug Fixes
+
+* **tests:** restore the exec bit on 2 tests from [#4749](https://github.com/yonatangross/orchestkit/issues/4749) ([#4757](https://github.com/yonatangross/orchestkit/issues/4757)) ([c0eaab9](https://github.com/yonatangross/orchestkit/commit/c0eaab9f53987be58631f68f58cad414f8a9883d))
+* **tests:** stop headless Chrome keychain prompts; pre-push CI-only mode ([#4749](https://github.com/yonatangross/orchestkit/issues/4749)) ([9757155](https://github.com/yonatangross/orchestkit/commit/9757155b45ba057e47a87dfa8cde60a21c50d0bf))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#4723](https://github.com/yonatangross/orchestkit/issues/4723)) ([154520c](https://github.com/yonatangross/orchestkit/commit/154520cd1c11d02e270daffe3949ce9a426f11ff))
+* **deps:** bump the npm-minor-patch group across 1 directory with 9 updates ([#4733](https://github.com/yonatangross/orchestkit/issues/4733)) ([23e251c](https://github.com/yonatangross/orchestkit/commit/23e251c39c49e6f7bbf47b6042df4e49bffd7484))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#4719](https://github.com/yonatangross/orchestkit/issues/4719)) ([16097dd](https://github.com/yonatangross/orchestkit/commit/16097dd4dc11c770820e71f578637f199df9b8b0))
+
+
+### Documentation
+
+* **readme:** add the Vercel OSS Program badge ([#4734](https://github.com/yonatangross/orchestkit/issues/4734)) ([7005758](https://github.com/yonatangross/orchestkit/commit/7005758f69650803210f80fc65752e1d1fae8b11))
+* v10 front door with search titles, What's new page and README start ([#4728](https://github.com/yonatangross/orchestkit/issues/4728)) ([5469225](https://github.com/yonatangross/orchestkit/commit/5469225a7d9d141ed3d5992f04566f351a49e611))
+
+## [10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172) (2026-10-12)
+
+
+### Bug Fixes
+
+* **mods:** lesson-cards keeps tool.call context from hooks below ([#4726](https://github.com/yonatangross/orchestkit/issues/4726)) ([156f75c](https://github.com/yonatangross/orchestkit/commit/156f75c695a1c7fbe56223a9fa585c06fed51bc6))
+
+
+### Miscellaneous
+
+* **traffic:** snapshot week of 2026-09-28 ([#4621](https://github.com/yonatangross/orchestkit/issues/4621)) ([c29f7b1](https://github.com/yonatangross/orchestkit/commit/c29f7b1ae71f0e29c2870bca5df96e9228695443))
+
+## [10.0.0-beta.171](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171) (2026-10-11)
+
+
+### Features
+
+* **hooks:** add claude-haiku-5-5 to the model vocab and pricing ([#4660](https://github.com/yonatangross/orchestkit/issues/4660)) ([4621212](https://github.com/yonatangross/orchestkit/commit/4621212a9c27932366b4faf79c9089dcc97f3129))
+* **models:** advance the haiku alias to claude-haiku-5-5 ([#4661](https://github.com/yonatangross/orchestkit/issues/4661)) ([5c4c961](https://github.com/yonatangross/orchestkit/commit/5c4c961f93e93be075602060991f92c8516b8d6a))
+
+
+### Bug Fixes
+
+* **agents:** drop skill references that name no existing skill ([#4709](https://github.com/yonatangross/orchestkit/issues/4709)) ([0e2bcab](https://github.com/yonatangross/orchestkit/commit/0e2bcabcabba76ae7ba1b144c72f5a5543f8feb3))
+* **ci:** five GA-blocking CI and test bugs, red-first ([#4687](https://github.com/yonatangross/orchestkit/issues/4687)) ([fc17326](https://github.com/yonatangross/orchestkit/commit/fc17326a5f471b372cd5507e6e51d7e112f96e85))
+* drop the system-reminder wrapper; isolation only on 2 git agents ([#4695](https://github.com/yonatangross/orchestkit/issues/4695)) ([1894035](https://github.com/yonatangross/orchestkit/commit/189403579209a806c2e2aff1e126455e1b91e1a0))
+* **git-hooks:** src guard accepts a counterpart changed on the branch ([#4710](https://github.com/yonatangross/orchestkit/issues/4710)) ([f59bc76](https://github.com/yonatangross/orchestkit/commit/f59bc769dd6120df3084bd58bfb810c4771dc878))
+* **hooks:** drop continueOnBlock from 4 command hooks for Desktop ([#4685](https://github.com/yonatangross/orchestkit/issues/4685)) ([8c426ee](https://github.com/yonatangross/orchestkit/commit/8c426eefa10dbcc05ae30cd42c98571d6bafa389))
+* **hooks:** four GA-blocking hook bugs, red-first ([#4688](https://github.com/yonatangross/orchestkit/issues/4688)) ([59093c3](https://github.com/yonatangross/orchestkit/commit/59093c3b786f3e8bd5541e895f11b237852bf788))
+* **hooks:** ork cursor pins and [#4688](https://github.com/yonatangross/orchestkit/issues/4688) follow-ups ([#4713](https://github.com/yonatangross/orchestkit/issues/4713)) ([f65f016](https://github.com/yonatangross/orchestkit/commit/f65f0166ca1a2a709e5b3ede246bd1a62da8d465))
+* **review-pr:** post only when the user types --post ([#4678](https://github.com/yonatangross/orchestkit/issues/4678)) ([d2a3a8f](https://github.com/yonatangross/orchestkit/commit/d2a3a8ff92368181adc0aa454fa09b86d9dc7e47))
+* **skills:** inline fan-out skills, hook-free forks, shared target rule ([#4693](https://github.com/yonatangross/orchestkit/issues/4693)) ([8a4716e](https://github.com/yonatangross/orchestkit/commit/8a4716e4309716919947cd8676a52387f921a5c2))
+
+## [10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170) (2026-10-10)
+
+
+### Bug Fixes
+
+* **hooks:** tldr-summary skips a Read with allow_large ([#4700](https://github.com/yonatangross/orchestkit/issues/4700)) ([13a6c2a](https://github.com/yonatangross/orchestkit/commit/13a6c2a4e0f38145fc10f809c5b89a9a1b7064c5))
+
+## [10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169) (2026-10-10)
+
+
+### Documentation
+
+* **skills:** MCP description cap is 4,096 characters since CC 2.1.296 ([#4699](https://github.com/yonatangross/orchestkit/issues/4699)) ([9fae329](https://github.com/yonatangross/orchestkit/commit/9fae329ffcda20d528f262880e0986fee824a9ce))
+
+## [10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168) (2026-10-10)
+
+
+### Bug Fixes
+
+* **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok ([#4698](https://github.com/yonatangross/orchestkit/issues/4698)) ([7abe08a](https://github.com/yonatangross/orchestkit/commit/7abe08a783f70a7fc79d80990dc490664afac6a6))
+
+## [10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167) (2026-10-10)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.289 through 2.1.296 ([#4702](https://github.com/yonatangross/orchestkit/issues/4702)) ([c5705af](https://github.com/yonatangross/orchestkit/commit/c5705afed4951d897e7916e048d9e52f5f02cc91))
+
+## [10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166) (2026-10-09)
+
+
+### Features
+
+* **review-pr:** standards pass with a review-only standards file ([#4671](https://github.com/yonatangross/orchestkit/issues/4671)) ([cfbd187](https://github.com/yonatangross/orchestkit/commit/cfbd1873953c05149db532cfebf3e56c2248224e))
+
+
+### Bug Fixes
+
+* **ci:** cache and bound the docs Playwright install ([#4667](https://github.com/yonatangross/orchestkit/issues/4667)) ([379e1e7](https://github.com/yonatangross/orchestkit/commit/379e1e7199f18204e8b76e45b50966488e7fed1f))
+* **review-pr:** run inline so its frontmatter hooks run ([#4682](https://github.com/yonatangross/orchestkit/issues/4682)) ([1713ea0](https://github.com/yonatangross/orchestkit/commit/1713ea03a837b323e5a75071773f8dff25c1119f))
+* **tests:** restore exec bit on git-isolate.sh ([#4681](https://github.com/yonatangross/orchestkit/issues/4681)) ([7626a41](https://github.com/yonatangross/orchestkit/commit/7626a416e31fb71b372f3c5ba0708d842b189a70))
+
+
+### Documentation
+
+* **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 ([#4662](https://github.com/yonatangross/orchestkit/issues/4662)) ([732f9a5](https://github.com/yonatangross/orchestkit/commit/732f9a59f3a94dd3f387dc58a0d7d763bfcf3eeb))
+* **lab:** playground for the Playwright install hang ([#4665](https://github.com/yonatangross/orchestkit/issues/4665)) ([#4669](https://github.com/yonatangross/orchestkit/issues/4669)) ([eda91e5](https://github.com/yonatangross/orchestkit/commit/eda91e5f80df11c854f012ddcd10bf17057a3791))
+
+## [10.0.0-beta.165](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.164...v10.0.0-beta.165) (2026-10-07)
+
+
+### Features
+
+* **prompt-focus:** where your attention went, from your own prompts ([#4657](https://github.com/yonatangross/orchestkit/issues/4657)) ([0ef71d2](https://github.com/yonatangross/orchestkit/commit/0ef71d24f9b540ad849388048626531d73c64820))
+
+## [10.0.0-beta.164](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.163...v10.0.0-beta.164) (2026-10-07)
+
+
+### Bug Fixes
+
+* **hooks:** display-lint hint is shell-aware, model-only, once per session ([#4655](https://github.com/yonatangross/orchestkit/issues/4655)) ([dc0b811](https://github.com/yonatangross/orchestkit/commit/dc0b811dab41c1141d2eee4d93064e947bb6dfff))
+* **skills:** reference skills load inline; ork:auto routes e2e asks ([#4656](https://github.com/yonatangross/orchestkit/issues/4656)) ([480e358](https://github.com/yonatangross/orchestkit/commit/480e35851fe52e3aaa33a74773a46f59c7794520))
+
+## [10.0.0-beta.163](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.162...v10.0.0-beta.163) (2026-10-07)
+
+
+### Features
+
+* **glyph:** output mode dials, done sign-off, and a try-it page ([#4647](https://github.com/yonatangross/orchestkit/issues/4647)) ([f917aac](https://github.com/yonatangross/orchestkit/commit/f917aac6b21bfe509a8c3359d899bed22a94d4ff))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#4612](https://github.com/yonatangross/orchestkit/issues/4612)) ([9246bca](https://github.com/yonatangross/orchestkit/commit/9246bca5aee7216274fb8e1323a87f5c0c05d39e))
+
+## [10.0.0-beta.162](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.161...v10.0.0-beta.162) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** sharp 0.35.5 in docs/site for advisory 1241331 ([#4653](https://github.com/yonatangross/orchestkit/issues/4653)) ([fb6742b](https://github.com/yonatangross/orchestkit/commit/fb6742b34db2ebd463aa4c155d84ebe7adf99986))
+
+## [10.0.0-beta.161](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.160...v10.0.0-beta.161) (2026-10-06)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump vitest ([#4611](https://github.com/yonatangross/orchestkit/issues/4611)) ([ef6ff6b](https://github.com/yonatangross/orchestkit/commit/ef6ff6b6ea1c52794ef83ee7365a106e05adb1fa))
+* **deps:** bump the npm-minor-patch group across 1 directory with 2 updates ([#4613](https://github.com/yonatangross/orchestkit/issues/4613)) ([4f298b0](https://github.com/yonatangross/orchestkit/commit/4f298b08ded6681c4a386921040504a1d751fe96))
+
+## [10.0.0-beta.160](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.159...v10.0.0-beta.160) (2026-10-06)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump vitest ([#4610](https://github.com/yonatangross/orchestkit/issues/4610)) ([0dbbfa9](https://github.com/yonatangross/orchestkit/commit/0dbbfa9fadf5188759fc75904621e8edce2120bd))
+
+## [10.0.0-beta.159](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.158...v10.0.0-beta.159) (2026-10-06)
+
+
+### Bug Fixes
+
+* **deps:** lock source-map-js 1.2.2 and proxy-addr 2.0.8 in all trees ([#4642](https://github.com/yonatangross/orchestkit/issues/4642)) ([badfc82](https://github.com/yonatangross/orchestkit/commit/badfc82999e424b0445ba9db6a1e9aa2aed9e20f))
+
+## [10.0.0-beta.158](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.157...v10.0.0-beta.158) (2026-10-05)
+
+
+### Bug Fixes
+
+* **test:** nested pre-push hook runs in full mode ([#4635](https://github.com/yonatangross/orchestkit/issues/4635)) ([ee47e33](https://github.com/yonatangross/orchestkit/commit/ee47e33b17bd340330dd974cc740f10408580dac))
+
 ## [10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157) (2026-10-05)
 
 

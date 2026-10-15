@@ -169,7 +169,12 @@ def build_entity(
 
 
 def _write_handoff(handoff_path: Path, payload: dict[str, Any]) -> None:
-    handoff_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    # O_NOFOLLOW: a committed link in the review dir must not aim this write at
+    # another file, such as the session transcript (#4678, HOLD 6087117284).
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(handoff_path, flags, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, indent=2, sort_keys=True))
 
 
 def _write_skip(handoff_path: Path, reason: str) -> None:

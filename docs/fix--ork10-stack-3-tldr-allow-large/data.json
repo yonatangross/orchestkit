@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-stack-3",
+  "page": "docs/fix--ork10-stack-3-tldr-allow-large/index.html",
+  "lab_slug": "ork10-stack-3-tldr-allow-large",
+  "purpose": "PR playground: tldr-summary skips a Read with allow_large"
+}

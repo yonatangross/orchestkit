@@ -16,6 +16,13 @@
 # staged (or none are staged at all). Exit 1 otherwise, printing each
 # offender and the exact src/ path to edit instead.
 #
+# A counterpart also counts when it changed EARLIER on the branch. The
+# pre-commit hook passes those paths, one per line, in
+# PLUGINS_SRC_GUARD_BRANCH_FILES (git diff of the merge base with the default
+# branch against HEAD). Without it a branch could never commit a regen for
+# src/ edits made in an earlier commit (#4661: regen alone exit 1, regen plus
+# the 3 src files exit 0). Unset or empty keeps the same-commit rule.
+#
 # Exception: a staged generator input (the build script itself, a build
 # helper under scripts/lib/, or a manifest) means the plugins/ diff is
 # plausibly REGENERATED output, not a hand edit — generator changes
@@ -29,6 +36,7 @@
 set -uo pipefail
 
 list=$(cat)
+branch_list="${PLUGINS_SRC_GUARD_BRANCH_FILES:-}"
 
 if grep -Eq '^(scripts/build-plugins\.sh|scripts/lib/|manifests/)' <<< "$list"; then
   exit 0
@@ -41,12 +49,12 @@ while IFS= read -r f; do
       src="src/skills/${f#plugins/ork/skills/}"
       # grep against a here-string, never a pipe: -q early-exits and would
       # SIGPIPE a producer, flipping the test under pipefail (#603).
-      if ! grep -Fxq "$src" <<< "$list"; then
+      if ! grep -Fxq "$src" <<< "$list" && ! grep -Fxq "$src" <<< "$branch_list"; then
         if [[ $mismatch -eq 0 ]]; then
           echo "Generated output staged without its src/ counterpart (plugins/ is built from src/):"
         fi
         echo "  $f"
-        echo "    -> edit and stage $src instead"
+        echo "    -> edit and stage $src instead (or commit it earlier on this branch)"
         mismatch=$((mismatch + 1))
       fi
       ;;

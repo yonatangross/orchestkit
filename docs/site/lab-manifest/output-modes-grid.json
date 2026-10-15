@@ -1,0 +1,12 @@
+{
+  "slug": "output-modes-grid",
+  "source": "docs/feat--ork-output-modes/index.html",
+  "title": "Output Modes Grid",
+  "description": "Pick a glyph surface (chat, ask, page) and audience (operator, novice), add the done sign-off, and copy the flag or the prompt.",
+  "tags": [
+    "glyph",
+    "output-modes",
+    "copy-as-prompt"
+  ],
+  "date": "2026-10-06"
+}

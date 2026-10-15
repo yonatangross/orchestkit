@@ -4,9 +4,8 @@ compatibility: "Claude Code 2.1.277+"
 description: "Strategic analysis frameworks including Porter's Five Forces (industry attractiveness), SWOT (internal positioning), and competitive landscape mapping with battlecard generation. Produces competitor profiles, feature gap analysis, and positioning recommendations. Use when analyzing market position, evaluating threats, or building sales battlecards."
 user-invocable: false
 disable-model-invocation: false
-context: fork
-agent: product-strategist
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

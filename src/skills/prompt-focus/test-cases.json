@@ -1,0 +1,53 @@
+{
+  "skill": "prompt-focus",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "prompt-focus-report",
+      "query": "show me where my focus went, as a report",
+      "expectedBehavior": [
+        "Runs prompt_focus.py report, read only",
+        "Opens report.html and states the verdict line: top area, prompts per week, nudge and words-per-prompt trend",
+        "Names the re-typed asks with their first-4 vs last-4 week trend"
+      ]
+    },
+    {
+      "id": "prompt-focus-natural",
+      "query": "where does my focus go across my projects, what do I keep asking my agents?",
+      "expectedBehavior": [
+        "Activates prompt-focus",
+        "Answers with counts and categories, never raw prompt text"
+      ]
+    },
+    {
+      "id": "prompt-focus-negative",
+      "query": "which of my hooks are slow?",
+      "expectedBehavior": [
+        "Does NOT activate prompt-focus: hook timing belongs to analytics"
+      ]
+    },
+    {
+      "id": "prompt-focus-public",
+      "query": "I want to post my prompt-focus page on LinkedIn",
+      "expectedBehavior": [
+        "Recommends the demo command (synthetic data) instead of the real report, because the real one names projects"
+      ]
+    },
+    {
+      "id": "prompt-focus-multi-agent",
+      "query": "run prompt-focus on my history",
+      "context": "agents paste briefs into the user's terminal with their own markers",
+      "expectedBehavior": [
+        "Suggests adding the markers to brief_patterns in config.json",
+        "Suggests a 20-row control before trusting the split"
+      ]
+    },
+    {
+      "id": "prompt-focus-daily",
+      "query": "add yesterday to my prompt-focus daily log",
+      "expectedBehavior": [
+        "Appends yesterday's row once; a second call for the same day writes nothing"
+      ]
+    }
+  ]
+}

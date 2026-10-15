@@ -23,7 +23,7 @@ Ork-only keys are not Claude Code subagent keys, so they sit under `metadata:` a
 
 ## Optional Flags
 - `background: true`: agent never needs interactive results (fire-and-forget)
-- `isolation: worktree`: run in isolated git worktree (safe for heavy writes)
+- `isolation: worktree`: allowlist only (`git-operations-engineer`, `release-engineer`, #4557). It is forced on every spawn and breaks spawns from a non-git cwd; writers get `Agent(isolation="worktree")` from the caller instead
 - `maxTurns: N`: conversation turn limit
 - `disallowedTools: [...]` — deny-list. CC 2.1.178 **fixed** MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) being silently ignored in subagents; they now enforce at spawn. Use `disallowedTools: [mcp__*]` to scope MCP access for a background/untrusted subagent.
 
@@ -31,7 +31,7 @@ Ork-only keys are not Claude Code subagent keys, so they sit under `metadata:` a
 Hooks declared in agent frontmatter fire in both contexts: spawned-as-subagent (Task tool) AND main-thread (`claude --agent <name>`). Write hooks context-agnostic — validate `tool_input`, apply policy, log with `CLAUDE_AGENT_ID` (defaults to `'unknown'`). Do not branch on "am I a subagent?".
 
 ## Decision Guide
-- Heavy writes (build, refactor)? → `isolation: worktree`
+- Heavy writes (build, refactor)? → caller passes `isolation="worktree"` per spawn
 - Fire-and-forget (research, eval)? → `background: true`
 - Needs user interaction? → neither flag
 - Spawns subagents? → add `Agent(sub-name)` to tools

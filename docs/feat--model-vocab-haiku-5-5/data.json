@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/feat--model-vocab-haiku-5-5/index.html",
+  "lab_slug": "model-vocab-haiku-5-5",
+  "purpose": "PR playground: Haiku 5.5 pricing row and long prompt limit"
+}

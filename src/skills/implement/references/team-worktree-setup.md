@@ -7,27 +7,19 @@ Per-teammate git worktree management for Agent Teams. Extends the general [Workt
 ## Branch Naming Convention
 
 ```
-feat/{feature}/{role}
+feat/{feature}-{role}
 ```
 
 Examples:
-- `feat/user-auth/backend`
-- `feat/user-auth/frontend`
-- `feat/user-auth/tests`
-- `feat/dashboard/backend`
-- `feat/dashboard/frontend`
+- `feat/user-auth-backend`
+- `feat/user-auth-frontend`
+- `feat/user-auth-tests`
+- `feat/dashboard-backend`
+- `feat/dashboard-frontend`
 
-All branches are created from the feature branch (not main):
-
-```bash
-# Start from the feature branch
-git checkout feat/{feature}
-
-# Create role branches
-git branch feat/{feature}/backend
-git branch feat/{feature}/frontend
-git branch feat/{feature}/tests
-```
+Role branches sit BESIDE the feature branch (`feat/{feature}-backend`), never
+under it: git cannot hold `feat/{feature}` and `feat/{feature}/backend` at the
+same time. Each role branch is created once, by `git worktree add -b` below.
 
 ---
 
@@ -41,9 +33,9 @@ and the teammate ends up operating on the PRIMARY tree — platform#9870 (#3319)
 
 ```bash
 # Create worktrees — one per implementing teammate
-git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main
-git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main
-git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main
+git worktree add .worktrees/backend  -b feat/{feature}-backend  feat/{feature}
+git worktree add .worktrees/frontend -b feat/{feature}-frontend feat/{feature}
+git worktree add .worktrees/tests    -b feat/{feature}-tests    feat/{feature}
 
 # Verify — both the registration AND that each branch is the one you asked for
 git worktree list
@@ -71,18 +63,20 @@ Include the worktree path in each teammate's spawn prompt:
 
 | Teammate | Worktree | Working Directory |
 |----------|----------|-------------------|
-| backend-architect | `../{project}-backend/` | Full project access, writes to backend dirs |
-| frontend-dev | `../{project}-frontend/` | Full project access, writes to frontend dirs |
-| test-engineer | `../{project}-tests/` | Full project access, writes to test dirs |
+| backend-architect | `{project}/.worktrees/backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `{project}/.worktrees/frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `{project}/.worktrees/tests/` | Full project access, writes to test dirs |
 | code-reviewer | Main worktree | Read-only, reviews across all worktrees |
 
 **Spawn prompt addition:**
 
 ```
 ## Your Working Directory
-Work EXCLUSIVELY in: /path/to/{project}-backend/
+Work EXCLUSIVELY in: /path/to/{project}/.worktrees/backend/
+Before any write, run `pwd` and `git branch --show-current`. If they are not
+that path and feat/{feature}-backend, stop and message the lead.
 Do NOT modify files in other worktrees.
-Commit your changes to the feat/{feature}/backend branch.
+Commit your changes to the feat/{feature}-backend branch.
 ```
 
 ---
@@ -98,13 +92,13 @@ After all teammates complete, the lead merges each role branch:
 git checkout feat/{feature}
 
 # Merge each role as a single commit
-git merge --squash feat/{feature}/backend
+git merge --squash feat/{feature}-backend
 git commit -m "feat({feature}): backend implementation"
 
-git merge --squash feat/{feature}/frontend
+git merge --squash feat/{feature}-frontend
 git commit -m "feat({feature}): frontend implementation"
 
-git merge --squash feat/{feature}/tests
+git merge --squash feat/{feature}-tests
 git commit -m "test({feature}): complete test suite"
 ```
 
@@ -133,13 +127,13 @@ git worktree remove ../{project}-frontend
 git worktree remove ../{project}-tests
 
 # Delete role branches
-git branch -d feat/{feature}/backend
-git branch -d feat/{feature}/frontend
-git branch -d feat/{feature}/tests
+git branch -d feat/{feature}-backend
+git branch -d feat/{feature}-frontend
+git branch -d feat/{feature}-tests
 
 # Verify cleanup
 git worktree list
-git branch --list "feat/{feature}/*"
+git branch --list "feat/{feature}-*"
 ```
 
 ---
@@ -151,12 +145,10 @@ Not every Agent Teams session needs worktrees. Skip when:
 | Condition | Skip Worktrees? | Reason |
 |-----------|-----------------|--------|
 | Read-only roles only (audit, review) | Yes | No file writes = no conflicts |
-| Small feature (< 5 files) | Yes | File overlap unlikely |
-| Teammates work in non-overlapping directories | Yes | Natural isolation |
 | Single-stack scope (backend-only or frontend-only) | Yes | One writer, others are reviewers |
 | Research/debugging task | Yes | Exploration, not implementation |
 
-When skipping worktrees, teammates work in the same directory. The lead should assign **clear file ownership** in spawn prompts to prevent conflicts:
+Two or more teammates that write at the same time ALWAYS need worktrees (#4557): ork agents carry no frontmatter isolation, and a small feature or separate directories still share the lockfile, the build output and the git index. Skip only for the rows above (no writer, or a single writer). Then the other teammates read, and the lead still assigns **clear file ownership** in spawn prompts:
 
 ```
 ## File Ownership

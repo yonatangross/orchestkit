@@ -361,3 +361,22 @@ def test_pr_number_accepts_string_digits(module) -> None:  # type: ignore[no-unt
     assert module._pr_number({"pr_number": 42}) == 42
     assert module._pr_number({"pr_number": "abc"}) is None
     assert module._pr_number({}) is None
+
+
+def test_handoff_link_is_not_written_through(review_dir: Path, tmp_path: Path) -> None:
+    # HOLD 6087117284 must 1: a committed verdict-writeback.json link to the
+    # session transcript must not be overwritten (O_NOFOLLOW on the handoff).
+    _write_review(review_dir, _high_signal_review())
+    victim = tmp_path / "transcript.jsonl"
+    victim.write_text("keep\n", encoding="utf-8")
+    (review_dir / "verdict-writeback.json").symlink_to(victim)
+    result = subprocess.run(
+        ["python3", str(SCRIPT_PATH), str(review_dir)],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PYTHONPATH": ""},
+    )
+    assert victim.read_text(encoding="utf-8") == "keep\n", result.stderr
+    assert (review_dir / "verdict-writeback.json").is_symlink()
+    assert result.returncode != 0

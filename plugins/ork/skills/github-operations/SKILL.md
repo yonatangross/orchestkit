@@ -3,7 +3,6 @@ name: github-operations
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires gh CLI."
 description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
-context: fork
 user-invocable: false
 metadata:
   category: workflow-automation

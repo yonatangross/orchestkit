@@ -238,7 +238,7 @@ GOAT_SEQUENCE = [
 
 - **Receives from:** workflow-architect (security requirements), backend-system-architect (API security)
 - **Hands off to:** llm-integrator (guardrail implementation), test-generator (security test cases)
-- **Skill references:** advanced-guardrails, mcp-patterns, security-patterns
+- **Skill references:** mcp-patterns, security-patterns
 
 ## Example
 

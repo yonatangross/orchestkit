@@ -8,79 +8,9 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { outputWithContext } from '../lib/common.js';
 import { safeExec } from './context-loader-utils.js';
 import { NOOP_CTX } from '../lib/context.js';
-
-/**
- * PR Context Loader — fetches PR for current branch via gh CLI.
- * Used by: review-pr skill (PreToolUse/Read, once:true)
- *
- * Note: Skill arguments aren't available in hook input. Uses current branch
- * to find the associated PR, which covers the common `/ork:review-pr` case.
- */
-export function prContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = hookCtx.projectDir;
-
-  // Try current branch's PR first
-  const prData = safeExec(
-    'gh pr view --json title,body,changedFiles,additions,deletions,labels,number,baseRefName,headRefName 2>/dev/null',
-    projectDir,
-  );
-  if (!prData) return outputSilentSuccess();
-
-  try {
-    const pr = JSON.parse(prData);
-    const ctx = [
-      `[PR #${pr.number} Context — loaded once]`,
-      `Title: ${pr.title}`,
-      `Base: ${pr.baseRefName} <- Head: ${pr.headRefName}`,
-      `Changed files: ${pr.changedFiles}, +${pr.additions}/-${pr.deletions}`,
-      pr.labels?.length ? `Labels: ${pr.labels.map((l: { name: string }) => l.name).join(', ')}` : '',
-      pr.body ? `\nDescription:\n${pr.body.slice(0, 1000)}` : '',
-    ].filter(Boolean).join('\n');
-    return outputWithContext(ctx);
-  } catch {
-    return outputSilentSuccess();
-  }
-}
-
-/**
- * Issue Context Loader — extracts issue number from branch name.
- * Used by: fix-issue skill (PreToolUse/Read, once:true)
- *
- * Common branch patterns: fix/123, issue-123, feat/issue-456
- */
-export function issueContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = hookCtx.projectDir;
-
-  // Extract issue number from current branch name
-  const branch = safeExec('git branch --show-current', projectDir);
-  const issueMatch = branch.match(/(?:fix|issue|bug|feat)[/-](\d+)/i) || branch.match(/(\d{2,})/);
-  if (!issueMatch) return outputSilentSuccess();
-  const issueNum = issueMatch[1];
-
-  const issueData = safeExec(
-    `gh issue view ${issueNum} --json title,body,labels,milestone,state 2>/dev/null`,
-    projectDir,
-  );
-  if (!issueData) return outputSilentSuccess();
-
-  try {
-    const issue = JSON.parse(issueData);
-    const ctx = [
-      `[Issue #${issueNum} Context — loaded once]`,
-      `Title: ${issue.title}`,
-      `State: ${issue.state}`,
-      issue.labels?.length ? `Labels: ${issue.labels.map((l: { name: string }) => l.name).join(', ')}` : '',
-      issue.milestone ? `Milestone: ${issue.milestone.title}` : '',
-      issue.body ? `\nDescription:\n${issue.body.slice(0, 1500)}` : '',
-    ].filter(Boolean).join('\n');
-    return outputWithContext(ctx);
-  } catch {
-    return outputSilentSuccess();
-  }
-}
 
 /**
  * Commit Convention Loader — detects commit message conventions.
@@ -112,43 +42,12 @@ export function commitConventionLoader(_input: HookInput, hookCtx: HookContext =
   return outputWithContext(ctx);
 }
 
-/**
- * Plan Context Loader — gathers branch diff context for plan visualization.
- * Used by: visualize-plan skill (PreToolUse/Bash, once:true)
- *
- * Provides branch name, base branch, commit count, and changed file summary
- * so the skill has immediate context without running detection scripts.
- */
-export function planContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = hookCtx.projectDir;
-
-  const branch = safeExec('git branch --show-current', projectDir);
-  if (!branch) return outputSilentSuccess();
-
-  // Detect base branch (main or master)
-  const mainExists = safeExec('git rev-parse --verify main 2>/dev/null', projectDir);
-  const base = mainExists ? 'main' : 'master';
-
-  const commitCount = safeExec(`git rev-list ${base}..HEAD --count 2>/dev/null`, projectDir);
-  const diffStat = safeExec(`git diff ${base}...HEAD --stat 2>/dev/null | tail -1`, projectDir);
-  const changedFiles = safeExec(`git diff ${base}...HEAD --name-status 2>/dev/null | head -20`, projectDir);
-
-  // Check for linked issue in branch name
-  const issueMatch = branch.match(/(?:fix|issue|feat|refactor)[/-].*?(\d+)/i) || branch.match(/-(\d{2,})$/);
-
-  const ctx = [
-    '[Plan Context — loaded once]',
-    `Branch: ${branch} → ${base}`,
-    commitCount ? `Commits: ${commitCount} ahead of ${base}` : '',
-    diffStat || '',
-    changedFiles ? `\nChanged files:\n${changedFiles}` : '',
-    issueMatch ? `Linked issue: #${issueMatch[1]}` : '',
-  ].filter(Boolean).join('\n');
-
-  return outputWithContext(ctx);
-}
-
 // releaseStateLoader removed: its only consumer was the release-checklist
 // skill (PreToolUse/Read, once:true), deleted as an unreachable orphan. The
 // hook stayed in the entries map with nothing able to dispatch it, which is
 // the #959 dead-hook class; validate-registry.mjs caught it.
+//
+// issueContextLoader removed: its only consumer was fix-issue, and it read
+// the issue number from the branch name, not the skill's argument (on
+// fix/ork10-... it loaded issue #10, #4693). The body now fetches
+// ISSUE_NUMBER itself; a dead registration is the #959 class.

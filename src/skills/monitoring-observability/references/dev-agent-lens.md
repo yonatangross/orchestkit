@@ -84,9 +84,14 @@ model_list:
       model: anthropic/claude-opus-5-5
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  - model_name: claude-haiku-4-5-20251001
+  - model_name: claude-haiku-5-5
     litellm_params:
-      model: anthropic/claude-haiku-4-5-20251001
+      model: anthropic/claude-haiku-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  - model_name: claude-haiku-4-5-20251001  # model-recency-ok: callback-handler.py still calls this id, so the route stays
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001  # model-recency-ok: callback-handler.py still calls this id, so the route stays
       api_key: os.environ/ANTHROPIC_API_KEY
 
 general_settings:

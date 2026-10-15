@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->109<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
+**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->162<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -13,8 +13,20 @@
 
 [![MCP Toplist](https://mcptoplist.com/badge/io.github.yonatangross%2Forchestkit.svg)](https://mcptoplist.com/server/io.github.yonatangross%2Forchestkit)
 [![skills.sh](https://www.skills.sh/b/yonatangross/orchestkit)](https://www.skills.sh/yonatangross/orchestkit)
+[![Vercel OSS Program](https://vercel.com/oss/program-badge-2026.svg)](https://vercel.com/open-source-program)
 
 </div>
+
+## Start here
+
+OrchestKit is a free, open source Claude Code plugin: skills, agents and hooks for review, testing, security and memory.
+
+```bash
+claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
+```
+
+[Docs](https://orchestkit.yonyon.ai/docs) · [What's new in v10](https://orchestkit.yonyon.ai/docs/whats-new-v10) · [yonyon.ai](https://yonyon.ai)
+<!-- X account link: add it here when the account exists. -->
 
 ---
 
@@ -107,9 +119,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->109<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->110<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->171<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->162<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -184,7 +196,7 @@ OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
 add-on. This section states plainly what they see, where it goes, and how to turn
 each piece off.
 
-**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->171<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
+**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->162<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
 lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
 project type, because the gates they enforce (secret-write blocking, protected-file
@@ -630,41 +642,53 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
-**[v10.0.0-beta.157](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.156...v10.0.0-beta.157)** · 2026-10-05
+**[v10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173)** · 2026-10-15
 
-- **lesson-cards:** home via env, /lessons before corpus load (#4625)
+- **ci:** add a preview-only facts-only changelog feed for X (#4727)
+- **tests:** restore the exec bit on 2 tests from [#4749](https://github.com/yonatangross/orchestkit/issues/4749) (#4757)
+- **tests:** stop headless Chrome keychain prompts; pre-push CI-only mode (#4749)
+- **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates (#4723)
+- **deps:** bump the npm-minor-patch group across 1 directory with 9 updates (#4733)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
 
-**[v10.0.0-beta.156](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.155...v10.0.0-beta.156)** · 2026-10-05
+**[v10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172)** · 2026-10-12
 
-- **promote-lights:** /lights takes a bare watch target (#4624)
+- **mods:** lesson-cards keeps tool.call context from hooks below (#4726)
+- **traffic:** snapshot week of 2026-09-28 (#4621)
 
-**[v10.0.0-beta.155](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.154...v10.0.0-beta.155)** · 2026-10-05
+**[v10.0.0-beta.171](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171)** · 2026-10-11
 
-- **lesson-cards:** do not read process when HOME is unset (#4608)
-- **deps-dev:** bump the vitest group (#4618)
-- **deps:** bump the npm-minor-patch group in /docs/site with 8 updates (#4616)
-- **deps:** bump the remotion group (#4617)
-- bump anthropics/claude-code-action (#4620)
+- **hooks:** add claude-haiku-5-5 to the model vocab and pricing (#4660)
+- **models:** advance the haiku alias to claude-haiku-5-5 (#4661)
+- **agents:** drop skill references that name no existing skill (#4709)
+- **ci:** five GA-blocking CI and test bugs, red-first (#4687)
+- drop the system-reminder wrapper; isolation only on 2 git agents (#4695)
+- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
 
-**[v10.0.0-beta.154](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.153...v10.0.0-beta.154)** · 2026-10-04
+**[v10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170)** · 2026-10-10
 
-- **site:** advertise Actions MCP and add try-safely sandbox page (#4596)
+- **hooks:** tldr-summary skips a Read with allow_large (#4700)
 
-**[v10.0.0-beta.153](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.152...v10.0.0-beta.153)** · 2026-10-04
+**[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
 
-- **ci:** close docs.yml gate gaps on filter paths and cancel-in-progress (#4591)
+- **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
 
-**[v10.0.0-beta.152](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.151...v10.0.0-beta.152)** · 2026-10-04
+**[v10.0.0-beta.168](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.167...v10.0.0-beta.168)** · 2026-10-10
 
-- **brainstorm:** scope the turn-end survival claim (#4593)
+- **hooks:** price Sonnet 5.5 cache reads at $0.10 per MTok (#4698)
 
-**[v10.0.0-beta.151](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.150...v10.0.0-beta.151)** · 2026-10-04
+**[v10.0.0-beta.167](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.166...v10.0.0-beta.167)** · 2026-10-10
 
-- **test:** retain dispatcher stderr in the session_id quarantine probe (#4592)
+- **cc:** adopt Claude Code 2.1.289 through 2.1.296 (#4702)
 
-**[v10.0.0-beta.150](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.149...v10.0.0-beta.150)** · 2026-10-04
+**[v10.0.0-beta.166](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.165...v10.0.0-beta.166)** · 2026-10-09
 
-- **expect:** scope browser close to the run's own session (#4594)
+- **review-pr:** standards pass with a review-only standards file (#4671)
+- **ci:** cache and bound the docs Playwright install (#4667)
+- **review-pr:** run inline so its frontmatter hooks run (#4682)
+- **tests:** restore exec bit on git-isolate.sh (#4681)
+- **doctor:** CC 2.1.289 to 2.1.293 matrix rows, Haiku 5.5 (#4662)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

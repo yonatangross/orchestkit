@@ -3,7 +3,6 @@ name: memory-fabric
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream."
-context: fork
 user-invocable: false
 disable-model-invocation: true
 allowed-tools: "Read Bash mcp__memory__search_nodes"

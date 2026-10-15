@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Compare the Haiku 5.5 pricing row with the old fallback and the long prompt limit.">
+<title>Haiku 5.5 cost estimate</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f4ee; color: #1d1b18; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: #625c53; }
+  .card { background: #fffdf8; border: 1px solid #d9d2c5; border-radius: 10px; padding: 16px; margin: 0 0 16px; }
+  .inputs { display: flex; flex-wrap: wrap; gap: 16px; }
+  label { display: grid; gap: 6px; }
+  input, button { font: inherit; padding: 8px 12px; border: 1px solid #776f63; border-radius: 6px; background: white; color: #1d1b18; }
+  input { width: 180px; }
+  button { cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #286a96; outline-offset: 3px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border-bottom: 1px solid #d9d2c5; padding: 8px 4px; text-align: left; }
+  output { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .limit { border-left: 4px solid #985200; }
+  code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Haiku 5.5 cost estimate</h1>
+  <p class="lede">PR #4660 adds a pricing row for <code>claude-haiku-5-5</code>. Use sample counts to compare the old fallback with the new row. This page makes no API calls.</p>
+  <section class="card" aria-labelledby="sample-title">
+    <h2 id="sample-title">Try a sample</h2>
+    <div class="inputs">
+      <label>Prompt tokens<input id="prompt" type="number" min="0" max="200000" step="1" value="10000"></label>
+      <label>Output tokens<input id="reply" type="number" min="0" max="64000" step="1" value="1000"></label>
+    </div>
+    <p><button id="short" type="button">Short prompt</button> <button id="long" type="button">Prompt over 100K</button></p>
+    <p>No cache tokens are included in these samples.</p>
+  </section>
+  <section class="card" aria-labelledby="compare-title">
+    <h2 id="compare-title">Before and after</h2>
+    <table>
+      <thead><tr><th scope="col">Estimate</th><th scope="col">USD per million tokens, input / output</th><th scope="col">Sample cost</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Before: Sonnet fallback</th><td>$2.00 / $10.00</td><td><output id="before"></output></td></tr>
+        <tr><th scope="row">After: Haiku 5.5 row</th><td>$0.10 / $0.50</td><td><output id="after"></output></td></tr>
+        <tr><th scope="row">Cost with prompt tier</th><td id="tier-rate"></td><td><output id="tier"></output></td></tr>
+      </tbody>
+    </table>
+    <p id="result" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card limit" aria-labelledby="limit-title">
+    <h2 id="limit-title">Known limit</h2>
+    <p>Prompts over 100K tokens cost 5x and the estimator has no tier support. It uses one flat row per model. Such prompts are priced 5 times too low.</p>
+    <p>The new row also adds cache read at $0.01 and cache write at $0.125 per million tokens. The long prompt tier uses $0.05 and $0.625. Tier support needs a separate change.</p>
+    <p>The <code>haiku</code> alias stays on Haiku 4.5 in this PR. PR #4661 updates the alias.</p>
+  </section>
+</main>
+<script>
+  const promptInput = document.getElementById('prompt');
+  const replyInput = document.getElementById('reply');
+  const money = value => '$' + value.toFixed(4);
+  function update() {
+    const prompt = Math.min(200000, Math.max(0, Math.trunc(Number(promptInput.value) || 0)));
+    const reply = Math.min(64000, Math.max(0, Math.trunc(Number(replyInput.value) || 0)));
+    const estimate = (prompt * 0.10 + reply * 0.50) / 1000000;
+    const longPrompt = prompt > 100000;
+    document.getElementById('before').textContent = money((prompt * 2 + reply * 10) / 1000000);
+    document.getElementById('after').textContent = money(estimate);
+    document.getElementById('tier-rate').textContent = longPrompt ? '$0.50 / $2.50' : '$0.10 / $0.50';
+    document.getElementById('tier').textContent = money(estimate * (longPrompt ? 5 : 1));
+    document.getElementById('result').textContent = longPrompt
+      ? 'Over 100K prompt tokens: the flat estimate is 5 times too low.'
+      : 'Up to 100K prompt tokens: the new row matches this tier.';
+  }
+  for (const input of [promptInput, replyInput]) input.addEventListener('input', update);
+  document.getElementById('short').addEventListener('click', () => {
+    promptInput.value = '10000'; replyInput.value = '1000'; update();
+  });
+  document.getElementById('long').addEventListener('click', () => {
+    promptInput.value = '150000'; replyInput.value = '1000'; update();
+  });
+  update();
+</script>
+</body>
+</html>

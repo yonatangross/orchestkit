@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "10.0.0-beta.157",
+  "version": "10.0.0-beta.173",
   "private": true,
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "workspaces": [
@@ -17,11 +17,11 @@
     "test:security": "bash tests/security/run-security-tests.sh",
     "test:security:mutation": "bash tests/security/mutation-gate.sh",
     "test:packaging": "bash tests/security/test-packaging-leaks.sh",
-    "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh && bash tests/skills/structure/test-askuserquestion-schema.sh && bash tests/skills/structure/test-tool-call-signatures.sh && bash tests/skills/structure/test-rubric-schema.sh && node tests/skills/structure/test-upstream-version-drift.mjs && node tests/skills/structure/test-agent-no-version-snapshot.mjs && node tests/skills/structure/test-skill-reachability.mjs && node tests/skills/structure/test-test-discovery.mjs && node tests/skills/structure/test-hook-reference-integrity.mjs && node tests/skills/structure/test-docs-site-drift.mjs && bash tests/skills/structure/test-skill-category-coverage.sh",
+    "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh && bash tests/skills/structure/test-askuserquestion-schema.sh && bash tests/skills/structure/test-glyph-dials.sh && bash tests/skills/structure/test-tool-call-signatures.sh && bash tests/skills/structure/test-rubric-schema.sh && node tests/skills/structure/test-upstream-version-drift.mjs && node tests/skills/structure/test-agent-no-version-snapshot.mjs && node tests/skills/structure/test-skill-reachability.mjs && node tests/skills/structure/test-test-discovery.mjs && node tests/skills/structure/test-hook-reference-integrity.mjs && node tests/skills/structure/test-docs-site-drift.mjs && bash tests/skills/structure/test-skill-category-coverage.sh",
     "test:skills:directive-density": "bash tests/skills/structure/test-directive-density.sh",
     "test:skills:tokens": "bash tests/skills/structure/test-skill-tokens.sh",
     "validate:pre-push": "bash bin/validate-counts.sh && bash tests/skills/test-skill-length.sh && bash tests/performance/test-token-overhead.sh",
-    "test:skills:functional": "bash tests/skills/functional/test-rule-traceability.sh && bash tests/skills/functional/test-cache-safety.sh && bash tests/skills/functional/skill-efficiency-scorecard.sh",
+    "test:skills:functional": "bash tests/skills/functional/test-rule-traceability.sh && bash tests/skills/functional/test-prompt-focus-selftest.sh && bash tests/skills/functional/test-cache-safety.sh && bash tests/skills/functional/skill-efficiency-scorecard.sh",
     "test:agents": "bash scripts/ci/run-tests.sh tests/agents",
     "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh && node tests/manifests/test-skill-activation-channels.mjs && bash tests/manifests/test-server-json.sh && node tests/manifests/test-version-consistency.mjs && bash tests/manifests/test-agent-plugins-manifest.sh",
     "test:manifests:channels": "node tests/manifests/test-skill-activation-channels.mjs",

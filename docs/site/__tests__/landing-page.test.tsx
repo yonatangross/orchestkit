@@ -88,8 +88,9 @@ vi.mock("..//lib/constants", () => ({
   },
   COUNTS: { skills: 69, agents: 38, hooks: 96 },
   SITE_TITLE: "OrchestKit: for Claude Code and 7 more agents",
+  HOME_TITLE: "OrchestKit: Claude Code Plugin with 69 Skills and 38 Agents",
   PAGE_SUMMARY: {
-    site: "69 skills, 38 agents and 96 hooks, for Claude Code and more coding agents. Stop explaining your stack. Start shipping.",
+    site: "Free, open source Claude Code plugin with 69 skills, 38 agents and 96 hooks for code review, testing, security and memory. Also runs in Cursor and Codex.",
     pricing:
       "OrchestKit is free and open source under the MIT license. No paid tiers, no usage limits, no account required.",
   },

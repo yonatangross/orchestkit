@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v10 front door: search titles and snippets</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #181b24; --border: #2a2f3d;
+    --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7;
+    --red: #f7768e; --green: #9ece6a; --amber: #e0af68;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 2rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; }
+  h2 { font-size: 1.05rem; margin-bottom: .8rem; color: var(--accent); }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  .stats > div { background: #10131b; border-radius: 8px; padding: .8rem; }
+  .big { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin-bottom: .3rem; }
+  .toggle { display: flex; gap: .5rem; margin-bottom: .8rem; }
+  .toggle button { background: #10131b; color: var(--dim); border: 1px solid var(--border); border-radius: 6px; padding: .35rem .8rem; cursor: pointer; font: inherit; font-size: .85rem; }
+  .toggle button[aria-pressed="true"] { color: var(--text); border-color: var(--accent); }
+  .serp { background: #10131b; border-radius: 8px; padding: .8rem 1rem; margin-bottom: .6rem; }
+  .serp .u { color: var(--dim); font-size: .78rem; }
+  .serp .t { color: var(--accent); font-size: 1rem; }
+  .serp .d { font-size: .86rem; }
+  .serp .n { font-size: .72rem; font-variant-numeric: tabular-nums; }
+  .ok { color: var(--green); } .warn { color: var(--amber); } .new { color: var(--green); font-size: .72rem; margin-inline-start: .4rem; }
+  @media (max-width: 640px) { .stats { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="v10 front door: search titles and snippets"><meta property="og:description" content="Before and after search result previews for the top OrchestKit docs pages, with the Search Console numbers that motivated the rewrite."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/v10-front-door.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="v10 front door: search titles and snippets"><meta name="twitter:description" content="Before and after search result previews for the top OrchestKit docs pages, with the Search Console numbers that motivated the rewrite."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>v10 front door: search titles and snippets</h1>
+  <p class="sub">PR: sharper titles and meta descriptions on the top docs pages, a new "What's new in v10" page, and a "Start here" block in the README.</p>
+
+  <section>
+    <h2>Why</h2>
+    <div class="stats">
+      <div><div class="label">Google impressions</div><div class="big">1.52k</div>Search Console, 2026-09-12 to 2026-10-11</div>
+      <div><div class="label">Clicks</div><div class="big">2</div>CTR 0.1%</div>
+      <div><div class="label">Average position</div><div class="big">6.8</div>Page 1, but the snippet does not earn the click</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How each page looks in a search result</h2>
+    <div class="toggle">
+      <button aria-pressed="false" data-v="before">Before</button>
+      <button aria-pressed="true" data-v="after">After</button>
+    </div>
+    <div id="list"></div>
+    <p class="sub" style="margin:0">A new <code>seoTitle</code> front matter key sets the HTML title. The short <code>title</code> still drives the sidebar, breadcrumb and H1.</p>
+  </section>
+</main>
+<script>
+  const rows = [{"url": "/docs/agents", "title": "Agents", "seo": "Claude Code Subagents in OrchestKit: Specialist Agents", "oldDesc": "Specialist sub-agents with their own context window, tools, and system prompt.", "newDesc": "Agents are specialists with their own context window, tools and prompt. Learn when to use one, how to choose it, and how to run several in parallel.", "isNew": false}, {"url": "/docs/agents/overview", "title": "Agents Overview", "seo": "OrchestKit Agents: Specialist Subagents for Claude Code", "oldDesc": "36 specialized agents: how they activate, what they know, and when to use each.", "newDesc": "Each OrchestKit agent is a specialist subagent for Claude Code. See how agents start from your prompt, which model each one uses, and which agent fits a task.", "isNew": false}, {"url": "/docs/changelog", "title": "Changelog", "seo": "OrchestKit Changelog: Every Claude Code Plugin Release", "oldDesc": "All notable changes to OrchestKit, following Keep a Changelog and Semantic Versioning.", "newDesc": "Every OrchestKit release, newest first, with what changed, why it matters and the PR to open. Follows Keep a Changelog and Semantic Versioning. RSS too.", "isNew": false}, {"url": "/docs/foundations/overview", "title": "What is OrchestKit?", "seo": "What Is OrchestKit? The Claude Code Plugin Explained", "oldDesc": "The complete AI development toolkit for Claude Code: 110 skills, 36 agents, 162 hooks working together.", "newDesc": "OrchestKit is one Claude Code plugin. Hooks run on every action, agents start from your prompt, and skills load the right patterns. Stop explaining your stack.", "isNew": false}, {"url": "/docs/getting-started/claude-code", "title": "Claude Code", "seo": "Install the OrchestKit Plugin in Claude Code", "oldDesc": "Install the full OrchestKit ork plugin in Claude Code. Skills, agents, hooks, /ork:doctor, and context7.", "newDesc": "Add the full ork plugin to Claude Code with two commands, check it with /ork:doctor, and connect the context7 MCP server that many agents use for library docs.", "isNew": false}, {"url": "/docs/getting-started/first-10-minutes", "title": "Your First 10 Minutes", "seo": "OrchestKit in 10 Minutes: Your First Claude Code Session", "oldDesc": "From install to your first AI-assisted commit, a guided walkthrough.", "newDesc": "Run a health check, write a conventional commit, watch agents start from plain prompts, and store a decision in memory. All in your first ten minutes.", "isNew": false}, {"url": "/docs/getting-started", "title": "Getting Started", "seo": "Get Started with OrchestKit for Claude Code", "oldDesc": "Install OrchestKit, run your first workflow, and learn how the pieces fit together.", "newDesc": "Install OrchestKit in Claude Code or another host, run a real workflow in your first ten minutes, then learn how to find skills and configure the plugin.", "isNew": false}, {"url": "/docs/getting-started/installation", "title": "OrchestKit Installation and Setup", "seo": "Install OrchestKit: Claude Code, Cursor, Codex and More", "oldDesc": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, OpenCode (and other skills.sh clients), Muse Code, Pi or Antigravity.", "newDesc": "Copy one install command for your host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity or skills.sh. On Claude Code, then run /ork:setup.", "isNew": false}, {"url": "/docs/hooks", "title": "Hooks", "seo": "Claude Code Hooks in OrchestKit: Guardrails That Always Run", "oldDesc": "Deterministic TypeScript checks that run around every tool call.", "newDesc": "Hooks are deterministic TypeScript checks on Claude Code lifecycle events, from session start to tool calls. They block unsafe commands and save memory.", "isNew": false}, {"url": "/docs/hooks/overview", "title": "162 Hooks: What Fires When", "seo": "OrchestKit Hooks: What Fires on Each Claude Code Event", "oldDesc": "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly.", "newDesc": "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates.", "isNew": false}, {"url": "/docs/memory/overview", "title": "3-Tier Memory Architecture", "seo": "Claude Code Memory Across Sessions: OrchestKit's 3 Tiers", "oldDesc": "How OrchestKit persists decisions, patterns, and context across sessions using a layered memory system.", "newDesc": "OrchestKit stores your decisions once and brings them back in later Claude Code sessions. See the three memory tiers, the confidence rule and the hooks.", "isNew": false}, {"url": "/docs/skills", "title": "Skills", "seo": "Claude Code Skills in OrchestKit: Commands and Patterns", "oldDesc": "Reusable capability modules that teach Claude Code a workflow once and reuse it every session.", "newDesc": "Skills teach Claude Code a workflow once and reuse it in every session. Learn command skills, reference skills, skill composition and how to write your own.", "isNew": false}, {"url": "/docs/skills/overview", "title": "How Skills Work", "seo": "How Claude Code Skills Work in OrchestKit: SKILL.md Files", "oldDesc": "Skills are reusable knowledge modules (SKILL.md files with optional references) that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand.", "newDesc": "A skill is a SKILL.md file of knowledge, not code. See how OrchestKit loads skills into context, which frontmatter fields matter, and how the budget scales.", "isNew": false}, {"url": "/docs/troubleshooting", "title": "Troubleshooting", "seo": "OrchestKit Troubleshooting: Fix Common Claude Code Issues", "oldDesc": "Solutions for the 10 most common OrchestKit issues.", "newDesc": "Fix the 10 most common OrchestKit problems: plugin not found, hooks not firing, skills not loading and more. Each issue gives the symptom, cause and fix.", "isNew": false}, {"url": "/docs/whats-new-v10", "title": "What's new in v10", "seo": "What's New in OrchestKit v10 for Claude Code", "oldDesc": "", "newDesc": "The main changes in the OrchestKit v10 betas: new hosts, Claude 5.5 models, a stronger PR review, test and eval skills, and safety guards you turn on.", "isNew": true}];
+  const list = document.getElementById("list");
+  function render(v) {
+    list.textContent = "";
+    for (const r of rows) {
+      const card = document.createElement("div"); card.className = "serp";
+      const u = document.createElement("div"); u.className = "u"; u.textContent = "orchestkit.yonyon.ai" + r.url;
+      const t = document.createElement("div"); t.className = "t";
+      t.textContent = v === "after" ? (r.seo || r.title) : r.title;
+      if (r.isNew) { const s = document.createElement("span"); s.className = "new"; s.textContent = "NEW PAGE"; t.append(s); }
+      const desc = v === "after" ? r.newDesc : (r.isNew ? "(page did not exist)" : r.oldDesc);
+      const d = document.createElement("div"); d.className = "d"; d.textContent = desc;
+      const n = document.createElement("div"); n.className = "n " + (desc.length >= 120 && desc.length <= 165 ? "ok" : "warn");
+      n.textContent = desc.length + " characters";
+      card.append(u, t, d, n); list.append(card);
+    }
+  }
+  document.querySelectorAll(".toggle button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".toggle button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    render(b.dataset.v);
+  }));
+  render("after");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

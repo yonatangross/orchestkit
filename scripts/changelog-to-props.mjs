@@ -14,7 +14,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CHANGELOG_PATH = resolve(__dirname, "..", "CHANGELOG.md");
@@ -85,7 +85,10 @@ const SECTION_RE = new RegExp(
 const VERSION_HEADER_RE =
   /^## \[([^\]]+)\](?:\([^)]*\))?\s*(?:-|\()\s*(\d{4}-\d{2}-\d{2})/;
 
-function parseChangelog(content, targetVersion) {
+// `maxDescription` caps each description for video readability. Pass Infinity
+// to keep the full text (scripts/changelog-x.mjs cuts by X weight instead, and
+// a cap here can cut a markdown link in half before it is stripped).
+export function parseChangelog(content, targetVersion, { maxDescription = 120 } = {}) {
   const lines = content.split("\n");
 
   let currentVersion = null;
@@ -180,8 +183,8 @@ function parseChangelog(content, targetVersion) {
       description = description.replace(/`/g, "").replace(/\*\*/g, "");
 
       // Cap description length for video readability
-      if (description.length > 120) {
-        description = description.slice(0, 117) + "...";
+      if (description.length > maxDescription) {
+        description = description.slice(0, maxDescription - 3) + "...";
       }
 
       highlights.push({ category: currentCategory, title, description });
@@ -189,10 +192,12 @@ function parseChangelog(content, targetVersion) {
   }
 
   if (!currentVersion) {
-    console.error(
-      `Error: Version ${targetVersion || "(latest)"} not found in CHANGELOG.md`,
+    // Throw, not process.exit(): scripts/changelog-x.mjs imports this parser,
+    // and an exit here would kill the importing process. main() below turns
+    // the error into the same message and non-zero exit as before.
+    throw new Error(
+      `Version ${targetVersion || "(latest)"} not found in CHANGELOG.md`,
     );
-    process.exit(1);
   }
 
   return { version: currentVersion, date: currentDate, highlights, rawLines, fullContent: content };
@@ -287,28 +292,44 @@ function buildProps(parsed) {
 
 // ---------- Main ----------
 
-// Parse args: positional version + optional --landscape/--square flag
-const args = process.argv.slice(2);
-let targetVersion = null;
-let format = null;
+// Run the CLI only when this file is the entry point. scripts/changelog-x.mjs
+// imports parseChangelog, and an unguarded main would run on that import.
+const isEntryPoint =
+  process.argv[1] !== undefined &&
+  pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
 
-for (const arg of args) {
-  if (arg === "--landscape" || arg === "--square") {
-    format = arg;
-  } else if (!arg.startsWith("-")) {
-    targetVersion = arg;
+function main() {
+  // Parse args: positional version + optional --landscape/--square flag
+  const args = process.argv.slice(2);
+  let targetVersion = null;
+  let format = null;
+
+  for (const arg of args) {
+    if (arg === "--landscape" || arg === "--square") {
+      format = arg;
+    } else if (!arg.startsWith("-")) {
+      targetVersion = arg;
+    }
+  }
+
+  const changelog = readFileSync(CHANGELOG_PATH, "utf-8");
+  let parsed;
+  try {
+    parsed = parseChangelog(changelog, targetVersion);
+  } catch (e) {
+    console.error(`Error: ${e.message}`);
+    process.exit(1);
+  }
+  const props = buildProps(parsed);
+
+  if (format === "--landscape") {
+    console.log(JSON.stringify(props.landscape, null, 2));
+  } else if (format === "--square") {
+    console.log(JSON.stringify(props.square, null, 2));
+  } else {
+    // Output both
+    console.log(JSON.stringify(props, null, 2));
   }
 }
 
-const changelog = readFileSync(CHANGELOG_PATH, "utf-8");
-const parsed = parseChangelog(changelog, targetVersion);
-const props = buildProps(parsed);
-
-if (format === "--landscape") {
-  console.log(JSON.stringify(props.landscape, null, 2));
-} else if (format === "--square") {
-  console.log(JSON.stringify(props.square, null, 2));
-} else {
-  // Output both
-  console.log(JSON.stringify(props, null, 2));
-}
+if (isEntryPoint) main();

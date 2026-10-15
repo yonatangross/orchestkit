@@ -28,6 +28,7 @@ const PATTERNS = [
     severity: 'block',
     category: 'ci',
     pattern: 'gh pr checks',
+    tool_names: ['Bash'], // as the live entry: a Bash-only rule must not reach a file write
     message: 'Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.',
     example_fix: 'Use gh pr view with --json to check mergeStateStatus.',
   },
@@ -304,6 +305,62 @@ describe('tool.call', () => {
     expect(result.result).toBe('ok');
     expect(result.context?.length).toBe(1);
     expect(result.context?.[0]).toContain('lesson:cancelled-check-is-not-pass');
+  });
+
+  // CC reads a tool.call answer whose context lacks an entry a hook below
+  // attached as the wrong shape and skips the hook (seen live 2026-10-12 with
+  // memory-lens enabled beside lesson-cards): a hook adds to the context its
+  // next() returned, it never replaces it.
+  test('keeps the context a hook below attached and adds its own after it', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ok', context: ['memory-lens: related memory'] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { result?: string; context?: string[] };
+    expect(result.result).toBe('ok');
+    expect(result.context?.length).toBe(2);
+    expect(result.context?.[0]).toBe('memory-lens: related memory');
+    expect(result.context?.[1]).toContain('lesson:cancelled-check-is-not-pass');
+  });
+
+  test('keeps only non-empty string entries from the context below', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ok', context: ['ok', '', 42] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: unknown[] };
+    expect(result.context?.length).toBe(2);
+    expect(result.context?.[0]).toBe('ok');
+    expect(String(result.context?.[1])).toContain('lesson:cancelled-check-is-not-pass');
+  });
+
+  test('adds its card once when the context below already holds it', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const call = (prior: string[]) =>
+      hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ok', context: prior })) as Promise<{ context?: string[] }>;
+    const own = (await call([])).context?.[0] as string;
+    expect(own).toContain('lesson:cancelled-check-is-not-pass');
+
+    expect((await call([own])).context).toEqual([own]);
+    expect((await call(['memory', own])).context).toEqual(['memory', own]);
+    expect((await call(['memory'])).context).toEqual(['memory', own]);
+  });
+
+  test('keeps every prior context entry for an Edit match too', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const next = asNext<never>({ result: 'ran', context: ['a', 'b'] });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', old_string: 'pass', new_string: 'pytest.main()' }, next)) as { context?: string[] };
+    expect(result.context?.slice(0, 2)).toEqual(['a', 'b']);
+    expect(result.context?.length).toBe(3);
+    expect(result.context?.[2]).toContain('[lesson:no-pytest-main]');
   });
 
   test('returns the next result unchanged when nothing matches', async () => {

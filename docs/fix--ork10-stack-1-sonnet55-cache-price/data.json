@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-stack-1",
+  "page": "docs/fix--ork10-stack-1-sonnet55-cache-price/index.html",
+  "lab_slug": "ork10-stack-1-sonnet55-cache-price",
+  "purpose": "PR playground: Sonnet 5.5 cache reads cost $0.10 per MTok"
+}

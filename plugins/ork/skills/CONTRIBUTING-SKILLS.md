@@ -119,7 +119,8 @@ The `description` is critical — Claude uses it to decide whether to load the s
 ### Optional Frontmatter
 
 ```yaml
-context: fork            # Run in isolated subagent
+context: fork            # Run in isolated subagent (task skills only; see Prompt caching rule 1)
+background: false        # With context: fork, the parent waits for the result (CC 2.1.218+)
 agent: backend-system-architect  # Which subagent type (requires context: fork)
 disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
 disable-model-invocation: false  # CC auto-selects via description matching
@@ -506,7 +507,7 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 ### Rules
 
-1. **Use `context: fork` for complex skills.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md). The fork only adds the skill content as new tokens. This is the most cache-efficient pattern for skills that spawn subagents or do heavy work.
+1. **Use `context: fork` only for skills with task steps, and set `background: false`.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md), and the fork only adds the skill content as new tokens. Since CC 2.1.218 a fork runs in the background by default: the Skill call returns at once and the parent carries on without the result, so a task skill sets `background: false` to make the parent wait. A guideline-only reference skill (`user-invocable: false`, no task) never forks: per the CC skills docs, such a fork "receives the guidelines but no actionable prompt, and returns without meaningful output". Without the fork its content loads into the parent turn, which is the point of a reference skill. `tests/skills/structure/test-reference-skill-fork.sh` enforces this.
 
 2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Agent` tool) for different models: each subagent is a separate conversation with its own cache.
 
@@ -516,7 +517,7 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 5. **Don't add MCP servers mid-session.** MCP tools are part of the cached prefix. Adding a server invalidates the cache for the entire conversation.
 
-6. **MCP tool descriptions are capped at 2KB** (CC 2.1.84+; the 2,048-character default is adjustable per session with `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` since CC 2.1.280). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions concise. Local MCP config wins over claude.ai connectors when both define the same server.
+6. **MCP tool descriptions and server instructions are each capped at 4,096 characters by default** (CC 2.1.296; it was 2,048 from CC 2.1.84 to 2.1.295; descriptions loaded through tool search are cut at 16,384 since CC 2.1.295; adjustable per session with `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` since CC 2.1.280). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions and server instructions concise. Local MCP config wins over claude.ai connectors when both define the same server.
 
 7. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
 

@@ -41,7 +41,7 @@ const TOLERANCE = 0.02;
 
 // The full known category set (matches the routing-benchmark labels + SKILL.md table).
 const KNOWN_CATEGORIES = new Set([
-  'build', 'cover', 'design', 'diagnose', 'fallback',
+  'build', 'cover', 'design', 'diagnose', 'e2e', 'fallback',
   'fix', 'improve-skill', 'optimize', 'review', 'verify',
 ]);
 
@@ -60,6 +60,36 @@ function classify(rawGoal) {
   // 1. improve-skill — a SKILL.md / named skill is the optimization target.
   //    Must precede `optimize` ("optimize the prompt for the X skill").
   if (/skill\.md/.test(g) || /\bskills?\b/.test(g)) return 'improve-skill';
+
+  // 1b. e2e: an end-to-end or browser test ask. Precedes `verify` so "verify the
+  //     flow in the browser" runs a browser plan, and precedes `diagnose` so the
+  //     request form "why don't you do proper e2e" is not read as a why-question.
+  //     A failing, flaky or timed-out e2e run is checked FIRST: a why-question
+  //     falls through to diagnose, anything else is fix (CodeRabbit
+  //     4209117569: "fail on CI" was a new run, "failing, add a retry" was
+  //     cover). Then: no e2e tests yet, or write/add/generate -> cover.
+  if (/\be2e\b|\bend[- ]to[- ]end tests?\b|\bin the browser\b|\bbrowser tests?\b|\bplaywright\b/.test(g)) {
+    // A creation request names what to test: "write e2e tests for the login
+    // error page" is cover, so the failure words are nouns there
+    // (CodeRabbit 4209764041). The test noun must follow the verb, with at
+    // most three article or quantity words ("an", "a few more"), so "add a
+    // retry to the failing e2e tests" is not a creation (HOLD 6043667415,
+    // CodeRabbit 4210572472).
+    const creation =
+      /\b(?:write|add|generate|create)\s+(?:(?:a|an|the|some|more|new|few|extra|another)\s+){0,3}(?:e2e|playwright|browser|end[- ]to[- ]end)\b[^.,;:]*\btests?\b/.test(g);
+    const failure =
+      !creation &&
+      /\bfail(?:s|ed|ing|ures?)?\b|\bflaky\b|\bbroken\b|\berrors?\b|\btim(?:e|ed) ?outs?\b|\btimed out\b|\bred\b/.test(g) &&
+      !/\bno (?:fail|errors?\b|flak|timeouts?\b)/.test(g);
+    const whyQuestion = /\bwhy (?:is|are|does|do|did)\b/.test(g);
+    if (failure || whyQuestion) {
+      if (!whyQuestion) return 'fix';
+    } else if (/\bno\b.*\btests?\b|\bwrite\b|\badd\b|\bgenerate\b|\bcreate\b|\bmissing\b/.test(g)) {
+      return 'cover';
+    } else {
+      return 'e2e';
+    }
+  }
 
   // 2. verify — confirm existing state is green (verify/validate/make-sure/check-that).
   //    Precedes `build`/`review` so "validate the build" and "check that ..." resolve here.
@@ -195,10 +225,65 @@ function printReport(result, target, baseline) {
 // and agreement with the deterministic classifier, plus latency and cost per
 // case as the issue asks. Live when ORK_TYPESAFE_API_KEY is set (forced to
 // shadow, no session record written), else from a jev-route.jsonl record file
-// joined on the sha256 of the redacted goal.
+// joined on the sha256 of the redacted goal. Pass --clients a,b or
+// --clients-dir <dir> when the records were redacted with client names; a
+// replay whose records carry another redaction profile, or mix them, is refused.
+/**
+ * Value after a flag. Missing flag -> null. Flag present with no value (last
+ * argv, or next token is another --flag) -> undefined so callers can exit 2.
+ */
 function argValue(flag) {
   const i = process.argv.indexOf(flag);
-  return i >= 0 ? process.argv[i + 1] : null;
+  if (i < 0) return null;
+  const v = process.argv[i + 1];
+  if (v === undefined || v.startsWith('--')) return undefined;
+  return v;
+}
+
+/**
+ * Parse `--clients` / `--clients-dir` before loadSeam so a flag with no value
+ * fails even when the hooks bundle is stale (CodeRabbit 4240757703).
+ * @returns {{ list: string|null, dir: string|null }}
+ */
+function readClientFlagArgs() {
+  const list = argValue('--clients');
+  const dir = argValue('--clients-dir');
+  if (list === undefined) {
+    log('ERROR: --clients needs a value');
+    process.exit(2);
+  }
+  if (dir === undefined) {
+    log('ERROR: --clients-dir needs a value');
+    process.exit(2);
+  }
+  if (list !== null && dir !== null) {
+    log('ERROR: pass --clients or --clients-dir, not both');
+    process.exit(2);
+  }
+  return { list, dir };
+}
+
+/**
+ * Client names the replay redacts with (#4239), so a record whose prompt
+ * carried a client token joins: `--clients a,b` or `--clients-dir <dir>`
+ * (the directory names inside it, as production reads <projectDir>/clients/).
+ */
+function replayClientNames(seam, flags) {
+  const { list, dir } = flags;
+  if (dir !== null) {
+    if (typeof seam.readClientNamesInStrict !== 'function') {
+      log('ERROR: bundle does not export readClientNamesInStrict; rebuild src/hooks');
+      process.exit(2);
+    }
+    try {
+      return seam.readClientNamesInStrict(dir);
+    } catch (e) {
+      log(`ERROR: --clients-dir ${dir}: ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(2);
+    }
+  }
+  if (list !== null) return list.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
 }
 
 async function loadSeam() {
@@ -207,7 +292,7 @@ async function loadSeam() {
     process.exit(2);
   }
   const seam = await import(pathToFileURL(HOOKS_BUNDLE).href);
-  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig']) {
+  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig', 'joinReplayRecords', 'readClientNamesIn', 'readClientNamesInStrict']) {
     if (typeof seam[name] !== 'function') {
       log(`ERROR: bundle does not export ${name}; rebuild src/hooks`);
       process.exit(2);
@@ -222,21 +307,32 @@ function routeOfClass(seam, intent) {
   return target.kind === 'skill' ? `/ork:${target.name}` : `Agent(${target.name})`;
 }
 
-async function jevVerdicts(seam, bench, recordsPath) {
+async function jevVerdicts(seam, bench, recordsPath, clientFlags) {
   const config = seam.resolveRouteConfig({});
+  const clientNames = replayClientNames(seam, clientFlags);
+  if (recordsPath === undefined) {
+    log('ERROR: --records needs a value');
+    process.exit(2);
+  }
   const verdicts = new Map();
   if (recordsPath) {
-    const bySha = new Map();
-    for (const line of readFileSync(recordsPath, 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      const r = JSON.parse(line);
-      if (r.input_sha256) bySha.set(r.input_sha256, r);
+    const records = readFileSync(recordsPath, 'utf8')
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
+    const joined = seam.joinReplayRecords(
+      records,
+      bench.cases.map((c) => ({ id: c.id, text: c.goal })),
+      { clientNames, maxPromptChars: config.maxPromptChars },
+    );
+    if (joined.error) {
+      log(`ERROR: ${joined.error}`);
+      process.exit(2);
     }
-    for (const c of bench.cases) {
-      const sha = seam.sha256(seam.redactPrompt(c.goal, config.maxPromptChars, null).text);
-      if (bySha.has(sha)) verdicts.set(c.id, bySha.get(sha));
-    }
-    return { verdicts, source: `records:${recordsPath}` };
+    for (const [id, r] of joined.verdicts) verdicts.set(id, r);
+    // Baseline must not track the unsalted profile hash (HOLD CLEAN 6106774797).
+    const profileLabel = joined.profile === 'none' ? 'none' : 'client';
+    return { verdicts, source: `records:${recordsPath} profile:${profileLabel}` };
   }
   if (!process.env.ORK_TYPESAFE_API_KEY) {
     log('ERROR: --jev needs ORK_TYPESAFE_API_KEY for a live replay, or --records <jev-route.jsonl>.');
@@ -260,6 +356,7 @@ async function jevVerdicts(seam, bench, recordsPath) {
 }
 
 async function runJevReplay() {
+  const clientFlags = readClientFlagArgs();
   const seam = await loadSeam();
   const bench = JSON.parse(readFileSync(BENCH_PATH, 'utf8'));
   const structErrors = validateStructure(bench);
@@ -267,7 +364,7 @@ async function runJevReplay() {
     log(`ERROR: routing-benchmark.json failed structure validation (${structErrors.length})`);
     process.exit(2);
   }
-  const { verdicts, source } = await jevVerdicts(seam, bench, argValue('--records'));
+  const { verdicts, source } = await jevVerdicts(seam, bench, argValue('--records'), clientFlags);
 
   const rows = [];
   let mapped = 0;

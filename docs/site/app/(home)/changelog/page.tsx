@@ -10,8 +10,10 @@ import { buildVersionChronoCards } from "@/lib/chrono-board-release";
 import { SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Changelog",
-  description: `All notable changes to ${SITE.name}, following Keep a Changelog and Semantic Versioning.`,
+  // Same copy as the seoTitle and description of the docs twin
+  // (content/docs/changelog/index.mdx), which names this page as canonical.
+  title: { absolute: `${SITE.name} Changelog: Every Claude Code Plugin Release` },
+  description: `Every ${SITE.name} release, newest first, with what changed, why it matters and the PR to open. Follows Keep a Changelog and Semantic Versioning. RSS too.`,
   alternates: { canonical: `${SITE.domain}/changelog` },
 };
 

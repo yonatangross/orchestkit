@@ -38,6 +38,14 @@ log_pass() { echo -e "${GREEN}✓${NC} $1"; TESTS_PASSED=$((TESTS_PASSED + 1)); 
 log_fail() { echo -e "${RED}✗${NC} $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); FAILED_NAMES+=("$1"); }
 
 TMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/ork-errexit.XXXXXX")"
+
+# Git isolation: the fixture repos commit, and a developer's global config may
+# sign every commit (commit.gpgsign + an ssh signer such as 1Password). A locked
+# signer then fails the commit and this test, so the result would depend on the
+# machine, not the code. Every git call here reads only the helper's config.
+# shellcheck source=SCRIPTDIR/../fixtures/git-isolate.sh
+source "${SCRIPT_DIR}/../fixtures/git-isolate.sh"
+git_isolate "${TMP_BASE}"
 STUB_DIR="${TMP_BASE}/stubs"
 PIDS_FILE="${TMP_BASE}/stub-pids"
 mkdir -p "${STUB_DIR}"

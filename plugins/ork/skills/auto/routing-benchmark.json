@@ -61,6 +61,25 @@
     { "id": "amb-04", "goal": "test the new feature", "category": "fallback", "route": "clarify", "note": "functional tests (build/verify) vs coverage (cover)" },
     { "id": "amb-05", "goal": "make it better", "category": "fallback", "route": "clarify", "note": "no metric, no target, no artifact" },
     { "id": "amb-06", "goal": "design and build the notifications feature end to end", "category": "design", "route": "/ork:brainstorm", "note": "start design, offer build after" },
-    { "id": "edge-01", "goal": "optimize my prompt for the summarizer", "category": "optimize", "route": "/goal", "note": "a prompt, not a SKILL.md -> optimize not improve-skill" }
+    { "id": "edge-01", "goal": "optimize my prompt for the summarizer", "category": "optimize", "route": "/goal", "note": "a prompt, not a SKILL.md -> optimize not improve-skill" },
+    { "id": "e2e-01", "goal": "check the change in the browser", "category": "e2e", "route": "/ork:expect", "note": "run a browser test plan on the diff" },
+    { "id": "e2e-02", "goal": "verify the checkout flow in the browser before merge", "category": "e2e", "route": "/ork:expect", "note": "browser beats the plain verify verb" },
+    { "id": "e2e-03", "goal": "why don't you do proper e2e like ork suggests", "category": "e2e", "route": "/ork:expect", "note": "operator transcript 2026-10-07: a request, not a why-question about a failure" },
+    { "id": "e2e-04", "goal": "run the playwright tests against this branch", "category": "e2e", "route": "/ork:expect" },
+    { "id": "e2e-05", "goal": "we have no e2e tests yet", "category": "cover", "route": "/ork:cover", "note": "missing e2e tests are a coverage gap" },
+    { "id": "e2e-06", "goal": "write e2e tests for the signup page", "category": "cover", "route": "/ork:cover", "note": "writing new Playwright tests is cover's E2E tier" },
+    { "id": "e2e-07", "goal": "why is the e2e suite failing on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a failing e2e run is a diagnosis, not a new run" },
+    { "id": "e2e-08", "goal": "the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "CodeRabbit 4209117569: fail/fails/failed is a failure, not a new run" },
+    { "id": "e2e-09", "goal": "the e2e tests are failing, add a retry", "category": "fix", "route": "/ork:fix-issue", "note": "the failure guard runs before the add/write -> cover check" },
+    { "id": "e2e-10", "goal": "why do no e2e tests run on CI", "category": "diagnose", "route": "/ork:fix-issue", "note": "a why-question about missing runs, not a request to write tests" },
+    { "id": "e2e-11", "goal": "the playwright suite timed out again", "category": "fix", "route": "/ork:fix-issue", "note": "timeout is a failure symptom" },
+    { "id": "e2e-12", "goal": "write e2e tests for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4209764041: error is the page under test, not a failing run" },
+    { "id": "e2e-13", "goal": "add playwright tests for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "failure names the flow under test" },
+    { "id": "e2e-14", "goal": "add a retry to the failing e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "HOLD 6043667415: the verb's object is a retry, not new tests" },
+    { "id": "e2e-15", "goal": "add a fix for the flaky playwright tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a fix" },
+    { "id": "e2e-16", "goal": "write a workaround for the broken e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a workaround" },
+    { "id": "e2e-17", "goal": "create a ticket: the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a ticket; the tests fail" },
+    { "id": "e2e-18", "goal": "write an e2e test for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4210572472: a singular test with an article is still a creation" },
+    { "id": "e2e-19", "goal": "add a playwright test for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "singular test, article a" }
   ]
 }

@@ -16,6 +16,515 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.296",
+    "features": [
+      {
+        "slug": "read_allow_large",
+        "category": "new_attr",
+        "description": "The Read tool takes allow_large to read a text file past the usual size limits in one call.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sonnet_5_5_cache_read_price",
+        "category": "changed_default",
+        "description": "/cost, the status line, the max budget flag and SDK cost price Sonnet 5.5 cache reads at $0.10 per MTok (was $0.20).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mcp_description_cap_4096",
+        "category": "changed_default",
+        "description": "The default limit on MCP tool descriptions sent up front and on MCP server instructions rises from 2,048 to 4,096 characters.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "workflow_subagent_model_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL runs every workflow agent on one model while other subagents keep theirs.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "subagent_autocompact_window",
+        "category": "new_attr",
+        "description": "autoCompactWindow is allowed in subagent frontmatter and in agents flag definitions, so a subagent can auto-compact earlier than the main window.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "overloaded_retry_max_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS sets a longer maximum backoff for 529 retries.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "debug_unknown_agent_frontmatter",
+        "category": "new_attr",
+        "description": "Debug output names unrecognized frontmatter fields in custom agent files, with a typo hint.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_same_name_hooks_note",
+        "category": "new_attr",
+        "description": "/plugin notes a plugin whose hooks are left out because another enabled plugin has the same name.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "esc_userpromptsubmit_headless",
+        "category": "fix",
+        "description": "Esc during a UserPromptSubmit hook or a mod's prompt.submit hook no longer ends headless sessions, clears the prompt or lets the unchecked prompt through.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "haiku_55_token_counts",
+        "category": "fix",
+        "description": "Token counts for Haiku 5.5 and other adaptive-thinking-only models are fixed.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "workflow_crlf_scripts",
+        "category": "fix",
+        "description": "The Workflow tool accepts script files with CRLF line endings.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "debug_hook_timing",
+        "category": "new_attr",
+        "description": "Debug output for command hooks logs command, plugin, outcome and duration when they finish.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "managed_pretooluse_continue_false",
+        "category": "fix",
+        "description": "Managed-settings PreToolUse hooks that deny with continue: false, and managed prompt hooks that block, now end the turn.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.295",
+    "features": [
+      {
+        "slug": "hook_on_failure_block",
+        "category": "new_attr",
+        "description": "Command and HTTP hooks take onFailure: \"block\": a hook that cannot start, times out or exits with an unexpected code blocks the action. The default still lets the action through.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "tool_search_mcp_description_16384",
+        "category": "changed_default",
+        "description": "MCP tool descriptions the model loads through tool search are cut at 16,384 characters instead of 2,048.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "retry_watchdog_max_wait_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS limits how long unattended retry mode waits out 429 and 529 errors.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "skill_allowed_tools_effort_p_runs",
+        "category": "fix",
+        "description": "A skill's allowed-tools and effort are no longer dropped when the Skill tool finishes before the response stream ends, which denied the skill's Bash commands in -p runs.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "forked_skill_workflow_results",
+        "category": "fix",
+        "description": "Forked skills invoked from Workflow subagents return their results to the invoking agent instead of the main conversation.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "workflow_scriptpath_refusal",
+        "category": "changed_default",
+        "description": "The Workflow tool's scriptPath refusal now says to pass the script inline; scriptPath needs a Read tool.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "subagent_32_skills_preload",
+        "category": "changed_default",
+        "description": "Subagents preload at most 32 skills from the skills field, each once.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "worktree_subagent_own_branch",
+        "category": "fix",
+        "description": "Subagents in their own linked worktree see their own git branch, status and commits, not the parent's.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_force_color",
+        "category": "fix",
+        "description": "Commands and hooks in background sessions no longer inherit FORCE_COLOR=3.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "async_sessionstart_context_resume",
+        "category": "fix",
+        "description": "An async SessionStart hook's unchanged context is no longer added again on every resume.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.294",
+    "features": [
+      {
+        "slug": "prompt_agent_hooks_instruction_block",
+        "category": "fix",
+        "description": "prompt and agent hooks written as instructions no longer allow what they should block.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "stop_prompt_hooks_judged",
+        "category": "changed_default",
+        "description": "prompt hooks on Stop and SubagentStop written as instructions are judged so Claude is less likely to stop early.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.293",
+    "features": [
+      {
+        "slug": "haiku_5_5_default",
+        "category": "new_attr",
+        "description": "Claude Haiku 5.5 is the default Haiku model on the Anthropic API (1M context, $0.10/$0.50 per MTok); adaptive thinking, rejects sampling parameters and prefill.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "plugin_eval_docker_desktop",
+        "category": "fix",
+        "description": "claude plugin eval no longer refuses every Bash-granting run on Macs with Docker Desktop links.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "rules_load_on_bash_reads",
+        "category": "changed_default",
+        "description": "Path-scoped rules and nested CLAUDE.md now load when Claude reads a file through cat, head, tail, sed -n or grep in Bash.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "http_mcp_memory_leak",
+        "category": "fix",
+        "description": "An HTTP MCP connection no longer keeps every sent request in memory until close.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "subagent_status_line_agent_type",
+        "category": "new_attr",
+        "description": "agentType is added to the subagentStatusLine payload.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.292",
+    "features": [
+      {
+        "slug": "agent_tool_effort_param",
+        "category": "new_attr",
+        "description": "The Agent tool takes an effort parameter, so one subagent can run at a named effort.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_install_marketplace_flag",
+        "category": "new_command",
+        "description": "claude plugin install takes a marketplace source and adds the marketplace before installing, in one command.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "stdio_mcp_protocol_negotiation",
+        "category": "changed_default",
+        "description": "Local (stdio) MCP servers negotiate protocol 2026-07-28 by default; MCP_PROTOCOL_NEGOTIATION=legacy opts out; slow servers are remembered for 7 days.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "hook_output_system_reminder_escaped",
+        "category": "breaking",
+        "description": "<system-reminder> tags written in hook output are escaped before they reach Claude.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "overloaded_retry_base_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS sets a longer base delay for 529 retries.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "p_waits_background_commands",
+        "category": "changed_default",
+        "description": "One-shot claude -p now waits for background commands and scheduled wakeups instead of stopping them after 5 s.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_hook_reject_after_next_interrupted",
+        "category": "breaking",
+        "description": "A mod hook that called next(e) and then failed during an interrupted turn now rejects the call.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_tool_name_128_dropped",
+        "category": "fix",
+        "description": "An MCP tool with a name over 128 characters is dropped with a named error instead of failing every request.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.291",
+    "features": [
+      {
+        "slug": "session_loss_floor_note",
+        "category": "fix",
+        "description": "2.1.288 could lose the last messages of a session on quit, and 2.1.290 could drop cloud permission answers; both fixed.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.290",
+    "features": [
+      {
+        "slug": "web_search_refills_env",
+        "category": "new_env",
+        "description": "The WebSearch budget refills 100 calls per hour instead of a hard 200 per session; CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR sets the rate, 0 turns it off.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "bash_wildcard_readonly_prompt",
+        "category": "new_perm",
+        "description": "Bash permission checks now ask for read-only commands whose wildcard arguments the shell expands (rg, git grep).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "permission_after_pretooluse_rewrite",
+        "category": "breaking",
+        "description": "Permission rules and safety checks now apply to a tool call after a PreToolUse hook rewrote its input.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "teammate_agent_id_teammateidle",
+        "category": "breaking",
+        "description": "In-process teammate agent_id is now the agent ID (name@team moves to teammate_id) and TeammateIdle no longer fires from a teammate's subagents or forks.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_validate_gating_hooks",
+        "category": "new_attr",
+        "description": "claude plugin validate lists each gating-site mod hook and whether it has a .catch (gatingHooks in JSON output).",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "webfetch_offset_large_pages",
+        "category": "fix",
+        "description": "WebFetch no longer drops text past 100k characters; it reports the unread amount and takes an offset.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_agents_mac_sleep",
+        "category": "fix",
+        "description": "Background agents no longer fail with Agent stalled, and Workflow subagents no longer restart, after the Mac sleeps.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_subagent_worktree_access",
+        "category": "fix",
+        "description": "Background subagents keep write and Bash access in their worktree when the main session switches worktree.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skills_found_by_skill_md_name",
+        "category": "fix",
+        "description": "Skills are found by their SKILL.md name when the folder name differs.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "pyright_asks",
+        "category": "new_perm",
+        "description": "The Bash tool now asks before running pyright (no longer treated as read-only).",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.289",
+    "features": [
+      {
+        "slug": "read_deny_symlink_ide",
+        "category": "fix",
+        "description": "Read deny rules now apply to files @-mentioned, changed or selected in the IDE through a symlink.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_deny_env_prefix_sandbox",
+        "category": "fix",
+        "description": "Bash deny and ask rules no longer miss a command behind an env var prefix with an expanded value when the sandbox auto-allows commands.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_deny_bare_assignment_sandbox",
+        "category": "fix",
+        "description": "A Bash deny or ask rule is no longer skipped under sandbox auto-allow when a bare variable assignment comes before the command.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mods_load_first_session_after_upgrade",
+        "category": "fix",
+        "description": "Installed mods now load in the first session after a Claude Code upgrade.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "agent_spawn_teammates_agent_id",
+        "category": "new_attr",
+        "description": "agent.spawn for teammates, one agent id across plugin hook events, and idle and waiting states in $.agent.list().",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mod_ui_render_row_throw",
+        "category": "fix",
+        "description": "A value a mod's ui.render hook wrote that makes a row throw no longer ends the session; the engine draws its own row.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_async_handler_throw",
+        "category": "fix",
+        "description": "Supervised and background sessions no longer end when a plugin's on-screen handler throws asynchronously.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_validate_marketplace_manifest",
+        "category": "fix",
+        "description": "claude plugin validate no longer skips the plugin when the folder also holds a marketplace manifest.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "nested_compound_deny_managed_mod",
+        "category": "fix",
+        "description": "A deny or ask rule on a nested part of a compound shell command now holds over a user-installed mod's approval on managed machines.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.288",
     "features": [
       {
@@ -3995,10 +4504,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.277",
-  latestKnown: "2.1.288",
+  latestKnown: "2.1.296",
   supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "d4805df47be1" as const;
+export const SOURCE_DIGEST = "7129a7851ae9" as const;

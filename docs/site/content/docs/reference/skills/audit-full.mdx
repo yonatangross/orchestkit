@@ -100,6 +100,8 @@ Workflow({
 
 It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits, only reach for map-reduce when it genuinely doesn't.
 
+**Fan-out rule:** a single pass is never a fallback for an over-budget repo when the selected mode is full coverage. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load. A mode the user picks that narrows the load on purpose (directory scoping, priority loading) is a declared scope cut, not a truncated load.
+
 ---
 
 ## STEP 2: Load Codebase into Context
@@ -1062,8 +1064,8 @@ audits each shard in its own context, then recovers cross-shard edges in a synth
 pass. Prefer it over narrowing scope (which silently drops coverage).
 
 1. **Map-reduce tier (recommended)**: run the workflow with shards derived from the estimate, full coverage, cross-shard boundary pass, same STEP 3.5 refutation.
-2. **Directory scoping**: narrow to specific directories, fast but **drops coverage** outside the scope; say so.
-3. **Priority loading**: entry points + critical paths only, triage, not a full audit.
+2. **Directory scoping**: narrow to specific directories; fast but **drops coverage** outside the scope, say so. A declared scope cut the user picks, not a truncated load.
+3. **Priority loading**: entry points + critical paths only; triage, not a full audit. A declared scope cut the user picks, not a truncated load.
 4. **`/ork:verify`**: only if you actually want multi-agent *graded* verification rather than an audit.
 
 ```python

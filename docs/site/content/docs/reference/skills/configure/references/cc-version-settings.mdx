@@ -1158,6 +1158,10 @@ Upstream doc: https://code.claude.com/docs/en/auto-mode-classifier-billing
 CC 2.1.280 adds `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` to change the 2,048-character cap on MCP
 tool descriptions and server instructions for every MCP server in the session.
 
+CC 2.1.296 raises the default cap on MCP tool descriptions sent up front and on server
+instructions from 2,048 to 4,096 characters. Since CC 2.1.295, descriptions the model loads through
+tool search are cut at 16,384 characters.
+
 **Action for OrchestKit**: keep the default. The cap exists so verbose servers cannot flood context;
 raise it only for a server whose truncated description was measured to break tool selection.
 
@@ -1206,3 +1210,75 @@ path down with it.
 **Action for OrchestKit**: ork runs prompt hooks, so an operator on a strict gateway needs this
 opt-out for the hooks to fire. Set `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS=1` on Mantle or any
 gateway that rejects structured outputs; leave it unset elsewhere.
+
+## CC 2.1.290 to 2.1.296 Settings
+
+### `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR`, WebSearch budget (2.1.290)
+
+CC 2.1.290 changes the interactive WebSearch budget from a hard 200 calls per session to a budget
+that refills at 100 calls per hour. `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR` sets the rate and `0`
+turns the refill off.
+
+**Action for OrchestKit**: keep the default. A research skill that fans out many WebSearch calls no
+longer hits a session wall; it slows to the refill rate instead.
+
+### MCP protocol and description limits (2.1.292, 2.1.295, 2.1.296)
+
+CC 2.1.292 makes local (stdio) MCP servers negotiate protocol 2026-07-28 by default.
+`MCP_PROTOCOL_NEGOTIATION=legacy` opts out, and a server that ignores the newer check is
+remembered for 7 days after one slow connect. CC 2.1.295 cuts MCP tool descriptions the model
+loads through tool search at 16,384 characters instead of 2,048. CC 2.1.296 raises the default
+limit on descriptions sent up front and on server instructions from 2,048 to 4,096 characters;
+`CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` (2.1.280) still overrides it.
+
+**Action for OrchestKit**: none. ork ships no MCP server. Set `MCP_PROTOCOL_NEGOTIATION=legacy`
+only for a stdio server measured to fail the new handshake.
+
+### 529 backoff and the retry watchdog cap (2.1.292, 2.1.295, 2.1.296)
+
+| Variable | Since | Effect |
+|:-|:-|:-|
+| `CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS` | CC 2.1.292 | Longer base delay for 529 retries |
+| `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` | CC 2.1.295 | Caps how long `CLAUDE_CODE_RETRY_WATCHDOG` waits out 429 and 529 |
+| `CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS` | CC 2.1.296 | Longer maximum delay for 529 retries |
+
+**Action for OrchestKit**: unattended eval batches that set `CLAUDE_CODE_RETRY_WATCHDOG=1` (see
+bare-eval) should also set `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS`, so a 429 storm cannot stall a
+batch for hours. Interactive sessions need none of the three.
+
+### `onFailure: "block"` for command and HTTP hooks (2.1.295)
+
+CC 2.1.295 adds `onFailure: "block"` to command and HTTP hook entries. A hook that cannot start,
+times out, or exits with an unexpected code then blocks the action. Without the key the old
+behaviour stays: a failed hook lets the action through.
+
+**Action for OrchestKit**: none of ork's hook entries set it yet, and the 2.1.277 floor ignores the
+key. When the floor reaches 2.1.295, security guards are the only candidates (a guard that crashes
+should fail closed); telemetry and context hooks must keep the default, or a slow logger would
+block every tool call.
+
+### `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`, one model for workflow agents (2.1.296)
+
+CC 2.1.296 adds `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` to run every Workflow agent on one model while
+other subagents keep theirs.
+
+**Action for OrchestKit**: leave it unset. Six of ork's eight workflow scripts pass a model per
+stage; which one wins when the variable is set is unconfirmed, so a session that sets it may lose
+the per-stage routing those skills document.
+
+### `autoCompactWindow` in subagent frontmatter (2.1.296)
+
+CC 2.1.296 accepts `autoCompactWindow` in subagent frontmatter and in agent definitions passed on
+the command line, so a subagent can auto-compact earlier than the main conversation. The
+user-scope setting is unchanged (see the doctor settings-posture reference).
+
+**Action for OrchestKit**: no ork agent sets it. Whether CC honours the key on plugin agents is
+unconfirmed; measure that before adding it to any agent.
+
+### Read `allow_large` (2.1.296)
+
+CC 2.1.296 adds an `allow_large` option to the Read tool, so Claude can read a text file past the
+usual size limits in one call when it needs the whole file and the context has room.
+
+**Action for OrchestKit**: none in settings. The `pretool/read/tldr-summary` hook still injects a
+summary on such a read; skipping it is a hook change tracked outside this adoption.

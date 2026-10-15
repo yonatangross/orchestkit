@@ -3,10 +3,8 @@ description: "Grade work that already exists and decide whether it can merge. Ru
 argument-hint: "[feature-or-scope]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: verify
-background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
 ---
 
@@ -29,6 +27,8 @@ verify --scope=backend database migrations
 ```
 
 ## Argument Resolution
+
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
 
 ```python
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
@@ -94,7 +94,7 @@ AskUserQuestion(
 - **Full verification**: All 9 phases (8 + 2.5), 7 parallel agents including visual capture
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
 - **Security & code quality**: Run security-auditor + code-quality-reviewer agents
-- **Quick check**: Run tests only, skip grading and suggestions
+- **Quick check**: Run tests only, skip grading and suggestions (skips Phase 2, outside the Fan-out rule)
 
 
 ## STEP 0b: Select Orchestration Mode
@@ -102,6 +102,8 @@ AskUserQuestion(
 Load details: `Read("skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
 Default: **Workflow** (star, `skills/verify/workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
+
+**Fan-out rule:** a single pass is never a fallback when the selected scope runs Phase 2. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a verifier, end the run as BLOCKED and say why. A scope that skips Phase 2 (effort low, Tests only, Quick check) is not a violation.
 
 
 ### MCP Probe + Resume
@@ -333,6 +335,8 @@ Load details: `Read("skills/verify/references/report-template.md")` for full for
 [Reached: 🟢 REACHED · 🟡 UNREACHED · n/a — any 🟡 on a test this diff added/modified also caps the verdict]
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
+
+**Done sign-off (last step).** After the report, the verdict is not "done" until the user accepts it. Load `Read("../../shared/rules/done-signoff.md")` and ask its one question with the three labels unchanged: "Accept done", "Show me the evidence", "Not satisfied". Lead with any BLOCKED dimension or FAIL. On "Show me the evidence", re-run the named check live and ask again. Skip the question in non-interactive runs (`claude -p`, a Workflow phase) and return the verdict as data instead.
 
 > **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
 >

@@ -311,8 +311,14 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       }
     }
 
-    const result = next ? ((await next(e)) ?? {}) : {};
-    return { ...(result as Record<string, unknown>), context: [context] };
+    // A hook adds to the context its next() returned and never replaces it:
+    // CC reads an answer that drops an entry a hook below attached as the
+    // wrong shape and skips this hook.
+    const result = (next ? ((await next(e)) ?? {}) : {}) as Record<string, unknown>;
+    const prior = Array.isArray(result.context)
+      ? (result.context as unknown[]).filter((c): c is string => typeof c === 'string' && c !== '')
+      : [];
+    return { ...result, context: prior.includes(context) ? prior : [...prior, context] };
   });
 
   // Wrap, never mutate: next(e) hands back an opaque engine node ({ type, ref }),

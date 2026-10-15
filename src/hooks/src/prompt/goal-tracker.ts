@@ -12,8 +12,8 @@
  *
  * Brake-file integration with G5:
  *   If `.claude/state/goal-budget-tripped.json` exists for THIS session, surface its reason as
- *   `outputBlock` with `continueOnBlock: true` (set in hooks.json) so the
- *   model is informed but the user can override by deleting the file.
+ *   `outputBlock`; the user overrides by deleting the file. CC honors
+ *   `continueOnBlock` on prompt hooks only, so this is a full block (#4684).
  *
  * Sync (not async): we need to inject the brake message in front of the
  * model BEFORE it processes the /goal — async hooks can't gate the prompt.

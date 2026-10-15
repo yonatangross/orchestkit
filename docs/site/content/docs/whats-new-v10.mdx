@@ -1,0 +1,95 @@
+---
+title: "What's new in v10"
+seoTitle: "What's New in OrchestKit v10 for Claude Code"
+description: "The main changes in the OrchestKit v10 betas: new hosts, Claude 5.5 models, a stronger PR review, test and eval skills, and safety guards you turn on."
+icon: Sparkles
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+OrchestKit v10 is in beta. The first beta, 10.0.0-beta.1, shipped on 2026-09-06. This page covers the betas up to 10.0.0-beta.171 (2026-10-11). The last stable release is v9.8.1.
+
+This page gives the 10 main changes from the 10.0.0-beta sections of the [changelog](/changelog). Each item links to the page that explains it.
+
+<Callout type="info">
+To install the current beta, use the command on the [installation page](/docs/getting-started/installation). To try it first with no risk to real data, see [Try OrchestKit Safely](/docs/getting-started/sandbox). To see every change, read the [full changelog](/changelog).
+</Callout>
+
+## Hosts
+
+### 1. Antigravity is a first-class host
+
+OrchestKit supports Google's Antigravity (agy) as a host (beta.54). Install the skills through skills.sh and the workspace `.agents/skills` directory.
+
+Read more: [Antigravity](/docs/getting-started/agy).
+
+### 2. More hosts get more of the plugin
+
+- Devin can install the plugin and load its skills (beta.31).
+- Cursor gets the rules, exported to `.cursor-plugin` (beta.10).
+- Pi gets a manifest and a `.pi/mcp.json` allowlist template (beta.10).
+- Codex gets the `ork-mech` profile (beta.11).
+
+Read more: [Hosts](/docs/getting-started/hosts).
+
+## Models and Claude Code
+
+### 3. The Claude 5.5 models
+
+The model aliases now point at the 5.5 models. Opus 5.5 is the default Opus (beta.79). Sonnet 5.5 is the `sonnet` target (beta.132). The `haiku` alias moves to `claude-haiku-5-5`, with its pricing in the hooks (beta.171). The agents also follow Anthropic's working guidance for Opus 5.5 (beta.80).
+
+Read more: [Agents overview](/docs/agents/overview), section "Model Assignment Strategy".
+
+### 4. Claude Code 2.1.278 to 2.1.296
+
+The betas adopt each Claude Code release from 2.1.278 to 2.1.296 (beta.79, beta.132, beta.147 and beta.167). The adoption loop reads each release and files the work that OrchestKit must do.
+
+Read more: [How we adopt every Claude Code release](/docs/guides/cc-adoption).
+
+## Review and ship
+
+### 5. A stronger PR review
+
+`/ork:review-pr` has three changes:
+
+- The parallel review phases (Phases 3 and 4.5) run as one Workflow script (beta.120).
+- An opt-in rule-check mode runs one verifier for each rule (beta.140).
+- A standards pass reads a standards file that is only for review (beta.166).
+
+Also, `/ork:create-pr` runs a CodeRabbit CLI review before it opens the PR, when the CLI is installed (beta.23).
+
+Read more: [review-pr](/docs/reference/skills/review-pr) and [create-pr](/docs/reference/skills/create-pr).
+
+### 6. Workflow scripts for verify and assess
+
+`/ork:verify` runs its Phase 2 dispatch as a Workflow script (beta.96). `/ork:assess` runs Phases 2 and 2.5 as a Workflow script (beta.125).
+
+Read more: [verify](/docs/reference/skills/verify) and [assess](/docs/reference/skills/assess).
+
+## Tests and evals
+
+### 7. Generated tests must test behaviour
+
+`/ork:cover` picks its targets by risk, not by coverage. A behaviour gate checks each generated test before it is kept (beta.90).
+
+Read more: [cover](/docs/reference/skills/cover).
+
+### 8. Error analysis before evals
+
+The new `error-analysis` skill groups real traces into a failure taxonomy that a human confirms. Then it recommends pass or fail evals for the failures that recur (beta.89).
+
+Read more: [Error Analysis](/docs/reference/skills/error-analysis).
+
+## Safety and output
+
+### 9. Guards that you turn on: careful and freeze
+
+Two new skills add guard hooks only when you call them (beta.141). `careful` blocks destructive shell commands, for example a force push or a hard reset. `freeze` stops file edits outside one directory.
+
+Read more: [Careful](/docs/reference/skills/careful) and [Freeze](/docs/reference/skills/freeze).
+
+### 10. Output modes and pages you can share
+
+The `glyph` skill gets output mode dials, a done sign-off and a page where you can try each mode (beta.163). The new `page-serve` skill gives a person a rendered HTML page at a stable HTTPS URL with no port (beta.5).
+
+Read more: [Output modes: try them](/docs/guides/output-modes) and [Page Serve](/docs/reference/skills/page-serve).

@@ -1742,10 +1742,20 @@ def _collect_skill_metadata(skills_src: str) -> list[dict]:
                 "tags": set(tags),
                 "user_invocable": meta.get("user-invocable", False),
                 "complexity": meta.get("complexity", ""),
-                "agent": meta.get("agent", ""),
+                "agent": _skill_owner_agent(meta),
             }
         )
     return results
+
+
+def _skill_owner_agent(meta: dict) -> str:
+    """The fork `agent:` of a task skill, else the `metadata.owner-agent` of a
+    guideline skill (guideline skills no longer fork, ork-ref-skill-fork)."""
+    agent = (meta.get("agent", "") or "").strip()
+    if agent:
+        return agent
+    md = meta.get("metadata")
+    return (md.get("owner-agent", "") or "").strip() if isinstance(md, dict) else ""
 
 
 def _match_category(skill: dict, rule: dict) -> bool:
@@ -1992,15 +2002,37 @@ def _ref_table_cell(text: str) -> str:
     )
 
 
-def generate_reference_skills(skills_src: str, out_file: str) -> int:
-    """Generate the Reference Skills page from skill frontmatter (#2120).
+def _agents_preloading(agents_src: str) -> dict[str, list[str]]:
+    """Map each skill slug to the agents whose `skills:` array preloads it."""
+    preloaded_by: dict[str, list[str]] = {}
+    agents_dir = Path(agents_src) if agents_src else None
+    if not agents_dir or not agents_dir.is_dir():
+        return preloaded_by
+    for agent_file in sorted(agents_dir.glob("*.md")):
+        if agent_file.stem.lower() == "readme":
+            continue
+        meta, _ = parse_frontmatter(agent_file.read_text(encoding="utf-8"))
+        skills_list = meta.get("skills", [])
+        if isinstance(skills_list, str):
+            skills_list = [skills_list]
+        for skill in skills_list:
+            preloaded_by.setdefault(str(skill).strip(), []).append(agent_file.stem)
+    return preloaded_by
 
-    Lists every `user-invocable: false` skill, grouped by its `agent:` field, so
-    the page can never drift from the actual skill set. Returns the count.
+
+def generate_reference_skills(skills_src: str, out_file: str, agents_src: str = "") -> int:
+    """Generate the Reference Skills page from skill and agent frontmatter (#2120).
+
+    Lists every `user-invocable: false` skill under each agent that preloads it
+    (the agent's `skills:` array), or under its `agent:` field when it is a task
+    skill that forks into one. A skill no agent preloads is cross-cutting. The
+    page can never drift from the actual skill set. Returns the unique count.
     """
     skills_dir = Path(skills_src)
+    preloaded_by = _agents_preloading(agents_src)
     by_agent: dict[str, list[tuple[str, str]]] = {}
     cross_cutting: list[tuple[str, str]] = []
+    unique = 0
 
     for skill_dir in sorted(d for d in skills_dir.iterdir() if d.is_dir()):
         skill_file = skill_dir / "SKILL.md"
@@ -2011,13 +2043,15 @@ def generate_reference_skills(skills_src: str, out_file: str) -> int:
             continue  # command skill, not a reference skill
         slug = skill_dir.name
         desc = _ref_table_cell((meta.get("description", "") or "").strip())
-        agent = (meta.get("agent", "") or "").strip()
-        if agent:
-            by_agent.setdefault(agent, []).append((slug, desc))
-        else:
+        unique += 1
+        owner_agent = _skill_owner_agent(meta)
+        owners = sorted(set(preloaded_by.get(slug, [])) | ({owner_agent} if owner_agent else set()))
+        for owner in owners:
+            by_agent.setdefault(owner, []).append((slug, desc))
+        if not owners:
             cross_cutting.append((slug, desc))
 
-    count = sum(len(v) for v in by_agent.values()) + len(cross_cutting)
+    count = unique
 
     def emit_table(rows):
         out = ["| Skill | Description |", "|-------|-------------|"]
@@ -2048,14 +2082,16 @@ def generate_reference_skills(skills_src: str, out_file: str) -> int:
         "3. **Keyword auto-suggest** — the `skill-auto-suggest` hook injects matching "
         "skills based on keywords in your prompt.",
         "",
-        "Skills are grouped below by the `agent:` field they declare. Skills with no "
-        "`agent:` are cross-cutting — shared across agents or the core system.",
+        "Skills are grouped below by the agents that preload them (each agent's "
+        "`skills:` array), so a skill several agents use appears under each. "
+        "Skills no agent preloads are cross-cutting: the core system or a command "
+        "skill loads them.",
         "",
     ]
 
     for agent in sorted(by_agent):
         title = AGENT_SECTION_TITLES.get(agent, title_case(agent))
-        lines += ["---", "", f"## {title}", "", f"**Primary agent:** `{agent}`", ""]
+        lines += ["---", "", f"## {title}", "", f"**Preloaded by:** `{agent}`", ""]
         lines += emit_table(by_agent[agent])
         lines.append("")
 
@@ -2065,8 +2101,8 @@ def generate_reference_skills(skills_src: str, out_file: str) -> int:
             "",
             "## Cross-Cutting Skills",
             "",
-            "These skills do not declare an `agent:` field — they serve multiple "
-            "agents or the core system.",
+            "No agent preloads these skills; the core system or a command skill "
+            "loads them.",
             "",
         ]
         lines += emit_table(cross_cutting)
@@ -2077,10 +2113,11 @@ def generate_reference_skills(skills_src: str, out_file: str) -> int:
         "",
         "## How Reference Skills Get to Agents",
         "",
-        "The link between a reference skill and its agent is bidirectional: the "
-        "skill's `agent:` field names its owning agent, and the agent's `skills:` "
-        "array lists the skills it loads. When an agent spawns, Claude Code injects "
-        "each listed skill's content into the agent's context window.",
+        "The agent's `skills:` array lists the skills it loads. When an agent "
+        "spawns, Claude Code injects each listed skill's content into the agent's "
+        "context window. A reference skill called directly with the Skill tool "
+        "loads inline into the calling turn; only a skill with task steps sets "
+        "`context: fork` with an `agent:` and `background: false`.",
         "",
         "---",
         "",
@@ -2320,7 +2357,7 @@ def main():
     # Reference-skills narrative page, generated from frontmatter (#2120)
     refskills_out = os.environ.get("REFSKILLS_OUT", "")
     if refskills_out:
-        ref_count = generate_reference_skills(skills_src, refskills_out)
+        ref_count = generate_reference_skills(skills_src, refskills_out, os.environ.get("AGENTS_SRC", ""))
         # Its sibling, from the same frontmatter, so the two pages always
         # split the skill total the same way.
         generate_command_skills(

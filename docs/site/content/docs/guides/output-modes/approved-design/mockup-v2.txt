@@ -1,0 +1,49 @@
+AS-BUILT DESIGN v2 · output modes try-it page          approved 2026-10-06
+Supersedes nothing: mockup.txt (v1, approved before the build) stays unchanged.
+Operator words that approve this shape (both via AskUserQuestion to conductor124):
+  rail:  "Built-in, right side"  (Fumadocs TOC at the inline end; exception
+         to visual-style rule 7 for the docs site)
+  page:  "Good, continue"  (said after seeing the LIVE page at PR head 218547ee)
+Fix after approval: the copied prompt no longer repeats the sign-off.
+
+┌ docs nav ──┐ Output modes: try them                    ┌ On this page ───┐
+│ Guides     │ lede: surfaces, audiences, sign-off,      │▸ Pick a mode    │
+│ ...        │ the announce line → chat · operator       │  One answer,    │
+│▸ Output    │                                           │  three surfaces │
+│  modes     │ ## Pick a mode                            │  Operator or    │
+└────────────┘ surface   (●) chat ( ) ask ( ) page       │  novice         │
+               audience  (●) operator ( ) novice --eli5  │  Done sign-off  │
+               sign-off  [ ] end with "accept done?"     │  Display env    │
+               ┌ /ork:glyph --chat ─────────┐ [Copy flag]│  vars           │
+               └────────────────────────────┘            │  Copy as prompt │
+               defaults line                             └─────────────────┘
+
+               ## One answer, three surfaces
+               ┌ chat ─────┐ ┌ ask ──────┐ ┏ page ━━━━━┓  pick = heavy
+               │ sample    │ │ sample    │ ┃ sample    ┃  outline, others
+               │ ≤30 cells │ │ ≤30 cells │ ┃ ≤30 cells ┃  dimmed
+               └ note ─────┘ └ note ─────┘ ┗ note ━━━━━┛
+               3 bullets: when chat, when ask, when page
+
+               ## Operator or novice
+               ┌ operator ───────────┐ ┏ novice (--eli5) ━━━━┓
+               │ same surface sample │ ┃ same surface sample ┃
+               └─────────────────────┘ ┗━━━━━━━━━━━━━━━━━━━━━┛
+               note: ask announce always says operator
+
+               ## Done sign-off
+               ┌ without ────────────┐ ┏ with --signoff ━━━━━┓
+               │ reply ends          │ ┃ ❯ 1. Accept done    ┃
+               │                     │ ┃   2. Show me the... ┃
+               └─────────────────────┘ ┗━━━━━━━━━━━━━━━━━━━━━┛
+
+               ## Display env vars
+               | Variable | Default | What it changes | Hook |  16 rows
+               note: visual-style nudge has no off switch
+
+               ## Copy as prompt
+               ┌ Answer with /ork:glyph --chat. ────────────┐
+               └────────────────────────────────────────────┘
+               [Copy as prompt] [Copy JSON]  (select + Cmd+C fallback)
+
+State: the pick lives in the query string (?surface=&audience=&signoff=1).

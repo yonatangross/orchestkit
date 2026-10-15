@@ -1,0 +1,12 @@
+{
+  "slug": "model-vocab-haiku-5-5",
+  "source": "docs/feat--model-vocab-haiku-5-5/index.html",
+  "title": "Haiku 5.5 cost estimate",
+  "description": "Compare the new pricing row with the old fallback and the long prompt limit.",
+  "tags": [
+    "models",
+    "pricing",
+    "haiku"
+  ],
+  "date": "2026-10-11"
+}

@@ -28,7 +28,7 @@ triggers:
 
 The front door to OrchestKit. **You describe a goal in plain English; the router classifies it and hands off to the right specialist.** One entry point, many execution paths.
 
-> **Why this exists:** OrchestKit has 109 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
+> **Why this exists:** OrchestKit has 110 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
 
 **Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself — it picks who does.
 
@@ -60,7 +60,8 @@ so there is no "too obvious for auto".
 | **diagnose** | why, why isn't, why does, why can't, investigate | `fix-issue` (investigation-first) |
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
 | **cover** | coverage, untested, get to N% | `cover --target N` |
-| **design** | design, architect, how should we, explore, idea | `brainstorm` |
+| **e2e** | e2e, in the browser, browser test, playwright | `expect` (run on the diff); `cover` when no e2e tests exist yet |
+| **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
 | **build** | build, implement, create, add feature, from ticket | `implement` |
 | **review** | review, PR, MR, pull request, #N | `review-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
@@ -154,6 +155,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 - **No recursion.** `auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
+- **A pronoun target is yours to resolve.** Pass a concrete target, not `this` or `them`: read it back from the conversation and announce it in one line. If a routed skill returns `TARGET_UNRESOLVED: <word>`, resolve `<word>` the same way and invoke the skill again; never relay the sentinel to the user (`Read("../../shared/rules/target-resolution.md")`).
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
 - **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
@@ -194,5 +196,5 @@ Done means all of these hold:
 
 - `help` — static categorized directory (browse, don't route)
 - `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `fix-issue` · `cover` · `brainstorm` · `implement` · `review-pr` · `verify` — the route targets
+- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `verify`: the route targets
 - `assess` — champion/challenger holdout gate (the `improve-skill` route)

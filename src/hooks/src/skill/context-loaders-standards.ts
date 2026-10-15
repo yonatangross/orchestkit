@@ -94,29 +94,6 @@ export function implementStandardsLoader(_input: HookInput, hookCtx: HookContext
 }
 
 /**
- * Review Dimensions Loader — injects review scoring dimensions.
- * Used by: review-pr skill (PreToolUse/Agent, once:true)
- *
- * Static content: review dimensions and output contract so each
- * review agent doesn't need them repeated in its prompt.
- */
-export function reviewDimensionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
-  const ctx = [
-    '[Review Dimensions — loaded once]',
-    'Score each dimension 0-10:',
-    '  1. Correctness: Logic bugs, edge cases, error handling',
-    '  2. Security: OWASP Top 10, input validation, auth/authz',
-    '  3. Performance: N+1 queries, unnecessary renders, memory leaks',
-    '  4. Maintainability: Naming, complexity, DRY, single responsibility',
-    '  5. Test coverage: Missing tests, edge cases, integration gaps',
-    '  6. API design: Consistency, versioning, error responses',
-    'Output: JSON { dimension, score, findings[], suggestions[] }',
-  ].join('\n');
-
-  return outputWithContext(ctx);
-}
-
-/**
  * Verify Scoring Rubric Loader — injects verification scoring criteria.
  * Used by: verify skill (PreToolUse/Agent, once:true)
  *

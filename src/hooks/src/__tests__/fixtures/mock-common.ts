@@ -50,8 +50,6 @@ const SIDE_EFFECT_STUBS = {
   getSessionId: vi.fn(() => 'test-session-123'),
   getEnvFile: vi.fn(() => '/test/plugin-root/.claude/.instance_env'),
   getCachedBranch: vi.fn(() => 'main'),
-  // Process: calls process.exit — NEVER run in tests
-  outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
   // Log level: stub to suppress output
   getLogLevel: vi.fn(() => 'warn'),
   shouldLog: vi.fn(() => false),
@@ -207,6 +205,13 @@ export function mockCommonBasic(
       systemMessage: message,
       hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
     })),
+    // Mirrors the real outputPreToolModelHint: Claude only, no systemMessage,
+    // no permissionDecision (#4652).
+    outputPreToolModelHint: vi.fn((message: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
+    })),
     outputError: vi.fn((message: string): HookResult => ({ continue: true, systemMessage: message })),
     outputWarning: vi.fn((message: string): HookResult => ({ continue: true, systemMessage: `\u26a0 ${message}` })),
     outputDeny: vi.fn((reason: string): HookResult => ({
@@ -305,7 +310,6 @@ export function mockLog(
   return {
     logHook: vi.fn<(...args: unknown[]) => void>(),
     logPermissionFeedback: vi.fn<(...args: unknown[]) => void>(),
-    outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
     writeRulesFile: vi.fn(() => true),
     rulesFileMatches: vi.fn(() => false),
     rulesFileExists: vi.fn(() => false),
