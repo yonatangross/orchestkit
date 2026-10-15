@@ -330,7 +330,7 @@ describe('Sink Registry', () => {
         },
       });
       registerAllSinks();
-      expect(logMessages.some(m => m.includes('http-metrics.acme.com'))).toBe(true);
+      expect(logMessages).toContain('Registered user sink: http-metrics.acme.com');
     });
   });
 });
