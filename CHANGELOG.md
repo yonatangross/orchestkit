@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176) (2026-10-15)
+
+
+### Bug Fixes
+
+* **hooks:** read a regular-file stdin before the 100ms timer ([#4770](https://github.com/yonatangross/orchestkit/issues/4770)) ([425ec7b](https://github.com/yonatangross/orchestkit/commit/425ec7b29cac7254d21e62d4085cc0138dd8080b))
+
 ## [10.0.0-beta.175](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.174...v10.0.0-beta.175) (2026-10-15)
 
 
