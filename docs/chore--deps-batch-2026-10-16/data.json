@@ -1,0 +1,252 @@
+{
+  "serves": "ork-deps-batch-2026-10-16",
+  "pr": 4787,
+  "url": "https://github.com/yonatangross/orchestkit/pull/4787",
+  "included": [
+    4784,
+    4783,
+    4782,
+    4780,
+    4779,
+    4778,
+    4732
+  ],
+  "dropped": [],
+  "bumps": [
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@vitest/coverage-v8",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4783
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/animated-emoji",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/animation-utils",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/captions",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/cli",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/gif",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/layout-utils",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/lottie",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/media-parser",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/media-utils",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/motion-blur",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/noise",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/paths",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/player",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/renderer",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/rive",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/shapes",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/three",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/transitions",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/zod-types",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "remotion",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "@remotion/eslint-config-flat",
+      "before": "4.0.534",
+      "after": "4.0.535",
+      "source": 4782
+    },
+    {
+      "location": "src/hooks/package.json",
+      "package": "@vitest/coverage-v8",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4780
+    },
+    {
+      "location": "packages/cli/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4779
+    },
+    {
+      "location": "packages/hook-contract/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4779
+    },
+    {
+      "location": "packages/jev-shadow/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4779
+    },
+    {
+      "location": "docs/site/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4778
+    },
+    {
+      "location": "src/mcp-server/package.json",
+      "package": "@modelcontextprotocol/sdk",
+      "before": "1.32.0",
+      "after": "1.32.1",
+      "source": 4732
+    },
+    {
+      "location": "src/mcp-server/package.json",
+      "package": "@types/node",
+      "before": "26.6.4",
+      "after": "26.6.5",
+      "source": 4732
+    },
+    {
+      "location": "orchestkit-demos/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4783
+    },
+    {
+      "location": "src/hooks/package.json",
+      "package": "vitest",
+      "before": "5.0.3",
+      "after": "5.0.4",
+      "source": 4780
+    },
+    {
+      "location": ".github/workflows",
+      "package": "actions/create-github-app-token",
+      "before": "3.2.0",
+      "after": "3.3.0",
+      "source": 4784
+    }
+  ],
+  "checks": [
+    "Root, docs, demos, and MCP builds passed.",
+    "Hooks, docs, and MCP typechecks passed.",
+    "Hook tests: 7860 passed, 2 skipped.",
+    "Workspace tests: 136 passed.",
+    "Docs tests: 1033 passed.",
+    "Demos tests: 293 passed.",
+    "Pre-push validation passed, including security."
+  ],
+  "baseline": "Demos typecheck fails at scripts/demo-cli.ts:4. The same local import is absent with the old main lockfile.",
+  "next": "Conductor: review CI, mark ready, merge, then close the superseded PRs."
+}

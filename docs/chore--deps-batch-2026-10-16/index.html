@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependency batch | OrchestKit</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #f5f3ee; color: #182c29; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1100px; margin: auto; padding: 48px 24px; }
+h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; margin: 8px 0 16px; }
+h2 { font-size: 22px; margin-top: 32px; }
+a { color: #146555; }
+.card { background: white; border: 1px solid #d6ddd8; border-radius: 12px; padding: 20px; margin: 20px 0; }
+.badge { display: inline-block; background: #dceee6; border-radius: 6px; padding: 4px 10px; }
+label { display: block; font-weight: 600; }
+input { width: 100%; max-width: 480px; margin: 8px 0 16px; padding: 12px; font: inherit; border: 1px solid #8a9b92; border-radius: 6px; }
+input:focus-visible, a:focus-visible { outline: 3px solid #ae6800; outline-offset: 3px; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #d6ddd8; vertical-align: top; }
+th { background: #edf3ef; }
+small { color: #52645b; }
+li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+<small>OrchestKit / 16 October 2026</small>
+<h1>One dependency batch. Seven source PRs.</h1>
+<p><span class="badge">Draft PR 4787</span> <a href="https://github.com/yonatangross/orchestkit/pull/4787">Open the batch PR</a></p>
+<p>Include the patch and minor updates. Keep fumadocs, motion 14, and the Anthropic SDK jump outside this batch.</p>
+<div class="card"><strong id="totals"></strong><p>No bumps dropped. npm generated all five lockfiles. GitHub verified the signed dependency commit.</p></div>
+<h2>Package changes</h2>
+<label for="search">Filter by package, location, or source PR</label>
+<input id="search" type="search" placeholder="Search the batch" aria-controls="bumps">
+<p id="count" aria-live="polite"></p>
+<div class="scroll"><table id="bumps"><thead><tr><th scope="col">Package</th><th scope="col">Location</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Source PR</th></tr></thead><tbody></tbody></table></div>
+<h2>Validation</h2>
+<ul id="checks"></ul>
+<div class="card"><strong>Known baseline failure</strong><p id="baseline"></p></div>
+<h2>Next step</h2><p id="next"></p>
+<small>Card: ork-deps-batch-2026-10-16</small>
+</main>
+<script id="batch-data" type="application/json">{"serves": "ork-deps-batch-2026-10-16", "pr": 4787, "url": "https://github.com/yonatangross/orchestkit/pull/4787", "included": [4784, 4783, 4782, 4780, 4779, 4778, 4732], "dropped": [], "bumps": [{"location": "orchestkit-demos/package.json", "package": "@vitest/coverage-v8", "before": "5.0.3", "after": "5.0.4", "source": 4783}, {"location": "orchestkit-demos/package.json", "package": "@remotion/animated-emoji", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/animation-utils", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/captions", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/cli", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/gif", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/layout-utils", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/lottie", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/media-parser", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/media-utils", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/motion-blur", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/noise", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/paths", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/player", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/renderer", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/rive", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/shapes", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/three", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/transitions", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/zod-types", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "remotion", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "orchestkit-demos/package.json", "package": "@remotion/eslint-config-flat", "before": "4.0.534", "after": "4.0.535", "source": 4782}, {"location": "src/hooks/package.json", "package": "@vitest/coverage-v8", "before": "5.0.3", "after": "5.0.4", "source": 4780}, {"location": "packages/cli/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4779}, {"location": "packages/hook-contract/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4779}, {"location": "packages/jev-shadow/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4779}, {"location": "docs/site/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4778}, {"location": "src/mcp-server/package.json", "package": "@modelcontextprotocol/sdk", "before": "1.32.0", "after": "1.32.1", "source": 4732}, {"location": "src/mcp-server/package.json", "package": "@types/node", "before": "26.6.4", "after": "26.6.5", "source": 4732}, {"location": "orchestkit-demos/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4783}, {"location": "src/hooks/package.json", "package": "vitest", "before": "5.0.3", "after": "5.0.4", "source": 4780}, {"location": ".github/workflows", "package": "actions/create-github-app-token", "before": "3.2.0", "after": "3.3.0", "source": 4784}], "checks": ["Root, docs, demos, and MCP builds passed.", "Hooks, docs, and MCP typechecks passed.", "Hook tests: 7860 passed, 2 skipped.", "Workspace tests: 136 passed.", "Docs tests: 1033 passed.", "Demos tests: 293 passed.", "Pre-push validation passed, including security."], "baseline": "Demos typecheck fails at scripts/demo-cli.ts:4. The same local import is absent with the old main lockfile.", "next": "Conductor: review CI, mark ready, merge, then close the superseded PRs."}</script>
+<script>
+const data = JSON.parse(document.getElementById('batch-data').textContent);
+document.getElementById('totals').textContent = `${data.bumps.length} package and action changes across ${data.included.length} source PRs`;
+for (const text of data.checks) {
+  const item = document.createElement('li'); item.textContent = text;
+  document.getElementById('checks').append(item);
+}
+for (const id of ['baseline', 'next']) document.getElementById(id).textContent = data[id];
+function render() {
+  const query = document.getElementById('search').value.toLowerCase();
+  const rows = data.bumps.filter(row => `${row.package} ${row.location} ${row.source}`.toLowerCase().includes(query));
+  const body = document.querySelector('tbody'); body.replaceChildren();
+  for (const row of rows) {
+    const tr = document.createElement('tr');
+    for (const key of ['package', 'location', 'before', 'after', 'source']) {
+      const td = document.createElement('td');
+      if (key === 'source') {
+        const link = document.createElement('a'); link.href = `https://github.com/yonatangross/orchestkit/pull/${row.source}`;
+        link.textContent = `#${row.source}`; td.append(link);
+      } else td.textContent = row[key];
+      tr.append(td);
+    }
+    body.append(tr);
+  }
+  document.getElementById('count').textContent = `Showing ${rows.length} of ${data.bumps.length} changes`;
+}
+document.getElementById('search').addEventListener('input', render); render();
+</script>
+</body>
+</html>

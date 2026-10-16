@@ -29,12 +29,12 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.5",
-    "@vitest/coverage-v8": "^5.0.3",
+    "@vitest/coverage-v8": "^5.0.4",
     "esbuild": "^0.28.2",
     "fast-check": "^4.10.2",
     "js-yaml": "^5.4.3",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.4"
   },
   "keywords": [
     "claude-code",
