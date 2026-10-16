@@ -2,7 +2,9 @@
 # Gate test for scripts/ci/gate-triage-comment.py (#4747 review round 2,
 # SHOULD 1): the public triage comment must pass a check before posting.
 # exit 0 = safe body written to the output path, exit 1 = rejected (the
-# caller posts a short fallback note instead).
+# caller posts a short fallback note instead). Every exit 0 output is also
+# judged by tests/ci/triage-gate-live-check.py, a CommonMark oracle written
+# apart from the gate: no live mention, link, image or raw HTML may remain.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +35,9 @@ check() {
     if [ -n "${no}" ] && grep -qF "${no}" "${SCRATCH}/${name}.safe.md"; then
       echo "FAIL[${name}]: output still contains '${no}':"; cat "${SCRATCH}/${name}.safe.md"; fail=1; return
     fi
+    if ! python3 "${HERE}/triage-gate-live-check.py" "${SCRATCH}/${name}.safe.md"; then
+      echo "FAIL[${name}]: output has a live mention, link or html:"; cat "${SCRATCH}/${name}.safe.md"; fail=1; return
+    fi
   fi
   echo "PASS[${name}]"
 }
@@ -41,14 +46,10 @@ printf '## Triage Summary\n\n| Field | Value |\n| - | - |\n| Type | bug |\n\nAll
 check clean 0 "${SCRATCH}/ok.md" "All clean here"
 
 printf 'Looks good. cc @yonatangross please review.\n' > "${SCRATCH}/mention.md"
-check mention 0 "${SCRATCH}/mention.md" '`@yonatangross`'
+check mention 0 "${SCRATCH}/mention.md" 'cc @yonatangross please'
 
 printf 'Details at https://evil.invalid/exfil and https://github.com/a/b/issues/1\n' > "${SCRATCH}/link.md"
-check outside-link 0 "${SCRATCH}/link.md" '`https://evil.invalid/exfil`'
-# An allowlisted host must pass through untouched.
-if ! grep -qF 'https://github.com/a/b/issues/1' "${SCRATCH}/outside-link.safe.md" 2>/dev/null; then
-  echo "FAIL[outside-link]: allowlisted link was neutralized:"; cat "${SCRATCH}/outside-link.safe.md" 2>/dev/null; fail=1
-fi
+check outside-link 0 "${SCRATCH}/link.md" 'https://evil.invalid/exfil and https://github.com/a/b/issues/1'
 
 # XREVIEW 6209271782 P1a: a mention already inside a code span must not be
 # turned into a live mention by the wrapping. Any exit 0 output must keep it
@@ -92,7 +93,18 @@ check_safe_or_refused backslash-host-bare "${SCRATCH}/bsbare.md"
 printf 'See https://github.com@evil.invalid/x now.\n' > "${SCRATCH}/userinfo.md"
 check_safe_or_refused userinfo-host "${SCRATCH}/userinfo.md"
 
-# Control: a Markdown link to an allowlisted https target still posts.
+# The fence must hold against a body that tries to close it: a backtick
+# fence, a longer one, a tilde fence and a CRLF line break before a mention.
+printf 'x\n```\n@yonatangross\n```\n' > "${SCRATCH}/fence3.md"
+check fence-close-3 0 "${SCRATCH}/fence3.md" '@yonatangross'
+printf 'x\n``````````\n@yonatangross https://evil.invalid/a\n' > "${SCRATCH}/fence10.md"
+check fence-close-10 0 "${SCRATCH}/fence10.md" '@yonatangross'
+printf 'x\n~~~~\n@yonatangross\n' > "${SCRATCH}/tilde.md"
+check fence-tilde 0 "${SCRATCH}/tilde.md" '@yonatangross'
+printf 'x\r\n```\r\n@yonatangross\r\n' > "${SCRATCH}/crlf.md"
+check fence-crlf 0 "${SCRATCH}/crlf.md" '@yonatangross'
+
+# Control: the text of a Markdown link to an allowlisted target still posts.
 printf 'Dup of [#12](https://github.com/a/b/issues/12).\n' > "${SCRATCH}/okmd.md"
 check allowed-md-link 0 "${SCRATCH}/okmd.md" '[#12](https://github.com/a/b/issues/12)'
 

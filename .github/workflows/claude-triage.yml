@@ -202,8 +202,9 @@ jobs:
           ISSUE_NUMBER: ${{ needs.fetch-issue.outputs.issue-number }}
         # The only write in the whole workflow. The gate (see
         # scripts/ci/gate-triage-comment.py) rejects oversized, empty or
-        # token-shaped output and neutralizes @mentions and outside-host
-        # links before anything reaches the issue. A rejected body posts the
+        # token-shaped output and posts the rest inside one fenced code block
+        # the body cannot close, so no mention, link or HTML in it is live
+        # before anything reaches the issue. A rejected body posts the
         # short fallback note instead, never the raw model output.
         run: |
           set -euo pipefail
