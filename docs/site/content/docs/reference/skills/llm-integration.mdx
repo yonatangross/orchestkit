@@ -815,7 +815,7 @@ List any unsupported claims."""
 ```
 
 Key decisions:
-- Judge model: `claude-haiku-4-5-20251001` or `gpt-5.5` (different from evaluated model)
+- Judge model: `claude-haiku-5-5` or `gpt-5.5` (different from evaluated model)
 - Quality threshold: 0.7 production, 0.6 drafts
 - Dimensions: 3-5 most relevant to use case
 - Sample size: 50+ for reliable metrics
@@ -2100,7 +2100,7 @@ trainer = DPOTrainer(
 async def evaluate_alignment(
     model, tokenizer,
     test_prompts: list[str],
-    judge_model: str = "claude-haiku-4-5-20251001",
+    judge_model: str = "claude-haiku-5-5",
 ) -> dict:
     """Evaluate model alignment quality."""
     scores = []
@@ -2448,7 +2448,7 @@ Upstream: https://platform.openai.com/docs/guides/function-calling
 Why: house convention repeated across the retired dpo-alignment and
 synthetic-data references and the surviving
 `rules/evaluation-metrics.md`, which pins the judge to
-`claude-haiku-4-5-20251001` and the quality gate to 0.7 production / 0.6
+`claude-haiku-5-5` and the quality gate to 0.7 production / 0.6
 drafts. Self-judging inflates scores, and judging on the expensive tier makes
 the eval loop cost more than the feature.
 

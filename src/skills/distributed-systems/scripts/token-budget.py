@@ -410,7 +410,7 @@ class TokenBudgetGuard:
             "claude-sonnet-5-5": {"input": 2.0, "output": 10.0},
             "claude-sonnet-5": {"input": 2.0, "output": 10.0},
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
-            "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
+            "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},  # model-recency-ok: kept until the Haiku 5.5 price is read from the pricing page
             "gpt-5.5": {"input": 2.5, "output": 10.0},
             "gpt-5-mini": {"input": 0.15, "output": 0.60},
         }

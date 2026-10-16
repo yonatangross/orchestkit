@@ -16,12 +16,12 @@ dependencies = []
 [project.optional-dependencies]
 dev = [
     "ruff>=0.8.0",
-    "pytest>=8.0.0",
+    "pytest>=9.1.1",
     "pytest-cov>=6.0.0",
 ]
 # Memory Fabric Agent SDK (for guaranteed MCP execution)
 memory = [
-    "anthropic>=0.40.0,<2",
+    "anthropic>=1.14.0,<2",
 ]
 # Template dependencies (for validating skill templates)
 templates = [

@@ -881,7 +881,7 @@ Settings introduced since the 2.1.152 entries above, current to the adoption hea
 `availableModels` (an allowlist of model IDs/aliases) existed earlier, but its enforcement hardened: CC 2.1.172 applies the allowlist to **subagent model overrides, the agent-dispatch picker, and the advisor model**; CC 2.1.176 closes two bypasses — alias picks can **no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL`** env vars, and `/fast` **refuses to toggle** when it would switch to a model outside the allowlist.
 
 ```json
-{ "availableModels": ["claude-opus-5-5", "claude-sonnet-5", "claude-haiku-4-5"] }
+{ "availableModels": ["claude-opus-5-5", "claude-sonnet-5", "claude-haiku-5-5"] }
 ```
 
 **Action for OrchestKit**: ork's `model-cost-advisor` hook is allowlist-aware (PR #2420) — when an agent's pinned tier is excluded it emits a **visible warning** instead of letting CC silently substitute a weaker model (a correctness trap for capability-pinned agents like `security-auditor`). ork agents use bare aliases, so they survive the picker fix; no frontmatter change needed.

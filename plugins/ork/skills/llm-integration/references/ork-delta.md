@@ -40,7 +40,7 @@ Upstream: https://platform.openai.com/docs/guides/function-calling
 Why: house convention repeated across the retired dpo-alignment and
 synthetic-data references and the surviving
 `rules/evaluation-metrics.md`, which pins the judge to
-`claude-haiku-4-5-20251001` and the quality gate to 0.7 production / 0.6
+`claude-haiku-5-5` and the quality gate to 0.7 production / 0.6
 drafts. Self-judging inflates scores, and judging on the expensive tier makes
 the eval loop cost more than the feature.
 

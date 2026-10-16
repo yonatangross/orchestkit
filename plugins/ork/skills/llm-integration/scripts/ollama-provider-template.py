@@ -326,11 +326,13 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
     model = {
         TaskType.REASONING: "gemini-3.8-flash",
         TaskType.CODING: "claude-sonnet-5",
-        TaskType.GENERAL: "claude-haiku-4-5-20251001",
-    }.get(task_type, "claude-haiku-4-5-20251001")
+        TaskType.GENERAL: "claude-haiku-5-5",
+    }.get(task_type, "claude-haiku-5-5")
 
     # Claude 5-series models reject non-default sampling params with a 400; send temperature only to the others.
-    if model.startswith(("claude-sonnet-5", "claude-opus-5", "claude-fable-5", "claude-mythos-5")):
+    if model.startswith(
+        ("claude-sonnet-5", "claude-haiku-5", "claude-opus-5", "claude-fable-5", "claude-mythos-5")
+    ):
         return init_chat_model(model)
     return init_chat_model(model, temperature=0.0)
 
