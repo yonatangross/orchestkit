@@ -93,6 +93,38 @@ for (const m of bt.matchAll(/^\|\s*`((?:ORCHESTKIT_)?AGENT_BROWSER_[A-Z_]+)`/gm)
   check(UPSTREAM.has(v) || hookText.includes(v), `B6 browser-tools documents ${v}, which nothing reads`);
 }
 
+// B6, body: no line in the skill, its references or its rules says a hook still acts.
+// The agent-browser-safety hook was retired 2026-08-31 (#3835); a line that names it
+// as retired is fine. "hook" alone (React hooks, webhooks) is not a claim.
+const RETIRED_VARS = [
+  "AGENT_BROWSER_RATE_LIMIT_PER_MIN",
+  "AGENT_BROWSER_RATE_LIMIT_PER_HOUR",
+  "AGENT_BROWSER_BURST_LIMIT",
+  "AGENT_BROWSER_ROBOTS_CACHE_TTL",
+  "AGENT_BROWSER_IGNORE_ROBOTS",
+  "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST",
+];
+const btDir = join(SKILLS, "browser-tools");
+const btFiles = ["SKILL.md"];
+for (const sub of ["references", "rules"]) {
+  if (existsSync(join(btDir, sub))) {
+    for (const f of readdirSync(join(btDir, sub))) if (f.endsWith(".md")) btFiles.push(`${sub}/${f}`);
+  }
+}
+const HOOK_ACTS =
+  /\b(?:safety[- ]hook|the hook|by the hook|hook (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers))\b|[,|] hook warns/i;
+for (const f of btFiles) {
+  readFileSync(join(btDir, f), "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      if (/retired/i.test(line)) return;
+      check(!HOOK_ACTS.test(line), `B6 browser-tools/${f}:${i + 1} says the retired safety hook still acts`);
+      for (const v of RETIRED_VARS.filter((name) => line.includes(name))) {
+        check(false, `B6 browser-tools/${f}:${i + 1} documents ${v}, which nothing reads since the hook was retired`);
+      }
+    });
+}
+
 if (failures.length) {
   console.error(`FAIL test-skill-claims-resolve: ${failures.length} of ${checks} checks`);
   for (const f of failures) console.error(`  - ${f}`);
