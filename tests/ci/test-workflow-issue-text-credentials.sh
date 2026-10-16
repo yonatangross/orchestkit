@@ -46,6 +46,14 @@ expect unsafe-top-env "${FIXTURES}/unsafe-top-level-env.yml" 1 \
 expect unsafe-inherit "${FIXTURES}/unsafe-secrets-inherit.yml" 1 \
   "unsafe-secrets-inherit" "reads issue/comment text" "secrets: inherit"
 
+# XREVIEW 6209271782 P2: job properties at any indent, and a quoted job key
+# ahead of a safe job, must still be inspected (a finding) or refused (rc 2);
+# a PASS on either is the bypass.
+expect unsafe-deep-props "${FIXTURES}/unsafe-job-perms-deep-props.yml" 1 \
+  "unsafe-job-perms-deep-props" "reads issue/comment text" "id-token: write"
+expect unsafe-quoted-job "${FIXTURES}/unsafe-quoted-job-name.yml" 1 \
+  "unsafe-quoted-job-name" "job 'triage'" "id-token: write"
+
 # Safe split must pass (rc 0, PASS message).
 expect safe-split "${FIXTURES}/safe-read-model-apply-split.yml" 0 "PASS"
 

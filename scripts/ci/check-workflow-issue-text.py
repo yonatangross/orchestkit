@@ -28,7 +28,10 @@ does not read text and is not flagged by itself; a job with issues:write and
 no text source is the safe apply side of the split.
 
 Job keys are found at whatever indentation the file uses, not a hardcoded
-two spaces (review round 2, SHOULD 5). A file whose `jobs` block parses to
+two spaces (review round 2, SHOULD 5), and so are job properties; a job key
+may be quoted. A jobs block holding a line the lint cannot place (an
+unknown key form, a shallower line, a job with no block body) is an ERROR
+(exit 2), never a pass (XREVIEW 6209271782). A file whose `jobs` block parses to
 zero jobs is an ERROR (exit 2), never a pass: a gate that saw nothing
 verified nothing.
 
@@ -150,12 +153,30 @@ def analyze_file(path):
         errors.append(f"{path}: 'jobs' declared but no jobs parsed")
         return findings, errors
 
-    job_re = re.compile(r"^ {%d}([A-Za-z_][A-Za-z0-9_-]*)\s*:" % indent)
+    # A job key may be bare or quoted. Any other line at job-key indent, or
+    # any line shallower than it inside the jobs block, is a form this lint
+    # cannot inspect, so it is an ERROR rather than silently skipped
+    # (XREVIEW 6209271782, P2: a quoted unsafe job ahead of a safe one).
+    job_re = re.compile(
+        r"""^ {%d}(?:"([^"]+)"|'([^']+)'|([A-Za-z_][A-Za-z0-9_-]*))\s*:(\s*(?:#.*)?)$"""
+        % indent
+    )
     job_bounds = []
     for i in range(js + 1, je):
-        m = job_re.match(lines[i])
-        if m:
-            job_bounds.append((m.group(1), i))
+        line = lines[i]
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        line_indent = len(line) - len(line.lstrip())
+        if line_indent < indent:
+            errors.append(f"{path}:{i + 1}: line inside jobs is shallower than the job keys; cannot inspect")
+            return findings, errors
+        if line_indent > indent:
+            continue
+        m = job_re.match(line)
+        if not m:
+            errors.append(f"{path}:{i + 1}: job key form the lint cannot inspect: {line.strip()[:60]}")
+            return findings, errors
+        job_bounds.append((m.group(1) or m.group(2) or m.group(3), i))
     if not job_bounds:
         errors.append(f"{path}: 'jobs' declared but no jobs parsed")
         return findings, errors
@@ -167,12 +188,22 @@ def analyze_file(path):
 
         # Effective permissions: the job's own block when it declares one,
         # otherwise the top-level block (Actions semantics). The job-level
-        # permissions key sits at job indent + one level.
+        # permissions key sits at the indent of the job's first property,
+        # whatever the file uses (XREVIEW 6209271782, P2: properties at
+        # eight spaces under a job at four).
+        prop_indent = None
+        for line in job_lines[1:]:
+            if line.strip() and not line.lstrip().startswith("#"):
+                prop_indent = len(line) - len(line.lstrip())
+                break
+        if prop_indent is None or prop_indent <= indent:
+            errors.append(f"{path}: job '{name}' has no block body the lint can inspect")
+            continue
         job_perms = top_perms
-        perm_re = re.compile(r"^ {%d}permissions:(.*)$" % (indent + 2))
+        perm_re = re.compile(r"^ {%d}permissions:(.*)$" % prop_indent)
         for j, line in enumerate(job_lines):
             if perm_re.match(line):
-                job_perms = block_value(job_lines, j, indent + 2)
+                job_perms = block_value(job_lines, j, prop_indent)
                 break
 
         reads = []

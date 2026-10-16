@@ -10,11 +10,19 @@ job runs first:
   MAX_BYTES, or contains a token-shaped string (GitHub PAT/OAuth prefixes,
   Anthropic/OpenAI style sk- keys, Slack xox*, 1Password ops_ service
   tokens, AWS AKIA*, JWTs, PEM blocks).
+- REJECT (exit 1) Markdown that this gate cannot neutralize safely
+  (XREVIEW 6209271782): a link or image whose target is not an absolute
+  https URL on an allowlisted host, any reference definition (`[x]: url`),
+  raw HTML links or embeds, and any backtick in a body that also holds a
+  mention or an outside link (wrapping inside an existing code span can
+  close that span and expose the mention or link).
 - NEUTRALIZE (exit 0, rewritten output): `@` mentions are wrapped in code
-  spans so they do not notify, and links whose host is outside the
-  allowlist (github.com, orchestkit.yonyon.ai) are wrapped in code spans so
-  they are not clickable. Neutralization keeps the text readable while
-  removing the public-side effect.
+  spans so they do not notify, and bare links (any letter case, plus www.
+  autolinks) whose host is outside the allowlist (github.com,
+  orchestkit.yonyon.ai) are wrapped in code spans so they are not
+  clickable. Neutralization keeps the text readable while removing the
+  public-side effect. It runs only on bodies with no backtick, so a wrap
+  can never pair with a span that was already there.
 
 Usage: gate-triage-comment.py <input.md> <output.md>
 """
@@ -37,8 +45,28 @@ TOKEN_PATTERNS = [
 ]
 
 MENTION = re.compile(r"@([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:/[A-Za-z0-9_-]+)?)")
-URL = re.compile(r"https?://[^\s)\]>`'\"]+")
+URL = re.compile(r"(?i)\b(?:https?|ftp)://[^\s)\]>`'\"<]+")
+WWW = re.compile(r"(?i)(?<![A-Za-z0-9./])www\.[^\s)\]>`'\"<]+")
 ALLOWED_HOSTS = {"github.com", "www.github.com", "orchestkit.yonyon.ai"}
+
+# Markdown and HTML forms that make a link the wrap cannot reach.
+MD_LINK_TARGET = re.compile(r"\]\(\s*<?([^)\s>]*)")
+MD_IMAGE = re.compile(r"!\[")
+REF_DEFINITION = re.compile(r"(?m)^ {0,3}\[[^\]]+\]:")
+HTML_LINK = re.compile(
+    r"(?i)<\s*(?:a|img|iframe|video|audio|source|object|embed)\b|\b(?:href|src)\s*="
+)
+
+
+def host_allowed(url: str) -> bool:
+    if url.lower().startswith("www."):
+        url = "https://" + url
+    host = (urlparse(url).hostname or "").lower()
+    return host in ALLOWED_HOSTS or host.endswith(".github.com")
+
+
+def allowed_absolute_https(url: str) -> bool:
+    return url.lower().startswith("https://") and host_allowed(url)
 
 
 def reject(reason: str) -> int:
@@ -65,17 +93,34 @@ def main() -> int:
         if m:
             return reject(f"token-shaped string ({m.group(0)[:12]}...)")
 
+    if MD_IMAGE.search(text):
+        return reject("markdown image")
+    for m in MD_LINK_TARGET.finditer(text):
+        if not allowed_absolute_https(m.group(1)):
+            return reject("markdown link to a target outside the allowlist")
+    if REF_DEFINITION.search(text):
+        return reject("markdown reference definition")
+    if HTML_LINK.search(text):
+        return reject("raw html link or embed")
+
+    outside = [
+        m.group(0)
+        for pat in (URL, WWW)
+        for m in pat.finditer(text)
+        if not host_allowed(m.group(0))
+    ]
+    if "`" in text and (MENTION.search(text) or outside):
+        return reject("backtick next to a mention or outside link")
+
     def neutralize_mention(m: re.Match) -> str:
         return f"`{m.group(0)}`"
 
     def neutralize_url(m: re.Match) -> str:
-        host = urlparse(m.group(0)).hostname or ""
-        host = host.lower()
-        allowed = host in ALLOWED_HOSTS or host.endswith(".github.com")
-        return m.group(0) if allowed else f"`{m.group(0)}`"
+        return m.group(0) if host_allowed(m.group(0)) else f"`{m.group(0)}`"
 
     text = MENTION.sub(neutralize_mention, text)
     text = URL.sub(neutralize_url, text)
+    text = WWW.sub(neutralize_url, text)
 
     with open(sys.argv[2], "w", encoding="utf-8") as fh:
         fh.write(text)
