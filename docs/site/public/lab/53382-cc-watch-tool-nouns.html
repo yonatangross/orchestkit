@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permission tool nouns reach the cc-watch evidence gate</title>
+<meta name="description" content="PR for branch chore/dsp-53382-ork-fix-2997 (issue 2997). The cc-release-watch evidence gate dropped plain tool nouns like Bash, so permission features without backticks were stamped triaged-noop-no-evidence. A new class-T token (Noun() now greps only src/settings/ and src/hooks/hooks.json.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:#0f1117;color:#e8eaf2;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.25rem;margin:0 0 .3rem}
+  .sub{color:#9aa3b8;margin:0 0 2rem;font-size:.85rem}
+  section{background:#161922;border:1px solid #272b38;border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:#7dd3fc;text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid #272b38;border-radius:5px;padding:0 4px}
+  pre{background:#0b0d13;border:1px solid #272b38;border-radius:8px;padding:.9rem 1rem;overflow-x:auto;font-size:.8rem;margin:.5rem 0}
+  .ok{color:#4ade80} .bad{color:#f87171} .dim{color:#9aa3b8} .skip{color:#fbbf24}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.4rem 0 .8rem}
+  button{background:#0b0d13;color:#e8eaf2;border:1px solid #272b38;border-radius:6px;padding:.4rem .9rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:#7dd3fc;color:#7dd3fc}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{text-align:start;padding:.3rem .5rem;border-bottom:1px solid #272b38}
+  th{color:#9aa3b8;font-weight:600}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Permission tool nouns reach the cc-watch evidence gate"><meta property="og:description" content="Issue 2997: the cc-release-watch evidence gate dropped plain tool nouns like Bash, so permission features without backticks were stamped triaged-noop-no-evidence while src/settings/ held 34 Bash( rules. A class-T token now greps only src/settings/ and src/hooks/hooks.json for the Noun( rule form."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/53382-cc-watch-tool-nouns.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Permission tool nouns reach the cc-watch evidence gate"><meta name="twitter:description" content="Issue 2997: the cc-release-watch evidence gate dropped plain tool nouns like Bash, so permission features without backticks were stamped triaged-noop-no-evidence while src/settings/ held 34 Bash( rules. A class-T token now greps only src/settings/ and src/hooks/hooks.json for the Noun( rule form."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Permission tool nouns reach the evidence gate</h1>
+<p class="sub">Branch <code>chore/dsp-53382-ork-fix-2997</code>, closes issue 2997. The cc-release-watch filer derived only backticked identifiers, camelCase, and the #3777 ork-surface nouns. A permission feature naming <code>Bash</code> in plain prose produced no searchable token, so the precision lane stamped it <code>triaged-noop-no-evidence</code> even though <code>src/settings/</code> holds 34 <code>Bash(</code> rules.</p>
+
+<section>
+<h2>The fix in one look</h2>
+<pre><span class="dim">derive_tokens:</span>  closed tool set scanned on sentence-initial-dropped text
+  <span class="ok">T&#9;Bash(</span>   <span class="dim">Bash, Read, Edit, Write, Glob, Grep, WebFetch, WebSearch, NotebookEdit</span>
+<span class="dim">has_evidence:</span>  class T greps <span class="ok">TOOL_NOUN_ROOTS</span> only
+  <span class="ok">src/settings/ + src/hooks/hooks.json</span>   <span class="dim">never the full EVIDENCE_ROOTS</span></pre>
+<p class="dim">The token carries the open paren, so it can only match the permission-rule form <code>Noun(</code>. Title-case prose still cannot leak: the match is case-sensitive on canonical tool names, and the sentence-initial word is dropped first.</p>
+</section>
+
+<section>
+<h2>Try the classifier</h2>
+<div class="controls" role="group" aria-label="pick a feature line">
+  <button id="f0" aria-pressed="true">Permission feature (Bash)</button>
+  <button id="f1" aria-pressed="false">Scrollbar polish (anchor B)</button>
+  <button id="f2" aria-pressed="false">SessionStart fork (anchor A)</button>
+</div>
+<table>
+  <thead><tr><th>Derived token</th><th>Class</th><th>Grep scope</th><th>Verdict</th></tr></thead>
+  <tbody id="toks"></tbody>
+</table>
+<pre id="verdict" class="dim"></pre>
+</section>
+
+<section>
+<h2>Test coverage</h2>
+<p><code>tests/integration/test-cc-release-watch-step3.sh</code> adds anchor C: a permission feature with plain-word <code>Bash</code> and no backticks evaluates hit and files on the real tree. Anchor B (scrollbar and cursor prose) and case 12 still evaluate miss. Result: <span class="ok">26 passed, 0 failed</span>.</p>
+</section>
+</main>
+<script>
+const FEATURES = {
+  f0: {
+    line: '"Added permission rules for the Bash tool"',
+    rows: [["Bash(", "T", "src/settings/ + src/hooks/hooks.json", "hit"]],
+    verdict: "hit → precision lane files the issue (anchor C)"
+  },
+  f1: {
+    line: '"Fixed scrollbar rendering and improved cursor polish"',
+    rows: [["chrome_scroll_polish", "P", "EVIDENCE_ROOTS", "miss"]],
+    verdict: "miss → stamped triaged-noop-no-evidence (anchor B, unchanged)"
+  },
+  f2: {
+    line: '"Changed SessionStart hooks to report source fork"',
+    rows: [["SessionStart", "C", "EVIDENCE_ROOTS", "hit"], ["fork", "P", "EVIDENCE_ROOTS", "miss"], ["hook", "P", "EVIDENCE_ROOTS", "hit"]],
+    verdict: "hit → recall lane files the sub-floor feature (anchor A, unchanged)"
+  }
+};
+const toks = document.getElementById("toks");
+const verdict = document.getElementById("verdict");
+function render(id) {
+  const f = FEATURES[id];
+  toks.innerHTML = "";
+  for (const [t, c, s, v] of f.rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td><code>" + t + "</code></td><td>" + c + "</td><td>" + s + "</td><td class=\"" + (v === "hit" ? "ok" : "bad") + "\">" + v + "</td>";
+    toks.appendChild(tr);
+  }
+  verdict.textContent = f.line + "  →  " + f.verdict;
+  for (const k of Object.keys(FEATURES)) {
+    document.getElementById(k).setAttribute("aria-pressed", String(k === id));
+  }
+}
+for (const k of Object.keys(FEATURES)) {
+  document.getElementById(k).addEventListener("click", () => render(k));
+}
+render("f0");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

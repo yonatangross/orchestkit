@@ -1,0 +1,12 @@
+{
+  "serves": "vercel-oss-orchestkit-docs-2026-10-14",
+  "pr": "yonatangross/orchestkit#4737",
+  "page": "index.html",
+  "lab": "https://orchestkit.yonyon.ai/lab/docs-site-keep-lockfile.html",
+  "facts": {
+    "locked": {"fumadocs-ui": "16.15.17", "fumadocs-core": "16.15.17", "next": "16.3.8"},
+    "before_on_401": "lockfile deleted, fresh resolve, fumadocs-ui 16.17.x, TS2724",
+    "after_on_401_preview": "lockfile kept, only @yonatan-hq/analytics moves to the stub",
+    "after_on_401_production": "install fails by name, no stub"
+  }
+}

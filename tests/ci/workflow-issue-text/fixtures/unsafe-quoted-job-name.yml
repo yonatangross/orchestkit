@@ -1,0 +1,25 @@
+# PLANTED UNSAFE FIXTURE (XREVIEW 6209271782, P2b). The unsafe job key is
+# quoted and comes before an ordinary safe job. A lint that only matches bare
+# job keys skips the quoted job and scans only the safe one.
+name: Unsafe quoted job name fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  "triage":
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - run: gh issue view "${{ inputs.issue_number }}" --json title,body
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok

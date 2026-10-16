@@ -11,8 +11,9 @@
 # behind in-range patches and the gate fails reactively, one advisory at a time,
 # wedging the whole PR queue. A weekly npm version-update stream keeps every
 # lockfile fresh proactively; `groups` bundles updates (and security updates) so
-# advisories land as ONE PR per tree instead of N. Paired with auto-merge
-# (.github/workflows/dependabot-automerge.yml) the bumps land hands-off.
+# advisories land as ONE PR per tree instead of N. Each PR merges through the
+# merge desk after a skeptic check; .github/workflows/dependabot-automerge.yml
+# only labels major bumps as held and arms no auto-merge.
 #
 # hono is an `overrides` entry in root + docs/site (pulled transitively by
 # @modelcontextprotocol/sdk); it is intentionally NOT removed -- dropping it
