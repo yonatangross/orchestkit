@@ -277,6 +277,66 @@ jobs:
       - if: secrets.MODEL_TOKEN != ''
         run: gh issue view 1"
 
+# XREVIEW 6211162308 P2a: index access, letter case and spaces are the same
+# issue body read. 3 spellings x 3 credentials; each layer must flag all 9.
+n=0
+for spell in "github['event']['issue']['body']" 'GITHUB.EVENT.ISSUE.BODY' 'github . event . issue . body'; do
+  n=$((n + 1))
+  tag="${n}-"
+  form "spell-${tag}write-all" 1 1 1 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${spell} }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+  form "spell-${tag}id-token" 1 1 1 "permissions: {id-token: write}
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${spell} }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+  form "spell-${tag}secret" 1 1 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${spell} }}
+      MODEL: \${{ secrets.MODEL_TOKEN }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+done
+# The whole event object carries the issue body too.
+form whole-event-tojson 1 1 1 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      EV: \${{ toJSON(github.event) }}
+    steps:
+      - run: echo \"\$EV\""
+# Inert metadata in index form stays inert (control).
+form inert-number-index 0 0 0 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      N: \${{ github['event']['issue']['number'] }}
+    steps:
+      - run: echo \"\$N\""
+# XREVIEW 6211162308 P2b: workflow env is inherited by every job's steps.
+form inherited-workflow-env 1 1 1 "permissions: write-all
+env:
+  ISSUE_TEXT: \${{ github.event.issue.body }}
+jobs:
+  t:
+    runs-on: x
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+
 # AND rule, both directions. The parser joins a double-quoted YAML string
 # across an escaped line break, so it reads `gh issue view` where the line
 # reader sees two halves; the parsed layer flags it, so the file fails. A

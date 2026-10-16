@@ -10,9 +10,13 @@ text was in scope. Public attacks on this exact shape: Flatt Security
 
 Rule, per job (job-level permissions win over top-level, like Actions):
 
-  READS issue/comment text, any of:
+  READS issue/comment text, in the job OR in the workflow env and defaults
+  that every job inherits, any of:
     - `github.event.issue.<field>`   (`.number` alone is inert metadata)
     - `github.event.comment.<field>` (`.id` alone is inert metadata)
+      in any spelling Actions accepts: index access, any letter case,
+      spaces around the dots
+    - the whole `github.event`, or the whole `github` context passed on
     - `gh issue view`
     - a `gh issue|pr|api` command fed an `issue_number` (e.g. the dispatch
       input, which is how untrusted issue text is pulled in)
@@ -91,25 +95,56 @@ ID_TOKEN_WRITE = re.compile(r"""["']?id-token["']?\s*:\s*["']?write\b""")
 WRITE_ALL = re.compile(r"""(?<![A-Za-z-])["']?write-all\b""")
 YAML_ALIAS = re.compile(r"(?:^|[\s:\[{,])(?:\*[A-Za-z0-9_-]+|<<\s*:)")
 
-INERT_REFS = re.compile(
-    r"github\.event\.issue\.number\b|github\.event\.comment\.id\b"
-)
-
 # The four read shapes named in #4747. Known gaps, kept deliberately so the
 # gate stays green on shapes this PR does not own: `gh pr view`,
 # `gh issue list`, `gh api` on issue endpoints addressed by a hardcoded or
 # env-carried number, and the github-script `issue_number:` key. The adjacent
 # surfaces (ultrareview.yml's comment fetch, ci-sentinel.yml's PR reads,
 # claude-health.yml's issue list) are follow-up scope under epic #4748.
+# The gh CLI read shapes, shared by both layers. The github context reads
+# are matched by each layer with its own code (XREVIEW 6211162308: a
+# shared matcher was a common-mode miss).
 READ_PATTERNS = [
-    ("github.event.issue.*", re.compile(r"github\.event\.issue\b")),
-    ("github.event.comment.*", re.compile(r"github\.event\.comment\b")),
     ("gh issue view", re.compile(r"\bgh\s+issue\s+view\b")),
     (
         "gh command fed an issue_number",
         re.compile(r"\bgh\s+(?:issue|pr|api)\b[^\n|&;]*\bissue_number\b"),
     ),
 ]
+
+
+# Layer 2 github context read: one flexible regex on raw text. Property and
+# index access, any letter case, spaces around the dots
+# (github['event']['issue']['body'], GITHUB.EVENT.ISSUE.BODY,
+# github . event . issue . body) are the same read. Inert fields: the
+# issue number and the comment id. The whole event, or the whole github
+# context passed to a function, carries the issue text too.
+def _seg(name):
+    return r"""\s*(?:\.\s*%s\b|\[\s*['"]%s['"]\s*\])""" % (name, name)
+
+
+LINE_ISSUE_REF = re.compile(
+    r"\bgithub" + _seg("event") + r"""\s*(?:\.\s*(issue|comment)\b|\[\s*['"](issue|comment)['"]\s*\])"""
+    + r"""(?:\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)\b|\[\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*\]))?""",
+    re.IGNORECASE,
+)
+LINE_WHOLE_EVENT = re.compile(r"\bgithub" + _seg("event") + r"(?!\s*[.\[\w])", re.IGNORECASE)
+LINE_WHOLE_GITHUB = re.compile(r"(?:\(|,|\$\{\{)\s*github\s*(?:\)|,|\}\})", re.IGNORECASE)
+INERT_FIELD = {"issue": "number", "comment": "id"}
+
+
+def line_issue_reads(text):
+    reads = set()
+    for m in LINE_ISSUE_REF.finditer(text):
+        kind = (m.group(1) or m.group(2)).lower()
+        field = (m.group(3) or m.group(4) or "").lower()
+        if field != INERT_FIELD[kind]:
+            reads.add(f"github.event.{kind}.*")
+    if LINE_WHOLE_EVENT.search(text):
+        reads.add("github.event (whole object)")
+    if LINE_WHOLE_GITHUB.search(text):
+        reads.add("github context (whole object)")
+    return reads
 
 
 # The lint reads a strict subset of YAML by line. Every form outside that
@@ -224,6 +259,11 @@ def analyze_lines(path):
             return [], [f"{path}: top-level permissions use an escape, tag, explicit key, anchor or alias; cannot inspect"]
 
     # Secrets in the top-level env block are inherited by every job.
+    # Workflow env and defaults reach every job's steps (XREVIEW 6211162308),
+    # so a read there is a read in every job.
+    inherited_text = "\n".join(
+        block_value(lines, spans[k][0], 0) for k in ("env", "defaults") if k in spans
+    )
     top_env_secrets = set()
     if "env" in spans:
         s, e = spans["env"]
@@ -310,10 +350,9 @@ def analyze_lines(path):
                 job_perms = block_value(job_lines, j, prop_indent)
                 break
 
-        reads = []
-        scrubbed = INERT_REFS.sub("", job_text)
+        reads = sorted(line_issue_reads(job_text + "\n" + inherited_text))
         for label, pattern in READ_PATTERNS:
-            if pattern.search(scrubbed):
+            if pattern.search(job_text):
                 reads.append(label)
 
         if YAML_ALIAS.search(job_perms) or UNINSPECTABLE_VALUE.search(strip_comments(job_perms)):
@@ -426,6 +465,30 @@ def _perm_creds(perms):
     return creds
 
 
+def _normalize_context(text):
+    """Layer 1 github context read: rewrite index access as property access,
+    lower the case and drop spaces around dots, then match plain paths."""
+    text = text.lower()
+    text = re.sub(r"""\[\s*['"]([a-z_][a-z0-9_-]*)['"]\s*\]""", r".\1", text)
+    return re.sub(r"\s*\.\s*", ".", text)
+
+
+def _parsed_issue_reads(values):
+    reads = set()
+    for value in values:
+        for text in _strings(value):
+            norm = _normalize_context(text)
+            for m in re.finditer(r"\bgithub\.event\.(issue|comment)\b(?:\.([a-z_][a-z0-9_]*))?", norm):
+                inert = {"issue": "number", "comment": "id"}[m.group(1)]
+                if m.group(2) != inert:
+                    reads.add(f"github.event.{m.group(1)}.*")
+            if re.search(r"\bgithub\.event(?![.\w])", norm):
+                reads.add("github.event (whole object)")
+            if re.search(r"(?:\(|,|\$\{\{)\s*github\s*(?:\)|,|\}\})", norm):
+                reads.add("github context (whole object)")
+    return reads
+
+
 def analyze_parsed(path):
     """Layer 1: lint the mapping a YAML safe loader builds. Return (findings, errors)."""
     yaml = _load_yaml_module()
@@ -447,6 +510,7 @@ def analyze_parsed(path):
 
     top_perms = doc.get("permissions")
     top_secrets = _secret_creds(doc.get("env"))
+    inherited = [doc.get("env"), doc.get("defaults")]
     findings = []
     errors = []
     for name, job in doc["jobs"].items():
@@ -457,8 +521,9 @@ def analyze_parsed(path):
         creds = _perm_creds(perms) | _secret_creds(job) | top_secrets
         if job.get("secrets") == "inherit":
             creds.add("secrets: inherit")
-        job_text = INERT_REFS.sub("", "\n".join(_strings(job)))
-        reads = [label for label, pattern in READ_PATTERNS if pattern.search(job_text)]
+        job_text = "\n".join(_strings(job))
+        reads = sorted(_parsed_issue_reads([job] + inherited))
+        reads += [label for label, pattern in READ_PATTERNS if pattern.search(job_text)]
         if reads and creds:
             findings.append(
                 f"{path}: job '{name}' reads issue/comment text "
