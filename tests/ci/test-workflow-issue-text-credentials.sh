@@ -447,6 +447,19 @@ for f in "${SCRATCH}"/boundary-[0-9]*.yml "${SCRATCH}"/boundary-gs.yml "${SCRATC
     echo "PASS[layers-$(basename "${f}" .yml)]: parsed 1, lines 1"
   fi
 done
+# XREVIEW 6212763969: a workflow_call job with no permissions of its own (and
+# none at the top) runs with whatever its caller granted, id-token included,
+# so it holds an unknown credential. Inside the boundary that must be an
+# explicit restriction. Codex's callee, red on both layers; then two
+# controls where the restriction is explicit (top level, job level).
+printf 'on: workflow_call\njobs:\n  t:\n    runs-on: x\n    steps:\n      - run: gh issue view 1\n' > "${SCRATCH}/callee-inherits.yml"
+expect callee-inherits "${SCRATCH}/callee-inherits.yml" 1 "inherits" "untrusted text"
+layers="$(python3 "${LAYER_RC}" "${SCAN}" "${SCRATCH}/callee-inherits.yml" 2>&1 | tail -1)" || true
+if [ "${layers}" = "1 1" ]; then echo "PASS[layers-callee-inherits]: parsed 1, lines 1"; else echo "FAIL[layers-callee-inherits]: parsed/lines '${layers}', want '1 1'"; fail=1; fi
+printf 'on: workflow_call\npermissions: {}\njobs:\n  t:\n    runs-on: x\n    steps:\n      - run: gh issue view 1\n' > "${SCRATCH}/callee-top-restricted.yml"
+expect callee-top-restricted "${SCRATCH}/callee-top-restricted.yml" 0 "PASS"
+printf 'on: workflow_call\njobs:\n  t:\n    runs-on: x\n    permissions:\n      contents: read\n    steps:\n      - run: gh issue view 1\n' > "${SCRATCH}/callee-job-restricted.yml"
+expect callee-job-restricted "${SCRATCH}/callee-job-restricted.yml" 0 "PASS"
 # Controls: the safe apply side of the split (scoped write, GITHUB_TOKEN
 # only) on issues stays clean, and a credential job on a trusted trigger
 # is outside the boundary rule.

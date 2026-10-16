@@ -13,7 +13,9 @@ TRUST BOUNDARY (what this lint certifies, XREVIEW 6212345276):
     issue_comment, discussion, discussion_comment, pull_request_target,
     pull_request_review, pull_request_review_comment, workflow_run, and
     workflow_call, which inherits its caller's event) holds NO credential in
-    any job. That holds however the text is read (shell spellings, the event
+    any job. A workflow_call job must also restrict its permissions
+    explicitly (job or top level): without that it runs with the caller's
+    grants, which no file-local reader can see. That holds however the text is read (shell spellings, the event
     file, github-script, scripts, composite actions, reusable workflows, job
     outputs, artifacts), because no reader has to be right.
   - BEST EFFORT, outside the boundary (push, schedule, workflow_dispatch and
@@ -416,10 +418,12 @@ def analyze_lines(path):
             errors.append(f"{path}: job '{name}' uses a hex escape; cannot inspect")
             continue
         job_perms = top_perms
+        job_has_perms = False
         perm_re = re.compile(r"""^ {%d}["']?permissions["']?\s*:(.*)$""" % prop_indent)
         for j, line in enumerate(job_lines):
             if perm_re.match(line):
                 job_perms = block_value(job_lines, j, prop_indent)
+                job_has_perms = True
                 break
 
         read_text = job_text + "\n" + inherited_text
@@ -440,6 +444,11 @@ def analyze_lines(path):
             creds.append("permissions: write-all")
         if SECRETS_INHERIT.search(job_text):
             creds.append("secrets: inherit")
+        # A reusable workflow job with no permissions of its own and none at
+        # the top runs with its caller's grants, id-token included, which no
+        # file-local reader can see (XREVIEW 6212763969). Unknown is held.
+        if "workflow_call" in untrusted_triggers and not job_has_perms and "permissions" not in spans:
+            creds.append("caller grants (inherits: no explicit permissions in a workflow_call workflow)")
         creds.extend(sorted(line_secret_creds(job_text) | top_env_secrets))
 
         if reads and creds:
@@ -644,6 +653,8 @@ def analyze_parsed(path):
             continue
         perms = job["permissions"] if "permissions" in job else top_perms
         creds = _perm_creds(perms) | _secret_creds(job) | top_secrets
+        if "workflow_call" in untrusted_triggers and "permissions" not in job and "permissions" not in doc:
+            creds.add("caller grants (inherits: no explicit permissions in a workflow_call workflow)")
         if job.get("secrets") == "inherit":
             creds.add("secrets: inherit")
         read_text = "\n".join(_strings([job] + inherited))
