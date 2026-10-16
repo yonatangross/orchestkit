@@ -318,7 +318,8 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 #   errorDetails field as a warning (it marks a plugin that errored
 #   while loading) and every noteDetails row at info severity. The
 #   verdict reports warnings instead of an all-ok line while
-#   errorDetails rows exist.
+#   errorDetails rows exist. Run `claude plugin list --json` first and
+#   read these keys from its rows.
 # - plugin stdio redaction (CC 2.1.285+): `claude mcp get` hides the command,
 #   arguments and environment values of stdio MCP servers provided by plugins
 #   (variable names are still shown). A redacted value is unmeasured, not a
