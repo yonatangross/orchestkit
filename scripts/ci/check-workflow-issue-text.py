@@ -129,7 +129,18 @@ LINE_ISSUE_REF = re.compile(
     re.IGNORECASE,
 )
 LINE_WHOLE_EVENT = re.compile(r"\bgithub" + _seg("event") + r"(?!\s*[.\[\w])", re.IGNORECASE)
-LINE_WHOLE_GITHUB = re.compile(r"(?:\(|,|\$\{\{)\s*github\s*(?:\)|,|\}\})", re.IGNORECASE)
+# Fail closed on what this regex cannot classify (XREVIEW 6211906464): a
+# computed index on github, github.event or the issue/comment object, and
+# the whole github context followed by any expression operator or closer
+# (toJSON(github || null)), are reads.
+_LITERAL_INDEX = r"""\s*\[\s*['"][A-Za-z_][A-Za-z0-9_-]*['"]\s*\]"""
+LINE_COMPUTED_INDEX = re.compile(
+    r"\bgithub(?:" + _seg("event")
+    + r"""(?:\s*(?:\.\s*(?:issue|comment)\b|\[\s*['"](?:issue|comment)['"]\s*\]))?)?"""
+    + r"\s*\[(?!" + _LITERAL_INDEX[len(r"\s*\["):] + ")",
+    re.IGNORECASE,
+)
+LINE_WHOLE_GITHUB = re.compile(r"\bgithub\s*(?=[)\],|&=!<>}?])", re.IGNORECASE)
 INERT_FIELD = {"issue": "number", "comment": "id"}
 
 
@@ -144,6 +155,8 @@ def line_issue_reads(text):
         reads.add("github.event (whole object)")
     if LINE_WHOLE_GITHUB.search(text):
         reads.add("github context (whole object)")
+    if LINE_COMPUTED_INDEX.search(text):
+        reads.add("github access the lint cannot classify (computed index)")
     return reads
 
 
@@ -350,9 +363,10 @@ def analyze_lines(path):
                 job_perms = block_value(job_lines, j, prop_indent)
                 break
 
-        reads = sorted(line_issue_reads(job_text + "\n" + inherited_text))
+        read_text = job_text + "\n" + inherited_text
+        reads = sorted(line_issue_reads(read_text))
         for label, pattern in READ_PATTERNS:
-            if pattern.search(job_text):
+            if pattern.search(read_text):
                 reads.append(label)
 
         if YAML_ALIAS.search(job_perms) or UNINSPECTABLE_VALUE.search(strip_comments(job_perms)):
@@ -473,19 +487,55 @@ def _normalize_context(text):
     return re.sub(r"\s*\.\s*", ".", text)
 
 
+_PARSED_INERT = {"issue": "number", "comment": "id"}
+_IDENT = re.compile(r"\.([a-z_][a-z0-9_-]*)")
+_EXPR_CHARS = set("[)],|&=!<>}?")
+
+
+def _classify_github(after):
+    """Classify the normalized text right after one `github` word.
+
+    Returns a read label, or None when the access is provably harmless.
+    Allowlist logic: only a plain property path that does not reach the
+    issue or comment body is harmless; anything this cannot classify
+    (computed index, operator, the whole object) is a read.
+    """
+    rest = after.lstrip()
+    if not rest.startswith("."):
+        if rest[:1] in _EXPR_CHARS:
+            return "github context (whole object or unclassified)"
+        return None  # prose: github.com handled below, actions/github-script, a word
+    path = []
+    pos = 0
+    while True:
+        m = _IDENT.match(rest, pos)
+        if not m:
+            break
+        path.append(m.group(1))
+        pos = m.end()
+        if len(path) == 3:
+            break
+    nxt = rest[pos:pos + 1]
+    if not path or path[0] != "event":
+        return None
+    if len(path) == 1:
+        return "github.event (whole object or unclassified)"
+    if path[1] not in _PARSED_INERT:
+        return None
+    if len(path) == 3 and path[2] == _PARSED_INERT[path[1]] and nxt not in (".", "["):
+        return None
+    return f"github.event.{path[1]}.*"
+
+
 def _parsed_issue_reads(values):
     reads = set()
     for value in values:
         for text in _strings(value):
             norm = _normalize_context(text)
-            for m in re.finditer(r"\bgithub\.event\.(issue|comment)\b(?:\.([a-z_][a-z0-9_]*))?", norm):
-                inert = {"issue": "number", "comment": "id"}[m.group(1)]
-                if m.group(2) != inert:
-                    reads.add(f"github.event.{m.group(1)}.*")
-            if re.search(r"\bgithub\.event(?![.\w])", norm):
-                reads.add("github.event (whole object)")
-            if re.search(r"(?:\(|,|\$\{\{)\s*github\s*(?:\)|,|\}\})", norm):
-                reads.add("github context (whole object)")
+            for m in re.finditer(r"\bgithub\b", norm):
+                label = _classify_github(norm[m.end():])
+                if label:
+                    reads.add(label)
     return reads
 
 
@@ -521,9 +571,9 @@ def analyze_parsed(path):
         creds = _perm_creds(perms) | _secret_creds(job) | top_secrets
         if job.get("secrets") == "inherit":
             creds.add("secrets: inherit")
-        job_text = "\n".join(_strings(job))
+        read_text = "\n".join(_strings([job] + inherited))
         reads = sorted(_parsed_issue_reads([job] + inherited))
-        reads += [label for label, pattern in READ_PATTERNS if pattern.search(job_text)]
+        reads += [label for label, pattern in READ_PATTERNS if pattern.search(read_text)]
         if reads and creds:
             findings.append(
                 f"{path}: job '{name}' reads issue/comment text "

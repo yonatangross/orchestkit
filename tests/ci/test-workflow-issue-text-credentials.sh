@@ -337,6 +337,63 @@ jobs:
     steps:
       - run: echo \"\$ISSUE_TEXT\""
 
+# XREVIEW 6211906464: a github access a reader cannot classify is a read.
+# Computed index, grouped index and the whole context behind an operator,
+# each with 3 credentials. Each layer must flag all on its own.
+n=0
+for expr in "github[format('ev{0}', 'ent')].issue.body" "github[('event')].issue.body" 'toJSON(github || null)'; do
+  n=$((n + 1))
+  form "unclassified-${n}-write-all" 1 1 1 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${expr} }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+  form "unclassified-${n}-id-token" 1 1 1 "permissions: {id-token: write}
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${expr} }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+  form "unclassified-${n}-secret" 1 1 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ ${expr} }}
+      MODEL: \${{ secrets.MODEL_TOKEN }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+done
+# The gh CLI read shapes in inherited workflow defaults count too.
+form inherited-defaults-cli-read 1 1 1 "permissions: write-all
+defaults:
+  run:
+    shell: bash -c 'gh issue view 1; bash {0}'
+jobs:
+  t:
+    runs-on: x
+    env:
+      GH_TOKEN: \${{ github.token }}
+    steps:
+      - run: echo ok"
+# Controls: ordinary github fields and prose stay clean.
+form github-fields-control 0 0 0 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      R: \${{ github.repository }}
+      PR: \${{ github.event.pull_request.number }}
+      S: \${{ github.sha }}
+    steps:
+      - uses: actions/github-script@v7
+      - run: echo see https://github.com/x/y"
+
 # AND rule, both directions. The parser joins a double-quoted YAML string
 # across an escaped line break, so it reads `gh issue view` where the line
 # reader sees two halves; the parsed layer flags it, so the file fails. A
