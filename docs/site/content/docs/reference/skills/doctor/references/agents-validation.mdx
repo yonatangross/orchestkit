@@ -69,7 +69,7 @@ Valid CC tools:
 - WebFetch, WebSearch
 - NotebookEdit
 - AskUserQuestion
-- TaskCreate, TaskUpdate, TaskGet, TaskList (since CC 2.1.233 these are **removed for the newest models** unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`; plugin settings cannot set it, so an agent granting them may run without them)
+- TaskCreate, TaskUpdate, TaskGet, TaskList, TodoWrite (CC 2.1.268 offers these tools only on Claude 3.x, Opus 4.0 to 4.7, Sonnet 4.0 to 4.6, and Haiku 4.5. On models outside this allowlist, these tools are absent unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. CC honours the flag only from user or managed settings (or the shell); plugin settings cannot set it, so an agent granting these tools may run without them.)
 
 ## Quick Validation
 

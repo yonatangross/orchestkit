@@ -171,6 +171,13 @@ Reviews are tied to a head. A review at an older head still counts only if the
 PR's own files are byte-identical at the new head because the update merge
 touched none of them. Otherwise, ask for a fresh read.
 
+Secret-shaped strings in reviews and comments: when a review, verdict or issue
+comment quotes the input of a redaction probe, write a placeholder such as
+`mongodb+srv://<user>:<pw>@<host>/` or `ASIA<16 chars>`, never the literal
+value. GitHub secret scanning reads PR and issue comments, and
+`.github/secret_scanning.yml` only exempts files under
+`src/hooks/src/__tests__/`, so a quoted fixture raises a public alert.
+
 Workflow files under `.github/workflows` and `plugin.json` files are merged by
 the maintainer only.
 

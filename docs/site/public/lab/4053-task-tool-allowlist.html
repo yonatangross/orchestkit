@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC 2.1.268 task tool availability</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #f5f3ec; color: #202b29; font: 17px/1.6 system-ui, sans-serif; }
+main { max-width: 850px; margin: auto; padding: 48px 24px; }
+h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.15; }
+h2 { font-size: 22px; margin-top: 32px; }
+.eyebrow { color: #425d54; font-weight: 700; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+label { display: block; font-weight: 650; }
+select { display: block; width: 100%; margin-top: 8px; padding: 12px; font: inherit; background: white; color: inherit; border: 1px solid #63776d; border-radius: 8px; }
+select:focus-visible, a:focus-visible { outline: 3px solid #146c56; outline-offset: 3px; }
+.result { padding: 18px; background: #e3ece5; border: 1px solid #789888; border-radius: 8px; margin-top: 24px; }
+.result p { margin: 4px 0; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #d3d9d2; }
+th { background: #eaece4; }
+code { font-size: 0.9em; overflow-wrap: anywhere; }
+a { color: #12634c; }
+.small { font-size: 14px; color: #425d54; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="CC 2.1.268 task tool availability"><meta property="og:description" content="Select a model and a flag source to explore the named model allowlist, TodoWrite, and the operator override."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4053-task-tool-allowlist.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="CC 2.1.268 task tool availability"><meta name="twitter:description" content="Select a model and a flag source to explore the named model allowlist, TodoWrite, and the operator override."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<p class="eyebrow">Issue #4053 · Documentation playground</p>
+<h1>Which models offer task tracking?</h1>
+<p>CC 2.1.268 names the model allowlist and adds <code>TodoWrite</code> to the same rule. Select a model and a flag source to see the result.</p>
+<div class="controls">
+<div>
+<label for="model">Model</label>
+<select id="model">
+<option value="opus5" selected>Opus 5 (outside the allowlist)</option>
+<option value="claude3">Claude 3.x</option>
+<option value="opus4">Opus 4.0 to 4.7</option>
+<option value="sonnet4">Sonnet 4.0 to 4.6</option>
+<option value="haiku45">Haiku 4.5</option>
+<option value="other">Other model outside the allowlist</option>
+</select>
+</div>
+<div>
+<label for="flag">Source of CLAUDE_CODE_ENABLE_TODO_TOOLS=1</label>
+<select id="flag">
+<option value="none" selected>Flag is not set</option>
+<option value="user">User settings</option>
+<option value="managed">Managed settings</option>
+<option value="shell">Shell environment</option>
+<option value="plugin">Plugin settings (cannot enable the flag)</option>
+<option value="project">Project settings (cannot enable the flag)</option>
+</select>
+</div>
+</div>
+<section class="result" aria-live="polite" aria-atomic="true" aria-label="Availability result">
+<p><strong id="status">Tools are absent.</strong></p>
+<p id="reason">This model is outside the allowlist and the flag is not set.</p>
+</section>
+<table aria-label="Task tracking tool availability">
+<thead><tr><th scope="col">Tool</th><th scope="col">Available</th></tr></thead>
+<tbody>
+<tr><th scope="row">TaskCreate</th><td data-tool>Absent</td></tr>
+<tr><th scope="row">TaskGet</th><td data-tool>Absent</td></tr>
+<tr><th scope="row">TaskUpdate</th><td data-tool>Absent</td></tr>
+<tr><th scope="row">TaskList</th><td data-tool>Absent</td></tr>
+<tr><th scope="row">TodoWrite</th><td data-tool>Absent</td></tr>
+</tbody>
+</table>
+<h2>What this PR changes</h2>
+<p>The earlier CC 2.1.233 wording said task tools were removed for the newest models. The updated notes list Claude 3.x, Opus 4.0 to 4.7, Sonnet 4.0 to 4.6, and Haiku 4.5. They include TodoWrite with the four Task tools.</p>
+<p>The flag note retains user or managed settings (or the shell). Plugin settings cannot supply the flag. Granting a tool in agent frontmatter does not make an absent tool available.</p>
+<p class="small">This page illustrates the documented rule. It does not inspect a Claude Code session or change any setting.</p>
+<noscript><p>Enable JavaScript to change the model and flag source. The initial view shows Opus 5 with no flag.</p></noscript>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4742">Review PR #4742</a></p>
+</main>
+<script>
+const model = document.getElementById('model');
+const flag = document.getElementById('flag');
+function render() {
+  const inAllowlist = ['claude3', 'opus4', 'sonnet4', 'haiku45'].includes(model.value);
+  const enabled = ['user', 'managed', 'shell'].includes(flag.value);
+  const available = inAllowlist || enabled;
+  document.getElementById('status').textContent = available ? 'Tools are available.' : 'Tools are absent.';
+  let reason = 'This model is outside the allowlist and the flag is not set.';
+  if (inAllowlist) reason = 'This model is on the allowlist. These tools are offered by default.';
+  else if (enabled) reason = 'The operator enables these tools with the flag in user or managed settings (or the shell).';
+  else if (flag.value !== 'none') reason = 'This model is outside the allowlist. This settings source cannot enable the flag.';
+  document.getElementById('reason').textContent = reason;
+  document.querySelectorAll('[data-tool]').forEach(cell => { cell.textContent = available ? 'Offered' : 'Absent'; });
+}
+model.addEventListener('change', render);
+flag.addEventListener('change', render);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

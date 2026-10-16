@@ -49,10 +49,10 @@ FLAG = "$ARGUMENTS[0]"     # First token — check for --success, --failed, --ca
 
 The remember skill uses **knowledge graph** as storage:
 
-1. **Knowledge Graph**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations` - FREE, zero-config, always works
+1. **Knowledge Graph**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations`. These tools come from a `memory` MCP server that OrchestKit does not bundle: configure one in the user or project scope first (for example `@modelcontextprotocol/server-memory`) and confirm it with `claude mcp list`. Without it, every graph step here does nothing.
 
 **Benefits:**
-- Zero configuration required - works out of the box
+- Free and local once the memory server is configured
 - Explicit relationship queries (e.g., "what does X use?")
 - Cross-referencing between entities
 - No cloud dependency

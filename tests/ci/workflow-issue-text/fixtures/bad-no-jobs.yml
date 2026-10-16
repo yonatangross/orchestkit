@@ -1,0 +1,7 @@
+# PLANTED ERROR FIXTURE. A file with an empty jobs block yields zero parsed
+# jobs; the lint must exit as an error (rc 2), not report a clean pass.
+name: Empty jobs fixture
+on:
+  workflow_dispatch:
+
+jobs: {}

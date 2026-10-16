@@ -55,7 +55,7 @@ Out of scope:
   [skills.sh](https://skills.sh) are scanned by Snyk on install across its policy
   categories, including malicious code, prompt injection, toxic flows, suspicious
   downloads, and exposed credentials.
-- **CI gates.** CodeQL, dependency review with Dependabot auto-merge for patches,
+- **CI gates.** CodeQL, dependency review with a held label on Dependabot major bumps,
   an OpenSSF Scorecard run, and hook-contract tests run on the repository.
   Runtime secret controls ship in the plugin: `redact-secrets` warns on leaked
   tokens in tool output, `secret-handler` defaults to `ORK_SECRET_HOOK=AUDIT`

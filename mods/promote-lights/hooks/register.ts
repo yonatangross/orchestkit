@@ -15,7 +15,7 @@
  * - $.ui.status (startup warnings; cleared once the band draws)
  * - $.ui.invalidate
  * - $.ui.resolve (the band's Box and Text elements)
- * - $.env.get (PROMOTE_HEAD override, PROMOTE_LIGHTS_WATCH demo target)
+ * - $.env.get (PROMOTE_HEAD and PROMOTE_BASE overrides, PROMOTE_LIGHTS_WATCH demo target)
  *
  * Two tracking modes share one tick:
  * - promote: the open promote PR (base main, dev head or promote label) in
@@ -27,7 +27,7 @@
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, DEFAULT_PROMOTE_BASE, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists } from "../src/gh.js";
 import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
 import {
   parseWatchTarget,
@@ -233,6 +233,9 @@ export const register: Register = (on) => {
     let promoteHead = DEFAULT_PROMOTE_HEAD;
     const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
     if (configured) promoteHead = configured;
+    // A dev, qa, main flow promotes into qa, so the base is configurable too
+    // (orchestkit#4623). The required checks below read this same base.
+    const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
 
     // Both queries are filtered server side so the result is complete
     // no matter how many ordinary open PRs the repo has. A single
@@ -240,8 +243,8 @@ export const register: Register = (on) => {
     // a promote PR sitting past position 30. Settled, never all: one
     // rejected query degrades the search instead of aborting the start.
     const [headSettled, labelSettled] = await Promise.allSettled([
-      $.process.run(buildHeadQueryArgs(promoteHead), { timeoutMs: 15000 }),
-      $.process.run(buildLabelQueryArgs(), { timeoutMs: 15000 }),
+      $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
+      $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
     ]);
     const byHead = headSettled.status === "fulfilled"
       ? headSettled.value
@@ -274,7 +277,7 @@ export const register: Register = (on) => {
       return next(e);
     }
 
-    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: "main", degraded };
+    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
 
     if (!ticking) {
       startTick($, key);
@@ -414,7 +417,8 @@ export const register: Register = (on) => {
     }
     if (stored && stored.error) return { text: `lights: ${stored.error}` };
     const promoteHead = (await $.env.get("PROMOTE_HEAD").catch(() => undefined)) || DEFAULT_PROMOTE_HEAD;
-    return { text: noPrHint(promoteHead) };
+    const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
+    return { text: noPrHint(promoteHead, promoteBase) };
   });
 };
 

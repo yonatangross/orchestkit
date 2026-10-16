@@ -1,0 +1,12 @@
+{
+  "slug": "docs-site-next-16-4-1-security",
+  "source": "docs/fix--docs-site-next-16.4.1/index.html",
+  "title": "docs/site: next 16.4.1 security bump",
+  "description": "Why the docs site moved to next 16.4.1: three advisories, how each one maps to the site's code, and the release provenance check.",
+  "tags": [
+    "security",
+    "dependencies",
+    "audit"
+  ],
+  "date": "2026-10-15"
+}
