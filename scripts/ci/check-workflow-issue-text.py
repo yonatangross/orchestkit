@@ -56,7 +56,32 @@ import sys
 # A YAML key may be bare or quoted; both are the same key (XREVIEW 6209698795).
 TOP_KEY = re.compile(r"""^(?:"([^"]+)"|'([^']+)'|([A-Za-z_-]+))\s*:""")
 JOB_PERM_INDENT = 4
-SECRET = re.compile(r"secrets\.([A-Za-z_][A-Za-z0-9_]*)")
+# Actions context names are case-insensitive and the runner reads an
+# expression through quoted strings (a `}}` inside quotes does not end it),
+# so the line layer does not cut expressions at all: any text that holds an
+# expression and names the secrets context, in any case, is a credential
+# unless the only reference is GITHUB_TOKEN (XREVIEW 6210628528).
+LINE_SECRET_REF = re.compile(
+    r"""\bsecrets\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*\])""",
+    re.IGNORECASE,
+)
+LINE_SECRETS_WORD = re.compile(r"\bsecrets\b", re.IGNORECASE)
+
+
+def line_secret_creds(text):
+    """Layer 2 secret read on raw text: case-insensitive, no expression cut."""
+    text = strip_comments(text)
+    if "${{" not in text:
+        return set()
+    text = SECRETS_INHERIT.sub("", text)
+    creds = set()
+    for m in LINE_SECRET_REF.finditer(text):
+        name = m.group(1) or m.group(2)
+        if name.upper() != "GITHUB_TOKEN":
+            creds.add(f"secrets.{name}")
+    if LINE_SECRETS_WORD.search(LINE_SECRET_REF.sub("", text)):
+        creds.add("secrets (whole object or computed name)")
+    return creds
 SECRETS_INHERIT = re.compile(r"""^\s*["']?secrets["']?\s*:\s*["']?inherit\b""", re.MULTILINE)
 # Quoted keys and values grant the same thing (security review of 5b84e983).
 ID_TOKEN_WRITE = re.compile(r"""["']?id-token["']?\s*:\s*["']?write\b""")
@@ -202,9 +227,7 @@ def analyze_lines(path):
         env_text = block_value(lines, s, 0)
         if HEX_ESCAPE.search(env_text):
             return [], [f"{path}: top-level env uses a hex escape; cannot inspect"]
-        for name in SECRET.findall(env_text):
-            if name != "GITHUB_TOKEN":
-                top_env_secrets.add(name)
+        top_env_secrets = line_secret_creds(env_text)
 
     if "jobs" not in spans:
         errors.append(f"{path}: no jobs block; not a workflow the lint can verify")
@@ -302,10 +325,7 @@ def analyze_lines(path):
             creds.append("permissions: write-all")
         if SECRETS_INHERIT.search(job_text):
             creds.append("secrets: inherit")
-        secret_names = set(SECRET.findall(job_text)) | top_env_secrets
-        for secret_name in sorted(secret_names):
-            if secret_name != "GITHUB_TOKEN":
-                creds.append(f"secrets.{secret_name}")
+        creds.extend(sorted(line_secret_creds(job_text) | top_env_secrets))
 
         if reads and creds:
             findings.append(
@@ -319,9 +339,14 @@ def analyze_lines(path):
 # Layer 1: a real YAML safe loader (PyYAML) on the parsed mapping. A file
 # must pass BOTH layers, so a parser differential has to fool two different
 # readers at once (conductor189 ruling on XREVIEW 6209908015, round 6).
-EXPRESSION = re.compile(r"\$\{\{(.*?)\}\}", re.DOTALL)
-SECRETS_WORD = re.compile(r"\bsecrets\b")
-SECRET_NAMED = re.compile(r"""\bsecrets\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*\])""")
+SECRETS_WORD = re.compile(r"\bsecrets\b", re.IGNORECASE)
+SECRET_NAMED = re.compile(
+    r"""\bsecrets\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*\])""",
+    re.IGNORECASE,
+)
+GITHUB_TOKEN_REF = re.compile(
+    r"""\bsecrets\s*(?:\.\s*github_token\b|\[\s*['"]github_token['"]\s*\])""", re.IGNORECASE
+)
 
 
 def _load_yaml_module():
@@ -369,19 +394,24 @@ def _strings(value):
 
 
 def _secret_creds(value):
-    """Secret references in ${{ }} expressions; GITHUB_TOKEN alone is inert."""
+    """Secret references in any parsed string that holds an expression.
+
+    The whole string is read, not the text between `${{` and the first
+    `}}`: the runner tracks quoted strings, so a quoted `}}` does not end
+    an expression, and context names match in any letter case
+    (XREVIEW 6210628528). GITHUB_TOKEN alone, in any case, is inert.
+    """
     creds = set()
     for text in _strings(value):
-        for expr in EXPRESSION.findall(text):
-            rest = re.sub(r"\bsecrets\s*\.\s*GITHUB_TOKEN\b", "", expr)
-            rest = re.sub(r"""\bsecrets\s*\[\s*['"]GITHUB_TOKEN['"]\s*\]""", "", rest)
-            if not SECRETS_WORD.search(rest):
-                continue
-            names = [a or b for a, b in SECRET_NAMED.findall(rest)]
-            if names:
-                creds.update(f"secrets.{n}" for n in names if n != "GITHUB_TOKEN")
-            if not names or SECRETS_WORD.search(SECRET_NAMED.sub("", rest)):
-                creds.add("secrets (whole object or computed name)")
+        if "${{" not in text:
+            continue
+        rest = GITHUB_TOKEN_REF.sub("", text)
+        if not SECRETS_WORD.search(rest):
+            continue
+        names = [a or b for a, b in SECRET_NAMED.findall(rest)]
+        creds.update(f"secrets.{n}" for n in names)
+        if not names or SECRETS_WORD.search(SECRET_NAMED.sub("", rest)):
+            creds.add("secrets (whole object or computed name)")
     return creds
 
 

@@ -212,11 +212,68 @@ jobs:
     steps:
 ${R}"
 
-# AND rule, both directions. A bracket secret reference is invisible to the
-# line reader (it matches only secrets.NAME) and the parsed layer flags it,
-# so the file fails. A safe grant spelled with an escaped key is clean to the
-# parser, and the line reader refuses the form, so the file still fails.
+# XREVIEW 6210628528: Actions context names are case-insensitive, and the
+# runner reads an expression through quoted strings, so `}}` inside quotes
+# does not end it. Each row hides a secret from a case-sensitive or
+# boundary-cutting reader; both layers must flag it on their own.
+form uppercase-secrets-bracket 1 1 1 "permissions: {}
+jobs:
+  triage:
+    runs-on: x
+    env:
+      ISSUE_TEXT: \${{ github.event.issue.body }}
+      MODEL: \${{ SECRETS['MODEL_TOKEN'] }}
+    steps:
+      - run: echo \"\$ISSUE_TEXT\""
+form uppercase-tojson-secrets 1 1 1 "permissions: {}
+jobs:
+  triage:
+    runs-on: x
+    env:
+      ALL: \${{ toJSON(SECRETS) }}
+    steps:
+${R}"
+form quoted-braces-in-expression 1 1 1 "permissions: {}
+jobs:
+  triage:
+    runs-on: x
+    env:
+      MODEL: \${{ format('}}{0}', secrets['MODEL_TOKEN']) }}
+    steps:
+${R}"
+form mixed-case-dot-secret 1 1 1 "permissions: {}
+jobs:
+  triage:
+    runs-on: x
+    env:
+      MODEL: \${{ Secrets.Model_Token }}
+    steps:
+${R}"
+form github-token-any-case-is-inert 0 0 0 "permissions: {}
+jobs:
+  triage:
+    runs-on: x
+    env:
+      GH_TOKEN: \${{ SECRETS.github_token }}
+    steps:
+${R}"
+
+# AND rule, both directions. The parser joins a double-quoted YAML string
+# across an escaped line break, so it reads `gh issue view` where the line
+# reader sees two halves; the parsed layer flags it, so the file fails. A
+# safe grant spelled with an escaped key is clean to the parser, and the
+# line reader refuses the form, so the file still fails.
 form and-parsed-catches 1 1 0 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    env:
+      T: \${{ secrets.MODEL_TOKEN }}
+    steps:
+      - run: \"gh issue vi\\
+          ew 1\""
+# A bracket secret reference (once invisible to the line reader, round 6).
+form bracket-secret 1 1 1 "permissions: {}
 jobs:
   t:
     runs-on: x
