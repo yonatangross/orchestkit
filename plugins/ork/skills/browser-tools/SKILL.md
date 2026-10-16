@@ -2,7 +2,7 @@
 name: browser-tools
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local-dev URLs). URL policy is the Claude Code sandbox's job, when the operator enables it. Use for browser automation that needs safety rules.
+description: Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation.
 user-invocable: false
 metadata:
   owner-agent: "web-research-analyst"

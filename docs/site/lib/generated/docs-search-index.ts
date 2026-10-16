@@ -823,7 +823,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/browser-tools",
     "title": "Browser Tools",
-    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local-dev URLs). URL policy is the Claude Code sandbox's job, when the operator enables it. Use for browser automation that needs safety rules."
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation."
   },
   {
     "url": "/docs/reference/skills/business-case",

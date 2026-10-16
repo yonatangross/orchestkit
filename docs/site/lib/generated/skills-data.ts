@@ -780,9 +780,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local-dev URLs). URL policy is the Claude Code sandbox's job, when the operator enables it. Use for browser automation that needs safety rules.",
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation.",
     "version": "6.1.0",
-    "sha256": "7971bc08c3d978b2005612f8846ae0fe7291f7e928c16e42cf946b26ae603a09",
+    "sha256": "650e0b86176f1379f755fb34a59f9e9a75faf3a56bdee546288c9c51f97e151a",
     "author": "OrchestKit",
     "tags": [
       "browser",
