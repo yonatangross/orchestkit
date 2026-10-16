@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "10.0.0-beta.177",
-  "description": "The Complete AI Development Toolkit — 110 skills, 36 agents, 162 hooks for full-stack development.",
+  "description": "Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 162 hooks for review, testing, security and memory. Hooks run on prompts and tool calls; network access is opt-in and off by default.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com",
