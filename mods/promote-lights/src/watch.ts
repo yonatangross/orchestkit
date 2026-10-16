@@ -62,12 +62,13 @@ export const WATCH_USAGE = "usage: /lights watch owner/repo#123 (for example cli
 
 /**
  * What a bare /lights answers when nothing is tracked. Names the promote
- * head the session search used (dev unless PROMOTE_HEAD overrides it): on a
+ * head and base the session search used (dev into main unless PROMOTE_HEAD or
+ * PROMOTE_BASE overrides them): on a
  * repo whose promote branch is named anything else, the bare "no promote PR
  * open" read as a bug instead of a lookup that found nothing.
  */
-export function noPrHint(promoteHead: string): string {
-  return `no promote PR open with head "${promoteHead}" into main (set PROMOTE_HEAD to look for another); try /lights watch owner/repo#123, for example cli/cli#1`;
+export function noPrHint(promoteHead: string, promoteBase = "main"): string {
+  return `no promote PR open with head "${promoteHead}" into "${promoteBase}" (set PROMOTE_HEAD or PROMOTE_BASE to look for another); try /lights watch owner/repo#123, for example cli/cli#1`;
 }
 
 /** An argument that is neither a subcommand nor a parseable target gets its own line. */

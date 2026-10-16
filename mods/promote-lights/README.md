@@ -1,6 +1,6 @@
 # promote-lights
 
-Shows CI status lights above the prompt while a promote PR (base `main`) is open.
+Shows CI status lights above the prompt while a promote PR (base `main`, or `PROMOTE_BASE`) is open.
 
 ## What it does
 
@@ -30,6 +30,7 @@ The band is built from the `Box` and `Text` elements that `$.ui.resolve(e)` hand
 - every gh call targets the watched repo (`-R owner/repo`); the lights still show in this session's band
 - a watched repo that protects nothing falls back to every check run on the head, worst non-skipped run per name wins
 - a new push to a watched PR is followed, not stopped (a promote PR still stops on a moved head)
+- `PROMOTE_HEAD=development PROMOTE_BASE=qa` finds the promote PR in a dev, qa, main flow; the required checks are read from that base
 - `PROMOTE_LIGHTS_WATCH=owner/repo#123` starts watching at session start with no typing, for recorded demos
 
 A real promote PR keeps its stricter rule: an empty required-context union refuses green instead of falling back.
@@ -93,7 +94,7 @@ Calls:
 - `$.clock.every`
 - `$.store.get`, `$.store.set`
 - `$.ui.status`, `$.ui.invalidate`, `$.ui.resolve`
-- `$.env.get` (`PROMOTE_HEAD`, `PROMOTE_LIGHTS_WATCH`)
+- `$.env.get` (`PROMOTE_HEAD`, `PROMOTE_BASE`, `PROMOTE_LIGHTS_WATCH`)
 
 Declared capability: `process.run` (can run host processes; gh carries your auth, read-only calls only).
 
