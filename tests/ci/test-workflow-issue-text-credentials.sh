@@ -72,46 +72,54 @@ expect unsafe-quoted-top-perms "${FIXTURES}/unsafe-quoted-top-permissions.yml" 1
 # grants a credential to a job that reads issue text, in one valid YAML
 # spelling. The scanner must report a finding (1) or refuse the form (2);
 # a PASS (0) on any row is the bypass. The last row is a safe control.
-# form <name> <want-rc> <yaml body after "name: probe" and "on: workflow_dispatch">
+# Round 6 (conductor189): the scanner has two layers, a YAML safe loader on
+# the parsed mapping and the strict-subset line reader, and a file is clean
+# only when BOTH are. Every row also runs each layer alone; on an unsafe row
+# each layer must refuse or flag it on its own, unless the row names that
+# layer as blind (the AND-rule rows at the end).
+# form <name> <want-rc> <want-parsed-rc> <want-lines-rc> <yaml body>
+LAYER_RC="${HERE}/workflow-issue-text/layer-rc.py"
 form() {
-  local name="$1" want="$2" body="$3" rc
+  local name="$1" want="$2" want_p="$3" want_l="$4" body="$5" rc layers
   printf 'name: probe\non: workflow_dispatch\n%s\n' "${body}" > "${SCRATCH}/form-${name}.yml"
   python3 "${SCAN}" "${SCRATCH}/form-${name}.yml" > "${SCRATCH}/form-${name}.out" 2>&1 && rc=0 || rc=$?
-  if [ "${rc}" -ne "${want}" ]; then
-    echo "FAIL[form-${name}]: exit ${rc}, wanted ${want}"; cat "${SCRATCH}/form-${name}.out"; fail=1; return
+  layers="$(python3 "${LAYER_RC}" "${SCAN}" "${SCRATCH}/form-${name}.yml" 2>&1 | tail -1)" || true
+  if [ "${rc}" -ne "${want}" ] || [ "${layers}" != "${want_p} ${want_l}" ]; then
+    echo "FAIL[form-${name}]: exit ${rc} (want ${want}), layers parsed/lines '${layers}' (want '${want_p} ${want_l}')"
+    cat "${SCRATCH}/form-${name}.out"; fail=1; return
   fi
-  echo "PASS[form-${name}]: exit ${rc}"
+  echo "PASS[form-${name}]: exit ${rc}, parsed ${want_p}, lines ${want_l}"
 }
 R='      - run: gh issue view 1'
-form plain-key 1 "permissions: {}
+form plain-key 1 1 1 "permissions: {}
 jobs:
   t:
     runs-on: x
     permissions: write-all
     steps:
 ${R}"
-form single-quoted-key 1 "permissions: {}
+form single-quoted-key 1 1 1 "permissions: {}
 jobs:
   t:
     runs-on: x
     'permissions': write-all
     steps:
 ${R}"
-form double-quoted-key 1 "permissions: {}
+form double-quoted-key 1 1 1 "permissions: {}
 jobs:
   t:
     runs-on: x
     \"permissions\": write-all
     steps:
 ${R}"
-form escaped-key 2 "permissions: {}
+form escaped-key 2 1 2 "permissions: {}
 jobs:
   t:
     runs-on: x
     \"permiss\\u0069ons\": write-all
     steps:
 ${R}"
-form explicit-key 2 "permissions: {}
+form explicit-key 2 1 2 "permissions: {}
 jobs:
   t:
     runs-on: x
@@ -119,33 +127,33 @@ jobs:
     : write-all
     steps:
 ${R}"
-form flow-job-body 2 "permissions: {}
+form flow-job-body 2 1 2 "permissions: {}
 jobs:
   t:
     {runs-on: x, permissions: write-all,
      steps: [{run: gh issue view 1}]}"
-form flow-permissions-value 1 "permissions: {}
+form flow-permissions-value 1 1 1 "permissions: {}
 jobs:
   t:
     runs-on: x
     permissions: {id-token: write}
     steps:
 ${R}"
-form escaped-value 2 "permissions: {}
+form escaped-value 2 1 2 "permissions: {}
 jobs:
   t:
     runs-on: x
     permissions: \"wr\\u0069te-all\"
     steps:
 ${R}"
-form tagged-value 2 "permissions: {}
+form tagged-value 2 1 2 "permissions: {}
 jobs:
   t:
     runs-on: x
     permissions: !!str write-all
     steps:
 ${R}"
-form anchor-alias 2 "x-perms: &p
+form anchor-alias 2 1 2 "x-perms: &p
   id-token: write
 permissions: {}
 jobs:
@@ -154,7 +162,7 @@ jobs:
     permissions: *p
     steps:
 ${R}"
-form merge-key 2 "x-perms: &p
+form merge-key 2 1 2 "x-perms: &p
   id-token: write
 permissions: {}
 jobs:
@@ -164,7 +172,7 @@ jobs:
       <<: *p
     steps:
 ${R}"
-form second-document 2 "permissions: {}
+form second-document 2 2 2 "permissions: {}
 jobs:
   ok:
     runs-on: x
@@ -181,14 +189,14 @@ jobs:
     runs-on: x
     steps:
 ${R}"
-form duplicate-top-key 2 "permissions: write-all
+form duplicate-top-key 2 2 2 "permissions: write-all
 jobs:
   t:
     runs-on: x
     steps:
 ${R}
 permissions: {}"
-form hex-escaped-secret 2 "permissions: {}
+form hex-escaped-secret 2 1 2 "permissions: {}
 env:
   T: \"\${{ secr\\x65ts.MODEL_TOKEN }}\"
 jobs:
@@ -196,11 +204,30 @@ jobs:
     runs-on: x
     steps:
 ${R}"
-form safe-control 0 "permissions:
+form safe-control 0 0 0 "permissions:
   contents: read
 jobs:
   t:
     runs-on: x
+    steps:
+${R}"
+
+# AND rule, both directions. A bracket secret reference is invisible to the
+# line reader (it matches only secrets.NAME) and the parsed layer flags it,
+# so the file fails. A safe grant spelled with an escaped key is clean to the
+# parser, and the line reader refuses the form, so the file still fails.
+form and-parsed-catches 1 1 0 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    env:
+      T: \${{ secrets['MODEL_TOKEN'] }}
+    steps:
+${R}"
+form and-lines-refuses 2 0 2 "jobs:
+  t:
+    runs-on: x
+    \"permiss\\u0069ons\": {contents: read}
     steps:
 ${R}"
 

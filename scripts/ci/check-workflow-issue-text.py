@@ -36,6 +36,13 @@ unknown key form, a shallower line, a job with no block body) is an ERROR
 zero jobs is an ERROR (exit 2), never a pass: a gate that saw nothing
 verified nothing.
 
+Two layers, and a file is clean only when BOTH are (round 6 of XREVIEW
+on #4755, conductor189 ruling): layer 1 loads the file with a YAML safe
+loader (PyYAML, duplicate keys refused, exactly one document) and lints the
+parsed mapping; layer 2 is the strict-subset line reader below. A parser
+differential then has to fool two different readers at once. Without
+PyYAML layer 1 refuses every file, so the lint fails closed.
+
 Exit codes: 0 = clean, 1 = finding(s), 2 = scanner error.
 
 Usage: check-workflow-issue-text.py <file-or-dir> [<file-or-dir> ...]
@@ -165,8 +172,8 @@ def job_key_indent(lines, js, je):
     return None
 
 
-def analyze_file(path):
-    """Return (findings, errors) for one workflow file."""
+def analyze_lines(path):
+    """Layer 2: the strict-subset line reader. Return (findings, errors)."""
     findings = []
     errors = []
     try:
@@ -306,6 +313,135 @@ def analyze_file(path):
                 f"({', '.join(reads)}) while holding {', '.join(sorted(set(creds)))}. "
                 "Split the job so no job holds both untrusted text and a credential (#4747)."
             )
+    return findings, errors
+
+
+# Layer 1: a real YAML safe loader (PyYAML) on the parsed mapping. A file
+# must pass BOTH layers, so a parser differential has to fool two different
+# readers at once (conductor189 ruling on XREVIEW 6209908015, round 6).
+EXPRESSION = re.compile(r"\$\{\{(.*?)\}\}", re.DOTALL)
+SECRETS_WORD = re.compile(r"\bsecrets\b")
+SECRET_NAMED = re.compile(r"""\bsecrets\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*['"]([A-Za-z_][A-Za-z0-9_]*)['"]\s*\])""")
+
+
+def _load_yaml_module():
+    try:
+        import yaml  # noqa: PLC0415 (optional import, refused below when absent)
+    except ImportError:
+        return None
+    return yaml
+
+
+def _strict_loader(yaml):
+    class StrictLoader(yaml.SafeLoader):
+        """SafeLoader that refuses a duplicate key in any mapping."""
+
+    def construct_mapping(loader, node, deep=False):
+        loader.flatten_mapping(node)
+        seen = set()
+        for key_node, _value in node.value:
+            key = loader.construct_object(key_node, deep=deep)
+            if key in seen:
+                raise yaml.constructor.ConstructorError(
+                    None, None, f"duplicate key {key!r}", key_node.start_mark
+                )
+            seen.add(key)
+        return yaml.SafeLoader.construct_mapping(loader, node, deep=deep)
+
+    StrictLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+    )
+    return StrictLoader
+
+
+def _strings(value):
+    """Every string key and value inside a parsed YAML value."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            if isinstance(k, str):
+                yield k
+            yield from _strings(v)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _strings(item)
+
+
+def _secret_creds(value):
+    """Secret references in ${{ }} expressions; GITHUB_TOKEN alone is inert."""
+    creds = set()
+    for text in _strings(value):
+        for expr in EXPRESSION.findall(text):
+            rest = re.sub(r"\bsecrets\s*\.\s*GITHUB_TOKEN\b", "", expr)
+            rest = re.sub(r"""\bsecrets\s*\[\s*['"]GITHUB_TOKEN['"]\s*\]""", "", rest)
+            if not SECRETS_WORD.search(rest):
+                continue
+            names = [a or b for a, b in SECRET_NAMED.findall(rest)]
+            if names:
+                creds.update(f"secrets.{n}" for n in names if n != "GITHUB_TOKEN")
+            if not names or SECRETS_WORD.search(SECRET_NAMED.sub("", rest)):
+                creds.add("secrets (whole object or computed name)")
+    return creds
+
+
+def _perm_creds(perms):
+    creds = set()
+    if isinstance(perms, str) and perms.strip() == "write-all":
+        creds.add("permissions: write-all")
+    elif isinstance(perms, dict) and perms.get("id-token") == "write":
+        creds.add("id-token: write")
+    return creds
+
+
+def analyze_parsed(path):
+    """Layer 1: lint the mapping a YAML safe loader builds. Return (findings, errors)."""
+    yaml = _load_yaml_module()
+    if yaml is None:
+        return [], [f"{path}: PyYAML is not installed; the parsed layer cannot run"]
+    try:
+        with open(path, encoding="utf-8") as fh:
+            docs = list(yaml.load_all(fh, Loader=_strict_loader(yaml)))
+    except OSError as exc:
+        return [], [f"{path}: cannot read: {exc}"]
+    except yaml.YAMLError as exc:
+        return [], [f"{path}: YAML loader refused the file: {str(exc).splitlines()[0]}"]
+    docs = [d for d in docs if d is not None]
+    if len(docs) != 1:
+        return [], [f"{path}: {len(docs)} YAML documents; the lint reads exactly one"]
+    doc = docs[0]
+    if not isinstance(doc, dict) or not isinstance(doc.get("jobs"), dict) or not doc["jobs"]:
+        return [], [f"{path}: no jobs mapping after parsing"]
+
+    top_perms = doc.get("permissions")
+    top_secrets = _secret_creds(doc.get("env"))
+    findings = []
+    errors = []
+    for name, job in doc["jobs"].items():
+        if not isinstance(job, dict):
+            errors.append(f"{path}: job '{name}' is not a mapping after parsing")
+            continue
+        perms = job["permissions"] if "permissions" in job else top_perms
+        creds = _perm_creds(perms) | _secret_creds(job) | top_secrets
+        if job.get("secrets") == "inherit":
+            creds.add("secrets: inherit")
+        job_text = INERT_REFS.sub("", "\n".join(_strings(job)))
+        reads = [label for label, pattern in READ_PATTERNS if pattern.search(job_text)]
+        if reads and creds:
+            findings.append(
+                f"{path}: job '{name}' reads issue/comment text "
+                f"({', '.join(reads)}) while holding {', '.join(sorted(creds))}. "
+                "Split the job so no job holds both untrusted text and a credential (#4747)."
+            )
+    return findings, errors
+
+
+def analyze_file(path):
+    """Both layers; a file is clean only when BOTH report nothing."""
+    f1, e1 = analyze_parsed(path)
+    f2, e2 = analyze_lines(path)
+    findings = list(dict.fromkeys(f1 + [f for f in f2 if f not in f1]))
+    errors = [f"[parsed] {e}" for e in e1] + [f"[lines] {e}" for e in e2]
     return findings, errors
 
 
