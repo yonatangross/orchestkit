@@ -27,15 +27,17 @@ import sys
 
 MAX_BYTES = 10000
 
+# (rule name, pattern). The name, never the matched text, goes to the log:
+# the rejection line lands in a public CI job log.
 TOKEN_PATTERNS = [
-    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
-    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}"),
-    re.compile(r"\bsk-[A-Za-z0-9_-]{16,}"),
-    re.compile(r"\bxox[bapors]-[A-Za-z0-9-]{8,}"),
-    re.compile(r"\bops_[A-Za-z0-9]{20,}"),
-    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
-    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}"),
-    re.compile(r"-{3,}\s*BEGIN [A-Z ]+PRIVATE KEY"),
+    ("github-fine-grained-pat", re.compile(r"github_pat_[A-Za-z0-9_]{20,}")),
+    ("github-token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}")),
+    ("sk-key", re.compile(r"\bsk-[A-Za-z0-9_-]{16,}")),
+    ("slack-token", re.compile(r"\bxox[bapors]-[A-Za-z0-9-]{8,}")),
+    ("1password-service-token", re.compile(r"\bops_[A-Za-z0-9]{20,}")),
+    ("aws-access-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}")),
+    ("pem-private-key", re.compile(r"-{3,}\s*BEGIN [A-Z ]+PRIVATE KEY")),
 ]
 
 HEADER = "Automated triage output, shown as plain text (links and mentions are inactive):"
@@ -65,10 +67,11 @@ def main() -> int:
         return reject("empty body")
     if len(text.encode("utf-8")) > MAX_BYTES:
         return reject(f"over {MAX_BYTES} bytes")
-    for pat in TOKEN_PATTERNS:
+    for rule, pat in TOKEN_PATTERNS:
         m = pat.search(text)
         if m:
-            return reject(f"token-shaped string ({m.group(0)[:12]}...)")
+            line = text.count("\n", 0, m.start()) + 1
+            return reject(f"token-shaped string, rule {rule}, at {sys.argv[1]}:{line}")
 
     # A carriage return or other line break GitHub honors could end the
     # fence line early; normalize every line ending to \n first.

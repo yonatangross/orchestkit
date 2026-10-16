@@ -111,6 +111,28 @@ check allowed-md-link 0 "${SCRATCH}/okmd.md" '[#12](https://github.com/a/b/issue
 printf 'token is ghp_0123456789abcdef0123456789abcdef1234 now\n' > "${SCRATCH}/tok.md"
 check token 1 "${SCRATCH}/tok.md"
 
+# The rejection log lands in a public CI job log, so it must name the rule
+# and the line but hold no part of the matched value (102 HOLD CLEAN nit 1).
+# Any 4-character window of the planted token found in the log is a leak.
+printf 'line one\nkey ghp_Zq7Wk3Lm9Xp2Rt5Vb8Nc4Hd6Jf1Gs0Ay3Ue now\n' > "${SCRATCH}/leak.md"
+python3 "${GATE}" "${SCRATCH}/leak.md" "${SCRATCH}/leak.safe.md" > "${SCRATCH}/leak.log" 2>&1 && rc=0 || rc=$?
+if [ "${rc}" -ne 1 ]; then
+  echo "FAIL[no-token-in-log]: exit ${rc}, wanted 1"; fail=1
+elif python3 - "${SCRATCH}/leak.log" <<'PY'
+import sys
+log = open(sys.argv[1]).read()
+tok = "ghp_Zq7Wk3Lm9Xp2Rt5Vb8Nc4Hd6Jf1Gs0Ay3Ue"
+body = tok[len("ghp_"):]
+sys.exit(0 if any(body[i:i + 4] in log for i in range(len(body) - 3)) or tok[:6] in log else 1)
+PY
+then
+  echo "FAIL[no-token-in-log]: rejection log holds part of the planted token:"; cat "${SCRATCH}/leak.log"; fail=1
+elif ! grep -q "leak.md:2" "${SCRATCH}/leak.log" || ! grep -q "rule " "${SCRATCH}/leak.log"; then
+  echo "FAIL[no-token-in-log]: log does not name the rule and file:line:"; cat "${SCRATCH}/leak.log"; fail=1
+else
+  echo "PASS[no-token-in-log]"
+fi
+
 : > "${SCRATCH}/empty.md"
 check empty 1 "${SCRATCH}/empty.md"
 
