@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-RULE="$REPO_ROOT/src/skills/explore/rules/exploration-agents.md"
+RULE="${FANOUT_RULE_PATH:-$REPO_ROOT/src/skills/explore/rules/exploration-agents.md}"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 
 KEEP_OPUS=(
