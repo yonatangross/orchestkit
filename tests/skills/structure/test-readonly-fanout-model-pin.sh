@@ -5,7 +5,8 @@
 #
 # Check 1: every subagent_type="Explore" call in the explore rule pins model="haiku".
 # Check 2: the review, security and design-review agents stay on opus (the saving must not creep onto them).
-# Check 3: component-curator is haiku, has no Write/Edit tool, and has at most 25 tools.
+# Check 3: component-curator stays on sonnet outside the read-only trial.
+# Check 4: the canonical skill agrees with the Explore model pin.
 
 set -euo pipefail
 
@@ -86,37 +87,20 @@ done
 # --- Check 3 -----------------------------------------------------------------
 cc="$AGENTS_DIR/component-curator.md"
 model=$(grep -m1 -E "^model:" "$cc" | awk '{print $2}' | tr -d '[:space:]"'"'")
-if [[ "$model" != "haiku" ]]; then
-  echo "FAIL: component-curator is $model, expected haiku"
+if [[ "$model" != "sonnet" ]]; then
+  echo "FAIL: component-curator is $model, expected sonnet"
   FAILED=1
 else
-  echo "PASS: component-curator is haiku"
+  echo "PASS: component-curator stays sonnet"
 fi
 
-# Prints "<tool count> <write tool count>".
-tools_check=$(python3 - "$cc" <<'PYEOF'
-import re
-import sys
-
-content = open(sys.argv[1], encoding="utf-8").read()
-fm = re.match(r"^---\n(.*?)\n---", content, re.DOTALL).group(1)
-tm = re.search(r"^tools:\n((?:  - .+\n?)+)", fm, re.MULTILINE)
-tools = re.findall(r"  - (.+)", tm.group(1)) if tm else []
-tools = [t.strip() for t in tools]
-writes = [t for t in tools if t in ("Write", "Edit", "MultiEdit", "NotebookEdit")]
-print(f"{len(tools)} {len(writes)}")
-PYEOF
-)
-ntools=${tools_check%% *}
-nwrite=${tools_check##* }
-if [[ "$nwrite" -gt 0 ]]; then
-  echo "FAIL: component-curator is haiku but lists $nwrite write tool(s)"
-  FAILED=1
-elif [[ "$ntools" -gt 25 ]]; then
-  echo "FAIL: component-curator lists $ntools tools (max 25 for haiku)"
+# The curator keeps Bash and project memory, so it is outside this trial.
+SKILL="$REPO_ROOT/src/skills/explore/SKILL.md"
+if grep -Fq 'there is no knob' "$SKILL" || ! grep -Fq 'model="haiku"' "$SKILL"; then
+  echo "FAIL: canonical explore guidance contradicts the model pin"
   FAILED=1
 else
-  echo "PASS: component-curator has $ntools tools and no write tools"
+  echo "PASS: canonical explore guidance agrees with the model pin"
 fi
 
 echo ""

@@ -61,7 +61,7 @@ Agent(
 
 ## Fork Pattern (CC 2.1.89 #1227; explicit since CC 2.1.232)
 
-These agents are **fork-eligible**: short prompts (<500 words), no custom model, no worktree isolation. CC shares the parent's cached API prefix across all 4 forks, reducing cost by ~60%.
+The `ork:` role agents above can be **fork-eligible** with short prompts (<500 words), no custom model, and no worktree isolation. The pinned `Explore` calls start fresh.
 
 Since CC 2.1.232 forking is on by default and `subagent_type: "fork"` selects it explicitly. A fork subagent inherits the full conversation and prompt cache and always runs on the parent model; other types start fresh. The eligibility conditions matter only for ordinary `Agent()` calls.
 
@@ -69,7 +69,7 @@ Since CC 2.1.232 forking is on by default and `subagent_type: "fork"` selects it
 
 **Do NOT** add `model=` or `isolation="worktree"` to a fork or to the `ork:` role agents above: either one breaks cache sharing on ordinary `Agent()` calls.
 
-**Do** pin the two `Explore` explorers to `model="haiku"`. `Explore` is read-only and starts fresh (not a fork), so the pin gives up no shared prefix. Measured on 52 Opus `Explore` spawns over 7 days: first-turn prefix 69k tokens against 394k for a fork, 366M cache-read tokens in total, none of them used a file-writing tool. Haiku 5.5 costs 1/40 of Opus 5.5 per token at list price, though it counts about 30% more tokens for the same text. A quality probe on a real explore brief has not been run; revert the pin if explorer results get thinner.
+**Do** pin the two `Explore` explorers to `model="haiku"`. This trial covers Agent tool mode only. The Agent Teams path keeps its existing model selection. Explore starts fresh and gives up no shared fork prefix. A quality probe has not run; revert the pin if explorer results get thinner.
 
 ## Explorer Roles
 
