@@ -32,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const SKILLS = path.join(ROOT, 'src', 'skills');
-const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'verify'];
+const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'review-pr', 'verify'];
 
 const frontmatter = (text) => {
   const m = /^---\n([\s\S]*?)\n---\n/.exec(text);

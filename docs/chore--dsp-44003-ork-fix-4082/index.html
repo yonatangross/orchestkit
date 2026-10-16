@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doctor memory view and rsync evidence</title>
+<style>
+body { margin: 0; background: #f5f3ef; color: #202b32; font: 17px/1.6 system-ui, sans-serif; }
+main { max-width: 850px; margin: auto; padding: 36px 20px; }
+h1 { line-height: 1.2; font-size: 2.2rem; }
+h2 { font-size: 1.3rem; }
+section, fieldset { background: white; padding: 20px; margin: 20px 0; border: 1px solid #c8d2d6; border-radius: 12px; }
+label { display: inline-block; padding: 8px; cursor: pointer; }
+input { accent-color: #17645e; }
+code { background: #edf3f2; padding: 3px; overflow-wrap: anywhere; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid #dce1e4; }
+caption { text-align: left; margin: 12px 0; }
+a { color: #17645e; }
+.note { color: #52636d; }
+</style>
+</head>
+<body>
+<main>
+<p>Issue #4082</p>
+<h1>Read memory use. Credit the right rsync run.</h1>
+<p>This PR corrects two instructions. Select a version to compare the text and process order.</p>
+<fieldset>
+<legend>Version</legend>
+<label><input type="radio" name="version" value="before"> Before</label>
+<label><input type="radio" name="version" value="fixed" checked> Fixed</label>
+</fieldset>
+<div aria-live="polite">
+<section aria-labelledby="memory-title">
+<h2 id="memory-title">Doctor: host memory and swap</h2>
+<p id="memory-note">Sort the process view by memory use.</p>
+<code id="command">ps aux | sort -nrk 4 | head</code>
+<table>
+<caption>Illustrative data. These are sample processes, not a host measurement.</caption>
+<thead><tr><th scope="col">Process</th><th scope="col">CPU (%)</th><th scope="col">Memory (%)</th></tr></thead>
+<tbody id="processes"><tr><td>Test suite</td><td>5</td><td>40</td></tr><tr><td>Build worker</td><td>80</td><td>2</td></tr></tbody>
+</table>
+<p class="note">Column 3 is CPU. Column 4 is memory. The fixed view puts the larger memory user first. Read swap and memory data before naming a cause.</p>
+</section>
+<section aria-labelledby="rsync-title">
+<h2 id="rsync-title">Rsync: match each claim to its evidence</h2>
+<p id="rsync-note">CI verified the GNU rsync half. A local macOS openrsync run verified the macOS half, including dry-run silence and banner wording.</p>
+<p class="note">The header changes. The rsync test assertions stay the same.</p>
+</section>
+</div>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4741">Review PR #4741</a></p>
+</main>
+<script>
+const samples = [
+  { name: 'Test suite', cpu: 5, memory: 40 },
+  { name: 'Build worker', cpu: 80, memory: 2 }
+];
+function render(version) {
+  const fixed = version === 'fixed';
+  document.getElementById('command').textContent = fixed
+    ? 'ps aux | sort -nrk 4 | head' : 'ps aux | sort -nrk 3 | head';
+  document.getElementById('memory-note').textContent = fixed
+    ? 'Sort the process view by memory use.'
+    : 'The old note describes memory and swap, but the example sorts by CPU.';
+  const key = fixed ? 'memory' : 'cpu';
+  document.getElementById('processes').innerHTML = [...samples]
+    .sort((a, b) => b[key] - a[key])
+    .map(p => `<tr><td>${p.name}</td><td>${p.cpu}</td><td>${p.memory}</td></tr>`).join('');
+  document.getElementById('rsync-note').textContent = fixed
+    ? 'CI verified the GNU rsync half. A local macOS openrsync run verified the macOS half, including dry-run silence and banner wording.'
+    : 'The old header credits CI GNU rsync with proving macOS dry-run silence and banner differences.';
+}
+document.querySelectorAll('input[name="version"]').forEach(input => {
+  input.addEventListener('change', () => render(input.value));
+});
+</script>
+</body>
+</html>

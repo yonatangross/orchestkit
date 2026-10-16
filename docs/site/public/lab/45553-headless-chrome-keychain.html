@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Headless Chrome keychain prompts: fixed launch, CI-only pre-push</title>
-<meta name="description" content="PR for branch chore/dsp-45553-ork-fix-keychain. The glyph triage gate launched headless Chrome without keychain suppression, so every pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain, a lint watches for regressions, and HQ_CI_ONLY=1 lets a push skip the unit tier entirely.">
+<meta name="description" content="PR for branch chore/dsp-45553-ork-fix-keychain. The glyph triage gate launched headless Chrome without keychain suppression, so every pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain and --password-store=basic, a lint watches for regressions, and HQ_CI_ONLY=1 lets a push skip the unit tier entirely.">
 <style>
   *{box-sizing:border-box}
   body{margin:0;padding:2.5rem 1.25rem;background:#0f1117;color:#e8eaf2;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;line-height:1.6}
@@ -23,7 +23,7 @@
   th,td{text-align:start;padding:.3rem .5rem;border-bottom:1px solid #272b38}
   th{color:#9aa3b8;font-weight:600}
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Headless Chrome keychain prompts: fixed launch, CI-only pre-push"><meta property="og:description" content="The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/45553-headless-chrome-keychain.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Headless Chrome keychain prompts: fixed launch, CI-only pre-push"><meta name="twitter:description" content="The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Headless Chrome keychain prompts: fixed launch, CI-only pre-push"><meta property="og:description" content="The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain and --password-store=basic, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/45553-headless-chrome-keychain.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Headless Chrome keychain prompts: fixed launch, CI-only pre-push"><meta name="twitter:description" content="The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain and --password-store=basic, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
 <body>
 <main>
 <h1>Headless Chrome keychain prompts</h1>
@@ -53,7 +53,7 @@
 
 <section>
 <h2>The guardrail</h2>
-<p><code>tests/unit/test-chrome-headless-keychain.sh</code> fails when any launch line under <code>tests/</code> or <code>bin/</code> carries <code>--headless</code> or <code>--dump-dom</code> without <code>--use-mock-keychain</code>. <code>tests/unit/test-pre-push-hq-ci-only.sh</code> proves the skip fires only under <code>HQ_CI_ONLY=1</code> against a stubbed-tier fixture.</p>
+<p><code>tests/unit/test-chrome-headless-keychain.sh</code> fails when any launch line under <code>tests/</code> or <code>bin/</code> carries <code>--headless</code> or <code>--dump-dom</code> without both <code>--use-mock-keychain</code> and <code>--password-store=basic</code>. <code>tests/unit/test-pre-push-hq-ci-only.sh</code> proves the skip fires only under <code>HQ_CI_ONLY=1</code> against a stubbed-tier fixture.</p>
 </section>
 </main>
 <script>

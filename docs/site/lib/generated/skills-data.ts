@@ -780,15 +780,14 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation.",
     "version": "6.1.0",
-    "sha256": "e4dd64b04885d28a9bde9f248795861c68a2cd3e36c6a5d8164d5a2ad0a7d906",
+    "sha256": "650e0b86176f1379f755fb34a59f9e9a75faf3a56bdee546288c9c51f97e151a",
     "author": "OrchestKit",
     "tags": [
       "browser",
       "automation",
       "security",
-      "rate-limiting",
       "scraping-ethics"
     ],
     "userInvocable": false,
@@ -1937,7 +1936,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "7ad74ab6a9624e00088acba60e3279f8d0c8dfe8a158d8ba8288073c2aeb5e2f",
+    "sha256": "450392e63e8ed96691a4d8786144b1e69f022725fc51a3be143a1d1aeb717b3b",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -4156,7 +4155,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "remember",
     "description": "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream.",
     "version": "3.0.1",
-    "sha256": "4e5312eac897a446cf4f647a9485287118ed2715e9999d7f549306c5bda4db7c",
+    "sha256": "33202f9744c3561159e294f4399564da15c6e863eaa15d53f5f5a7d439ce07d0",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4286,7 +4285,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "2419b6d35f70b79fd84335910ccbc2f09c3cf059dd8a7f4560ecd16e81e30250",
+    "sha256": "9a97e52e5545b11c7ba792b9415c71a178f1a181636577ef0ff20b7d8bb4ac0d",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4472,7 +4471,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.1.0",
-    "sha256": "5a8fb89b6e3a0d42c9b5633773358f2959d54fd8869eeec8fc9dec63a72b54f0",
+    "sha256": "b675fb874a3b1c6940bcd0b5d4539ad19ccbdc0c2980b757a824443851299a69",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4712,7 +4711,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "telemetry-inspect",
     "description": "Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only, never modifies telemetry files.",
     "version": "1.0.0",
-    "sha256": "93227b6d1d3c79e23b5fdeafb59550465010ee358df0a82a0af2355b979f0a6f",
+    "sha256": "32960c6e10cf0f95b02af8a5f590f95dded398515e70a9d5460e073f011ce221",
     "author": "OrchestKit",
     "tags": [
       "telemetry",

@@ -188,6 +188,18 @@ function additionalContextEventsFrom(strings) {
 }
 
 /**
+ * The zod literal helper is a MINIFIED name, so it is not stable across CC
+ * releases: 2.1.293 shipped hookEventName:R("Event"), 2.1.295 and later ship
+ * hookEventName:A("Event"). Pinning the letter made this gate CANNOT-OBSERVE
+ * from 2026-10-09. Match any JS identifier in that slot; the event name in the
+ * quotes is what the contract is about. A fresh RegExp per call, because /g
+ * carries lastIndex state.
+ */
+function hookEventNameLiteral() {
+  return /hookEventName:[A-Za-z_$][\w$]*\("([A-Za-z]+)"\)/g;
+}
+
+/**
  * Events whose hookSpecificOutput schema declares hookEventName:R("X").
  * Measured on CC 2.1.278: 22 variants. This is the closed set the guard's
  * EVENTS_WITH_HOOK_EVENT_NAME must track (#4291). Presence proves the parser
@@ -195,7 +207,7 @@ function additionalContextEventsFrom(strings) {
  */
 function hookEventNameEventsFrom(strings) {
   const found = new Set();
-  const re = /hookEventName:R\("([A-Za-z]+)"\)/g;
+  const re = hookEventNameLiteral();
   for (const m of strings.matchAll(re)) found.add(m[1]);
   return found;
 }
@@ -209,7 +221,7 @@ function hookEventNameEventsFrom(strings) {
  */
 function additionalContextSchemaEventsFrom(strings) {
   const found = new Set();
-  const event = /hookEventName:R\("([A-Za-z]+)"\)/g;
+  const event = hookEventNameLiteral();
   for (const m of strings.matchAll(event)) {
     const schemaObject = enclosingEventObject(strings, m.index);
     if (
@@ -411,14 +423,14 @@ async function main() {
   // Same vacuous-pass bar for the hookEventName schema extract (#4291): an
   // empty set has an empty difference against any allow-list subset.
   if (check && binaryHookEventName.size === 0) {
-    console.error('CANNOT OBSERVE: binary yielded no hookEventName:R("...") literals.');
+    console.error('CANNOT OBSERVE: binary yielded no hookEventName:<helper>("...") literals.');
     console.error('  Refusing to report EVENTS_WITH_HOOK_EVENT_NAME arbitration from nothing.');
     process.exit(EXIT_CANNOT_OBSERVE);
   }
 
   console.log(`CC ${bin.version} - events the binary NAMES as additionalContext consumers:`);
   for (const e of [...binaryAdditionalContext].sort()) console.log(`  ${e}`);
-  console.log(`CC ${bin.version} - events with hookEventName:R("...") in the output schema:`);
+  console.log(`CC ${bin.version} - events with hookEventName:<helper>("...") in the output schema:`);
   for (const e of [...binaryHookEventName].sort()) console.log(`  ${e}`);
   console.log(`CC ${bin.version} - output-schema variants that accept additionalContext:`);
   for (const e of [...binaryAdditionalContextSchema].sort()) console.log(`  ${e}`);

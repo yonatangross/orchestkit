@@ -378,6 +378,23 @@ else
   bad "stale schema report exited $rc or did not name Notification"; cat "$OUT"
 fi
 
+# 10. The literal helper is a minified name. CC 2.1.293 shipped R("..."),
+#     2.1.295 and later ship A("..."); a gate pinned to R went CANNOT-OBSERVE
+#     (exit 2) on every nightly from 2026-10-09. A renamed helper must still
+#     be observed.
+cp "$GEN_SRC" "$GEN"
+write_fixture_binary "renamed literal helper" "$GEN_SRC"
+sed -i.bak 's/hookEventName:R(/hookEventName:A(/g' "$FIX/bin/claude"
+rm -f "$FIX/bin/claude.bak"
+OUT="$FIX/renamed-helper.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 0 ]] && ! grep -q 'hookEventName:R(' "$FIX/bin/claude" && ! grep -q 'CANNOT OBSERVE' "$OUT"; then
+  ok "a binary whose literal helper is A( instead of R( is still observed"
+else
+  bad "renamed literal helper exited $rc (want 0) or reported CANNOT OBSERVE"; cat "$OUT"
+fi
+
 echo ""
 echo "derive-cc-output-keys hookEventName arbitration: $pass passed, $fail failed"
 [[ "$fail" -eq 0 ]]
