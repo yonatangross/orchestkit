@@ -1,0 +1,9 @@
+{
+  "serves": "ork-launch-2026-10-15",
+  "page": "index.html",
+  "pr_for": "orchestkit#4769",
+  "lane": "ork-merge-1",
+  "date": "2026-10-15",
+  "red_first_commit": "89c997fae0428223227332e4d21c726caca88a74",
+  "probe": "/tmp/ork-merge-1/probe4769.sh and probe4769b.sh (local, not committed)"
+}

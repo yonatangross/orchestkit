@@ -1,0 +1,13 @@
+{
+  "slug": "4753-pre-push-ci-only-test-gaps",
+  "source": "docs/fix--pre-push-ci-only-test-gaps/index.html",
+  "title": "Pre-push HQ_CI_ONLY and keychain tests: closing the #4753 gaps",
+  "description": "The tests for the pre-push HQ_CI_ONLY=1 skip and the headless Chrome keychain guard passed even when the hook or guard was wrong. New arms pin the security stage, HQ_CI_ONLY=0 and empty, and targeted mode; the guard now catches four launch shapes it missed; a failed git grep no longer reads as a pass.",
+  "tags": [
+    "tests",
+    "pre-push",
+    "chrome",
+    "4753"
+  ],
+  "date": "2026-10-15"
+}

@@ -2,7 +2,7 @@
 name: browser-tools
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.
+description: Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation.
 user-invocable: false
 metadata:
   owner-agent: "web-research-analyst"
@@ -12,7 +12,7 @@ metadata:
   version: "6.1.0"
   author: "OrchestKit"
   complexity: "medium"
-  tags: "browser, automation, security, rate-limiting, scraping-ethics"
+  tags: "browser, automation, security, scraping-ethics"
 allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
@@ -35,7 +35,7 @@ These topics belong to the vendor. Read them at the source; do not copy them bac
 | Exploratory QA sweep with repro evidence (issue taxonomy, report template) | `dogfood` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md |
 | Named `.localhost` dev URLs | `ork:portless` skill · https://github.com/vercel-labs/portless |
 
-**Our delta over all of the above**: `references/ork-delta.md`, covering where the safety hook does and does not apply, the shared rate-limit budget, and the local-URL policy.
+**Our delta over all of the above**: `references/ork-delta.md`, covering what nothing checks any more, polite pacing across sessions, and the local-URL policy.
 
 ## Decision Tree
 
@@ -50,7 +50,7 @@ These topics belong to the vendor. Read them at the source; do not copy them bac
 
 ## Local Dev URLs
 
-Use **Portless** (`npm i -g portless`) for stable local dev URLs instead of guessing ports. When Portless is running, navigate to `myapp.localhost` instead of `localhost:3000`. Our safety hook already allows `*.localhost` subdomains via `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST`.
+Use **Portless** (`npm i -g portless`) for stable local dev URLs instead of guessing ports. When Portless is running, navigate to `myapp.localhost` instead of `localhost:3000`. Nothing in OrchestKit blocks local URLs. If the operator turned on the sandbox network allow list, the local host names must be in `allowedDomains`.
 
 ```bash
 # With Portless: stable, named URLs
@@ -132,18 +132,18 @@ each other's tabs.
 - **React renderer fix (0.31.1)** — the `react` commands now pick the react-dom renderer instead of hardcoding renderer id 1, fixing an empty tree read on Next.js 16.3 Turbopack.
 
 **Sandbox helpers (0.29):**
-- **`@agent-browser/sandbox`** — companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.
+- **`@agent-browser/sandbox`**: companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Nothing checks what the sandboxed session navigates to: the local sandbox does not see the microVM's traffic, so apply the URL, pacing and robots.txt rules yourself.
 
 **Built-in MCP server (0.28):**
 - **`agent-browser --mcp`** — runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native — directly into an MCP client — without going through the CLI Bash wrapper. Note: URL policy comes from `sandbox.network` in the operator scope (see Safety Guardrails below), which covers the MCP path and the CLI path equally; the per-path Bash hook that once guarded only the CLI was retired in #3835.
 
 **React introspection + perf observability (0.27):**
-- **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`** — first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive — gitignore captures.
+- **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`**: first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Treat fiber state dumps as sensitive: gitignore captures.
 - **`vitals [url]`** — reports Core Web Vitals (LCP, CLS, TTFB, FCP, INP) plus React hydration phases for any page. Useful for perf gates in CI.
 - **`pushstate <url>`** — client-side SPA navigation without a full page load. Pairs with `react renders` to measure SPA route transitions without resetting profiling state.
-- **`--init-script <path>` (repeatable, env `AGENT_BROWSER_INIT_SCRIPTS`)** + **`--enable <feature>` (repeatable, env `AGENT_BROWSER_ENABLE`)** — register scripts before first navigation; `--enable react-devtools` is built-in. Hook treats arbitrary init scripts as code-execution surface — same trust model as `skills get`.
+- **`--init-script <path>` (repeatable, env `AGENT_BROWSER_INIT_SCRIPTS`)** + **`--enable <feature>` (repeatable, env `AGENT_BROWSER_ENABLE`)**: register scripts before first navigation; `--enable react-devtools` is built-in. Treat arbitrary init scripts as a code-execution surface: same trust model as `skills get`.
 - **`network route --resource-type <csv>`** — filter intercepted requests by CDP resource type (document, script, xhr, fetch, image, ...). Lets you mock only API calls without breaking page assets.
-- **`cookies set --curl <file>`** — auto-detects JSON, cURL, and Cookie-header formats for bulk cookie import. Hook still treats cookie-set as auth-state injection.
+- **`cookies set --curl <file>`**: auto-detects JSON, cURL, and Cookie-header formats for bulk cookie import. Treat cookie-set as auth-state injection.
 - **Dashboard behind a reverse proxy** — observability dashboard now works from proxied origins via same-origin proxy. Enables path-based routing for shared dev environments.
 - Fixed `doctor` generating duplicate check IDs when invoked multiple times in the same process.
 - npm publishing moved to GitHub Actions OIDC trusted publishing — no manually managed npm tokens upstream.
@@ -156,8 +156,8 @@ each other's tabs.
 - Fixed `--state` flag not loading saved cookies/localStorage at launch; `--help` now leads with the skills section.
 
 **Skill discovery & chat (0.25):**
-- `agent-browser skills list/get <name>` — discover and install capability packs on-demand. Hook treats first-party skills as trusted; warns on arbitrary third-party skill fetches.
-- `agent-browser chat` — single-shot or REPL natural-language driving over the same daemon. Hook pipes transcripts through the same URL/rate/robots checks as scripted commands.
+- `agent-browser skills list/get <name>`: discover and install capability packs on-demand. Prefer first-party skills; read a third-party skill pack before you fetch it.
+- `agent-browser chat`: single-shot or REPL natural-language driving over the same daemon. Nothing checks chat-driven navigation; apply the same URL, pacing and robots.txt rules as for scripted commands.
 
 **Accessibility-first locators (0.24):**
 - `find` / `getByRole` — semantic locator via CDP accessibility tree (role + name) instead of brittle CSS/ref selectors. Prefer these in new scripts; they survive markup churn and are the locator path assumed by `chat`.
@@ -165,11 +165,11 @@ each other's tabs.
 - `--annotate` — overlays ref IDs / role labels on screenshots for debugging.
 
 **Cloud providers (0.25):**
-- `--provider agentcore` — AWS Bedrock AgentCore cloud browser. Hook treats remote providers as egress surfaces — same URL/robots rules apply, but network routing is disabled (remote scope).
+- `--provider agentcore`: AWS Bedrock AgentCore cloud browser. Treat remote providers as egress surfaces: the local sandbox does not see the pages a remote browser loads, so apply the URL and robots.txt rules yourself. Network routing is disabled (remote scope).
 - Browserless + AgentCore both honor `AGENT_BROWSER_PROVIDER` env var.
 
 **Dashboard (0.25):**
-- Embedded dashboard bundled with the binary — no separate install. Open via `agent-browser dashboard` or the `inspect` CDP link. Still flagged as local-proxy attack surface by the hook.
+- Embedded dashboard bundled with the binary: no separate install. Open via `agent-browser dashboard` or the `inspect` CDP link. Treat it as a local-proxy attack surface.
 
 **Auto-dialog dismissal (0.23.1):**
 - alert / beforeunload dialogs auto-dismissed by default. Opt out with `--no-auto-dialog` when a test needs to assert dialog content.
@@ -185,18 +185,18 @@ each other's tabs.
 
 | Command | Version | Security Note |
 |---------|---------|---------------|
-| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard — hook warns |
-| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy — hook warns |
+| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard, ask first |
+| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy, treat as attack surface |
 | `batch --json [--bail]` | v0.21 | Batch execute commands from stdin |
-| `network har start/stop [file]` | v0.21 | HAR captures auth tokens — hook warns, treat output as sensitive |
+| `network har start/stop [file]` | v0.21 | HAR captures auth tokens, treat output as sensitive |
 | `network request <id>` | v0.22 | View full request/response detail |
 | `network requests --type/--method/--status` | v0.22 | Filter network requests |
 | `dialog dismiss` / `dialog status` | v0.17/v0.22 | Dismiss or check browser dialogs |
 | `upgrade` | v0.21.1 | Self-update (auto-detects npm/Homebrew/Cargo) |
 | `find` / `getByRole` | v0.24 | Semantic locators via CDP a11y tree |
 | `snapshot --urls` / `--annotate` | v0.24 | URL-expanded snapshots, ref overlays |
-| `skills list/get` | v0.25 | Capability pack discovery — hook warns on third-party |
-| `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |
+| `skills list/get` | v0.25 | Capability pack discovery, read third-party packs first |
+| `chat` (single-shot / REPL) | v0.25 | NL driving; nothing checks it, follow the rules by hand |
 | `dashboard` | v0.25 | Embedded debug UI — local proxy attack surface |
 | `react tree` / `react inspect` / `react renders` / `react suspense` | v0.27 | React DevTools introspection — fiber state may contain sensitive props |
 | `vitals [url]` | v0.27 | Core Web Vitals + React hydration phases |
@@ -249,19 +249,13 @@ Snapshot, ref lifecycle, iframe traversal, batch and diff workflows are upstream
 
 ### Configuration
 
-Rate limits and behavior are configurable via environment variables:
+These variables are read by the upstream agent-browser CLI. The rate-limit and robots.txt variables this table used to list were read by the `agent-browser-safety` hook, retired 2026-08-31, and did nothing after that.
 
 | Env Var | Default | Purpose |
 |---------|---------|---------|
-| `AGENT_BROWSER_RATE_LIMIT_PER_MIN` | 10 | Requests per minute per domain |
-| `AGENT_BROWSER_RATE_LIMIT_PER_HOUR` | 100 | Requests per hour per domain |
-| `AGENT_BROWSER_BURST_LIMIT` | 3 | Max requests in 3-second window |
-| `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
-| `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
 | `AGENT_BROWSER_CONFIRM` | 1 | Use `--confirm-actions` for sensitive ops |
 | `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
 | `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
-| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -299,7 +293,7 @@ git add *.har                                  # NEVER commit HAR captures
 
 ## Related Skills
 
-- `references/ork-delta.md`: our delta, hook coverage gaps, shared rate-limit budget, local-URL policy
+- `references/ork-delta.md`: our delta, what nothing checks, pacing across sessions, local-URL policy
 - `agent-browser` (upstream) — Full command reference and usage patterns
 - `portless` (upstream) — Stable named `.localhost` URLs for local dev servers
 - `ork:web-research-workflow` — Unified decision tree for web research

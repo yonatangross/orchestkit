@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>worktree.bgIsolation: the settings decision behind #1844</title>
+<meta name="description" content="Issue #1844: Claude Code 2.1.143 added worktree.bgIsolation to let background sessions skip EnterWorktree. Pick a repo profile and see when the opt-in is safe and when it reproduces shared-tree thrash.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  .controls{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin:.55rem 0}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .85rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;overflow:auto;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--edge)} th{color:var(--dim)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .verdict{margin-top:.7rem;padding:.65rem .8rem;border:1px solid var(--edge);border-radius:6px;font-size:.85rem}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+  a{color:var(--accent)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="worktree.bgIsolation: the settings decision behind #1844"><meta property="og:description" content="Claude Code 2.1.143 added worktree.bgIsolation to let background sessions skip EnterWorktree. Pick a repo profile and see when the opt-in is safe and when it reproduces shared-tree thrash."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/1844-worktree-bg-isolation.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="worktree.bgIsolation: the settings decision behind #1844"><meta name="twitter:description" content="Claude Code 2.1.143 added worktree.bgIsolation to let background sessions skip EnterWorktree. Pick a repo profile and see when the opt-in is safe and when it reproduces shared-tree thrash."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>worktree.bgIsolation: the settings decision behind #1844</h1>
+<p class="sub">Issue <a href="https://github.com/yonatangross/orchestkit/issues/1844">#1844</a>. Claude Code 2.1.143 added <code>worktree.bgIsolation</code>, which lets background sessions edit the working copy directly instead of calling <code>EnterWorktree</code>. The fix is a docs page, <code>foundations/worktree</code>, that recommends keeping the default. Toggle the repo profile below and the verdict tracks it.</p>
+
+<section>
+<h2>The setting</h2>
+<div class="controls" role="group" aria-label="isolation mode">
+  <button id="btn-default" aria-pressed="true">default: EnterWorktree</button>
+  <button id="btn-none" aria-pressed="false">bgIsolation: "none"</button>
+</div>
+<pre id="mode-view"></pre>
+</section>
+
+<section>
+<h2>Pick the repo profile</h2>
+<p class="dim">The opt-in is safe only when both hold: worktrees are impractical in the repo, and a single session runs at a time. Change either input and watch the verdict flip.</p>
+<div class="controls" role="group" aria-label="worktrees practical">
+  <span class="dim">worktrees impractical:</span>
+  <button id="impractical-no" aria-pressed="true">no</button>
+  <button id="impractical-yes" aria-pressed="false">yes</button>
+</div>
+<div class="controls" role="group" aria-label="concurrent sessions">
+  <span class="dim">concurrent sessions:</span>
+  <button id="sessions-one" aria-pressed="true">1</button>
+  <button id="sessions-many" aria-pressed="false">2+</button>
+</div>
+<table>
+  <thead><tr><th>condition</th><th>state</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<section>
+<h2>What shipped</h2>
+<ul class="dim" style="font-size:.85rem;padding-left:1.1rem">
+  <li><code>docs/site/content/docs/foundations/worktree.mdx</code>: what the setting does, the two opt-in conditions, and the recommendation not to set it in OrchestKit.</li>
+  <li><code>foundations/meta.json</code> and the foundations index card list the new page.</li>
+  <li>No <code>.claude/settings.json</code> change: the operator rule is a worktree per concurrent session, which depends on the default path staying on.</li>
+  <li>Cross-link to <a href="https://github.com/yonatangross/orchestkit/issues/1826">#1826</a>, the envelope-leak class that reached <code>EnterWorktree</code>'s name path.</li>
+</ul>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/chore--dsp-76137-ork-fix-1844/index.html</code>.</footer>
+</main>
+<script>
+const MODES = {
+  def: `# default: background sessions isolate before editing
+EnterWorktree(name="my-task")
+# -> session works inside .worktrees/my-task
+# -> the shared working copy stays untouched`,
+  none: `// .claude/settings.json
+{
+  "worktree": { "bgIsolation": "none" }
+}
+// background sessions edit the working copy directly`
+};
+const state = { mode: "def", impractical: false, sessions: 1 };
+const modeView = document.getElementById('mode-view');
+const rows = document.getElementById('rows');
+const verdict = document.getElementById('verdict');
+
+function press(id, on) { document.getElementById(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+
+function render() {
+  modeView.textContent = state.mode === 'def' ? MODES.def : MODES.none;
+  press('btn-default', state.mode === 'def');
+  press('btn-none', state.mode === 'none');
+  press('impractical-no', !state.impractical);
+  press('impractical-yes', state.impractical);
+  press('sessions-one', state.sessions === 1);
+  press('sessions-many', state.sessions > 1);
+
+  const optInOk = state.impractical && state.sessions === 1;
+  rows.innerHTML = '';
+  const data = [
+    ['worktrees impractical in this repo', state.impractical ? '<span class="ok">yes</span>' : '<span class="dim">no</span>'],
+    ['only one session runs at a time', state.sessions === 1 ? '<span class="ok">yes</span>' : '<span class="bad">no: ' + state.sessions + ' sessions share one copy</span>'],
+    ['bgIsolation "none" is safe here', optInOk ? '<span class="ok">yes</span>' : '<span class="bad">no</span>'],
+  ];
+  for (const [k, v] of data) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + k + '</td><td>' + v + '</td>';
+    rows.appendChild(tr);
+  }
+
+  if (state.sessions > 1 && state.mode === 'none') {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'Two sessions on one working copy: checkouts, installs and file writes interleave. This is the shared-tree thrash class EnterWorktree prevents.';
+  } else if (optInOk && state.mode === 'none') {
+    verdict.className = 'verdict warn';
+    verdict.textContent = 'The opt-in profile holds. Scope the setting to this repo\'s .claude/settings.json, never user-global.';
+  } else if (state.mode === 'none') {
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'Worktrees are practical here, so "none" buys nothing and drops the isolation. Keep the default.';
+  } else {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'Default EnterWorktree isolation. OrchestKit recommendation for #1844: keep this; do not set worktree.bgIsolation.';
+  }
+}
+
+document.getElementById('btn-default').onclick = () => { state.mode = 'def'; render(); };
+document.getElementById('btn-none').onclick = () => { state.mode = 'none'; render(); };
+document.getElementById('impractical-no').onclick = () => { state.impractical = false; render(); };
+document.getElementById('impractical-yes').onclick = () => { state.impractical = true; render(); };
+document.getElementById('sessions-one').onclick = () => { state.sessions = 1; render(); };
+document.getElementById('sessions-many').onclick = () => { state.sessions = 2; render(); };
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
