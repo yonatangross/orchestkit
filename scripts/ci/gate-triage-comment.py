@@ -12,8 +12,10 @@ job runs first:
   tokens, AWS AKIA*, JWTs, PEM blocks).
 - REJECT (exit 1) Markdown that this gate cannot neutralize safely
   (XREVIEW 6209271782): a link or image whose target is not an absolute
-  https URL on an allowlisted host, any reference definition (`[x]: url`),
-  raw HTML links or embeds, and any backtick in a body that also holds a
+  https URL on an allowlisted host (the host read as a browser reads it,
+  so a backslash or userinfo in the authority is never allowed), any
+  reference definition (`[x]: url`), any raw HTML (inside an HTML block a
+  wrap stays literal text and GitHub still links mentions), and any backtick in a body that also holds a
   mention or an outside link (wrapping inside an existing code span can
   close that span and expose the mention or link).
 - NEUTRALIZE (exit 0, rewritten output): `@` mentions are wrapped in code
@@ -29,7 +31,6 @@ Usage: gate-triage-comment.py <input.md> <output.md>
 
 import re
 import sys
-from urllib.parse import urlparse
 
 MAX_BYTES = 10000
 
@@ -49,19 +50,33 @@ URL = re.compile(r"(?i)\b(?:https?|ftp)://[^\s)\]>`'\"<]+")
 WWW = re.compile(r"(?i)(?<![A-Za-z0-9./])www\.[^\s)\]>`'\"<]+")
 ALLOWED_HOSTS = {"github.com", "www.github.com", "orchestkit.yonyon.ai"}
 
+NEUTRALIZE = re.compile(
+    "(?P<url>%s)|(?P<www>%s)|(?P<mention>%s)"
+    % tuple(p.pattern.replace("(?i)", "") for p in (URL, WWW, MENTION)),
+    re.IGNORECASE,
+)
+
 # Markdown and HTML forms that make a link the wrap cannot reach.
 MD_LINK_TARGET = re.compile(r"\]\(\s*<?([^)\s>]*)")
 MD_IMAGE = re.compile(r"!\[")
 REF_DEFINITION = re.compile(r"(?m)^ {0,3}\[[^\]]+\]:")
-HTML_LINK = re.compile(
-    r"(?i)<\s*(?:a|img|iframe|video|audio|source|object|embed)\b|\b(?:href|src)\s*="
-)
+# Any raw HTML. Inside an HTML block the wrap backticks stay literal text and
+# GitHub still links mentions there, so no HTML is neutralizable.
+RAW_HTML = re.compile(r"<[A-Za-z!?/]")
+
+# The authority as a browser reads it: host, optional port, then the end or
+# one of / ? #. A backslash or userinfo (@) makes Python's urlparse and the
+# browser disagree on the host, so such a URL is never on the allowlist.
+STRICT_AUTHORITY = re.compile(r"(?i)^(?:https?|ftp)://([a-z0-9.-]+)(?::[0-9]+)?(?:[/?#]|$)")
 
 
 def host_allowed(url: str) -> bool:
     if url.lower().startswith("www."):
         url = "https://" + url
-    host = (urlparse(url).hostname or "").lower()
+    m = STRICT_AUTHORITY.match(url)
+    if not m or "\\" in url:
+        return False
+    host = m.group(1).lower()
     return host in ALLOWED_HOSTS or host.endswith(".github.com")
 
 
@@ -100,27 +115,23 @@ def main() -> int:
             return reject("markdown link to a target outside the allowlist")
     if REF_DEFINITION.search(text):
         return reject("markdown reference definition")
-    if HTML_LINK.search(text):
-        return reject("raw html link or embed")
+    if RAW_HTML.search(text):
+        return reject("raw html")
 
     outside = [
-        m.group(0)
-        for pat in (URL, WWW)
-        for m in pat.finditer(text)
-        if not host_allowed(m.group(0))
+        m.group(0) for pat in (URL, WWW) for m in pat.finditer(text) if not host_allowed(m.group(0))
     ]
     if "`" in text and (MENTION.search(text) or outside):
         return reject("backtick next to a mention or outside link")
 
-    def neutralize_mention(m: re.Match) -> str:
-        return f"`{m.group(0)}`"
-
-    def neutralize_url(m: re.Match) -> str:
+    # One pass over links and mentions together, so no wrap lands inside
+    # another (a mention inside a URL, or a URL split by a mention wrap).
+    def neutralize(m: re.Match) -> str:
+        if m.lastgroup == "mention":
+            return f"`{m.group(0)}`"
         return m.group(0) if host_allowed(m.group(0)) else f"`{m.group(0)}`"
 
-    text = MENTION.sub(neutralize_mention, text)
-    text = URL.sub(neutralize_url, text)
-    text = WWW.sub(neutralize_url, text)
+    text = NEUTRALIZE.sub(neutralize, text)
 
     with open(sys.argv[2], "w", encoding="utf-8") as fh:
         fh.write(text)

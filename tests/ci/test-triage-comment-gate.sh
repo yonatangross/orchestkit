@@ -80,6 +80,18 @@ check_safe_or_refused image-and-html-link "${SCRATCH}/html.md"
 printf 'Visit www.example.invalid/fix soon.\n' > "${SCRATCH}/www.md"
 check_safe_or_refused www-autolink "${SCRATCH}/www.md"
 
+# Security review of 5b84e983: inside a raw HTML block the wrap backticks
+# stay literal and GitHub still links the mention; a backslash or userinfo in
+# the authority makes Python and the browser disagree on the host.
+printf '<details>\n@yonatangross\n</details>\n' > "${SCRATCH}/htmlblock.md"
+check_safe_or_refused html-block-mention "${SCRATCH}/htmlblock.md"
+printf 'See [fix](https://evil.invalid\\.github.com/x) now.\n' > "${SCRATCH}/bslink.md"
+check_safe_or_refused backslash-host-md "${SCRATCH}/bslink.md"
+printf 'See https://evil.invalid\\.github.com/x now.\n' > "${SCRATCH}/bsbare.md"
+check_safe_or_refused backslash-host-bare "${SCRATCH}/bsbare.md"
+printf 'See https://github.com@evil.invalid/x now.\n' > "${SCRATCH}/userinfo.md"
+check_safe_or_refused userinfo-host "${SCRATCH}/userinfo.md"
+
 # Control: a Markdown link to an allowlisted https target still posts.
 printf 'Dup of [#12](https://github.com/a/b/issues/12).\n' > "${SCRATCH}/okmd.md"
 check allowed-md-link 0 "${SCRATCH}/okmd.md" '[#12](https://github.com/a/b/issues/12)'

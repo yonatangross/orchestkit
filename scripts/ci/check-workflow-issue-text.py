@@ -18,7 +18,8 @@ Rule, per job (job-level permissions win over top-level, like Actions):
       input, which is how untrusted issue text is pulled in)
 
   AND HOLDS a credential, any of:
-    - `id-token: write` in effective permissions
+    - `id-token: write` in effective permissions (quoted or not), or
+      `permissions: write-all`, which grants it
     - any `secrets.<NAME>` reference except GITHUB_TOKEN, whether in the
       job body OR in the top-level `env:` block (every job inherits it)
     - `secrets: inherit` on a reusable-workflow caller job
@@ -49,7 +50,10 @@ TOP_KEY = re.compile(r"^([A-Za-z_-]+):")
 JOB_PERM_INDENT = 4
 SECRET = re.compile(r"secrets\.([A-Za-z_][A-Za-z0-9_]*)")
 SECRETS_INHERIT = re.compile(r"^\s*secrets:\s*inherit\b", re.MULTILINE)
-ID_TOKEN_WRITE = re.compile(r"id-token:\s*write")
+# Quoted keys and values grant the same thing (security review of 5b84e983).
+ID_TOKEN_WRITE = re.compile(r"""["']?id-token["']?\s*:\s*["']?write\b""")
+WRITE_ALL = re.compile(r"""(?<![A-Za-z-])["']?write-all\b""")
+YAML_ALIAS = re.compile(r"(?:^|[\s:\[{,])(?:\*[A-Za-z0-9_-]+|<<\s*:)")
 
 INERT_REFS = re.compile(
     r"github\.event\.issue\.number\b|github\.event\.comment\.id\b"
@@ -212,9 +216,14 @@ def analyze_file(path):
             if pattern.search(scrubbed):
                 reads.append(label)
 
+        if YAML_ALIAS.search(job_perms):
+            errors.append(f"{path}: job '{name}' permissions use a YAML alias or merge key; cannot inspect")
+            continue
         creds = []
         if ID_TOKEN_WRITE.search(job_perms):
             creds.append("id-token: write")
+        if WRITE_ALL.search(job_perms):
+            creds.append("permissions: write-all")
         if SECRETS_INHERIT.search(job_text):
             creds.append("secrets: inherit")
         secret_names = set(SECRET.findall(job_text)) | top_env_secrets

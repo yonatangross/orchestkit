@@ -75,7 +75,9 @@ def problems(text: str):
     found = []
     if re.search(r"(?<![A-Za-z0-9`])@[A-Za-z0-9]", live):
         found.append("live mention")
-    for m in re.finditer(r"(?i)\b[a-z][a-z0-9+.-]*://([^/\s)\]>\"'<]*)", live):
+    # Host as a browser reads it: a backslash ends the authority like a slash,
+    # and userinfo before the last @ is not the host.
+    for m in re.finditer(r"(?i)\b[a-z][a-z0-9+.-]*://([^/\\?#\s)\]>\"'<]*)", live):
         if not host_ok(m.group(1).split("@")[-1].split(":")[0]):
             found.append(f"outside link {m.group(0)}")
     for m in re.finditer(r"(?i)(?<![A-Za-z0-9./])www\.([^/\s)\]>\"'<]+)", live):
@@ -85,8 +87,8 @@ def problems(text: str):
         found.append("markdown link or image")
     if re.search(r"(?m)^ {0,3}\[[^\]]+\]:", live):
         found.append("reference definition")
-    if re.search(r"(?i)<\s*(a|img|iframe|video|audio|source)\b|href\s*=|src\s*=", live):
-        found.append("html link or embed")
+    if re.search(r"<[A-Za-z!?/]", live):
+        found.append("raw html (its text is not Markdown, so a wrap does not neutralize it)")
     return found
 
 

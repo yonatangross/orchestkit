@@ -54,6 +54,13 @@ expect unsafe-deep-props "${FIXTURES}/unsafe-job-perms-deep-props.yml" 1 \
 expect unsafe-quoted-job "${FIXTURES}/unsafe-quoted-job-name.yml" 1 \
   "unsafe-quoted-job-name" "job 'triage'" "id-token: write"
 
+# Security review of 5b84e983: write-all and a quoted id-token grant are the
+# same credential as id-token: write.
+expect unsafe-write-all "${FIXTURES}/unsafe-write-all.yml" 1 \
+  "unsafe-write-all" "reads issue/comment text" "permissions: write-all"
+expect unsafe-quoted-id-token "${FIXTURES}/unsafe-quoted-id-token.yml" 1 \
+  "unsafe-quoted-id-token" "reads issue/comment text" "id-token: write"
+
 # Safe split must pass (rc 0, PASS message).
 expect safe-split "${FIXTURES}/safe-read-model-apply-split.yml" 0 "PASS"
 
