@@ -113,13 +113,33 @@ for (const sub of ["references", "rules"]) {
 }
 const HOOK_ACTS =
   /\b(?:safety[- ]hook|the hook|by the hook|hook (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers)|hook's (?:url|rate|robots|checks))\b|[,|] hook warns/i;
+// Does this line say the hook acts, or document a variable only the hook read?
+const hookClaim = (line) => !/retired/i.test(line) && HOOK_ACTS.test(line);
+const varClaims = (line) => (/retired/i.test(line) ? [] : RETIRED_VARS.filter((name) => line.includes(name)));
+
+// Planted lines: the word "retired" must not excuse a claim made in the same line.
+for (const [line, want] of [
+  ["The safety hook was retired 2026-08-31, but the hook still checks robots.txt.", true],
+  ["Retired in August; the hook enforces the per-host rate limit.", true],
+  ["The `agent-browser-safety` hook was retired 2026-08-31 and did nothing after that.", false],
+  ["Nothing in OrchestKit blocks local URLs.", false],
+  ["React DevTools integration via a vendored MIT-licensed hook embedded in the binary.", false],
+]) {
+  check(hookClaim(line) === want, `B6 classifier: hookClaim(${JSON.stringify(line)}) should be ${want}`);
+}
+for (const [line, want] of [
+  ["The hook was retired; raise `AGENT_BROWSER_RATE_LIMIT_PER_MIN` if a sweep is blocked.", 1],
+  ["The rate-limit variables were read by the hook, retired 2026-08-31, and did nothing after that.", 0],
+]) {
+  check(varClaims(line).length === want, `B6 classifier: varClaims(${JSON.stringify(line)}) should find ${want}`);
+}
+
 for (const f of btFiles) {
   readFileSync(join(btDir, f), "utf8")
     .split("\n")
     .forEach((line, i) => {
-      if (/retired/i.test(line)) return;
-      check(!HOOK_ACTS.test(line), `B6 browser-tools/${f}:${i + 1} says the retired safety hook still acts`);
-      for (const v of RETIRED_VARS.filter((name) => line.includes(name))) {
+      check(!hookClaim(line), `B6 browser-tools/${f}:${i + 1} says the retired safety hook still acts`);
+      for (const v of varClaims(line)) {
         check(false, `B6 browser-tools/${f}:${i + 1} documents ${v}, which nothing reads since the hook was retired`);
       }
     });
