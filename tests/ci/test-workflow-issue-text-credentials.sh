@@ -68,6 +68,142 @@ expect unsafe-quoted-job-perms "${FIXTURES}/unsafe-quoted-job-permissions.yml" 1
 expect unsafe-quoted-top-perms "${FIXTURES}/unsafe-quoted-top-permissions.yml" 1 \
   "unsafe-quoted-top-permissions" "reads issue/comment text" "id-token: write"
 
+# XREVIEW 6209908015: a table of YAML key and value forms. Each unsafe row
+# grants a credential to a job that reads issue text, in one valid YAML
+# spelling. The scanner must report a finding (1) or refuse the form (2);
+# a PASS (0) on any row is the bypass. The last row is a safe control.
+# form <name> <want-rc> <yaml body after "name: probe" and "on: workflow_dispatch">
+form() {
+  local name="$1" want="$2" body="$3" rc
+  printf 'name: probe\non: workflow_dispatch\n%s\n' "${body}" > "${SCRATCH}/form-${name}.yml"
+  python3 "${SCAN}" "${SCRATCH}/form-${name}.yml" > "${SCRATCH}/form-${name}.out" 2>&1 && rc=0 || rc=$?
+  if [ "${rc}" -ne "${want}" ]; then
+    echo "FAIL[form-${name}]: exit ${rc}, wanted ${want}"; cat "${SCRATCH}/form-${name}.out"; fail=1; return
+  fi
+  echo "PASS[form-${name}]: exit ${rc}"
+}
+R='      - run: gh issue view 1'
+form plain-key 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions: write-all
+    steps:
+${R}"
+form single-quoted-key 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    'permissions': write-all
+    steps:
+${R}"
+form double-quoted-key 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    \"permissions\": write-all
+    steps:
+${R}"
+form escaped-key 2 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    \"permiss\\u0069ons\": write-all
+    steps:
+${R}"
+form explicit-key 2 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    ? permissions
+    : write-all
+    steps:
+${R}"
+form flow-job-body 2 "permissions: {}
+jobs:
+  t:
+    {runs-on: x, permissions: write-all,
+     steps: [{run: gh issue view 1}]}"
+form flow-permissions-value 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions: {id-token: write}
+    steps:
+${R}"
+form escaped-value 2 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions: \"wr\\u0069te-all\"
+    steps:
+${R}"
+form tagged-value 2 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions: !!str write-all
+    steps:
+${R}"
+form anchor-alias 2 "x-perms: &p
+  id-token: write
+permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions: *p
+    steps:
+${R}"
+form merge-key 2 "x-perms: &p
+  id-token: write
+permissions: {}
+jobs:
+  t:
+    runs-on: x
+    permissions:
+      <<: *p
+    steps:
+${R}"
+form second-document 2 "permissions: {}
+jobs:
+  ok:
+    runs-on: x
+    steps:
+      - run: echo ok
+env:
+  A: b
+---
+name: probe2
+on: workflow_dispatch
+permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    steps:
+${R}"
+form duplicate-top-key 2 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    steps:
+${R}
+permissions: {}"
+form hex-escaped-secret 2 "permissions: {}
+env:
+  T: \"\${{ secr\\x65ts.MODEL_TOKEN }}\"
+jobs:
+  t:
+    runs-on: x
+    steps:
+${R}"
+form safe-control 0 "permissions:
+  contents: read
+jobs:
+  t:
+    runs-on: x
+    steps:
+${R}"
+
 # Safe split must pass (rc 0, PASS message).
 expect safe-split "${FIXTURES}/safe-read-model-apply-split.yml" 0 "PASS"
 

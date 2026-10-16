@@ -77,6 +77,50 @@ READ_PATTERNS = [
 ]
 
 
+# The lint reads a strict subset of YAML by line. Every form outside that
+# subset is an ERROR (exit 2), never a silent PASS (XREVIEW 6209908015: a
+# flow-mapping job body, an escaped key and an explicit `? key` each hid a
+# write-all grant). The subset: one document; top-level and job property
+# keys plain or quoted with no escape; permission values with no escape,
+# tag, explicit key, anchor, alias or merge key; no hex escape anywhere a
+# secret reference could be spelled.
+PLAIN_OR_QUOTED_KEY = r"""(?:"([^"\\]+)"|'([^'\\]+)'|([A-Za-z_][A-Za-z0-9_-]*))\s*:(?:\s|$)"""
+TOP_KEY_LINE = re.compile("^" + PLAIN_OR_QUOTED_KEY)
+DOC_MARKER = re.compile(r"^(?:---|\.\.\.)(?:\s|$)")
+UNINSPECTABLE_VALUE = re.compile(r"[\\?!&*]|<<")
+HEX_ESCAPE = re.compile(r"\\[uUx]")
+
+
+def strip_comments(text):
+    return "\n".join(re.sub(r"(?:^|\s)#.*$", "", line) for line in text.split("\n"))
+
+
+def structure_errors(lines):
+    """Top-level lines the lint cannot read as one plain YAML mapping."""
+    errors = []
+    seen = set()
+    content_seen = False
+    for i, line in enumerate(lines):
+        if not line.strip() or line.startswith("#") or line[0].isspace():
+            if line.strip() and not line.lstrip().startswith("#"):
+                content_seen = True
+            continue
+        if DOC_MARKER.match(line):
+            if content_seen:
+                errors.append(f"{i + 1}: a second YAML document; cannot inspect")
+            continue
+        content_seen = True
+        m = TOP_KEY_LINE.match(line)
+        if not m:
+            errors.append(f"{i + 1}: top-level form the lint cannot inspect: {line.strip()[:60]}")
+            continue
+        key = m.group(1) or m.group(2) or m.group(3)
+        if key in seen:
+            errors.append(f"{i + 1}: duplicate top-level key '{key}'; cannot inspect")
+        seen.add(key)
+    return errors
+
+
 def top_level_spans(lines):
     """Map top-level key -> (start, end) line span of its block."""
     spans = {}
@@ -132,18 +176,25 @@ def analyze_file(path):
         return [], [f"{path}: cannot read: {exc}"]
 
     lines = text.splitlines()
+    structural = structure_errors(lines)
+    if structural:
+        return [], [f"{path}:{e}" for e in structural]
     spans = top_level_spans(lines)
 
     top_perms = ""
     if "permissions" in spans:
         s, e = spans["permissions"]
         top_perms = block_value(lines, s, 0)
+        if UNINSPECTABLE_VALUE.search(strip_comments(top_perms)):
+            return [], [f"{path}: top-level permissions use an escape, tag, explicit key, anchor or alias; cannot inspect"]
 
     # Secrets in the top-level env block are inherited by every job.
     top_env_secrets = set()
     if "env" in spans:
         s, e = spans["env"]
         env_text = block_value(lines, s, 0)
+        if HEX_ESCAPE.search(env_text):
+            return [], [f"{path}: top-level env uses a hex escape; cannot inspect"]
         for name in SECRET.findall(env_text):
             if name != "GITHUB_TOKEN":
                 top_env_secrets.add(name)
@@ -204,6 +255,21 @@ def analyze_file(path):
         if prop_indent is None or prop_indent <= indent:
             errors.append(f"{path}: job '{name}' has no block body the lint can inspect")
             continue
+        prop_re = re.compile(r"^ {%d}" % prop_indent + PLAIN_OR_QUOTED_KEY)
+        bad_prop = None
+        for j, line in enumerate(job_lines[1:], start=start + 2):
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            line_indent = len(line) - len(line.lstrip())
+            if line_indent < prop_indent or (line_indent == prop_indent and not prop_re.match(line)):
+                bad_prop = f"{path}:{j}: job '{name}' property form the lint cannot inspect: {line.strip()[:60]}"
+                break
+        if bad_prop:
+            errors.append(bad_prop)
+            continue
+        if HEX_ESCAPE.search(job_text):
+            errors.append(f"{path}: job '{name}' uses a hex escape; cannot inspect")
+            continue
         job_perms = top_perms
         perm_re = re.compile(r"""^ {%d}["']?permissions["']?\s*:(.*)$""" % prop_indent)
         for j, line in enumerate(job_lines):
@@ -217,8 +283,10 @@ def analyze_file(path):
             if pattern.search(scrubbed):
                 reads.append(label)
 
-        if YAML_ALIAS.search(job_perms):
-            errors.append(f"{path}: job '{name}' permissions use a YAML alias or merge key; cannot inspect")
+        if YAML_ALIAS.search(job_perms) or UNINSPECTABLE_VALUE.search(strip_comments(job_perms)):
+            errors.append(
+                f"{path}: job '{name}' permissions use an escape, tag, explicit key, anchor, alias or merge key; cannot inspect"
+            )
             continue
         creds = []
         if ID_TOKEN_WRITE.search(job_perms):
