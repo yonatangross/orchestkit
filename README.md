@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.177](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.176...v10.0.0-beta.177)** · 2026-10-16
+
+- **doctor:** warn on errorDetails and list noteDetails from plugin rows (#4768)
+- **cc-watch:** admit permission tool nouns as scoped evidence tokens (#4756)
+- **ci:** keep triage issue text away from tokens (P0) (#4755)
+- **ci:** read the hookEventName literal under any minified name (#4754)
+- **docs-site:** bump next to 16.4.1 for three security advisories (#4751)
+- …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176)** · 2026-10-15
 
 - **hooks:** read a regular-file stdin before the 100ms timer (#4770)
@@ -682,10 +691,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170)** · 2026-10-10
 
 - **hooks:** tldr-summary skips a Read with allow_large (#4700)
-
-**[v10.0.0-beta.169](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.168...v10.0.0-beta.169)** · 2026-10-10
-
-- **skills:** MCP description cap is 4,096 characters since CC 2.1.296 (#4699)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

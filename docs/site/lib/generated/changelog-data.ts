@@ -18,6 +18,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.177",
+    "date": "2026-10-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.176...v10.0.0-beta.177",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**doctor:** warn on errorDetails and list noteDetails from plugin rows ([#4768](https://github.com/yonatangross/orchestkit/issues/4768)) ([d925747](https://github.com/yonatangross/orchestkit/commit/d925747415f68f23f18f2ee9133372bc365b96ef))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**cc-watch:** admit permission tool nouns as scoped evidence tokens ([#4756](https://github.com/yonatangross/orchestkit/issues/4756)) ([d81f12e](https://github.com/yonatangross/orchestkit/commit/d81f12e896bf78adfe01b59bf5c6732a07627738))",
+          "**ci:** keep triage issue text away from tokens (P0) ([#4755](https://github.com/yonatangross/orchestkit/issues/4755)) ([2b635ef](https://github.com/yonatangross/orchestkit/commit/2b635efd53f15b283eecb2b0a8752316fc4b0ddd))",
+          "**ci:** read the hookEventName literal under any minified name ([#4754](https://github.com/yonatangross/orchestkit/issues/4754)) ([acd02b9](https://github.com/yonatangross/orchestkit/commit/acd02b9fc8e99c63089cd403e956e7d76f831413))",
+          "**docs-site:** bump next to 16.4.1 for three security advisories ([#4751](https://github.com/yonatangross/orchestkit/issues/4751)) ([31ae353](https://github.com/yonatangross/orchestkit/commit/31ae3533903f1673a4b9e2325b0ad07878eb71b0))",
+          "**docs:** document task tool model allowlist for CC 2.1.268 ([#4742](https://github.com/yonatangross/orchestkit/issues/4742)) ([03fcfb3](https://github.com/yonatangross/orchestkit/commit/03fcfb38ed828885f4d7a037d56448370ce1d905))",
+          "**docs:** keep the lockfile on the Vercel stub fallback ([#4737](https://github.com/yonatangross/orchestkit/issues/4737)) ([2619d4f](https://github.com/yonatangross/orchestkit/commit/2619d4ff525e555959b4a369604051c6906777b8))",
+          "**lesson-cards:** match corpus entries by exact tool name ([#4740](https://github.com/yonatangross/orchestkit/issues/4740)) ([1109eb8](https://github.com/yonatangross/orchestkit/commit/1109eb87eccc039edb33fd8d7cdefd47ae8d05c6))",
+          "**promote-lights:** configurable promote base via PROMOTE_BASE ([#4788](https://github.com/yonatangross/orchestkit/issues/4788)) ([35ee6ca](https://github.com/yonatangross/orchestkit/commit/35ee6caa23ff1fccb65ed872bedcc4414709efa2))",
+          "**skills:** claims the installed plugin cannot keep (audit B5 to B8) ([#4761](https://github.com/yonatangross/orchestkit/issues/4761)) ([301efc4](https://github.com/yonatangross/orchestkit/commit/301efc4212c1b15b262fd03fc2a6f0a67bdc4035))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**doctor:** correct memory view and rsync evidence ([#4741](https://github.com/yonatangross/orchestkit/issues/4741)) ([10a55f5](https://github.com/yonatangross/orchestkit/commit/10a55f5aedb3473bf1b4c2e8086490f4dd240a88))",
+          "**foundations:** add worktree.bgIsolation trade-off page ([#4774](https://github.com/yonatangross/orchestkit/issues/4774)) ([9b386ed](https://github.com/yonatangross/orchestkit/commit/9b386ed53a8246419d69ec225d8bb12546b12a04))",
+          "**site:** put the skill browser on the Reference front door ([#4773](https://github.com/yonatangross/orchestkit/issues/4773)) ([2ea9c11](https://github.com/yonatangross/orchestkit/commit/2ea9c114e63e9d63b1898cc01179fa5945e7f66d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.176",
     "date": "2026-10-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176",
