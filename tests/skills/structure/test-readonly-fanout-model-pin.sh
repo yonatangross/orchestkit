@@ -42,6 +42,7 @@ import re
 import sys
 
 text = open(sys.argv[1], encoding="utf-8").read()
+whole = len(re.findall(r"""\bsubagent_type\s*=\s*(['"])Explore\1""", text))
 total = 0
 bad = 0
 for block in re.findall(r"^```python\s*\n(.*?)^```", text, re.MULTILINE | re.DOTALL):
@@ -55,13 +56,15 @@ for block in re.findall(r"^```python\s*\n(.*?)^```", text, re.MULTILINE | re.DOT
         models = [kw.value for kw in call.keywords if kw.arg == "model"]
         if len(types) != 1 or len(models) != 1 or not isinstance(models[0], ast.Constant) or models[0].value != "haiku":
             bad += 1
-print(f"{total} {bad}")
+print(f"{total} {bad} {whole}")
 PYEOF
 )
-total=${counts%% *}
-bad=${counts##* }
+read -r total bad whole <<< "$counts"
 
-if [[ "$total" -lt 1 ]]; then
+if [[ "$total" -ne "$whole" ]]; then
+  echo "FAIL: Explore spawn count mismatch: AST found $total, whole file contains $whole"
+  FAILED=1
+elif [[ "$total" -lt 1 ]]; then
   echo "FAIL: no Explore spawn found in exploration-agents.md (test is blind)"
   FAILED=1
 elif [[ "$bad" -gt 0 ]]; then
