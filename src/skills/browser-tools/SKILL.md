@@ -2,7 +2,7 @@
 name: browser-tools
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy can be enforced by the Claude Code sandbox when the operator enables it, not by this skill. Use when automating browser workflows that need safety rules.
+description: Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local-dev URLs). URL policy is the Claude Code sandbox's job, when the operator enables it. Use for browser automation that needs safety rules.
 user-invocable: false
 metadata:
   owner-agent: "web-research-analyst"
@@ -196,7 +196,7 @@ each other's tabs.
 | `find` / `getByRole` | v0.24 | Semantic locators via CDP a11y tree |
 | `snapshot --urls` / `--annotate` | v0.24 | URL-expanded snapshots, ref overlays |
 | `skills list/get` | v0.25 | Capability pack discovery, read third-party packs first |
-| `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |
+| `chat` (single-shot / REPL) | v0.25 | NL driving; nothing checks it, follow the rules by hand |
 | `dashboard` | v0.25 | Embedded debug UI — local proxy attack surface |
 | `react tree` / `react inspect` / `react renders` / `react suspense` | v0.27 | React DevTools introspection — fiber state may contain sensitive props |
 | `vitals [url]` | v0.27 | Core Web Vitals + React hydration phases |

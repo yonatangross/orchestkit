@@ -119,7 +119,10 @@ const HOOK_NAMED = /\b(?:safety[- ]hook|the hook|by the hook)\b/i;
 const RETIRED = /retired/i;
 // A retired variable may be named as history, never as something to set.
 const VAR_USE = /\b(?:set|raise|export|increase|configure|use)\b/i;
-const hookClaim = (line) => HOOK_ACTS.test(line) || (!RETIRED.test(line) && HOOK_NAMED.test(line));
+// Automatic checks claimed without the word hook ("transcripts go through same safety checks").
+const AUTO_CHECKS = /\b(?:go(?:es)?|pass(?:es)?|piped?|routed?) through (?:the )?same\b[^|.]*\bchecks?\b|\bsame (?:safety|url\/rate\/robots) checks\b/i;
+const hookClaim = (line) =>
+  HOOK_ACTS.test(line) || AUTO_CHECKS.test(line) || (!RETIRED.test(line) && HOOK_NAMED.test(line));
 const varClaims = (line) =>
   RETIRED.test(line) && !VAR_USE.test(line) ? [] : RETIRED_VARS.filter((name) => line.includes(name));
 
@@ -127,6 +130,8 @@ const varClaims = (line) =>
 for (const [line, want] of [
   ["The safety hook was retired 2026-08-31, but the hook still checks robots.txt.", true],
   ["Retired in August; the hook enforces the per-host rate limit.", true],
+  ["The hook enforces robots.txt and is not retired.", true],
+  ["| `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |", true],
   ["The `agent-browser-safety` hook was retired 2026-08-31 and did nothing after that.", false],
   ["Nothing in OrchestKit blocks local URLs.", false],
   ["React DevTools integration via a vendored MIT-licensed hook embedded in the binary.", false],
