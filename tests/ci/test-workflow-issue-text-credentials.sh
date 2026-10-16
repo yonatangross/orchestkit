@@ -258,6 +258,25 @@ jobs:
     steps:
 ${R}"
 
+# Security review of 5a127563: a secret after a quoted " #" must not be
+# stripped as a comment, and a reference outside ${{ }} (an if: condition
+# reads expressions without the braces) still names the context.
+form hash-before-secret 1 1 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    env:
+      T: \"tag #1 \${{ secrets.MODEL_TOKEN }}\"
+    steps:
+${R}"
+form secret-without-braces 1 1 1 "permissions: {}
+jobs:
+  t:
+    runs-on: x
+    steps:
+      - if: secrets.MODEL_TOKEN != ''
+        run: gh issue view 1"
+
 # AND rule, both directions. The parser joins a double-quoted YAML string
 # across an escaped line break, so it reads `gh issue view` where the line
 # reader sees two halves; the parsed layer flags it, so the file fails. A

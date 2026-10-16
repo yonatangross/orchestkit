@@ -69,10 +69,13 @@ LINE_SECRETS_WORD = re.compile(r"\bsecrets\b", re.IGNORECASE)
 
 
 def line_secret_creds(text):
-    """Layer 2 secret read on raw text: case-insensitive, no expression cut."""
-    text = strip_comments(text)
-    if "${{" not in text:
-        return set()
+    """Layer 2 secret read on raw text: case-insensitive, no expression cut.
+
+    No comment strip and no `${{` requirement: a quoted " #" is not a
+    comment, and an `if:` reads expressions without the braces (security
+    review of 5a127563). A false match only matters in a job that also
+    reads issue text, which must be split anyway.
+    """
     text = SECRETS_INHERIT.sub("", text)
     creds = set()
     for m in LINE_SECRET_REF.finditer(text):
@@ -394,7 +397,8 @@ def _strings(value):
 
 
 def _secret_creds(value):
-    """Secret references in any parsed string that holds an expression.
+    """Secret references in any parsed string, with or without `${{ }}`
+    (an `if:` reads an expression without the braces).
 
     The whole string is read, not the text between `${{` and the first
     `}}`: the runner tracks quoted strings, so a quoted `}}` does not end
@@ -403,8 +407,6 @@ def _secret_creds(value):
     """
     creds = set()
     for text in _strings(value):
-        if "${{" not in text:
-            continue
         rest = GITHUB_TOKEN_REF.sub("", text)
         if not SECRETS_WORD.search(rest):
             continue
