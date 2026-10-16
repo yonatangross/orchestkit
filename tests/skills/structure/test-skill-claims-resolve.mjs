@@ -94,8 +94,8 @@ for (const m of bt.matchAll(/^\|\s*`((?:ORCHESTKIT_)?AGENT_BROWSER_[A-Z_]+)`/gm)
 }
 
 // B6, body: no line in the skill, its references or its rules says a hook still acts.
-// The agent-browser-safety hook was retired 2026-08-31 (#3835); a line that names it
-// as retired is fine. "hook" alone (React hooks, webhooks) is not a claim.
+// The agent-browser-safety hook was retired 2026-08-31 (#3835). "hook" alone (React
+// hooks, webhooks) is not a claim.
 const RETIRED_VARS = [
   "AGENT_BROWSER_RATE_LIMIT_PER_MIN",
   "AGENT_BROWSER_RATE_LIMIT_PER_HOUR",
@@ -111,11 +111,17 @@ for (const sub of ["references", "rules"]) {
     for (const f of readdirSync(join(btDir, sub))) if (f.endsWith(".md")) btFiles.push(`${sub}/${f}`);
   }
 }
+// A hook doing something is a claim even next to the word "retired"; naming the hook
+// ("the safety hook", "the hook") is only a claim when the line does not say it is retired.
 const HOOK_ACTS =
-  /\b(?:safety[- ]hook|the hook|by the hook|hook (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers)|hook's (?:url|rate|robots|checks))\b|[,|] hook warns/i;
-// Does this line say the hook acts, or document a variable only the hook read?
-const hookClaim = (line) => !/retired/i.test(line) && HOOK_ACTS.test(line);
-const varClaims = (line) => (/retired/i.test(line) ? [] : RETIRED_VARS.filter((name) => line.includes(name)));
+  /\bhook(?:'s)? (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers|url|rate|robots)\b|[,|] hook warns/i;
+const HOOK_NAMED = /\b(?:safety[- ]hook|the hook|by the hook)\b/i;
+const RETIRED = /retired/i;
+// A retired variable may be named as history, never as something to set.
+const VAR_USE = /\b(?:set|raise|export|increase|configure|use)\b/i;
+const hookClaim = (line) => HOOK_ACTS.test(line) || (!RETIRED.test(line) && HOOK_NAMED.test(line));
+const varClaims = (line) =>
+  RETIRED.test(line) && !VAR_USE.test(line) ? [] : RETIRED_VARS.filter((name) => line.includes(name));
 
 // Planted lines: the word "retired" must not excuse a claim made in the same line.
 for (const [line, want] of [

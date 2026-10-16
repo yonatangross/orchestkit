@@ -704,7 +704,7 @@ portless get app  # → https://app.localhost
 - Use `portless alias` (v0.5+) for services not started by portless (databases, queues)
 - Use `portless get <name>` (v0.6+) to programmatically retrieve URLs in scripts
 - If Portless is not installed, fall back to `lsof -iTCP -sTCP:LISTEN -nP` to discover ports
-- No OrchestKit hook blocks `*.localhost` (the agent-browser safety hook was retired 2026-08-31); with the sandbox network allow list on, list the local host names in `allowedDomains`
+- Nothing in OrchestKit blocks `*.localhost` (the agent-browser safety hook was retired 2026-08-31); with the sandbox network allow list on, list the local host names in `allowedDomains`
 - Install Portless globally: `npm i -g portless`
 
 
@@ -874,7 +874,7 @@ agent-browser get text @e5  # Extract specific content area, not full page
 - Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
 - Respect `--allowed-domains` (v0.16) to scope crawls, prevents accidentally following links to unrelated sites
 
-Reference: no hook enforces robots.txt (the `agent-browser-safety` hook was retired 2026-08-31). Follow this rule by hand; see `references/ork-delta.md`.
+Reference: nothing enforces robots.txt (the `agent-browser-safety` hook was retired 2026-08-31). Follow this rule by hand; see `references/ork-delta.md`.
 
 
 
