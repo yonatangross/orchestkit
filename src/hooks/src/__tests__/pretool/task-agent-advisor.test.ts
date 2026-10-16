@@ -9,7 +9,7 @@
  * pre-existing synonym and casing suggestions.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { describe, test, expect } from 'vitest';
@@ -20,6 +20,9 @@ import {
   isDeterministicRunTask,
   ORK_AGENT_SYNONYMS,
   SPECIALIST_DOMAINS,
+  READ_ONLY_SPECIALISTS,
+  BUILD_INTENT_PATTERN,
+  hasBuildIntent,
 } from '../../pretool/task/task-agent-advisor.js';
 
 // Repo-root src/agents/, resolved from this test file's location
@@ -244,6 +247,236 @@ describe('advisor maps cross-checked against src/agents/ (map existence)', () =>
       expect(agent.startsWith('ork:')).toBe(true);
       const file = join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`);
       expect(existsSync(file)).toBe(true);
+    },
+  );
+});
+
+/**
+ * Parse an agent file's frontmatter into its granted and disallowed tool names.
+ * Only the two keys this check needs; comments and non-list lines are skipped.
+ */
+function agentToolGrants(agent: string): { tools: string[]; disallowed: string[] } {
+  const raw = readFileSync(join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`), 'utf8');
+  const fm = raw.split(/^-{3}$/m)[1] ?? '';
+  const tools: string[] = [];
+  let disallowed: string[] = [];
+  let inTools = false;
+  for (const line of fm.split('\n')) {
+    const inline = /^disallowedTools:\s*\[(.*)\]/.exec(line);
+    if (inline) {
+      disallowed = inline[1].split(',').map((t) => t.trim()).filter(Boolean);
+      inTools = false;
+      continue;
+    }
+    if (/^tools:\s*$/.test(line)) { inTools = true; continue; }
+    if (/^\S/.test(line)) { inTools = false; continue; }
+    const item = /^\s+-\s+(\S+)/.exec(line);
+    if (inTools && item) tools.push(item[1]);
+  }
+  return { tools, disallowed };
+}
+
+describe('#4649 routing hint checks build intent against the agent tools', () => {
+  test('a build task matching a read-only specialist does NOT ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Security review then fix, commit and open a PR',
+      }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    const ctx = contextOf(result);
+    expect(ctx).toContain('plan/review: prefer `ork:security-auditor`');
+    expect(ctx).toContain('build: keep `general-purpose`');
+  });
+
+  test.each([
+    ['run a security audit on the upload endpoint, then implement the fixes', 'ork:security-auditor'],
+    ['find the root cause of the crash and push a fix', 'ork:debug-investigator'],
+    ['review this PR and commit the suggested changes', 'ork:code-quality-reviewer'],
+  ])('build intent + read-only match "%s" is advisory, not ask', (description, agent) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(`plan/review: prefer \`${agent}\``);
+  });
+
+  test('an explicit code change (replace, add tests) with a read-only match is advisory, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Address SQL injection vulnerability',
+        prompt: 'Replace interpolated SQL with parameterized queries in app/db.py and add regression tests.',
+      }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('plan/review: prefer `ork:security-auditor`');
+  });
+
+  test.each([
+    ['Security review of the auth implementation'],
+    ['Security review of this PR, do not commit or push'],
+    ['security review the fix'],
+    ['security review; never edit the code'],
+  ])('review-only or negated "%s" is not build intent, so it still asks', (description) => {
+    expect(hasBuildIntent(description, '')).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // codex HOLD 6101944326 and agy 6101938077: one security match from the
+  // description, the probe in the prompt; classifier and hook both pinned.
+  const SQL_DESC = 'Address SQL injection vulnerability';
+  test.each([
+    ['Apply this fix for the SQL injection vulnerability'],
+    ['Do not forget to fix the SQL injection vulnerability'],
+    ['Never skip implementing the endpoint'],
+    ['Without delay fix the SQL injection vulnerability'],
+    ['Do not commit or push but write unit tests for the query builder'],
+    ['Implement the endpoint, never skip tests'],
+    ['fix the bug; do not push'],
+    ['Add the guard without changing the API'],
+    // product-13 HOLD 6102436178: conversational build shapes, true at 63d5.
+    ['Your task is to implement the parameterized query'],
+    ['Can you fix the SQL injection in the login query'],
+    ['I need you to fix the SQL injection vulnerability'],
+    ['I want you to patch the query builder'],
+    ["Let's fix the SQL injection in users.py"],
+    ['Go fix the SQL injection in users.py'],
+    ['Help me fix the SQL injection'],
+    // codex HOLD 6102229680 P2-1 and agy 6102200262.
+    ['Your task is to fix the SQL injection vulnerability in app/db.py.'],
+    ['Please carefully fix the SQL injection vulnerability in app/db.py.'],
+    ['We need you to implement the SQL injection guard in app/db.py.'],
+    ['You are to replace interpolated SQL with parameterized queries in app/db.py.'],
+    ['Security review and remember to fix the SQL injection vulnerability.'],
+    ['Just fix the SQL injection in users.py'],
+    ['In order to fix the SQL injection, parameterize the query'],
+    ['Do not commit and write tests for the query builder'],
+    // codex HOLD 6102977795: a colon ends a prohibition; write takes a longer object.
+    ['Do not push: fix the SQL injection locally.'],
+    ['Without pushing: implement the SQL injection guard.'],
+    ['Do not commit: add regression tests for the SQL injection.'],
+    ['Never push: replace interpolated SQL with parameters.'],
+    ['Please write a SQL injection regression test.'],
+    // codex HOLD 6103186316: no fixed word count between verb and noun.
+    ['Please write a new SQL injection regression unit test.'],
+    ['Please add a new SQL injection regression unit test.'],
+    ['Write a focused SQL injection parameterization regression test.'],
+    // agy HOLD 6109078062: "and" ends a without-prohibition, so a coordinated
+    // clause after it keeps its build verb.
+    ['Review the code without changing the API and fix the bug.'],
+    ['Review the code without changing anything and implement the cache.'],
+    ['Review the code without editing it and patch the parser.'],
+  ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).not.toBe('ask');
+  });
+
+  test.each([
+    ['Security review of commit abc123'],
+    ['Security review of fixes in this PR'],
+    ['Security review of a possible fix'],
+    ['Security review of our fix'],
+    ['Security review the bug fix'],
+    // codex HOLD 6102229680 P2-3: a prohibition carries across ", or".
+    ['Security review only. Do not fix the bug, or push changes.'],
+    ['Security review: implementation details only.'],
+    // The noun must sit in the verb's own clause.
+    ['Security review. Write a summary for the team. Tests are out of scope.'],
+    ['Security review; add a note to the report; the code stays as is.'],
+    // agy HOLD CLEAN 6108013942: "without" must carry the prohibition across
+    // an or-joined object, not just the first noun after the gerund.
+    ['Review without making any code changes or commits.'],
+    // CodeRabbit 4242284355: the and-continuation must accept every commit
+    // form (commit, commits, committed, committing), not just the first.
+    ['Review without changing files and committing changes'],
+  ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // The ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): a miss
+  // asks the human to redirect a code change to a read-only agent, a false
+  // positive only swaps that ask for a note. So these review-only prompts are
+  // KNOWN false positives, pinned so a change to them is a decision, not drift.
+  // At 292d8fab the last 4 were already true; the first 3 became true with the
+  // joining-word widen (to/you/lets/go/me/just) at 79d5b602.
+  test.each([
+    ['Tell me what you fixed last week'], // new at 79d5 vs 292d8fab
+    ['Review the diff and say what to fix'], // new at 79d5 vs 292d8fab
+    ['Report what you would refactor'], // already true at 292d8fab
+    ['Check how to fix it, report only, do not fix'], // new at 79d5 vs 292d8fab
+    ['Security review of whether to fix or replace the vulnerable query.'], // already true at 292d8fab
+    ['Security review of commit and push permissions.'], // already true at 292d8fab
+    ['Security review of the fix and patch plan.'], // already true at 292d8fab
+    // product-13 HOLD CLEAN 6103347795: write/add prose about tests or checks.
+    ['Write a short report on the missing input validation'],
+    ['Write up which of the endpoints lack guards'],
+    ['Write a review comment about why the tests are flaky'],
+    ['Add your findings to the report about missing checks'],
+  ])('accepted false positive "%s" reads as build intent', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
+  });
+
+  // conductor153 should: negation keeps going across "and" when the next verb
+  // is commit, push or edit. These used to read as build at 79d5b602.
+  test.each([
+    ['Review this PR only. Do not commit and push.'],
+    ['Security review; never edit and commit anything'],
+    ['Do not commit and push'],
+    ['never edit and commit'],
+  ])('negated ship pair "%s" is not build intent', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
+  });
+
+  // CodeRabbit 4240757717: without <gerund> must not swallow a later fix.
+  test('without gerund keeps a later fix as build intent', () => {
+    expect(hasBuildIntent(SQL_DESC, 'Without breaking the API fix the SQL injection')).toBe(true);
+  });
+
+  test('a read-only match WITHOUT build intent still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  test('build intent with a writable specialist still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'write unit tests for the parser and commit them' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:test-generator');
+  });
+
+  test('BUILD_INTENT_PATTERN matrix', () => {
+    expect(BUILD_INTENT_PATTERN.test('commit and push')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('open a PR')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('implement the change')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('then fix it')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('find the root cause')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('audit the fixture loader')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('Replace interpolated SQL with parameterized queries')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add regression tests')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('refactor the upload handler')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('rewrite the query builder')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add your findings to the report')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('list replacement candidates')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('implementing the endpoint')).toBe(true);
+    expect(hasBuildIntent('fix the bug, do not push', '')).toBe(true);
+    expect(hasBuildIntent('review the commit history', '')).toBe(false);
+  });
+
+  test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(
+    'READ_ONLY_SPECIALISTS membership of %s matches its frontmatter tools',
+    (agent) => {
+      const { tools, disallowed } = agentToolGrants(agent);
+      expect(tools.length).toBeGreaterThan(0);
+      const canWrite = ['Write', 'Edit'].some((t) => tools.includes(t) && !disallowed.includes(t));
+      expect(READ_ONLY_SPECIALISTS.has(agent)).toBe(!canWrite);
     },
   );
 });

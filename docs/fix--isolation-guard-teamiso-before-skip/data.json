@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--isolation-guard-teamiso-before-skip/index.html",
+  "lab_slug": "isolation-guard-teamiso-before-skip",
+  "purpose": "PR playground: the isolation guard checks teammates before the Phase 4 skip"
+}

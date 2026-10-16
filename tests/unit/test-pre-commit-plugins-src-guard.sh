@@ -162,6 +162,42 @@ else
     log_fail "non-generator scripts/ path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
 fi
 
+# 11. A regenerated plugins/ file whose src/ counterpart changed EARLIER on the
+# branch (not in this commit) is accepted. The pre-commit hook passes the
+# branch's changed paths in PLUGINS_SRC_GUARD_BRANCH_FILES (#4661: a branch
+# could never commit a regen for src/ edits made in an earlier commit).
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' 'plugins/ork/skills/auto/SKILL.md' \
+    | PLUGINS_SRC_GUARD_BRANCH_FILES=$'src/skills/auto/SKILL.md\nREADME.md' bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "regen accepted when its src/ file changed earlier on the branch"
+else
+    log_fail "regen with branch src/ change: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 12. The branch list only excuses the file it names: a second plugins/ file
+# with no src/ change anywhere is still blocked, and only that one is listed.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' 'plugins/ork/skills/auto/SKILL.md' 'plugins/ork/skills/doctor/SKILL.md' \
+    | PLUGINS_SRC_GUARD_BRANCH_FILES='src/skills/auto/SKILL.md' bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]] && grep -Fq '  plugins/ork/skills/doctor/SKILL.md' <<< "$GUARD_OUT" \
+    && ! grep -Fq '  plugins/ork/skills/auto/SKILL.md' <<< "$GUARD_OUT"; then
+    log_pass "branch list excuses only the file it names"
+else
+    log_fail "branch list scope: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
+fi
+
+# 13. An empty or unset branch list keeps the old rule (same commit only),
+# and a branch change to a DIFFERENT skill file does not excuse this one.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' 'plugins/ork/skills/auto/SKILL.md' \
+    | PLUGINS_SRC_GUARD_BRANCH_FILES='src/skills/auto/references/x.md' bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]] && grep -Fq 'plugins/ork/skills/auto/SKILL.md' <<< "$GUARD_OUT"; then
+    log_pass "a branch change to another file does not excuse a plugins/-only edit"
+else
+    log_fail "unrelated branch change: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
+fi
+
 echo ""
 echo "Passed: $TESTS_PASSED  Failed: $TESTS_FAILED"
 [[ $TESTS_FAILED -gt 0 ]] && exit 1

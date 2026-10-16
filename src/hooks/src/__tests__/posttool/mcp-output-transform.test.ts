@@ -24,6 +24,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
 import { mcpOutputTransform, looksSecretBearing } from '../../posttool/mcp-output-transform.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
+import { FAKE_AWS_TEMP_KEY_IDS } from '../fixtures/secret-scanning-fixtures.js';
 
 function createInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -426,7 +427,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('writes a 0600 file matching the original exactly; transcript has path, not token', () => {
-      const token = 'ASIAA1B2C3D4E5F6G7H8';
+      const token = FAKE_AWS_TEMP_KEY_IDS.middleStash;
       // >2000 chars, token sits in the discarded middle like X-Amz-Credential.
       const original = `${'A'.repeat(1500)} cred=${token} ${'B'.repeat(1500)}`;
       const { sessionId, result } = runWithSession(original);
@@ -448,7 +449,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('a credential inside the kept head is masked in the transcript but intact in the file', () => {
-      const token = 'ASIAZ9Y8X7W6V5U4T3S2';
+      const token = FAKE_AWS_TEMP_KEY_IDS.keptHead;
       const original = `key=${token} ${'C'.repeat(4000)}`;
       const { sessionId, result } = runWithSession(original);
       const output = result.hookSpecificOutput?.updatedToolOutput as string;
@@ -462,7 +463,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('identical secret-bearing outputs in the SAME session dedup to one file', () => {
-      const token = 'ASIAQ1W2E3R4T5Y6U7I8';
+      const token = FAKE_AWS_TEMP_KEY_IDS.dedup;
       const sessionId = `mcp-sec-dedup-${Date.now()}`;
       madeSessions.push(sessionId);
       const original = `${'D'.repeat(2500)} tok=${token}`;
@@ -488,7 +489,7 @@ describe('posttool/mcp-output-transform', () => {
       // A realistic presigned S3 PUT: the security token and signature are
       // the parts that authorize the request, and they do not match
       // SECRET_PATTERNS' key-id shapes.
-      const cred = 'ASIAABCDEFGHIJKLMNOP';
+      const cred = FAKE_AWS_TEMP_KEY_IDS.presignedCredential;
       const secToken = `FwoGZXIvYXdzE${'aB'.repeat(300)}`;
       const sig = 'f'.repeat(64);
       const url =
@@ -510,7 +511,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('a credential straddling the 1200-char head boundary is still masked', () => {
-      const token = 'ASIAZZYYXXWWVVUUTTSS';
+      const token = FAKE_AWS_TEMP_KEY_IDS.headBoundary;
       // Token starts at char 1191: the raw head slice would keep 9 chars of
       // it, too short for the detector, leaking a partial key unmasked.
       const original = `${'x'.repeat(1190)} ${token} ${'y'.repeat(3000)}`;
@@ -525,7 +526,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('a symlink planted at the stash path is refused and falls back to lossy', () => {
-      const token = 'ASIATTTTSSSSRRRRQQQQ';
+      const token = FAKE_AWS_TEMP_KEY_IDS.symlinkRefusal;
       const original = `${'E'.repeat(2500)} tok=${token}`;
       const sessionId = `mcp-sec-link-${Date.now()}`;
       madeSessions.push(sessionId);
@@ -555,7 +556,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('a group/world-accessible session dir is tightened to 0700 before the write', () => {
-      const token = 'ASIA1111222233334444';
+      const token = FAKE_AWS_TEMP_KEY_IDS.dirMode;
       const original = `${'G'.repeat(2500)} tok=${token}`;
       const sessionId = `mcp-sec-mode-${Date.now()}`;
       madeSessions.push(sessionId);
@@ -579,7 +580,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('empty session_id refuses the shared invalid bucket and degrades to lossy', () => {
-      const token = 'ASIA9999888877776666';
+      const token = FAKE_AWS_TEMP_KEY_IDS.invalidSession;
       const original = `${'F'.repeat(2500)} tok=${token}`;
       // Count-based: the shared bucket may exist from unrelated runs, so
       // assert no new file lands rather than that the dir is absent.
@@ -599,7 +600,7 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('secret-bearing output under the threshold is untouched and writes nothing', () => {
-      const token = 'ASIAP1O2I3U4Y5T6R7E8';
+      const token = FAKE_AWS_TEMP_KEY_IDS.underThreshold;
       const original = `short result with cred=${token}`;
       const { sessionId, result } = runWithSession(original);
 

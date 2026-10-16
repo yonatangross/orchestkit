@@ -13,8 +13,10 @@
  * Scope: invokes a PostToolUse hook twice in sequence with a fresh HookInput
  * each time, and asserts the second invocation's HookInput payload does not
  * contain the first call's rejection reason anywhere. The hook chosen is
- * `posttool/write/stale-import-detector` because hooks.json now carries
- * `continueOnBlock: true` on that entry (M137 H1 / issue #1767).
+ * `posttool/write/stale-import-detector` because hooks.json carried
+ * `continueOnBlock: true` on that entry (M137 H1 / issue #1767). CC honors
+ * the key on prompt hooks only, so it was removed from every command hook
+ * (#4684); the state-leak guard below still holds.
  *
  * Upstream spec line (CHANGELOG 2.1.139):
  *   "Added hook continueOnBlock config option for PostToolUse — set to true

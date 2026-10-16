@@ -24,7 +24,7 @@ tool-coverage: illustrative
 ## Overview
 
 Claude Code 2.1.16 introduces a native Task Management System with four tools:
-> **CC 2.1.233 caveat:** the Task tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
+> **CC 2.1.268 caveat:** TaskCreate, TaskGet, TaskUpdate, TaskList, and TodoWrite are offered only on Claude 3.x, Opus 4.0 to 4.7, Sonnet 4.0 to 4.6, and Haiku 4.5. On models outside this allowlist, these tools are absent unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. CC honours the flag only from user or managed settings (or the shell). ork cannot ship it (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
 
 - **TaskCreate**: Create new tasks with subject, description, and activeForm
 - **TaskUpdate**: Update status (pending → in_progress → completed), set dependencies
@@ -145,9 +145,15 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Task Patterns
 
 ```
-# Spawn teammate into shared task list
+# Spawn teammate into shared task list. A teammate that writes files works in
+# a manual worktree the lead creates first (#4557); the lead merges its branch
+# before dependent tasks start. No isolation on the call: a call with name and
+# isolation launches a plain subagent, not a teammate (Claude Code docs).
+Bash("git worktree add .worktrees/backend -b feat/my-feature-backend feat/my-feature")
 Agent(
-  prompt="You are the backend architect...",
+  prompt="You are the backend architect... Work only in .worktrees/backend/ "
+         "(cd there, check pwd and branch first). Commit your work there and "
+         "message the lead your branch name and commit sha.",
   team_name="my-feature",
   name="backend-architect",
   subagent_type="ork:backend-system-architect"

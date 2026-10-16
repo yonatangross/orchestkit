@@ -11,13 +11,6 @@ user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Agent TaskCreate TaskUpdate TaskStop Grep Glob ToolSearch ExitWorktree CronCreate CronDelete PushNotification mcp__memory__search_nodes mcp__memory__create_entities mcp__context7__resolve-library-id mcp__context7__query-docs"
 skills: [explore, verify, memory, remember, chain-patterns]
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Read"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/issue-context-loader"
-          once: true
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
@@ -47,15 +40,25 @@ fix-issue 456
 
 ## Argument Resolution
 
+**Check the target first, before any other step.** This skill forks and cannot see the conversation. Load `Read("../../shared/rules/target-resolution.md")`: if the target, flags stripped, is a bare pronoun or deictic (`this`, `them`, `that one`) or empty, return exactly `TARGET_UNRESOLVED: <word>` and stop. The caller resolves it and re-invokes.
+
 ```python
-ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
-# $ARGUMENTS contains the full argument string
-# $ARGUMENTS[0] is the first space-separated token
+ISSUE_NUMBER = "$ARGUMENTS" with the flags stripped  # the target the check above reads, e.g. "123"
+# $ARGUMENTS contains the full argument string and may open with flags
+# like --model=opus; indexing [0] would fetch the flag, not the issue.
+# If the stripped target is not an issue number or URL, return
+# TARGET_UNRESOLVED: <word> and stop.
 ```
 
 ## STEP -1: MCP Probe + Resume Check
 
 **Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
+
+**Load the issue the target names first.** A fork skill never runs frontmatter hooks (#4683), so fetch `ISSUE_NUMBER` (the flags-stripped target, never `$ARGUMENTS[0]`) yourself and keep the result in mind. Do not call `skill/issue-context-loader` for this: it takes its number from the branch name, not from the argument, so on a branch like `fix/ork10-...` it loads a different issue. Use the CLI the M122 host note selects (`gh`, `glab`, or `bb`):
+
+```bash
+gh issue view "$ISSUE_NUMBER" --json title,body,labels,milestone,state
+```
 
 ```python
 # Probe MCPs (parallel — all in ONE message):

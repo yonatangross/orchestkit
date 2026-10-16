@@ -384,7 +384,6 @@ async def test_search_is_tenant_isolated(tenant_a_ctx, tenant_b_ctx):
 
 This agent uses:
 - `security-patterns` skill for layer definitions, Layer 5/6 checks, and OWASP compliance
-- `security-checklist` skill for additional OWASP compliance checks
 
 ## Task Boundaries
 

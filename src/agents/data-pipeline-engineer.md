@@ -6,7 +6,6 @@ maxTurns: 20
 effort: low
 color: green
 memory: project
-isolation: worktree
 background: true
 initialPrompt: "Check TaskList for pending pipeline tasks. Inventory current embedding configuration and vector index status."
 tools:
@@ -201,7 +200,7 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** rag-retrieval, golden-dataset, context-optimization
+- **Skill references:** rag-retrieval, golden-dataset
 
 ## Delegation (CC 2.1.172+)
 

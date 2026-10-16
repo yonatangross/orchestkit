@@ -1,0 +1,14 @@
+# Fixture for check 6 of tests/manifests/test-cc-version-floor.sh (#4686).
+# CodeRabbit 4241672749: `echo CC_FLOOR=$(jq -er ...)` prints the value but
+# never assigns it, so an install using ${CC_FLOOR} runs without the floor
+# pin. The scan must flag the first step's pin. The second step is correct.
+steps:
+  - name: Install Claude Code CLI
+    run: |
+      echo CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"
+
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"

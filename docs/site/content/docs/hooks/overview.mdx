@@ -1,6 +1,7 @@
 ---
-title: "171 Hooks: What Fires When"
-description: "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
+title: "162 Hooks: What Fires When"
+seoTitle: "OrchestKit Hooks: What Fires on Each Claude Code Event"
+description: "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -33,10 +34,10 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 |----------|-------|-------------|
 | **Global hooks** | 152 | Fire on every matching event regardless of agent |
 | **Agent-scoped hooks** | 0 | Fire only when a specific agent is active |
-| **Skill-scoped hooks** | 22 | Fire only during specific skill operations |
-| **Total** | **171** | Registered in `hooks.json`, compiled into 11 split bundles |
+| **Skill-scoped hooks** | 10 | Fire only during specific skill operations |
+| **Total** | **162** | Registered in `hooks.json`, compiled into 11 split bundles |
 
-All 171 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+All 162 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
 ## Hook Events: The Full Timeline
 

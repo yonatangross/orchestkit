@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC 2.1.289 to 2.1.294: what the seat probes showed</title>
+<style>
+  :root{--bg:#fafaf7;--panel:#fff;--edge:#dcdad2;--ink:#1d1d1b;--dim:#6a675f;--pass:#1a7f37;--inc:#9a6700;--doc:#4d5b6b;--accent:#0b5cad;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  @media (prefers-color-scheme:dark){:root{--bg:#16171a;--panel:#1e2024;--edge:#33363d;--ink:#e8e8e4;--dim:#9a9a94;--pass:#4ade80;--inc:#fbbf24;--doc:#9fb3c8;--accent:#7dd3fc}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.4rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 1.4rem;font-size:.9rem}
+  .bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+  button,input{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:.35rem .7rem}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+  input{min-width:14rem}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--edge);border-radius:8px;overflow:hidden;font-size:.88rem}
+  th,td{text-align:start;padding:.55rem .7rem;border-bottom:1px solid var(--edge);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+  code{font-family:var(--mono);font-size:.82rem}
+  .pass{color:var(--pass);font-weight:600}.inc{color:var(--inc);font-weight:600}.doc{color:var(--doc);font-weight:600}
+  .count{color:var(--dim);font-size:.85rem}
+  #copied{color:var(--pass);font-size:.85rem;min-height:1.2em}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Claude Code 2.1.289 to 2.1.294: what the seat probes showed"><meta property="og:description" content="Filter the probe results behind the new version matrix rows: which Claude Code changes were run on a seat and passed, which stayed inconclusive, and which are release text only."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4662-cc-matrix-probes.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Code 2.1.289 to 2.1.294: what the seat probes showed"><meta name="twitter:description" content="Filter the probe results behind the new version matrix rows: which Claude Code changes were run on a seat and passed, which stayed inconclusive, and which are release text only."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Claude Code 2.1.289 to 2.1.294: what the seat probes showed</h1>
+  <p class="sub">PR #4662 adds matrix rows for the Claude Code releases after 2.1.288. Rows below were run on 2.1.294, Max seat, no API key, scratch directories (haiku55-adopt, 2026-10-08). Filter, search, then copy the visible rows as markdown.</p>
+  <div class="bar" role="group" aria-label="Filter by result">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="pass" aria-pressed="false">Pass</button>
+    <button type="button" data-f="inc" aria-pressed="false">Inconclusive</button>
+    <button type="button" data-f="doc" aria-pressed="false">Not probed</button>
+    <input id="q" type="search" placeholder="Search version or text" aria-label="Search rows">
+    <span class="count" id="count"></span>
+  </div>
+  <table>
+    <thead><tr><th>Version</th><th>Item</th><th>Result</th><th>Evidence</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p><button type="button" id="copy">Copy visible rows as markdown</button> <span id="copied" role="status"></span></p>
+</main>
+<script>
+const DATA = [
+  ["2.1.289","Read deny rules through symlinks; Bash deny and ask rules behind an env var prefix with an expanded value when the sandbox auto-allows commands","doc","Release text only; no ork code change"],
+  ["2.1.290","Bash permission checks prompt for rg and git grep with shell-expanded wildcards","pass","Unquoted wildcard git grep denied when nobody can answer; plain git grep ran"],
+  ["2.1.290","Permission rules apply after a PreToolUse hook rewrites input","pass","Deny rule fired on the rewritten command; the unrewritten control ran (generic hook, not RTK itself)"],
+  ["2.1.290","Teammate agent_id in Agent results; TeammateIdle from subagents","inc","A named Agent call gave a plain subagent with no teammate_id; needs an interactive agent team"],
+  ["2.1.291","Version floor: 2.1.288 could lose the last messages on quit; 2.1.290 could drop cloud permission answers","doc","Release text only"],
+  ["2.1.292","Agent tool effort parameter","pass","Field present in this session's Agent tool"],
+  ["2.1.292","stdio MCP protocol 2026-07-28 by default","pass","Client sent server/discover first, fell back to initialize 2025-11-25, then listed tools"],
+  ["2.1.292","system-reminder tags in hook output are escaped","pass","Model-facing text carried &lt;system-reminder> inside the real wrapper; stored copy stayed raw"],
+  ["2.1.293","Haiku 5.5 is the default haiku model","pass","The haiku alias resolved to Haiku 5.5 in every probe session"],
+  ["2.1.293","plugin eval on Docker Desktop Macs","pass","Bash-granting eval case ran to a score of 1; ~/.docker/bin links present"],
+  ["2.1.294","Prompt and agent hooks written as instructions block as written","doc","Neither ork nor hq-ext ships a prompt or agent type hook; no change"]
+];
+const LABEL = {pass:"Pass", inc:"Inconclusive", doc:"Not probed"};
+let filter = "all";
+const tbody = document.getElementById("rows"), q = document.getElementById("q"), count = document.getElementById("count");
+function visible(){
+  const t = q.value.trim().toLowerCase();
+  return DATA.filter(r => (filter === "all" || r[2] === filter) && (!t || r.join(" ").toLowerCase().includes(t)));
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function render(){
+  const rows = visible();
+  tbody.innerHTML = rows.map(r => `<tr><td><code>${r[0]}</code></td><td>${esc(r[1])}</td><td class="${r[2]}">${LABEL[r[2]]}</td><td>${esc(r[3])}</td></tr>`).join("");
+  count.textContent = `${rows.length} of ${DATA.length} rows`;
+}
+document.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", () => {
+  filter = b.dataset.f;
+  document.querySelectorAll("[data-f]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+q.addEventListener("input", render);
+document.getElementById("copy").addEventListener("click", async () => {
+  const md = ["| Version | Item | Result | Evidence |", "|---|---|---|---|"].concat(visible().map(r => `| ${r[0]} | ${r[1]} | ${LABEL[r[2]]} | ${r[3]} |`)).join("\n");
+  try { await navigator.clipboard.writeText(md); document.getElementById("copied").textContent = "Copied."; }
+  catch (e) { document.getElementById("copied").textContent = "Copy failed: select the table instead."; }
+});
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X changelog feed: what it would post</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #181b24; --border: #2a2f3d;
+    --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7;
+    --red: #f7768e; --green: #9ece6a; --amber: #e0af68;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 2rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; }
+  h2 { font-size: 1.05rem; margin-bottom: .8rem; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  .tabs { display: flex; gap: .5rem; margin-bottom: .8rem; flex-wrap: wrap; }
+  .tabs button { background: #10131b; color: var(--dim); border: 1px solid var(--border); border-radius: 6px; padding: .35rem .8rem; cursor: pointer; font: inherit; font-size: .85rem; }
+  .tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
+  .post { background: #10131b; border-radius: 8px; padding: .9rem 1rem; margin-bottom: .6rem; white-space: pre-wrap; word-break: break-word; font-size: .88rem; border-left: 3px solid var(--accent); }
+  .meter { font-size: .75rem; color: var(--dim); margin-bottom: .3rem; font-variant-numeric: tabular-nums; }
+  .ok { color: var(--green); } .off { color: var(--red); } .warn { color: var(--amber); }
+  .gate { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  .gate > div { background: #10131b; border-radius: 8px; padding: .8rem; font-size: .85rem; }
+  .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin-bottom: .3rem; }
+  @media (max-width: 640px) { .gate { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>X changelog feed: what it would post</h1>
+  <p class="sub">PR: <code>release-changelog-x.yml</code>. Preview only: every job writes the posts to the job summary. This build has no X client and no X secrets.</p>
+
+  <section>
+    <h2>The safety gate</h2>
+    <div class="gate">
+      <div><div class="label">After merge</div><span class="ok">Preview</span>. Posts go to the job summary only. The script refuses <code>DRY_RUN=false</code>.</div>
+      <div><div class="label">Manual run</div><code>workflow_dispatch</code> with a <code>mode</code> writes the same preview. There is no live option.</div>
+      <div><div class="label">Live</div>Not in this build. It ships later as a separate, reviewed change. No LLM call anywhere: no <code>claude -p</code>.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Three jobs</h2>
+    <table>
+      <tr><th>Job</th><th>Trigger</th><th>Posts</th></tr>
+      <tr><td>Stable release</td><td><code>release: published</code>, not a prerelease</td><td>Headline plus the top 3 changes, then a thread for the rest. UTM link to the docs changelog. The square GIF when it exists.</td></tr>
+      <tr><td>Beta digest</td><td>Nightly cron</td><td>One post only when one or more betas shipped in the last 24 hours. Never one post per beta.</td></tr>
+      <tr><td>Upstream</td><td>Cron</td><td>New sections of the anthropics/claude-code CHANGELOG, by plain diff. hq-ext is listed but disabled until a read token exists.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Dry run output (real, from v9.8.0)</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-n="0">Post 1</button>
+      <button role="tab" aria-selected="false" data-n="1">Post 2</button>
+      <button role="tab" aria-selected="false" data-n="2">Post 3</button>
+      <button role="tab" aria-selected="false" data-n="all">Whole thread</button>
+    </div>
+    <div id="posts"></div>
+    <p class="sub" style="margin:0">Weighted length uses X rules: every link counts as 23, and a bare domain like <code>x.com</code> also counts as 23.</p>
+  </section>
+</main>
+<script>
+  const posts = [
+    { len: 271, text: "OrchestKit v9.8.0 is out (2026-08-07). 1 feature, 9 fixes.\n\n- dream: STEP 9 cross-repo promotion candidates\n- hooks: read the permission mode key CC actually sends\n- pre-push: replace mapfile so the hook runs on macOS bash 3.2\n\n+7 more\nhttps://orchestkit.yonyon.ai/changelog?utm_source=x&utm_medium=social&utm_campaign=v9.8.0#9.8.0 #ClaudeCode" },
+    { len: 248, text: "- release: let release-please own the lockfile version\n- repair two reported bugs and make 26 blind security tests able to fail\n- security: close the interpreter-pipe path bypass\n- security: close the line-continuation bypass of the command blocker" },
+    { len: 193, text: "- verify: stop waiting forever on a background task that never ran\n- cc: adopt 2.1.221 and 2.1.222, bump cc-support latest_known\n- community: add code of conduct and user-facing issue templates" },
+  ];
+  const box = document.getElementById("posts");
+  function render(which) {
+    box.textContent = "";
+    const list = which === "all" ? posts : [posts[Number(which)]];
+    for (const p of list) {
+      const m = document.createElement("div");
+      m.className = "meter";
+      m.innerHTML = '<span class="' + (p.len <= 280 ? "ok" : "off") + '">' + p.len + "/280</span>";
+      const d = document.createElement("div");
+      d.className = "post";
+      d.textContent = p.text;
+      box.append(m, d);
+    }
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    render(b.dataset.n);
+  }));
+  render("0");
+</script>
+</body>
+</html>

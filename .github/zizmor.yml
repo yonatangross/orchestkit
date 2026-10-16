@@ -12,7 +12,7 @@
 
 rules:
   # dependabot-automerge.yml uses pull_request_target, but safely: it NEVER checks
-  # out or executes PR code (only `gh pr merge|edit|comment`), is gated to the
+  # out or executes PR code (only `gh pr edit|comment`), is gated to the
   # dependabot[bot] actor, and passes metadata via env (not run-body). This is the
   # GitHub-recommended pattern for granting Dependabot PRs a privileged token.
   # Audited in milestone #160 (security-posture review).

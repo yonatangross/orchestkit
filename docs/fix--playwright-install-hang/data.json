@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-4667",
+  "page": "docs/fix--playwright-install-hang/index.html",
+  "lab_slug": "playwright-install-hang",
+  "purpose": "PR playground for #4665: where the three Docs Site Build runs hung and the bounded, cached install"
+}

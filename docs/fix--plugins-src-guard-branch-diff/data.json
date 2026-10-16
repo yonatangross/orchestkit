@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--plugins-src-guard-branch-diff/index.html",
+  "lab_slug": "plugins-src-guard-branch-diff",
+  "purpose": "PR playground: plugins-src-guard accepts a src counterpart changed earlier on the branch"
+}

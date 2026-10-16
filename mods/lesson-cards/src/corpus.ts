@@ -18,6 +18,8 @@ export function joinPath(...parts: string[]): string {
 /** One entry from hq-ext's configs/lesson-patterns.json */
 export interface LessonPattern {
   id: string;
+  /** Corpus entry kind: simple, window-check, block-check or dockerfile-check. */
+  type?: string;
   severity: 'block' | 'warn';
   category: string;
   pattern?: string;

@@ -1,0 +1,11 @@
+{
+  "slug": "isolation-guard-teamiso-before-skip",
+  "source": "docs/fix--isolation-guard-teamiso-before-skip/index.html",
+  "title": "Isolation guard: teammate check runs before the Phase 4 skip",
+  "description": "The teammate isolation check no longer hides behind the Phase 4 skip (#4695 follow-up)",
+  "tags": [
+    "bug",
+    "tests"
+  ],
+  "date": "2026-10-11"
+}

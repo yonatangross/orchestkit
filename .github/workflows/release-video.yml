@@ -10,7 +10,7 @@
 # Pipeline:
 #   parse-changelog → render-videos → upload-to-release
 #
-# Artifacts: 16:9 MP4, 1:1 MP4, GIF preview
+# Artifacts: 16:9 MP4, 1:1 MP4, GIF preview, 1:1 GIF
 # All uploaded as release assets.
 
 name: Release Video
@@ -52,7 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.0.0  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
           node-version-file: .nvmrc
 
@@ -120,7 +120,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.0.0  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
           node-version-file: .nvmrc
 
@@ -190,6 +190,12 @@ jobs:
             -vf "fps=10,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=64[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
             "out/release-${VERSION}-preview.gif"
 
+          # 1:1 GIF from the square render. release-changelog-x.yml attaches
+          # it to the X post for a stable release, and skips media without it.
+          ffmpeg -y -i out/square-raw.mp4 \
+            -vf "fps=10,scale=480:480:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=64[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
+            "out/release-${VERSION}-square.gif"
+
           # Clean up raw files
           rm -f out/landscape-raw.mp4 out/square-raw.mp4
 
@@ -201,7 +207,7 @@ jobs:
           done
 
       - name: Upload video artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: release-videos
           path: |
@@ -234,7 +240,7 @@ jobs:
           permission-contents: write
 
       - name: Download video artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: release-videos
           path: out/

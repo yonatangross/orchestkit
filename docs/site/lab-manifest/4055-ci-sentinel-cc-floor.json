@@ -1,0 +1,13 @@
+{
+  "slug": "4055-ci-sentinel-cc-floor",
+  "source": "docs/chore--dsp-53355-ork-fix-4055/index.html",
+  "title": "ci-sentinel pinned CC below the floor; now it reads the floor live",
+  "description": "Issue #4055: ci-sentinel.yml hardcoded claude-code 2.1.251 while shared/cc-support.json moved the floor to 2.1.277, so the headless sentinel never ran with PermissionRequest hooks (fire under -p from 2.1.268). The install step now reads supported_floor at run time. Drag the floor forward and watch the two pin styles diverge.",
+  "tags": [
+    "ci-sentinel",
+    "workflows",
+    "cc-support-floor",
+    "4055"
+  ],
+  "date": "2026-10-15"
+}

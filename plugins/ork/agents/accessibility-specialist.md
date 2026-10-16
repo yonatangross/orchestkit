@@ -6,7 +6,6 @@ maxTurns: 30
 effort: medium
 color: blue
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read
@@ -305,7 +304,7 @@ Task: "Audit and fix login form accessibility"
 ## Integration
 - **Receives from:** frontend-ui-developer (components)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
-- **Skill references:** accessibility, testing-e2e, design-system-starter
+- **Skill references:** accessibility, testing-e2e
 
 
 ## Status Protocol

@@ -6,7 +6,6 @@ maxTurns: 60
 effort: high
 color: blue
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read
@@ -285,7 +284,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability
 
 ## Delegation (CC 2.1.172+)
 

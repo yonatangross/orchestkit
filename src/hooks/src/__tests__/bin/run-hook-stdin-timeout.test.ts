@@ -2,7 +2,7 @@
 // Created: 2026-08-11
 
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { closeSync, mkdtempSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -449,4 +449,73 @@ describe('the __orkEmptyPayload marker stays internal', () => {
     expect(log).toContain('available keys');
     expect(log).not.toContain('__orkEmptyPayload');
   }, 15000);
+});
+
+// #4769. A payload redirected from a regular file (`node run-hook.mjs key <file`,
+// how tests/security feeds the runner) still raced the 100ms timer: on a loaded
+// runner a long synchronous block after the timer is set lets the timers phase
+// run before the read callback, the hook runs on {}, and the auto-approve
+// control in Security Tests read passthrough instead of allow. A regular file
+// is complete when the process starts, so the runner reads it synchronously and
+// never arms the timer for it.
+//
+// expire-stdin-timer.mjs makes that one timer fire as a microtask, so the race
+// is lost every time instead of now and then. The pipe arm is the control: a
+// pipe still goes through the timer, so the same preload must still empty it.
+const EXPIRE_TIMER = join(__dirname, 'expire-stdin-timer.mjs');
+const APPROVE_HOOK = 'permission/auto-approve-safe-bash';
+const SAFE_BASH = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' } });
+
+function runApprove(stdinMode: 'file' | 'pipe'): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const dir = mkdtempSync(join(tmpdir(), 'ork-4769-'));
+    const payloadPath = join(dir, 'payload.json');
+    writeFileSync(payloadPath, SAFE_BASH);
+    const fd = stdinMode === 'file' ? openSync(payloadPath, 'r') : null;
+    const child = spawn('node', ['--import', EXPIRE_TIMER, RUN_HOOK, APPROVE_HOOK], {
+      stdio: [fd ?? 'pipe', 'pipe', 'pipe'],
+      env: { ...process.env, CLAUDE_PROJECT_DIR: dir, ORK_PERMISSION_AUTO_APPROVE: '1' },
+    });
+    if (fd !== null) closeSync(fd);
+    let stdout = '';
+    let stderr = '';
+    // stdout and stderr are always 'pipe' here; TypeScript types them as
+    // nullable because stdin may be a file descriptor.
+    child.stdout?.on('data', (c) => {
+      stdout += String(c);
+    });
+    child.stderr?.on('data', (c) => {
+      stderr += String(c);
+    });
+    if (child.stdin) {
+      child.stdin.on('error', (e: NodeJS.ErrnoException) => {
+        if (e.code !== 'EPIPE') throw e;
+      });
+      child.stdin.end(SAFE_BASH);
+    }
+    child.on('close', () => resolve({ stdout, stderr }));
+  });
+}
+
+function behavior(stdout: string): string {
+  const line = stdout.trim().split('\n').filter(Boolean).pop() ?? '';
+  try {
+    return JSON.parse(line)?.hookSpecificOutput?.decision?.behavior ?? 'passthrough';
+  } catch {
+    return 'unparsable';
+  }
+}
+
+describe('#4769 a regular-file stdin cannot lose the 100ms race', () => {
+  it('allows a safe command read from a file even when the timer fires first', async () => {
+    const { stdout, stderr } = await runApprove('file');
+    expect(stderr).not.toMatch(WARNING);
+    expect(behavior(stdout)).toBe('allow');
+  });
+
+  it('control: a pipe still goes through the timer, so the same preload empties it', async () => {
+    const { stdout, stderr } = await runApprove('pipe');
+    expect(stderr).toMatch(WARNING);
+    expect(behavior(stdout)).toBe('passthrough');
+  });
 });

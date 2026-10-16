@@ -1,0 +1,11 @@
+{
+  "slug": "ork10-stack-2-mcp-desc-limit",
+  "source": "docs/docs--ork10-stack-2-mcp-desc-limit/index.html",
+  "title": "MCP description cap is 4,096 characters (CC 2.1.296)",
+  "description": "CC 2.1.296 raised the default MCP tool description cap from 2,048 to 4,096 characters; the contributing guide and settings reference now say so.",
+  "tags": [
+    "docs",
+    "mcp"
+  ],
+  "date": "2026-10-09"
+}

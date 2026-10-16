@@ -199,7 +199,16 @@ fi
 # SIGPIPE the producer, flipping this test under pipefail (#603).
 if grep -qE '^plugins/ork/skills/' <<< "$STAGED_FILES"; then
   echo -n "  Checking plugins/ edits carry src/ counterparts... "
-  if ! GUARD_OUT=$(echo "$STAGED_FILES" | bash bin/git-hooks/plugins-src-guard.sh 2>&1); then
+  # Paths this branch already changed against the default branch: a regen may
+  # follow its src/ edit in a later commit (#4661). No merge base (detached,
+  # shallow, no origin/main) leaves the list empty, which is the strict rule.
+  # --diff-filter=d drops deleted paths: a src/ file removed earlier on the
+  # branch cannot excuse a staged plugins/ edit when nothing is left to edit.
+  GUARD_BRANCH_FILES=""
+  if GUARD_BASE=$(git merge-base origin/main HEAD 2>/dev/null); then
+    GUARD_BRANCH_FILES=$(git -c core.quotePath=false diff --name-only --diff-filter=d "$GUARD_BASE" HEAD 2>/dev/null) || GUARD_BRANCH_FILES=""
+  fi
+  if ! GUARD_OUT=$(echo "$STAGED_FILES" | PLUGINS_SRC_GUARD_BRANCH_FILES="$GUARD_BRANCH_FILES" bash bin/git-hooks/plugins-src-guard.sh 2>&1); then
     echo "FAILED"
     echo "$GUARD_OUT" | sed 's/^/    /'
     ERRORS=$((ERRORS + 1))

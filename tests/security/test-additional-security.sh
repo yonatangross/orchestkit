@@ -69,7 +69,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+# ORK_HOOK_RUNNER swaps the runner for a stub; only
+# tests/unit/test-security-starved-stdin-harness-error.sh sets it.
+RUNNER="${ORK_HOOK_RUNNER:-$PROJECT_ROOT/src/hooks/bin/run-hook.mjs}"
 
 PASS=0
 FAIL=0
@@ -87,6 +89,9 @@ section()  { echo; echo "${YELLOW}$1${NC}"; }
 SANDBOX_PROJECT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 SANDBOX_OUTSIDE="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 SANDBOX_TMP="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+# #4769: permission_verdict writes the runner's stderr here; expect_permission
+# prints it on a wrong verdict.
+LAST_HOOK_STDERR_FILE="$SANDBOX_TMP/last-hook-stderr.txt"
 cleanup_all() {
   rm -rf "$SANDBOX_PROJECT" "$SANDBOX_OUTSIDE" "$SANDBOX_TMP"
   cleanup_test_env
@@ -144,8 +149,12 @@ permission_verdict() { # permission_verdict <hook-key> <json> [env assignments..
     echo "ERROR"
     return 0
   fi
+  # #4769: keep the runner's stderr. expect_permission prints it when the
+  # verdict does not match, so a flake names its cause (a "stdin delivered 0
+  # bytes" warning, a bundle load error) instead of only the wrong verdict.
   # silent: best-effort
-  out="$(env "$@" node "$RUNNER" "$key" <"$input_file" 2>/dev/null || true)"
+  # The file outlives this $(...) subshell; a variable set here would not.
+  out="$(env "$@" node "$RUNNER" "$key" <"$input_file" 2>"$LAST_HOOK_STDERR_FILE" || true)"
   rm -f "$input_file"
   if [[ -z "$out" ]] || ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
     echo "ERROR"
@@ -162,7 +171,11 @@ expect_permission() { # expect_permission <want> <hook-key> <json> <label> [env.
     log_pass "$label (-> $got)"
   else
     log_fail "$label — expected $want, got $got"
+    if [[ -s "$LAST_HOOK_STDERR_FILE" ]]; then
+      printf '    runner stderr: %s\n' "$(head -c 2000 "$LAST_HOOK_STDERR_FILE")"
+    fi
   fi
+  return 0
 }
 
 # Extract the permission tier from a raw hook response. A response that is
@@ -276,9 +289,15 @@ il_input() { # il_input <session_id>
 # 100ms stdin watchdog ran the hook on {} (#3415), and without stderr that
 # failure has no evidence (#4489).
 run_instructions_loaded() { # run_instructions_loaded <tmpdir> <session_id> [stderr-file]
-  local payload; payload="$(il_input "$2")"
-  # silent: best-effort
-  printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>"${3:-/dev/null}" || true
+  local payload rc; payload="$(il_input "$2")"
+  # silent: best-effort, but the exit status is kept for the caller
+  # (CodeRabbit 4241672752): `|| true` let a crashed runner read as a pass.
+  if printf '%s' "$payload" | TMPDIR="$1" node "$RUNNER" 'instructions-loaded/instructions-loaded-dispatcher' >/dev/null 2>"${3:-/dev/null}"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  RUN_INSTRUCTIONS_LOADED_RC="$rc"
 }
 
 probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
@@ -291,7 +310,11 @@ probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
   got="$(find "$root" -mindepth 1 -maxdepth 1 -exec basename {} \; | sort | tr '\n' ',')"
   got="${got%,}"
 
-  if [[ "$got" == "$want" ]]; then
+  # A starved run never read the session_id, so its listing is no result for
+  # either outcome (#4352). It fails the suite, named for what it is.
+  if ork_stdin_starved "$err"; then
+    log_fail "$label: HARNESS ERROR, run-hook.mjs stdin watchdog fired, the dispatcher ran on an EMPTY payload, no verdict. Stderr: $(tr '\n' ' ' <"$err")"
+  elif [[ "$got" == "$want" ]]; then
     log_pass "$label (-> $got)"
   else
     log_fail "$label — expected tmp entry '$want', got '$got'"
@@ -318,14 +341,20 @@ probe_session_id 'sess-abc123' \
 # The traversal payload is the one that could actually escape. Assert the
 # negative directly rather than inferring it from a directory listing.
 ESCAPE_ROOT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+ESCAPE_ERR="$(mktemp "${TMPDIR:-/tmp}/ork-escape-stderr.XXXXXX")"
 mkdir -p "$ESCAPE_ROOT/inner"
-run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned'
-if [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then
+run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned' "$ESCAPE_ERR"
+if ork_stdin_starved "$ESCAPE_ERR"; then
+  log_fail "traversal session_id: HARNESS ERROR, run-hook.mjs stdin watchdog fired, the dispatcher ran on an EMPTY payload, no verdict. Stderr: $(tr '\n' ' ' <"$ESCAPE_ERR")"
+elif (( RUN_INSTRUCTIONS_LOADED_RC != 0 )); then
+  log_fail "traversal session_id: hook runner exited ${RUN_INSTRUCTIONS_LOADED_RC}"
+elif [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then
   log_fail 'traversal session_id escaped the temp root'
 else
   log_pass 'traversal session_id did not escape the temp root'
 fi
 rm -rf "$ESCAPE_ROOT"
+rm -f "$ESCAPE_ERR"
 
 # ---------------------------------------------------------------------------
 # 2. Modes on hook-created files (CWE-732)

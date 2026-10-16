@@ -6,7 +6,6 @@ maxTurns: 60
 effort: medium
 color: purple
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read
@@ -238,7 +237,8 @@ Task: "Design event-driven order system"
 ## Integration
 - **Receives from:** backend-system-architect (domain requirements), database-engineer (storage needs)
 - **Hands off to:** data-pipeline-engineer (event processing), code-quality-reviewer (validation)
-- **Skill references:** event-driven, streaming-api-patterns
+- **Skill references:** distributed-systems, api-design
+- **Load:** `Read("${CLAUDE_PLUGIN_ROOT}/skills/distributed-systems/SKILL.md")`.
 
 ## Delegation (CC 2.1.172+)
 

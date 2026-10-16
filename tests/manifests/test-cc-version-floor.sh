@@ -220,7 +220,144 @@ if [[ -f "$MARKETPLACE_JSON" ]]; then
     fi
 fi
 
-# 6. Idempotence: stamper should produce zero mutations on an already-stamped tree.
+# 6. .github/workflows/plugin-validation.yml :: CC install pins (#4686)
+#
+# The CC Plugin Validate and restricted smoke jobs install Claude Code to run
+# `claude plugin validate` and the smoke lane. Their comments said "pinned to
+# our supported floor", but the version was a literal (2.1.251) that nothing
+# stamped or checked, so it stayed behind when the floor moved to 2.1.277 and
+# CI validated the plugin on a build users are not allowed to run.
+#
+# Every `@anthropic-ai/claude-code@<version>` reference must either be the
+# literal SoT floor or a non-literal read of supported_floor from
+# shared/cc-support.json. Zero references is a FAIL, never a vacuous pass.
+#
+# scan_cc_pins <workflow-yml>: prints one line per bad pin.
+#   rc 0 = every pin is floor-fed, rc 1 = at least one bad pin,
+#   rc 2 = the file could not be observed (grep error or zero pin references).
+# Two scoping rules, both measured as holes in HOLD 6108025314:
+#   * Per step. The awk window opens at the pin's own `- name:` or `- uses:`
+#     step start, so a jq read in an EARLIER job cannot feed a pin whose own
+#     step lost the assignment (the second-job removal shape stayed green).
+#   * Code before `#` only, anchored at end of line. A literal left as
+#     `CC_FLOOR=2.1.251` with the jq read inside a trailing comment fails, and
+#     so does `|| CC_FLOOR=2.1.251` after the read: nothing but spaces may
+#     follow the closing parenthesis.
+scan_cc_pins() {
+    local yml="$1"
+    local pin_lines pin_rc=0 pin_total ref pin_var pin_no feed feed_code bad=0
+    pin_lines=""
+    if ! pin_lines=$(grep -nE '@anthropic-ai/claude-code@' "$yml"); then pin_rc=$?; fi
+    pin_total=$(printf '%s' "$pin_lines" | awk 'NF{n++} END{print n+0}')
+    if [[ "$pin_rc" -gt 1 ]]; then
+        echo "could not observe (grep rc=$pin_rc)"
+        return 2
+    elif [[ "$pin_total" -eq 0 ]]; then
+        echo "zero @anthropic-ai/claude-code@ references; the probe cannot pass vacuously"
+        return 2
+    fi
+    while IFS= read -r pin_line; do
+        [[ -n "$pin_line" ]] || continue
+        ref="${pin_line#*@anthropic-ai/claude-code@}"
+        if [[ "$ref" =~ ^([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            if [[ "${BASH_REMATCH[1]}" != "$SOT" ]]; then
+                echo "line ${pin_line%%:*} installs ${BASH_REMATCH[1]}, want the floor '$SOT' (read supported_floor from shared/cc-support.json)"
+                bad=$((bad + 1))
+            fi
+        elif [[ "$ref" =~ ^\$\{?([A-Za-z_][A-Za-z0-9_]*) ]]; then
+            # A variable pin: the LAST non-comment assignment of that variable
+            # inside the pin's own step must be the jq read of supported_floor.
+            # The step start is the most recent `- name:` or `- uses:` line.
+            # Only a command-start assignment counts: `echo CC_FLOOR=$(jq ...)`
+            # prints the value, it does not feed the pin (CodeRabbit 4241672749).
+            pin_var="${BASH_REMATCH[1]}"
+            pin_no="${pin_line%%:*}"
+            feed=$(awk -v n="$pin_no" -v v="$pin_var" '
+                NR < n && /^[[:space:]]*-[[:space:]]+(name|uses):/ {step = NR; last = ""}
+                NR < n && NR > step && $0 !~ /^[[:space:]]*#/ && $0 ~ ("^[[:space:]]*" v "=") {last = $0}
+                END {print last}' "$yml")
+            # `#` starts a comment; whatever follows it is prose, not the
+            # assignment. Judging only the code before it, a literal pin whose
+            # jq text sits in a trailing comment can no longer satisfy the
+            # anchored match.
+            feed_code="${feed%%#*}"
+            if ! [[ "$feed_code" =~ ^[[:space:]]*$pin_var=\$\(jq\ -e?r\ \'\.supported_floor\'\ shared/cc-support\.json\)[[:space:]]*$ ]]; then
+                echo "line $pin_no installs \$$pin_var, but its last in-step assignment is '${feed_code#"${feed_code%%[![:space:]]*}"}', want $pin_var=\$(jq -er '.supported_floor' shared/cc-support.json) inside the pin's own step"
+                bad=$((bad + 1))
+            fi
+        else
+            echo "line ${pin_line%%:*} is neither a literal floor nor a variable fed from supported_floor in shared/cc-support.json"
+            bad=$((bad + 1))
+        fi
+    done <<< "$pin_lines"
+    [[ $bad -eq 0 ]]
+}
+
+# CC_FLOOR_PV_YML overrides the scan target so the fault shapes in
+# fixtures/cc-version-floor/ (and ad-hoc copies of the real file) can be
+# replayed through this same check.
+PV_YML="${CC_FLOOR_PV_YML:-$PROJECT_ROOT/.github/workflows/plugin-validation.yml}"
+if [[ ! -f "$PV_YML" ]]; then
+    log_fail "plugin-validation.yml" "missing"
+else
+    SCAN_OUT=""
+    SCAN_RC=0
+    SCAN_OUT=$(scan_cc_pins "$PV_YML") || SCAN_RC=$?
+    if [[ "$SCAN_RC" -gt 1 ]]; then
+        log_fail "plugin-validation.yml CC pins" "$SCAN_OUT"
+    elif [[ "$SCAN_RC" -eq 0 ]]; then
+        log_pass "plugin-validation.yml CC pins track the floor ($(grep -cE '@anthropic-ai/claude-code@' "$PV_YML") references)"
+    else
+        while IFS= read -r pin_err; do
+            if [[ -n "$pin_err" ]]; then
+                log_fail "plugin-validation.yml CC pin" "$pin_err"
+            fi
+        done <<< "$SCAN_OUT"
+    fi
+fi
+
+# 6c. The shapes that brought #4686 back must each FAIL the pin scan.
+#     HOLD 6108025314 measured the first three green on the merged tree;
+#     CodeRabbit 4241672749 adds the echo shape: `echo CC_FLOOR=$(jq ...)`
+#     prints the floor instead of assigning it. The fixtures under
+#     fixtures/cc-version-floor/ carry one shape each; a scan that passes
+#     any of them cannot fail in the way it exists to fail.
+FIXTURE_DIR="$SCRIPT_DIR/fixtures/cc-version-floor"
+for shape in trailing-comment or-fallback second-job-missing echo-assignment; do
+    fx="$FIXTURE_DIR/$shape.yml"
+    if [[ ! -f "$fx" ]]; then
+        log_fail "check 6 fixture ($shape)" "missing fixture file"
+        continue
+    fi
+    FX_RC=0
+    scan_cc_pins "$fx" >/dev/null 2>&1 || FX_RC=$?
+    if [[ "$FX_RC" -eq 1 ]]; then
+        log_pass "check 6 rejects the $shape fixture"
+    else
+        log_fail "check 6 fixture ($shape)" "scan rc=$FX_RC (want 1) on a shape that restores #4686"
+    fi
+done
+
+# 6b. plugin-validation.yml :: a failed CC install must fail the step (#4686 follow-up).
+# "2>/dev/null || true" on the install made a broken install look like "CLI not available"
+# and skipped plugin validation with a green job.
+if [[ -f "$PV_YML" ]]; then
+    set +e
+    SOFT=$(grep -nE '(claude-code@|install\.cjs|INSTALL_CJS).*\|\| *true' "$PV_YML")
+    SOFT_RC=$?
+    set -e
+    if [[ "$SOFT_RC" -gt 1 ]]; then
+        log_fail "plugin-validation.yml CC install" "could not observe (grep rc=$SOFT_RC)"
+    elif [[ -n "$SOFT" ]]; then
+        while IFS= read -r soft_line; do
+            log_fail "plugin-validation.yml CC install" "line ${soft_line%%:*} swallows a failed install with || true"
+        done <<< "$SOFT"
+    else
+        log_pass "plugin-validation.yml CC installs fail loudly (no || true)"
+    fi
+fi
+
+# 7. Idempotence: stamper should produce zero mutations on an already-stamped tree.
 set +e
 STAMP_OUT=$(node "$PROJECT_ROOT/scripts/stamp-cc-support.mjs" 2>&1)
 STAMP_RC=$?

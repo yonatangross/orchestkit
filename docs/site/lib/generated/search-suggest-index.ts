@@ -470,6 +470,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/foundations/worktree",
+    "title": "Worktree isolation",
+    "headings": [
+      "What worktree.bgIsolation does",
+      "When to opt in",
+      "Recommendation: do not set it in OrchestKit",
+      "Related: the EnterWorktree bug class"
+    ]
+  },
+  {
     "url": "/docs/getting-started/agy",
     "title": "Antigravity",
     "headings": [
@@ -706,6 +716,18 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/guides/output-modes",
+    "title": "Output modes: try them",
+    "headings": [
+      "Pick a mode",
+      "One answer, three surfaces",
+      "Operator or novice",
+      "Done sign-off",
+      "Display env vars",
+      "Copy as prompt"
+    ]
+  },
+  {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
     "headings": [
@@ -788,7 +810,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "171 Hooks: What Fires When",
+    "title": "162 Hooks: What Fires When",
     "headings": [
       "What Is a Hook?",
       "By the Numbers",
@@ -1637,6 +1659,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Tools Available",
       "Skills Used",
       "Directive",
+      "Working From a Worktree",
       "MCP Tools (Optional: skip if not configured)",
       "Concrete Objectives",
       "Output Format",
@@ -2319,6 +2342,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "title": "OrchestKit Reference",
     "headings": [
       "Browse by type",
+      "Find a skill",
       "Demo Compositions"
     ]
   },
@@ -3398,7 +3422,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "🎯 Quick Start",
       "Effort levels (CC 2.1.111+ adds xhigh)",
       "Argument Resolution",
-      "Step 0: resolve a conversational reference first",
+      "Step 0: resolve a pronoun target first",
       "Effort detection (CC 2.1.120+)",
       "STEP -1: MCP Probe + Resume Check",
       "Phase Handoffs",
@@ -3814,6 +3838,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "diagnose → /ork:fix-issue (investigation-first)",
       "optimize → /goal loop (no dedicated skill)",
       "cover → /ork:cover",
+      "e2e → /ork:expect (run) or /ork:cover (write)",
       "design → /ork:brainstorm",
       "build → /ork:implement",
       "review → /ork:review-pr",
@@ -4887,7 +4912,15 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Effort on newly released models (2.1.280)",
       "CC 2.1.285 and 2.1.288 Settings",
       "Auto mode becomes the headless default (2.1.285)",
-      "CLAUDECODEDISABLESTRUCTUREDOUTPUTS, gateway opt-out (2.1.288)"
+      "CLAUDECODEDISABLESTRUCTUREDOUTPUTS, gateway opt-out (2.1.288)",
+      "CC 2.1.290 to 2.1.296 Settings",
+      "CLAUDECODEWEBSEARCHREFILLSPERHOUR, WebSearch budget (2.1.290)",
+      "MCP protocol and description limits (2.1.292, 2.1.295, 2.1.296)",
+      "529 backoff and the retry watchdog cap (2.1.292, 2.1.295, 2.1.296)",
+      "onFailure: \"block\" for command and HTTP hooks (2.1.295)",
+      "CLAUDECODEWORKFLOWSUBAGENTMODEL, one model for workflow agents (2.1.296)",
+      "autoCompactWindow in subagent frontmatter (2.1.296)",
+      "Read allowlarge (2.1.296)"
     ]
   },
   {
@@ -5474,6 +5507,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Phase 2: Reconcile tokens",
       "Phase 3: Dedup components",
       "Phase 4: Scaffold",
+      "Collect and merge the component worktrees",
       "Phase 5: Provenance",
       "Output: import manifest",
       "Hooks",
@@ -7135,6 +7169,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Reversibility Timeline",
       "Key Rules",
       "When to Use Each Pattern",
+      "Done sign-off (--signoff)",
       "Related Skills",
       "Rules (4)",
       "Create structured ASCII architecture diagrams to communicate system design without external tools: MEDIUM",
@@ -7178,7 +7213,24 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Accessibility",
       "Echo-Chamber Mitigation",
       "History",
-      "References (1)",
+      "References (3)",
+      "Dials",
+      "The announce line",
+      "Flags",
+      "Inference when no flag is given",
+      "The ask guardrail",
+      "--decide",
+      "Personal skills named glyph",
+      "Js Art",
+      "The contract",
+      "Page skeleton",
+      "The kernel (paste once, after the pattern)",
+      "Pattern 1: flow dots",
+      "Pattern 2: gate",
+      "Pattern 3: before/after meter",
+      "Pattern 4: real-data bars",
+      "Capture to mp4 or gif",
+      "Before you call it done",
       "Page Route",
       "1. The house kit comes first",
       "2. Where a page lands (no kit)",
@@ -7454,7 +7506,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "url": "/docs/reference/skills/implement/references",
     "title": "Implement: References",
     "headings": [
-      "References (20)",
+      "References (21)",
       "Agent Phases",
       "128K Output Token Strategy",
       "Phase 4: Architecture Design (5 Agents)",
@@ -7469,6 +7521,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Agent 2: Frontend, Complete Implementation",
       "Agent 3: AI Integration (if needed)",
       "Agent 4: Test Suite, Complete Coverage",
+      "After Phase 5: merge, then run the tests",
       "Phase 5: Teams Mode",
       "Phase 6: Integration Verification (4 Agents)",
       "Real-Service Detection",
@@ -7477,6 +7530,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Agent 2: Frontend Integration",
       "Agent 3: Code Quality Review",
       "Agent 4: Security Audit",
+      "After Phase 6: merge the fixer worktrees",
       "Security Checks",
       "Phase 6: Teams Mode",
       "Phase 7: Scope Creep Detection",
@@ -7506,7 +7560,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Phase 5: Agent Teams Implementation",
       "Phase 6: Agent Teams Integration",
       "Phase 6b: Team Teardown (Agent Teams Only)",
-      "1. Merge Worktrees (if used)",
+      "1. Merge Worktrees",
       "2. Shut Down Teammates",
       "3. Clean Up",
       "Agent Teams Security Audit",
@@ -7574,6 +7628,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Decision Logic",
       "Comparison Table",
       "Fallback",
+      "Phase 6 Pattern Check",
       "Scope Creep Detection",
       "Warning Signs",
       "Detection Checklist",
@@ -9780,6 +9835,25 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/prompt-focus",
+    "title": "Prompt Focus",
+    "headings": [
+      "Quick Reference",
+      "Quick Start Example",
+      "Workflow",
+      "Key Decisions",
+      "Common Mistakes",
+      "Rules",
+      "References (2)",
+      "Claude Code",
+      "How It Works",
+      "Sources (read only)",
+      "Who wrote it",
+      "Areas",
+      "Re-typed asks"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/python-backend",
     "title": "Python Backend",
     "headings": [
@@ -10409,7 +10483,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Quick Start",
       "Argument Resolution",
       "STEP 0: Verify User Intent with AskUserQuestion",
-      "\"Ultra\" mode → defer to claude ultrareview (CC 2.1.120+, #1542)",
+      "\"Ultra\" mode runs outside this skill",
       "STEP 0b: Select Orchestration Mode",
       "MCP Probe (CC 2.1.71)",
       "CRITICAL: Task Management is MANDATORY",
@@ -10424,13 +10498,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Anti-Sycophancy Response Protocol",
       "Agent Status Protocol",
       "Domain-Aware Agent Selection",
-      "Phase 4: Run Validation",
+      "Phase 4: Read CI (ground truth)",
       "Phase 4.5: Adversarial Refutation (effort-gated)",
       "Cross-model refuter (optional, provenance-labeled, cost-gated)",
       "Phase 4.6: Rule-check Mode (opt-in, --rules)",
       "Phase 5: Synthesize Review",
       "Memory Persistence",
-      "Phase 6: Submit Review",
+      "Phase 6: Submit Review (only with --post)",
       "Phase 8c: Verdict KG writeback (signal-fired, optional)",
       "CC 2.1.20 Enhancements",
       "PR Status Enrichment",
@@ -10455,7 +10529,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Structured Output Contract",
       "Agent Prompts",
       "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM",
-      "References (12)",
+      "References (11)",
       "Adversarial Refutation",
       "Bindings",
       "Scope filter (which findings get a refuter)",
@@ -10493,17 +10567,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Ceilings",
       "The survivor filter",
       "In the report",
+      "Standards pass (--standards)",
       "Task Metrics Template",
       "Ultrareview Gate",
       "Trigger evaluation (automatic, Phase 2.5, BEFORE the review call)",
       "When triggers fire: voice-friendly prompt",
       "After user response",
-      "Opt-out",
-      "Validation Commands",
-      "Backend",
-      "Frontend",
-      "Integration Tests (if infrastructure detected)",
-      "Test Adequacy Check"
+      "Opt-out"
     ]
   },
   {
@@ -12732,18 +12802,37 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "What Are Reference Skills?",
       "Accessibility",
+      "Ai Safety Auditor",
       "Backend & Distributed Systems",
       "CI/CD",
       "Code Quality",
+      "Component Curator",
       "Data Pipelines & RAG",
       "Database",
+      "Debugging",
+      "Video & Demo Production",
+      "Deployment Manager",
+      "Design Context Extractor",
+      "Design System Architect",
+      "API Emulation",
+      "Eval Runner",
+      "Event-Driven Architecture",
+      "Expect Agent",
       "Frontend Performance",
       "Frontend & UI",
+      "Genui Architect",
+      "Git Operations Engineer",
+      "Infrastructure Architect",
       "LLM, RAG & AI",
+      "Market Intelligence",
+      "Observability & Metrics",
       "Multimodal Specialist",
       "Product & Strategy",
       "Python Performance",
+      "Release Engineer",
       "Security",
+      "Security Layer Auditor",
+      "System Design Reviewer",
       "Testing",
       "Web Research",
       "LangGraph & Workflows",
@@ -12995,6 +13084,27 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "9. Git Operations Blocked",
       "10. Slow Performance",
       "Still Stuck?"
+    ]
+  },
+  {
+    "url": "/docs/whats-new-v10",
+    "title": "What's new in v10",
+    "headings": [
+      "Hosts",
+      "1. Antigravity is a first-class host",
+      "2. More hosts get more of the plugin",
+      "Models and Claude Code",
+      "3. The Claude 5.5 models",
+      "4. Claude Code 2.1.278 to 2.1.296",
+      "Review and ship",
+      "5. A stronger PR review",
+      "6. Workflow scripts for verify and assess",
+      "Tests and evals",
+      "7. Generated tests must test behaviour",
+      "8. Error analysis before evals",
+      "Safety and output",
+      "9. Guards that you turn on: careful and freeze",
+      "10. Output modes and pages you can share"
     ]
   }
 ];

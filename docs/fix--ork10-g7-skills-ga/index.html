@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA bugs, skills: fork, hooks and target fixes</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>GA bugs, skills: fork, hooks and target fixes</h1>
+  <p class="lede">3 fixes on one branch. Each fix landed as two commits: a test that failed first, then the change that made it pass. A second agent re-ran each test red, then green.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Issue</th><th>What</th><th>Before the fix</th><th>After</th></tr><tr><td>#4672</td><td>assess, audit-full, cover, verify run inline with a hard fan-out rule (supersedes #4673)</td><td class='bad'>8 FAILs: assess, audit-full, cover, verify each &quot;calls Workflow( but sets context: fork&quot; and &quot;no **Fan-out rule:** line at its Workflow default&q</td><td class='ok'>PASS: 6 skills call Workflow(, none sets context: fork, and 4 carry the fan-out rule | OK: 72 non-invocable skills; guid</td></tr><tr><td>#4683</td><td>No forked skill carries hooks; loaders become body steps; inline hooks are once-only</td><td class='bad'>14 FAIL lines, exit 1: 6 &quot;context: fork with a hooks: block; a fork never runs them (#4683)&quot; (brainstorm, explore, fix-issue, implement, setup, visual</td><td class='ok'>PASS: 9 skills declare hooks, none is a fork, and every inline hook outside the session guards is once: true (exit 0)</td></tr><tr><td>#3780</td><td>One shared target-resolution rule, split for inline and forked skills</td><td class='bad'>FAIL: missing src/shared/rules/target-resolution.md; FAIL: assess/verify/implement/fix-issue/cover/review-pr: does not Read(&quot;../../shared/rules/target-reso</td><td class='ok'>OK: 6 target-taking skills read target-resolution.md; forked skills check the target before dispatch</td></tr></table></section>
+  <section class="card"><h2>What changed</h2><ul><li><b>#4672</b>: I ported the relevant parts of #4673 by hand onto fix/ork10-g7-skills-ga. I did not touch #4673&#x27;s branch or its worktree.
+
+What changed:
+- assess, audit-full, cover and verify no longer set context: fork. I also removed the fork-only background: false line and the #3093 comment from each. All four now run inline, where the Workflow tool exists.
+- Each of the four has a new &quot;**Fan-out rule:**&quot; line at i</li><li><b>#4683</b>: I reset to base 6395e0357 and redid the work as two commits. The red commit 9901c5c58 holds the test in its final form, so the fix commit no longer edits it. The frontmatter regexes now use -{3} rather than a literal triple hyphen. The fix commit 15b9c3477 applies the same source changes as the rejected b83abb653, then reruns `npm run build`.
+
+Skeptic point 1 (stale plugins copy) is fixed. After the build, every file</li><li><b>#3780</b>: I followed the approved plan (Option 0: one shared rule, inline and forked halves, plus a structural test). One thing differs from the plan&#x27;s premise. At this HEAD only implement and fix-issue have `context: fork`. assess, verify and cover now run inline (#4672 moved Workflow skills inline), and review-pr was already inline. So the test reads each skill&#x27;s frontmatter to decide which half applies, instead of</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+</body>
+</html>
