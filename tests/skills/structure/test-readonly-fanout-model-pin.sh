@@ -35,22 +35,26 @@ if [[ ! -f "$RULE" ]]; then
   exit 1
 fi
 
-# Prints "<total> <unpinned>". The pin must sit in the same call: before the next subagent_type.
+# Parse Python examples without executing them. Prompt strings cannot supply arguments.
 counts=$(python3 - "$RULE" <<'PYEOF'
+import ast
 import re
 import sys
 
 text = open(sys.argv[1], encoding="utf-8").read()
 total = 0
 bad = 0
-for m in re.finditer(r'subagent_type="Explore"', text):
-    total += 1
-    window = text[m.end(): m.end() + 80]
-    nxt = window.find("subagent_type")
-    if nxt != -1:
-        window = window[:nxt]
-    if 'model="haiku"' not in window:
-        bad += 1
+for block in re.findall(r"^```python\s*\n(.*?)^```", text, re.MULTILINE | re.DOTALL):
+    for call in ast.walk(ast.parse(block)):
+        if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name) or call.func.id != "Agent":
+            continue
+        types = [kw.value for kw in call.keywords if kw.arg == "subagent_type"]
+        if not any(isinstance(value, ast.Constant) and value.value == "Explore" for value in types):
+            continue
+        total += 1
+        models = [kw.value for kw in call.keywords if kw.arg == "model"]
+        if len(types) != 1 or len(models) != 1 or not isinstance(models[0], ast.Constant) or models[0].value != "haiku":
+            bad += 1
 print(f"{total} {bad}")
 PYEOF
 )
