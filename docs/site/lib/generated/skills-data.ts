@@ -780,15 +780,14 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy is enforced by the Claude Code sandbox, not by this skill. Use when automating browser workflows that need safety limits.",
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy can be enforced by the Claude Code sandbox when the operator enables it, not by this skill. Use when automating browser workflows that need safety rules.",
     "version": "6.1.0",
-    "sha256": "04238f4f31c2fb911804a94813f639891dcb01990b21f42c8317b9abe9da89bd",
+    "sha256": "0b29cc2ce8bf03caa855524c4f705a5004e81d36c924b6dc1529ba8dcae118ef",
     "author": "OrchestKit",
     "tags": [
       "browser",
       "automation",
       "security",
-      "rate-limiting",
       "scraping-ethics"
     ],
     "userInvocable": false,
@@ -4472,7 +4471,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.1.0",
-    "sha256": "5a8fb89b6e3a0d42c9b5633773358f2959d54fd8869eeec8fc9dec63a72b54f0",
+    "sha256": "b675fb874a3b1c6940bcd0b5d4539ad19ccbdc0c2980b757a824443851299a69",
     "author": "OrchestKit",
     "tags": [
       "onboarding",

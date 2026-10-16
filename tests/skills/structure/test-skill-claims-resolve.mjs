@@ -112,7 +112,7 @@ for (const sub of ["references", "rules"]) {
   }
 }
 const HOOK_ACTS =
-  /\b(?:safety[- ]hook|the hook|by the hook|hook (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers))\b|[,|] hook warns/i;
+  /\b(?:safety[- ]hook|the hook|by the hook|hook (?:treats|pipes|warns|still|allows|flags|checks|blocks|enforces|reads|applies|covers)|hook's (?:url|rate|robots|checks))\b|[,|] hook warns/i;
 for (const f of btFiles) {
   readFileSync(join(btDir, f), "utf8")
     .split("\n")
