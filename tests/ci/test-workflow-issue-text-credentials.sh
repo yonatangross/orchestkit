@@ -394,6 +394,67 @@ jobs:
       - uses: actions/github-script@v7
       - run: echo see https://github.com/x/y"
 
+# XREVIEW 6212345276 (full sweep). The trust boundary: a workflow whose
+# trigger carries untrusted text (issues, issue_comment, discussion,
+# pull_request_target, workflow_run, workflow_call, ...) may hold NO
+# credential in any job, however the text is read: shell spellings, the
+# event file, github-script, called scripts, composite actions, job outputs
+# and artifacts are all inside it. Each row is a sweep fixture; each layer
+# must flag it on its own.
+I='on: issues
+permissions: write-all'
+form root-wildcard 1 1 1 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      BODY: \${{ toJSON(github.*) }}
+    steps:
+      - run: echo \"\$BODY\""
+form root-wildcard-spaced 1 1 1 "permissions: write-all
+jobs:
+  t:
+    runs-on: x
+    env:
+      BODY: \${{ toJSON(github . *) }}
+    steps:
+      - run: echo \"\$BODY\""
+for cmd in "'gh' 'issue' 'view' 1" 'g\\h i\\ssue v\\iew 1' 'gh --repo o/r issue view 1' 'gh issue \"\$VERB\" 1' "printf '%s' Z2ggaXNzdWUgdmlldyAx | base64 -d | bash" 'jq -r .issue.body \"\$GITHUB_EVENT_PATH\"' 'bash scripts/read_issue.sh'; do
+  m=$((${m:-0} + 1))
+  printf 'name: probe\n%s\njobs:\n  t:\n    runs-on: x\n    steps:\n      - run: |\n          %s\n' "${I}" "${cmd}" > "${SCRATCH}/boundary-${m}.yml"
+  expect "boundary-shell-${m}" "${SCRATCH}/boundary-${m}.yml" 1 "untrusted text"
+done
+printf 'name: probe\n%s\njobs:\n  t:\n    runs-on: x\n    steps:\n      - uses: actions/github-script@v7\n        with:\n          script: console.log(context.payload.issue.body)\n' "${I}" > "${SCRATCH}/boundary-gs.yml"
+expect boundary-github-script "${SCRATCH}/boundary-gs.yml" 1 "untrusted text"
+printf 'name: probe\n%s\njobs:\n  t:\n    runs-on: x\n    steps:\n      - uses: actions/checkout@v4\n      - uses: ./.github/actions/read-issue\n' "${I}" > "${SCRATCH}/boundary-composite.yml"
+expect boundary-composite-action "${SCRATCH}/boundary-composite.yml" 1 "untrusted text"
+printf 'name: probe\non: issues\njobs:\n  call:\n    permissions: write-all\n    uses: owner/repo/.github/workflows/triage.yml@main\n' > "${SCRATCH}/boundary-caller.yml"
+expect boundary-reusable-caller "${SCRATCH}/boundary-caller.yml" 1 "untrusted text"
+printf 'name: probe\non: issues\njobs:\n  fetch:\n    permissions: {}\n    runs-on: x\n    outputs:\n      body: ${{ steps.r.outputs.body }}\n    steps:\n      - id: r\n        run: echo body=x >> "$GITHUB_OUTPUT"\n  apply:\n    needs: fetch\n    permissions: write-all\n    runs-on: x\n    env:\n      B: ${{ needs.fetch.outputs.body }}\n    steps:\n      - run: echo "$B"\n' > "${SCRATCH}/boundary-outputs.yml"
+expect boundary-job-outputs "${SCRATCH}/boundary-outputs.yml" 1 "job 'apply'" "untrusted text"
+printf 'name: probe\non:\n  issue_comment:\n    types: [created]\njobs:\n  t:\n    runs-on: x\n    env:\n      M: ${{ secrets.MODEL_TOKEN }}\n    steps:\n      - run: echo ok\n' > "${SCRATCH}/boundary-comment-secret.yml"
+expect boundary-comment-secret "${SCRATCH}/boundary-comment-secret.yml" 1 "untrusted text"
+printf 'name: probe\non: [push, workflow_call]\njobs:\n  t:\n    runs-on: x\n    permissions:\n      id-token: write\n    steps:\n      - run: echo ok\n' > "${SCRATCH}/boundary-callee.yml"
+expect boundary-callee-id-token "${SCRATCH}/boundary-callee.yml" 1 "untrusted text"
+# Each boundary fixture must be flagged by EACH layer on its own.
+for f in "${SCRATCH}"/boundary-[0-9]*.yml "${SCRATCH}"/boundary-gs.yml "${SCRATCH}"/boundary-composite.yml \
+  "${SCRATCH}"/boundary-caller.yml "${SCRATCH}"/boundary-outputs.yml "${SCRATCH}"/boundary-comment-secret.yml \
+  "${SCRATCH}"/boundary-callee.yml; do
+  layers="$(python3 "${LAYER_RC}" "${SCAN}" "${f}" 2>&1 | tail -1)" || true
+  if [ "${layers}" != "1 1" ]; then
+    echo "FAIL[layers-$(basename "${f}" .yml)]: parsed/lines '${layers}', want '1 1'"; fail=1
+  else
+    echo "PASS[layers-$(basename "${f}" .yml)]: parsed 1, lines 1"
+  fi
+done
+# Controls: the safe apply side of the split (scoped write, GITHUB_TOKEN
+# only) on issues stays clean, and a credential job on a trusted trigger
+# is outside the boundary rule.
+printf 'name: probe\non: issues\njobs:\n  apply:\n    runs-on: x\n    permissions:\n      issues: write\n    env:\n      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n    steps:\n      - run: gh issue comment 1 --body-file c.md\n' > "${SCRATCH}/boundary-safe-apply.yml"
+expect boundary-safe-apply "${SCRATCH}/boundary-safe-apply.yml" 0 "PASS"
+printf 'name: probe\non: push\npermissions: write-all\njobs:\n  t:\n    runs-on: x\n    steps:\n      - run: echo ok\n' > "${SCRATCH}/boundary-trusted.yml"
+expect boundary-trusted-trigger "${SCRATCH}/boundary-trusted.yml" 0 "PASS"
+
 # AND rule, both directions. The parser joins a double-quoted YAML string
 # across an escaped line break, so it reads `gh issue view` where the line
 # reader sees two halves; the parsed layer flags it, so the file fails. A

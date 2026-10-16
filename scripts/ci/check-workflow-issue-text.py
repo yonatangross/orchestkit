@@ -8,6 +8,19 @@ write-scoped app token) plus the CLAUDE_CODE_OAUTH_TOKEN secret while issue
 text was in scope. Public attacks on this exact shape: Flatt Security
 2026-06-01 and Microsoft 2026-06-05.
 
+TRUST BOUNDARY (what this lint certifies, XREVIEW 6212345276):
+  - CERTIFIED: a workflow whose trigger carries untrusted text (issues,
+    issue_comment, discussion, discussion_comment, pull_request_target,
+    pull_request_review, pull_request_review_comment, workflow_run, and
+    workflow_call, which inherits its caller's event) holds NO credential in
+    any job. That holds however the text is read (shell spellings, the event
+    file, github-script, scripts, composite actions, reusable workflows, job
+    outputs, artifacts), because no reader has to be right.
+  - BEST EFFORT, outside the boundary (push, schedule, workflow_dispatch and
+    the rest): the read rules below catch the named shapes only. A
+    credential job on such a trigger that fetches issue text in any other
+    way needs human review; this lint does not certify it.
+
 Rule, per job (job-level permissions win over top-level, like Actions):
 
   READS issue/comment text, in the job OR in the workflow env and defaults
@@ -141,6 +154,49 @@ LINE_COMPUTED_INDEX = re.compile(
     re.IGNORECASE,
 )
 LINE_WHOLE_GITHUB = re.compile(r"\bgithub\s*(?=[)\],|&=!<>}?])", re.IGNORECASE)
+LINE_WILDCARD = re.compile(
+    r"\bgithub(?:" + _seg("event")
+    + r"""(?:\s*(?:\.\s*(?:issue|comment)\b|\[\s*['"](?:issue|comment)['"]\s*\]))?)?\s*\.\s*\*""",
+    re.IGNORECASE,
+)
+
+# The trust boundary (XREVIEW 6212345276 full sweep). Matching YAML text can
+# never prove how a job reads issue text: shell spellings, the event file,
+# github-script, called scripts, composite actions, reusable workflows, job
+# outputs and artifacts all reach it. So a workflow whose trigger carries
+# untrusted issue, comment, discussion or fork text may hold NO credential
+# in any job. workflow_call inherits its caller's event, so it is inside.
+# Outside the boundary (push, schedule, workflow_dispatch, ...) the read
+# checks are best effort over the shapes named above; a credential job
+# there that fetches issue text in another way needs human review.
+UNTRUSTED_TRIGGERS = (
+    "issues", "issue_comment", "discussion", "discussion_comment",
+    "pull_request_target", "pull_request_review", "pull_request_review_comment",
+    "workflow_run", "workflow_call",
+)
+LINE_UNTRUSTED_TRIGGER = re.compile(r"\b(" + "|".join(UNTRUSTED_TRIGGERS) + r")\b")
+
+
+def on_trigger_names(lines, spans):
+    """Layer 2 trigger read: the names in `on:` as a scalar, a flow list, or
+    the keys and list items at the first indent of its block. Comments and
+    nested values (descriptions, branch filters) are not triggers."""
+    if "on" not in spans:
+        return []
+    start, end = spans["on"]
+    first = re.sub(r"(?:^|\s)#.*$", "", lines[start].split(":", 1)[1]).strip()
+    names = re.findall(r"[A-Za-z_]+", first) if first else []
+    body = [re.sub(r"(?:^|\s)#.*$", "", ln) for ln in lines[start + 1:end]]
+    body = [ln for ln in body if ln.strip()]
+    if body:
+        indent = min(len(ln) - len(ln.lstrip()) for ln in body)
+        for ln in body:
+            if len(ln) - len(ln.lstrip()) != indent:
+                continue
+            m = re.match(r"""\s*(?:-\s*)?["']?([A-Za-z_]+)["']?\s*(?::|$)""", ln)
+            if m:
+                names.append(m.group(1))
+    return names
 INERT_FIELD = {"issue": "number", "comment": "id"}
 
 
@@ -157,6 +213,8 @@ def line_issue_reads(text):
         reads.add("github context (whole object)")
     if LINE_COMPUTED_INDEX.search(text):
         reads.add("github access the lint cannot classify (computed index)")
+    if LINE_WILDCARD.search(text):
+        reads.add("github wildcard")
     return reads
 
 
@@ -263,6 +321,7 @@ def analyze_lines(path):
     if structural:
         return [], [f"{path}:{e}" for e in structural]
     spans = top_level_spans(lines)
+    untrusted_triggers = set(LINE_UNTRUSTED_TRIGGER.findall(" ".join(on_trigger_names(lines, spans))))
 
     top_perms = ""
     if "permissions" in spans:
@@ -389,6 +448,12 @@ def analyze_lines(path):
                 f"({', '.join(reads)}) while holding {', '.join(sorted(set(creds)))}. "
                 "Split the job so no job holds both untrusted text and a credential (#4747)."
             )
+        if untrusted_triggers and creds:
+            findings.append(
+                f"{path}: job '{name}' holds {', '.join(sorted(set(creds)))} in a workflow "
+                f"triggered by {', '.join(sorted(untrusted_triggers))}, which carries untrusted text. "
+                "Inside this trust boundary no job may hold a credential, however the text is read (#4747)."
+            )
     return findings, errors
 
 
@@ -510,6 +575,8 @@ def _classify_github(after):
     while True:
         m = _IDENT.match(rest, pos)
         if not m:
+            if rest[pos:pos + 1] == "." or (not path and rest[:1] == "."):
+                return "github wildcard or unclassified path"
             break
         path.append(m.group(1))
         pos = m.end()
@@ -559,6 +626,14 @@ def analyze_parsed(path):
         return [], [f"{path}: no jobs mapping after parsing"]
 
     top_perms = doc.get("permissions")
+    on = doc.get("on", doc.get(True))  # YAML 1.1 loads a bare on key as True
+    if isinstance(on, str):
+        trig = {on}
+    elif isinstance(on, (list, dict)):
+        trig = {t for t in on if isinstance(t, str)}
+    else:
+        trig = set()
+    untrusted_triggers = trig & set(UNTRUSTED_TRIGGERS)
     top_secrets = _secret_creds(doc.get("env"))
     inherited = [doc.get("env"), doc.get("defaults")]
     findings = []
@@ -579,6 +654,12 @@ def analyze_parsed(path):
                 f"{path}: job '{name}' reads issue/comment text "
                 f"({', '.join(reads)}) while holding {', '.join(sorted(creds))}. "
                 "Split the job so no job holds both untrusted text and a credential (#4747)."
+            )
+        if untrusted_triggers and creds:
+            findings.append(
+                f"{path}: job '{name}' holds {', '.join(sorted(set(creds)))} in a workflow "
+                f"triggered by {', '.join(sorted(untrusted_triggers))}, which carries untrusted text. "
+                "Inside this trust boundary no job may hold a credential, however the text is read (#4747)."
             )
     return findings, errors
 
