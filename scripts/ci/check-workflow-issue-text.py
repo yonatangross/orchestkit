@@ -46,10 +46,11 @@ import os
 import re
 import sys
 
-TOP_KEY = re.compile(r"^([A-Za-z_-]+):")
+# A YAML key may be bare or quoted; both are the same key (XREVIEW 6209698795).
+TOP_KEY = re.compile(r"""^(?:"([^"]+)"|'([^']+)'|([A-Za-z_-]+))\s*:""")
 JOB_PERM_INDENT = 4
 SECRET = re.compile(r"secrets\.([A-Za-z_][A-Za-z0-9_]*)")
-SECRETS_INHERIT = re.compile(r"^\s*secrets:\s*inherit\b", re.MULTILINE)
+SECRETS_INHERIT = re.compile(r"""^\s*["']?secrets["']?\s*:\s*["']?inherit\b""", re.MULTILINE)
 # Quoted keys and values grant the same thing (security review of 5b84e983).
 ID_TOKEN_WRITE = re.compile(r"""["']?id-token["']?\s*:\s*["']?write\b""")
 WRITE_ALL = re.compile(r"""(?<![A-Za-z-])["']?write-all\b""")
@@ -84,7 +85,7 @@ def top_level_spans(lines):
             continue
         m = TOP_KEY.match(line)
         if m:
-            spans.setdefault(m.group(1), []).append(i)
+            spans.setdefault(m.group(1) or m.group(2) or m.group(3), []).append(i)
     result = {}
     starts = sorted(i for idxs in spans.values() for i in idxs)
     for key, idxs in spans.items():
@@ -204,7 +205,7 @@ def analyze_file(path):
             errors.append(f"{path}: job '{name}' has no block body the lint can inspect")
             continue
         job_perms = top_perms
-        perm_re = re.compile(r"^ {%d}permissions:(.*)$" % prop_indent)
+        perm_re = re.compile(r"""^ {%d}["']?permissions["']?\s*:(.*)$""" % prop_indent)
         for j, line in enumerate(job_lines):
             if perm_re.match(line):
                 job_perms = block_value(job_lines, j, prop_indent)

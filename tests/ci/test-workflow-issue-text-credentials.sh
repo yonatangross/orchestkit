@@ -61,6 +61,13 @@ expect unsafe-write-all "${FIXTURES}/unsafe-write-all.yml" 1 \
 expect unsafe-quoted-id-token "${FIXTURES}/unsafe-quoted-id-token.yml" 1 \
   "unsafe-quoted-id-token" "reads issue/comment text" "id-token: write"
 
+# XREVIEW 6209698795: a quoted permissions key, at job or workflow level,
+# is the same key and must be read.
+expect unsafe-quoted-job-perms "${FIXTURES}/unsafe-quoted-job-permissions.yml" 1 \
+  "unsafe-quoted-job-permissions" "reads issue/comment text" "permissions: write-all"
+expect unsafe-quoted-top-perms "${FIXTURES}/unsafe-quoted-top-permissions.yml" 1 \
+  "unsafe-quoted-top-permissions" "reads issue/comment text" "id-token: write"
+
 # Safe split must pass (rc 0, PASS message).
 expect safe-split "${FIXTURES}/safe-read-model-apply-split.yml" 0 "PASS"
 
