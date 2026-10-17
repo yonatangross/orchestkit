@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.178](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.177...v10.0.0-beta.178) (2026-10-17)
+
+
+### Features
+
+* **explore:** trial Haiku pins for Agent tool explorers ([#4676](https://github.com/yonatangross/orchestkit/issues/4676)) ([f3cd6ba](https://github.com/yonatangross/orchestkit/commit/f3cd6ba7aba7c77c10c5926db0cf19c6fa603d38))
+
+
+### Bug Fixes
+
+* **review-pr:** require fan-out or blocked verdict ([#4743](https://github.com/yonatangross/orchestkit/issues/4743)) ([4e56eb5](https://github.com/yonatangross/orchestkit/commit/4e56eb5f7361a45bc357c1d9ffb65aae398e3cb6))
+* **traffic:** drop local referrers from snapshot rows ([#4626](https://github.com/yonatangross/orchestkit/issues/4626)) ([0fe5beb](https://github.com/yonatangross/orchestkit/commit/0fe5beba22aac523980db5b769242a32c3663a05))
+
+
+### Miscellaneous
+
+* **deps:** bump the npm-minor-patch group across 1 directory with 11 updates ([#4781](https://github.com/yonatangross/orchestkit/issues/4781)) ([ed07dfc](https://github.com/yonatangross/orchestkit/commit/ed07dfc22c23a7d03ed2e09a178950464ce3863b))
+* **deps:** bump the npm-minor-patch group across 1 directory with 3 updates ([#4720](https://github.com/yonatangross/orchestkit/issues/4720)) ([6e39e7a](https://github.com/yonatangross/orchestkit/commit/6e39e7afbcab270ffc0ce52d77f4ec1a1d9ab1d7))
+* **security:** renew braces audit exception to 2026-10-31 ([#4790](https://github.com/yonatangross/orchestkit/issues/4790)) ([0e0ccf6](https://github.com/yonatangross/orchestkit/commit/0e0ccf6cd331b3e0b13101efb0e42f081ab82f0f))
+
 ## [10.0.0-beta.177](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.176...v10.0.0-beta.177) (2026-10-16)
 
 
