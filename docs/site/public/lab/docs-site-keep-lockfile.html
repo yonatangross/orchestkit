@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs site install: what happens on a 401</title>
+<style>
+  :root { --bg: #faf8f3; --ink: #1d1d1b; --muted: #6b6b66; --line: #e2ddd1; --ok: #1f7a4d; --bad: #b3261e; --warn: #8a5a00; --card: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #16161a; --ink: #ece9e1; --muted: #9b998f; --line: #2c2c33; --ok: #4cc38a; --bad: #ff7b72; --warn: #e3b341; --card: #1e1e24; } }
+  body { margin: 0; font: 16px/1.5 ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .verdict { border-left: 4px solid var(--warn); background: var(--card); padding: 14px 18px; border-radius: 8px; margin-bottom: 28px; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 0 0 14px; background: var(--card); }
+  legend { font-weight: 600; padding: 0 6px; }
+  label { margin-right: 18px; cursor: pointer; }
+  .flow { display: grid; gap: 10px; margin: 22px 0; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 14px; }
+  .step.skip { opacity: .35; }
+  .step b { font-family: ui-sans-serif, system-ui, sans-serif; }
+  .out { font-weight: 700; padding: 14px 18px; border-radius: 10px; background: var(--card); border: 2px solid var(--line); }
+  .out.ok { border-color: var(--ok); color: var(--ok); }
+  .out.bad { border-color: var(--bad); color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; margin-top: 28px; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  @media (max-width: 640px) { .cmp { grid-template-columns: 1fr; } }
+  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Docs site install: what happens on a 401"><meta property="og:description" content="Pick the script version, VERCEL_ENV and the npm ci result to see what the docs install does: the old fallback deleted the lockfile and floated fumadocs-ui; the new one keeps it, and production refuses the stub."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/docs-site-keep-lockfile.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docs site install: what happens on a 401"><meta name="twitter:description" content="Pick the script version, VERCEL_ENV and the npm ci result to see what the docs install does: the old fallback deleted the lockfile and floated fumadocs-ui; the new one keeps it, and production refuses the stub."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Docs site install: what happens on a 401</h1>
+  <p class="sub">orchestkit#4737 · docs/site/scripts/vercel-install.sh · before and after</p>
+
+  <div class="verdict">Every production build failed from about 2026-10-11. The token got a 401, the old fallback deleted the lockfile, and fumadocs-ui floated to a version without <code>useSearchList</code> (TS2724). After this PR, the fallback keeps the lockfile, and production refuses the stub outright.</div>
+
+  <fieldset>
+    <legend>Script version</legend>
+    <label><input type="radio" name="ver" value="before"> before (main)</label>
+    <label><input type="radio" name="ver" value="after" checked> after (#4737)</label>
+  </fieldset>
+  <fieldset>
+    <legend>VERCEL_ENV</legend>
+    <label><input type="radio" name="env" value="production" checked> production</label>
+    <label><input type="radio" name="env" value="preview"> preview</label>
+  </fieldset>
+  <fieldset>
+    <legend>npm ci against GitHub Packages</legend>
+    <label><input type="radio" name="npm" value="ok"> token works</label>
+    <label><input type="radio" name="npm" value="401" checked> 401 (dead token)</label>
+  </fieldset>
+
+  <div class="flow" id="flow"></div>
+  <div class="out" id="out"></div>
+
+  <table>
+    <thead><tr><th>Package</th><th>Locked</th><th>Before, on a 401</th><th>After, on a 401 (preview)</th></tr></thead>
+    <tbody>
+      <tr><td>fumadocs-ui</td><td>16.15.17</td><td>16.17.x (floats, TS2724)</td><td>16.15.17</td></tr>
+      <tr><td>fumadocs-core</td><td>16.15.17</td><td>16.17.x</td><td>16.15.17</td></tr>
+      <tr><td>next</td><td>16.3.8</td><td>newest 16.x</td><td>16.3.8</td></tr>
+      <tr><td>@yonatan-hq/analytics</td><td>1.2.0</td><td>stub</td><td>stub (preview only)</td></tr>
+    </tbody>
+  </table>
+  <p class="sub">The "after" column was measured with real npm on a temp copy (stub swap, then <code>npm install --package-lock-only</code>).</p>
+
+  <p><button id="copy">Copy the current case as a prompt</button></p>
+</main>
+<script>
+  const pick = (n) => document.querySelector(`input[name=${n}]:checked`).value;
+  function steps(ver, env, npm) {
+    const s = [{ t: "npm ci --no-audit --no-fund", on: true }];
+    if (npm === "ok") return { s, out: ["ok", "Installs the real @yonatan-hq/analytics from the private registry. Build goes on."] };
+    if (ver === "after" && env === "production") {
+      s.push({ t: "VERCEL_ENV=production: refuse the stub, exit 1", on: true });
+      s.push({ t: "npm pkg set ... analytics-stub", on: false });
+      return { s, out: ["bad", "Build fails by name: NPM_TOKEN missing or dead. The site keeps its last good deployment."] };
+    }
+    s.push({ t: "npm pkg set dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub", on: true });
+    if (ver === "before") {
+      s.push({ t: "rm -f package-lock.json", on: true });
+      s.push({ t: "npm install --package-lock-only (fresh resolve)", on: true });
+      s.push({ t: "npm ci", on: true });
+      return { s, out: ["bad", "fumadocs-ui floats to 16.17.x, then TS2724: no useSearchList. Build fails, and in production the stub would have shipped silently."] };
+    }
+    s.push({ t: "npm install --package-lock-only (lock kept, only analytics changes)", on: true });
+    s.push({ t: "npm ci", on: true });
+    return { s, out: ["ok", "Preview builds with the stub. Every other version stays as locked."] };
+  }
+  function render() {
+    const { s, out } = steps(pick("ver"), pick("env"), pick("npm"));
+    document.getElementById("flow").innerHTML = s.map((x, i) =>
+      `<div class="step${x.on ? "" : " skip"}"><b>${i + 1}.</b> ${x.t}</div>`).join("");
+    const o = document.getElementById("out");
+    o.className = "out " + out[0];
+    o.textContent = out[1];
+  }
+  document.querySelectorAll("input").forEach((el) => el.addEventListener("change", render));
+  document.getElementById("copy").addEventListener("click", () => {
+    const text = `vercel-install.sh case: version=${pick("ver")}, VERCEL_ENV=${pick("env")}, npm ci=${pick("npm")}. Outcome: ${document.getElementById("out").textContent}`;
+    navigator.clipboard.writeText(text);
+  });
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -23,7 +23,6 @@ import {
   SearchDialogList,
   SearchDialogListItem,
   SearchDialogOverlay,
-  useSearchList,
   type SharedProps,
 } from "fumadocs-ui/components/dialog/search";
 import {
@@ -62,7 +61,6 @@ const FACETS: { value: string; name: string }[] = [
 ];
 
 const BEACON_DEBOUNCE_MS = 1500;
-const LISTBOX_ID = "ork-search-listbox";
 
 // Typeahead runs fully client-side over the generated title/heading index.
 // The optional server re-rank is gated by ORK_SITE_JEV_SUGGEST, the same flag
@@ -87,30 +85,6 @@ const SUGGEST_MODES = [
   { value: "llm", name: "LLM" },
 ] as const;
 type SuggestMode = (typeof SUGGEST_MODES)[number]["value"];
-
-/**
- * Sets aria-activedescendant on the combobox input to the active option's DOM
- * id. Must render inside SearchDialogList (it reads fumadocs' ListContext),
- * so it is mounted inside the first Item render.
- */
-function ActiveDescendantSync({
-  inputRef,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>;
-}) {
-  const { active } = useSearchList();
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-    if (active) {
-      input.setAttribute("aria-activedescendant", `ork-search-item-${active}`);
-    } else {
-      input.removeAttribute("aria-activedescendant");
-    }
-    return () => input.removeAttribute("aria-activedescendant");
-  }, [active, inputRef]);
-  return null;
-}
 
 export default function CustomSearchDialog(props: SharedProps) {
   const [tag, setTag] = useState<string | undefined>(undefined);
@@ -148,7 +122,6 @@ export default function CustomSearchDialog(props: SharedProps) {
   // Deterministic suggestions from the generated title/heading index. The
   // index is lazy-loaded on the first real keystroke so it stays out of the
   // layout bundle (same pattern as the zero-result rescue list).
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const [suggestEntries, setSuggestEntries] = useState<
     readonly SuggestEntry[] | null
   >(null);
@@ -402,12 +375,7 @@ export default function CustomSearchDialog(props: SharedProps) {
         <SearchDialogHeader>
           <SearchDialogIcon />
           <SearchDialogInput
-            ref={inputRef}
             placeholder="Search docs, skills, agents…"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={listItems.length > 0}
-            aria-controls={LISTBOX_ID}
           />
           <SearchDialogClose />
         </SearchDialogHeader>
@@ -433,14 +401,9 @@ export default function CustomSearchDialog(props: SharedProps) {
           })}
         </div>
         <SearchDialogList
-          id={LISTBOX_ID}
-          role="listbox"
           items={itemsForList}
           Item={({ item, onClick }) => (
             <>
-              {item.id === listItems[0]?.id && (
-                <ActiveDescendantSync inputRef={inputRef} />
-              )}
               {headerById[item.id] !== undefined && (
                 <div className="px-2.5 pt-3 pb-1 text-xs font-medium text-fd-muted-foreground first:pt-1.5">
                   {headerById[item.id]}
@@ -449,8 +412,6 @@ export default function CustomSearchDialog(props: SharedProps) {
               <SearchDialogListItem
                 item={item}
                 onClick={onClick}
-                id={`ork-search-item-${item.id}`}
-                role="option"
               />
             </>
           )}

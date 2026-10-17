@@ -1,0 +1,41 @@
+---
+title: Worktree isolation
+description: "When to keep the default EnterWorktree isolation for background sessions, and when worktree.bgIsolation \"none\" is the right opt-in."
+---
+
+Claude Code 2.1.143 added a `worktree.bgIsolation` setting. This page covers what it does, when opting in is reasonable, and why OrchestKit keeps the default.
+
+## What `worktree.bgIsolation` does
+
+By default, a background session that wants to edit files calls `EnterWorktree` first. Claude Code creates a git worktree for the session, the session works inside it, and the shared working copy stays untouched. Two sessions in the same repo never write to the same files at the same time.
+
+Setting `worktree.bgIsolation` to `"none"` in `.claude/settings.json` removes that step:
+
+```json
+{
+  "worktree": {
+    "bgIsolation": "none"
+  }
+}
+```
+
+Background sessions then edit the working copy directly, with no worktree in between. The release notes name the intended audience: repos where worktrees are impractical.
+
+## When to opt in
+
+`"none"` fits a narrow profile. Both conditions should hold:
+
+1. **Worktrees are impractical in the repo.** Examples: a dependency install that cannot be duplicated per checkout (a symlinked `node_modules`, a build cache bound to one absolute path), tooling that only runs against the primary checkout, or a monorepo where a second checkout costs more than the isolation buys.
+2. **Only one session runs in the repo at a time.** With two concurrent sessions on one working copy, edits interleave: one session's checkout, install, or file write lands in the middle of the other's task. That shared-tree thrash is the failure class `EnterWorktree` exists to prevent.
+
+If either condition fails, keep the default.
+
+## Recommendation: do not set it in OrchestKit
+
+OrchestKit's working rule is that every concurrent session in a repo works in its own worktree. That rule depends on the default `EnterWorktree` path staying on, so OrchestKit does not set `worktree.bgIsolation` and its `.claude/settings.json` carries no `worktree` key.
+
+A repo that genuinely needs `"none"` should scope the setting to that repo's own `.claude/settings.json`, never to user-global settings, and only while the single-session condition holds.
+
+## Related: the EnterWorktree bug class
+
+Issue [#1826](https://github.com/yonatangross/orchestkit/issues/1826) is the related class: an envelope leak reached `EnterWorktree`'s name path, and background sessions created literal `{"continue":true}` directories across five repos. That class argues for hardening the inputs `EnterWorktree` receives, not for abandoning isolation. `bgIsolation: "none"` would have hidden the symptom while leaving every shared-repo session exposed to interleaved writes.

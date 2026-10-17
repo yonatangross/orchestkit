@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-push HQ_CI_ONLY and keychain tests: closing the #4753 gaps</title>
+<meta name="description" content="PR for branch fix/pre-push-ci-only-test-gaps. The tests for the pre-push HQ_CI_ONLY=1 skip and the headless Chrome keychain guard proved less than they claimed. New arms pin the security stage, HQ_CI_ONLY=0 and empty, and targeted mode; the guard now catches four launch shapes it missed; a failed git grep no longer reads as a pass.">
+<style>
+  :root{--paper:#fbfaf7;--ink:#1d1d1b;--dim:#6b6a65;--rule:#e2dfd7;--accent:#2f5d8a;--ok:#2e7d32;--skip:#a15c00;--bad:#b3261e}
+  @media (prefers-color-scheme:dark){:root{--paper:#16171a;--ink:#e9e7e1;--dim:#a3a19a;--rule:#2c2d31;--accent:#8ab4e0;--ok:#7fc785;--skip:#e0a85a;--bad:#f08b84}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--paper);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+  main{max-width:58rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 1.8rem}
+  section{border-top:1px solid var(--rule);padding-block:1.1rem}
+  h2{font-size:.8rem;margin:0 0 .8rem;color:var(--accent);text-transform:uppercase;letter-spacing:.07em}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:4px;padding:0 4px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{color:var(--dim);font-weight:600}
+  .ok{color:var(--ok)} .skip{color:var(--skip)} .bad{color:var(--bad)}
+  .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .9rem}
+  button{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:.35rem .8rem;font:inherit;font-size:.85rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  ul{padding-inline-start:1.2rem;margin:.3rem 0}
+  li{margin:.2rem 0}
+  #copied{color:var(--dim);font-size:.85rem;margin-inline-start:.6rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Pre-push HQ_CI_ONLY and keychain tests: closing the #4753 gaps"><meta property="og:description" content="The tests for the pre-push HQ_CI_ONLY=1 skip and the headless Chrome keychain guard passed even when the hook or guard was wrong. New arms pin the security stage, HQ_CI_ONLY=0 and empty, and targeted mode; the guard now catches four launch shapes it missed; a failed git grep no longer reads as a pass."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4753-pre-push-ci-only-test-gaps.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Pre-push HQ_CI_ONLY and keychain tests: closing the #4753 gaps"><meta name="twitter:description" content="The tests for the pre-push HQ_CI_ONLY=1 skip and the headless Chrome keychain guard passed even when the hook or guard was wrong. New arms pin the security stage, HQ_CI_ONLY=0 and empty, and targeted mode; the guard now catches four launch shapes it missed; a failed git grep no longer reads as a pass."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Pre-push HQ_CI_ONLY and keychain tests</h1>
+<p class="sub">Branch <code>fix/pre-push-ci-only-test-gaps</code>, closes #4753. The #4749 tests passed even when the hook or guard was wrong in the ways listed below. This PR makes each of those cases fail.</p>
+
+<section>
+<h2>What the hook does, per environment</h2>
+<div class="controls" role="group" aria-label="Pick an arm">
+  <button type="button" data-arm="0" aria-pressed="true">HQ_CI_ONLY=1</button>
+  <button type="button" data-arm="1" aria-pressed="false">unset</button>
+  <button type="button" data-arm="2" aria-pressed="false">HQ_CI_ONLY=0</button>
+  <button type="button" data-arm="3" aria-pressed="false">HQ_CI_ONLY=""</button>
+  <button type="button" data-arm="4" aria-pressed="false">targeted + HQ_CI_ONLY=1</button>
+  <button type="button" data-arm="5" aria-pressed="false">targeted, unset</button>
+</div>
+<table>
+  <thead><tr><th scope="col">Stage</th><th scope="col">Expected</th><th scope="col">Why the old test could not see it</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+</section>
+
+<section>
+<h2>Guard: launch shapes now caught</h2>
+<ul>
+  <li><code>"$BROWSER" --headless=new --dump-dom url</code>: no "chrom" in the line. <span class="bad">Was missed.</span> Now <code>--dump-dom</code> and <code>--headless=new</code> mark a Chrome launch by themselves.</li>
+  <li>A <code># comment \</code> line swallowed the launch on the next line. <span class="bad">Was missed.</span> A comment line no longer continues.</li>
+  <li>Flags named only in a trailing comment. <span class="bad">Was missed.</span> The trailing comment is cut before the check.</li>
+  <li><code>npx playwright test --project=chromium --headless</code>. <span class="bad">Was flagged.</span> A flag value that names Chromium is not a binary.</li>
+  <li>A failed <code>git grep</code> listed 0 files and printed success. <span class="bad">Was a pass.</span> Now any exit above 1 fails, and the scan must include <code>test-glyph-triage-template.sh</code>.</li>
+</ul>
+</section>
+
+<section>
+<h2>Proof</h2>
+<ul>
+  <li>Red first: CI at commit <code>bf637ab1</code> (tests only, against the old hook and guard).</li>
+  <li>Mutation run: branch <code>test/4753-mutation-proof</code> plants the two widenings from #4753 (any non-empty value skips; the skip reaches past security) into the hook, and CI must fail the new arms.</li>
+  <li>Fix commit: CI green.</li>
+</ul>
+<p><button type="button" id="copy">Copy as prompt</button><span id="copied" aria-live="polite"></span></p>
+</section>
+</main>
+<script>
+const ARMS = [
+  {name:"HQ_CI_ONLY=1", rows:[["unit tier","skipped","skip","-"],["security stage","runs","ok","no security stub in the fixture: a skip widened past security passed"],["agents, skills, budget","run","ok","-"],["skip line","printed once","skip","-"]]},
+  {name:"unset", rows:[["unit tier","runs","ok","-"],["security stage","runs","ok","not asserted"],["skip line","absent","ok","-"]]},
+  {name:"HQ_CI_ONLY=0", rows:[["unit tier","runs","ok","arm did not exist: a check loosened to \"non-empty\" passed"],["skip line","absent","ok","arm did not exist"]]},
+  {name:"HQ_CI_ONLY=\"\"", rows:[["unit tier","runs","ok","arm did not exist"],["skip line","absent","ok","arm did not exist"]]},
+  {name:"targeted + HQ_CI_ONLY=1", rows:[["unit selection line","absent","ok","hook printed \"unit tests selected: N\" for tests it then skipped"],["test slot","not taken","ok","hook could wait for a machine-wide slot before the skip"],["unit tier","skipped","skip","-"]]},
+  {name:"targeted, unset", rows:[["unit selection line","printed","ok","control: proves the stubs are reached"],["test slot","taken","ok","control"],["unit tier","runs","ok","control"]]}
+];
+const rows = document.getElementById("rows");
+const buttons = document.querySelectorAll("button[data-arm]");
+let current = 0;
+function render(i) {
+  current = i;
+  rows.replaceChildren();
+  for (const [stage, expected, cls, why] of ARMS[i].rows) {
+    const tr = document.createElement("tr");
+    for (const [text, c] of [[stage, ""], [expected, cls], [why, ""]]) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (c) td.className = c;
+      tr.appendChild(td);
+    }
+    rows.appendChild(tr);
+  }
+  buttons.forEach(b => b.setAttribute("aria-pressed", String(Number(b.dataset.arm) === i)));
+}
+buttons.forEach(b => b.addEventListener("click", () => render(Number(b.dataset.arm))));
+document.getElementById("copy").addEventListener("click", async () => {
+  const arm = ARMS[current];
+  const text = "orchestkit #4753, arm " + arm.name + ": " +
+    arm.rows.map(r => r[0] + " " + r[1]).join("; ") +
+    ". Check tests/unit/test-pre-push-hq-ci-only.sh asserts each of these.";
+  try { await navigator.clipboard.writeText(text); document.getElementById("copied").textContent = "Copied."; }
+  catch { document.getElementById("copied").textContent = text; }
+});
+render(0);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

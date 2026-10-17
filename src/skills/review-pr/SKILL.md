@@ -109,6 +109,8 @@ If the user asks for an "ultra" / "deep" / "thorough" review, do not run it from
 
 Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`.
 
+**Fan-out rule:** a single pass is never a fallback. Phase 3 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a reviewer, end the run as BLOCKED and say why.
+
 ---
 
 ## MCP Probe (CC 2.1.71)

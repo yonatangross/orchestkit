@@ -1,0 +1,12 @@
+{
+  "slug": "lesson-cards-exact-tool-filter",
+  "source": "docs/chore--dsp-44021-ork-fix-4730/lesson-tool-filter.html",
+  "title": "Lesson Cards: Exact Tool Filter",
+  "description": "Compare lesson card matching before and after issue 4730. Select Edit, Write, or Bash and check entries with explicit tool names or no tool names.",
+  "tags": [
+    "mods",
+    "lessons",
+    "tool-filter"
+  ],
+  "date": "2026-10-15"
+}
