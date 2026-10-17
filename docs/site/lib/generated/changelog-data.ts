@@ -18,6 +18,42 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.181",
+    "date": "2026-10-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump the vitest group in /src/hooks with 2 updates ([#4780](https://github.com/yonatangross/orchestkit/issues/4780)) ([0037571](https://github.com/yonatangross/orchestkit/commit/003757110028b3e152be777557811b98ce5dfde9))",
+          "**deps-dev:** bump vitest in /docs/site in the vitest group ([#4778](https://github.com/yonatangross/orchestkit/issues/4778)) ([ed82c9d](https://github.com/yonatangross/orchestkit/commit/ed82c9d09aeecb793e38ebfb093b10f1f05ed192))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.180",
+    "date": "2026-10-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.179...v10.0.0-beta.180",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump the vitest group across 1 directory with 2 updates ([#4783](https://github.com/yonatangross/orchestkit/issues/4783)) ([09e7197](https://github.com/yonatangross/orchestkit/commit/09e719798d2e344f0b2b06422dcde1ad9cc82523))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "bump actions/create-github-app-token ([#4784](https://github.com/yonatangross/orchestkit/issues/4784)) ([02a6603](https://github.com/yonatangross/orchestkit/commit/02a66034d2d8be692d4ede1cbed2e165046a6cb0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.179",
     "date": "2026-10-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179",
