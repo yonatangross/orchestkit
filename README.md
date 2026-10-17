@@ -642,6 +642,16 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.181](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181)** · 2026-10-17
+
+- **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
+- **deps-dev:** bump vitest in /docs/site in the vitest group (#4778)
+
+**[v10.0.0-beta.180](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.179...v10.0.0-beta.180)** · 2026-10-17
+
+- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4783)
+- bump actions/create-github-app-token (#4784)
+
 **[v10.0.0-beta.179](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179)** · 2026-10-17
 
 - **deps:** upgrade Remotion to remove braces (#4791)
@@ -677,20 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.174](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.173...v10.0.0-beta.174)** · 2026-10-15
 
 - **ci:** read the ci-sentinel CC pin from shared/cc-support.json (#4765)
-
-**[v10.0.0-beta.173](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.172...v10.0.0-beta.173)** · 2026-10-15
-
-- **ci:** add a preview-only facts-only changelog feed for X (#4727)
-- **tests:** restore the exec bit on 2 tests from [#4749](https://github.com/yonatangross/orchestkit/issues/4749) (#4757)
-- **tests:** stop headless Chrome keychain prompts; pre-push CI-only mode (#4749)
-- **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates (#4723)
-- **deps:** bump the npm-minor-patch group across 1 directory with 9 updates (#4733)
-- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.172](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.171...v10.0.0-beta.172)** · 2026-10-12
-
-- **mods:** lesson-cards keeps tool.call context from hooks below (#4726)
-- **traffic:** snapshot week of 2026-09-28 (#4621)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
