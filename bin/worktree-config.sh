@@ -94,6 +94,7 @@ SYMLINK_DIRS=(
 #   docs/stubs/analytics-stub                        build-time stub, no install
 #   mods/memory-lens                                 mod dev workspace, own vitest deps
 #   mods/promote-lights                              mod dev workspace, own vitest deps
+#   mods/prompt-enhancer                             mod dev workspace, own vitest deps
 #   mods/secrets-veil                                mod dev workspace, own vitest deps
 #   packages/cli                                     published package, not installed here
 #   packages/hook-contract                           published package, not installed here
@@ -106,6 +107,7 @@ EXEMPT_ROOTS=(
     "mods/lesson-cards"
     "mods/memory-lens"
     "mods/promote-lights"
+    "mods/prompt-enhancer"
     "mods/secrets-veil"
     "packages/cli"
     "packages/hook-contract"

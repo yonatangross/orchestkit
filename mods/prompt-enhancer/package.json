@@ -1,0 +1,16 @@
+{
+  "name": "@orchestkit/mod-prompt-enhancer",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Review an enhanced draft before sending it to Claude",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "license": "MIT"
+}

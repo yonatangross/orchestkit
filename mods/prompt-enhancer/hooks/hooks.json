@@ -1,0 +1,7 @@
+{
+  "description": "Prompt Enhancer band with a visible draft and explicit Send",
+  "modules": [
+    "./register.tsx"
+  ],
+  "hooks": {}
+}
