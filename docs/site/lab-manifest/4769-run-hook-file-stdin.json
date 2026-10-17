@@ -1,0 +1,13 @@
+{
+  "slug": "4769-run-hook-file-stdin",
+  "source": "docs/fix--run-hook-file-stdin/index.html",
+  "title": "Hook runner: a file on stdin can no longer lose the 100 ms race",
+  "description": "run-hook.mjs armed a 100 ms stdin timer even for a regular-file stdin, so on a loaded runner the hook could run on an empty payload and Security Tests read passthrough instead of allow. A regular file is now read synchronously before any timer exists; pipes keep the timer.",
+  "tags": [
+    "hooks",
+    "tests",
+    "ci",
+    "4769"
+  ],
+  "date": "2026-10-15"
+}

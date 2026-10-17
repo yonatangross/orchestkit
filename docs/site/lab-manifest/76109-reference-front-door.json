@@ -1,0 +1,13 @@
+{
+  "slug": "76109-reference-front-door",
+  "source": "docs/chore\u002d\u002ddsp-76109-ork-fix-2957/index.html",
+  "title": "Reference front door: find a skill",
+  "description": "The /docs/reference catalog page embeds the skill browser with new Type and Complexity filter groups.",
+  "tags": [
+    "docs",
+    "reference",
+    "skill-browser",
+    "filters"
+  ],
+  "date": "2026-10-15"
+}

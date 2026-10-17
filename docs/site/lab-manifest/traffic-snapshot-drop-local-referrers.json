@@ -1,0 +1,8 @@
+{
+  "slug": "traffic-snapshot-drop-local-referrers",
+  "source": "docs/fix--traffic-snapshot-drop-local-referrers/index.html",
+  "title": "traffic snapshot: local referrers dropped, count only",
+  "description": "Referrers whose host is localhost, ends in .localhost, or is a loopback literal are dropped before the weekly row is written and before the PR body is made; only the dropped count is kept.",
+  "tags": ["ci", "traffic", "privacy", "workflows"],
+  "date": "2026-10-05"
+}

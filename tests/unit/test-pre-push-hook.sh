@@ -14,9 +14,12 @@ set -euo pipefail
 # exported repository-locating GIT_* variables.
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
     GIT_OBJECT_DIRECTORY
-# HQ_CI_ONLY leaks into the nested hook runs below and skips the unit tier
-# this file counts. Clear it so the suite asserts the default path.
-unset HQ_CI_ONLY
+# HQ_CI_ONLY=1 skips the unit tier this file counts, and a lane push runs
+# this suite with it exported. Every helper that launches the hook must clear
+# it itself (env -u HQ_CI_ONLY), so this file sets it on purpose: a helper
+# that forgets runs the hook with the unit tier skipped and its count cases
+# fail, instead of passing only because the caller's env was clean (#4753).
+export HQ_CI_ONLY=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -895,7 +898,7 @@ test_shared_load_backoff_fixture() {
 # "could not acquire a test slot". Full mode runs the stage and takes no slot.
 _run_pre_push_for_exit_status() {
     local hook="$1" rc=0 out
-    out=$(ORK_PRE_PUSH_MODE=full /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+    out=$(env -u HQ_CI_ONLY ORK_PRE_PUSH_MODE=full /bin/bash "$hook" origin "https://example.invalid/repo.git" \
         <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
     printf '%s\n' "$out"
     return "$rc"
@@ -1133,7 +1136,7 @@ _prepush_stubbed_run() {
 
     out=$(
         cd "$repo" &&
-        env -u CI -u GITHUB_ACTIONS -u ORK_PRE_PUSH_MODE "${env_args[@]}" \
+        env -u CI -u GITHUB_ACTIONS -u ORK_PRE_PUSH_MODE -u HQ_CI_ONLY "${env_args[@]}" \
             /bin/bash "$hook" origin "https://example.invalid/repo.git" \
             <<<'refs/heads/l 0000000000000000000000000000000000000000 refs/heads/chore/lane 1111111111111111111111111111111111111111'
     ) || rc=$?

@@ -121,6 +121,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "The 3 Building Blocks",
       "inbound": 5
     },
+    "/docs/foundations/worktree": {
+      "title": "Worktree isolation",
+      "inbound": 1
+    },
     "/docs/getting-started": {
       "title": "Getting Started",
       "inbound": 0
@@ -1392,7 +1396,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/foundations/choosing-a-plugin",
       "/docs/foundations/mcp-servers",
       "/docs/foundations/overview",
-      "/docs/foundations/skills-agents-hooks"
+      "/docs/foundations/skills-agents-hooks",
+      "/docs/foundations/worktree"
     ],
     "/docs/foundations/agent-attribution": [],
     "/docs/foundations/choosing-a-plugin": [
@@ -1414,6 +1419,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/foundations/choosing-a-plugin",
       "/docs/getting-started/installation"
     ],
+    "/docs/foundations/worktree": [],
     "/docs/getting-started": [
       "/docs/getting-started/configuration",
       "/docs/getting-started/first-10-minutes",
