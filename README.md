@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.178](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.177...v10.0.0-beta.178)** · 2026-10-17
+
+- **explore:** trial Haiku pins for Agent tool explorers (#4676)
+- **review-pr:** require fan-out or blocked verdict (#4743)
+- **traffic:** drop local referrers from snapshot rows (#4626)
+- **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4781)
+- **deps:** bump the npm-minor-patch group across 1 directory with 3 updates (#4720)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.177](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.176...v10.0.0-beta.177)** · 2026-10-16
 
 - **doctor:** warn on errorDetails and list noteDetails from plugin rows (#4768)
@@ -687,10 +696,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** five GA-blocking CI and test bugs, red-first (#4687)
 - drop the system-reminder wrapper; isolation only on 2 git agents (#4695)
 - …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.170](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.169...v10.0.0-beta.170)** · 2026-10-10
-
-- **hooks:** tldr-summary skips a Read with allow_large (#4700)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
