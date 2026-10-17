@@ -6,8 +6,8 @@
 // dialog filtered them out on the way to the screen. The lib/search-display
 // tests prove the rows survive grouping, but only a render proves they survive
 // fumadocs' SearchDialogListItem and actually paint.
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 // Content strings are copied VERBATIM from a real /api/search?query=tavily
 // response. That matters: an invented fixture that put <mark> inside a code
@@ -39,14 +39,6 @@ const QUERY_DATA = [
 	},
 ];
 
-vi.mock("fumadocs-core/search/client", () => ({
-	useDocsSearch: () => ({
-		search: "tavily",
-		setSearch: () => {},
-		query: { data: QUERY_DATA, isLoading: false },
-	}),
-}));
-
 import { FrameworkProvider } from "fumadocs-core/framework";
 import CustomSearchDialog from "@/components/search-dialog";
 
@@ -58,7 +50,7 @@ import CustomSearchDialog from "@/components/search-dialog";
 // calls Next's real useRouter, which throws "invariant expected app router to
 // be mounted" under jsdom. Nothing asserted here depends on navigation.
 function renderDialog() {
-	return render(
+	const result = render(
 		<FrameworkProvider
 			usePathname={() => "/docs"}
 			useParams={() => ({})}
@@ -68,9 +60,41 @@ function renderDialog() {
 			<CustomSearchDialog open onOpenChange={() => {}} />
 		</FrameworkProvider>,
 	);
+	fireEvent.change(screen.getByRole("combobox"), { target: { value: "tavily" } });
+	return result;
 }
 
+beforeAll(() => {
+	vi.stubGlobal("fetch", vi.fn(async () => Response.json(QUERY_DATA)));
+});
+
+afterAll(() => vi.unstubAllGlobals());
+
 describe("⌘K dialog renders matched snippets", () => {
+	it("keeps the active option linked to the input during keyboard navigation", async () => {
+		renderDialog();
+		const input = screen.getByRole("combobox");
+		const options = await screen.findAllByRole("option");
+		const assertActive = async (index: number) => {
+			await waitFor(() => {
+				expect(input.getAttribute("aria-activedescendant")).toBe(
+					options[index].id,
+				);
+				expect(options[index].getAttribute("aria-selected")).toBe("true");
+			});
+			const listId = input.getAttribute("aria-controls");
+			expect(listId).toBeTruthy();
+			expect(document.getElementById(listId ?? "")?.getAttribute("role")).toBe(
+				"listbox",
+			);
+		};
+		await assertActive(0);
+		fireEvent.keyDown(input, { key: "ArrowDown" });
+		await assertActive(1);
+		fireEvent.keyDown(input, { key: "ArrowUp" });
+		await assertActive(0);
+	});
+
 	it("paints the page title AND its matched excerpts", async () => {
 		renderDialog();
 		await screen.findByText("MCP Servers");

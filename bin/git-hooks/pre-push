@@ -311,10 +311,17 @@ if [[ "$PRE_PUSH_MODE" == "targeted" ]]; then
       [[ -n "$_pp_sel" ]] && _pp_sel_count=$((_pp_sel_count + 1))
     done <<< "$SELECTED_UNIT_TESTS"
     echo "  pre-push mode: targeted"
-    echo "  unit tests selected: ${_pp_sel_count}"
-    while IFS= read -r _pp_sel; do
-      [[ -n "$_pp_sel" ]] && printf '    %s\n' "$_pp_sel"
-    done <<< "$SELECTED_UNIT_TESTS"
+    # HQ_CI_ONLY=1 skips the unit tier below, so a selection would announce
+    # tests that never run (#4753).
+    if [[ "${HQ_CI_ONLY:-}" == "1" ]]; then
+      echo "  unit tests: skipped (HQ_CI_ONLY=1)"
+    else
+      echo "  unit tests selected: ${_pp_sel_count}"
+      while IFS= read -r _pp_sel; do
+        [[ -n "$_pp_sel" ]] && printf '    %s\n' "$_pp_sel"
+      # pipebuf: legacy-unreviewed (pre-existing loop, only re-indented by #4753)
+      done <<< "$SELECTED_UNIT_TESTS"
+    fi
     _pp_deferred="Unit Tests (node 22)"
     [[ "$PRE_PUSH_RUN_SECURITY" -eq 0 ]] && _pp_deferred="$_pp_deferred, Security Tests"
     echo "  deferred to CI: ${_pp_deferred}"
@@ -583,8 +590,20 @@ assert_repo_config_unchanged() {
 # never touches the slot dir and can never queue behind other lanes.
 # Skipped on CI (runners govern themselves) and when the library is
 # absent (governance is a courtesy, not a correctness gate).
-# ORK_TEST_SLOT_NOLOCK=1 bypasses.
-if [[ "$PRE_PUSH_MODE" == "targeted" && -f "$PROJECT_ROOT/scripts/lib/test-slot.sh" ]]; then
+# ORK_TEST_SLOT_NOLOCK=1 bypasses. With HQ_CI_ONLY=1 the unit tier is
+# skipped. The slot is dropped only when nothing else that does real work
+# runs either: the security stage deferred, the src stages (tsc, build)
+# off, and no src/hooks/ change (which runs the hook unit suite below).
+# Then no suite runs here and a slot would only make the push wait for
+# nothing (#4753, #4758 review).
+# awk, not grep: it exits 0 on no match, so nothing needs swallowing.
+HOOK_CHANGES=$(printf '%s\n' "$CHANGED_FILES" | awk '/^src\/hooks\//')
+_pp_runs_a_suite=1
+if [[ "${HQ_CI_ONLY:-}" == "1" && "$PRE_PUSH_RUN_SECURITY" -eq 0 \
+      && "$PRE_PUSH_RUN_SRC_STAGES" -eq 0 && -z "$HOOK_CHANGES" ]]; then
+  _pp_runs_a_suite=0
+fi
+if [[ "$PRE_PUSH_MODE" == "targeted" && "$_pp_runs_a_suite" -eq 1 && -f "$PROJECT_ROOT/scripts/lib/test-slot.sh" ]]; then
   # shellcheck source=../../scripts/lib/test-slot.sh
   . "$PROJECT_ROOT/scripts/lib/test-slot.sh"
   _pp_slot_rc=0
@@ -948,7 +967,7 @@ fi
 # surface in CI (cross-reference, split-bundles, webhook-forwarder-coverage,
 # hooks-json-wiring, dispatcher-registry-wiring). Running the hook unit
 # suite locally catches these BEFORE push instead of after a failed CI run.
-HOOK_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/hooks/' || true)
+# HOOK_CHANGES is computed once, before the test slot decision above.
 if [[ -n "$HOOK_CHANGES" ]]; then
   run_hooks_vitest_stage
 fi

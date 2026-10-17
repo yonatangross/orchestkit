@@ -32,6 +32,8 @@ export interface PRInfo {
  * ordinary work and must never match.
  */
 export const DEFAULT_PROMOTE_HEAD = "dev";
+/** The promote base: main unless PROMOTE_BASE names another (a dev, qa, main flow). */
+export const DEFAULT_PROMOTE_BASE = "main";
 export const PROMOTE_LABEL = "promote";
 
 /**
@@ -49,15 +51,18 @@ export const PR_LIST_FIELDS = "number,headRefName,headRefOid,title,labels";
 export const PR_LIST_LIMIT = "100";
 
 /**
- * Query argv listing open PRs into main from the promote branch.
+ * Query argv listing open PRs into the promote base from the promote branch.
  */
-export function buildHeadQueryArgs(promoteHead: string = DEFAULT_PROMOTE_HEAD): readonly string[] {
+export function buildHeadQueryArgs(
+  promoteHead: string = DEFAULT_PROMOTE_HEAD,
+  promoteBase: string = DEFAULT_PROMOTE_BASE
+): readonly string[] {
   return [
     "gh",
     "pr",
     "list",
     "--base",
-    "main",
+    promoteBase,
     "--head",
     promoteHead,
     "--state",
@@ -70,17 +75,17 @@ export function buildHeadQueryArgs(promoteHead: string = DEFAULT_PROMOTE_HEAD): 
 }
 
 /**
- * Query argv listing open PRs into main carrying the promote label.
+ * Query argv listing open PRs into the promote base carrying the promote label.
  * This covers promote PRs raised from a head other than the promote
  * branch, which the head query alone would miss.
  */
-export function buildLabelQueryArgs(): readonly string[] {
+export function buildLabelQueryArgs(promoteBase: string = DEFAULT_PROMOTE_BASE): readonly string[] {
   return [
     "gh",
     "pr",
     "list",
     "--base",
-    "main",
+    promoteBase,
     "--label",
     PROMOTE_LABEL,
     "--state",

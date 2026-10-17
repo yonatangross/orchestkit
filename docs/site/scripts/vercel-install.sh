@@ -5,8 +5,10 @@
 # Vercel install step for docs/site. Mirrors .github/workflows/docs.yml: the
 # real @yonatan-hq/analytics package needs NPM_TOKEN (GitHub Packages), which
 # is set on the Production environment only (#2536 keeps it off branch builds).
-# On a 401 the dependency is swapped to the local no-op stub so preview builds
-# still succeed; production keeps the real package. Any other failure is fatal.
+# On a 401 outside production the dependency is swapped to the local no-op
+# stub so preview builds still succeed. In production (VERCEL_ENV=production)
+# a 401 is fatal, so the real package ships or nothing does. Any other
+# failure is fatal.
 set -uo pipefail
 
 npm ci --no-audit --no-fund 2>&1 | tee /tmp/npm-ci.log
@@ -16,9 +18,17 @@ if [[ $npm_exit -eq 0 ]]; then
   exit 0
 fi
 if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
+  # Production never ships the no-op stub: a dead NPM_TOKEN fails the build
+  # here, by name, instead of deploying a site with analytics silently off.
+  if [[ "${VERCEL_ENV:-}" == "production" ]]; then
+    echo "vercel-install: npm ci hit 401 on @yonatan-hq/analytics in production; NPM_TOKEN is missing or dead, refusing the stub" >&2
+    exit "$npm_exit"
+  fi
   echo "vercel-install: npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit), swapping to the local stub"
   npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-  rm -f package-lock.json
+  # Update the lock in place, never delete it: a fresh resolve floated
+  # fumadocs-ui past the locked version and broke every prod build (TS2724,
+  # 2026-10-11 to 2026-10-14). Only the swapped entry changes.
   npm install --no-audit --no-fund --package-lock-only --ignore-scripts
   exec npm ci --no-audit --no-fund
 fi

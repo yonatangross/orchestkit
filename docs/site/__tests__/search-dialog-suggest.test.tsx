@@ -17,7 +17,8 @@ import { SUGGEST_PAUSE_MS } from "@/lib/suggest-rerank-client";
 // The dialog drives its own input through fumadocs' hook, so the mock holds
 // real React state and the test types by calling setSearch.
 let setSearchImpl: (v: string) => void = () => {};
-vi.mock("fumadocs-core/search/client", () => ({
+vi.mock("fumadocs-core/search/client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("fumadocs-core/search/client")>()),
 	useDocsSearch: () => {
 		const [search, setSearch] = React.useState("");
 		setSearchImpl = setSearch;

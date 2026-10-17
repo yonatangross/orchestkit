@@ -89,6 +89,9 @@ section()  { echo; echo "${YELLOW}$1${NC}"; }
 SANDBOX_PROJECT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 SANDBOX_OUTSIDE="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 SANDBOX_TMP="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+# #4769: permission_verdict writes the runner's stderr here; expect_permission
+# prints it on a wrong verdict.
+LAST_HOOK_STDERR_FILE="$SANDBOX_TMP/last-hook-stderr.txt"
 cleanup_all() {
   rm -rf "$SANDBOX_PROJECT" "$SANDBOX_OUTSIDE" "$SANDBOX_TMP"
   cleanup_test_env
@@ -146,8 +149,12 @@ permission_verdict() { # permission_verdict <hook-key> <json> [env assignments..
     echo "ERROR"
     return 0
   fi
+  # #4769: keep the runner's stderr. expect_permission prints it when the
+  # verdict does not match, so a flake names its cause (a "stdin delivered 0
+  # bytes" warning, a bundle load error) instead of only the wrong verdict.
   # silent: best-effort
-  out="$(env "$@" node "$RUNNER" "$key" <"$input_file" 2>/dev/null || true)"
+  # The file outlives this $(...) subshell; a variable set here would not.
+  out="$(env "$@" node "$RUNNER" "$key" <"$input_file" 2>"$LAST_HOOK_STDERR_FILE" || true)"
   rm -f "$input_file"
   if [[ -z "$out" ]] || ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
     echo "ERROR"
@@ -164,7 +171,11 @@ expect_permission() { # expect_permission <want> <hook-key> <json> <label> [env.
     log_pass "$label (-> $got)"
   else
     log_fail "$label — expected $want, got $got"
+    if [[ -s "$LAST_HOOK_STDERR_FILE" ]]; then
+      printf '    runner stderr: %s\n' "$(head -c 2000 "$LAST_HOOK_STDERR_FILE")"
+    fi
   fi
+  return 0
 }
 
 # Extract the permission tier from a raw hook response. A response that is

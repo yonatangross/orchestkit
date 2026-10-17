@@ -8,6 +8,13 @@ import { MotionGlobalConfig } from "motion";
 
 MotionGlobalConfig.skipAnimations = true;
 
+// Fumadocs measures the search viewport with ResizeObserver.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   configurable: true,

@@ -18,6 +18,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       author: "orchestkit",
       tags: ["development", "workflow", "implementation"],
       userInvocable: true,
+      complexity: "high",
       context: "fork",
       allowedTools: [],
       skills: [],
@@ -33,6 +34,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       author: "orchestkit",
       tags: ["backend", "fastapi", "python", "api"],
       userInvocable: false,
+      complexity: "medium",
       context: "fork",
       allowedTools: [],
       skills: [],
@@ -48,6 +50,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       author: "orchestkit",
       tags: ["react", "frontend", "nextjs", "component"],
       userInvocable: false,
+      complexity: "high",
       context: "fork",
       allowedTools: [],
       skills: [],
@@ -63,6 +66,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       author: "orchestkit",
       tags: ["security", "owasp", "vulnerability"],
       userInvocable: false,
+      complexity: "medium",
       context: "fork",
       allowedTools: [],
       skills: [],
@@ -78,6 +82,7 @@ vi.mock("@/lib/generated/skills-data", () => {
       author: "orchestkit",
       tags: ["testing", "playwright", "e2e"],
       userInvocable: false,
+      complexity: "low",
       context: "fork",
       allowedTools: [],
       skills: [],
@@ -332,5 +337,98 @@ describe("SkillBrowser", () => {
     render(<SkillBrowser />);
     expect(screen.queryByRole("group", { name: "Filter by plugin" })).toBeNull();
     expect(screen.queryByRole("button", { name: "ork" })).toBeNull();
+  });
+
+  it("renders the Type filter group with Command and Reference pills", () => {
+    render(<SkillBrowser />);
+    const fieldset = screen.getByRole("group", { name: /^type$/i });
+    expect(within(fieldset).getByText("Command")).toBeInTheDocument();
+    expect(within(fieldset).getByText("Reference")).toBeInTheDocument();
+  });
+
+  it("filters to user-invocable skills when Command is clicked", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const fieldset = screen.getByRole("group", { name: /^type$/i });
+    fireEvent.click(within(fieldset).getByText("Command"));
+
+    await expectCount(1);
+    expect(screen.getByText("implement")).toBeInTheDocument();
+    expect(screen.queryByText("fastapi-advanced")).not.toBeInTheDocument();
+  });
+
+  it("filters to reference skills when Reference is clicked", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const fieldset = screen.getByRole("group", { name: /^type$/i });
+    fireEvent.click(within(fieldset).getByText("Reference"));
+
+    await expectCount(4);
+    expect(screen.queryByText("implement")).not.toBeInTheDocument();
+    expect(screen.getByText("e2e-testing")).toBeInTheDocument();
+  });
+
+  it("toggles the type filter off when clicked again", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const fieldset = screen.getByRole("group", { name: /^type$/i });
+    fireEvent.click(within(fieldset).getByText("Command"));
+    await expectCount(1);
+
+    fireEvent.click(within(fieldset).getByText("Command"));
+    await expectCount(5);
+  });
+
+  it("renders the Complexity filter group with pills for present values", () => {
+    render(<SkillBrowser />);
+    const fieldset = screen.getByRole("group", { name: /complexity/i });
+    expect(within(fieldset).getByText("low")).toBeInTheDocument();
+    expect(within(fieldset).getByText("medium")).toBeInTheDocument();
+    expect(within(fieldset).getByText("high")).toBeInTheDocument();
+  });
+
+  it("filters by complexity when a pill is clicked", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const fieldset = screen.getByRole("group", { name: /complexity/i });
+    fireEvent.click(within(fieldset).getByText("medium"));
+
+    await expectCount(2);
+    expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
+    expect(screen.getByText("owasp-top-10")).toBeInTheDocument();
+  });
+
+  it("combines type and complexity filters", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const typeGroup = screen.getByRole("group", { name: /^type$/i });
+    fireEvent.click(within(typeGroup).getByText("Reference"));
+    const complexityGroup = screen.getByRole("group", { name: /complexity/i });
+    fireEvent.click(within(complexityGroup).getByText("high"));
+
+    // implement is a Command, so Reference + high leaves only the RSC skill.
+    await expectCount(1);
+    expect(
+      screen.getByText("react-server-components-framework"),
+    ).toBeInTheDocument();
+  });
+
+  it("clears type and complexity filters via Clear all", async () => {
+    render(<SkillBrowser />);
+    await expectCount(5);
+
+    const typeGroup = screen.getByRole("group", { name: /^type$/i });
+    fireEvent.click(within(typeGroup).getByText("Command"));
+    const complexityGroup = screen.getByRole("group", { name: /complexity/i });
+    fireEvent.click(within(complexityGroup).getByText("high"));
+    await expectCount(1);
+
+    fireEvent.click(screen.getByLabelText("Clear all filters"));
+    await expectCount(5);
   });
 });

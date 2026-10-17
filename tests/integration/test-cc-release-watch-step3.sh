@@ -523,6 +523,22 @@ else
   log_fail "anchor B" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-anchorB-real-miss.out)"
 fi
 
+# ---- Anchor C (#2997): a permission feature whose only searchable word is a
+# plain tool noun (Bash, no backticks, no camelCase, no ork-surface vocab)
+# MUST evaluate hit on the real tree: src/settings/ holds `Bash(` permission
+# rules, and class-T tokens grep exactly there. The slug is synthetic so the
+# T class is the only token that can hit.
+GAPS=$(jq -nc \
+  '[{version: "2.1.214", features: [{feature_slug: "bash_permission_prefix", gap_score: 15, description: "New permission rules covering Bash command prefixes", category: "permissions", reference_changelog_line: "Added permission rules for the Bash tool", affected_skills: []}]}]')
+run_anchor "anchorC-tool-noun-hit" "$GAPS"
+CALLS=$(count_calls "issue|create")
+D=$(jq -r '[.[] | .features[]? | select(.feature_slug=="bash_permission_prefix") | .disposition] | .[0] // ""' "$ANCHOR_GAPS")
+if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
+  log_pass "anchor C: plain-word Bash permission feature (score 15) → evidence hit → filed on real tree"
+else
+  log_fail "anchor C" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-anchorC-tool-noun-hit.out)"
+fi
+
 echo ""
 echo "========================================================="
 echo "  Results: $PASS passed, $FAIL failed"

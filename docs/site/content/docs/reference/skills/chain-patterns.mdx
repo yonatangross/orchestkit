@@ -1280,16 +1280,19 @@ transcript is the only place CC reports cache tokens (see
 
 ## Fallback Strategy
 
-If fork fails (CC version &lt; 2.1.89, coordinator mode, etc.), the skill should gracefully degrade:
+Use the explicit fork type for parent-model cache sharing:
 
 ```python
-# Fork-friendly prompt (CC auto-detects):
-Agent(subagent_type="Explore", prompt="Scope: ...", run_in_background=True)
-# ↑ If CC can fork: forked (cheap)
-# ↑ If CC can't fork: standard cold-start (works, just more expensive)
+Agent(subagent_type="fork", prompt="Scope: ...", run_in_background=True)
 ```
 
-No code change is needed for fallback on ordinary `Agent()` calls: CC routes them by the table above. Since CC 2.1.232, `subagent_type: "fork"` is the explicit route and forks without that detection. The prompt pattern works in every mode.
+If a fork is unavailable, start an independent read-only explorer:
+
+```python
+Agent(subagent_type="Explore", model="haiku", prompt="Scope: ...", run_in_background=True)
+```
+
+The Explore fallback starts fresh. It does not share the parent conversation.
 
 
 ### Handoff Schema

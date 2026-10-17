@@ -5,7 +5,7 @@ full: true
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
-import { LazyDemoGallery as DemoGallery } from '@/components/lazy';
+import { LazyDemoGallery as DemoGallery, LazySkillBrowser as SkillBrowser } from '@/components/lazy';
 import { Count } from '@/components/count';
 
 Browse the complete OrchestKit reference. Each entry is auto-generated from source.
@@ -17,6 +17,12 @@ Browse the complete OrchestKit reference. Each entry is auto-generated from sour
   <Card title={<><Count k="agents" /> Agents</>} href="/docs/reference/agents" description="Specialized AI personas with curated tools and skills" />
   <Card title={<><Count k="hooks" /> Hooks</>} href="/docs/reference/hooks" description="TypeScript lifecycle automation: security gates, memory sync, audit logging" />
 </Cards>
+
+## Find a skill
+
+Search and filter the full skill catalog by name, tag, category, type, or complexity.
+
+<SkillBrowser />
 
 ## Demo Compositions
 

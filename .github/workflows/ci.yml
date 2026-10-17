@@ -896,6 +896,11 @@ jobs:
           run-ci-setup: 'false'
           install-hooks-deps: 'true'  # npm ci in src/hooks BEFORE build → src/hooks/dist rebuilt from src
 
+      # The workflow issue-text scanner (#4747) parses each workflow with a
+      # YAML safe loader; without PyYAML it refuses every file (exit 2).
+      - name: Install PyYAML for the workflow issue-text scanner
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
+
       - name: Run manifest tests
         run: bash scripts/ci/run-tests.sh tests/manifests --verbose
 
