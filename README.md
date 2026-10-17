@@ -642,6 +642,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182)** · 2026-10-17
+
+- **deps-dev:** bump vitest (#4779)
+- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4732)
+
 **[v10.0.0-beta.181](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181)** · 2026-10-17
 
 - **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
@@ -683,10 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** stop arming auto-merge on Dependabot PRs (#4762)
 - **security:** exempt hook test fixtures from secret scanning (#4763)
 - bump the github-actions group across 1 directory with 9 updates (#4736)
-
-**[v10.0.0-beta.174](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.173...v10.0.0-beta.174)** · 2026-10-15
-
-- **ci:** read the ci-sentinel CC pin from shared/cc-support.json (#4765)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
