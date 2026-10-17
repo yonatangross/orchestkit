@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.179](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179)** · 2026-10-17
+
+- **deps:** upgrade Remotion to remove braces (#4791)
+
 **[v10.0.0-beta.178](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.177...v10.0.0-beta.178)** · 2026-10-17
 
 - **explore:** trial Haiku pins for Agent tool explorers (#4676)
@@ -687,15 +691,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mods:** lesson-cards keeps tool.call context from hooks below (#4726)
 - **traffic:** snapshot week of 2026-09-28 (#4621)
-
-**[v10.0.0-beta.171](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.170...v10.0.0-beta.171)** · 2026-10-11
-
-- **hooks:** add claude-haiku-5-5 to the model vocab and pricing (#4660)
-- **models:** advance the haiku alias to claude-haiku-5-5 (#4661)
-- **agents:** drop skill references that name no existing skill (#4709)
-- **ci:** five GA-blocking CI and test bugs, red-first (#4687)
-- drop the system-reminder wrapper; isolation only on 2 git agents (#4695)
-- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

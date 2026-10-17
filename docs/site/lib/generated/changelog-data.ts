@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.179",
+    "date": "2026-10-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**deps:** upgrade Remotion to remove braces ([#4791](https://github.com/yonatangross/orchestkit/issues/4791)) ([01d8f74](https://github.com/yonatangross/orchestkit/commit/01d8f74e348d5c8206602ff450781cc5c90715d9))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.178",
     "date": "2026-10-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.177...v10.0.0-beta.178",
