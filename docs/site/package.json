@@ -26,7 +26,7 @@
 		"fumadocs-mdx": "^15.4.7",
 		"fumadocs-ui": "16.17.1",
 		"lucide-react": "^1.49.0",
-		"motion": "^13.5.0",
+		"motion": "^14.2.0",
 		"next": "^16.4.1",
 		"posthog-js": "^1.438.9",
 		"react": "^19.3.0",
