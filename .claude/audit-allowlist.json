@@ -1,8 +1,4 @@
 {
-  "1240992": {
-    "reason": "braces <=3.0.3 (GHSA-vfj7-8cjw-p6xm). Reachability rechecked 2026-10-17 on main f3cd6ba7aba7c77c10c5926db0cf19c6fa603d38: all 10 tracked lockfiles scanned; braces 3.0.3 occurs only in orchestkit-demos/package-lock.json. Its sole direct dependency root is devDependency @remotion/eslint-config-flat 4.0.534 -> typescript-eslint 8.21.0 -> @typescript-eslint/parser -> @typescript-eslint/typescript-estree -> fast-glob 3.3.3 -> micromatch 4.0.8 -> braces 3.0.3. Every node on this path is dev:true; no production dependency root reaches braces, including resolved peer and optional edges. The other 9 lockfiles have no braces entry. npm latest remains 3.0.3 and the advisory first_patched_version is null as of 2026-10-17. Proposed 14-day renewal to 2026-10-31 requires operator approval.",
-    "until": "2026-10-31"
-  },
   "_schema": {
     "description": "npm audit gate allowlist. Keys are the NUMERIC npm advisory id (the `source` field of an npm audit `via` entry), not the GHSA string, because that is what tests/security/test-npm-audit.sh matches on. Add a reason and an optional expiry date (YYYY-MM-DD). An expired entry fails the test so exceptions get revisited: extend the date only with a fresh reachability writeup, or delete the entry once the dependency has moved past the vulnerable range.",
     "example": {
