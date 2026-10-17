@@ -221,12 +221,12 @@ function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
   if (e.tool === 'Edit') {
     const filePath = String(args.file_path || '');
     const newContent = String(args.new_string || args.content || '');
-    return filePath ? matchFileEdit(filePath, newContent, loaded.patterns) : [];
+    return filePath ? matchFileEdit(filePath, newContent, loaded.patterns, 'Edit') : [];
   }
   if (e.tool === 'Write') {
     const filePath = String(args.file_path || '');
     const content = String(args.content || '');
-    return filePath ? matchFileEdit(filePath, content, loaded.patterns) : [];
+    return filePath ? matchFileEdit(filePath, content, loaded.patterns, 'Write') : [];
   }
   return [];
 }

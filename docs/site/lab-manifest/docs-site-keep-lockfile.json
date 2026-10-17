@@ -1,0 +1,12 @@
+{
+  "slug": "docs-site-keep-lockfile",
+  "source": "docs/fix--docs-site-keep-lockfile-2026-10-14/index.html",
+  "title": "Docs site install: what happens on a 401",
+  "description": "Pick the script version, VERCEL_ENV and the npm ci result to see what the docs install does: the old fallback deleted the lockfile and floated fumadocs-ui; the new one keeps it, and production refuses the stub.",
+  "tags": [
+    "docs-site",
+    "ci",
+    "vercel"
+  ],
+  "date": "2026-10-14"
+}

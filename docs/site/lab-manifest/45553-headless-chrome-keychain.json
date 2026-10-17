@@ -2,7 +2,7 @@
   "slug": "45553-headless-chrome-keychain",
   "source": "docs/chore--dsp-45553-ork-fix-keychain/index.html",
   "title": "Headless Chrome keychain prompts: fixed launch, CI-only pre-push",
-  "description": "The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook.",
+  "description": "The glyph triage gate launched Chrome for Testing with --headless and --dump-dom but no keychain suppression, so each pre-push raised five macOS keychain prompts. The launch now passes --use-mock-keychain and --password-store=basic, a lint watches tests/ and bin/ for regressions, and HQ_CI_ONLY=1 skips the unit tier in the pre-push hook.",
   "tags": [
     "tests",
     "pre-push",

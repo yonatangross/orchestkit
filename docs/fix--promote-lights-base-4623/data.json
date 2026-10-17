@@ -1,0 +1,7 @@
+{
+  "serves": "mods-on-2026-10-16",
+  "page": "index.html",
+  "pr_branch": "fix/promote-lights-base-4623",
+  "tests": { "red": { "failed": 2, "passed": 121 }, "fix": { "failed": 0, "passed": 123 } },
+  "version": "0.0.13"
+}

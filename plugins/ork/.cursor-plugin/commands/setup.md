@@ -128,7 +128,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
+Load details: `Read("skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, perf telemetry, log verbosity, webhook telemetry; step 3, localhost browser, is retired) and env var reference.
 
 > Also reachable directly via `setup --configure` — skips phases 1-3.
 

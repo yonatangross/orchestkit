@@ -11,7 +11,7 @@
 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync, fstatSync, readSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { sanitizeOutput } from './output-guard.mjs';
@@ -514,7 +514,24 @@ const MAX_STDIN_BYTES = 512 * 1024;
 // zero bytes in 100ms means a payload was expected and did not arrive in time.
 // The timeout itself is NOT raised: it is a hang guard, and PreToolUse has a
 // sub-50ms budget, so a longer wait would trade a silent failure for a slow one.
-const timeout = setTimeout(() => {
+// #4769: a regular file on stdin (`node run-hook.mjs key <payload.json`, how
+// tests/security feeds the runner) is complete before the process starts, so
+// it is read here, synchronously, and the 100ms timer is never armed for it.
+// The timer still raced it: a long synchronous block after the timer was set
+// let the timers phase run before the read callback, the hook ran on {}, and
+// the auto-approve control in Security Tests read passthrough. A file over the
+// 512KB cap, or any fstat failure, falls through to the stream path below,
+// which keeps its truncation and timeout guards.
+let stdinFromFile = false;
+try {
+  const stat = fstatSync(0);
+  stdinFromFile = stat.isFile() && stat.size <= MAX_STDIN_BYTES;
+} catch {
+  // silent: fail-open (no fstat means not a plain file; the stream path handles it)
+  stdinFromFile = false;
+}
+
+const timeout = stdinFromFile ? null : setTimeout(() => {
   if (!stdinClosed) {
     stdinClosed = true;
     // #4678: a gate that sees {} would allow; late or absent input blocks.
@@ -554,8 +571,17 @@ process.stdin.on('data', (chunk) => {
   // Guard: if stdin exceeds max size (e.g. image base64 in prompt),
   // stop reading and run hook with truncated input to avoid OOM
   if (inputBytes > MAX_STDIN_BYTES) {
-    stdinClosed = true;
     process.stdin.destroy();
+    refuseOversized();
+  }
+});
+
+// The input crossed MAX_STDIN_BYTES: run the hook once on what was read, or on
+// {} when that does not parse. Shared by the stream path and the regular-file
+// path (#4770), so a file that grew after its fstat gets the same refusal.
+function refuseOversized() {
+  if (!stdinClosed) {
+    stdinClosed = true;
     const truncKB = Math.round(inputBytes / 1024);
     // `${hookName}`, not `${name}`: there is no local `name` here, so the bare
     // identifier was a ReferenceError in ESM and this warning THREW instead of
@@ -574,10 +600,11 @@ process.stdin.on('data', (chunk) => {
       runHook(normalizeInput({}));
     }
   }
-});
+}
 
-process.stdin.on('end', () => {
-  clearTimeout(timeout);
+// The complete input is in `input`: run the hook once. Called by the stream's
+// end event, and directly for a regular-file stdin (#4769).
+function finishInput() {
   if (!stdinClosed) {
     stdinClosed = true;
     // #4678: an empty or unparseable input blocks this gate (it would see {}).
@@ -597,16 +624,48 @@ process.stdin.on('end', () => {
       }));
     }
   }
+}
+
+if (stdinFromFile) {
+  // #4770: never trust the fstat size. The file may have grown since, so read
+  // at most one byte past the cap and refuse the input when that byte arrives,
+  // as the stream path does. A read error is handled like a stream error.
+  const buf = Buffer.allocUnsafe(MAX_STDIN_BYTES + 1);
+  let total = 0;
+  try {
+    let n;
+    while (total < buf.length && (n = readSync(0, buf, total, buf.length - total, null)) > 0) total += n;
+  } catch {
+    // silent: handled below, the same as the stream's error event
+    total = -1;
+  }
+  if (total < 0) {
+    onStdinError();
+  } else {
+    input = buf.toString('utf8', 0, Math.min(total, MAX_STDIN_BYTES));
+    inputBytes = total;
+    if (total > MAX_STDIN_BYTES) refuseOversized();
+    else finishInput();
+  }
+}
+
+process.stdin.on('end', () => {
+  clearTimeout(timeout);
+  finishInput();
 });
 
 process.stdin.on('error', () => {
   clearTimeout(timeout);
+  onStdinError();
+});
+
+function onStdinError() {
   if (!stdinClosed) {
     stdinClosed = true;
     if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('could not read its input');
     runHook(normalizeInput({}));
   }
-});
+}
 
 // SECURITY_HOOKS, loadOverrides, isHookDisabled — hoisted above bundle
 // loading. See the docstrings near line 169.

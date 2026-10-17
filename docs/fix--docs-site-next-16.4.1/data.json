@@ -1,0 +1,54 @@
+{
+  "title": "docs/site: next 16.4.1 security bump",
+  "date": "2026-10-15",
+  "byline": "sec-next-1 lane · Claude Opus 5.5 via Claude Code · exposure read is read only",
+  "serves": "sec-next-1641-2026-10-15",
+  "verdict": {
+    "say": "docs/site moves from next 16.3.8 to 16.4.1, which patches 2 critical and 1 high advisory. A read of the code found no use of the three vulnerable paths, so this is defense in depth, not an incident.",
+    "how": "npm view and the vercel/next.js advisories for versions; npm provenance for the release; a read only grep of docs/site for use cache, the images config and server actions"
+  },
+  "kpis": [
+    {"n": "3", "l": "advisories fixed by 16.4.1", "status": "VERIFIED"},
+    {"n": "0", "l": "use cache directives in docs/site", "status": "CLAIMED"},
+    {"n": "0", "l": "use server files in docs/site", "status": "CLAIMED"},
+    {"n": "0.35.5", "l": "sharp in the lock (GHSA-2464 fix floor)", "status": "VERIFIED"},
+    {"n": "2", "l": "files changed (package.json, lock)", "status": "VERIFIED"}
+  ],
+  "health": {
+    "title": "Exposure of docs/site, by advisory",
+    "caption": "Exposure is judged on the base code; the bump closes all three either way.",
+    "levels": [
+      {"key": "no", "label": "not exposed", "tone": "ok"},
+      {"key": "likely", "label": "not exposed, partly a guess", "tone": "warn"}
+    ],
+    "groups": [
+      {"name": "A · use cache typed arrays (critical)", "counts": {"no": 1}},
+      {"name": "B · image optimizer with SVG (critical)", "counts": {"likely": 1}},
+      {"name": "C · server actions DoS (high)", "counts": {"likely": 1}}
+    ]
+  },
+  "changes": [
+    {"title": "next ^16.3.8 to ^16.4.1 in docs/site/package.json", "why": "16.0.0 to 16.4.0 is affected by GHSA-673q-mjm6-r5xr, GHSA-2464-fhr4-w9xw, GHSA-p3m5-59mp-jv5r.", "value": "H", "effort": "S", "risk": "low", "owner": "sec-next-1 lane", "evidence": "docs/site/package-lock.json resolves next 16.4.1", "status": "VERIFIED"},
+    {"title": "Keep the sharp ^0.35.5 override", "why": "GHSA-2464 names sharp >=0.35.5 as the fix; the existing override already sets that floor.", "value": "M", "effort": "S", "risk": "low", "owner": "sec-next-1 lane", "evidence": "docs/site/package.json overrides.sharp", "status": "VERIFIED"},
+    {"title": "Pin the Sanity project id in images.remotePatterns", "why": "The pattern allows any Sanity project under /images/**. It matters only if SVG were ever allowed. Hardening note, not in this PR.", "value": "L", "effort": "S", "risk": "low", "owner": "docs/site owner", "evidence": "docs/site/next.config.mjs:22-27", "status": "CLAIMED"}
+  ],
+  "lenses": [
+    {"name": "A · use cache", "finding": "0 real directives; the only hits are prose inside generated strings. No cacheComponents or useCache in next.config.mjs.", "status": "CLAIMED"},
+    {"name": "B · image optimizer", "finding": "No dangerouslyAllowSVG; all 7 Image sources are png or jpg; deploy is Vercel (vercel.json). That Vercel runs its own optimizer is a guess.", "status": "CLAIMED"},
+    {"name": "C · server actions", "finding": "App Router present, 0 use server files, 0 form actions.", "status": "CLAIMED"},
+    {"name": "Release provenance", "finding": "next@16.4.1 carries SLSA v1 provenance from vercel/next.js refs/tags/v16.4.1, build_and_deploy.yml.", "status": "VERIFIED"}
+  ],
+  "caveats": [
+    "The exposure read is a subagent grep of the tree, not a build or a live probe.",
+    "No local build or tests ran. CI is the judge.",
+    "No glyph mockup was approved for this page; it uses the approved page-kit audit layout as is."
+  ],
+  "open": [
+    {"label": "Next.js v16.4.1 release notes", "href": "https://github.com/vercel/next.js/releases/tag/v16.4.1"},
+    {"label": "GHSA-2464-fhr4-w9xw (sharp fix floor)", "href": "https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw"}
+  ],
+  "next": [
+    {"text": "Read CI on this PR; flip from draft when the required rows are green.", "top": true},
+    {"text": "Merge through review and the door."}
+  ]
+}

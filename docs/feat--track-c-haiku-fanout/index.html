@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where subagent tokens go, and what a Haiku pin can touch</title>
+<style>
+  :root{--bg:#fafaf7;--panel:#fff;--edge:#dcdad2;--ink:#1d1d1b;--dim:#6a675f;--pin:#1a7f37;--keep:#0b5cad;--mixed:#9a6700;--fork:#a4262c;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  @media (prefers-color-scheme:dark){:root{--bg:#16171a;--panel:#1e2024;--edge:#33363d;--ink:#e8e8e4;--dim:#9a9a94;--pin:#4ade80;--keep:#7dd3fc;--mixed:#fbbf24;--fork:#f87171}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif}
+  main{max-width:70rem;margin-inline:auto}
+  h1{font-size:1.4rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 1.2rem;font-size:.9rem}
+  .bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+  button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:.35rem .7rem}
+  button[aria-pressed="true"]{border-color:var(--keep);color:var(--keep);font-weight:600}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--edge);border-radius:8px;overflow:hidden;font-size:.84rem}
+  th,td{text-align:start;padding:.5rem .6rem;border-bottom:1px solid var(--edge);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+  td.n{text-align:end;font-variant-numeric:tabular-nums}
+  code{font-family:var(--mono);font-size:.8rem}
+  .pin{color:var(--pin);font-weight:600}.keep{color:var(--keep);font-weight:600}.mixed{color:var(--mixed);font-weight:600}.fork{color:var(--fork);font-weight:600}.other{color:var(--dim)}
+  #copied{color:var(--pin);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Where subagent tokens go, and what a Haiku pin can touch</h1>
+  <p class="sub">681 subagent transcripts from the last 7 days on this machine (seat sessions, read from local files). Cost column is the list-price equivalent at Haiku 5.5 prices (USD 0.10 in, 0.125 cache write, 0.01 cache read, 0.50 out per MTok); the same tokens cost about 20x on Sonnet 5.5 and 40x on Opus 5.5. Card haiku55-adopt.</p>
+  <div class="bar" role="group" aria-label="Filter by decision">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="pin" aria-pressed="false">Pinned here</button>
+    <button type="button" data-f="mixed" aria-pressed="false">Mixed</button>
+    <button type="button" data-f="fork" aria-pressed="false">Fork (never)</button>
+    <button type="button" data-f="keep" aria-pressed="false">Keep</button>
+    <span id="count" style="color:var(--dim);font-size:.85rem"></span>
+  </div>
+  <table>
+    <thead><tr><th>Agent type</th><th>Model</th><th>Spawns</th><th>Median turns</th><th>First-turn prefix</th><th>Cache read (M tok)</th><th>Output (M tok)</th><th>At Haiku 5.5 (USD)</th><th>Decision</th><th>Why</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p><button type="button" id="copy">Copy visible rows as markdown</button> <span id="copied" role="status"></span></p>
+</main>
+<script>
+const DATA = [["general-purpose", "opus-5-5", 334, 33, 116761, 2613.1, 5.77, 49.91, "mixed", "Mixed work: 89 of 334 Opus spawns wrote files. Read-only share is unknown (3% to 63%)."], ["general-purpose", "sonnet-5-5", 73, 20, 99803, 316.6, 1.05, 6.45, "mixed", "Mixed work: 89 of 334 Opus spawns wrote files. Read-only share is unknown (3% to 63%)."], ["ork:security-auditor", "opus-5-5", 64, 33, 79327, 234.2, 1.11, 5.29, "keep", "Review, security, writer or operator work. Stays on its model."], ["Explore", "opus-5-5", 52, 50, 69306, 366.3, 0.88, 7.08, "pin", "Read-only agent type, starts its own context. Pinned in this PR."], ["fork", "opus-5-5", 38, 30, 394300, 471.4, 0.44, 5.46, "fork", "Starts with the parent conversation (394k). Never pin: a fresh Haiku agent cannot replace it."], ["hq-ext:collector", "haiku-4-5", 10, 29, 51144, 13.2, 0.03, 0.46, "other", "Small volume or already haiku. No change here."], ["ork:web-research-analyst", "sonnet-5-5", 7, 47, 52837, 26.9, 0.13, 0.89, "other", "Small volume or already haiku. No change here."], ["claude-code-guide", "haiku-4-5", 6, 14, 118364, 7.1, 0.01, 0.37, "other", "Small volume or already haiku. No change here."], ["hq-ext:comms-ops", "opus-5-5", 4, 3, 33640, 0.1, 0.01, 0.04, "keep", "Review, security, writer or operator work. Stays on its model."], ["ork:code-quality-reviewer", "opus-5-5", 4, 59, 89924, 36.1, 0.07, 0.59, "keep", "Review, security, writer or operator work. Stays on its model."], ["Explore", "sonnet-5-5", 4, 54, 69148, 33.1, 0.08, 0.57, "pin", "Read-only agent type, starts its own context. Pinned in this PR."], ["hq-ext:critic", "sonnet-5-5", 4, 8, 41203, 1.0, 0.01, 0.12, "keep", "Review, security, writer or operator work. Stays on its model."], ["candlekeep-cloud:librarian", "haiku-4-5", 4, 17, 39284, 2.7, 0.01, 0.1, "other", "Small volume or already haiku. No change here."], ["hq-ext:observability-ops", "sonnet-5-5", 3, 6, 44658, 0.5, 0.0, 0.06, "other", "Small volume or already haiku. No change here."]];
+let filter = "all";
+const tbody = document.getElementById("rows"), count = document.getElementById("count");
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function visible(){ return DATA.filter(r => filter === "all" || r[8] === filter); }
+function render(){
+  const rows = visible();
+  tbody.innerHTML = rows.map(r => `<tr><td><code>${esc(r[0])}</code></td><td>${esc(r[1])}</td><td class="n">${r[2]}</td><td class="n">${r[3]}</td><td class="n">${r[4].toLocaleString("en")}</td><td class="n">${r[5].toLocaleString("en")}</td><td class="n">${r[6]}</td><td class="n">${r[7].toLocaleString("en")}</td><td class="${r[8]}">${r[8]}</td><td>${esc(r[9])}</td></tr>`).join("");
+  count.textContent = `${rows.length} of ${DATA.length} groups`;
+}
+document.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", () => {
+  filter = b.dataset.f;
+  document.querySelectorAll("[data-f]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+document.getElementById("copy").addEventListener("click", async () => {
+  const md = ["| Agent type | Model | Spawns | Median turns | First-turn prefix | Cache read (M) | Output (M) | Haiku 5.5 USD | Decision |", "|---|---|---|---|---|---|---|---|---|"].concat(visible().map(r => `| ${r[0]} | ${r[1]} | ${r[2]} | ${r[3]} | ${r[4]} | ${r[5]} | ${r[6]} | ${r[7]} | ${r[8]} |`)).join("\n");
+  try { await navigator.clipboard.writeText(md); document.getElementById("copied").textContent = "Copied."; }
+  catch (e) { document.getElementById("copied").textContent = "Copy failed: select the table instead."; }
+});
+render();
+</script>
+</body>
+</html>
