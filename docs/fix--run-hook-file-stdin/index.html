@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hook runner: a file on stdin can no longer lose the 100 ms race</title>
+<meta name="description" content="PR for branch fix/run-hook-file-stdin, fixes #4769. run-hook.mjs armed a 100 ms stdin timer even for a regular-file stdin, so on a loaded runner the hook could run on an empty payload. A regular file is now read synchronously before any timer exists; pipes keep the timer.">
+<style>
+  :root{--paper:#fbfaf7;--ink:#1d1d1b;--dim:#6b6a65;--rule:#e2dfd7;--accent:#2f5d8a;--ok:#2e7d32;--skip:#a15c00;--bad:#b3261e}
+  @media (prefers-color-scheme:dark){:root{--paper:#16171a;--ink:#e9e7e1;--dim:#a3a19a;--rule:#2c2d31;--accent:#8ab4e0;--ok:#7fc785;--skip:#e0a85a;--bad:#f08b84}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--paper);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 1.8rem}
+  section{border-top:1px solid var(--rule);padding-block:1.1rem}
+  h2{font-size:.8rem;margin:0 0 .8rem;color:var(--accent);text-transform:uppercase;letter-spacing:.07em}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:4px;padding:0 4px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--rule)}
+  th{color:var(--dim);font-weight:600}
+  .ok{color:var(--ok)} .skip{color:var(--skip)} .bad{color:var(--bad)}
+  .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .9rem}
+  button{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:.35rem .8rem;font:inherit;font-size:.85rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  #copied{color:var(--dim);font-size:.85rem;margin-inline-start:.6rem}
+</style>
+</head>
+<body>
+<main>
+<h1>A file on stdin can no longer lose the 100 ms race</h1>
+<p class="sub">Branch <code>fix/run-hook-file-stdin</code>, fixes #4769. Security Tests read <code>passthrough</code> instead of <code>allow</code> for the auto-approve control on a loaded runner.</p>
+
+<section>
+<h2>Same payload, four ways in</h2>
+<div class="controls" role="group" aria-label="Runner version">
+  <button type="button" data-v="before" aria-pressed="true">before the fix</button>
+  <button type="button" data-v="after" aria-pressed="false">after the fix</button>
+</div>
+<table>
+  <thead><tr><th scope="col">stdin</th><th scope="col">100 ms timer</th><th scope="col">verdict</th><th scope="col">warning</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<p class="sub">"Timer fires first" is what a loaded runner does: a long synchronous block after the timer is set lets the timers phase run before the read. The test makes it happen every time with a preload that fires that one timer as a microtask.</p>
+</section>
+
+<section>
+<h2>What changed</h2>
+<ul>
+  <li><code>run-hook.mjs</code>: if <code>fstat(0)</code> says regular file within the 512 KB cap, read it synchronously and run the hook; the timer is never armed for it. Pipes and TTYs keep the timer.</li>
+  <li>The security test keeps the runner's stderr and prints it when a verdict does not match, so the next flake names its cause.</li>
+</ul>
+<p><button type="button" id="copy">Copy as prompt</button><span id="copied" aria-live="polite"></span></p>
+</section>
+</main>
+<script>
+const DATA = {
+  before: [
+    ["file", "normal", "allow", "ok", "no"],
+    ["file", "fires first", "passthrough", "bad", "yes"],
+    ["pipe", "normal", "allow", "ok", "no"],
+    ["pipe", "fires first", "passthrough", "skip", "yes"]
+  ],
+  after: [
+    ["file", "never armed", "allow", "ok", "no"],
+    ["file", "never armed", "allow", "ok", "no"],
+    ["pipe", "normal", "allow", "ok", "no"],
+    ["pipe", "fires first", "passthrough", "skip", "yes"]
+  ]
+};
+let current = "before";
+const rows = document.getElementById("rows");
+const buttons = document.querySelectorAll("button[data-v]");
+function render(v) {
+  current = v;
+  rows.replaceChildren();
+  for (const [stdin, timer, verdict, cls, warn] of DATA[v]) {
+    const tr = document.createElement("tr");
+    for (const [text, c] of [[stdin, ""], [timer, ""], [verdict, cls], [warn, ""]]) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (c) td.className = c;
+      tr.appendChild(td);
+    }
+    rows.appendChild(tr);
+  }
+  buttons.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+}
+buttons.forEach(b => b.addEventListener("click", () => render(b.dataset.v)));
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = "orchestkit #4769 (" + current + " the fix): " +
+    DATA[current].map(r => r[0] + " stdin, timer " + r[1] + " -> " + r[2]).join("; ") +
+    ". Check src/hooks/src/__tests__/bin/run-hook-stdin-timeout.test.ts pins the file and pipe arms.";
+  try { await navigator.clipboard.writeText(text); document.getElementById("copied").textContent = "Copied."; }
+  catch { document.getElementById("copied").textContent = text; }
+});
+render("before");
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "slug": "doctor-memory-rsync-evidence",
+  "source": "docs/chore--dsp-44003-ork-fix-4082/index.html",
+  "title": "Doctor memory view and rsync evidence",
+  "description": "Compare the memory sort correction and the separate CI GNU rsync and local macOS openrsync evidence.",
+  "tags": [
+    "doctor",
+    "documentation",
+    "rsync"
+  ],
+  "date": "2026-10-15"
+}

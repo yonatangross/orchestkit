@@ -472,6 +472,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     if [[ -d "$SRC_DIR/shared" ]]; then
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"
     fi
+    # doctor check 10 tells the model to read shared/cc-support.json as the
+    # single source for the supported CC floor; it lives in the repo-root
+    # shared/, not src/shared, so ship it explicitly (skills audit B7).
+    if [[ -d "$PLUGIN_DIR/shared" && -f "$PROJECT_ROOT/shared/cc-support.json" ]]; then
+        cp "$PROJECT_ROOT/shared/cc-support.json" "$PLUGIN_DIR/shared/"
+    fi
 
     # Generate plugin.json using jq for consistent formatting.
     # release-please updates the version field in this file via extra-files,

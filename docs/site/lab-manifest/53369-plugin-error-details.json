@@ -1,0 +1,13 @@
+{
+  "slug": "53369-plugin-error-details",
+  "source": "docs/chore--dsp-53369-ork-fix-4054/index.html",
+  "title": "doctor reads errorDetails and noteDetails on plugin rows (GH-4054)",
+  "description": "CC 2.1.268 put errorDetails and noteDetails on each row of the plugin list JSON output. Toggle the fields on sample rows and watch the doctor verdict move from all OK to warnings plus info notes.",
+  "tags": [
+    "doctor",
+    "cc",
+    "plugin-list",
+    "4054"
+  ],
+  "date": "2026-10-15"
+}

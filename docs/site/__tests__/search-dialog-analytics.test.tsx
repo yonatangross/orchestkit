@@ -16,7 +16,8 @@ const state = vi.hoisted(() => ({
 	data: null as unknown,
 }));
 
-vi.mock("fumadocs-core/search/client", () => ({
+vi.mock("fumadocs-core/search/client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("fumadocs-core/search/client")>()),
 	useDocsSearch: () => ({
 		search: state.search,
 		setSearch: (v: string) => {

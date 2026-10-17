@@ -1,0 +1,11 @@
+# PLANTED UNSAFE FIXTURE (XREVIEW 6209698795). A quoted job-level
+# "permissions" key is the same YAML key; it grants write-all here.
+name: probe
+on: workflow_dispatch
+permissions: {}
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    "permissions": write-all
+    steps:
+      - run: gh issue view 1

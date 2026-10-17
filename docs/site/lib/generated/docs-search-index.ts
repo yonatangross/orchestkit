@@ -146,6 +146,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Skills are knowledge, agents are specialists, hooks are automation. Here's how they work together."
   },
   {
+    "url": "/docs/foundations/worktree",
+    "title": "Worktree isolation",
+    "description": "When to keep the default EnterWorktree isolation for background sessions, and when worktree.bgIsolation \\\"none\\\" is the right opt-in."
+  },
+  {
     "url": "/docs/getting-started/agy",
     "title": "Antigravity",
     "description": "Install OrchestKit skills in Google's Antigravity (agy). Agent Skills via skills.sh and workspace .agents/skills. No ork-agy pack; hooks and MCP config are a different contract."
@@ -823,7 +828,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/browser-tools",
     "title": "Browser Tools",
-    "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits."
+    "description": "Safety rules over the upstream agent-browser skill (scraping ethics, auth, request pacing, local URLs). URL policy is the Claude Code sandbox's job when the operator enables it. Use for browser automation."
   },
   {
     "url": "/docs/reference/skills/business-case",
