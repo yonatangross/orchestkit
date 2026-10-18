@@ -40,6 +40,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - **Hint cards**: Displays a bordered card under the tool row with lesson id, severity, message, and fix suggestion (red for block, yellow for warn, gray for a lessons.md note)
 - **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. Only an explicit `Proceed anyway` runs the call. `Cancel`, Escape, a typed free-text answer, and no dialog at all (headless `-p`) refuse it with `{ deny }`, so it never runs. The card is the only place the lesson text is drawn. The question is the lesson id and `Proceed anyway?` only. A user cancel (Cancel or Escape) is `Cancelled: by you; not run. [lesson:<id>]` with no Fix (a cancel is not a failure). The `Cancelled: ` head is ours so Claude Code 2.1.283 leaves the deny alone instead of gluing `Error: `; the rest drops the echo so Cancelled is said once. Other refuses (no dialog, no exact Proceed anyway) still carry a short Fix so the model keeps the alternative. When several patterns match an Edit or Write, a block match always ranks before a warn
 - **Model context**: Adds matched lessons to the tool result context for the model to read
+- **Card only, for unattended lanes**: set `ORK_LESSON_CARDS_MODE=card-only` in the lane's environment (for example the `env` block of that lane's settings). A block lesson then draws its card and adds its context, and the call runs: no dialog, no deny. Use it where nobody watches the pane, so a dialog cannot stall the lane. Any other value, or none, keeps `Proceed anyway?` and the fail-closed deny. The classic `pretool-lesson-guard --strict` deny is not changed by this mode.
 - **Additive**: During pilot, the classic `pretool-lesson-guard --strict` keeps its 12 block-severity denies unchanged
 
 ## Hook footprint
@@ -55,6 +56,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 
 ### Calls
 
+- `$.env.get` - Read `HOME`, and `ORK_LESSON_CARDS_MODE` at session start
 - `$.fs.read` - Read lesson-patterns.json and lessons.md files
 - `$.fs.list` - List hq-ext versions and floor directories
 - `$.fs.stat` - Get file mtimes for sorting

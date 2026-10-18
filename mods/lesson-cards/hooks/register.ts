@@ -77,6 +77,12 @@ type SessionStartEvent = { cwd: string; isInteractive: boolean };
 let corpus: Corpus | null = null;
 /** True only after session.start says isInteractive; headless (-p) or no session.start never asks. */
 let interactive = false;
+/**
+ * ORK_LESSON_CARDS_MODE=card-only: an unattended lane (an interactive pane with
+ * nobody at it) shows the card and runs the call, never asks and never denies.
+ * Any other value, or none, keeps the dialog and the fail-closed deny.
+ */
+let cardOnly = false;
 const matchMap = new Map<string, MatchedLesson[]>();
 
 /**
@@ -241,6 +247,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     interactive = e.isInteractive === true;
+    cardOnly = (await $.env.get('ORK_LESSON_CARDS_MODE').catch(() => undefined)) === 'card-only';
     matchMap.clear();
     corpus = await loadCorpus($).catch((err: unknown) => ({
       patterns: [],
@@ -280,8 +287,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // A block lesson asks the human before the call runs, and only an explicit
     // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "dismissed"),
     // a typed free-text answer, and no dialog at all (headless -p) all deny:
-    // a block lesson fails closed (estate-6 HOLD on #4429).
-    if (lesson.severity === 'block' && lesson.source === 'pattern') {
+    // a block lesson fails closed (estate-6 HOLD on #4429). card-only skips this:
+    // the card and the context below are all an unattended lane gets.
+    if (lesson.severity === 'block' && lesson.source === 'pattern' && !cardOnly) {
       // $.ui.ask is only ever called: CC's validator refuses reading it as a value.
       let answer: unknown;
       let outcome: 'answered' | 'dismissed' | 'no-dialog' = 'no-dialog';
