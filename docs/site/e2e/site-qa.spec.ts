@@ -101,17 +101,36 @@ test.describe("Site QA", () => {
 		// clipped between 768 and 850px).
 		for (const width of [360, 390, 768, 800, 820, 850, 1024, 1280, 1440]) {
 			await page.setViewportSize({ width, height: 900 });
-			const overflowing = await page.evaluate(() =>
-				[...document.querySelectorAll("button[aria-label^='Copy ']")]
-					.filter((b) => {
-						const edge = b.getBoundingClientRect().right;
-						const range = document.createRange();
-						range.selectNodeContents(b);
-						return Math.max(...[...range.getClientRects()].map((r) => r.right)) > edge + 0.5;
-					})
-					.map((b) => b.getAttribute("aria-label")?.slice(0, 40)),
+			// setViewportSize resolves when the browser resized, not when the page
+			// settled, so a read in the same tick can see the previous width's
+			// layout (CI run 39140558431: every card "overflowed" at 360, the
+			// identical tree passed minutes later; suspected cause, not reproduced). Wait for fonts and two frames, then poll: a real
+			// overflow is stable and still fails once the poll times out.
+			await page.evaluate(
+				() =>
+					document.fonts.ready.then(
+						() =>
+							new Promise<void>((done) =>
+								requestAnimationFrame(() => requestAnimationFrame(() => done())),
+							),
+					),
 			);
-			expect(overflowing, `at ${width}px`).toEqual([]);
+			await expect
+				.poll(
+					() =>
+						page.evaluate(() =>
+							[...document.querySelectorAll("button[aria-label^='Copy ']")]
+								.filter((b) => {
+									const edge = b.getBoundingClientRect().right;
+									const range = document.createRange();
+									range.selectNodeContents(b);
+									return Math.max(...[...range.getClientRects()].map((r) => r.right)) > edge + 0.5;
+								})
+								.map((b) => b.getAttribute("aria-label")?.slice(0, 40)),
+						),
+					{ message: `at ${width}px`, timeout: 5_000 },
+				)
+				.toEqual([]);
 		}
 	});
 
