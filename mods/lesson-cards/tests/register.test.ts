@@ -667,6 +667,29 @@ describe('card-only lanes: trust comes from user settings, never from a project'
     }
   });
 
+  test('on POSIX a backslash is part of a folder name, not a separator', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs('/safe/desks') });
+    await startAt(hooks, $, '/safe/desks\\evil');
+    const { ran } = await call(hooks, $);
+    expect(asks).toHaveLength(1);
+    expect(ran).toBe(false);
+  });
+
+  test('Windows paths still match inside a listed folder, and not beside it', async () => {
+    for (const [cwd, inside] of [
+      ['C:\\Users\\you\\desks\\lane', true],
+      ['C:\\Users\\you\\desks', true],
+      ['C:\\Users\\you\\desks-other\\lane', false],
+    ] as const) {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs('C:\\Users\\you\\desks\\') });
+      await startAt(hooks, $, cwd);
+      await call(hooks, $);
+      expect(asks).toHaveLength(inside ? 0 : 1);
+    }
+  });
+
   test('a headless session in a listed lane keeps the fail-closed deny', async () => {
     const { hooks } = captureHooks();
     const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway', settings: userDirs(DESKS) });
