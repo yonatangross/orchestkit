@@ -26,6 +26,10 @@ import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
 type Hook$ = {
+  settings: {
+    /** One source as loaded; `user` is ~/.claude/settings.json, which a project cannot write. */
+    read: (args: { source: 'user' }) => Promise<Record<string, unknown>>;
+  };
   env: {
     get: (name: string) => Promise<string | undefined>;
   };
@@ -80,12 +84,32 @@ let corpus: Corpus | null = null;
 /** True only after session.start says isInteractive; headless (-p) or no session.start never asks. */
 let interactive = false;
 /**
- * ORK_LESSON_CARDS_MODE=card-only: an unattended lane (an interactive pane with
- * nobody at it) shows the card and runs the call instead of opening the dialog.
- * It removes the dialog only: headless still denies, since a project's settings
- * env can set the variable. Any other value, or none, keeps the dialog.
+ * True in an unattended lane: an interactive session whose cwd is at or under a
+ * folder listed in the USER settings env ORK_LESSON_CARDS_CARD_ONLY_DIRS
+ * (;-separated). A block lesson there shows the card and runs the call instead
+ * of opening the dialog. Only the user source counts: a project's settings or
+ * env can name any folder, so they never turn it on. Headless still denies.
  */
 let cardOnly = false;
+
+/** Is cwd one of the user-listed card-only folders, or inside one? */
+async function inCardOnlyLane($: Hook$, cwd: string): Promise<boolean> {
+  let user: Record<string, unknown>;
+  try {
+    user = await $.settings.read({ source: 'user' });
+  } catch {
+    // No settings noun or a failed read: not a card-only lane, the dialog stays.
+    return false;
+  }
+  const env = user?.env;
+  const raw = env && typeof env === 'object' ? (env as Record<string, unknown>).ORK_LESSON_CARDS_CARD_ONLY_DIRS : undefined;
+  if (typeof raw !== 'string' || !cwd) return false;
+  return raw
+    .split(';')
+    .map((dir) => dir.trim().replace(/[\\/]+$/, ''))
+    .filter((dir) => dir !== '')
+    .some((dir) => cwd === dir || cwd.startsWith(`${dir}/`) || cwd.startsWith(`${dir}\\`));
+}
 const matchMap = new Map<string, MatchedLesson[]>();
 
 /**
@@ -250,7 +274,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     interactive = e.isInteractive === true;
-    cardOnly = interactive && (await $.env.get('ORK_LESSON_CARDS_MODE').catch(() => undefined)) === 'card-only';
+    cardOnly = interactive && (await inCardOnlyLane($, e.cwd));
     if (cardOnly) await $.ui.status('lesson-cards: card only, no dialogs').catch(() => undefined);
     matchMap.clear();
     corpus = await loadCorpus($).catch((err: unknown) => ({
