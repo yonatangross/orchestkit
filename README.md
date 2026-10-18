@@ -642,6 +642,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183)** · 2026-10-18
+
+- **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
+- **site:** let the Installation overflow check settle after each resize (#4803)
+
 **[v10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182)** · 2026-10-17
 
 - **deps-dev:** bump vitest (#4779)
@@ -682,12 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176)** · 2026-10-15
 
 - **hooks:** read a regular-file stdin before the 100ms timer (#4770)
-
-**[v10.0.0-beta.175](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.174...v10.0.0-beta.175)** · 2026-10-15
-
-- **ci:** stop arming auto-merge on Dependabot PRs (#4762)
-- **security:** exempt hook test fixtures from secret scanning (#4763)
-- bump the github-actions group across 1 directory with 9 updates (#4736)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
