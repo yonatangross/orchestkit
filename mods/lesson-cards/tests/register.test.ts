@@ -55,6 +55,10 @@ interface Fake$Options {
   askAnswer?: string;
   /** When set, $.env.get answers from this map instead of the default HOME only. */
   env?: Record<string, string>;
+  /** $.settings.read answers: by source, and `merged` for a read with no source. */
+  settings?: Partial<Record<'user' | 'project' | 'local' | 'merged', Record<string, unknown>>>;
+  /** $.settings.read throws. */
+  settingsThrows?: boolean;
 }
 
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.283 (captured live). */
@@ -86,6 +90,7 @@ interface Fake$Record {
   registeredCommands: Array<{ name: string; description: string }>;
   asks: Array<{ question: string; options: readonly string[] }>;
   statuses: Array<string | undefined>;
+  settingsReads: Array<string | undefined>;
 }
 
 function makeFake$(options: Fake$Options = {}): Fake$Record {
@@ -95,6 +100,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   const registeredCommands: Array<{ name: string; description: string }> = [];
   const asks: Array<{ question: string; options: readonly string[] }> = [];
   const statuses: Array<string | undefined> = [];
+  const settingsReads: Array<string | undefined> = [];
 
   const ask = async (question: string, opts: readonly string[]): Promise<string> => {
     asks.push({ question, options: opts });
@@ -116,6 +122,13 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   };
 
   const fake$ = {
+    settings: {
+      read: async (args?: { source?: 'user' | 'project' | 'local' }): Promise<Record<string, unknown>> => {
+        settingsReads.push(args?.source);
+        if (options.settingsThrows) throw new Error('settings unavailable');
+        return options.settings?.[args?.source ?? 'merged'] ?? {};
+      },
+    },
     env: {
       get: async (name: string): Promise<string | undefined> => {
         envGets.push(name);
@@ -193,7 +206,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     },
   };
 
-  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks, statuses };
+  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks, statuses, settingsReads };
 }
 
 interface CapturedHooks {
@@ -582,71 +595,106 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
   }
 });
 
-describe('card-only mode: an unattended lane gets the card, never a dialog or a deny', () => {
-  const CARD_ONLY = { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card-only' };
+describe('card-only lanes: trust comes from user settings, never from a project', () => {
+  const DESKS = '/home/lesson-tester/.floor/desks';
+  const LANE = `${DESKS}/mods-1`;
+  const userDirs = (dirs: string) => ({ user: { env: { ORK_LESSON_CARDS_CARD_ONLY_DIRS: dirs } } });
 
-  test('an interactive lane: a block lesson runs the tool, keeps the context and draws the card', async () => {
-      const { hooks } = captureHooks();
-      const { $, asks } = makeFake$({ askAnswer: 'Cancel', env: CARD_ONLY });
-      await startSession(hooks, $);
-
-      let ran = false;
-      const next = async (): Promise<unknown> => {
-        ran = true;
-        return { result: 'ran' };
-      };
-      const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-card' }, next)) as { deny?: string; result?: string; context?: string[] };
-      const tree = await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-card' }, asNext<never>(null));
-
-      expect(asks).toHaveLength(0);
-      expect(ran).toBe(true);
-      expect(out.deny).toBeUndefined();
-      expect(out.result).toBe('ran');
-      expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
-      expect(JSON.stringify(tree)).toContain('cancelled-check-is-not-pass');
-  });
-
-  test('a headless session keeps the fail-closed deny: card-only only removes the dialog', async () => {
-    const { hooks } = captureHooks();
-    const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway', env: CARD_ONLY });
-    await hooks.get('session.start')!($, { ...SESSION_EVENT, isInteractive: false }, async (ev: unknown) => ev);
+  async function startAt(hooks: Map<string, RegisteredHook>, $: unknown, cwd: string, isInteractive = true): Promise<void> {
+    await hooks.get('session.start')!($, { cwd, isInteractive }, async (ev: unknown) => ev);
+  }
+  async function call(hooks: Map<string, RegisteredHook>, $: unknown): Promise<{ ran: boolean; out: { deny?: string; result?: string; context?: string[] } }> {
     let ran = false;
     const next = async (): Promise<unknown> => {
       ran = true;
       return { result: 'ran' };
     };
-    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string };
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-card' }, next)) as { deny?: string; result?: string; context?: string[] };
+    return { ran, out };
+  }
+
+  test('a lane under a user-listed folder gets the card and the call runs, with no dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE);
+    const { ran, out } = await call(hooks, $);
+    const tree = await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-card' }, asNext<never>(null));
+    expect(asks).toHaveLength(0);
+    expect(ran).toBe(true);
+    expect(out.deny).toBeUndefined();
+    expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+    expect(JSON.stringify(tree)).toContain('cancelled-check-is-not-pass');
+  });
+
+  test('a project cannot turn it on: project settings, merged settings and env are not trusted', async () => {
+    const { hooks } = captureHooks();
+    const projectEnv = { env: { ORK_LESSON_CARDS_CARD_ONLY_DIRS: LANE, ORK_LESSON_CARDS_MODE: 'card-only' } };
+    const { $, asks } = makeFake$({
+      askAnswer: 'Cancel',
+      settings: { project: projectEnv, local: projectEnv, merged: projectEnv },
+      env: { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card-only', ORK_LESSON_CARDS_CARD_ONLY_DIRS: LANE },
+    });
+    await startAt(hooks, $, LANE);
+    const { ran, out } = await call(hooks, $);
+    expect(asks).toHaveLength(1);
+    expect(ran).toBe(false);
+    expect(out.deny).toContain('Cancelled: by you; not run.');
+  });
+
+  test('reads the user source only', async () => {
+    const { hooks } = captureHooks();
+    const { $, settingsReads } = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE);
+    expect(settingsReads).toEqual(['user']);
+  });
+
+  test('a sibling folder with the same prefix is not under the listed folder', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(DESKS) });
+    await startAt(hooks, $, `${DESKS}-other/lane`);
+    await call(hooks, $);
+    expect(asks).toHaveLength(1);
+  });
+
+  test('the listed folder itself, and any one of several ;-separated folders, match', async () => {
+    for (const [dirs, cwd] of [[LANE, LANE], [`/elsewhere; ${DESKS}/`, LANE]] as const) {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(dirs) });
+      await startAt(hooks, $, cwd);
+      const { ran } = await call(hooks, $);
+      expect(asks).toHaveLength(0);
+      expect(ran).toBe(true);
+    }
+  });
+
+  test('a headless session in a listed lane keeps the fail-closed deny', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway', settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE, false);
+    const { ran, out } = await call(hooks, $);
     expect(ran).toBe(false);
     expect(asks).toHaveLength(0);
     expect(out.deny?.startsWith('Not run: no dialog to confirm. [lesson:cancelled-check-is-not-pass]')).toBe(true);
   });
 
-  test('shows a status line while card-only is on, and none otherwise', async () => {
+  test('a settings read that fails keeps the dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settingsThrows: true });
+    await startAt(hooks, $, LANE);
+    await call(hooks, $);
+    expect(asks).toHaveLength(1);
+  });
+
+  test('shows a status line in a card-only lane, and none otherwise', async () => {
     const on = captureHooks();
-    const cardOnly = makeFake$({ env: CARD_ONLY });
-    await startSession(on.hooks, cardOnly.$);
-    expect(cardOnly.statuses).toEqual(['lesson-cards: card only, no dialogs']);
+    const lane = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(on.hooks, lane.$, LANE);
+    expect(lane.statuses).toEqual(['lesson-cards: card only, no dialogs']);
 
     const off = captureHooks();
-    const normal = makeFake$();
-    await startSession(off.hooks, normal.$);
+    const normal = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(off.hooks, normal.$, '/repo');
     expect(normal.statuses).toEqual([]);
-  });
-
-  test('reads the mode from $.env at session start', async () => {
-    const { hooks } = captureHooks();
-    const { $, envGets } = makeFake$({ env: CARD_ONLY });
-    await startSession(hooks, $);
-    expect(envGets).toContain('ORK_LESSON_CARDS_MODE');
-  });
-
-  test('an unknown mode value keeps the dialog', async () => {
-    const { hooks } = captureHooks();
-    const { $, asks } = makeFake$({ askAnswer: 'Cancel', env: { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card' } });
-    await startSession(hooks, $);
-    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
-    expect(asks).toHaveLength(1);
-    expect(out.deny).toContain('Cancelled: by you; not run.');
   });
 });
 
