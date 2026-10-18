@@ -577,6 +577,49 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
   }
 });
 
+describe('card-only mode: an unattended lane gets the card, never a dialog or a deny', () => {
+  const CARD_ONLY = { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card-only' };
+
+  for (const [label, isInteractive] of [['an interactive lane', true], ['a headless session', false]] as const) {
+    test(`${label}: a block lesson runs the tool, keeps the context and draws the card`, async () => {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', env: CARD_ONLY });
+      await hooks.get('session.start')!($, { ...SESSION_EVENT, isInteractive }, async (ev: unknown) => ev);
+
+      let ran = false;
+      const next = async (): Promise<unknown> => {
+        ran = true;
+        return { result: 'ran' };
+      };
+      const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-card' }, next)) as { deny?: string; result?: string; context?: string[] };
+      const tree = await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-card' }, asNext<never>(null));
+
+      expect(asks).toHaveLength(0);
+      expect(ran).toBe(true);
+      expect(out.deny).toBeUndefined();
+      expect(out.result).toBe('ran');
+      expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+      expect(JSON.stringify(tree)).toContain('cancelled-check-is-not-pass');
+    });
+  }
+
+  test('reads the mode from $.env at session start', async () => {
+    const { hooks } = captureHooks();
+    const { $, envGets } = makeFake$({ env: CARD_ONLY });
+    await startSession(hooks, $);
+    expect(envGets).toContain('ORK_LESSON_CARDS_MODE');
+  });
+
+  test('an unknown mode value keeps the dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', env: { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card' } });
+    await startSession(hooks, $);
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
+    expect(asks).toHaveLength(1);
+    expect(out.deny).toContain('Cancelled: by you; not run.');
+  });
+});
+
 describe('the lesson paragraph is drawn once: the card, never the question or the deny', () => {
   const MESSAGE = 'Cancelled CI tiers are not pass.';
   const copies = (text: string): number => text.split(MESSAGE).length - 1;
