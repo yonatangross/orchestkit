@@ -104,11 +104,17 @@ async function inCardOnlyLane($: Hook$, cwd: string): Promise<boolean> {
   const env = user?.env;
   const raw = env && typeof env === 'object' ? (env as Record<string, unknown>).ORK_LESSON_CARDS_CARD_ONLY_DIRS : undefined;
   if (typeof raw !== 'string' || !cwd) return false;
+  // Host-correct separators: a backslash separates folders only on a Windows
+  // path (drive letter or UNC). On POSIX it is part of a name, so
+  // /safe/desks\\evil is beside /safe/desks, not inside it.
+  const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(cwd);
+  const trailing = windows ? /[\\/]+$/ : /\/+$/;
+  const seps = windows ? ['/', '\\'] : ['/'];
   return raw
     .split(';')
-    .map((dir) => dir.trim().replace(/[\\/]+$/, ''))
+    .map((dir) => dir.trim().replace(trailing, ''))
     .filter((dir) => dir !== '')
-    .some((dir) => cwd === dir || cwd.startsWith(`${dir}/`) || cwd.startsWith(`${dir}\\`));
+    .some((dir) => cwd === dir || seps.some((sep) => cwd.startsWith(`${dir}${sep}`)));
 }
 const matchMap = new Map<string, MatchedLesson[]>();
 
