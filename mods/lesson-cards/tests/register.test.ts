@@ -85,6 +85,7 @@ interface Fake$Record {
   envGets: string[];
   registeredCommands: Array<{ name: string; description: string }>;
   asks: Array<{ question: string; options: readonly string[] }>;
+  statuses: Array<string | undefined>;
 }
 
 function makeFake$(options: Fake$Options = {}): Fake$Record {
@@ -93,6 +94,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   const envGets: string[] = [];
   const registeredCommands: Array<{ name: string; description: string }> = [];
   const asks: Array<{ question: string; options: readonly string[] }> = [];
+  const statuses: Array<string | undefined> = [];
 
   const ask = async (question: string, opts: readonly string[]): Promise<string> => {
     asks.push({ question, options: opts });
@@ -179,6 +181,9 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
         invalidateCalls.push(component);
       },
       resolve: async (): Promise<typeof fakeElements> => fakeElements,
+      status: async (text?: string): Promise<void> => {
+        statuses.push(text);
+      },
       ...(options.askAnswer === undefined ? {} : { ask }),
     },
     command: {
@@ -188,7 +193,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     },
   };
 
-  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks };
+  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks, statuses };
 }
 
 interface CapturedHooks {
@@ -580,11 +585,10 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
 describe('card-only mode: an unattended lane gets the card, never a dialog or a deny', () => {
   const CARD_ONLY = { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card-only' };
 
-  for (const [label, isInteractive] of [['an interactive lane', true], ['a headless session', false]] as const) {
-    test(`${label}: a block lesson runs the tool, keeps the context and draws the card`, async () => {
+  test('an interactive lane: a block lesson runs the tool, keeps the context and draws the card', async () => {
       const { hooks } = captureHooks();
       const { $, asks } = makeFake$({ askAnswer: 'Cancel', env: CARD_ONLY });
-      await hooks.get('session.start')!($, { ...SESSION_EVENT, isInteractive }, async (ev: unknown) => ev);
+      await startSession(hooks, $);
 
       let ran = false;
       const next = async (): Promise<unknown> => {
@@ -600,8 +604,34 @@ describe('card-only mode: an unattended lane gets the card, never a dialog or a 
       expect(out.result).toBe('ran');
       expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
       expect(JSON.stringify(tree)).toContain('cancelled-check-is-not-pass');
-    });
-  }
+  });
+
+  test('a headless session keeps the fail-closed deny: card-only only removes the dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway', env: CARD_ONLY });
+    await hooks.get('session.start')!($, { ...SESSION_EVENT, isInteractive: false }, async (ev: unknown) => ev);
+    let ran = false;
+    const next = async (): Promise<unknown> => {
+      ran = true;
+      return { result: 'ran' };
+    };
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string };
+    expect(ran).toBe(false);
+    expect(asks).toHaveLength(0);
+    expect(out.deny?.startsWith('Not run: no dialog to confirm. [lesson:cancelled-check-is-not-pass]')).toBe(true);
+  });
+
+  test('shows a status line while card-only is on, and none otherwise', async () => {
+    const on = captureHooks();
+    const cardOnly = makeFake$({ env: CARD_ONLY });
+    await startSession(on.hooks, cardOnly.$);
+    expect(cardOnly.statuses).toEqual(['lesson-cards: card only, no dialogs']);
+
+    const off = captureHooks();
+    const normal = makeFake$();
+    await startSession(off.hooks, normal.$);
+    expect(normal.statuses).toEqual([]);
+  });
 
   test('reads the mode from $.env at session start', async () => {
     const { hooks } = captureHooks();

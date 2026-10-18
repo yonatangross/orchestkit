@@ -40,7 +40,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - **Hint cards**: Displays a bordered card under the tool row with lesson id, severity, message, and fix suggestion (red for block, yellow for warn, gray for a lessons.md note)
 - **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. Only an explicit `Proceed anyway` runs the call. `Cancel`, Escape, a typed free-text answer, and no dialog at all (headless `-p`) refuse it with `{ deny }`, so it never runs. The card is the only place the lesson text is drawn. The question is the lesson id and `Proceed anyway?` only. A user cancel (Cancel or Escape) is `Cancelled: by you; not run. [lesson:<id>]` with no Fix (a cancel is not a failure). The `Cancelled: ` head is ours so Claude Code 2.1.283 leaves the deny alone instead of gluing `Error: `; the rest drops the echo so Cancelled is said once. Other refuses (no dialog, no exact Proceed anyway) still carry a short Fix so the model keeps the alternative. When several patterns match an Edit or Write, a block match always ranks before a warn
 - **Model context**: Adds matched lessons to the tool result context for the model to read
-- **Card only, for unattended lanes**: set `ORK_LESSON_CARDS_MODE=card-only` in the lane's environment (for example the `env` block of that lane's settings). A block lesson then draws its card and adds its context, and the call runs: no dialog, no deny. Use it where nobody watches the pane, so a dialog cannot stall the lane. Any other value, or none, keeps `Proceed anyway?` and the fail-closed deny. The classic `pretool-lesson-guard --strict` deny is not changed by this mode.
+- **Card only, for unattended lanes**: set `ORK_LESSON_CARDS_MODE=card-only` in the lane's environment (for example the `env` block of that lane's settings). In an interactive session a block lesson then draws its card and adds its context, and the call runs: no dialog. A headless session still denies, because a project's settings `env` can set the variable too; the mode removes the dialog, not the fail-closed deny. While it is on, the status line reads `lesson-cards: card only, no dialogs`. Use it where nobody watches the pane, so a dialog cannot stall the lane. Any other value, or none, keeps `Proceed anyway?`. The classic `pretool-lesson-guard --strict` deny is not changed by this mode.
 - **Additive**: During pilot, the classic `pretool-lesson-guard --strict` keeps its 12 block-severity denies unchanged
 
 ## Hook footprint
@@ -63,6 +63,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - `$.ui.notice` - Show hint during permission dialog (if open)
 - `$.ui.ask` - Ask "Proceed anyway?" before a block-severity call runs
 - `$.ui.resolve` - The element constructors (`Box`, `Text`) the card is built from. On CC 2.1.282 a render hook may only return nodes built by these; a plain `{ type: 'Box' }` object draws nothing, and the tree `next(e)` returns is an opaque engine node that must be wrapped, never mutated
+- `$.ui.status` - Show `lesson-cards: card only, no dialogs` while card-only is on
 - `$.ui.invalidate` - Refresh UI after `/lessons reload`
 
 ### Negative pin (what it does NOT do)

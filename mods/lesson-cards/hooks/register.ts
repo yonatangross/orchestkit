@@ -37,6 +37,8 @@ type Hook$ = {
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
     invalidate: (component: string) => Promise<void>;
+    /** The status line entry; undefined clears it. */
+    status: (text?: string) => Promise<void>;
     /** The AskUserQuestion dialog: resolves to the label the user picked. */
     ask: (question: string, options: readonly string[]) => Promise<unknown>;
     /** The element constructors this render may return (Box, Text, ...). */
@@ -79,8 +81,9 @@ let corpus: Corpus | null = null;
 let interactive = false;
 /**
  * ORK_LESSON_CARDS_MODE=card-only: an unattended lane (an interactive pane with
- * nobody at it) shows the card and runs the call, never asks and never denies.
- * Any other value, or none, keeps the dialog and the fail-closed deny.
+ * nobody at it) shows the card and runs the call instead of opening the dialog.
+ * It removes the dialog only: headless still denies, since a project's settings
+ * env can set the variable. Any other value, or none, keeps the dialog.
  */
 let cardOnly = false;
 const matchMap = new Map<string, MatchedLesson[]>();
@@ -247,7 +250,8 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     interactive = e.isInteractive === true;
-    cardOnly = (await $.env.get('ORK_LESSON_CARDS_MODE').catch(() => undefined)) === 'card-only';
+    cardOnly = interactive && (await $.env.get('ORK_LESSON_CARDS_MODE').catch(() => undefined)) === 'card-only';
+    if (cardOnly) await $.ui.status('lesson-cards: card only, no dialogs').catch(() => undefined);
     matchMap.clear();
     corpus = await loadCorpus($).catch((err: unknown) => ({
       patterns: [],
