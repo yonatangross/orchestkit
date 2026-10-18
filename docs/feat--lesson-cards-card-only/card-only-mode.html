@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson cards: card-only mode</title>
+<style>
+body{margin:0;background:#f7f5ef;color:#17242b;font:18px/1.5 system-ui,sans-serif}
+main{max-width:780px;margin:60px auto;padding:24px}h1{font-size:40px;line-height:1.15}
+label{display:block;margin:20px 0}select{font:inherit;padding:8px;margin-left:12px}
+table{width:100%;border-collapse:collapse;margin:28px 0;background:white}
+th,td{text-align:left;padding:16px;border-bottom:1px solid #ccd4d6}
+caption{text-align:left;font-weight:700;padding:12px 0}output{font-weight:700}
+small{display:block;color:#435964}code{background:#e9e6dc;padding:3px}
+</style>
+</head>
+<body>
+<main>
+<p>OrchestKit · lesson-cards 1.1.0</p>
+<h1>A card, not a dialog, in an unattended lane</h1>
+<p>Choose the mode, the session and the lesson. See what happens to the tool call.</p>
+<label>ORK_LESSON_CARDS_MODE
+<select id="mode"><option value="">unset</option><option value="card-only">card-only</option><option value="card">card (any other value)</option></select>
+</label>
+<label>Session
+<select id="session"><option value="interactive">Interactive (a lane pane)</option><option value="headless">Headless (claude -p)</option></select>
+</label>
+<label>Lesson severity
+<select id="severity"><option value="block">block</option><option value="warn">warn</option></select>
+</label>
+<table>
+<caption>What the tool call meets</caption>
+<thead><tr><th scope="col">Version</th><th scope="col">Result</th></tr></thead>
+<tbody><tr><th scope="row">Before (1.0.8)</th><td id="before"></td></tr><tr><th scope="row">After (1.1.0)</th><td id="after"></td></tr></tbody>
+</table>
+<p>Status line after: <output id="status" aria-live="polite"></output></p>
+<p><output id="reason" aria-live="polite"></output></p>
+<small>This demo isolates the dialog decision. Pattern matching, the card's drawing and the classic pretool-lesson-guard (which still denies its block patterns) are outside this demo.</small>
+</main>
+<script>
+const mode = document.getElementById('mode');
+const session = document.getElementById('session');
+const severity = document.getElementById('severity');
+function result(cardOnlyKnown) {
+  const interactive = session.value === 'interactive';
+  if (severity.value === 'warn') return 'Card and context. The call runs.';
+  if (!interactive) return 'Denied: "Not run: no dialog to confirm."';
+  if (cardOnlyKnown && mode.value === 'card-only') return 'Card and context. The call runs. No dialog.';
+  return 'Card, then the "Proceed anyway?" dialog. Only Proceed anyway runs it.';
+}
+function update() {
+  document.getElementById('before').textContent = result(false);
+  document.getElementById('after').textContent = result(true);
+  const on = mode.value === 'card-only' && session.value === 'interactive';
+  document.getElementById('status').textContent = on ? 'lesson-cards: card only, no dialogs' : 'none';
+  document.getElementById('reason').textContent = mode.value === 'card-only' && session.value === 'headless'
+    ? 'Headless keeps the deny: a project settings env can set the variable, so card-only removes the dialog only.'
+    : on ? 'Nobody watches an unattended pane, so a dialog would stall the lane.'
+    : 'Without card-only, nothing changes.';
+}
+mode.addEventListener('change', update);
+session.addEventListener('change', update);
+severity.addEventListener('change', update);
+update();
+</script>
+</body>
+</html>
