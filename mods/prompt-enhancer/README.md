@@ -2,7 +2,7 @@
 
 Requires Claude Code 2.1.300 or later.
 
-Not listed in any marketplace. A listing waits for the operator's word; until then, load it with `claude --plugin-dir mods/prompt-enhancer`.
+Beta (experimental, version 0.x). Each Enhance click costs model usage on your own account: one Haiku call with a 1024 token cap.
 
 The band sits above the prompt box. Type a draft and press Enhance.
 Or type a prompt that ends in `++` and press Enter.
