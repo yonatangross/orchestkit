@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183) (2026-10-18)
+
+
+### Features
+
+* **mods:** prompt-enhancer band, ++ trigger, undo ([#4766](https://github.com/yonatangross/orchestkit/issues/4766)) ([da4e75f](https://github.com/yonatangross/orchestkit/commit/da4e75f21f50ad2dd2f92de479e02073aa5f4d5b))
+
+
+### Bug Fixes
+
+* **site:** let the Installation overflow check settle after each resize ([#4803](https://github.com/yonatangross/orchestkit/issues/4803)) ([4f12500](https://github.com/yonatangross/orchestkit/commit/4f12500b9b7fd29e5f1b5a415ce51fca48524731))
+
 ## [10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182) (2026-10-17)
 
 
