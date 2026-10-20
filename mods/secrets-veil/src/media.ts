@@ -74,87 +74,142 @@ const u32le = (b: Uint8Array, i: number): number => ((b[i + 3] << 24) | (b[i + 2
 const startsWith = (b: Uint8Array, prefix: number[]): boolean => prefix.every((v, i) => b[i] === v);
 const ascii = (s: string): number[] => Array.from(s, (c) => c.charCodeAt(0));
 
-/** PNG: signature, IHDR first, every chunk's CRC right, IEND last and exactly at the end. */
+/**
+ * PNG: signature; IHDR first, 13 bytes, nonzero size, a legal bit depth for
+ * its colour type; at least one IDAT; every chunk's CRC right; IEND last and
+ * exactly at the end. Compressed text (zTXt, or iTXt with its compression
+ * flag set) cannot be checked for secrets without inflating it, so such a
+ * file is not exempt (Codex HOLD 6290872512).
+ */
 function validPng(b: Uint8Array): boolean {
   if (!startsWith(b, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return false;
   let i = 8;
   let first = true;
+  let idat = 0;
   while (i + 12 <= b.length) {
     const len = u32be(b, i);
     const typeStart = i + 4;
-    const dataEnd = typeStart + 4 + len;
+    const dataStart = typeStart + 4;
+    const dataEnd = dataStart + len;
     if (len > 0x7fffffff || dataEnd + 4 > b.length) return false;
-    for (let k = typeStart; k < typeStart + 4; k++) {
+    for (let k = typeStart; k < dataStart; k++) {
       const c = b[k];
       if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122))) return false;
     }
     const type = String.fromCharCode(b[typeStart], b[typeStart + 1], b[typeStart + 2], b[typeStart + 3]);
-    if (first && type !== "IHDR") return false;
-    first = false;
     if (crc32(b, typeStart, dataEnd) !== u32be(b, dataEnd)) return false;
+    if (first) {
+      if (type !== "IHDR" || len !== 13) return false;
+      const w = u32be(b, dataStart);
+      const h = u32be(b, dataStart + 4);
+      const depth = b[dataStart + 8];
+      const colour = b[dataStart + 9];
+      const legal: Record<number, number[]> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+      const depths = Object.prototype.hasOwnProperty.call(legal, colour) ? legal[colour] : undefined;
+      if (w === 0 || h === 0 || w > 0x7fffffff || h > 0x7fffffff || !depths || !depths.includes(depth)) return false;
+      if (b[dataStart + 10] !== 0 || b[dataStart + 11] !== 0 || b[dataStart + 12] > 1) return false;
+      first = false;
+    } else if (type === "IHDR") {
+      return false;
+    }
+    if (type === "IDAT" && len > 0) idat++;
+    if (type === "zTXt") return false;
+    if (type === "iTXt") {
+      const nul = b.indexOf(0, dataStart);
+      if (nul < 0 || nul + 1 >= dataEnd || b[nul + 1] !== 0) return false;
+    }
     i = dataEnd + 4;
-    if (type === "IEND") return len === 0 && i === b.length;
+    if (type === "IEND") return len === 0 && i === b.length && idat > 0;
   }
   return false;
 }
 
-/** JPEG: SOI, marker segments with in-bounds lengths, entropy data after SOS, EOI exactly at the end. */
+/**
+ * JPEG: SOI; marker segments with in-bounds lengths; at least one DQT; a
+ * frame header (SOF0..SOF15 minus DHT/JPG/DAC) with nonzero size and 1 to 4
+ * components before the first SOS; non-empty entropy data after SOS; EOI
+ * exactly at the end.
+ */
 function validJpeg(b: Uint8Array): boolean {
   if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return false;
   let i = 2;
+  let dqt = false;
+  let frame = false;
+  let scans = 0;
   while (i < b.length) {
     if (b[i] !== 0xff) return false;
     while (i < b.length && b[i] === 0xff) i++; // fill bytes
     if (i >= b.length) return false;
     const m = b[i++];
-    if (m === 0xd9) return i === b.length; // EOI
+    if (m === 0xd9) return i === b.length && dqt && frame && scans > 0; // EOI
     if (m === 0x01 || (m >= 0xd0 && m <= 0xd7)) continue; // standalone markers
     if (m === 0x00 || m === 0xd8) return false;
     if (i + 2 > b.length) return false;
     const len = (b[i] << 8) | b[i + 1];
     if (len < 2 || i + len > b.length) return false;
+    if (m === 0xdb) dqt = true;
+    const isSof = m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc;
+    if (isSof) {
+      if (len < 8 || frame) return false;
+      const h = (b[i + 3] << 8) | b[i + 4];
+      const w = (b[i + 5] << 8) | b[i + 6];
+      const comps = b[i + 7];
+      if (h === 0 || w === 0 || comps < 1 || comps > 4 || len !== 8 + 3 * comps) return false;
+      frame = true;
+    }
     i += len;
     if (m === 0xda) {
-      // Entropy-coded data: runs until a marker other than a stuffed 00 or a restart marker.
+      if (!frame) return false;
+      // Entropy-coded data: runs until a marker other than a stuffed 00 or a restart marker; never empty.
+      const start = i;
       while (i + 1 < b.length) {
         if (b[i] === 0xff && b[i + 1] !== 0x00 && !(b[i + 1] >= 0xd0 && b[i + 1] <= 0xd7)) break;
         i++;
       }
-      if (i + 1 >= b.length) return false;
+      if (i + 1 >= b.length || i === start) return false;
+      scans++;
     }
   }
   return false;
 }
 
-/** GIF: header, logical screen, every extension and image block walked, trailer exactly at the end. */
+/** GIF: header, logical screen, every block walked, at least one image of nonzero size with data, trailer at the end. */
 function validGif(b: Uint8Array): boolean {
   if (!(startsWith(b, ascii("GIF87a")) || startsWith(b, ascii("GIF89a"))) || b.length < 14) return false;
   let i = 13;
   const flags = b[10];
   if (flags & 0x80) i += 3 * (1 << ((flags & 0x07) + 1));
-  const subBlocks = (): boolean => {
+  let images = 0;
+  const subBlocks = (): number => {
+    let total = 0;
     while (i < b.length) {
       const n = b[i++];
-      if (n === 0) return true;
+      if (n === 0) return total;
+      total += n;
       i += n;
     }
-    return false;
+    return -1;
   };
   while (i < b.length) {
     const tag = b[i++];
-    if (tag === 0x3b) return i === b.length;
+    if (tag === 0x3b) return i === b.length && images > 0;
     if (tag === 0x21) {
       if (i >= b.length) return false;
       i++; // label
-      if (!subBlocks()) return false;
+      if (subBlocks() < 0) return false;
     } else if (tag === 0x2c) {
       if (i + 9 > b.length) return false;
+      const w = b[i + 4] | (b[i + 5] << 8);
+      const h = b[i + 6] | (b[i + 7] << 8);
       const f = b[i + 8];
       i += 9;
+      if (w === 0 || h === 0) return false;
       if (f & 0x80) i += 3 * (1 << ((f & 0x07) + 1));
       if (i >= b.length) return false;
-      i++; // LZW minimum code size
-      if (!subBlocks()) return false;
+      const lzw = b[i++];
+      if (lzw < 2 || lzw > 8) return false;
+      if (subBlocks() <= 0) return false;
+      images++;
     } else {
       return false;
     }
@@ -162,21 +217,49 @@ function validGif(b: Uint8Array): boolean {
   return false;
 }
 
-/** WebP: RIFF size equal to the file, WEBP form, chunks (even padded) that end exactly at the end. */
+/**
+ * WebP: RIFF size equal to the file, WEBP form, chunks (even padded) that end
+ * exactly at the end, and an image bitstream: the first chunk is VP8 (frame
+ * tag + start code 9d 01 2a + nonzero size), VP8L (signature 0x2f + version 0),
+ * or VP8X followed by a VP8 or VP8L chunk. A wrapper of other chunks only
+ * (JUNK, EXIF, XMP) is not an image.
+ */
 function validWebp(b: Uint8Array): boolean {
   if (b.length < 20 || !startsWith(b, ascii("RIFF")) || !startsWith(b.subarray(8), ascii("WEBP"))) return false;
   if (u32le(b, 4) + 8 !== b.length) return false;
   let i = 12;
-  let chunks = 0;
+  const chunks: Array<{ fourcc: string; start: number; size: number }> = [];
   while (i < b.length) {
     if (i + 8 > b.length) return false;
+    const fourcc = String.fromCharCode(b[i], b[i + 1], b[i + 2], b[i + 3]);
     const size = u32le(b, i + 4);
     const next = i + 8 + size + (size & 1);
     if (next > b.length) return false;
+    chunks.push({ fourcc, start: i + 8, size });
     i = next;
-    chunks++;
   }
-  return chunks > 0 && i === b.length;
+  if (chunks.length === 0 || i !== b.length) return false;
+  const vp8 = (c: { start: number; size: number }): boolean => {
+    if (c.size < 10) return false;
+    const s = c.start;
+    if (b[s] & 0x01) return false; // a key frame is required
+    if (b[s + 3] !== 0x9d || b[s + 4] !== 0x01 || b[s + 5] !== 0x2a) return false;
+    const w = (b[s + 6] | (b[s + 7] << 8)) & 0x3fff;
+    const h = (b[s + 8] | (b[s + 9] << 8)) & 0x3fff;
+    return w > 0 && h > 0;
+  };
+  const vp8l = (c: { start: number; size: number }): boolean =>
+    c.size >= 5 && b[c.start] === 0x2f && (b[c.start + 4] >> 5) === 0;
+  const first = chunks[0];
+  if (first.fourcc === "VP8 ") return vp8(first);
+  if (first.fourcc === "VP8L") return vp8l(first);
+  if (first.fourcc === "VP8X") {
+    if (first.size < 10) return false;
+    const bit = chunks.find((c) => c.fourcc === "VP8 " || c.fourcc === "VP8L");
+    if (bit === undefined) return false;
+    return bit.fourcc === "VP8 " ? vp8(bit) : vp8l(bit);
+  }
+  return false;
 }
 
 /** The media types whose payload may pass, each with its whole-file validator. A Map: no inherited keys. */
@@ -217,6 +300,28 @@ export function holdsSecret(
   for (let i = 0; i < bytes.length; i += STEP) {
     text += String.fromCharCode(...bytes.subarray(i, i + STEP));
   }
-  if (named.some((n) => n.length > 0 && (text.includes(n) || base64.includes(n)))) return true;
-  return shapes.some((s) => s.length > 0 && text.includes(s));
+  // The decoded bytes are read as Latin-1 (one char per byte), so a value is
+  // matched in each byte encoding a metadata field may use: UTF-8 (PNG iTXt,
+  // XMP), UTF-16LE (EXIF XP* tags) and plain Latin-1 (PNG tEXt, GIF comment).
+  // Codex HOLD 6290872512: a non-ASCII named value in UTF-8 metadata was missed.
+  const encodings = (v: string): string[] => {
+    const utf8 = byteString(new TextEncoder().encode(v));
+    const utf16 = Array.from(v, (c) => {
+      const u = c.charCodeAt(0);
+      return String.fromCharCode(u & 0xff, u >> 8);
+    }).join("");
+    return Array.from(new Set([v, utf8, utf16]));
+  };
+  for (const n of named) {
+    if (n.length === 0) continue;
+    if (base64.includes(n)) return true;
+    if (encodings(n).some((e) => text.includes(e))) return true;
+  }
+  return shapes.some((s) => s.length > 0 && encodings(s).some((e) => text.includes(e)));
+}
+
+function byteString(bytes: Uint8Array): string {
+  let out = "";
+  for (const x of bytes) out += String.fromCharCode(x);
+  return out;
 }

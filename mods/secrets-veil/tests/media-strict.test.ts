@@ -16,17 +16,17 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import { register, WITHHELD } from "../hooks/register.js";
-import { decodeBase64Strict, validImage, MEDIA_VALIDATORS } from "../src/media.js";
+import { decodeBase64Strict, holdsSecret, validImage, MEDIA_VALIDATORS } from "../src/media.js";
 
 type RegisteredHook = (...args: unknown[]) => unknown;
 
-function toolCall(): RegisteredHook {
+function hooksOf(): Map<string, RegisteredHook> {
   const hooks = new Map<string, RegisteredHook>();
   register((event: string, hook: unknown) => {
     hooks.set(event, hook as RegisteredHook);
     return { catch: () => undefined };
   }, {});
-  return hooks.get("tool.call")!;
+  return hooks;
 }
 
 /** A GitHub-token-shaped value the fake environment hands to the named layer (built at runtime). */
@@ -50,7 +50,12 @@ function fake$(env: Record<string, string> = {}) {
 const next = (result: unknown) => async (): Promise<unknown> => result;
 
 async function run(result: unknown, env: Record<string, string> = {}): Promise<{ text: string; deny?: string }> {
-  const out = (await toolCall()(fake$(env), { tool: "Read", args: {} }, next({ result }))) as { deny?: string };
+  // session.start first: the mask table is module state, so each run arms it from its own env
+  // (otherwise the first run's table, with no named values, is reused by every later run).
+  const hooks = hooksOf();
+  const $ = fake$(env);
+  await hooks.get("session.start")!($, { cwd: "/" }, async (ev: unknown) => ev);
+  const out = (await hooks.get("tool.call")!($, { tool: "Read", args: {} }, next({ result }))) as { deny?: string };
   return { text: JSON.stringify(out), deny: out?.deny };
 }
 
@@ -99,25 +104,40 @@ function png(text?: string): number[] {
   return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...ihdr, ...rnd, ...txt, ...idat, ...chunk("IEND", [])];
 }
 
-/** A structurally valid JPEG: SOI, APP0, APP1 of RAND, SOS with entropy data (one stuffed FF 00), EOI. */
-const JPEG = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, ...asc("JFIF"), 0, 1, 1, 0, 0, 1, 0, 1, 0, 0,
-  0xff, 0xe1, ((RAND.length + 2) >> 8) & 0xff, (RAND.length + 2) & 0xff, ...RAND,
-  0xff, 0xda, 0x00, 0x08, 1, 1, 0, 0, 0x3f, 0, 0x12, 0x34, 0xff, 0x00, 0x56, 0xff, 0xd9];
+const here = dirname(fileURLToPath(import.meta.url));
+const fixture = (name: string): number[] => Array.from(readFileSync(join(here, "fixtures", name)));
 
-/** A valid 1x1 GIF89a with a comment extension of RAND before the trailer. */
+/** A real JPEG (macOS sips), with an APP1 segment of RAND inserted after SOI. */
+const JPEG = (() => {
+  const real = fixture("real.jpg");
+  const app1 = [0xff, 0xe1, ((RAND.length + 2) >> 8) & 0xff, (RAND.length + 2) & 0xff, ...RAND];
+  return [...real.slice(0, 2), ...app1, ...real.slice(2)];
+})();
+
+/** A real GIF (macOS sips) with a comment extension of RAND before the trailer. */
 const GIF = (() => {
-  const base = Array.from(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64"));
+  const base = fixture("real.gif");
   return b64([...base.slice(0, -1), 0x21, 0xfe, RAND.length, ...RAND, 0x00, 0x3b]);
 })();
 
-/** A structurally valid WebP: RIFF, WEBP, one chunk of RAND, one odd-sized chunk padded to even. */
-function webp(): number[] {
-  const odd = [1, 2, 3, 4, 5];
-  const body = [...asc("WEBP"), ...asc("VP8L"), ...le32(RAND.length), ...RAND, ...asc("EXIF"), ...le32(odd.length), ...odd, 0];
-  return [...asc("RIFF"), ...le32(body.length), ...body];
+/** A real WebP (cwebp) with an EXIF chunk of RAND appended and the RIFF size fixed. */
+function withRandChunk(real: number[]): number[] {
+  const body = [...real.slice(12), ...asc("EXIF"), ...le32(RAND.length), ...RAND];
+  return [...asc("RIFF"), ...le32(body.length + 4), ...asc("WEBP"), ...body];
+}
+const WEBP_LOSSY = withRandChunk(fixture("real-lossy.webp"));
+const WEBP_LOSSLESS = withRandChunk(fixture("real-lossless.webp"));
+const webp = (): number[] => [...WEBP_LOSSY];
+
+/** A PNG iTXt chunk (uncompressed): keyword, flag 0, method 0, empty language and translated keyword, UTF-8 text. */
+function itxt(text: string): number[] {
+  return chunk("iTXt", [...asc("Comment"), 0, 0, 0, 0, 0, ...Array.from(new TextEncoder().encode(text))]);
+}
+function pngWith(extra: number[]): number[] {
+  const p = png();
+  return [...p.slice(0, 8 + 25), ...extra, ...p.slice(8 + 25)];
 }
 
-const here = dirname(fileURLToPath(import.meta.url));
 const BIG_PNG = readFileSync(join(here, "fixtures", "media-block.png")).toString("base64");
 const readShape = (data: string, type = "image/png") => ({ type: "image", file: { base64: data, type, originalSize: 1 } });
 const apiShape = (data: string, media_type = "image/png") => [{ type: "image", source: { type: "base64", media_type, data } }];
@@ -130,7 +150,8 @@ describe("a payload passes only when the whole file is valid", () => {
     ["image/png", BIG_PNG],
     ["image/jpeg", b64(JPEG)],
     ["image/gif", GIF],
-    ["image/webp", b64(webp())],
+    ["image/webp", b64(WEBP_LOSSY)],
+    ["image/webp", b64(WEBP_LOSSLESS)],
   ])("valid %s passes byte-equal in the Read shape", async (type, data) => {
     expect((await run(readShape(data, type))).text).toContain(data);
   });
@@ -160,6 +181,43 @@ describe("a payload passes only when the whole file is valid", () => {
     bytes[4] += 2;
     const data = b64(bytes);
     expect((await run(readShape(data, "image/webp"))).text).not.toContain(data);
+  });
+
+  // Codex XREVIEW HOLD 6290872512, finding 1: framing alone is not an image.
+  test.each([
+    ["image/jpeg", "SOI + EOI only (ffd8ffd9)", [0xff, 0xd8, 0xff, 0xd9]],
+    ["image/webp", "RIFF/WEBP with one empty JUNK chunk", [0x52, 0x49, 0x46, 0x46, 0x0c, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x4a, 0x55, 0x4e, 0x4b, 0, 0, 0, 0]],
+    ["image/jpeg", "segments and EOI but no frame header", [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, ...asc("JFIF"), 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xda, 0x00, 0x08, 1, 1, 0, 0, 0x3f, 0, 0x12, 0x34, 0xff, 0xd9]],
+    ["image/webp", "a VP8L label over bytes that are not a VP8L bitstream", [...asc("RIFF"), ...le32(18), ...asc("WEBP"), ...asc("VP8L"), ...le32(5), 1, 2, 3, 4, 5, 0]],
+    ["image/png", "no IDAT", (() => { const p = png(); const i = p.length - 12 - 24; return [...p.slice(0, i), ...p.slice(i + 24)]; })()],
+    ["image/png", "a zTXt chunk the veil cannot read", pngWith(chunk("zTXt", [...asc("Comment"), 0, 0, 0x78, 0x9c, 0x03, 0, 0, 0, 0, 1]))],
+    ["image/png", "a compressed iTXt", pngWith(chunk("iTXt", [...asc("Comment"), 0, 1, 0, 0, 0, 0x78, 0x9c, 0x03, 0, 0, 0, 0, 1]))],
+    ["image/gif", "no image block", Array.from(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAAOw==", "base64"))],
+  ])("%s: %s is not an image", (type, _label, bytes) => {
+    expect(validImage(type, b64(bytes as number[]))).toBeNull();
+  });
+
+  test("real JPEG, GIF and WebP files are images", () => {
+    expect(validImage("image/jpeg", b64(fixture("real.jpg")))).not.toBeNull();
+    expect(validImage("image/gif", b64(fixture("real.gif")))).not.toBeNull();
+    expect(validImage("image/webp", b64(fixture("real-lossy.webp")))).not.toBeNull();
+    expect(validImage("image/webp", b64(fixture("real-lossless.webp")))).not.toBeNull();
+  });
+
+  // Codex XREVIEW HOLD 6290872512, finding 2: a non-ASCII named value in UTF-8 metadata.
+  test("holdsSecret finds a named value in its UTF-8 and UTF-16LE bytes", () => {
+    const v = "sample-\u00e9-value";
+    const utf8 = new TextEncoder().encode(v);
+    expect(holdsSecret(utf8, b64(utf8), [v], [])).toBe(true);
+    const utf16 = Uint8Array.from(Array.from(v).flatMap((c) => [c.charCodeAt(0) & 0xff, c.charCodeAt(0) >> 8]));
+    expect(holdsSecret(utf16, b64(utf16), [v], [])).toBe(true);
+  });
+
+  test("a non-ASCII named value in a PNG iTXt withholds the whole result", async () => {
+    const named = "sample-\u00e9-value-1234";
+    const data = b64(pngWith(itxt(`note ${named}`)));
+    const out = await run(readShape(data), { GITHUB_TOKEN: named });
+    expect(out.deny).toBe(WITHHELD);
   });
 
   test("strict base64: bad length, inner padding and non-canonical padding are refused", () => {

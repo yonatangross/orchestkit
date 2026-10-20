@@ -47,13 +47,18 @@ Three layers, checked on every tool result:
      the output's `content` array. A look-alike deeper in a result is masked;
    - its media type is PNG, JPEG, GIF or WebP (an exact allowlist);
    - it is strict base64 under 16 million characters, and the WHOLE decoded
-     file has the structure of its type: PNG chunks with right CRCs from
-     IHDR to IEND, JPEG segments to EOI, GIF blocks to the trailer, WebP
-     RIFF chunks to the exact end. A file signature alone is not enough;
-   - no named value appears in the decoded bytes or the base64 text, and no
-     vendor shape (`sk-ant-`, `AKIA`, a PEM header, ...) appears in the
-     decoded bytes. If one does, the whole result is withheld, never shown
-     with corrupted image bytes.
+     file is a real image of its type, not only its framing: PNG with a
+     valid IHDR, at least one IDAT, right CRCs and IEND at the end; JPEG
+     with a quantization table, a frame header of nonzero size, a scan with
+     data and EOI at the end; GIF with at least one image block of nonzero
+     size and the trailer at the end; WebP whose first chunk is a VP8, VP8L
+     or VP8X image bitstream and whose chunks end exactly at the end;
+   - its metadata can be read: a PNG with compressed text (zTXt, or iTXt
+     with compression on) is not exempt;
+   - no named value appears in the decoded bytes (as Latin-1, UTF-8 or
+     UTF-16LE) or in the base64 text, and no vendor shape (`sk-ant-`,
+     `AKIA`, a PEM header, ...) appears in the decoded bytes. If one does,
+     the whole result is withheld, never shown with corrupted image bytes.
    Every other field of the block is masked as usual.
 
    What this exemption does not cover, in plain words:
