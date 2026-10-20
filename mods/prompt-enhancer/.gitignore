@@ -1,0 +1,5 @@
+node_modules/
+coverage/
+dist/
+.claude-plugin/types/
+pnpm-lock.yaml

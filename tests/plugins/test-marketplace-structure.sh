@@ -170,7 +170,38 @@ MOD_DIRS=0
 if [[ -d "$REPO_ROOT/mods" ]]; then
   MOD_DIRS=$(find "$REPO_ROOT/mods" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
 fi
-echo "  Mod entries: ${MOD_ENTRY_COUNT:-0}, mod directories: $MOD_DIRS"
+# An unlisted mod is a normal state: listing is a one-way door that waits for
+# the operator, so the mod's README says so on a line that starts with
+# "Not listed in any marketplace." (same rule as hq-ext-plugin#2387). Such a
+# folder needs no entry. A listed mod whose README says it is not listed is an
+# error: one of the two is wrong. MOD_ENTRY_COUNT is set only when jq exists.
+UNLISTED_LINE='^[[:space:]]*Not listed in any marketplace\.'
+UNLISTED_DIRS=0
+if [[ -d "$REPO_ROOT/mods" && -n "${MOD_ENTRY_COUNT:-}" ]]; then
+  for dir in "$REPO_ROOT"/mods/*/; do
+    name="$(basename "$dir")"
+    says_unlisted=0
+    if [[ -f "$dir/README.md" ]] && grep -Eq "$UNLISTED_LINE" "$dir/README.md"; then
+      says_unlisted=1
+    fi
+    # Listed by name OR by source path: an entry named after the mod lists it
+    # whatever its source (a plugins/ copy or symlink), so it cannot be unlisted.
+    listed=$(jq --arg p "mods/$name" --arg n "$name" '[.plugins[] | select(.name == $n or ((.source | type) == "object" and .source.path == $p))] | length' "$MARKETPLACE_JSON")
+    if [[ $listed -gt 0 && $says_unlisted -eq 1 ]]; then
+      echo "❌ ERROR: mods/$name is listed, but its README says \"Not listed in any marketplace.\""
+      ERRORS=$((ERRORS + 1))
+    elif [[ $listed -eq 0 && $says_unlisted -eq 1 ]]; then
+      echo "  unlisted: mods/$name"
+      UNLISTED_DIRS=$((UNLISTED_DIRS + 1))
+    elif [[ $listed -eq 0 ]]; then
+      # Judged per folder, not only by the count: a dangling entry elsewhere
+      # must not balance a folder that is neither listed nor marked unlisted.
+      echo "❌ ERROR: mods/$name has no marketplace entry, and its README does not say \"Not listed in any marketplace.\""
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+fi
+echo "  Mod entries: ${MOD_ENTRY_COUNT:-0}, mod directories: $MOD_DIRS, unlisted: $UNLISTED_DIRS"
 
 # An empty plugins array clears Tests 1, 2, 4 and 5 by having nothing to
 # iterate; this was the only check that noticed, and it only warned
@@ -194,9 +225,10 @@ else
   # entry): memory-lens shipped in #4530 with no entry and stayed loadable
   # by --plugin-dir only while this check only warned. An entry with no dir
   # is a dangling install pointer. Both directions are errors.
-  if [[ ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
-    echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
-    echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>'"
+  if [[ ${MOD_ENTRY_COUNT:-0} -ne $((MOD_DIRS - UNLISTED_DIRS)) ]]; then
+    echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and listed mod directories ($((MOD_DIRS - UNLISTED_DIRS)) of $MOD_DIRS)"
+    echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>',"
+    echo "   or a README line \"Not listed in any marketplace.\""
     ERRORS=$((ERRORS + 1))
     COUNTS_MATCH=0
   fi

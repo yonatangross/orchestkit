@@ -1,0 +1,12 @@
+{
+  "slug": "mods-prompt-enhancer-listing",
+  "source": "docs/feat--list-prompt-enhancer/prompt-enhancer-listing.html",
+  "title": "prompt-enhancer: listed as a beta, opt-in mod",
+  "description": "The prompt-enhancer mod (shipped in #4766) is now listed in the OrchestKit marketplace as a beta mod. Try the band rules (Enhance, ++ trigger, Send, Undo) in a simulation with no model call, estimate the model usage per day, and pick where to enable it.",
+  "tags": [
+    "mods",
+    "prompt-enhancer",
+    "marketplace"
+  ],
+  "date": "2026-10-20"
+}
