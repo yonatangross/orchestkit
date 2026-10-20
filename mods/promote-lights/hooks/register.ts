@@ -77,6 +77,61 @@ type Hook$ = {
   };
 };
 
+/**
+ * $.store, but never fatal. A sandboxed seat cannot write the mod store under
+ * ~/.claude: measured 2026-10-20, "$.store.delete failed: EPERM: operation not
+ * permitted, mkdir", and session.start threw, so no band and no tick. On the
+ * first store failure this process keeps its lights in memory for the rest of
+ * its life and says "lights: store unavailable" once. The memory copy is
+ * per process, so the per-session key rules below still hold.
+ */
+const memoryStore = new Map<string, StoredLights>();
+let storeDown = false;
+let storeWarned = false;
+
+async function storeFailed($: Hook$): Promise<void> {
+  storeDown = true;
+  if (storeWarned) return;
+  storeWarned = true;
+  try {
+    await $.ui.status("lights: store unavailable");
+  } catch {
+    // The warning is best effort; the lights keep working from memory either way.
+  }
+}
+
+async function storeGet($: Hook$, key: string): Promise<StoredLights | null> {
+  if (!storeDown) {
+    try {
+      return await $.store.get(key);
+    } catch {
+      await storeFailed($);
+    }
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+async function storeSet($: Hook$, key: string, value: StoredLights): Promise<void> {
+  memoryStore.set(key, value);
+  if (storeDown) return;
+  try {
+    await $.store.set(key, value);
+  } catch {
+    await storeFailed($);
+  }
+}
+
+async function storeDelete($: Hook$, key: string): Promise<void> {
+  memoryStore.delete(key);
+  if (storeDown) return;
+  try {
+    await $.store.delete(key);
+  } catch {
+    await storeFailed($);
+  }
+}
+
+
 type Matcher = Record<string, unknown>;
 
 type HookEvent = {
@@ -209,7 +264,7 @@ export const register: Register = (on) => {
     // $.store outlives the session: drop what this process stored under its
     // previous token (a /clear), so no orphan is left behind. Entries of
     // other processes live under their own keys and are never touched.
-    await $.store.delete(keyFor(repo, previousToken));
+    await storeDelete($, keyFor(repo, previousToken));
     // A tick or a tracked PR from before /clear must not outlive it either.
     stopTick();
     tracked = null;
@@ -254,7 +309,7 @@ export const register: Register = (on) => {
       : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
 
     if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
-      await $.store.set(key, stamp({ error: "gh: not found" }));
+      await storeSet($, key, stamp({ error: "gh: not found" }));
       return next(e);
     }
 
@@ -273,7 +328,7 @@ export const register: Register = (on) => {
     const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
     if (!promotePR) {
-      await $.store.delete(key);
+      await storeDelete($, key);
       return next(e);
     }
 
@@ -301,7 +356,7 @@ export const register: Register = (on) => {
     const details = parsePRView(result.stdout);
     if (!details || details.state !== "OPEN") {
       stopTick();
-      await $.store.delete(key);
+      await storeDelete($, key);
       tracked = null;
       $.ui.invalidate("ui.render");
       return next(e);
@@ -315,7 +370,7 @@ export const register: Register = (on) => {
         return next(e);
       }
       stopTick();
-      await $.store.set(key, stamp({
+      await storeSet($, key, stamp({
         error: "head moved, stopped",
       }));
       tracked = null;
@@ -334,7 +389,7 @@ export const register: Register = (on) => {
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
     const downstream = await next(e);
     const repo = await $.session.repo();
-    const stored = own(await $.store.get(keyFor(repo)));
+    const stored = own(await storeGet($, keyFor(repo)));
 
     if (!stored) return downstream;
 
@@ -373,7 +428,7 @@ export const register: Register = (on) => {
     if (arg === "off") {
       stopTick();
       tracked = null;
-      await $.store.delete(key);
+      await storeDelete($, key);
       $.ui.invalidate("ui.render");
       return { text: "lights: stopped" };
     }
@@ -401,7 +456,7 @@ export const register: Register = (on) => {
       return { text: outcome };
     }
 
-    const stored = own(await $.store.get(key));
+    const stored = own(await storeGet($, key));
 
     if (stored && stored.lights) {
       return {
@@ -430,7 +485,7 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
   const details = view.exitCode === 0 ? parsePRView(view.stdout) : null;
   const name = formatWatchTarget(target);
   if (!details) {
-    await $.store.set(key, stamp({ error: `watch ${name}: gh pr view failed` }));
+    await storeSet($, key, stamp({ error: `watch ${name}: gh pr view failed` }));
     $.ui.invalidate("ui.render");
     return `lights: could not read ${name} (gh pr view exit ${view.exitCode})`;
   }
@@ -485,7 +540,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     if (requiredContexts.length === 0 && t.mode === "promote") {
       // A promote verdict with nothing required would be a green lie.
       const refused: StoredLights = { error: "empty required contexts", prNumber };
-      await $.store.set(key, stamp(refused));
+      await storeSet($, key, stamp(refused));
       $.ui.invalidate("ui.render");
       return refused;
     }
@@ -505,7 +560,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
           error: `watch ${formatWatchTarget({ owner, repo, number: prNumber })}: no check runs on ${head.slice(0, 7)}`,
           prNumber,
         };
-        await $.store.set(key, stamp(empty));
+        await storeSet($, key, stamp(empty));
         $.ui.invalidate("ui.render");
         return empty;
       }
@@ -532,7 +587,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
       passing,
       ts: Date.now(),
     };
-    await $.store.set(key, stamp(snapshot));
+    await storeSet($, key, stamp(snapshot));
 
     // The band draws this state; a status line too showed it twice. Clear
     // it (also drops a startup warning, which the band's DEGRADED now keeps).
@@ -542,7 +597,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     return snapshot;
   } catch (err) {
     const failed: StoredLights = { error: String(err), prNumber };
-    await $.store.set(key, stamp(failed));
+    await storeSet($, key, stamp(failed));
     $.ui.invalidate("ui.render");
     return failed;
   }
