@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>lesson-cards: no failed stat for a floor dir without lessons.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;max-height:260px;overflow:auto}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+input[type=range]{width:100%}
+</style></head><body><main>
+<h1>lesson-cards 1.1.1: no failed stat for a floor dir without lessons.md</h1>
+<p>At session start lesson-cards looks for <code>~/.claude/hq/floor-*/lessons.md</code>. Most floor dirs have none, and each one logged <code>$.fs.stat (lesson-cards): .../lessons.md failed: ENOENT</code> (88 lines per session start on a floor with 93 dirs, measured 2026-10-20). 1.1.1 asks <code>$.fs.exists</code> first and stats only the files that exist. An engine without <code>fs.exists</code> keeps the old path.</p>
+<div class="card">
+<label>floor dirs <b id="dv">93</b><input id="dirs" type="range" min="1" max="200" value="93"></label>
+<label>dirs with lessons.md <b id="lv">5</b><input id="les" type="range" min="0" max="20" value="5"></label>
+<p><label><input type="radio" name="v" value="110"> 1.1.0</label> <label><input type="radio" name="v" value="111" checked> 1.1.1</label></p>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function run(){
+  const d=+$('dirs').value, l=Math.min(+$('les').value,d), v=document.querySelector('input[name=v]:checked').value;
+  $('dv').textContent=d; $('lv').textContent=l;
+  const enoent = v==='110' ? d-l : 0;
+  const lines=[];
+  for(let i=0;i<Math.min(enoent,8);i++) lines.push(`[DEBUG] $.fs.stat (lesson-cards): ~/.claude/hq/floor-${i+1}/lessons.md failed: ENOENT`);
+  if(enoent>8) lines.push(`... ${enoent-8} more`);
+  lines.push(`fs.exists calls: ${v==='111'?d:0} · fs.stat calls: ${v==='111'?l:d} · ENOENT debug lines: ${enoent}`);
+  $('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.oninput=run); run();
+</script>
+</body></html>

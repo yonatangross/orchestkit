@@ -41,6 +41,8 @@ type Hook$ = {
       path: string,
       opts?: { resolve?: boolean },
     ) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other'; realPath?: string } | null>;
+    /** true or false, never a logged failure; absent on engines that predate it. */
+    exists: (path: string) => Promise<boolean>;
   };
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
@@ -208,6 +210,19 @@ async function loadLessonsMds($: Hook$, home: string): Promise<LessonBullet[]> {
     const lessonsFiles: { path: string; mtime: number }[] = [];
     for (const dir of floorDirs) {
       const lessonsPath = joinPath(dir, 'lessons.md');
+      // Most floor dirs have no lessons.md: ask fs.exists first, so the engine does not log a
+      // failed fs.stat (ENOENT) for each of them (88 such lines per session start, measured
+      // 2026-10-20). An engine without fs.exists keeps the old stat-only path.
+      // $ is only ever called as $.noun.event(...) (the validator refuses a feature test such as
+      // `if ($.fs.exists)`), so an engine without fs.exists is detected by its throw: null = unknown,
+      // and the old stat-only path runs.
+      let present: boolean | null = null;
+      try {
+        present = (await $.fs.exists(lessonsPath)) === true;
+      } catch {
+        present = null;
+      }
+      if (present === false) continue;
       try {
         const stat = await $.fs.stat(lessonsPath);
         if (stat && stat.kind === 'file') {

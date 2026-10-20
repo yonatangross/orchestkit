@@ -1012,3 +1012,51 @@ describe('session.start with HOME unset', () => {
     }
   });
 });
+
+describe('floor dirs without lessons.md are skipped before any fs.stat (mods-dogfood-2026-10-20)', () => {
+  // Measured live: 88 "$.fs.stat (lesson-cards): .../floor-*/lessons.md failed: ENOENT" debug lines
+  // per session start, one for every floor dir that has no lessons.md.
+  function floorFake(withExists: boolean) {
+    const stats: string[] = [];
+    const $ = {
+      env: { get: async (name: string): Promise<string | undefined> => (name === 'HOME' ? '/h' : undefined) },
+      fs: {
+        list: async (path: string) =>
+          path === '/h/.claude/hq'
+            ? [{ name: 'floor-alpha', kind: 'dir' }, ...[1, 2, 3, 4, 5].map((n) => ({ name: `floor-none-${n}`, kind: 'dir' }))]
+            : null,
+        read: async (path: string): Promise<string> => {
+          if (path === '/h/.claude/hq/floor-alpha/lessons.md') return '## a\n\n- always read the merge state first\n';
+          throw new Error(`ENOENT ${path}`);
+        },
+        stat: async (path: string) => {
+          stats.push(path);
+          if (path === '/h/.claude/hq/floor-alpha/lessons.md') return { size: 10, mtimeMs: 1, kind: 'file' as const };
+          throw new Error(`ENOENT ${path}`);
+        },
+        ...(withExists ? { exists: async (path: string): Promise<boolean> => path === '/h/.claude/hq/floor-alpha/lessons.md' } : {}),
+      },
+      command: { register: async (): Promise<void> => undefined },
+      ui: { invalidate: async (): Promise<void> => undefined, status: async (): Promise<void> => undefined },
+      settings: { read: async () => ({}) },
+    };
+    return { $, stats };
+  }
+
+  test('with $.fs.exists, only the floor dir that has lessons.md is stat-ed, and its lessons still load', async () => {
+    const { hooks } = captureHooks();
+    const { $, stats } = floorFake(true);
+    await startSession(hooks, $);
+    expect(stats.filter((p) => p.includes('floor-none'))).toEqual([]);
+    expect(stats).toContain('/h/.claude/hq/floor-alpha/lessons.md');
+    const result = (await hooks.get('command.run')!($, { command: 'lessons' })) as { text?: string };
+    expect(result.text).not.toContain('0 entries');
+  });
+
+  test('an engine without $.fs.exists falls back to fs.stat for every floor dir', async () => {
+    const { hooks } = captureHooks();
+    const { $, stats } = floorFake(false);
+    await startSession(hooks, $);
+    expect(stats.filter((p) => p.includes('floor-none'))).toHaveLength(5);
+  });
+});
