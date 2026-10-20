@@ -42,15 +42,31 @@ interface Huffman {
   symbols: Int32Array;
 }
 
-function huffman(lengths: ArrayLike<number>, n: number): Huffman | null {
+/**
+ * kind: "codes" = the code-length tree, "dynamic" = a literal/length or
+ * distance tree of a dynamic block, "fixed" = the RFC 1951 fixed tables.
+ * zlib's rule (inflate_table): an over-subscribed tree is never valid; an
+ * incomplete tree is valid only outside "codes" and only when it holds a
+ * single code of length 1 (RFC 1951 allows one distance code). An all-zero
+ * tree is accepted here and fails on first use, as in zlib. The fixed
+ * distance table (30 codes of length 5) is incomplete by design and is not
+ * checked. Codex XREVIEW HOLD 6293967301: incomplete dynamic trees were
+ * accepted.
+ */
+function huffman(lengths: ArrayLike<number>, n: number, kind: "codes" | "dynamic" | "fixed"): Huffman | null {
   const counts = new Int32Array(16);
-  for (let i = 0; i < n; i++) counts[lengths[i]]++;
+  let max = 0;
+  for (let i = 0; i < n; i++) {
+    counts[lengths[i]]++;
+    if (lengths[i] > max) max = lengths[i];
+  }
   counts[0] = 0;
   let left = 1;
   for (let len = 1; len < 16; len++) {
     left = (left << 1) - counts[len];
     if (left < 0) return null; // over-subscribed
   }
+  if (kind !== "fixed" && max > 0 && left > 0 && (kind === "codes" || max !== 1)) return null; // incomplete
   const offs = new Int32Array(16);
   for (let len = 1; len < 15; len++) offs[len + 1] = offs[len] + counts[len];
   const symbols = new Int32Array(n);
@@ -90,7 +106,7 @@ function fixedTables(): { lit: Huffman; dist: Huffman } {
     for (let i = 144; i < 256; i++) l[i] = 9;
     for (let i = 256; i < 280; i++) l[i] = 7;
     for (let i = 280; i < 288; i++) l[i] = 8;
-    FIXED = { lit: huffman(l, 288)!, dist: huffman(new Array<number>(30).fill(5), 30)! };
+    FIXED = { lit: huffman(l, 288, "fixed")!, dist: huffman(new Array<number>(30).fill(5), 30, "fixed")! };
   }
   return FIXED;
 }
@@ -135,7 +151,7 @@ export function zlibInflate(src: Uint8Array, limit: number): Uint8Array | null {
         if (v < 0) return null;
         cl[ORDER[i]] = v;
       }
-      const clh = huffman(cl, 19);
+      const clh = huffman(cl, 19, "codes");
       if (clh === null) return null;
       const lens: number[] = [];
       while (lens.length < hlit + hdist) {
@@ -160,8 +176,8 @@ export function zlibInflate(src: Uint8Array, limit: number): Uint8Array | null {
         }
       }
       if (lens[256] === 0) return null; // no end-of-block code
-      const l = huffman(lens.slice(0, hlit), hlit);
-      const d = huffman(lens.slice(hlit), hdist);
+      const l = huffman(lens.slice(0, hlit), hlit, "dynamic");
+      const d = huffman(lens.slice(hlit), hdist, "dynamic");
       if (l === null || d === null) return null;
       lit = l;
       dist = d;
