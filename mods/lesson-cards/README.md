@@ -60,6 +60,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - `$.settings.read` - Read the USER settings only, for `ORK_LESSON_CARDS_CARD_ONLY_DIRS`, at session start
 - `$.fs.read` - Read lesson-patterns.json and lessons.md files
 - `$.fs.list` - List hq-ext versions and floor directories
+- `$.fs.exists` - Skip floor dirs with no lessons.md before any stat (no logged ENOENT per dir); absent on older engines, then stat-only
 - `$.fs.stat` - Get file mtimes for sorting
 - `$.ui.notice` - Show hint during permission dialog (if open)
 - `$.ui.ask` - Ask "Proceed anyway?" before a block-severity call runs
