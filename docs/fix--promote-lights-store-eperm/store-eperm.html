@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>promote-lights: a store it cannot write no longer kills the band</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--fg:#14161a;--mut:#56606d;--faint:#8b93a1;--line:#e2e5ea;--a:#b8860b;--g:#1e8e5a;--r:#c0392b;--term:#161b26;--termfg:#e8ecf1}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:900px;margin:0 auto;padding:40px 20px 60px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:30px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.verdict{border-left:4px solid var(--a)}
+.term{background:var(--term);color:var(--termfg);border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;min-height:90px}
+.err{color:#ff8f80}.dim{color:#8f98a8}
+label{margin-right:16px}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer}
+</style></head><body><main>
+<h1>promote-lights: a store it cannot write no longer kills the band</h1>
+<p class="lead">promote-lights 0.0.14. In a sandboxed Claude Code session the mod store under <code>~/.claude</code> is not writable, so <code>session.start</code> threw on its first <code>$.store.delete</code> and no band ever drew. Now every store call goes through one wrapper: on the first failure the lights live in memory for that process, and the status line says <code>lights: store unavailable</code> once.</p>
+<div class="card verdict"><b>Measured 2026-10-20 (mods dogfood):</b> <code>[ERROR] promote-lights: session.start hook skipped: threw promote-lights@orchestkit: $.store.delete failed: EPERM: operation not permitted, mkdir '/Users/.../.claude/...'</code>. Tests: 3 new, red before the fix, 126 passed after.</div>
+
+<h2>Try it</h2>
+<div class="card">
+<label><input type="radio" name="store" value="ok" checked> store writable</label>
+<label><input type="radio" name="store" value="eperm"> store EPERM (sandboxed seat)</label>
+<label><input type="radio" name="ver" value="13"> 0.0.13</label>
+<label><input type="radio" name="ver" value="14" checked> 0.0.14</label>
+<p><button id="start">Start a session</button> <button id="again">Start another session</button></p>
+<div class="term" id="out"></div>
+</div>
+
+<h2>What stays the same</h2>
+<div class="card">Per-session keys, the /clear token rotation, and "only this session's lights" are unchanged: the memory copy is per process, so another session never reads it. A writable store behaves exactly as before; the wrapper only changes the failure path.</div>
+</main>
+<script>
+const out=document.getElementById('out');let warned=false;
+const val=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const eperm=val('store')==='eperm', v=val('ver');
+  if(eperm && v==='13'){out.innerHTML='<span class="err">[ERROR] promote-lights: session.start hook skipped: threw promote-lights@orchestkit: $.store.delete failed: EPERM: operation not permitted</span>\n<span class="dim">(no band, no tick, /lights still registered)</span>';return;}
+  let s='🚦 #4165  abc123d  CLEAN   21 🟢  0 🟡  0 🔴';
+  if(eperm){ s+= warned ? '\n<span class="dim">status line: (already said once)</span>' : '\n<span class="dim">status line: lights: store unavailable</span>'; warned=true; }
+  out.innerHTML=s;
+}
+document.getElementById('start').onclick=()=>{warned=false;run();};
+document.getElementById('again').onclick=run;
+document.querySelectorAll('input').forEach(i=>i.onchange=()=>{warned=false;run();});
+run();
+</script>
+</body></html>

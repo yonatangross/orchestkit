@@ -17,6 +17,7 @@ Shows CI status lights above the prompt while a promote PR (base `main`, or `PRO
 - Shows `HOLD` in red when the latest PR comment starts with `HOLD*`
 - The band is the only place the lights are drawn: each tick clears the plugin status line instead of repeating the band in it, and a degraded promote search shows as `DEGRADED` in the band. Claude Code gives a mod no signal when the band is collapsed (ctrl+x ctrl+a), so `/lights` answers the one-line status on demand
 - Draws a one-line dim `lights: <reason>` band when it cannot show lights (no required contexts, gh failed, head moved), so a failure is never a blank space
+- A seat that cannot write the mod store (a sandboxed session gets `EPERM` under `~/.claude`) keeps working: the lights live in memory for that process, and the status line says `lights: store unavailable` once. Before 0.0.14 `session.start` threw there and no band ever drew
 - Demo mode: `/lights watch owner/repo#N` shows lights for any open PR in any repo, no promote PR needed
 
 ## How the band is drawn
