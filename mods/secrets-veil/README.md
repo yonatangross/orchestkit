@@ -45,14 +45,16 @@ Three layers, checked on every tool result:
      `{ type: "image", source: { type: "base64", media_type, data } }`,
      as the output itself, an element of an output array, or an element of
      the output's `content` array. A look-alike deeper in a result is masked;
-   - its media type is PNG, JPEG, GIF or WebP (an exact allowlist);
+   - its media type is PNG, JPEG or GIF (an exact allowlist);
    - it is strict base64 under 16 million characters, and the WHOLE decoded
      file is a real image of its type, not only its framing: PNG with a
      valid IHDR, at least one IDAT, right CRCs and IEND at the end; JPEG
      with a quantization table, a frame header of nonzero size, a scan with
      data and EOI at the end; GIF with at least one image block of nonzero
-     size and the trailer at the end; WebP whose first chunk is a VP8, VP8L
-     or VP8X image bitstream and whose chunks end exactly at the end;
+     size and the trailer at the end. PNG pixel data must also inflate
+     (bounded, 64 MiB) to exactly its expected rows, each with a legal
+     filter byte. WebP is not on the list: its bitstream cannot be proven
+     without a full decoder, so a WebP Read stays masked while the veil is on;
    - its metadata can be read: a PNG with compressed text (zTXt, or iTXt
      with compression on) is not exempt;
    - no named value appears in the decoded bytes (as Latin-1, UTF-8 or

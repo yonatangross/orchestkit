@@ -12,6 +12,7 @@
  */
 
 import { readFileSync } from "node:fs";
+import { deflateSync } from "node:zlib";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
@@ -99,7 +100,8 @@ const RAND: number[] = (() => {
 function png(text?: string): number[] {
   const ihdr = chunk("IHDR", [...be32(1), ...be32(1), 8, 2, 0, 0, 0]);
   const rnd = chunk("ruSt", RAND);
-  const idat = chunk("IDAT", [0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0x00, 0x00, 0x03, 0x01, 0x01, 0x00]);
+  // One RGB pixel row: filter byte 0, then R G B, compressed by Node's own zlib.
+  const idat = chunk("IDAT", Array.from(deflateSync(Buffer.from([0, 220, 30, 30]))));
   const txt = text === undefined ? [] : chunk("tEXt", [...asc("Comment"), 0, ...asc(text)]);
   return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...ihdr, ...rnd, ...txt, ...idat, ...chunk("IEND", [])];
 }
@@ -150,8 +152,6 @@ describe("a payload passes only when the whole file is valid", () => {
     ["image/png", BIG_PNG],
     ["image/jpeg", b64(JPEG)],
     ["image/gif", GIF],
-    ["image/webp", b64(WEBP_LOSSY)],
-    ["image/webp", b64(WEBP_LOSSLESS)],
   ])("valid %s passes byte-equal in the Read shape", async (type, data) => {
     expect((await run(readShape(data, type))).text).toContain(data);
   });
@@ -176,6 +176,50 @@ describe("a payload passes only when the whole file is valid", () => {
     expect((await run(readShape(data, "image/jpeg"))).text).not.toContain(data);
   });
 
+  // Operator decision 2026-10-20 (Codex HOLD 6293176280): WebP is off the pass list; a VP8L
+  // bitstream cannot be proven without a full decoder, so WebP Reads stay masked.
+  test.each([["lossy", WEBP_LOSSY], ["lossless", WEBP_LOSSLESS]])("a real %s WebP is masked (off the pass list)", async (_l, bytes) => {
+    const data = b64(bytes as number[]);
+    expect((await run(readShape(data, "image/webp"))).text).not.toContain(data);
+  });
+
+  test("Codex's header-only VP8L control is refused", () => {
+    const hex = "5249464612000000574542505650384c050000002f0000000000";
+    expect(validImage("image/webp", Buffer.from(hex, "hex").toString("base64"))).toBeNull();
+  });
+
+  // PNG pixel data must inflate to exactly the expected rows (Codex HOLD 6293176280).
+  const pngIdat = (idatData: number[]): number[] => {
+    const p = png();
+    const ihdrEnd = 8 + 25;
+    let i = ihdrEnd;
+    const out = p.slice(0, ihdrEnd);
+    while (i < p.length) {
+      const len = (p[i] << 24) | (p[i + 1] << 16) | (p[i + 2] << 8) | p[i + 3];
+      const type = String.fromCharCode(...p.slice(i + 4, i + 8));
+      const end = i + 12 + len;
+      out.push(...(type === "IDAT" ? chunk("IDAT", idatData) : p.slice(i, end)));
+      i = end;
+    }
+    return out;
+  };
+  test.each([
+    ["inflates to too many bytes", Array.from(deflateSync(Buffer.from([0, 1, 2, 3, 4])))],
+    ["inflates to too few bytes", Array.from(deflateSync(Buffer.from([0, 1, 2])))],
+    ["is not zlib at all", [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0]],
+    ["has a filter byte that does not exist (9)", Array.from(deflateSync(Buffer.from([9, 1, 2, 3])))],
+    ["has a wrong Adler-32", (() => { const z = Array.from(deflateSync(Buffer.from([0, 1, 2, 3]))); z[z.length - 1] ^= 1; return z; })()],
+  ])("a PNG whose IDAT %s is not an image", (_label, idat) => {
+    expect(validImage("image/png", b64(pngIdat(idat as number[])))).toBeNull();
+  });
+
+  test("a real PNG and the built PNG inflate to their rows", () => {
+    expect(validImage("image/png", BIG_PNG)).not.toBeNull();
+    expect(validImage("image/png", b64(fixture("interlaced.png")))).not.toBeNull(); // Adam7 (ImageMagick)
+    expect(validImage("image/png", b64(png()))).not.toBeNull();
+    expect(validImage("image/png", b64(pngIdat(Array.from(deflateSync(Buffer.from([0, 9, 8, 7]))))))).not.toBeNull();
+  });
+
   test("a WebP whose RIFF size lies is masked", async () => {
     const bytes = webp();
     bytes[4] += 2;
@@ -197,11 +241,9 @@ describe("a payload passes only when the whole file is valid", () => {
     expect(validImage(type, b64(bytes as number[]))).toBeNull();
   });
 
-  test("real JPEG, GIF and WebP files are images", () => {
+  test("real JPEG and GIF files are images", () => {
     expect(validImage("image/jpeg", b64(fixture("real.jpg")))).not.toBeNull();
     expect(validImage("image/gif", b64(fixture("real.gif")))).not.toBeNull();
-    expect(validImage("image/webp", b64(fixture("real-lossy.webp")))).not.toBeNull();
-    expect(validImage("image/webp", b64(fixture("real-lossless.webp")))).not.toBeNull();
   });
 
   // Codex XREVIEW HOLD 6290872512, finding 2: a non-ASCII named value in UTF-8 metadata.
@@ -311,8 +353,8 @@ describe("the media allowlist has no inherited keys", () => {
     }
   });
 
-  test("the allowlist is a Map of exactly four image types", () => {
+  test("the allowlist is a Map of exactly three image types (WebP is off)", () => {
     expect(MEDIA_VALIDATORS instanceof Map).toBe(true);
-    expect([...MEDIA_VALIDATORS.keys()].sort()).toEqual(["image/gif", "image/jpeg", "image/png", "image/webp"]);
+    expect([...MEDIA_VALIDATORS.keys()].sort()).toEqual(["image/gif", "image/jpeg", "image/png"]);
   });
 });

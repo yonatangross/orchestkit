@@ -1,3 +1,5 @@
+import { zlibInflate } from "./inflate.js";
+
 /**
  * Image payloads that may pass the veil unmasked, and the checks they must pass.
  *
@@ -86,6 +88,12 @@ function validPng(b: Uint8Array): boolean {
   let i = 8;
   let first = true;
   let idat = 0;
+  const idatParts: Uint8Array[] = [];
+  let idatBytes = 0;
+  let width = 0;
+  let height = 0;
+  let bitsPerPixel = 0;
+  let interlaced = false;
   while (i + 12 <= b.length) {
     const len = u32be(b, i);
     const typeStart = i + 4;
@@ -108,20 +116,75 @@ function validPng(b: Uint8Array): boolean {
       const depths = Object.prototype.hasOwnProperty.call(legal, colour) ? legal[colour] : undefined;
       if (w === 0 || h === 0 || w > 0x7fffffff || h > 0x7fffffff || !depths || !depths.includes(depth)) return false;
       if (b[dataStart + 10] !== 0 || b[dataStart + 11] !== 0 || b[dataStart + 12] > 1) return false;
+      const channels: Record<number, number> = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
+      width = w;
+      height = h;
+      bitsPerPixel = depth * channels[colour];
+      interlaced = b[dataStart + 12] === 1;
       first = false;
     } else if (type === "IHDR") {
       return false;
     }
-    if (type === "IDAT" && len > 0) idat++;
+    if (type === "IDAT" && len > 0) {
+      idat++;
+      idatParts.push(b.subarray(dataStart, dataEnd));
+      idatBytes += len;
+    }
     if (type === "zTXt") return false;
     if (type === "iTXt") {
       const nul = b.indexOf(0, dataStart);
       if (nul < 0 || nul + 1 >= dataEnd || b[nul + 1] !== 0) return false;
     }
     i = dataEnd + 4;
-    if (type === "IEND") return len === 0 && i === b.length && idat > 0;
+    if (type === "IEND") {
+      if (len !== 0 || i !== b.length || idat === 0) return false;
+      const z = new Uint8Array(idatBytes);
+      let at = 0;
+      for (const part of idatParts) {
+        z.set(part, at);
+        at += part.length;
+      }
+      return pixelRowsValid(z, width, height, bitsPerPixel, interlaced);
+    }
   }
   return false;
+}
+
+/** Most bytes the PNG pixel data may inflate to (64 MiB): a bigger image is not exempt. */
+export const MAX_PNG_RAW_BYTES = 64 * 1024 * 1024;
+
+/**
+ * The IDAT stream must inflate (bounded) to exactly the expected filtered
+ * rows: every row starts with a filter byte 0..4 (Adam7 passes for an
+ * interlaced image). Proves real pixel data, not only PNG framing (Codex
+ * XREVIEW HOLD 6293176280).
+ */
+function pixelRowsValid(z: Uint8Array, w: number, h: number, bpp: number, interlaced: boolean): boolean {
+  const rowBytes = (pw: number): number => Math.ceil((pw * bpp) / 8);
+  const passes: Array<[number, number]> = [];
+  if (!interlaced) {
+    passes.push([w, h]);
+  } else {
+    const adam7 = [[0, 0, 8, 8], [4, 0, 8, 8], [0, 4, 4, 8], [2, 0, 4, 4], [0, 2, 2, 4], [1, 0, 2, 2], [0, 1, 1, 2]];
+    for (const [x0, y0, dx, dy] of adam7) {
+      const pw = Math.ceil((w - x0) / dx);
+      const ph = Math.ceil((h - y0) / dy);
+      if (pw > 0 && ph > 0) passes.push([pw, ph]);
+    }
+  }
+  let expected = 0;
+  for (const [pw, ph] of passes) {
+    expected += ph * (1 + rowBytes(pw));
+    if (expected > MAX_PNG_RAW_BYTES) return false;
+  }
+  const raw = zlibInflate(z, expected + 1);
+  if (raw === null || raw.length !== expected) return false;
+  let at = 0;
+  for (const [pw, ph] of passes) {
+    const stride = 1 + rowBytes(pw);
+    for (let r = 0; r < ph; r++, at += stride) if (raw[at] > 4) return false;
+  }
+  return true;
 }
 
 /**
@@ -218,56 +281,14 @@ function validGif(b: Uint8Array): boolean {
 }
 
 /**
- * WebP: RIFF size equal to the file, WEBP form, chunks (even padded) that end
- * exactly at the end, and an image bitstream: the first chunk is VP8 (frame
- * tag + start code 9d 01 2a + nonzero size), VP8L (signature 0x2f + version 0),
- * or VP8X followed by a VP8 or VP8L chunk. A wrapper of other chunks only
- * (JUNK, EXIF, XMP) is not an image.
+ * The media types whose payload may pass, each with its whole-file validator. A Map: no inherited keys.
+ * WebP is not on it (operator decision 2026-10-20): its bitstream cannot be proven without a full
+ * decoder, so a WebP Read stays masked while the veil is on.
  */
-function validWebp(b: Uint8Array): boolean {
-  if (b.length < 20 || !startsWith(b, ascii("RIFF")) || !startsWith(b.subarray(8), ascii("WEBP"))) return false;
-  if (u32le(b, 4) + 8 !== b.length) return false;
-  let i = 12;
-  const chunks: Array<{ fourcc: string; start: number; size: number }> = [];
-  while (i < b.length) {
-    if (i + 8 > b.length) return false;
-    const fourcc = String.fromCharCode(b[i], b[i + 1], b[i + 2], b[i + 3]);
-    const size = u32le(b, i + 4);
-    const next = i + 8 + size + (size & 1);
-    if (next > b.length) return false;
-    chunks.push({ fourcc, start: i + 8, size });
-    i = next;
-  }
-  if (chunks.length === 0 || i !== b.length) return false;
-  const vp8 = (c: { start: number; size: number }): boolean => {
-    if (c.size < 10) return false;
-    const s = c.start;
-    if (b[s] & 0x01) return false; // a key frame is required
-    if (b[s + 3] !== 0x9d || b[s + 4] !== 0x01 || b[s + 5] !== 0x2a) return false;
-    const w = (b[s + 6] | (b[s + 7] << 8)) & 0x3fff;
-    const h = (b[s + 8] | (b[s + 9] << 8)) & 0x3fff;
-    return w > 0 && h > 0;
-  };
-  const vp8l = (c: { start: number; size: number }): boolean =>
-    c.size >= 5 && b[c.start] === 0x2f && (b[c.start + 4] >> 5) === 0;
-  const first = chunks[0];
-  if (first.fourcc === "VP8 ") return vp8(first);
-  if (first.fourcc === "VP8L") return vp8l(first);
-  if (first.fourcc === "VP8X") {
-    if (first.size < 10) return false;
-    const bit = chunks.find((c) => c.fourcc === "VP8 " || c.fourcc === "VP8L");
-    if (bit === undefined) return false;
-    return bit.fourcc === "VP8 " ? vp8(bit) : vp8l(bit);
-  }
-  return false;
-}
-
-/** The media types whose payload may pass, each with its whole-file validator. A Map: no inherited keys. */
 export const MEDIA_VALIDATORS: ReadonlyMap<string, (b: Uint8Array) => boolean> = new Map([
   ["image/png", validPng],
   ["image/jpeg", validJpeg],
   ["image/gif", validGif],
-  ["image/webp", validWebp],
 ]);
 
 /** The decoded image when the payload passes every structural check, else null. */
