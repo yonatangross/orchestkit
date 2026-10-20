@@ -306,10 +306,13 @@ export function holdsSecret(
   // Codex HOLD 6290872512: a non-ASCII named value in UTF-8 metadata was missed.
   const encodings = (v: string): string[] => {
     const utf8 = byteString(new TextEncoder().encode(v));
-    const utf16 = Array.from(v, (c) => {
-      const u = c.charCodeAt(0);
-      return String.fromCharCode(u & 0xff, u >> 8);
-    }).join("");
+    // Every UTF-16 code unit by index: Array.from(v) walks code points and would drop the low
+    // surrogate of a supplementary character (Codex HOLD 6293176280).
+    let utf16 = "";
+    for (let k = 0; k < v.length; k++) {
+      const u = v.charCodeAt(k);
+      utf16 += String.fromCharCode(u & 0xff, u >> 8);
+    }
     return Array.from(new Set([v, utf8, utf16]));
   };
   for (const n of named) {

@@ -209,8 +209,17 @@ describe("a payload passes only when the whole file is valid", () => {
     const v = "sample-\u00e9-value";
     const utf8 = new TextEncoder().encode(v);
     expect(holdsSecret(utf8, b64(utf8), [v], [])).toBe(true);
-    const utf16 = Uint8Array.from(Array.from(v).flatMap((c) => [c.charCodeAt(0) & 0xff, c.charCodeAt(0) >> 8]));
+    // Real UTF-16LE bytes from Node's own encoder, not the algorithm under test (Codex HOLD 6293176280).
+    const utf16 = Uint8Array.from(Buffer.from(v, "utf16le"));
     expect(holdsSecret(utf16, b64(utf16), [v], [])).toBe(true);
+  });
+
+  test("holdsSecret keeps both halves of a supplementary character in UTF-16LE (Codex HOLD 6293176280)", () => {
+    const v = "sample-\u{1F600}-value";
+    const bytes = Uint8Array.from(Buffer.from(v, "utf16le"));
+    expect(holdsSecret(bytes, Buffer.from(bytes).toString("base64"), [v], [])).toBe(true);
+    const utf8 = Uint8Array.from(Buffer.from(v, "utf8"));
+    expect(holdsSecret(utf8, Buffer.from(utf8).toString("base64"), [v], [])).toBe(true);
   });
 
   test("a non-ASCII named value in a PNG iTXt withholds the whole result", async () => {
