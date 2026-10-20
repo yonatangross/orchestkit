@@ -1,0 +1,12 @@
+{
+  "slug": "mods-promote-lights-store-eperm",
+  "source": "docs/fix--promote-lights-store-eperm/store-eperm.html",
+  "title": "promote-lights: a store it cannot write no longer kills the band",
+  "description": "promote-lights 0.0.14 keeps its CI lights in memory when the mod store cannot be written (EPERM in a sandboxed Claude Code session) and says so once, instead of throwing in session.start. Toggle the store and the version to compare.",
+  "tags": [
+    "mods",
+    "promote-lights",
+    "sandbox"
+  ],
+  "date": "2026-10-20"
+}

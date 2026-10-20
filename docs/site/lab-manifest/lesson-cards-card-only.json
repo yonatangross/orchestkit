@@ -1,0 +1,12 @@
+{
+  "slug": "lesson-cards-card-only",
+  "source": "docs/feat--lesson-cards-card-only/card-only-mode.html",
+  "title": "Lesson Cards: Card-Only Lanes",
+  "description": "See when a block lesson shows a card and runs the call instead of asking. Only folders listed in the user settings turn it on; a project cannot, and headless still denies.",
+  "tags": [
+    "mods",
+    "lessons",
+    "card-only"
+  ],
+  "date": "2026-10-18"
+}

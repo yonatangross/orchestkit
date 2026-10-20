@@ -7,13 +7,16 @@
  */
 
 import { describe, test, expect, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { register } from '../hooks/register.js';
 
 type RegisteredHook = (...args: unknown[]) => unknown;
 
 /** FsEntry / FsStat as the 2.1.282 mods API sends them (kind, mtimeMs). */
 type FakeFsEntry = { name: string; kind: 'file' | 'dir' | 'other' };
-type FakeFsStat = { size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' };
+type FakeFsStat = { size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other'; realPath?: string };
 
 /**
  * A mod has no process.env, so HOME must come from $.env. The fake fs only
@@ -55,6 +58,15 @@ interface Fake$Options {
   askAnswer?: string;
   /** When set, $.env.get answers from this map instead of the default HOME only. */
   env?: Record<string, string>;
+  /** $.settings.read answers: by source, and `merged` for a read with no source. */
+  settings?: Partial<Record<'user' | 'project' | 'local' | 'merged', Record<string, unknown>>>;
+  /** $.settings.read throws. */
+  settingsThrows?: boolean;
+  /**
+   * $.fs.stat(path, { resolve: true }) answers from the real filesystem (realpath), the way the
+   * engine does. Unset: it answers the path itself, so the lexical tests keep their meaning.
+   */
+  realFs?: boolean;
 }
 
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.283 (captured live). */
@@ -85,6 +97,8 @@ interface Fake$Record {
   envGets: string[];
   registeredCommands: Array<{ name: string; description: string }>;
   asks: Array<{ question: string; options: readonly string[] }>;
+  statuses: Array<string | undefined>;
+  settingsReads: Array<string | undefined>;
 }
 
 function makeFake$(options: Fake$Options = {}): Fake$Record {
@@ -93,6 +107,8 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   const envGets: string[] = [];
   const registeredCommands: Array<{ name: string; description: string }> = [];
   const asks: Array<{ question: string; options: readonly string[] }> = [];
+  const statuses: Array<string | undefined> = [];
+  const settingsReads: Array<string | undefined> = [];
 
   const ask = async (question: string, opts: readonly string[]): Promise<string> => {
     asks.push({ question, options: opts });
@@ -114,6 +130,13 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   };
 
   const fake$ = {
+    settings: {
+      read: async (args?: { source?: 'user' | 'project' | 'local' }): Promise<Record<string, unknown>> => {
+        settingsReads.push(args?.source);
+        if (options.settingsThrows) throw new Error('settings unavailable');
+        return options.settings?.[args?.source ?? 'merged'] ?? {};
+      },
+    },
     env: {
       get: async (name: string): Promise<string | undefined> => {
         envGets.push(name);
@@ -155,7 +178,12 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
         }
         throw new Error(`unexpected read: ${path}`);
       },
-      stat: async (path: string): Promise<FakeFsStat | null> => {
+      stat: async (path: string, opts?: { resolve?: boolean }): Promise<FakeFsStat | null> => {
+        if (opts?.resolve) {
+          // Engine shape (CC 2.1.304 fs.stat): realPath only when resolve is asked; a failure throws.
+          if (options.realFs) return { size: 0, mtimeMs: 0, kind: 'dir', realPath: realpathSync(path) };
+          return { size: 0, mtimeMs: 0, kind: 'dir', realPath: path };
+        }
         if (!path.startsWith(`${FAKE_HOME}/`)) {
           return null;
         }
@@ -179,6 +207,9 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
         invalidateCalls.push(component);
       },
       resolve: async (): Promise<typeof fakeElements> => fakeElements,
+      status: async (text?: string): Promise<void> => {
+        statuses.push(text);
+      },
       ...(options.askAnswer === undefined ? {} : { ask }),
     },
     command: {
@@ -188,7 +219,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     },
   };
 
-  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks };
+  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks, statuses, settingsReads };
 }
 
 interface CapturedHooks {
@@ -575,6 +606,187 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
       if (isInteractive !== true) expect(asks).toHaveLength(0);
     });
   }
+});
+
+describe('card-only lanes: trust comes from user settings, never from a project', () => {
+  const DESKS = '/home/lesson-tester/.floor/desks';
+  const LANE = `${DESKS}/mods-1`;
+  const userDirs = (dirs: string) => ({ user: { env: { ORK_LESSON_CARDS_CARD_ONLY_DIRS: dirs } } });
+
+  async function startAt(hooks: Map<string, RegisteredHook>, $: unknown, cwd: string, isInteractive = true): Promise<void> {
+    await hooks.get('session.start')!($, { cwd, isInteractive }, async (ev: unknown) => ev);
+  }
+  async function call(hooks: Map<string, RegisteredHook>, $: unknown): Promise<{ ran: boolean; out: { deny?: string; result?: string; context?: string[] } }> {
+    let ran = false;
+    const next = async (): Promise<unknown> => {
+      ran = true;
+      return { result: 'ran' };
+    };
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-card' }, next)) as { deny?: string; result?: string; context?: string[] };
+    return { ran, out };
+  }
+
+  test('a lane under a user-listed folder gets the card and the call runs, with no dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE);
+    const { ran, out } = await call(hooks, $);
+    const tree = await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-card' }, asNext<never>(null));
+    expect(asks).toHaveLength(0);
+    expect(ran).toBe(true);
+    expect(out.deny).toBeUndefined();
+    expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+    expect(JSON.stringify(tree)).toContain('cancelled-check-is-not-pass');
+  });
+
+  test('a project cannot turn it on: project settings, merged settings and env are not trusted', async () => {
+    const { hooks } = captureHooks();
+    const projectEnv = { env: { ORK_LESSON_CARDS_CARD_ONLY_DIRS: LANE, ORK_LESSON_CARDS_MODE: 'card-only' } };
+    const { $, asks } = makeFake$({
+      askAnswer: 'Cancel',
+      settings: { project: projectEnv, local: projectEnv, merged: projectEnv },
+      env: { HOME: FAKE_HOME, ORK_LESSON_CARDS_MODE: 'card-only', ORK_LESSON_CARDS_CARD_ONLY_DIRS: LANE },
+    });
+    await startAt(hooks, $, LANE);
+    const { ran, out } = await call(hooks, $);
+    expect(asks).toHaveLength(1);
+    expect(ran).toBe(false);
+    expect(out.deny).toContain('Cancelled: by you; not run.');
+  });
+
+  test('reads the user source only', async () => {
+    const { hooks } = captureHooks();
+    const { $, settingsReads } = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE);
+    expect(settingsReads).toEqual(['user']);
+  });
+
+  test('a sibling folder with the same prefix is not under the listed folder', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(DESKS) });
+    await startAt(hooks, $, `${DESKS}-other/lane`);
+    await call(hooks, $);
+    expect(asks).toHaveLength(1);
+  });
+
+  test('the listed folder itself, and any one of several ;-separated folders, match', async () => {
+    for (const [dirs, cwd] of [[LANE, LANE], [`/elsewhere; ${DESKS}/`, LANE]] as const) {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(dirs) });
+      await startAt(hooks, $, cwd);
+      const { ran } = await call(hooks, $);
+      expect(asks).toHaveLength(0);
+      expect(ran).toBe(true);
+    }
+  });
+
+  test('on POSIX a backslash is part of a folder name, not a separator', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs('/safe/desks') });
+    await startAt(hooks, $, '/safe/desks\\evil');
+    const { ran } = await call(hooks, $);
+    expect(asks).toHaveLength(1);
+    expect(ran).toBe(false);
+  });
+
+  test('Windows paths still match inside a listed folder, and not beside it', async () => {
+    for (const [cwd, inside] of [
+      ['C:\\Users\\you\\desks\\lane', true],
+      ['C:\\Users\\you\\desks', true],
+      ['C:\\Users\\you\\desks-other\\lane', false],
+    ] as const) {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs('C:\\Users\\you\\desks\\') });
+      await startAt(hooks, $, cwd);
+      await call(hooks, $);
+      expect(asks).toHaveLength(inside ? 0 : 1);
+    }
+  });
+
+  test('a headless session in a listed lane keeps the fail-closed deny', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway', settings: userDirs(DESKS) });
+    await startAt(hooks, $, LANE, false);
+    const { ran, out } = await call(hooks, $);
+    expect(ran).toBe(false);
+    expect(asks).toHaveLength(0);
+    expect(out.deny?.startsWith('Not run: no dialog to confirm. [lesson:cancelled-check-is-not-pass]')).toBe(true);
+  });
+
+  test('a settings read that fails keeps the dialog', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel', settingsThrows: true });
+    await startAt(hooks, $, LANE);
+    await call(hooks, $);
+    expect(asks).toHaveLength(1);
+  });
+
+  describe('containment is decided on canonical filesystem paths (Codex XREVIEW HOLD 6288423031)', () => {
+    // Real folders and symlinks in a temp dir; realpath also folds macOS /tmp into /private/tmp.
+    function tree(): { root: string; desks: string; outside: string } {
+      const root = mkdtempSync(join(tmpdir(), 'lesson-cards-lane-'));
+      const desks = join(root, 'desks');
+      const outside = join(root, 'outside');
+      mkdirSync(join(desks, 'lane'), { recursive: true });
+      mkdirSync(join(outside, 'lane'), { recursive: true });
+      return { root, desks, outside };
+    }
+    async function asksAt(dirs: string, cwd: string): Promise<number> {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(dirs), realFs: true });
+      await startAt(hooks, $, cwd);
+      await call(hooks, $);
+      return asks.length;
+    }
+
+    test('a symlinked folder component that leads outside the listed folder keeps the dialog', async () => {
+      const { desks, outside } = tree();
+      symlinkSync(outside, join(desks, 'escape'));
+      // Lexically under desks, really under outside.
+      expect(await asksAt(desks, join(desks, 'escape', 'lane'))).toBe(1);
+    });
+
+    test('a lane reached through a symlink that leads into the listed folder is card-only', async () => {
+      const { root, desks } = tree();
+      symlinkSync(desks, join(root, 'alias'));
+      expect(await asksAt(desks, join(root, 'alias', 'lane'))).toBe(0);
+    });
+
+    test('a listed folder given through a symlink still contains the real lane', async () => {
+      const { root, desks } = tree();
+      symlinkSync(desks, join(root, 'desks-link'));
+      expect(await asksAt(join(root, 'desks-link'), join(desks, 'lane'))).toBe(0);
+    });
+
+    test('a real lane inside the real listed folder is card-only', async () => {
+      const { desks } = tree();
+      expect(await asksAt(desks, join(desks, 'lane'))).toBe(0);
+    });
+
+    test('a session folder that cannot be resolved keeps the dialog', async () => {
+      const { desks } = tree();
+      expect(await asksAt(desks, join(desks, 'gone', 'lane'))).toBe(1);
+    });
+
+    test('a listed folder that cannot be resolved does not count', async () => {
+      const { root, desks } = tree();
+      expect(await asksAt(join(root, 'missing'), join(desks, 'lane'))).toBe(1);
+      // A second, resolvable folder in the same list still counts.
+      expect(await asksAt(`${join(root, 'missing')};${desks}`, join(desks, 'lane'))).toBe(0);
+    });
+  });
+
+  test('shows a status line in a card-only lane, and none otherwise', async () => {
+    const on = captureHooks();
+    const lane = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(on.hooks, lane.$, LANE);
+    expect(lane.statuses).toEqual(['lesson-cards: card only, no dialogs']);
+
+    const off = captureHooks();
+    const normal = makeFake$({ settings: userDirs(DESKS) });
+    await startAt(off.hooks, normal.$, '/repo');
+    expect(normal.statuses).toEqual([]);
+  });
 });
 
 describe('the lesson paragraph is drawn once: the card, never the question or the deny', () => {

@@ -1464,3 +1464,62 @@ describe("a /clear inside one process never draws the previous session's lights"
     expect(out).toBe(DOWN);
   });
 });
+
+/**
+ * A sandboxed seat cannot write the mod store under ~/.claude. Measured live
+ * 2026-10-20 (mods-dogfood-2026-10-20): "promote-lights: session.start hook
+ * skipped: threw promote-lights@orchestkit: $.store.delete failed: EPERM:
+ * operation not permitted, mkdir '/Users/.../.claude/...'". The mod must keep
+ * working from memory and say so once.
+ */
+describe("a store that cannot be written (EPERM in a sandboxed seat)", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  const eperm = () => vi.fn().mockRejectedValue(new Error("$.store.delete failed: EPERM: operation not permitted, mkdir"));
+
+  test("session.start does not throw, passes the event on, and says so once", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$();
+    $.store.get = eperm();
+    $.store.set = eperm();
+    $.store.delete = eperm();
+    const e = { name: "session.start" };
+    const next = vi.fn(NEXT);
+
+    // A throw here fails the test: session.start must settle.
+    await handlers.get("session.start")!($, e, next);
+    expect(next).toHaveBeenCalledWith(e);
+    const warnings = ($.ui.status as ReturnType<typeof vi.fn>).mock.calls.filter((c) => c[0] === "lights: store unavailable");
+    expect(warnings).toHaveLength(1);
+  });
+
+  test("the band still draws the lights from memory", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$();
+    $.store.get = eperm();
+    $.store.set = eperm();
+    $.store.delete = eperm();
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    const band = await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, () => Promise.resolve(null));
+    expect(JSON.stringify(band)).toContain("4165");
+  });
+
+  test("a second session.start in the same process does not warn again", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$();
+    $.store.get = eperm();
+    $.store.set = eperm();
+    $.store.delete = eperm();
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    await handlers.get("session.start")!($, {}, NEXT);
+    const warnings = ($.ui.status as ReturnType<typeof vi.fn>).mock.calls.filter((c) => c[0] === "lights: store unavailable");
+    expect(warnings).toHaveLength(1);
+  });
+});
