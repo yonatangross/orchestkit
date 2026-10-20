@@ -7,13 +7,16 @@
  */
 
 import { describe, test, expect, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { register } from '../hooks/register.js';
 
 type RegisteredHook = (...args: unknown[]) => unknown;
 
 /** FsEntry / FsStat as the 2.1.282 mods API sends them (kind, mtimeMs). */
 type FakeFsEntry = { name: string; kind: 'file' | 'dir' | 'other' };
-type FakeFsStat = { size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' };
+type FakeFsStat = { size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other'; realPath?: string };
 
 /**
  * A mod has no process.env, so HOME must come from $.env. The fake fs only
@@ -59,6 +62,11 @@ interface Fake$Options {
   settings?: Partial<Record<'user' | 'project' | 'local' | 'merged', Record<string, unknown>>>;
   /** $.settings.read throws. */
   settingsThrows?: boolean;
+  /**
+   * $.fs.stat(path, { resolve: true }) answers from the real filesystem (realpath), the way the
+   * engine does. Unset: it answers the path itself, so the lexical tests keep their meaning.
+   */
+  realFs?: boolean;
 }
 
 /** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.283 (captured live). */
@@ -170,7 +178,12 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
         }
         throw new Error(`unexpected read: ${path}`);
       },
-      stat: async (path: string): Promise<FakeFsStat | null> => {
+      stat: async (path: string, opts?: { resolve?: boolean }): Promise<FakeFsStat | null> => {
+        if (opts?.resolve) {
+          // Engine shape (CC 2.1.304 fs.stat): realPath only when resolve is asked; a failure throws.
+          if (options.realFs) return { size: 0, mtimeMs: 0, kind: 'dir', realPath: realpathSync(path) };
+          return { size: 0, mtimeMs: 0, kind: 'dir', realPath: path };
+        }
         if (!path.startsWith(`${FAKE_HOME}/`)) {
           return null;
         }
@@ -706,6 +719,61 @@ describe('card-only lanes: trust comes from user settings, never from a project'
     await startAt(hooks, $, LANE);
     await call(hooks, $);
     expect(asks).toHaveLength(1);
+  });
+
+  describe('containment is decided on canonical filesystem paths (Codex XREVIEW HOLD 6288423031)', () => {
+    // Real folders and symlinks in a temp dir; realpath also folds macOS /tmp into /private/tmp.
+    function tree(): { root: string; desks: string; outside: string } {
+      const root = mkdtempSync(join(tmpdir(), 'lesson-cards-lane-'));
+      const desks = join(root, 'desks');
+      const outside = join(root, 'outside');
+      mkdirSync(join(desks, 'lane'), { recursive: true });
+      mkdirSync(join(outside, 'lane'), { recursive: true });
+      return { root, desks, outside };
+    }
+    async function asksAt(dirs: string, cwd: string): Promise<number> {
+      const { hooks } = captureHooks();
+      const { $, asks } = makeFake$({ askAnswer: 'Cancel', settings: userDirs(dirs), realFs: true });
+      await startAt(hooks, $, cwd);
+      await call(hooks, $);
+      return asks.length;
+    }
+
+    test('a symlinked folder component that leads outside the listed folder keeps the dialog', async () => {
+      const { desks, outside } = tree();
+      symlinkSync(outside, join(desks, 'escape'));
+      // Lexically under desks, really under outside.
+      expect(await asksAt(desks, join(desks, 'escape', 'lane'))).toBe(1);
+    });
+
+    test('a lane reached through a symlink that leads into the listed folder is card-only', async () => {
+      const { root, desks } = tree();
+      symlinkSync(desks, join(root, 'alias'));
+      expect(await asksAt(desks, join(root, 'alias', 'lane'))).toBe(0);
+    });
+
+    test('a listed folder given through a symlink still contains the real lane', async () => {
+      const { root, desks } = tree();
+      symlinkSync(desks, join(root, 'desks-link'));
+      expect(await asksAt(join(root, 'desks-link'), join(desks, 'lane'))).toBe(0);
+    });
+
+    test('a real lane inside the real listed folder is card-only', async () => {
+      const { desks } = tree();
+      expect(await asksAt(desks, join(desks, 'lane'))).toBe(0);
+    });
+
+    test('a session folder that cannot be resolved keeps the dialog', async () => {
+      const { desks } = tree();
+      expect(await asksAt(desks, join(desks, 'gone', 'lane'))).toBe(1);
+    });
+
+    test('a listed folder that cannot be resolved does not count', async () => {
+      const { root, desks } = tree();
+      expect(await asksAt(join(root, 'missing'), join(desks, 'lane'))).toBe(1);
+      // A second, resolvable folder in the same list still counts.
+      expect(await asksAt(`${join(root, 'missing')};${desks}`, join(desks, 'lane'))).toBe(0);
+    });
   });
 
   test('shows a status line in a card-only lane, and none otherwise', async () => {

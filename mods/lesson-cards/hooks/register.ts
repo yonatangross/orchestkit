@@ -36,7 +36,11 @@ type Hook$ = {
   fs: {
     read: (path: string) => Promise<string>;
     list: (path: string) => Promise<Array<{ name: string; kind: 'file' | 'dir' | 'other' }> | null>;
-    stat: (path: string) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' } | null>;
+    /** With { resolve: true } the engine adds realPath, the canonical path (realpath); it throws on failure. */
+    stat: (
+      path: string,
+      opts?: { resolve?: boolean },
+    ) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other'; realPath?: string } | null>;
   };
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
@@ -92,7 +96,23 @@ let interactive = false;
  */
 let cardOnly = false;
 
-/** Is cwd one of the user-listed card-only folders, or inside one? */
+/**
+ * The canonical filesystem path of p (every symlink resolved), or null when the
+ * engine cannot resolve it. Containment is decided only on these: a lexical
+ * path can lead through a symlinked folder to a place outside the listed folder
+ * (Codex XREVIEW HOLD 6288423031 on orchestkit#4798).
+ */
+async function canonicalPath($: Hook$, p: string): Promise<string | null> {
+  try {
+    const st = await $.fs.stat(p, { resolve: true });
+    const real = st?.realPath;
+    return typeof real === 'string' && real !== '' ? real : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Is cwd one of the user-listed card-only folders, or inside one? Both sides canonical. */
 async function inCardOnlyLane($: Hook$, cwd: string): Promise<boolean> {
   let user: Record<string, unknown>;
   try {
@@ -104,17 +124,30 @@ async function inCardOnlyLane($: Hook$, cwd: string): Promise<boolean> {
   const env = user?.env;
   const raw = env && typeof env === 'object' ? (env as Record<string, unknown>).ORK_LESSON_CARDS_CARD_ONLY_DIRS : undefined;
   if (typeof raw !== 'string' || !cwd) return false;
+  // Both sides canonical, or no card-only: a session folder that cannot be
+  // resolved keeps the dialog, and a listed folder that cannot be resolved
+  // does not count. Canonical paths also carry one separator style per host.
+  const real = await canonicalPath($, cwd);
+  if (real === null) return false;
+  const listed = raw
+    .split(';')
+    .map((dir) => dir.trim())
+    .filter((dir) => dir !== '');
+  const dirs: string[] = [];
+  for (const dir of listed) {
+    const canon = await canonicalPath($, dir);
+    if (canon !== null) dirs.push(canon);
+  }
   // Host-correct separators: a backslash separates folders only on a Windows
   // path (drive letter or UNC). On POSIX it is part of a name, so
   // /safe/desks\\evil is beside /safe/desks, not inside it.
-  const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(cwd);
+  const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(real);
   const trailing = windows ? /[\\/]+$/ : /\/+$/;
   const seps = windows ? ['/', '\\'] : ['/'];
-  return raw
-    .split(';')
-    .map((dir) => dir.trim().replace(trailing, ''))
+  return dirs
+    .map((dir) => dir.replace(trailing, ''))
     .filter((dir) => dir !== '')
-    .some((dir) => cwd === dir || seps.some((sep) => cwd.startsWith(`${dir}${sep}`)));
+    .some((dir) => real === dir || seps.some((sep) => real.startsWith(`${dir}${sep}`)));
 }
 const matchMap = new Map<string, MatchedLesson[]>();
 
