@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184)** · 2026-10-21
+
+- **docs:** new OrchestKit icon, the rose window conductor (#4833)
+- **lesson-cards:** card-only mode for unattended lanes (#4798)
+- **mods:** list prompt-enhancer in the marketplace as a beta mod (#4816)
+- **deps:** bump vite to 8.3.4 for the launch-editor advisories (#4828)
+- **hooks:** three GA-blocking hook bugs from the verified picks (#4692)
+- …and 15 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183)** · 2026-10-18
 
 - **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
@@ -683,10 +692,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** read the hookEventName literal under any minified name (#4754)
 - **docs-site:** bump next to 16.4.1 for three security advisories (#4751)
 - …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176)** · 2026-10-15
-
-- **hooks:** read a regular-file stdin before the 100ms timer (#4770)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
