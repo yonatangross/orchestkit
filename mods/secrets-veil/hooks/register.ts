@@ -29,6 +29,7 @@
  */
 
 import { buildTable, mask, DEFAULT_PATTERNS } from "../src/mask.js";
+import { holdsSecret, validImage } from "../src/media.js";
 import type { DollarAPI, MaskTable, ToolCallEvent, ToolCallResult } from "../src/types.js";
 
 /** A named value shorter than this is not worth a table entry. */
@@ -111,6 +112,126 @@ function isPlainContainer(value: object): boolean {
   return proto === Object.prototype || proto === null;
 }
 
+/**
+ * Where an image payload may pass unmasked: ONLY at the image block shapes a
+ * tool result really uses, and only at the top of the result (Codex XREVIEW
+ * HOLD 6288472542 on orchestkit#4801, finding 2). Anything that merely looks
+ * like one deeper in a structured result is masked like every other string.
+ *   - Read tool output (what tool.call sees on Claude Code 2.1.304, binary
+ *     `type:"image",file:{base64:...,type:...}`): { type: "image", file: { base64, type, ... } }
+ *   - API content block: { type: "image", source: { type: "base64", media_type, data } }
+ * Accepted as the result itself, an element of a result array, or an element
+ * of the result's `content` array. The payload must also pass validImage
+ * (whole-file structure, strict base64, Map allowlist) and hold no secret.
+ */
+type ImageSlot = { holder: "file" | "source"; key: "base64" | "data"; mediaType: unknown; data: unknown };
+
+function imageSlot(value: unknown): ImageSlot | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value) || !isPlainContainer(value)) return null;
+  const block = value as Record<string, unknown>;
+  if (block.type !== "image") return null;
+  const file = Object.prototype.hasOwnProperty.call(block, "file") ? block.file : undefined;
+  if (file !== null && typeof file === "object" && !Array.isArray(file) && isPlainContainer(file)) {
+    const f = file as Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(f, "base64")) {
+      return { holder: "file", key: "base64", mediaType: f.type, data: f.base64 };
+    }
+  }
+  const source = Object.prototype.hasOwnProperty.call(block, "source") ? block.source : undefined;
+  if (source !== null && typeof source === "object" && !Array.isArray(source) && isPlainContainer(source)) {
+    const src = source as Record<string, unknown>;
+    if (src.type === "base64" && Object.prototype.hasOwnProperty.call(src, "data")) {
+      return { holder: "source", key: "data", mediaType: src.media_type, data: src.data };
+    }
+  }
+  return null;
+}
+
+/** Named values and vendor shapes of the armed table, for the in-image secret check. */
+function needlesOf(activeTable: MaskTable): { named: string[]; shapes: string[] } {
+  const named: string[] = [];
+  const shapes: string[] = [];
+  for (const entry of activeTable.entries) {
+    if (entry.type === "env") named.push(entry.value);
+    else shapes.push(entry.pattern);
+  }
+  return { named, shapes };
+}
+
+/**
+ * Mask one image block. A payload that passes every check is kept byte-equal;
+ * one that holds a secret withholds the WHOLE result (never corrupted bytes);
+ * one that fails a check is masked like any string. Every other field of the
+ * block is masked.
+ */
+function maskImageBlock(
+  block: Record<string, unknown>,
+  slot: ImageSlot,
+  activeTable: MaskTable,
+  covered: Set<string>,
+  budget: MaskBudget,
+): unknown {
+  const bytes = validImage(slot.mediaType, slot.data);
+  if (bytes === null) return maskDeep(block, activeTable, covered, budget);
+  const { named, shapes } = needlesOf(activeTable);
+  if (holdsSecret(bytes, slot.data as string, named, shapes)) {
+    throw new VeilRefusal("an image holds a masked value");
+  }
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(block)) {
+    if (key !== slot.holder) {
+      out[key] = maskDeep(val, activeTable, covered, budget);
+      continue;
+    }
+    const inner: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(val as Record<string, unknown>)) {
+      inner[k] = k === slot.key ? v : maskDeep(v, activeTable, covered, budget);
+    }
+    out[key] = inner;
+  }
+  return out;
+}
+
+/**
+ * Mask what tool.call's next() returned: the wrapper { result, ... }. The
+ * tool's own output is wrapper.result; image slots are read there only.
+ * Every other key of the wrapper is masked with no exemption.
+ */
+export function maskResult(wrapper: unknown, activeTable: MaskTable, covered: Set<string>, budget: MaskBudget): unknown {
+  if (wrapper === null || typeof wrapper !== "object" || Array.isArray(wrapper) || !isPlainContainer(wrapper)) {
+    return maskDeep(wrapper, activeTable, covered, budget);
+  }
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(wrapper as Record<string, unknown>)) {
+    out[key] = key === "result" ? maskPayload(val, activeTable, covered, budget) : maskDeep(val, activeTable, covered, budget);
+  }
+  return out;
+}
+
+/** Mask a tool's own output: image slots at its top only, then every other string. */
+function maskPayload(result: unknown, activeTable: MaskTable, covered: Set<string>, budget: MaskBudget): unknown {
+  const top = (value: unknown): unknown => {
+    const slot = imageSlot(value);
+    return slot === null
+      ? maskDeep(value, activeTable, covered, budget)
+      : maskImageBlock(value as Record<string, unknown>, slot, activeTable, covered, budget);
+  };
+  if (Array.isArray(result)) return result.map(top);
+  if (imageSlot(result) !== null) return top(result);
+  if (result !== null && typeof result === "object" && isPlainContainer(result)) {
+    const record = result as Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(record, "content") && Array.isArray(record.content)) {
+      const out: Record<string, unknown> = {};
+      for (const [key, val] of Object.entries(record)) {
+        out[key] = key === "content" ? (val as unknown[]).map(top) : maskDeep(val, activeTable, covered, budget);
+      }
+      return out;
+    }
+  }
+  return maskDeep(result, activeTable, covered, budget);
+}
+
+/** Every string masked, no exemption anywhere: the walk below the top of a result. */
 function maskDeep(value: unknown, activeTable: MaskTable, covered: Set<string>, budget: MaskBudget): unknown {
   if (Date.now() > budget.deadline) {
     throw new VeilRefusal("masking ran past its time cap");
@@ -405,7 +526,7 @@ export function register(on: (event: string, hook: unknown) => Registration, _op
         table = await armLazily($);
       }
       const covered = new Set<string>();
-      const masked = maskDeep(result, table, covered, { chars: 0, deadline: Date.now() + MAX_MASK_MS });
+      const masked = maskResult(result, table, covered, { chars: 0, deadline: Date.now() + MAX_MASK_MS });
       const stats = statsOf(covered);
       if (stats.values > 0) {
         maskedThisSession += stats.values;

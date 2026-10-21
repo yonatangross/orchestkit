@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vite 8.3.4: pushes pass the audit gate again | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="vite 8.3.4: pushes pass the audit gate again"><meta property="og:description" content="A launch-editor advisory inside vite failed the audit gate in 7 of 11 trees and blocked every push; vite moves to 8.3.4 in those 7 lockfiles, with the packages vite itself depends on."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/fix-vite-launch-editor-advisory.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="vite 8.3.4: pushes pass the audit gate again"><meta name="twitter:description" content="A launch-editor advisory inside vite failed the audit gate in 7 of 11 trees and blocked every push; vite moves to 8.3.4 in those 7 lockfiles, with the packages vite itself depends on."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · SECURITY · DEPENDENCIES</p>
+<h1>Pushes pass the audit gate again</h1>
+<p>On 2026-10-21 a new npm advisory set (one high, two moderate) landed on the copy of launch-editor that vite ships inside it. The repository's audit gate checks 11 package trees before every push, and 7 of them pulled in an affected vite through vitest, so every push in the repository was refused. This change moves vite to 8.3.4 in those 7 lockfiles. It changes no package.json and no code.</p>
+<table>
+  <tr><th>Tree</th><th>vite before</th><th>vite after</th></tr>
+  <tr><td>docs/site</td><td>8.2.2</td><td>8.3.4</td></tr>
+  <tr><td>hook-contract generic-client example</td><td>8.2.2</td><td>8.3.4</td></tr>
+  <tr><td>mods: lesson-cards, memory-lens, promote-lights, prompt-enhancer, secrets-veil</td><td>8.3.0</td><td>8.3.4</td></tr>
+</table>
+<p>Audit gate: 4 of 11 trees passed before, 11 of 11 after. What else moved, checked by a script against main: in every tree, the packages vite itself depends on (rolldown and its platform builds, the oxc types, postcss, nanoid); in the hook-contract example, the lockfile's record of the local hook-contract package now lists the dev version ranges that hook-contract's package.json already declares (no installed version changes from that). vite is a test tool here: the docs site build does not use it.</p>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
