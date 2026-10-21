@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185) (2026-10-21)
+
+
+### Bug Fixes
+
+* **site:** move the canonical host to orchestkit.dev for the orank gaps ([#4819](https://github.com/yonatangross/orchestkit/issues/4819)) ([c1a8065](https://github.com/yonatangross/orchestkit/commit/c1a806510c921eeb13d2342a19f67e79c1858ac4))
+
 ## [10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184) (2026-10-21)
 
 
