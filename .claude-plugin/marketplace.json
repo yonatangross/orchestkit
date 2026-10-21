@@ -111,7 +111,7 @@
     {
       "name": "prompt-enhancer",
       "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model; you edit the rewrite, then Send or Undo. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
