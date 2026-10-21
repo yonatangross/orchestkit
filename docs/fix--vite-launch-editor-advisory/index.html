@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vite 8.3.4: pushes pass the audit gate again | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · SECURITY · DEPENDENCIES</p>
+<h1>Pushes pass the audit gate again</h1>
+<p>On 2026-10-21 a new npm advisory set (one high, two moderate) landed on the copy of launch-editor that vite ships inside it. The repository's audit gate checks 11 package trees before every push, and 7 of them pulled in an affected vite through vitest, so every push in the repository was refused. This change moves vite to 8.3.4 in those 7 lockfiles. It changes no package.json and no code.</p>
+<table>
+  <tr><th>Tree</th><th>vite before</th><th>vite after</th></tr>
+  <tr><td>docs/site</td><td>8.2.2</td><td>8.3.4</td></tr>
+  <tr><td>hook-contract generic-client example</td><td>8.2.2</td><td>8.3.4</td></tr>
+  <tr><td>mods: lesson-cards, memory-lens, promote-lights, prompt-enhancer, secrets-veil</td><td>8.3.0</td><td>8.3.4</td></tr>
+</table>
+<p>Audit gate: 4 of 11 trees passed before, 11 of 11 after. What else moved, checked by a script against main: in every tree, the packages vite itself depends on (rolldown and its platform builds, the oxc types, postcss, nanoid); in the hook-contract example, the lockfile's record of the local hook-contract package now lists the dev version ranges that hook-contract's package.json already declares (no installed version changes from that). vite is a test tool here: the docs site build does not use it.</p>
+</body>
+</html>

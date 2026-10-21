@@ -1,6 +1,6 @@
 {
   "name": "@orchestkit/mod-prompt-enhancer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Review an enhanced draft before sending it to Claude",
   "scripts": {

@@ -1123,3 +1123,44 @@ describe("interleavings property", () => {
     expect(failures.slice(0, 5)).toEqual([]);
   });
 });
+
+// Dogfood 2026-10-20: in the default (non-fullscreen) terminal, Claude Code
+// asks for no mouse reporting, so a click on the band never reached a Button.
+// The keyboard path is ctrl+x tab, then a hotkey (or Tab and Enter); the band
+// must give each action a hotkey and say how to reach it.
+describe("band keyboard access", () => {
+  async function band() {
+    const h = harness("draft");
+    const tree = await h.fire("ui.render", { component: "AbovePrompt", props: { hasSurvey: false, isWorking: false } });
+    const buttons: Record<string, unknown>[] = [];
+    const texts: string[] = [];
+    function walk(value: unknown): void {
+      if (typeof value === "string") { texts.push(value); return; }
+      if (!value || typeof value !== "object") return;
+      const node = value as Node;
+      if (node.tag === "Button") buttons.push(node.props ?? {});
+      for (const child of node.children ?? []) walk(child);
+    }
+    walk(tree);
+    return { buttons, text: texts.join("") };
+  }
+
+  test("Enhance, Undo and Send carry the hotkeys e, u and s", async () => {
+    const { buttons } = await band();
+    const keys = Object.fromEntries(buttons.map(b => [b.label, b.hotkey]));
+    expect(keys).toMatchObject({ Enhance: "e", Undo: "u", Send: "s" });
+  });
+
+  test("every hotkey is one lowercase letter or digit and none clash", async () => {
+    const { buttons } = await band();
+    const keys = buttons.map(b => b.hotkey).filter(k => k !== undefined);
+    for (const k of keys) expect(k).toMatch(/^[a-z0-9]$/);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test("the band says how to reach the buttons from the keyboard", async () => {
+    const { text } = await band();
+    expect(text).toContain("ctrl+x tab");
+    expect(text).toMatch(/\be\b.*\bu\b.*\bs\b/);
+  });
+});

@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#15161F"/>
-  <text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="700" fill="#A5B4FC">O</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><style>@media (prefers-color-scheme: light){.tile{display:none}}</style><rect class="tile" width="64" height="64" rx="14" fill="#0A1033"/><circle cx="32" cy="32" r="28" fill="#050A24"/><circle cx="32" cy="32" r="26" fill="#1D3FD1"/><circle cx="32" cy="24" r="17" fill="#22D3EE"/><circle cx="32" cy="22" r="9.5" fill="#E0FBFF"/><circle cx="32" cy="21" r="4.8" fill="#050A24"/><polygon points="25.5,27.5 38.5,27.5 37,43 40.5,57 23.5,57 27,43" fill="#050A24"/><polygon points="29.88,27.70 26.12,31.30 14.62,19.30 18.38,15.70" fill="#050A24"/><polygon points="37.88,31.30 34.12,27.70 45.62,15.70 49.38,19.30" fill="#050A24"/><polygon points="48.76,18.32 46.24,16.68 52.74,6.68 55.26,8.32" fill="#E0FBFF"/></svg>

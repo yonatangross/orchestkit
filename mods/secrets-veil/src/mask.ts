@@ -40,6 +40,30 @@ export const ENTROPY_ALPHABET = "[A-Za-z0-9+/=_-]";
 export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
 
 /**
+ * Anthropic API id: a tool_use id (toolu_01, srvtoolu_01), a message id
+ * (msg_01) or a request id (req_011C), each followed by base62. These ids
+ * are public request handles shown in transcripts and logs, never
+ * credentials, yet 890 of 1000 generated toolu_ ids crossed the 4.3 bar
+ * (dogfood 2026-10-20). A token that is exactly one of these ids is exempt
+ * from the entropy layer only; the named-value and vendor-prefix layers
+ * still run on it.
+ */
+export const ANTHROPIC_ID_RE = /^(?:srvtoolu_01|toolu_01|msg_01|req_011C)[A-Za-z0-9]{18,26}$/;
+
+/** True when the entropy layer must skip this whole token. */
+function isEntropyExempt(value: string): boolean {
+  // First-character check before any regex: this runs on every scored run.
+  const c = value.charCodeAt(0);
+  if (c === 0x73 /* s */) {
+    return SRI_VALUE_RE.test(value) || ANTHROPIC_ID_RE.test(value);
+  }
+  if (c === 0x74 /* t */ || c === 0x6d /* m */ || c === 0x72 /* r */) {
+    return ANTHROPIC_ID_RE.test(value);
+  }
+  return false;
+}
+
+/**
  * Minimum mean chunk length for a mixed-case segment to count as camelCase
  * or PascalCase and therefore word-like (FIX ROUND B of HOLD 4189).
  * Human compound identifiers chunk into 3+ character words (ReviewPR ->
@@ -241,6 +265,7 @@ function pushIfHighEntropy(
 ): void {
   if (
     value.length >= entropy.minLength &&
+    !isEntropyExempt(value) &&
     shannonEntropy(value) >= entropy.thresholdBitsPerChar
   ) {
     matches.push({ start, end: start + value.length });
@@ -263,6 +288,9 @@ function scorePiece(
   entropy: EntropyConfig
 ): void {
   const piece = run.slice(pieceStart, pieceEnd);
+  // An exempt piece (an Anthropic id) is skipped before the '_' split, which
+  // would otherwise score its base62 body as a segment on its own.
+  if (isEntropyExempt(piece)) return;
   let segStart = -1;
   for (let i = 0; i <= piece.length; i++) {
     const ch = i < piece.length ? piece[i] : "/"; // sentinel flushes the tail
@@ -515,7 +543,7 @@ export function wouldMask(value: string, table: MaskTable): boolean {
   // is scored whole. SRI values are public and never mask.
   const entropy = table.entropy;
   if (entropy) {
-    if (SRI_VALUE_RE.test(value)) {
+    if (isEntropyExempt(value)) {
       return false;
     }
     if (/[+]/.test(value) || /^[^=]+=+$/.test(value)) {
@@ -527,7 +555,7 @@ export function wouldMask(value: string, table: MaskTable): boolean {
     let pieceStart = 0;
     for (let i = 0; i <= value.length; i++) {
       if (i === value.length || value[i] === "=") {
-        if (i > pieceStart) {
+        if (i > pieceStart && !isEntropyExempt(value.slice(pieceStart, i))) {
           const piece = value.slice(pieceStart, i);
           let segStart = -1;
           let allWordLike = true;

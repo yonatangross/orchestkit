@@ -26,17 +26,29 @@ import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
 type Hook$ = {
+  settings: {
+    /** One source as loaded; `user` is ~/.claude/settings.json, which a project cannot write. */
+    read: (args: { source: 'user' }) => Promise<Record<string, unknown>>;
+  };
   env: {
     get: (name: string) => Promise<string | undefined>;
   };
   fs: {
     read: (path: string) => Promise<string>;
     list: (path: string) => Promise<Array<{ name: string; kind: 'file' | 'dir' | 'other' }> | null>;
-    stat: (path: string) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' } | null>;
+    /** With { resolve: true } the engine adds realPath, the canonical path (realpath); it throws on failure. */
+    stat: (
+      path: string,
+      opts?: { resolve?: boolean },
+    ) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other'; realPath?: string } | null>;
+    /** true or false, never a logged failure; absent on engines that predate it. */
+    exists: (path: string) => Promise<boolean>;
   };
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
     invalidate: (component: string) => Promise<void>;
+    /** The status line entry; undefined clears it. */
+    status: (text?: string) => Promise<void>;
     /** The AskUserQuestion dialog: resolves to the label the user picked. */
     ask: (question: string, options: readonly string[]) => Promise<unknown>;
     /** The element constructors this render may return (Box, Text, ...). */
@@ -77,6 +89,68 @@ type SessionStartEvent = { cwd: string; isInteractive: boolean };
 let corpus: Corpus | null = null;
 /** True only after session.start says isInteractive; headless (-p) or no session.start never asks. */
 let interactive = false;
+/**
+ * True in an unattended lane: an interactive session whose cwd is at or under a
+ * folder listed in the USER settings env ORK_LESSON_CARDS_CARD_ONLY_DIRS
+ * (;-separated). A block lesson there shows the card and runs the call instead
+ * of opening the dialog. Only the user source counts: a project's settings or
+ * env can name any folder, so they never turn it on. Headless still denies.
+ */
+let cardOnly = false;
+
+/**
+ * The canonical filesystem path of p (every symlink resolved), or null when the
+ * engine cannot resolve it. Containment is decided only on these: a lexical
+ * path can lead through a symlinked folder to a place outside the listed folder
+ * (Codex XREVIEW HOLD 6288423031 on orchestkit#4798).
+ */
+async function canonicalPath($: Hook$, p: string): Promise<string | null> {
+  try {
+    const st = await $.fs.stat(p, { resolve: true });
+    const real = st?.realPath;
+    return typeof real === 'string' && real !== '' ? real : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Is cwd one of the user-listed card-only folders, or inside one? Both sides canonical. */
+async function inCardOnlyLane($: Hook$, cwd: string): Promise<boolean> {
+  let user: Record<string, unknown>;
+  try {
+    user = await $.settings.read({ source: 'user' });
+  } catch {
+    // No settings noun or a failed read: not a card-only lane, the dialog stays.
+    return false;
+  }
+  const env = user?.env;
+  const raw = env && typeof env === 'object' ? (env as Record<string, unknown>).ORK_LESSON_CARDS_CARD_ONLY_DIRS : undefined;
+  if (typeof raw !== 'string' || !cwd) return false;
+  // Both sides canonical, or no card-only: a session folder that cannot be
+  // resolved keeps the dialog, and a listed folder that cannot be resolved
+  // does not count. Canonical paths also carry one separator style per host.
+  const real = await canonicalPath($, cwd);
+  if (real === null) return false;
+  const listed = raw
+    .split(';')
+    .map((dir) => dir.trim())
+    .filter((dir) => dir !== '');
+  const dirs: string[] = [];
+  for (const dir of listed) {
+    const canon = await canonicalPath($, dir);
+    if (canon !== null) dirs.push(canon);
+  }
+  // Host-correct separators: a backslash separates folders only on a Windows
+  // path (drive letter or UNC). On POSIX it is part of a name, so
+  // /safe/desks\\evil is beside /safe/desks, not inside it.
+  const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(real);
+  const trailing = windows ? /[\\/]+$/ : /\/+$/;
+  const seps = windows ? ['/', '\\'] : ['/'];
+  return dirs
+    .map((dir) => dir.replace(trailing, ''))
+    .filter((dir) => dir !== '')
+    .some((dir) => real === dir || seps.some((sep) => real.startsWith(`${dir}${sep}`)));
+}
 const matchMap = new Map<string, MatchedLesson[]>();
 
 /**
@@ -136,6 +210,19 @@ async function loadLessonsMds($: Hook$, home: string): Promise<LessonBullet[]> {
     const lessonsFiles: { path: string; mtime: number }[] = [];
     for (const dir of floorDirs) {
       const lessonsPath = joinPath(dir, 'lessons.md');
+      // Most floor dirs have no lessons.md: ask fs.exists first, so the engine does not log a
+      // failed fs.stat (ENOENT) for each of them (88 such lines per session start, measured
+      // 2026-10-20). An engine without fs.exists keeps the old stat-only path.
+      // $ is only ever called as $.noun.event(...) (the validator refuses a feature test such as
+      // `if ($.fs.exists)`), so an engine without fs.exists is detected by its throw: null = unknown,
+      // and the old stat-only path runs.
+      let present: boolean | null = null;
+      try {
+        present = (await $.fs.exists(lessonsPath)) === true;
+      } catch {
+        present = null;
+      }
+      if (present === false) continue;
       try {
         const stat = await $.fs.stat(lessonsPath);
         if (stat && stat.kind === 'file') {
@@ -241,6 +328,8 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     interactive = e.isInteractive === true;
+    cardOnly = interactive && (await inCardOnlyLane($, e.cwd));
+    if (cardOnly) await $.ui.status('lesson-cards: card only, no dialogs').catch(() => undefined);
     matchMap.clear();
     corpus = await loadCorpus($).catch((err: unknown) => ({
       patterns: [],
@@ -280,8 +369,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // A block lesson asks the human before the call runs, and only an explicit
     // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "dismissed"),
     // a typed free-text answer, and no dialog at all (headless -p) all deny:
-    // a block lesson fails closed (estate-6 HOLD on #4429).
-    if (lesson.severity === 'block' && lesson.source === 'pattern') {
+    // a block lesson fails closed (estate-6 HOLD on #4429). card-only skips this:
+    // the card and the context below are all an unattended lane gets.
+    if (lesson.severity === 'block' && lesson.source === 'pattern' && !cardOnly) {
       // $.ui.ask is only ever called: CC's validator refuses reading it as a value.
       let answer: unknown;
       let outcome: 'answered' | 'dismissed' | 'no-dialog' = 'no-dialog';

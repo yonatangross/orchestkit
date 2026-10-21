@@ -40,6 +40,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - **Hint cards**: Displays a bordered card under the tool row with lesson id, severity, message, and fix suggestion (red for block, yellow for warn, gray for a lessons.md note)
 - **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. Only an explicit `Proceed anyway` runs the call. `Cancel`, Escape, a typed free-text answer, and no dialog at all (headless `-p`) refuse it with `{ deny }`, so it never runs. The card is the only place the lesson text is drawn. The question is the lesson id and `Proceed anyway?` only. A user cancel (Cancel or Escape) is `Cancelled: by you; not run. [lesson:<id>]` with no Fix (a cancel is not a failure). The `Cancelled: ` head is ours so Claude Code 2.1.283 leaves the deny alone instead of gluing `Error: `; the rest drops the echo so Cancelled is said once. Other refuses (no dialog, no exact Proceed anyway) still carry a short Fix so the model keeps the alternative. When several patterns match an Edit or Write, a block match always ranks before a warn
 - **Model context**: Adds matched lessons to the tool result context for the model to read
+- **Card only, for unattended lanes**: list the lane folders in your USER settings (`~/.claude/settings.json`), `"env": { "ORK_LESSON_CARDS_CARD_ONLY_DIRS": "/Users/you/.floor/desks" }`, several folders separated by `;`. An interactive session whose folder is a listed folder or inside one then draws the card for a block lesson, adds its context, and runs the call: no dialog. Only the user settings file counts. Project settings, local settings and the environment can name any folder, so they never turn the mode on. A headless session still denies, and an unlisted folder keeps `Proceed anyway?`. While it is on, the status line reads `lesson-cards: card only, no dialogs`. Use it for panes nobody watches, so a dialog cannot stall the lane. Inside is decided on canonical paths: the session folder and each listed folder are resolved with `$.fs.stat(path, { resolve: true })` (realpath, every symlink followed) before the test, so a symlinked folder that leads outside a listed folder keeps the dialog. A session folder that cannot be resolved keeps the dialog; a listed folder that cannot be resolved does not count. If the settings read fails or the engine has no `$.settings`, the dialog stays. The classic `pretool-lesson-guard --strict` deny is not changed by this mode.
 - **Additive**: During pilot, the classic `pretool-lesson-guard --strict` keeps its 12 block-severity denies unchanged
 
 ## Hook footprint
@@ -55,12 +56,16 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 
 ### Calls
 
+- `$.env.get` - Read `HOME`
+- `$.settings.read` - Read the USER settings only, for `ORK_LESSON_CARDS_CARD_ONLY_DIRS`, at session start
 - `$.fs.read` - Read lesson-patterns.json and lessons.md files
 - `$.fs.list` - List hq-ext versions and floor directories
+- `$.fs.exists` - Skip floor dirs with no lessons.md before any stat (no logged ENOENT per dir); absent on older engines, then stat-only
 - `$.fs.stat` - Get file mtimes for sorting
 - `$.ui.notice` - Show hint during permission dialog (if open)
 - `$.ui.ask` - Ask "Proceed anyway?" before a block-severity call runs
 - `$.ui.resolve` - The element constructors (`Box`, `Text`) the card is built from. On CC 2.1.282 a render hook may only return nodes built by these; a plain `{ type: 'Box' }` object draws nothing, and the tree `next(e)` returns is an opaque engine node that must be wrapped, never mutated
+- `$.ui.status` - Show `lesson-cards: card only, no dialogs` while card-only is on
 - `$.ui.invalidate` - Refresh UI after `/lessons reload`
 
 ### Negative pin (what it does NOT do)
