@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>lesson-cards 1.2.0: lessons are advisory, never blocking</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards 1.2.0: lessons are advisory, never blocking"><meta property="og:description" content="A lesson never blocks a tool call: no Proceed anyway dialog, no deny, in any session. Every match draws the card and adds the lesson to the model context, marked advisory for block severity. Compare 1.1.x and 1.2.0."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/mods-lesson-cards-advisory.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards 1.2.0: lessons are advisory, never blocking"><meta name="twitter:description" content="A lesson never blocks a tool call: no Proceed anyway dialog, no deny, in any session. Every match draws the card and adds the lesson to the model context, marked advisory for block severity. Compare 1.1.x and 1.2.0."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>lesson-cards 1.2.0: lessons are advisory, never blocking</h1>
+<p>Operator word 2026-10-21: lessons must never block. Before 1.2.0 a block-severity pattern opened a <code>Proceed anyway?</code> dialog and refused the call with <code>{ deny }</code> on Cancel, Escape, a typed answer, or a headless session. From 1.2.0 every match draws the card, adds the lesson to the model context, and the call runs. A block lesson's context is marked <code>BLOCK-SEVERITY LESSON (advisory, not enforced):</code>. The matching hq-ext change is Yonatan-HQ/hq-ext-plugin#2449.</p>
+<div class="card">
+<fieldset>severity
+<label><input type="radio" name="sev" value="block" checked> block</label>
+<label><input type="radio" name="sev" value="warn"> warn</label></fieldset>
+<fieldset>session
+<label><input type="radio" name="ses" value="interactive" checked> interactive</label>
+<label><input type="radio" name="ses" value="headless"> headless</label></fieldset>
+<fieldset>answer (1.1.x dialog only)
+<label><input type="radio" name="ans" value="cancel" checked> Cancel</label>
+<label><input type="radio" name="ans" value="escape"> Escape</label>
+<label><input type="radio" name="ans" value="proceed"> Proceed anyway</label></fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="111"> 1.1.x</label>
+<label><input type="radio" name="v" value="120" checked> 1.2.0</label></fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const sev=pick('sev'), ses=pick('ses'), ans=pick('ans'), v=pick('v');
+  const id='git-ls-files-quotepath-blind';
+  const lines=['card: lesson: '+id+'  '+sev];
+  if(v==='111' && sev==='block'){
+    if(ses==='headless'){lines.push('dialog: none (headless)','tool: NOT RUN','deny: Not run: no dialog to confirm. [lesson:'+id+']');}
+    else if(ans==='proceed'){lines.push('dialog: lesson '+id+': Proceed anyway?','tool: runs','context: [lesson:'+id+'] ...');}
+    else {lines.push('dialog: lesson '+id+': Proceed anyway?','tool: NOT RUN','deny: Cancelled: by you; not run. [lesson:'+id+']');}
+  } else {
+    const prefix = sev==='block' ? 'BLOCK-SEVERITY LESSON (advisory, not enforced): ' : '';
+    lines.push('dialog: none','tool: runs','context: '+prefix+'[lesson:'+id+'] A not tracked read is blind to non-ASCII paths. Fix: ...');
+  }
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
