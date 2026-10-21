@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->162<!--/ork--> hooks**
+**<!--ork:skills-->110<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -121,7 +121,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|---------|
 | **<!--ork:skills-->110<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->162<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -196,7 +196,7 @@ OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
 add-on. This section states plainly what they see, where it goes, and how to turn
 each piece off.
 
-**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->162<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
+**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->163<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
 lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
 project type, because the gates they enforce (secret-write blocking, protected-file
@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184)** · 2026-10-21
+
+- **docs:** new OrchestKit icon, the rose window conductor (#4833)
+- **lesson-cards:** card-only mode for unattended lanes (#4798)
+- **mods:** list prompt-enhancer in the marketplace as a beta mod (#4816)
+- **deps:** bump vite to 8.3.4 for the launch-editor advisories (#4828)
+- **hooks:** three GA-blocking hook bugs from the verified picks (#4692)
+- …and 15 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183)** · 2026-10-18
 
 - **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
@@ -683,10 +692,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** read the hookEventName literal under any minified name (#4754)
 - **docs-site:** bump next to 16.4.1 for three security advisories (#4751)
 - …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.176](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.175...v10.0.0-beta.176)** · 2026-10-15
-
-- **hooks:** read a regular-file stdin before the 100ms timer (#4770)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

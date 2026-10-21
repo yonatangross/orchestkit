@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-g6",
+  "page": "docs/fix--ork10-g6-hooks-ga/index.html",
+  "lab_slug": "ork10-g6-hooks-ga",
+  "purpose": "PR playground: GA bugs, hooks wave 2: 3 red-first fixes"
+}

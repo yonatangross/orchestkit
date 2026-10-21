@@ -497,7 +497,9 @@ describe('Cross-Bundle Consistency', () => {
     // 180 -> 179: #4693 skill/issue-context-loader deleted. fix-issue was its
     //              only user, and it read the issue number from the branch
     //              name, not the argument; the body fetches ISSUE_NUMBER.
-    expect(totalHooks).toBe(179); // Main adds the post gate; this branch removes two loaders.
+    // 179 -> 180: #4297 pretool/task/route-observer, async Agent route
+    //              observation moved out of the sync task dispatcher (#4692).
+    expect(totalHooks).toBe(180);
   });
 });
 
