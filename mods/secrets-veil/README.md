@@ -36,6 +36,13 @@ Three layers, checked on every tool result:
    paths and identifiers measured 2.9 to 4.0. Masked output never reveals
    length beyond an 8-bullet floor.
 
+   Tokens this layer skips (the named-value and prefix layers still run on
+   them): a Subresource Integrity value (`sha512-...`), and since 0.0.8 a
+   token that is exactly an Anthropic API id: `toolu_01`, `srvtoolu_01`,
+   `msg_01` or `req_011C` followed by 18 to 26 letters and digits. These ids
+   are public request handles; 890 of 1000 generated `toolu_` ids crossed
+   the bar, so tool ids showed as bullets in transcripts and logs.
+
    One exception: an image payload passes byte-equal. An image payload is
    one long high-entropy run, so masking it made the API reject every image
    Read. It passes only when all of these hold:
