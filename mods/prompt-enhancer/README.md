@@ -8,6 +8,9 @@ The band sits above the prompt box. Type a draft and press Enhance.
 Or type a prompt that ends in `++` and press Enter.
 The mod holds the prompt and puts the rewrite in the box.
 Edit it, then press Send or Enter. Send submits the current box as your own words.
+
+To press a button from the keyboard: ctrl+x tab moves the focus to the band, then `e` is Enhance, `u` is Undo and `s` is Send (Tab and Enter work too). Esc goes back to the prompt.
+A click reaches the buttons only where the terminal reports clicks to Claude Code (`"tui": "fullscreen"`). In the default terminal mode a click selects text and does nothing else, so use the keys.
 Undo puts the exact original text back, including the trigger when you typed it.
 Enhance a rewrite again without editing it, and Undo still goes back to your first draft. Edit the rewrite first, and Undo goes back to your edit.
 A rewrite that ends in `++` (for example `C++`) is sent as is when you press Enter on it.
