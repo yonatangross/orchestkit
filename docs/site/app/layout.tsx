@@ -28,7 +28,13 @@ export const metadata: Metadata = {
 		default: HOME_TITLE,
 	},
 	description: PAGE_SUMMARY.site,
-	icons: { icon: "/favicon.svg" },
+	icons: {
+		icon: [
+			{ url: "/favicon.ico", sizes: "32x32" },
+			{ url: "/favicon.svg", type: "image/svg+xml" },
+		],
+		apple: "/apple-touch-icon.png",
+	},
 	// Default canonical = site root. Per-page metadata overrides this with its own
 	// `alternates.canonical` (docs pages and the trust/pricing pages already do).
 	alternates: {
