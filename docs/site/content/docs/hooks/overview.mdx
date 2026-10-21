@@ -1,5 +1,5 @@
 ---
-title: "162 Hooks: What Fires When"
+title: "163 Hooks: What Fires When"
 seoTitle: "OrchestKit Hooks: What Fires on Each Claude Code Event"
 description: "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
 ---
@@ -32,12 +32,12 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Global hooks** | 152 | Fire on every matching event regardless of agent |
+| **Global hooks** | 153 | Fire on every matching event regardless of agent |
 | **Agent-scoped hooks** | 0 | Fire only when a specific agent is active |
 | **Skill-scoped hooks** | 10 | Fire only during specific skill operations |
-| **Total** | **162** | Registered in `hooks.json`, compiled into 11 split bundles |
+| **Total** | **163** | Registered in `hooks.json`, compiled into 11 split bundles |
 
-All 162 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+All 163 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
 ## Hook Events: The Full Timeline
 

@@ -45,7 +45,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { preCompactTaskDonePrompt } from '../../lifecycle/pre-compact-task-done-prompt.js';
 import { existsSync, readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput } from '../../types.js';
+import type { HookInput, HookResult } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
@@ -109,6 +109,18 @@ function stubSignals(opts: StubOpts): void {
   }) as unknown as typeof readFileSync);
 }
 
+/**
+ * #4633: a manual /compact is never blocked. Any visible text is also wrong
+ * here, because PreCompact stdout becomes the summarizer's instructions.
+ */
+function expectPassThrough(result: HookResult): void {
+  expect(result.continue).not.toBe(false);
+  expect(result.decision).toBeUndefined();
+  expect(result.reason).toBeUndefined();
+  expect(result.stopReason).toBeUndefined();
+  expect(result.systemMessage).toBeUndefined();
+}
+
 const ENV_KEYS = ['ORK_NO_PRECOMPACT_PROMPT', 'CLAUDE_MAX_CONTEXT', 'ORK_CTX_IMMINENT_PCT'];
 function clearEnv() {
   for (const k of ENV_KEYS) delete process.env[k];
@@ -129,20 +141,17 @@ describe('preCompactTaskDonePrompt', () => {
   afterEach(() => clearEnv());
 
   describe('fire path (imminent + heuristic matches)', () => {
-    it('blocks compact when gitQuiet + breakpointKeywords fire (#1477 git log subject)', () => {
+    it('never blocks when gitQuiet + breakpointKeywords fire (#1477 git log subject, #4633)', () => {
       stubSignals({
         changedFiles: 0,
         commitSubject: 'feat(M118): merged PR #1463 to main',
         spawnLogLines: [],
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
-      expect(result.decision).toBe('block');
-      expect(result.stopReason).toContain('/clear');
-      expect(result.stopReason).toContain('/compact');
+      expectPassThrough(result);
     });
 
-    it('blocks when all three signals match', () => {
+    it('never blocks when all three signals match (#4633)', () => {
       stubSignals({
         changedFiles: 1,
         commitSubject: 'chore(main): release 7.65.0',
@@ -154,8 +163,7 @@ describe('preCompactTaskDonePrompt', () => {
         ],
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
-      expect(result.decision).toBe('block');
+      expectPassThrough(result);
     });
 
     it('writes a fired=true telemetry entry on fire', () => {
@@ -180,6 +188,8 @@ describe('preCompactTaskDonePrompt', () => {
         quiescent: true,
         breakpointKeywords: true,
       });
+      // #4633: the user never sees a nudge, so the row says so.
+      expect(entry.nudgeShown).toBe(false);
     });
 
     it('writes a nudge-outcome marker on fire (#1476)', () => {
@@ -229,10 +239,17 @@ describe('preCompactTaskDonePrompt', () => {
       expect(execFileSync).not.toHaveBeenCalled();
     });
 
-    it('still blocks an explicit /compact under the same signals', () => {
-      stubSignals({ changedFiles: 0, commitSubject: 'merged main' });
+    it('never blocks an explicit /compact (#4633)', () => {
+      stubSignals({ changedFiles: 0, commitSubject: 'merged main', spawnLogLines: [] });
       const result = preCompactTaskDonePrompt(makeInput({ trigger: 'manual' }), ctx);
-      expect(result.decision).toBe('block');
+      expectPassThrough(result);
+      // Telemetry and the nudge marker still record the would-be fire.
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
+      const markerCall = vi
+        .mocked(writeFileSync)
+        .mock.calls.find(c => String(c[0]).includes('nudge-outcome-'));
+      expect(markerCall).toBeDefined();
     });
   });
 
@@ -276,8 +293,9 @@ describe('preCompactTaskDonePrompt', () => {
     it('records the measurement alongside a fire', () => {
       stubSignals({ changedFiles: 0, commitSubject: 'merged main', measured: 190_000 });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.decision).toBe('block');
+      expectPassThrough(result);
       const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
       expect(body.measuredContextTokens).toBe(190_000);
     });
   });
@@ -301,10 +319,11 @@ describe('preCompactTaskDonePrompt', () => {
           }),
         ],
       });
-      // gitQuiet=false, quiescent=true, kws=true → 2/3 → still fires
+      // gitQuiet=false, quiescent=true, kws=true → 2/3 → still fires, never blocks
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
-      expect(result.decision).toBe('block');
+      expectPassThrough(result);
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
     });
 
     it('counts recent subagent spawns against quiescent', () => {
@@ -345,7 +364,9 @@ describe('preCompactTaskDonePrompt', () => {
         ],
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
+      expectPassThrough(result);
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
     });
 
     it('matches "Merge pull request" GitHub default subject', () => {
@@ -360,7 +381,9 @@ describe('preCompactTaskDonePrompt', () => {
         ],
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
+      expectPassThrough(result);
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
     });
 
     it('does NOT match generic feat: prefix (avoids over-firing on mid-task commits)', () => {
@@ -379,8 +402,9 @@ describe('preCompactTaskDonePrompt', () => {
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
       const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
       expect(body.signals.breakpointKeywords).toBe(false);
-      // 2/3 signals fire so result is still block
-      expect(result.continue).toBe(false);
+      // 2/3 signals fire, recorded as fired, but never a block (#4633)
+      expect(body.fired).toBe(true);
+      expectPassThrough(result);
     });
 
     it('returns false when git log fails (non-repo)', () => {
@@ -419,8 +443,9 @@ describe('preCompactTaskDonePrompt', () => {
         telemetryLines: [JSON.stringify({ timestamp: fortyMinAgo, fired: true, signals: {} })],
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.continue).toBe(false);
-      expect(result.decision).toBe('block');
+      expectPassThrough(result);
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.fired).toBe(true);
     });
   });
 
