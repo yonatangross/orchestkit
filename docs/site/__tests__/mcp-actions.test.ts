@@ -27,7 +27,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns server info and capabilities on initialize", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(rpcRequest("initialize")),
@@ -45,7 +45,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns all three action tools with correct annotations", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(rpcRequest("tools/list")),
@@ -71,7 +71,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns user-invocable skills with docs URLs", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -83,7 +83,7 @@ describe("Product MCP Actions Server", () => {
 			const body = await res.json();
 			const text = body.result.content[0].text;
 			expect(text).toContain("OrchestKit Skills");
-			expect(text).toContain("https://orchestkit.yonyon.ai/docs/reference/skills");
+			expect(text).toContain("https://orchestkit.dev/docs/reference/skills");
 		});
 	});
 
@@ -91,7 +91,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns install plan with install command", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -109,7 +109,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns error for invalid skill names", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -129,7 +129,7 @@ describe("Product MCP Actions Server", () => {
 		it("refuses a known skill that is not user-invocable", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -150,7 +150,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns matching, documented suggestions for a goal", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -173,7 +173,7 @@ describe("Product MCP Actions Server", () => {
 		it("validates a hooks config fragment", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -206,7 +206,7 @@ describe("Product MCP Actions Server", () => {
 		it("does not report PASS for non-JSON configuration", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -235,7 +235,7 @@ describe("Product MCP Actions Server", () => {
 		it("reports malformed entries in event-keyed hooks objects", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -262,7 +262,7 @@ describe("Product MCP Actions Server", () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			for (const config of ["null", "[]", "true", "\"skill\""]) {
 				const res = await POST(
-					new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+					new Request("https://orchestkit.dev/api/mcp/actions", {
 						method: "POST",
 						headers: { "content-type": "application/json" },
 						body: JSON.stringify(
@@ -284,7 +284,7 @@ describe("Product MCP Actions Server", () => {
 		it("returns error for missing config", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(
@@ -305,7 +305,7 @@ describe("Product MCP Actions Server", () => {
 		it("rejects resources/write as read-only server", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(rpcRequest("resources/write")),
@@ -320,7 +320,7 @@ describe("Product MCP Actions Server", () => {
 		it("rejects prompts/write as read-only server", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
-				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+				new Request("https://orchestkit.dev/api/mcp/actions", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(rpcRequest("prompts/write")),

@@ -8,7 +8,7 @@ import { TOTALS, MIN_CC_VERSION } from "./generated/shared-data";
 export const SITE = {
   name: "OrchestKit",
   version: orkManifest.version,
-  domain: "https://orchestkit.yonyon.ai",
+  domain: "https://orchestkit.dev",
   github: "https://github.com/yonatangross/orchestkit",
   // Shell one-liner that installs the plugin when pasted into a terminal.
   // `claude install` is NOT a plugin command (it installs the Claude Code
@@ -27,6 +27,12 @@ export const SITE = {
   communityJoinUrl: "https://yonyon.ai/go/orchestkit?utm_campaign=site-community",
   ccVersion: `${MIN_CC_VERSION}+`,
 } as const;
+
+// The host the site was served from before v10 GA. It stays attached to the
+// same Vercel project: middleware.ts sends pages there to SITE.domain with a
+// 308, and keeps the MCP, well-known and auth.md paths at 200 so installed MCP
+// clients (which often do not follow a redirect on POST) keep working.
+export { LEGACY_HOST } from "./site-redirects.mjs";
 
 export const COUNTS = {
   skills: TOTALS.skills,
@@ -54,7 +60,9 @@ export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length
 // The homepage search result title (<title>, og:title, twitter:title). It
 // names what the reader gets. SITE_TITLE stays the OG card tagline and the
 // alt text of that card image, because the image shows that text.
-export const HOME_TITLE = `${SITE.name}: Claude Code Plugin with ${COUNTS.skills} Skills and ${COUNTS.agents} Agents`;
+// Title, meta description (PAGE_SUMMARY.site) and the H1 all start with the
+// brand phrase "OrchestKit, Claude Code plugin" so a brand search matches it.
+export const HOME_TITLE = `${SITE.name}, Claude Code plugin: ${COUNTS.skills} skills and ${COUNTS.agents} agents`;
 
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
@@ -65,7 +73,7 @@ export const PAGE_SUMMARY = {
   // override, so this is the description of "/" itself. Counts match
   // opengraph-image.tsx (COUNTS from generated shared-data).
   // Keep it 140 to 160 characters: a search result cuts a longer one.
-  site: `Free, open source Claude Code plugin with ${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory. Also runs in Cursor and Codex.`,
+  site: `${SITE.name}, Claude Code plugin: ${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory. Free, open source, also in Cursor and Codex.`,
   // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
   pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
 } as const;
@@ -90,7 +98,7 @@ export const ORG = {
 } as const;
 
 // Yonyon — the independent software studio that publishes OrchestKit. The apex
-// brand "Yonyon" (from the domain orchestkit.yonyon.ai) collides with an
+// brand "Yonyon" (from the former domain orchestkit.yonyon.ai) collides with an
 // unrelated musician in search/training corpora. Modeling Yonyon as a
 // first-class Organization (parent of OrchestKit) with its own /yonyon page and
 // a disambiguatingDescription gives a "yonyon"-keyed crawler or LLM a canonical

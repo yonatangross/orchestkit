@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>orchestkit.dev: the orank fixes</title>
+<meta name="description" content="Four agent-readiness fixes that move OrchestKit to orchestkit.dev: canonical host, one-hop 301, auth metadata, a spec MCP server card and typed tool inputs.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:24px; }
+  .kpi { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .kpi b { display:block; font-size:1.6rem; }
+  .kpi span { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .wait { color:var(--warn); font-weight:600; }
+  ul { padding-left:20px; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>orchestkit.dev: the orank fixes</h1>
+      <p class="lead">OrchestKit moves to orchestkit.dev. The old host keeps every install working. orank scored the site 91/100 before this change.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <section class="kpis" aria-label="Key numbers">
+    <div class="kpi"><b>91</b><span>orank score before (A)</span></div>
+    <div class="kpi"><b>?</b><span>orank score after: scanned after deploy</span></div>
+    <div class="kpi"><b>1</b><span>redirect hop from the old host</span></div>
+    <div class="kpi"><b>0</b><span>MCP paths redirected</span></div>
+  </section>
+
+  <h2>The four fixes</h2>
+  <table>
+    <thead><tr><th>#</th><th>Gap</th><th>Fix</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Brand search and canonical host</td><td>Title, meta description and H1 carry "OrchestKit, Claude Code plugin". Canonical, sitemap and robots on <code>https://orchestkit.dev</code>. SoftwareApplication JSON-LD gets <code>sameAs</code> (GitHub).</td><td class="ok">in this PR</td></tr>
+      <tr><td>2</td><td>Auth metadata named the old host</td><td>Protected-resource metadata, authorization-server metadata and the <code>agent_auth</code> block derive from the canonical host: <code>identity_endpoint</code> is <code>https://orchestkit.dev/agent/identity</code>, <code>skill</code> is <code>https://orchestkit.dev/auth.md</code>.</td><td class="ok">in this PR</td></tr>
+      <tr><td>3</td><td>No spec MCP server card</td><td>New card at <code>/api/mcp/server-card</code>, at the path the draft server-card extension names, with <code>$schema</code> set to the draft server-card identifier the scanner names (an identifier, not a fetch target: the v1 URL answers 404 today), and the whole card validated in a test against a pinned copy of the published MCP registry schema (2025-12-11, HTTP 200); name <code>dev.orchestkit/mcp</code>, a description of 100 characters or fewer, the version and <code>remotes[].url</code>, no <code>tools[]</code>. ai-catalog.json lists it.</td><td class="ok">in this PR</td></tr>
+      <tr><td>4</td><td>A product MCP tool had no typed input</td><td><code>orchestkit_list_skills</code> gets an optional typed <code>query</code> filter, <code>required: []</code> and <code>additionalProperties: false</code>. <code>orchestkit_install_plan</code> gets the same explicit <code>required</code>.</td><td class="ok">in this PR</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What the old host does</h2>
+  <table>
+    <thead><tr><th>Path on orchestkit.yonyon.ai</th><th>Answer</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Pages: <code>/</code>, <code>/docs/*</code>, <code>/about</code>, <code>/llms.txt</code></td><td>one 301 to the same path on orchestkit.dev</td><td>Links and search results land on the new host in one hop.</td></tr>
+      <tr><td><code>/api/*</code>, <code>/mcp</code>, <code>/mcp.json</code>, <code>/ask</code></td><td>served, 200</td><td>MCP clients POST here, and many clients do not follow a 301 on POST.</td></tr>
+      <tr><td><code>/.well-known/*</code>, <code>/auth.md</code>, <code>/agent/*</code></td><td>served, 200</td><td>Installed clients read discovery and identity from the host they know.</td></tr>
+    </tbody>
+  </table>
+  <p>The production Vercel alias <code>orchestkit.vercel.app</code> now sends its 301 straight to orchestkit.dev, so it never chains through the old host.</p>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>An anonymous identity assertion minted before the switch (issuer and audience both the old host) keeps verifying until its own expiry, at most 30 days, with the same key and checks. A mixed pair is still rejected, and nothing mints the old issuer any more (operator decision, 2026-10-20).</li>
+    <li>The after score is unknown until this deploys. It is read from the orank scan API, not estimated here.</li>
+    <li>The older card at <code>/.well-known/mcp/server-card.json</code> stays served, with its tools list, for checkers that already read it.</li>
+  </ul>
+
+  <footer>Card orchestkit-v10-ga-2026-10-20. Made by ork-ga-1 (Claude via Claude Code), 2026-10-20.</footer>
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function set(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    set(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+</body>
+</html>

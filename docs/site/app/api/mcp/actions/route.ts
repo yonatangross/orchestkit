@@ -57,7 +57,15 @@ const TOOLS = [
 			"List all user-invocable OrchestKit skills with names, descriptions, and documentation URLs. Use this to discover available skills. Returns an array of skill objects.",
 		inputSchema: {
 			type: "object" as const,
-			properties: {},
+			properties: {
+				query: {
+					type: "string",
+					description:
+						"Optional filter. Keeps only skills whose name or description contains this text (case-insensitive). Omit it to list every skill.",
+				},
+			},
+			required: [] as string[],
+			additionalProperties: false,
 		},
 		annotations: {
 			readOnlyHint: true,
@@ -65,14 +73,20 @@ const TOOLS = [
 			idempotentHint: true,
 			openWorldHint: false,
 		},
-		run: (): ToolResult => {
-			const skills = getUserInvocableSkills();
+		run: (args: Record<string, unknown>): ToolResult => {
+			const query =
+				typeof args.query === "string" ? args.query.trim().toLowerCase() : "";
+			const skills = getUserInvocableSkills().filter(
+				(s) =>
+					query === "" ||
+					`${s.name} ${s.description}`.toLowerCase().includes(query),
+			);
 			if (skills.length === 0) {
 				return {
 					content: [
 						{
 							type: "text",
-							text: "No user-invocable skills found. See all skills at https://orchestkit.yonyon.ai/docs/reference/skills",
+							text: `No user-invocable skills found${query ? ` for "${query}"` : ""}. See all skills at ${SITE.domain}/docs/reference/skills`,
 						},
 					],
 				};
@@ -112,6 +126,8 @@ const TOOLS = [
 						"...",
 				},
 			},
+			required: [] as string[],
+			additionalProperties: false,
 		},
 		annotations: {
 			readOnlyHint: true,

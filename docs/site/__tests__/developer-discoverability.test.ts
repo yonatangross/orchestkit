@@ -92,7 +92,7 @@ describe("/developers.md", () => {
 	});
 
 	it("uses absolute URLs so a fetched copy stays navigable", () => {
-		expect(md).toContain("https://orchestkit.yonyon.ai/api/openapi");
+		expect(md).toContain("https://orchestkit.dev/api/openapi");
 		expect(md).not.toMatch(/\]\(\/[a-z]/);
 	});
 
@@ -123,8 +123,8 @@ describe("/yonyon.md", () => {
 	});
 
 	it("links the developer hub and its Markdown twin", () => {
-		expect(md).toContain("https://orchestkit.yonyon.ai/developers");
-		expect(md).toContain("https://orchestkit.yonyon.ai/developers.md");
+		expect(md).toContain("https://orchestkit.dev/developers");
+		expect(md).toContain("https://orchestkit.dev/developers.md");
 	});
 
 	it("cross-links the apex brand site as the same studio, not the DJ (#4144)", () => {
@@ -257,8 +257,8 @@ describe("developer resources are typed, named, and indexed", () => {
 		for (const [i, r] of NAMED_DEVELOPER_RESOURCES.entries()) {
 			expect(lines[i + 1]).toBe(`- [${r.title}](${r.href}): ${r.kind}. ${r.desc}`);
 		}
-		for (const line of developerResourceLines("https://orchestkit.yonyon.ai")) {
-			expect(line).toMatch(/\]\(https:\/\/orchestkit\.yonyon\.ai\//);
+		for (const line of developerResourceLines("https://orchestkit.dev")) {
+			expect(line).toMatch(/\]\(https:\/\/orchestkit\.dev\//);
 		}
 	});
 
@@ -291,10 +291,14 @@ describe("predictable developer URLs", () => {
 		expect(DEVELOPER_ALIASES.map(([s]) => s)).not.toContain("/mcp");
 	});
 
-	it("next.config.mjs wires the aliases as redirects", () => {
+	it("next.config.mjs wires the aliases as redirects", async () => {
 		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
-		const redirects = cfg.slice(cfg.indexOf("redirects:"), cfg.indexOf("headers:"));
-		expect(redirects).toContain("...DEVELOPER_ALIASES.map(");
+		expect(cfg).toContain("redirects: async () => siteRedirects()");
+		const { siteRedirects } = await import("@/lib/site-redirects.mjs");
+		const rules = siteRedirects() as Array<{ source: string; destination: string }>;
+		for (const [source, destination] of DEVELOPER_ALIASES) {
+			expect(rules).toContainEqual(expect.objectContaining({ source, destination }));
+		}
 	});
 });
 

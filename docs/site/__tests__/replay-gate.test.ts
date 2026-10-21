@@ -35,14 +35,14 @@ describe("isReplayPath", () => {
 });
 
 describe("pathnameOf", () => {
-	const base = "https://orchestkit.yonyon.ai/docs/foundations/overview";
+	const base = "https://orchestkit.dev/docs/foundations/overview";
 
 	it("resolves relative and absolute hrefs, dropping query and hash", () => {
 		expect(pathnameOf("/docs/reference/skills/x?q=1#h", base)).toBe(
 			"/docs/reference/skills/x",
 		);
 		expect(
-			pathnameOf("https://orchestkit.yonyon.ai/docs/reference/hooks/y", base),
+			pathnameOf("https://orchestkit.dev/docs/reference/hooks/y", base),
 		).toBe("/docs/reference/hooks/y");
 	});
 
@@ -100,7 +100,7 @@ describe("createReplayGate", () => {
 describe("maskNetworkRequest", () => {
 	it("drops headers and bodies and strips query and hash from the URL", () => {
 		const req = {
-			name: "https://orchestkit.yonyon.ai/api/search?query=secret+term#frag",
+			name: "https://orchestkit.dev/api/search?query=secret+term#frag",
 			entryType: "resource",
 			startTime: 1,
 			duration: 2,
@@ -114,7 +114,7 @@ describe("maskNetworkRequest", () => {
 
 		const masked = maskNetworkRequest(req);
 
-		expect(masked.name).toBe("https://orchestkit.yonyon.ai/api/search");
+		expect(masked.name).toBe("https://orchestkit.dev/api/search");
 		expect(masked.requestHeaders).toBeUndefined();
 		expect(masked.requestBody).toBeNull();
 		expect(masked.responseHeaders).toBeUndefined();

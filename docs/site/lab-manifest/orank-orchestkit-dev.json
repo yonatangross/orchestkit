@@ -1,0 +1,8 @@
+{
+  "slug": "orank-orchestkit-dev",
+  "source": "docs/fix--orank-orchestkit-dev/index.html",
+  "title": "orchestkit.dev: the orank fixes",
+  "description": "How OrchestKit moved to orchestkit.dev without breaking MCP installs: one-hop 301, auth metadata, a spec server card, typed tool inputs.",
+  "tags": ["orank", "agent-readiness", "mcp", "seo"],
+  "date": "2026-10-20"
+}

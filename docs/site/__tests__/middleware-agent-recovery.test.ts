@@ -26,7 +26,7 @@ vi.mock("@/lib/analytics-server", () => ({
 import { middleware } from "@/middleware";
 import { RATE_LIMIT } from "@/lib/rate-limit";
 
-const ORIGIN = "https://orchestkit.yonyon.ai";
+const ORIGIN = "https://orchestkit.dev";
 
 function req(path: string, accept = "*/*", ip = "203.0.113.1") {
 	return new NextRequest(`${ORIGIN}${path}`, {

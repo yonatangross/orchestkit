@@ -75,7 +75,7 @@ vi.mock("..//lib/constants", () => ({
   SITE: {
     name: "OrchestKit",
     version: "6.3.0",
-    domain: "https://orchestkit.yonyon.ai",
+    domain: "https://orchestkit.dev",
     github: "https://github.com/yonatangross/orchestkit",
     installCommand:
       "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
@@ -110,7 +110,7 @@ vi.mock("..//lib/constants", () => ({
       "Yonyon is an independent software studio building developer tooling for AI-assisted engineering.",
     disambiguation:
       "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
-    url: "https://orchestkit.yonyon.ai/yonyon",
+    url: "https://orchestkit.dev/yonyon",
     wikidata: "https://www.wikidata.org/wiki/Q141457913",
   },
   // Added 2026-07-31 alongside the real INTEGRATIONS export (lib/constants.ts):

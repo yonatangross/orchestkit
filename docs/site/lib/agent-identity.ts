@@ -21,7 +21,7 @@
 // runs in middleware (edge) and in route handlers (node). Verification is
 // async for that reason; middleware only awaits it when a bearer is present.
 
-import { SITE } from "@/lib/constants";
+import { LEGACY_HOST, SITE } from "@/lib/constants";
 
 export const ISSUER = SITE.domain;
 export const AUDIENCE = SITE.domain;
@@ -34,6 +34,18 @@ export const JWT_TYP = "oauth-id-jag+jwt";
 // not widen it. Listed so PRM scopes_supported and the token agree.
 export const SCOPES = ["docs.read"] as const;
 export const ASSERTION_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
+
+// Assertions minted before the GA host switch carry iss = aud = the old
+// origin. They keep verifying until their own exp, with the same key and the
+// same checks; only the issuer/audience pair may be the old one, never a mix.
+// Nothing mints the old origin any more, so this grace ends by itself within
+// ASSERTION_TTL_SECONDS of the switch (operator decision, 2026-10-20, #4819).
+// Remove it once that window has passed (follow-up issue linked in #4819).
+const PRE_GA_ORIGIN = `https://${LEGACY_HOST}`;
+const ACCEPTED_ISSUER_AUDIENCE: ReadonlyArray<readonly [string, string]> = [
+	[ISSUER, AUDIENCE],
+	[PRE_GA_ORIGIN, PRE_GA_ORIGIN],
+];
 
 export type IdentityClaims = {
 	iss: string;
@@ -171,7 +183,9 @@ export async function verifyIdentityAssertion(
 	if (typeof claims.sub !== "string" || typeof claims.exp !== "number" || typeof claims.iat !== "number") {
 		return { ok: false, reason: "malformed" };
 	}
-	if (claims.iss !== ISSUER || claims.aud !== AUDIENCE) return { ok: false, reason: "wrong_issuer" };
+	if (!ACCEPTED_ISSUER_AUDIENCE.some(([iss, aud]) => claims.iss === iss && claims.aud === aud)) {
+		return { ok: false, reason: "wrong_issuer" };
+	}
 	const valid = await crypto.subtle.verify(
 		"HMAC",
 		await signingKey(),

@@ -12,16 +12,16 @@ describe("IndexNow", () => {
 		expect(INDEXNOW_KEY_PATH).toBe(`/${INDEXNOW_KEY}.txt`);
 		expect(isServedPath(INDEXNOW_KEY_PATH)).toBe(true);
 		expect(indexNowPayload().keyLocation).toBe(
-			`https://orchestkit.yonyon.ai${INDEXNOW_KEY_PATH}`,
+			`https://orchestkit.dev${INDEXNOW_KEY_PATH}`,
 		);
 	});
 
 	it("submits the four named developer pages", () => {
 		expect([...INDEXNOW_URLS]).toEqual([
-			"https://orchestkit.yonyon.ai/developers",
-			"https://orchestkit.yonyon.ai/openapi",
-			"https://orchestkit.yonyon.ai/docs/mcp",
-			"https://orchestkit.yonyon.ai/docs/sdk",
+			"https://orchestkit.dev/developers",
+			"https://orchestkit.dev/openapi",
+			"https://orchestkit.dev/docs/mcp",
+			"https://orchestkit.dev/docs/sdk",
 		]);
 	});
 });

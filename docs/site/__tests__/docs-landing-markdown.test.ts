@@ -19,7 +19,7 @@ describe("docs landing markdown twins", () => {
 			expect(h1).toContain("OrchestKit");
 			expect(title).toContain("OrchestKit");
 			expect(md).toContain(
-				`canonical: "https://orchestkit.yonyon.ai/docs/${slug}"`,
+				`canonical: "https://orchestkit.dev/docs/${slug}"`,
 			);
 		}
 	});

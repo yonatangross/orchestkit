@@ -140,7 +140,7 @@ describe("every agent surface ends up covered by exactly one counter", () => {
 
 describe("rateLimitHeaders", () => {
 	function req(ip: string) {
-		return new Request("https://orchestkit.yonyon.ai/api/health", {
+		return new Request("https://orchestkit.dev/api/health", {
 			headers: { "x-real-ip": ip },
 		});
 	}

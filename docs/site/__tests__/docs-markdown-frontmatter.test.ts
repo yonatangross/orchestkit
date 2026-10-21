@@ -43,7 +43,7 @@ import { GET } from "@/app/api/md/[[...slug]]/route";
 import { PAGE_SUMMARY, SITE } from "@/lib/constants";
 
 async function get(slug?: string[]): Promise<Response> {
-	return await GET(new Request("https://orchestkit.yonyon.ai/api/md"), {
+	return await GET(new Request("https://orchestkit.dev/api/md"), {
 		params: Promise.resolve({ slug }),
 	});
 }
