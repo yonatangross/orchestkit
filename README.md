@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185)** · 2026-10-21
+
+- **site:** move the canonical host to orchestkit.dev for the orank gaps (#4819)
+
 **[v10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184)** · 2026-10-21
 
 - **docs:** new OrchestKit icon, the rose window conductor (#4833)
@@ -683,15 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4781)
 - **deps:** bump the npm-minor-patch group across 1 directory with 3 updates (#4720)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.177](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.176...v10.0.0-beta.177)** · 2026-10-16
-
-- **doctor:** warn on errorDetails and list noteDetails from plugin rows (#4768)
-- **cc-watch:** admit permission tool nouns as scoped evidence tokens (#4756)
-- **ci:** keep triage issue text away from tokens (P0) (#4755)
-- **ci:** read the hookEventName literal under any minified name (#4754)
-- **docs-site:** bump next to 16.4.1 for three security advisories (#4751)
-- …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

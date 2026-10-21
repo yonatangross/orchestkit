@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.185",
+    "date": "2026-10-21",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** move the canonical host to orchestkit.dev for the orank gaps ([#4819](https://github.com/yonatangross/orchestkit/issues/4819)) ([c1a8065](https://github.com/yonatangross/orchestkit/commit/c1a806510c921eeb13d2342a19f67e79c1858ac4))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.184",
     "date": "2026-10-21",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184",
