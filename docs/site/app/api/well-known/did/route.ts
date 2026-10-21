@@ -2,7 +2,7 @@
 // Created: 2026-07-22
 
 // did:web DID document — served at /.well-known/did.json via a rewrite in
-// next.config.mjs. Resolves the host identity did:web:orchestkit.yonyon.ai that
+// next.config.mjs. Resolves the host identity did:web:<SITE.domain host> that
 // the ARD catalog (/.well-known/ai-catalog.json) and its trustManifest claim,
 // so an agent can dereference the DID instead of trusting a bare string.
 //
@@ -13,9 +13,13 @@
 // unused verification key (an identity anchor, not a load-bearing credential).
 // The matching private key is held out-of-band, never committed; rotate by
 // regenerating the pair and swapping `x` + `kid` in both routes together.
+import { SITE } from "@/lib/constants";
+
 export const revalidate = false;
 
-const DID = "did:web:orchestkit.yonyon.ai";
+// Derived from the host, the same way ai-catalog derives HOST_ID, so the two
+// never name different identities.
+const DID = `did:web:${SITE.domain.replace(/^https?:\/\//, "")}`;
 // Mirror of the JWK in http-message-signatures-directory/route.ts (kid must match).
 const KID = "6a120f4f14168a35";
 const VERIFICATION_METHOD_ID = `${DID}#${KID}`;

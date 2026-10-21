@@ -126,7 +126,7 @@ describe("unknown agent-data paths reach the structured 404", () => {
 		// this fix, /nope.md matched the "has a file extension" branch, so an agent
 		// following our own instruction received the HTML not-found page, markup,
 		// not content. Verified against production on 2026-08-21:
-		// `curl -sI https://orchestkit.yonyon.ai/developers.md` → 404 text/html.
+		// `curl -sI https://orchestkit.dev/developers.md` → 404 text/html.
 		expect(isServedPath("/nope.md")).toBe(false);
 		expect(shouldJsonError("GET", "/nope.md", "*/*")).toBe(true);
 	});

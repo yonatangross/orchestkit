@@ -1,0 +1,48 @@
+{
+  "serves": "orchestkit-v10-ga-2026-10-20",
+  "page": "index.html",
+  "title": "orchestkit.dev: the orank fixes",
+  "date": "2026-10-20",
+  "orank": {
+    "before": 91,
+    "after": null,
+    "after_source": "POST https://ora.ai/api/scan after deploy"
+  },
+  "fixes": [
+    {
+      "id": 1,
+      "gap": "brand search and canonical host",
+      "state": "in PR"
+    },
+    {
+      "id": 2,
+      "gap": "auth metadata named the old host",
+      "state": "in PR"
+    },
+    {
+      "id": 3,
+      "gap": "no spec MCP server card",
+      "state": "in PR"
+    },
+    {
+      "id": 4,
+      "gap": "product MCP tool without typed input",
+      "state": "in PR"
+    }
+  ],
+  "legacy_host": {
+    "host": "orchestkit.yonyon.ai",
+    "pages": "301 to https://orchestkit.dev, one hop",
+    "kept_200": [
+      "/api/*",
+      "/mcp",
+      "/mcp.json",
+      "/ask",
+      "/.well-known/*",
+      "/auth.md",
+      "/agent/*"
+    ]
+  },
+  "pre_ga_bearers": "old iss=aud pair verifies until its own exp (max 30 days); mixed pairs rejected; operator decision, 2026-10-20 (AskUserQuestion answer row dc7ce95b-3af4-4655-9611-82ac54d7c907)",
+  "redirects": "old hosts: one 301 straight to the final URL on orchestkit.dev; 36 of 36 runtime requests checked"
+}

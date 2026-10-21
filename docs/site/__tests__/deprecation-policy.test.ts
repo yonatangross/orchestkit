@@ -50,11 +50,11 @@ describe("deprecationHeaders helper (RFC 8594)", () => {
 		const headers = deprecationHeaders({
 			deprecation: new Date("2026-01-01T00:00:00Z"),
 			sunset: new Date("2026-07-01T00:00:00Z"),
-			migrationDocsUrl: "https://orchestkit.yonyon.ai/api-policy.md",
+			migrationDocsUrl: "https://orchestkit.dev/api-policy.md",
 		});
 		expect(headers.Sunset).toBe("Wed, 01 Jul 2026 00:00:00 GMT");
 		expect(headers.Link).toBe(
-			'<https://orchestkit.yonyon.ai/api-policy.md>; rel="deprecation"; type="text/html"',
+			'<https://orchestkit.dev/api-policy.md>; rel="deprecation"; type="text/html"',
 		);
 	});
 });

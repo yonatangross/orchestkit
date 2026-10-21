@@ -176,6 +176,7 @@ export function softwareApplicationNode(starCount?: number | null): JsonLdNode {
 		softwareVersion: SITE.version,
 		description: SUMMARY,
 		url: SITE.domain,
+		sameAs: [SITE.github],
 		downloadUrl: SITE.github,
 		license: "https://opensource.org/license/mit",
 		publisher: { "@id": ORG_ID },
@@ -305,7 +306,7 @@ export const HOME_FAQS: Faq[] = [
 	{
 		question: "Who builds OrchestKit, and what is Yonyon?",
 		answer:
-			"OrchestKit is built and published by Yonyon, an independent software studio founded by Yonatan Gross. Yonyon is the studio behind the product (the docs live at orchestkit.yonyon.ai) and is not affiliated with the musician of the same name.",
+			"OrchestKit is built and published by Yonyon, an independent software studio founded by Yonatan Gross. Yonyon is the studio behind the product (the docs live at orchestkit.dev) and is not affiliated with the musician of the same name.",
 	},
 	{
 		question: "How does OrchestKit compare to GitHub Copilot or Cursor?",

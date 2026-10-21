@@ -1,5 +1,5 @@
 import { createMDX } from "fumadocs-mdx/next";
-import { DEVELOPER_ALIASES } from "./lib/developer-aliases.mjs";
+import { siteRedirects } from "./lib/site-redirects.mjs";
 
 const withMDX = createMDX();
 
@@ -73,7 +73,7 @@ const config = {
 		},
 		{
 			// did:web DID document — resolves the host identity the ARD catalog
-			// and its trustManifest claim (did:web:orchestkit.yonyon.ai).
+			// and its trustManifest claim (did:web:orchestkit.dev).
 			source: "/.well-known/did.json",
 			destination: "/api/well-known/did",
 		},
@@ -173,56 +173,7 @@ const config = {
 			destination: "/api/openapi-yaml",
 		},
 	],
-	redirects: async () => [
-		{
-			source: "/docs",
-			destination: "/docs/foundations/overview",
-			permanent: false,
-		},
-		// The Lab gallery lives at /docs/showcase/lab; /lab/ itself only serves
-		// the raw public/lab/<slug>.html pages, so the bare path was a 404 for
-		// anyone trimming a shared playground URL. Temporary on purpose: a cached
-		// 308 would outlive a real /lab index if one is ever added.
-		{
-			source: "/lab",
-			destination: "/docs/showcase/lab",
-			permanent: false,
-		},
-		{
-			// skipTrailingSlashRedirect is on, so the slash form needs its own rule.
-			source: "/lab/",
-			destination: "/docs/showcase/lab",
-			permanent: false,
-		},
-		// Predictable aliases for the developer resources (orank "Developer
-		// resource discoverability": use predictable URLs). Each lands on the
-		// existing product-titled page; no page moves. Temporary for the same
-		// reason as /lab: a cached 308 would outlive a real page at that path.
-		// The list lives in lib/developer-aliases.mjs so a test can check every
-		// destination is a real page and no source shadows one.
-		...DEVELOPER_ALIASES.map(([source, destination]) => ({
-			source,
-			destination,
-			permanent: false,
-		})),
-		{
-			// A bare URL wrapped in Markdown bold (**https://.../lab/x.html**, as in
-			// the #3746 PR body) keeps its asterisks when a non-GitHub autolinker
-			// turns it into a link, and PostHog recorded /lab/<slug>.html** hits.
-			source: "/lab/:slug([a-z0-9][a-z0-9-]*).html:stars(\\*+)",
-			destination: "/lab/:slug.html",
-			permanent: true,
-		},
-		{
-			// 301 the bare Vercel host onto the canonical brand domain (orchestkit.yonyon.ai).
-			// Preview deployments (orchestkit-<hash>.vercel.app) don't match this exact host,
-			// so they stay reachable; only the production alias is redirected.
-			source: "/:path*",
-			has: [{ type: "host", value: "orchestkit.vercel.app" }],
-			destination: "https://orchestkit.yonyon.ai/:path*",
-			statusCode: 301,
-		},
-	],
+	redirects: async () => siteRedirects(),
 	headers: async () => [
 		{
 			source: "/(.*)",

@@ -311,3 +311,69 @@ describe("the challenge header", () => {
 		}
 	});
 });
+
+// GA host switch (operator decision, 2026-10-20, #4819): assertions minted before the
+// switch carry iss = aud = the old origin. They keep verifying until their own
+// exp (at most ASSERTION_TTL_SECONDS), with the same key and the same checks.
+// Nothing mints the old issuer any more, so the grace ends by itself.
+describe("pre-GA assertions (old origin) during their remaining life", () => {
+	const OLD = "https://orchestkit.yonyon.ai";
+	const SECRET = "production-secret-for-tests";
+
+	async function signWith(secret: string, claims: Record<string, unknown>): Promise<string> {
+		const signingInput = `${b64({ alg: "HS256", typ: JWT_TYP })}.${b64(claims)}`;
+		const key = await crypto.subtle.importKey(
+			"raw",
+			new TextEncoder().encode(secret),
+			{ name: "HMAC", hash: "SHA-256" },
+			false,
+			["sign"],
+		);
+		const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
+		return `${signingInput}.${Buffer.from(sig).toString("base64url")}`;
+	}
+
+	const claimsFor = (iss: string, aud: string, expOffset = 3600) => ({
+		iss,
+		aud,
+		sub: "reg_pre_ga",
+		iat: 1,
+		exp: Math.floor(Date.now() / 1000) + expOffset,
+		scope: "docs.read",
+		registration_type: "anonymous",
+	});
+
+	beforeEach(() => {
+		setIdentityEnvironment("production", SECRET);
+	});
+
+	it("an old-origin assertion with a valid signature still verifies", async () => {
+		const token = await signWith(SECRET, claimsFor(OLD, OLD));
+		const result = await verifyIdentityAssertion(token);
+		expect(result.ok).toBe(true);
+	});
+
+	it.each([
+		["old iss, new aud", OLD, SITE.domain],
+		["new iss, old aud", SITE.domain, OLD],
+	])("a mixed pair (%s) is wrong_issuer", async (_n, iss, aud) => {
+		const token = await signWith(SECRET, claimsFor(iss, aud));
+		expect(await verifyIdentityAssertion(token)).toEqual({ ok: false, reason: "wrong_issuer" });
+	});
+
+	it("an old-origin assertion with another key is invalid_signature", async () => {
+		const token = await signWith("some-other-key", claimsFor(OLD, OLD));
+		expect(await verifyIdentityAssertion(token)).toEqual({ ok: false, reason: "invalid_signature" });
+	});
+
+	it("an expired old-origin assertion is expired", async () => {
+		const token = await signWith(SECRET, claimsFor(OLD, OLD, -10));
+		expect(await verifyIdentityAssertion(token)).toEqual({ ok: false, reason: "expired" });
+	});
+
+	it("minting never uses the old origin", async () => {
+		const { claims } = await mintIdentityAssertion();
+		expect(claims.iss).toBe(SITE.domain);
+		expect(claims.aud).toBe(SITE.domain);
+	});
+});

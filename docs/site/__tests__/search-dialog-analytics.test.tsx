@@ -46,19 +46,19 @@ import CustomSearchDialog from "@/components/search-dialog";
 const ROWS = [
 	{
 		id: "/docs/a",
-		url: "https://orchestkit.yonyon.ai/docs/a",
+		url: "https://orchestkit.dev/docs/a",
 		type: "page",
 		content: "Alpha Page",
 	},
 	{
 		id: "/docs/a-1",
-		url: "https://orchestkit.yonyon.ai/docs/a#why",
+		url: "https://orchestkit.dev/docs/a#why",
 		type: "text",
 		content: "matched excerpt",
 	},
 	{
 		id: "/docs/b",
-		url: "https://orchestkit.yonyon.ai/docs/b",
+		url: "https://orchestkit.dev/docs/b",
 		type: "page",
 		content: "Bravo Page",
 	},

@@ -4,7 +4,7 @@ import { suggestCompletions } from "@/lib/search-autocomplete";
 import { SEARCH_SUGGEST_INDEX } from "@/lib/generated/search-suggest-index";
 import { suggestOrderCache } from "@/lib/suggest-rerank-cache";
 
-const ORIGIN = "https://orchestkit.yonyon.ai";
+const ORIGIN = "https://orchestkit.dev";
 
 function req(path: string) {
 	return new Request(`${ORIGIN}${path}`);

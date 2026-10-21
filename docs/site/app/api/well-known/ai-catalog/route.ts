@@ -25,7 +25,7 @@ import { SITE } from "@/lib/constants";
 // the same repository, so the same envelope is the truthful answer for each.
 export const revalidate = false;
 
-// did:web derives from the host: https://orchestkit.yonyon.ai -> did:web:orchestkit.yonyon.ai
+// did:web derives from the host: https://orchestkit.dev -> did:web:orchestkit.dev
 const HOST_ID = `did:web:${SITE.domain.replace(/^https?:\/\//, "")}`;
 // URN authority segment (the bare host) for urn:air:<host>:<type>:<name>.
 const URN_HOST = SITE.domain.replace(/^https?:\/\//, "");
@@ -70,11 +70,25 @@ export function GET() {
 				identifier: `urn:air:${URN_HOST}:mcp:docs`,
 				displayName: "OrchestKit Docs MCP server",
 				type: "application/mcp-server-card+json",
-				url: `${d}/.well-known/mcp/server-card.json`,
+				// The draft-spec card at <server>/server-card is canonical. The older
+				// /.well-known/mcp/server-card.json (with tools[]) stays served.
+				url: `${d}/api/mcp/server-card`,
 				description:
 					"Model Context Protocol server over the OrchestKit documentation. Read-only tools: search the docs and fetch pages as Markdown. Streamable HTTP at /api/mcp, or stdio via the OCI image.",
 				trustManifest: TRUST_MANIFEST,
 				tags: ["mcp", "documentation", "search", "read-only"],
+			},
+			{
+				identifier: `urn:air:${URN_HOST}:mcp:actions`,
+				displayName: "OrchestKit Actions MCP server",
+				type: "application/mcp-server-card+json",
+				// Draft-spec card for the product MCP at /api/mcp/actions. The older
+				// /.well-known/mcp/actions-server-card.json (with tools[]) stays served.
+				url: `${d}/api/mcp/actions/server-card`,
+				description:
+					"Read-only product MCP for OrchestKit: list skills, plan an install, check a config fragment. Executes nothing, so every call is safe to make in production. Streamable HTTP at /api/mcp/actions.",
+				trustManifest: TRUST_MANIFEST,
+				tags: ["mcp", "actions", "read-only", "sandbox"],
 			},
 			{
 				identifier: `urn:air:${URN_HOST}:skills:index`,

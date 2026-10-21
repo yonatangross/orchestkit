@@ -20,7 +20,7 @@ describe("Path", () => {
 	});
 
 	it("never offers a break inside a segment", () => {
-		const { container } = render(<Path text="https://orchestkit.yonyon.ai/api/mcp" />);
+		const { container } = render(<Path text="https://orchestkit.dev/api/mcp" />);
 		const segments = [...container.querySelectorAll("code > span")].map((s) => s.textContent);
 		expect(segments).toContain("mcp");
 		expect(segments.every((s) => s === "/" || !/[/.]./.test(s ?? ""))).toBe(true);
