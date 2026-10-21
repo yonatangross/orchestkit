@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>כרטיס גליף כ-MCP App: מגרש משחקים ל-PR 4663</title>
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 210px; direction: ltr; text-align: left; font: 13px ui-monospace, Menlo, monospace; background: transparent; color: inherit; border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  pre { direction: ltr; text-align: left; font: 13px ui-monospace, Menlo, monospace; white-space: pre; overflow-x: auto; margin: 0; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); }
+  .card { direction: ltr; font: 14px system-ui, sans-serif; }
+  .card h3 { font-size: 15px; margin: 0 0 8px; }
+  .row { display: grid; grid-template-columns: 1.5em 9em 1fr 5em; gap: 8px; align-items: center; margin: 4px 0; }
+  .bar { height: 10px; border-radius: 5px; background: color-mix(in srgb, currentColor 15%, transparent); }
+  .fill { height: 100%; border-radius: 5px; background: var(--accent); }
+  .val { text-align: right; font-variant-numeric: tabular-nums; }
+  .err { color: #b3261e; }
+  ul { padding-inline-start: 20px; }
+  code { direction: ltr; unicode-bidi: isolate; font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>כרטיס גליף כ-MCP App, בלי SDK</h1>
+  <p class="verdict"><strong>השורה התחתונה:</strong> כלי MCP אחד מחזיר גם ממשק אינטראקטיבי (משאב <code>ui://</code>) וגם כרטיס טקסט לגיבוי. מארח שתומך ב-MCP Apps מצייר את הכרטיס, וכל מארח אחר מציג את הטקסט.</p>
+  <p class="muted">PR 4663, ענף <code>feat/genui-mcp-spike</code>. קובץ אחד: <code>src/skills/mcp-visual-output/scripts/glyph-card-server.mjs</code>, ובדיקות ב-<code>tests/unit/test-mcp-glyph-card.mjs</code>.</p>
+
+  <h2>01 / נסו בעצמכם</h2>
+  <p>ערכו את הקלט של הכלי <code>render_glyph_card</code> ולחצו "צייר". משמאל מה שמארח בלי ממשק רואה, מימין מה שמארח MCP Apps מצייר מתוך <code>structuredContent</code>.</p>
+  <div class="panel">
+    <textarea id="input" aria-label="קלט הכלי ב-JSON">{
+  "title": "Disk use",
+  "rows": [
+    { "label": "Docker cache", "value": 14.5, "unit": "G", "status": "warn" },
+    { "label": "Browser caches", "value": 8.9, "unit": "G", "status": "ok" },
+    { "label": "npm cache", "value": 6.2, "unit": "G", "status": "ok" }
+  ]
+}</textarea>
+    <p><button id="draw">צייר</button> <button id="copy" class="ghost">העתק כפרומפט</button> <span id="msg" class="muted"></span></p>
+  </div>
+  <div class="grid">
+    <div class="panel"><strong>גיבוי טקסט (<code>content</code>)</strong><pre id="text"></pre></div>
+    <div class="panel"><strong>הכרטיס (<code>ui://ork-glyph/card-v1</code>)</strong><div class="card" id="card"></div></div>
+  </div>
+
+  <h2>02 / מה ה-PR מוסיף</h2>
+  <ul>
+    <li>הכלי מצהיר על <code>_meta.ui.resourceUri</code>, על המפתח הישן <code>ui/resourceUri</code> ועל הכינוי של ChatGPT <code>openai/outputTemplate</code>.</li>
+    <li>המשאב מוגש כ-<code>text/html;profile=mcp-app</code> ומצייר רק עם <code>textContent</code>, כך שתווית עוינת לא הופכת ל-HTML.</li>
+    <li>מצב HTTP דוחה Host או Origin שאינם מקומיים (403), אלא אם הוגדר שם אחד עם <code>--allow-host</code>.</li>
+    <li>בדיקות יחידה: 10 עוברות, 0 נכשלות, לפי גוף ה-PR.</li>
+  </ul>
+
+  <h2>03 / מה עוד לא הוכח</h2>
+  <ul>
+    <li>אף מארח אמיתי (ChatGPT, claude.ai) עוד לא צייר את הכרטיס. זה דורש כתובת HTTPS ציבורית וצעד של המפעיל.</li>
+    <li>ב-Claude Code המודל מקבל את ה-JSON של <code>structuredContent</code> כשהוא קיים, ולא את כרטיס הטקסט.</li>
+    <li>אין אימות. זו הוכחת היתכנות, לא ספרייה.</li>
+  </ul>
+</main>
+<script>
+  // Mirrors glyphText() and the card draw() in glyph-card-server.mjs so the
+  // reader sees both outputs of one tool call. Rendering uses textContent only.
+  const ICONS = { ok: "\u{1F7E2}", warn: "\u{1F7E1}", bad: "\u{1F534}" };
+  const BAR_CELLS = 10;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+
+  function parse(raw) {
+    let a;
+    try { a = JSON.parse(raw); } catch (e) { return { error: "JSON לא תקין: " + e.message }; }
+    if (!a || typeof a.title !== "string" || !a.title) return { error: "title חייב להיות מחרוזת לא ריקה" };
+    if (!Array.isArray(a.rows) || a.rows.length < 1 || a.rows.length > 12) return { error: "rows חייב להכיל בין 1 ל-12 שורות" };
+    const rows = [];
+    for (const r of a.rows) {
+      if (!r || typeof r.label !== "string" || typeof r.value !== "number" || !isFinite(r.value) || r.value < 0) return { error: "כל שורה צריכה label מחרוזת ו-value מספר אי שלילי" };
+      rows.push({ label: r.label, value: r.value, unit: typeof r.unit === "string" ? r.unit : "", status: ICONS[r.status] ? r.status : undefined });
+    }
+    const total = Math.round(rows.reduce((s, r) => s + r.value, 0) * 10) / 10;
+    return { title: a.title, rows, total };
+  }
+
+  function glyphText(sc) {
+    const max = Math.max(...sc.rows.map((r) => r.value), 1);
+    const lines = [sc.title.slice(0, 70), "─".repeat(Math.min(sc.title.length, 70))];
+    for (const r of sc.rows) {
+      const filled = Math.round((r.value / max) * BAR_CELLS);
+      const bar = "▓".repeat(filled) + "░".repeat(BAR_CELLS - filled);
+      const icon = r.status ? ICONS[r.status] : "  ";
+      lines.push(icon + " " + r.label.slice(0, 24).padEnd(24) + " " + bar + " " + r.value + r.unit);
+    }
+    lines.push("── total " + sc.total + sc.rows[0].unit);
+    return lines.join("\n");
+  }
+
+  function drawCard(sc) {
+    const max = Math.max(...sc.rows.map((r) => r.value), 1);
+    const card = $("card");
+    card.replaceChildren(el("h3", "", sc.title));
+    for (const r of sc.rows) {
+      const row = el("div", "row"), bar = el("div", "bar"), fill = el("div", "fill");
+      fill.style.width = Math.round((r.value / max) * 100) + "%";
+      bar.append(fill);
+      row.append(el("span", "", ICONS[r.status] || ""), el("span", "", r.label), bar, el("span", "val", r.value + r.unit));
+      card.append(row);
+    }
+    card.append(el("div", "", "Total " + sc.total + sc.rows[0].unit));
+  }
+
+  function draw() {
+    const sc = parse($("input").value);
+    if (sc.error) { $("msg").textContent = sc.error; $("msg").className = "err"; return; }
+    $("msg").textContent = ""; $("msg").className = "muted";
+    $("text").textContent = glyphText(sc);
+    drawCard(sc);
+  }
+
+  $("draw").addEventListener("click", draw);
+  $("copy").addEventListener("click", async () => {
+    const prompt = "Call the MCP tool render_glyph_card from glyph-card-server.mjs with these arguments:\n" + $("input").value;
+    try { await navigator.clipboard.writeText(prompt); $("msg").textContent = "הועתק"; } catch { $("msg").textContent = "ההעתקה נחסמה בדפדפן"; }
+  });
+  draw();
+</script>
+</body>
+</html>
