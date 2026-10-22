@@ -687,3 +687,48 @@ describe('learningTracker', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Codex XREVIEW 6341134133 Must 2: the shared reject list (lib/bash-patterns.ts)
+// reaches the learned-approval path, and learned prefixes end on a word boundary.
+// ---------------------------------------------------------------------------
+
+describe('learningTracker honours the shared reject list', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    _resetPatternCacheForTesting();
+  });
+
+  function learn(patterns: string[]): void {
+    (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(JSON.stringify({ autoApprovePatterns: patterns }));
+  }
+
+  function allowed(cmd: string): boolean {
+    const out = learningTracker(createBashInput(cmd)).hookSpecificOutput as
+      | { permissionDecision?: string; decision?: { behavior?: string } }
+      | undefined;
+    return out?.permissionDecision === 'allow' || out?.decision?.behavior === 'allow';
+  }
+
+  test('a learned reader prefix does not cover a credential-store path', () => {
+    learn(['cat']);
+    expect(allowed('cat ~/.ssh/config')).toBe(false);
+  });
+
+  test('a learned git prefix does not cover a reject-listed git form', () => {
+    learn(['git']);
+    expect(allowed('git reset --hard')).toBe(false);
+  });
+
+  test('a learned prefix only matches at a word boundary', () => {
+    learn(['git st']);
+    expect(allowed('git stash drop')).toBe(false);
+  });
+
+  test('control: a learned command and its arguments still allow', () => {
+    learn(['git status']);
+    expect(allowed('git status')).toBe(true);
+    expect(allowed('git status --short')).toBe(true);
+  });
+});
