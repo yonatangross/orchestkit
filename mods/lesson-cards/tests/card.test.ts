@@ -1,93 +1,73 @@
 import { describe, test, expect } from 'vitest';
-import { askQuestion, denyLine, shortFix, cutCodePoints, MAX_DENY_CHARS } from '../src/card.js';
+import { readFileSync } from 'node:fs';
+import { BLOCK_ADVISORY_PREFIX, formatContext } from '../src/card.js';
+import type { LessonPattern } from '../src/corpus.js';
+import { matchBashCommand } from '../src/match.js';
 
-const lesson = (message: string, fix?: string) => ({ id: 'l1', severity: 'block' as const, message, fix, source: 'pattern' as const });
+const lesson = (severity: 'block' | 'warn', message: string, fix?: string, source: 'pattern' | 'bullet' = 'pattern') => ({
+  id: 'l1',
+  severity,
+  message,
+  fix,
+  source,
+});
 
-describe('shortFix', () => {
-  test('prefers the first code line under a RIGHT heading', () => {
-    const fix = '# WRONG - bad\ngit ls-files | grep x\n\n# RIGHT - NUL-delimited\ngit ls-files -z | tr x y\n# BEST\nother';
-    expect(shortFix(fix)).toBe('git ls-files -z | tr x y');
+describe('formatContext: lessons are advisory', () => {
+  test('a block-severity pattern is marked advisory and keeps the lesson and its Fix', () => {
+    const text = formatContext(lesson('block', 'Never pipe into grep.', '# RIGHT\nls -1'));
+    expect(text).toBe(`${BLOCK_ADVISORY_PREFIX}[lesson:l1] Never pipe into grep. Fix: # RIGHT\nls -1`);
+    expect(text.startsWith('BLOCK-SEVERITY LESSON (advisory, not enforced): ')).toBe(true);
   });
 
-  test('uses a plain one-line fix as is', () => {
-    expect(shortFix('Use gh pr view with --json to check mergeStateStatus.')).toBe('Use gh pr view with --json to check mergeStateStatus.');
+  test('an ALLOWED-FORM line inside the fix is kept whole', () => {
+    const text = formatContext(lesson('block', 'Use the helper.', 'ALLOWED-FORM: helper.sh ref'));
+    expect(text).toContain('ALLOWED-FORM: helper.sh ref');
   });
 
-  test('skips a WRONG section when there is no RIGHT heading', () => {
-    expect(shortFix('// WRONG\nbad()\n// use this instead\ngood()')).toBe('good()');
+  test('a warn lesson carries no advisory prefix', () => {
+    expect(formatContext(lesson('warn', 'Heads up.', 'Do this.'))).not.toContain('BLOCK-SEVERITY');
+    expect(formatContext(lesson('warn', 'Heads up.'))).toBe('[lesson:l1] Heads up.');
   });
 
-  test('no fix gives undefined', () => {
-    expect(shortFix(undefined)).toBeUndefined();
+  test('a bullet note is never marked block severity', () => {
+    expect(formatContext(lesson('block', 'From lessons.md.', undefined, 'bullet'))).toBe('[lesson:l1] From lessons.md.');
+  });
+
+  test('the cap still applies', () => {
+    const text = formatContext(lesson('block', 'w'.repeat(500)), 100);
+    expect(text.length).toBe(100);
+    expect(text.endsWith('...')).toBe(true);
   });
 });
 
-describe('denyLine', () => {
-  test('a real block keeps the reason, the id and a short Fix, never the message', () => {
-    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Not run: no "Proceed anyway".');
-    expect(line).toBe('Not run: no "Proceed anyway". [lesson:l1] Fix: new()');
-    expect(line).not.toContain('First sentence');
-    expect(line).not.toContain('\n');
+// A real hq-ext pattern (configs/lesson-patterns.json, copied verbatim): its
+// ALLOWED-FORM lives in the separate allowed_form field, not in example_fix.
+describe('allowed_form from a real hq-ext lesson reaches the context', () => {
+  const real = JSON.parse(
+    readFileSync(new URL('./fixtures/hq-ext-quotepath-pattern.json', import.meta.url), 'utf8')
+  ) as LessonPattern;
+
+  test('the fixture is the real block pattern with allowed_form outside its fix', () => {
+    expect(real.id).toBe('git-ls-files-quotepath-blind');
+    expect(real.severity).toBe('block');
+    expect(real.allowed_form).toBe('git -c core.quotePath=false ls-files | grep -qxF "$name"');
+    expect(real.example_fix ?? '').not.toContain('ALLOWED-FORM:');
   });
 
-  test('a user cancel keeps Cancelled: once, by you; not run., no Fix', () => {
-    const why = 'Cancelled: by you; not run.';
-    const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), why);
-    expect(line).toBe('Cancelled: by you; not run. [lesson:l1]');
-    expect(line.startsWith('Cancelled: ')).toBe(true);
-    expect(line).not.toContain('Fix:');
-    expect(line).not.toMatch(/^Cancelled: Cancelled/);
+  test('a matched call carries the ALLOWED-FORM line in its context', () => {
+    const [m] = matchBashCommand('git ls-files | grep name', [real]);
+    expect(m?.id).toBe('git-ls-files-quotepath-blind');
+    const text = formatContext(m!);
+    expect(text.startsWith(BLOCK_ADVISORY_PREFIX)).toBe(true);
+    expect(text.split('\n').filter((l) => l.startsWith('ALLOWED-FORM:'))).toEqual([
+      `ALLOWED-FORM: ${real.allowed_form}`,
+    ]);
   });
 
-  test('no fix, no Fix label', () => {
-    expect(denyLine(lesson('Only this.'), 'Not run: no dialog to confirm.')).toBe('Not run: no dialog to confirm. [lesson:l1]');
-  });
-
-  test('the cap counts code points and never splits a surrogate pair', () => {
-    const line = denyLine({ ...lesson('m'), id: '\u{1F6A6}'.repeat(400) }, 'Cancelled: by you; not run.');
-    const points = Array.from(line);
-    expect(points.length).toBe(MAX_DENY_CHARS);
-    expect(line.endsWith('...')).toBe(true);
-    // No lone surrogate anywhere: every code point is a whole character.
-    expect(points.every(p => !/^[\uD800-\uDFFF]$/.test(p))).toBe(true);
-  });
-
-  test('cutCodePoints leaves short text alone', () => {
-    expect(cutCodePoints('abc', 10)).toBe('abc');
-  });
-
-  test('a long message never reaches a cancel line (no Fix to keep)', () => {
-    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled: by you; not run.');
-    expect(line).not.toContain('www');
-    expect(line).not.toContain('Fix:');
-    expect(line.startsWith('Cancelled: by you; not run.')).toBe(true);
-  });
-
-  test('a long message on a real block keeps the Fix whole', () => {
-    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Not run: no "Proceed anyway".');
-    expect(line).not.toContain('www');
-    expect(line.endsWith(' Fix: use_the_safe_call()')).toBe(true);
+  test('the cap never cuts the ALLOWED-FORM line', () => {
+    const [m] = matchBashCommand('git ls-files | grep name', [real]);
+    const text = formatContext(m!, 120);
+    expect(text.length).toBeLessThanOrEqual(120);
+    expect(text.endsWith(`\nALLOWED-FORM: ${real.allowed_form}`)).toBe(true);
   });
 });
-
-describe('askQuestion', () => {
-  test('the lesson id and "Proceed anyway?" only', () => {
-    expect(askQuestion(lesson('A long lesson paragraph.'))).toBe('lesson l1: Proceed anyway?');
-  });
-});
-
-describe('shortFix headings (CodeRabbit)', () => {
-  test('"# WRONG: Do not use this" is a WRONG heading, so its code is never the fix', () => {
-    const fix = '# WRONG: Do not use this\nbad_call()\n\n# RIGHT\ngood_call()';
-    expect(shortFix(fix)).toBe('good_call()');
-  });
-
-  test('a fix with only a WRONG example offers no short fix', () => {
-    expect(shortFix('# WRONG: Do not use this\nbad_call()')).toBeUndefined();
-  });
-
-  test('"# Do not ..." alone is a WRONG heading too', () => {
-    expect(shortFix('# Do not pipe into grep\nls | grep x\n# Use this\nls -1')).toBe('ls -1');
-  });
-});
-

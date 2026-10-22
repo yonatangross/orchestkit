@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependency rollup, 2026-10-19</title>
+<meta name="description" content="One PR for 13 patch and minor bot updates across the root, src/hooks and orchestkit-demos trees, plus 4 transitive dev-only moves and a docker update group.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:24px; }
+  .kpi { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .kpi b { display:block; font-size:1.6rem; }
+  .kpi span { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:start; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .wait { color:var(--warn); font-weight:600; }
+  ul { padding-inline-start:20px; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Dependency rollup, 2026-10-19"><meta property="og:description" content="13 patch and minor bot updates in one PR across three npm trees, 4 transitive dev-only moves, and a docker update group."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/deps-rollup-2026-10-19.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Dependency rollup, 2026-10-19"><meta name="twitter:description" content="13 patch and minor bot updates in one PR across three npm trees, 4 transitive dev-only moves, and a docker update group."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Dependency rollup, 2026-10-19</h1>
+      <p class="lead">One PR instead of six bot PRs: 13 patch and minor updates across three npm trees. No range crosses a major, and none is a 0.x minor.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <section class="kpis" aria-label="Key numbers">
+    <div class="kpi"><b>13</b><span>direct bumps in the rollup</span></div>
+    <div class="kpi"><b>3</b><span>already on main (#4806, #4809)</span></div>
+    <div class="kpi"><b>10</b><span>still move against main b5fa87b1</span></div>
+    <div class="kpi"><b>4</b><span>transitive moves, all dev only</span></div>
+  </section>
+
+  <h2>The 13 bumps</h2>
+  <table>
+    <thead><tr><th>Bot PR</th><th>Tree</th><th>Package</th><th>From</th><th>To</th><th>Against main</th></tr></thead>
+    <tbody>
+      <tr><td>#4808</td><td>root</td><td><code>vitest</code></td><td>5.0.4</td><td>5.0.5</td><td class="ok">moves here</td></tr>
+      <tr><td>#4809</td><td>root</td><td><code>js-yaml</code></td><td>5.4.3</td><td>5.5.0</td><td class="wait">already on main</td></tr>
+      <tr><td>#4806</td><td>src/hooks</td><td><code>vitest</code></td><td>5.0.4</td><td>5.0.5</td><td class="wait">already on main</td></tr>
+      <tr><td>#4806</td><td>src/hooks</td><td><code>@vitest/coverage-v8</code></td><td>5.0.4</td><td>5.0.5</td><td class="wait">already on main</td></tr>
+      <tr><td>#4805</td><td>src/hooks</td><td><code>js-yaml</code></td><td>5.4.3</td><td>5.5.0</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>@react-three/fiber</code></td><td>9.8.1</td><td>9.8.2</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>@types/web</code></td><td>0.0.358</td><td>0.0.359</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>dotenv</code></td><td>18.0.7</td><td>18.0.8</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>jsdom</code></td><td>30.1.2</td><td>30.1.3</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>react</code></td><td>19.2.8</td><td>19.2.9</td><td class="ok">moves here</td></tr>
+      <tr><td>#4811</td><td>orchestkit-demos</td><td><code>react-dom</code></td><td>19.2.8</td><td>19.2.9</td><td class="ok">moves here</td></tr>
+      <tr><td>#4804</td><td>orchestkit-demos</td><td><code>vitest</code></td><td>5.0.4</td><td>5.0.5</td><td class="ok">moves here</td></tr>
+      <tr><td>#4804</td><td>orchestkit-demos</td><td><code>@vitest/coverage-v8</code></td><td>5.0.4</td><td>5.0.5</td><td class="ok">moves here</td></tr>
+    </tbody>
+  </table>
+  <p>Only <code>orchestkit-demos/package.json</code> changes ranges. The root and <code>src/hooks</code> trees move through their lockfiles only.</p>
+
+  <h2>Transitive, dev only</h2>
+  <table>
+    <thead><tr><th>Package</th><th>From</th><th>To</th><th>Why it moves</th></tr></thead>
+    <tbody>
+      <tr><td><code>argparse</code></td><td>2.0.1</td><td>3.0.3</td><td>js-yaml 5.5.0 requires <code>^3.0.3</code>. In the <code>src/hooks</code> lock; the root lock already has it from #4809.</td></tr>
+      <tr><td><code>@oxc-project/types</code></td><td>0.153.0</td><td>0.154.0</td><td>Under rolldown 1.2.14, in the root and demos locks.</td></tr>
+      <tr><td><code>@asamuzakjp/dom-selector</code></td><td>9.2.4</td><td>10.0.4</td><td>jsdom 30.1.3 requires <code>^10.0.3</code>.</td></tr>
+      <tr><td><code>undici</code></td><td>8.11.2</td><td>7.30.1 at the top</td><td>A re-hoist, not a downgrade: get-it's 7.x copy (7.30.0 to 7.30.1) moved up, and jsdom's copy is now nested at 8.12.3. No consumer moves down a major.</td></tr>
+    </tbody>
+  </table>
+  <p>Other transitive moves are patch releases, also dev only: rolldown and its platform bindings 1.2.13 to 1.2.14, <code>@vitest/mocker</code> and <code>@vitest/spy</code> 5.0.4 to 5.0.5, and <code>postcss</code> 8.5.30 to 8.5.31 in the root lock.</p>
+
+  <h2>Also in this PR</h2>
+  <ul>
+    <li><code>.github/dependabot.yml</code>: the docker ecosystem gets a <code>docker-minor-patch</code> group for minor and patch updates. Majors stay separate PRs.</li>
+  </ul>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>The advisory check (OSV, no advisory for the versions that land) comes from reviewer-infra-121's HOLD of 2026-10-20 at 355ec49e. It was not run again for this page.</li>
+    <li>"Already on main" means the same version reached main through its own bot PR after this rollup was cut. Those rows add nothing once this PR merges.</li>
+  </ul>
+
+  <footer>Made by ork-ga-1 (Claude via Claude Code), 2026-10-21, against main b5fa87b1.</footer>
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function set(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    set(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

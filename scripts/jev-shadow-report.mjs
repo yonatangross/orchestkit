@@ -29,9 +29,27 @@ export const canonical = (value) => Array.isArray(value) ? value.map(canonical)
 /** Immutable label binding: SHA-256 of the complete raw log row after canonical key ordering. */
 export const decisionSha256 = (row) => createHash('sha256').update(JSON.stringify(canonical(row))).digest('hex');
 
-function validLabelValue(seam, value) {
+// New paired route rows record executor targets; historical rows record intent IDs.
+const EXECUTOR_TARGET = /^(?:(?:skill|agent):\S+|no_executor)$/;
+const isExecutorTarget = (value) => typeof value === 'string' && EXECUTOR_TARGET.test(value);
+
+/** Which vocabulary a route row's picks use, so a label is compared like with like. */
+function routeVocabulary(row) {
+  if (!row || typeof row !== 'object') return null;
+  const recorded = 'jev_pick' in row ? [row.jev_pick, row.incumbent_pick] : [row.intent, row.incumbent_intent];
+  const picks = recorded.filter((value) => pick(value) !== null);
+  if (picks.some(isExecutorTarget)) return 'executor';
+  return picks.length > 0 ? 'intent' : null;
+}
+
+function validLabelValue(seam, value, row) {
   if (!pick(value)) return false;
-  if (seam === 'route') return ROUTE_LABELS.has(value);
+  if (seam === 'route') {
+    const vocabulary = routeVocabulary(row);
+    if (vocabulary === 'executor') return isExecutorTarget(value);
+    if (vocabulary === 'intent') return ROUTE_LABELS.has(value);
+    return ROUTE_LABELS.has(value) || isExecutorTarget(value);
+  }
   if (seam === 'category') return CATEGORY_LABELS.has(value);
   return EXPECT_ACTION.test(value);
 }
@@ -53,8 +71,8 @@ function adjudication(row, seam, label) {
   if (typeof label !== 'object' || Array.isArray(label) || Object.hasOwn(label, 'kind') ||
       !SHA256.test(label.decision_sha256) ||
       (!Object.hasOwn(label, 'incumbent') && !Object.hasOwn(label, 'correct')) ||
-      (Object.hasOwn(label, 'incumbent') && !validLabelValue(seam, label.incumbent)) ||
-      (Object.hasOwn(label, 'correct') && !validLabelValue(seam, label.correct))) {
+      (Object.hasOwn(label, 'incumbent') && !validLabelValue(seam, label.incumbent, row)) ||
+      (Object.hasOwn(label, 'correct') && !validLabelValue(seam, label.correct, row))) {
     return { decisionHash, incumbent: null, correct: null, labelMismatch: false, invalidLabel: true };
   }
   if (label.decision_sha256 !== decisionHash) {
@@ -67,6 +85,16 @@ function adjudication(row, seam, label) {
     labelMismatch: false,
     invalidLabel: false,
   };
+}
+
+/**
+ * The documented failure outcome, exactly:
+ * `{"status":"no_valid_result","choice":null,"reason":"<nonempty>"}`.
+ * Any other object (including `{}`) is not a structured failure.
+ */
+export function isStructuredIncumbentFailure(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    && value.status === 'no_valid_result' && value.choice === null && pick(value.reason) !== null;
 }
 
 /**
@@ -95,8 +123,7 @@ export function validateLegacyShadow(row) {
   if (typeof row.agree !== 'boolean' && row.agree !== null) errors.push('invalid:agree');
 
   const incumbentIsChoice = pick(row.incumbent_pick) !== null;
-  const incumbentIsStructured = row.incumbent_pick !== null
-    && typeof row.incumbent_pick === 'object' && !Array.isArray(row.incumbent_pick);
+  const incumbentIsStructured = isStructuredIncumbentFailure(row.incumbent_pick);
   if (!incumbentIsChoice && !incumbentIsStructured && row.incumbent_pick !== null) {
     errors.push('invalid:incumbent_pick');
   }

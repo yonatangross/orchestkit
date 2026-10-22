@@ -70,7 +70,7 @@ export function GET() {
 				identifier: `urn:air:${URN_HOST}:mcp:docs`,
 				displayName: "OrchestKit Docs MCP server",
 				type: "application/mcp-server-card+json",
-				// The draft-spec card at <server>/server-card is canonical. The older
+				// The card at <server>/server-card is canonical. The older
 				// /.well-known/mcp/server-card.json (with tools[]) stays served.
 				url: `${d}/api/mcp/server-card`,
 				description:

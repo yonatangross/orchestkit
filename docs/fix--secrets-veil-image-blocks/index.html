@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>secrets-veil: image reads work again | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · SECRETS-VEIL</p>
+<h1>Image reads work again</h1>
+<p>With secrets-veil on, every Read of a PNG or JPEG came back as "media removed, rejected by API". An image travels as one long base64 string, and that string looks exactly like a high-entropy secret token, so the veil covered it with dots and the API could not decode it. Version 0.0.7 lets the payload of a real image through unchanged and keeps masking everything else.</p>
+<table>
+  <tr><th>Tool result</th><th>0.0.6</th><th>0.0.7</th></tr>
+  <tr><td>a PNG, JPEG, GIF or WebP image whose bytes match its type</td><td>masked, Read fails</td><td>passes unchanged</td></tr>
+  <tr><td>a token in a text block next to an image</td><td>masked</td><td>masked</td></tr>
+  <tr><td>a token in a <code>data</code> field outside an image block</td><td>masked</td><td>masked</td></tr>
+  <tr><td>a token in a block that claims an image type but is not one</td><td>masked</td><td>masked</td></tr>
+  <tr><td>a PDF</td><td>masked</td><td>masked (the API reads PDF text; the veil cannot)</td></tr>
+</table>
+<p>What the veil still cannot do: it does not see inside an image, so a secret drawn in the pixels or kept in the image metadata reaches the model. Any tool that returns a result shaped like an image block gets the same pass.</p>
+</body>
+</html>

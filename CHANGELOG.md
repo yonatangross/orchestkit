@@ -5,6 +5,83 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187) (2026-10-22)
+
+
+### Bug Fixes
+
+* **lesson-cards:** lessons are advisory, never ask or deny ([#4842](https://github.com/yonatangross/orchestkit/issues/4842)) ([786114f](https://github.com/yonatangross/orchestkit/commit/786114f06f952df9d3698a05a8c0e8eba1e9348c))
+
+## [10.0.0-beta.186](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.185...v10.0.0-beta.186) (2026-10-21)
+
+
+### Features
+
+* **scripts:** export chosen skills as Gemini app skill zips ([#4760](https://github.com/yonatangross/orchestkit/issues/4760)) ([457cc59](https://github.com/yonatangross/orchestkit/commit/457cc59caceb87ddf65cbb2939c3abb5e8326f94))
+
+
+### Bug Fixes
+
+* **deps:** vitest 4.1.12 in the hook-contract generic-client example ([#4843](https://github.com/yonatangross/orchestkit/issues/4843)) ([bffd7fb](https://github.com/yonatangross/orchestkit/commit/bffd7fb57200605396945e0d69ec98d0cccb521d))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump happy-dom from 20.14.5 to 21.0.3 in /docs/site ([#4812](https://github.com/yonatangross/orchestkit/issues/4812)) ([10bc2a8](https://github.com/yonatangross/orchestkit/commit/10bc2a80d114829b0687f3bbce82a84c857e9cd3))
+* **deps:** bump the npm_and_yarn group across 5 directories with 1 update ([#4840](https://github.com/yonatangross/orchestkit/issues/4840)) ([2203d24](https://github.com/yonatangross/orchestkit/commit/2203d2477ae3460e9979591dc7e29481c5f6d00e))
+* **deps:** bump the npm-minor-patch group ([#4838](https://github.com/yonatangross/orchestkit/issues/4838)) ([74437a6](https://github.com/yonatangross/orchestkit/commit/74437a6f2dcabd6cf62a3c48556fd1a00ff9edf3))
+* **deps:** bump the npm-minor-patch group in /docs/site with 4 updates ([#4839](https://github.com/yonatangross/orchestkit/issues/4839)) ([ff633df](https://github.com/yonatangross/orchestkit/commit/ff633df955f7b6757ea552f817706c7acc542671))
+* **deps:** roll up 13 bot updates (patch/minor) ([#4818](https://github.com/yonatangross/orchestkit/issues/4818)) ([63957d4](https://github.com/yonatangross/orchestkit/commit/63957d40c88b3e71354a8c38046c6c26e39b77fe))
+
+## [10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185) (2026-10-21)
+
+
+### Bug Fixes
+
+* **site:** move the canonical host to orchestkit.dev for the orank gaps ([#4819](https://github.com/yonatangross/orchestkit/issues/4819)) ([c1a8065](https://github.com/yonatangross/orchestkit/commit/c1a806510c921eeb13d2342a19f67e79c1858ac4))
+
+## [10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184) (2026-10-21)
+
+
+### Features
+
+* **docs:** new OrchestKit icon, the rose window conductor ([#4833](https://github.com/yonatangross/orchestkit/issues/4833)) ([e852cdf](https://github.com/yonatangross/orchestkit/commit/e852cdf2c818a0759c910aba6137f7f02c9d501b))
+* **lesson-cards:** card-only mode for unattended lanes ([#4798](https://github.com/yonatangross/orchestkit/issues/4798)) ([7df532e](https://github.com/yonatangross/orchestkit/commit/7df532e480a9eced4cfc61fd15ca663bb17693f0))
+* **mods:** list prompt-enhancer in the marketplace as a beta mod ([#4816](https://github.com/yonatangross/orchestkit/issues/4816)) ([9feb211](https://github.com/yonatangross/orchestkit/commit/9feb21145e0c140b1141940bc8ed807c18dee02d))
+
+
+### Bug Fixes
+
+* **deps:** bump vite to 8.3.4 for the launch-editor advisories ([#4828](https://github.com/yonatangross/orchestkit/issues/4828)) ([366d1c7](https://github.com/yonatangross/orchestkit/commit/366d1c7d4ab67aa9f06effb81223951e1a7d7967))
+* **hooks:** three GA-blocking hook bugs from the verified picks ([#4692](https://github.com/yonatangross/orchestkit/issues/4692)) ([99d199e](https://github.com/yonatangross/orchestkit/commit/99d199ed6a4b2ed84ea1176a8595463d8b8261b9))
+* **lesson-cards:** ask fs.exists before stat-ing a floor dir's lessons.md ([#4821](https://github.com/yonatangross/orchestkit/issues/4821)) ([c8c9ef5](https://github.com/yonatangross/orchestkit/commit/c8c9ef552b449e67dcca08ff032293e50238c6e8))
+* **promote-lights:** keep the lights in memory when the store cannot be written ([#4820](https://github.com/yonatangross/orchestkit/issues/4820)) ([c119537](https://github.com/yonatangross/orchestkit/commit/c119537a9672331aa11473735a060158d871d28f))
+* **prompt-enhancer:** give Enhance, Undo and Send keyboard hotkeys ([#4832](https://github.com/yonatangross/orchestkit/issues/4832)) ([b5fa87b](https://github.com/yonatangross/orchestkit/commit/b5fa87b11ae243bb156cbaad93bd1963d497e0d8))
+* **secrets-veil:** pass a real image or PDF payload unmasked ([#4801](https://github.com/yonatangross/orchestkit/issues/4801)) ([c397329](https://github.com/yonatangross/orchestkit/commit/c39732948edb414ab6a1ead200d48cddd479ee99))
+* **secrets-veil:** stop masking Anthropic tool, message and request ids ([#4830](https://github.com/yonatangross/orchestkit/issues/4830)) ([b14948d](https://github.com/yonatangross/orchestkit/commit/b14948d769e01b62686692079fbbabdaccab88e7))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group in /src/hooks with 2 updates ([#4806](https://github.com/yonatangross/orchestkit/issues/4806)) ([056816a](https://github.com/yonatangross/orchestkit/commit/056816aad13985a7ad7a9aa11fdcdabfca736195))
+* **deps-dev:** bump vitest in /docs/site in the vitest group ([#4807](https://github.com/yonatangross/orchestkit/issues/4807)) ([75598b1](https://github.com/yonatangross/orchestkit/commit/75598b10b42c6ebda68df9170e80974e368df3aa))
+* **deps:** bump hono from 4.13.7 to 4.13.13 in /src/mcp-server ([#4824](https://github.com/yonatangross/orchestkit/issues/4824)) ([486959f](https://github.com/yonatangross/orchestkit/commit/486959f9c1c2c90460127efe598bc95715b4af7c))
+* **deps:** bump motion from 13.5.0 to 14.3.0 in /docs/site ([#4813](https://github.com/yonatangross/orchestkit/issues/4813)) ([330abd3](https://github.com/yonatangross/orchestkit/commit/330abd33e82b876abcdc502022c681b4e4447e2b))
+* **deps:** bump the npm-minor-patch group in /docs/site with 9 updates ([#4810](https://github.com/yonatangross/orchestkit/issues/4810)) ([17c0015](https://github.com/yonatangross/orchestkit/commit/17c0015744f3528e6f50311de6722a7a597b3ff5))
+* **deps:** bump the npm-minor-patch group with 2 updates ([#4809](https://github.com/yonatangross/orchestkit/issues/4809)) ([76aec54](https://github.com/yonatangross/orchestkit/commit/76aec5496fda8b6a3dad9875d3d88f0a09718435))
+* **docker:** bump node from `ebfe2f9` to `44fce69` ([#4829](https://github.com/yonatangross/orchestkit/issues/4829)) ([3eb38a5](https://github.com/yonatangross/orchestkit/commit/3eb38a50891dd0b0406d7362c62a770ed35ddccf))
+* **traffic:** snapshot week of 2026-10-12 ([#4815](https://github.com/yonatangross/orchestkit/issues/4815)) ([accece5](https://github.com/yonatangross/orchestkit/commit/accece5058f26bc98a0402b9ecb5437a54a0abc1))
+
+
+### Documentation
+
+* **security:** list hi@yonyon.ai as the security contact ([#4822](https://github.com/yonatangross/orchestkit/issues/4822)) ([a902631](https://github.com/yonatangross/orchestkit/commit/a9026316e88e6555b767ae57e4e2ee0c56d813e8))
+
+
+### CI/CD
+
+* bump the github-actions group with 6 updates ([#4814](https://github.com/yonatangross/orchestkit/issues/4814)) ([a643dd3](https://github.com/yonatangross/orchestkit/commit/a643dd355196f3b5596ce4975f85de9067474661))
+
 ## [10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183) (2026-10-18)
 
 

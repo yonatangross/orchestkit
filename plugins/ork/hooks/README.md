@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->163<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1408,7 +1408,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->162<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->163<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1424,6 +1424,10 @@ See the async hooks section above for detailed async hook patterns.
 (count unchanged at 169, 2026-10-09, #4689): `lifecycle/ask-fallback-injector` no longer wraps its reminder in a literal `<system-reminder>` tag. CC 2.1.292 escapes that tag in hook output, so the wrapper reached the model as visible markup; the hook now returns plain text as `additionalContext` and CC adds its own wrapper. New `__tests__/system-reminder-emit-guard.test.ts` fails on any handler source that carries the tag in code (comments stripped; `prompt/cache-break-detector` allowed because it only matches the tag in incoming text). No hooks.json registration moved.
 
 (count 169 to 160, skill-scoped 17 to 8, 2026-10-09, #4683): six `context: fork` skills lose their `hooks:` frontmatter, because Claude Code never runs a fork skill's frontmatter hooks (runs 913b0ab4 and c6fae215), so all nine registrations were dead. brainstorm, explore, fix-issue, implement and setup now run each loader as a body step, `echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/<id>`; implement runs `skill/pattern-consistency-enforcer` once over its changed files in Phase 6 instead of on every Write/Edit. `scripts/validate-registry.mjs` counts a `run-hook.mjs" <id>` body step as reachable (and as a ghost when the id is unregistered) but not as a hook. `skill/plan-context-loader` and its handler are deleted: visualize-plan was its only user and its STEP 0 already runs `scripts/detect-plan-context.sh`, which reports the same branch, base, commits and changed files. Entries-map total 180 to 179. Guard: `tests/skills/structure/test-fork-skills-have-no-hooks.mjs`.
+
+(count 162 to 163, global 152 to 153, 2026-10-09, #4297): Jev route executor observation moved off the PreToolUse hot path. `pretool/skill/skill-tracker` (Skill) is registered `async: true` again; it only writes telemetry and always returns silent success. The Agent observation moved out of the sync `pretool/task/sync-task-dispatcher` into the new `pretool/task/route-observer` (PreToolUse Agent, async 5s), registered in both hooks.json and the pretool entries map, so a blocked Agent attempt is still recorded. Async hook count 108 to 110; entries-map total 180 to 181.
+
+(count unchanged at 169, 2026-10-09, #4633): `lifecycle/pre-compact-task-done-prompt` no longer blocks a manual `/compact`. It blocked at about 90% context, overrode a choice the user had just made, and told them to type the same `/compact` again. A softer one-line notice has no clean channel on PreCompact, because a non-blocking hook's stdout becomes the summarizer's custom instructions (#3321), so the fire path now returns silent success. It still writes the telemetry row (`fired: true`, new `nudgeShown: false`) and the #1476 nudge-outcome marker, so the cooldown and the resolver keep their inputs and the row says the nudge was never shown. Moving the /clear nudge to a surface that fires before the user decides is a follow-up.
 
 (count 171 to 169, skill-scoped 19 to 17, 2026-10-08, #4682): deleted `skill/pr-context-loader` and `skill/review-dimensions-loader`, and their handlers. review-pr was their only user, and on main it ran as `context: fork`, where Claude Code drops a skill's frontmatter hooks, so neither ever ran (runs 913b0ab4 and c6fae215). Running review-pr inline would have turned them on: the PR context loader runs `gh pr view` with no number, which reads the checked-out branch's PR (title, base, head, 1000 characters of body), not the PR under review; the dimensions loader added a second output contract beside the workflow's findings schema (HOLD 6064156428). The skill reads its resolved target itself in Phase 1. Entries-map total 182 to 180.
 

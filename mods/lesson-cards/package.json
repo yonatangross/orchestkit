@@ -1,8 +1,8 @@
 {
   "name": "@orchestkit/mod-lesson-cards",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "type": "module",
-  "description": "Displays lesson hint cards when tool calls match known patterns. Additive surface during pilot.",
+  "description": "Displays lesson hint cards when tool calls match known patterns. Advisory only: a lesson never blocks a tool call.",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"
@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/node": "^24.13.5",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.5"
   },
   "license": "MIT"
 }

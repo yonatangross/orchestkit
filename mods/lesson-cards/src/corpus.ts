@@ -34,6 +34,8 @@ export interface LessonPattern {
   message: string;
   why?: string;
   example_fix?: string;
+  /** One exact command the lesson accepts (hq-ext lesson-patterns.json field). */
+  allowed_form?: string;
   window_lines?: number;
   repos?: string[];
 }

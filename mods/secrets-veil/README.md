@@ -36,6 +36,52 @@ Three layers, checked on every tool result:
    paths and identifiers measured 2.9 to 4.0. Masked output never reveals
    length beyond an 8-bullet floor.
 
+   Tokens this layer skips (the named-value and prefix layers still run on
+   them): a Subresource Integrity value (`sha512-...`), and since 0.0.8 a
+   token that is exactly an Anthropic API id: `toolu_01`, `srvtoolu_01`,
+   `msg_01` or `req_011C` followed by 18 to 26 letters and digits. These ids
+   are public request handles; 890 of 1000 generated `toolu_` ids crossed
+   the bar, so tool ids showed as bullets in transcripts and logs.
+
+   One exception: an image payload passes byte-equal. An image payload is
+   one long high-entropy run, so masking it made the API reject every image
+   Read. It passes only when all of these hold:
+   - it sits in a real image block at the top of the tool's output: the
+     Read tool's own shape `{ type: "image", file: { base64, type, ... } }`
+     (what `tool.call` sees on Claude Code 2.1.304) or the API block
+     `{ type: "image", source: { type: "base64", media_type, data } }`,
+     as the output itself, an element of an output array, or an element of
+     the output's `content` array. A look-alike deeper in a result is masked;
+   - its media type is PNG, JPEG or GIF (an exact allowlist);
+   - it is strict base64 under 16 million characters, and the WHOLE decoded
+     file is a real image of its type, not only its framing: PNG with a
+     valid IHDR, at least one IDAT, right CRCs and IEND at the end; JPEG
+     with a quantization table, a frame header of nonzero size, a scan with
+     data and EOI at the end; GIF with at least one image block of nonzero
+     size and the trailer at the end. PNG pixel data must also inflate
+     (bounded, 64 MiB) to exactly its expected rows, each with a legal
+     filter byte. WebP is not on the list: its bitstream cannot be proven
+     without a full decoder, so a WebP Read stays masked while the veil is on;
+   - its metadata can be read: a PNG with compressed text (zTXt, or iTXt
+     with compression on) is not exempt;
+   - no named value appears in the decoded bytes (as Latin-1, UTF-8 or
+     UTF-16LE) or in the base64 text, and no vendor shape (`sk-ant-`,
+     `AKIA`, a PEM header, ...) appears in the decoded bytes. If one does,
+     the whole result is withheld, never shown with corrupted image bytes.
+   Every other field of the block is masked as usual.
+
+   What this exemption does not cover, in plain words:
+   - **The veil does not see inside the pixels.** A secret drawn in the
+     image reaches the model; text kept in metadata is checked for named
+     values and vendor shapes only.
+   - **PDF reads stay masked.** The API reads the text of a PDF, and the
+     veil cannot, so a PDF payload is masked and a PDF Read fails while the
+     veil is on.
+   - **Any producer of the same shape gets the same pass.** The veil cannot
+     tell a Read from another tool at this layer, so an image block of the
+     same shape at the top of another tool's output passes under the same
+     checks.
+
 If zero named values resolve at `session.start`, the mod emits one
 `$.ui.notice` saying the veil is running on value patterns and entropy only.
 Silence is not allowed: an operator must know the named layer is empty.

@@ -1,0 +1,15 @@
+{
+  "id": "git-ls-files-quotepath-blind",
+  "allowed_form": "git -c core.quotePath=false ls-files | grep -qxF \"$name\"",
+  "type": "simple",
+  "pattern": "^(?![^\\n]*core\\.quotePath[^\\n]*false)(?![^\\n]*(?:ls-files|\\x2d\\x2dname-only|\\x2d\\x2dporcelain)[^\\n]*\\s-z\\b)(?=[^\\n]*\\bgit\\b[^\\n]*(?:\\bls-files\\b|\\x2d\\x2dname-only\\b|\\x2d\\x2dporcelain\\b))(?:[^\\n]*\\|[^\\n]*\\b(?:(?:grep|comm|sed|xargs)\\b|awk\\b(?!\\s+(['\"])\\s*(?:(?:NF\\s*)?\\{\\s*(\\w+)\\+\\+\\s*;?\\s*\\}\\s*END\\s*\\{\\s*print\\s+\\2\\s*(?:\\+\\s*0\\s*)?;?\\s*\\}|END\\s*\\{\\s*print\\s+NR\\s*;?\\s*\\})\\s*\\1(?=\\s*(?:$|[|;&)]))))|[^\\n]*\\|\\s*while\\s+read\\b|[^\\n]*\\$\\([^)\\n]*\\bgit\\b[^)\\n]*(?:ls-files|\\x2d\\x2dname-only|\\x2d\\x2dporcelain)[^)\\n]*\\)[^\\n]*(?:==|\\s=\\s|!=|\\*|\\bin\\b))",
+  "message": "A \"not tracked\" read from `git ls-files` is blind to non-ASCII paths. core.quotePath defaults to TRUE, so a Hebrew filename or an em-dash directory prints C-quoted and octal-escaped, and a literal match against the real name never fires. Use `-z` when the consumer takes NUL, or `git -c core.quotePath=false` for a line-oriented read. The same escaping applies to `git status --porcelain` (v1) and `git diff --name-only`.",
+  "category": "tool_mastery",
+  "why": "Measured 2026-09-09 on platform #11581: a lane classified two paths as untracked with `git ls-files`, moved them out of the worktree, ran `git add -A`, and recorded the moves as deletions. Four files were lost from the commit and restored by hand. Both paths carried non-ASCII characters, so the escaping made a fully tracked file read as absent. The escaping is a DISPLAY decision that silently changes the bytes a matcher sees, so 'not present in the output' answers 'not present under its escaped spelling', never 'not tracked'.",
+  "example_fix": "# WRONG - a tracked non-ASCII path reads as untracked\ngit ls-files | grep -qxF \"$name\" || mv \"$name\" ../\n\n# RIGHT - NUL-delimited, no escaping at all\ngit ls-files -z | tr '\\0' '\\n' | grep -qxF \"$name\"\n\n# RIGHT - line-oriented, escaping turned off for this invocation\ngit -c core.quotePath=false ls-files | grep -qxF \"$name\"\n\n# BEST for one path - the exit code IS the answer, no text matching at all\ngit ls-files --error-unmatch -- \"$name\" >/dev/null 2>&1",
+  "tool_names": [
+    "Bash"
+  ],
+  "severity": "block",
+  "added": "2026-09-10"
+}
