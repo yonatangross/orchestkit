@@ -27,6 +27,14 @@
 
 set -euo pipefail
 
+# Every row sets the mode it tests, so the caller's environment must not.
+# ORK_EXPECT_JEV outranks the legacy ORK_EXPECT_JEV_SHADOW that run_shadow
+# sets: a session with ORK_EXPECT_JEV=act (or 1) turned the shadow rows into
+# act mode and failed the record row in the local pre-push, while CI, which
+# sets none of these, stayed green.
+unset ORK_EXPECT_JEV ORK_EXPECT_JEV_SHADOW ORK_EXPECT_JEV_ENDPOINT ORK_EXPECT_CONFIG \
+  ORK_EXPECT_SESSION AB_SESSION ORK_TYPESAFE_API_KEY
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 SH="$PROJECT_ROOT/src/skills/expect/scripts/jev-shadow.sh"
