@@ -269,6 +269,7 @@ export function matchBashCommand(
       severity: pat.severity,
       message: pat.message,
       fix: pat.example_fix,
+      allowedForm: pat.allowed_form,
       source: 'pattern',
     });
   }
@@ -365,7 +366,7 @@ export function matchFileEdit(
     // glob, exclude and check_patterns steps below do not apply to them.
     if (pat.type === 'block-check' || pat.type === 'dockerfile-check') {
       if (typedCheckFires(pat, filePath, content)) {
-        matches.push({ id: pat.id, severity: pat.severity, message: pat.message, fix: pat.example_fix, source: 'pattern' });
+        matches.push({ id: pat.id, severity: pat.severity, message: pat.message, fix: pat.example_fix, allowedForm: pat.allowed_form, source: 'pattern' });
       }
       continue;
     }
@@ -430,6 +431,7 @@ export function matchFileEdit(
       severity: pat.severity,
       message: pat.message,
       fix: pat.example_fix,
+      allowedForm: pat.allowed_form,
       source: 'pattern',
     });
   }

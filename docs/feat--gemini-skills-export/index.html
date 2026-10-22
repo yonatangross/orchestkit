@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Export ork skills to the Gemini app</title>
+<style>
+  body { font: 16px/1.55 system-ui, sans-serif; max-width: 780px; margin: 40px auto; padding: 0 20px; color: #1d1d1b; background: #faf8f3; }
+  h1 { font-size: 22px; } h2 { font-size: 18px; margin-top: 28px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { border: 1px solid #d8d3c7; padding: 6px 10px; text-align: left; vertical-align: top; }
+  .ok { color: #1f5e3a; } .no { color: #8a2d1f; }
+  label { display: block; margin: 4px 0; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid #1d1d1b; background: #fff; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  code { background: #f1efe8; padding: 1px 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Export ork skills to the Gemini app</h1>
+<p>The Gemini app takes a skill as a <code>SKILL.md</code> file, or a folder or .zip with a <code>SKILL.md</code> in its main folder (Gemini Apps Help, answer 17094296). <code>scripts/export-gemini-skills.mjs</code> turns chosen ork skills into one .zip each, and refuses any skill that would not work in a chat app.</p>
+
+<h2>What the script checks</h2>
+<table>
+  <tr><th>Rule</th><th>Why</th></tr>
+  <tr><td>Name is lowercase words joined by hyphens, and matches the folder</td><td>Gemini app rule</td></tr>
+  <tr><td>Description is 1024 characters or less</td><td>Gemini app limit</td></tr>
+  <tr><td>Plain-text files only, no hidden files such as .DS_Store</td><td>Gemini app upload rules</td></tr>
+  <tr><td>No MCP tool names, subagent calls, GitHub CLI calls or hook files in the text</td><td>A chat app has no tools to run them</td></tr>
+  <tr><td>All zips together under 100 MB</td><td>Gemini app upload limit</td></tr>
+</table>
+<p>The frontmatter is cut to <code>name</code> and <code>description</code>. <code>test-cases.json</code> stays out of the zip; it is for our own grading.</p>
+
+<h2>First run on the proposed set of 8</h2>
+<table>
+  <tr><th>Skill</th><th>Result</th></tr>
+  <tr><td>business-case</td><td class="ok">exported, 9,859 bytes</td></tr>
+  <tr><td>prioritization</td><td class="ok">exported</td></tr>
+  <tr><td>market-sizing</td><td class="ok">exported</td></tr>
+  <tr><td>user-research</td><td class="ok">exported</td></tr>
+  <tr><td>okr-design</td><td class="ok">exported</td></tr>
+  <tr><td>scope-appropriate-architecture</td><td class="ok">exported</td></tr>
+  <tr><td>competitive-analysis</td><td class="no">refused: runs the GitHub CLI</td></tr>
+  <tr><td>architecture-decision-record</td><td class="no">refused: runs the GitHub CLI</td></tr>
+</table>
+
+<h2>Pick skills for a run</h2>
+<div id="picks"></div>
+<button id="copy">Copy as prompt</button>
+<script>
+  const names = ['business-case','prioritization','market-sizing','user-research','okr-design','scope-appropriate-architecture'];
+  const box = document.getElementById('picks');
+  names.forEach(function (n) {
+    const l = document.createElement('label');
+    l.innerHTML = '<input type="checkbox" checked value="' + n + '"> ' + n;
+    box.appendChild(l);
+  });
+  document.getElementById('copy').addEventListener('click', function () {
+    const chosen = Array.from(box.querySelectorAll('input:checked')).map(function (i) { return i.value; });
+    const text = 'Run node scripts/export-gemini-skills.mjs --skills ' + chosen.join(',') +
+      ' and give me the zips from dist/gemini-skills/ with the manifest.';
+    navigator.clipboard.writeText(text);
+    this.textContent = 'Copied';
+  });
+</script>
+</body>
+</html>

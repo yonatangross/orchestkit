@@ -246,4 +246,10 @@ updates:
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+    # One grouped PR for patch and minor image updates, like every npm tree above.
+    groups:
+      docker-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
     open-pull-requests-limit: 3

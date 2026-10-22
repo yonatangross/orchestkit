@@ -1,0 +1,12 @@
+{
+  "slug": "gemini-skills-export",
+  "source": "docs/feat\u002d\u002dgemini-skills-export/index.html",
+  "title": "Gemini skill export",
+  "description": "Inspect the local skill export rules, zip files, and refusal cases before a manual upload.",
+  "tags": [
+    "skills",
+    "gemini",
+    "export"
+  ],
+  "date": "2026-10-15"
+}

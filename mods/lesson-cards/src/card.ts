@@ -62,100 +62,27 @@ export function buildCard(lesson: MatchedLesson, requestId: string, el: CardElem
   });
 }
 
-/** Longest deny line, in code points; the card above it shows the full lesson and fix. */
-export const MAX_DENY_CHARS = 240;
-
-/** Longest short fix inside the deny line, in code points. */
-export const MAX_FIX_CHARS = 110;
-
-/** Cut to at most max code points (Array.from never splits a surrogate pair), marking a cut with "...". */
-export function cutCodePoints(text: string, max: number): string {
-  const points = Array.from(text);
-  return points.length > max ? `${points.slice(0, max - 3).join('')}...` : text;
-}
-
-const COMMENT = /^\s*(#|\/\/)/;
-const RIGHT_HEADING = /\b(RIGHT|BEST|FIX|DO)\b/i;
-const WRONG_HEADING = /\b(WRONG|BAD|DON'?T|DO NOT|NEVER|AVOID)\b/i;
-
-/**
- * The one line of a lesson's fix worth sending with a refusal. Fixes are
- * usually WRONG / RIGHT example blocks, so prefer the first code line under a
- * RIGHT or BEST heading; else the first code line outside a WRONG section;
- * else the first non-empty line. Undefined when the lesson has no fix.
- */
-export function shortFix(fix: string | undefined): string | undefined {
-  if (!fix) return undefined;
-  const lines = fix.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  let section: 'right' | 'wrong' | 'none' = 'none';
-  let firstNeutral: string | undefined;
-  for (const line of lines) {
-    if (COMMENT.test(line)) {
-      // A neutral comment ends a WRONG block ("use this instead").
-      // WRONG is tested first: "# WRONG: Do not use this" also contains "Do".
-      section = WRONG_HEADING.test(line) ? 'wrong' : RIGHT_HEADING.test(line) ? 'right' : 'none';
-      continue;
-    }
-    if (section === 'right') return cutCodePoints(line, MAX_FIX_CHARS);
-    if (section === 'none' && firstNeutral === undefined) firstNeutral = line;
-  }
-  // Never offer a WRONG example as the fix: with no code outside a WRONG
-  // block there is no short fix.
-  const sawHeading = lines.some(l => COMMENT.test(l));
-  const pick = firstNeutral ?? (sawHeading ? undefined : lines[0]);
-  return pick === undefined ? undefined : cutCodePoints(pick.replace(/\s+/g, ' '), MAX_FIX_CHARS);
-}
-
-/**
- * The block-lesson question: the lesson id and "Proceed anyway?" only.
- * The card above the dialog already shows the lesson; repeating the message
- * here drew the same paragraph twice on screen.
- */
-export function askQuestion(lesson: MatchedLesson): string {
-  return `lesson ${lesson.id}: Proceed anyway?`;
-}
-
-/**
- * True when why is a user cancel (Cancel button or Escape). Those omit Fix.
- * The deny starts with "Cancelled: " so Claude Code's 2.1.283 renderer leaves
- * it alone (same pass-through as "Error: "); the rest is "by you; not run."
- * so Cancelled is said once (not "Cancelled: Cancelled by you").
- */
-export function isUserCancel(why: string): boolean {
-  return (
-    why === 'Cancelled: by you; not run.' ||
-    why.startsWith('Cancelled: ') ||
-    why === 'by you; not run.' ||
-    why === 'Cancelled by you; not run.'
-  );
-}
-
-/**
- * The one-line reason a refused call carries: why, the lesson id, and (for a
- * real block, not a user cancel) a short fix. A cancel uses
- * "Cancelled: by you; not run." so the Cancelled: head avoids Error: glue and
- * Fix is omitted.
- */
-export function denyLine(lesson: MatchedLesson, why: string): string {
-  const fix = isUserCancel(why) ? undefined : shortFix(lesson.fix);
-  const tail = fix ? ` Fix: ${fix}` : '';
-  return cutCodePoints(`${why} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
-}
-
 /**
  * Format lesson context for model consumption.
  *
  * Returns the message and fix (if any), capped at a reasonable length.
- * This is added to the tool.call return context array.
+ * This is added to the tool.call return context array. Lessons are advisory:
+ * a block-severity pattern is marked so, and the call still runs.
  */
+export const BLOCK_ADVISORY_PREFIX = 'BLOCK-SEVERITY LESSON (advisory, not enforced): ';
+
 export function formatContext(lesson: MatchedLesson, maxLength = 32000): string {
-  let text = `[lesson:${lesson.id}] ${lesson.message}`;
+  const prefix = lesson.severity === 'block' && lesson.source === 'pattern' ? BLOCK_ADVISORY_PREFIX : '';
+  let text = `${prefix}[lesson:${lesson.id}] ${lesson.message}`;
   if (lesson.fix) {
     text += ` Fix: ${lesson.fix}`;
   }
-  // Cap at maxLength to avoid context bloat
-  if (text.length > maxLength) {
-    text = text.slice(0, maxLength - 3) + '...';
+  // The ALLOWED-FORM line is the command the agent should run instead, so it is
+  // never cut by the cap: the body is trimmed to make room for it.
+  const allowed = lesson.allowedForm ? `\nALLOWED-FORM: ${lesson.allowedForm}` : '';
+  const room = Math.max(0, maxLength - allowed.length);
+  if (text.length > room) {
+    text = text.slice(0, Math.max(0, room - 3)) + '...';
   }
-  return text;
+  return text + allowed;
 }
