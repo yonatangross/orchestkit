@@ -1,9 +1,12 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import Image from "next/image";
-import { SITE } from "@/lib/constants";
+import { BRAND, SITE } from "@/lib/constants";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
+    // The logo goes to the home page. fumadocs defaults to "/" already; it is
+    // set here so a layout change cannot drop it silently.
+    url: "/",
     // George stays the mark (operator, 2026-09-25), cropped to his head
     // (public/brand/george-nav.png, 84px cut from george-badge.png) and shown
     // at 30px on a rounded square. The whole 128px badge at 22px, suit and
@@ -13,7 +16,7 @@ export const baseOptions: BaseLayoutProps = {
       <span className="inline-flex items-center gap-2.5 font-semibold tracking-tight text-fd-foreground">
         <Image
           data-brand-mark
-          src="/brand/george-nav.png"
+          src={BRAND.mark}
           alt=""
           width={30}
           height={30}
@@ -30,15 +33,52 @@ export const baseOptions: BaseLayoutProps = {
   },
   links: [
     {
+      type: "menu",
       text: "Docs",
       url: "/docs/foundations/overview",
       active: "nested-url",
+      items: [
+        { text: "Get started", url: "/docs/getting-started", description: "Install OrchestKit in Claude Code or another agent." },
+        { text: "First 10 minutes", url: "/docs/getting-started/first-10-minutes", description: "A guided first session." },
+        { text: "Overview", url: "/docs/foundations/overview", description: "How skills, agents and hooks fit together." },
+        { text: "Skills", url: "/docs/skills", description: "Reusable workflows you call by name." },
+        { text: "Agents", url: "/docs/agents", description: "Specialists the skills hand work to." },
+        { text: "Hooks", url: "/docs/hooks", description: "Gates that run on every tool call." },
+        { text: "Memory", url: "/docs/memory", description: "What carries over between sessions." },
+        { text: "Guides", url: "/docs/guides", description: "Stack and host specific walkthroughs." },
+        { text: "What's new in v10", url: "/docs/whats-new-v10", description: "The changes in this release." },
+        { text: "Troubleshooting", url: "/docs/troubleshooting", description: "Fixes for common problems." },
+      ],
     },
     {
+      type: "menu",
       text: "Cookbook",
-      // The index lists all 8 recipes; nested-url then marks every recipe active.
+      // The index lists every recipe; nested-url then marks every recipe active.
       url: "/docs/cookbook",
       active: "nested-url",
+      items: [
+        { text: "All recipes", url: "/docs/cookbook", description: "Every recipe on one page." },
+        { text: "Implement a feature", url: "/docs/cookbook/implement-feature" },
+        { text: "Claude Design to PR", url: "/docs/cookbook/claude-design-handoff" },
+        { text: "Review a pull request", url: "/docs/cookbook/review-pr" },
+        { text: "Fix a GitHub issue", url: "/docs/cookbook/fix-github-issue" },
+        { text: "Task management", url: "/docs/cookbook/task-management" },
+        { text: "Set up memory", url: "/docs/cookbook/setup-memory" },
+        { text: "Create a demo video", url: "/docs/cookbook/create-demo-video" },
+        { text: "Run a security audit", url: "/docs/cookbook/security-audit" },
+      ],
+    },
+    {
+      type: "menu",
+      text: "Reference",
+      url: "/docs/reference",
+      active: "nested-url",
+      items: [
+        { text: "All reference", url: "/docs/reference", description: "Every skill, agent and hook." },
+        { text: "Skills", url: "/docs/reference/skills" },
+        { text: "Agents", url: "/docs/reference/agents" },
+        { text: "Hooks", url: "/docs/reference/hooks" },
+      ],
     },
     {
       text: "Changelog",
@@ -46,13 +86,13 @@ export const baseOptions: BaseLayoutProps = {
       active: "url",
     },
     {
-      text: "Reference",
-      url: "/docs/reference",
-      active: "nested-url",
-    },
-    {
       text: "Community",
       url: "/community",
+    },
+    {
+      text: "About",
+      url: "/about",
+      active: "url",
     },
     // Declared here instead of `githubUrl`: fumadocs renders that icon as an
     // unlabeled svg role="img" (axe svg-img-alt, serious, on every page). The

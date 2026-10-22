@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0) (2026-10-22)
+
+
+### Features
+
+* **mcp-visual-output:** glyph card MCP App proof, no SDK ([#4663](https://github.com/yonatangross/orchestkit/issues/4663)) ([4dec429](https://github.com/yonatangross/orchestkit/commit/4dec42961880c018f8abea087b3d998c35cd5d39))
+* **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav ([#4823](https://github.com/yonatangross/orchestkit/issues/4823)) ([980c9bf](https://github.com/yonatangross/orchestkit/commit/980c9bfbde9e90afb838ad13747e048fec576d1d))
+
+
+### Bug Fixes
+
+* **hooks:** stdin watchdog defers one turn before an empty pipe ([#4849](https://github.com/yonatangross/orchestkit/issues/4849)) ([640a2a5](https://github.com/yonatangross/orchestkit/commit/640a2a590abfd86f4e734dc155a07ce23e681f4a))
+
 ## [10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187) (2026-10-22)
 
 

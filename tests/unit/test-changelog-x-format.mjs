@@ -101,7 +101,7 @@ check('cleanItem stops @mentions', () => {
 check('docsLink carries the UTM parameters and the version anchor', () => {
   assert.equal(
     docsLink('10.1.0'),
-    'https://orchestkit.yonyon.ai/changelog?utm_source=x&utm_medium=social&utm_campaign=v10.1.0#10.1.0',
+    'https://orchestkit.dev/changelog?utm_source=x&utm_medium=social&utm_campaign=v10.1.0#10.1.0',
   );
 });
 

@@ -1,7 +1,7 @@
 # OrchestKit Docs MCP server (stdio) — used by MCP registries (e.g. Glama) to
 # boot the server and run introspection checks, and by anyone preferring a
 # containerized stdio MCP client over the hosted Streamable HTTP endpoint at
-# https://orchestkit.yonyon.ai/api/mcp.
+# https://orchestkit.dev/api/mcp.
 #
 #   docker build -t orchestkit-docs-mcp .
 #   docker run -i --rm orchestkit-docs-mcp

@@ -145,7 +145,7 @@ export async function GET(req: Request) {
 	if (!query) {
 		return problemResponse(
 			{
-				type: "https://orchestkit.yonyon.ai/docs/reference",
+				type: "https://orchestkit.dev/docs/reference",
 				title: "Missing query parameter",
 				status: 400,
 				detail:

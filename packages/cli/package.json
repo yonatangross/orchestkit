@@ -2,7 +2,7 @@
   "name": "orchestkit",
   "version": "0.1.0",
   "description": "Official CLI for OrchestKit, install the Claude Code plugin, search and read the docs, and query the public docs API from your shell or a script.",
-  "homepage": "https://orchestkit.yonyon.ai/developers",
+  "homepage": "https://orchestkit.dev/developers",
   "type": "module",
   "bin": {
     "orchestkit": "dist/cli.js",

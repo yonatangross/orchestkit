@@ -47,7 +47,7 @@ EXAMPLES
   orchestkit mcp stdio > mcp.json
 
 The docs API is public, read-only and unauthenticated. Rate limit: 120 requests
-per minute per IP per endpoint. Policy: https://orchestkit.yonyon.ai/api-policy
+per minute per IP per endpoint. Policy: https://orchestkit.dev/api-policy
 `;
 
 export type ParsedArgs = {
@@ -105,7 +105,7 @@ function formatSearch(
 	baseUrl: string,
 ): string {
 	if (results.length === 0) {
-		return "No matches. Try a broader query, or browse https://orchestkit.yonyon.ai/llms.txt\n";
+		return "No matches. Try a broader query, or browse https://orchestkit.dev/llms.txt\n";
 	}
 	const lines = results.map((r, i) => {
 		const title = r.title ?? r.url;
@@ -148,7 +148,7 @@ export async function run(
 						"  /plugin marketplace add yonatangross/orchestkit",
 						"  /plugin install ork",
 						"",
-						"Requires Claude Code. Docs: https://orchestkit.yonyon.ai/docs/getting-started/installation",
+						"Requires Claude Code. Docs: https://orchestkit.dev/docs/getting-started/installation",
 						"",
 					].join("\n"),
 				);

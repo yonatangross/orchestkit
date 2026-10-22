@@ -14,7 +14,7 @@ the rule GitHub renders with, not by the gate's own idea of it.
 import re
 import sys
 
-ALLOWED = ("github.com", "www.github.com", "orchestkit.yonyon.ai")
+ALLOWED = ("github.com", "www.github.com", "orchestkit.dev", "orchestkit.yonyon.ai")
 
 
 def strip_code(text: str) -> str:

@@ -6,9 +6,9 @@
 //   - errors use RFC 9457 Problem Details, served as application/json
 //   - every response carries IETF RateLimit-* headers
 //   - a 429 carries Retry-After
-// See https://orchestkit.yonyon.ai/api-policy
+// See https://orchestkit.dev/api-policy
 
-export const DEFAULT_BASE_URL = "https://orchestkit.yonyon.ai";
+export const DEFAULT_BASE_URL = "https://orchestkit.dev";
 
 export type Problem = {
 	type?: string;

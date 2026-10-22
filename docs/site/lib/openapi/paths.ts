@@ -345,7 +345,7 @@ export const OPENAPI_PATHS = {
 	},
 	"/agent/identity": {
 		// Lives outside /api, so the v1 alias server does not apply to it.
-		servers: [{ url: "https://orchestkit.yonyon.ai", description: "Production" }],
+		servers: [{ url: "https://orchestkit.dev", description: "Production" }],
 		post: {
 			operationId: "registerAgentIdentity",
 			summary: "Register an optional agent identity (auth.md identity endpoint)",
@@ -444,7 +444,7 @@ export const OPENAPI_PATHS = {
 						"WWW-Authenticate": {
 							schema: { type: "string" },
 							description:
-								'Bearer realm="OrchestKit Docs API", [error="invalid_token", error_description="..."], resource_metadata="https://orchestkit.yonyon.ai/.well-known/oauth-protected-resource"',
+								'Bearer realm="OrchestKit Docs API", [error="invalid_token", error_description="..."], resource_metadata="https://orchestkit.dev/.well-known/oauth-protected-resource"',
 						},
 					},
 					content: {
