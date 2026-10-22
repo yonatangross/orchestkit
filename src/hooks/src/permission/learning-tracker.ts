@@ -124,7 +124,7 @@ function shouldAutoApprove(command: string): boolean {
     if (prefix.length === 0) continue;
     if (!normalizedCommand.startsWith(prefix)) continue;
     const next = normalizedCommand.charAt(prefix.length);
-    if (next === '' || /\s/.test(next) || /\s$/.test(pattern)) {
+    if (next === '' || /\s/.test(next)) {
       return true;
     }
   }

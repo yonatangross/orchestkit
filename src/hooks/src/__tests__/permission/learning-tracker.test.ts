@@ -726,6 +726,11 @@ describe('learningTracker honours the shared reject list', () => {
     expect(allowed('git stash drop')).toBe(false);
   });
 
+  test('a stored pattern with trailing whitespace still needs a word boundary', () => {
+    learn(['git st ']);
+    expect(allowed('git stash drop')).toBe(false);
+  });
+
   test('control: a learned command and its arguments still allow', () => {
     learn(['git status']);
     expect(allowed('git status')).toBe(true);
