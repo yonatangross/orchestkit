@@ -11,7 +11,7 @@ const MCP_REGISTRY_URL =
 
 /**
  * A code path that may wrap after each "/" and "." but never mid-segment:
- * with overflow-wrap alone, "https://orchestkit.yonyon.ai/api/mcp" split as
+ * with overflow-wrap alone, "https://orchestkit.dev/api/mcp" split as
  * "api/m" + "cp" at 390 (QA N11). Exported for the unit test.
  */
 export function Path({ text }: { text: string }) {

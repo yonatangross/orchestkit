@@ -22,7 +22,7 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 ## Execution (run this, do not ask first)
 
 **A human asking "how do I use this" gets a URL, not a paraphrase:**
-https://orchestkit.yonyon.ai/docs/reference/skills/glyph#examples (what it draws,
+https://orchestkit.dev/docs/reference/skills/glyph#examples (what it draws,
 the two picks, three real renders, the exact invocation; generated from this
 skill's `skills/glyph/examples/_featured.md`, so it cannot drift from the skill).
 

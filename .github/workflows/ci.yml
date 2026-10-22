@@ -537,7 +537,7 @@ jobs:
             echo "::error::     \"slug\": \"<slug>\", \"source\": \"<the path above>\", title, description, tags, date"
             echo "::error::  2. run: npm run build (regenerates lab-data.ts and public/lab/)"
             echo "::error::Then link it in the PR body as"
-            echo "::error::  https://orchestkit.yonyon.ai/lab/<slug>.html"
+            echo "::error::  https://orchestkit.dev/lab/<slug>.html"
             echo "::error::(the .html suffix is required; /lab/<slug> returns 404)"
             exit 1
           fi

@@ -1,0 +1,34 @@
+{
+  "serves": "orchestkit-v10-ga-2026-10-20",
+  "page": "index.html",
+  "title": "OrchestKit v10.0.0 GA: what ships",
+  "date": "2026-10-20",
+  "release": {
+    "from": "10.0.0-beta.184",
+    "to": "10.0.0",
+    "mechanism": "release-please release-as + prerelease false"
+  },
+  "contributors": {
+    "people": 7,
+    "bots": 3,
+    "source": "https://api.github.com/repos/yonatangross/orchestkit/contributors",
+    "snapshot": "2026-10-20"
+  },
+  "nav_menus": [
+    "Docs",
+    "Cookbook",
+    "Reference"
+  ],
+  "gaps": [
+    "folders without a landing page: cookbook/roles, skills/by-category, skills/spotlights, hooks/spotlights, reference/hooks/spotlights, 2 skill reference folders",
+    "hook spotlights duplicated in hooks/ and reference/hooks/",
+    "thin sections: troubleshooting 3, analytics 1, agents 5",
+    "roles missing from the Cookbook menu"
+  ],
+  "screenshots": {
+    "folder": "~/.floor/desks/grok/shots/orchestkit-v10-ga/",
+    "count": 13,
+    "source": "local build of feat/orchestkit-v10-ga"
+  },
+  "nav_icon": "keep George (operator decision)"
+}

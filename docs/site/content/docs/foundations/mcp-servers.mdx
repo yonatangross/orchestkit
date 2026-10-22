@@ -371,12 +371,12 @@ The servers above are ones OrchestKit *consumes*. OrchestKit also *publishes* on
 
 | Surface | URL |
 |---------|-----|
-| Streamable HTTP endpoint | `https://orchestkit.yonyon.ai/api/mcp` (POST; JSON-RPC 2.0) |
-| Server card | [`/.well-known/mcp/server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/server-card.json) |
+| Streamable HTTP endpoint | `https://orchestkit.dev/api/mcp` (POST; JSON-RPC 2.0) |
+| Server card | [`/.well-known/mcp/server-card.json`](https://orchestkit.dev/.well-known/mcp/server-card.json) |
 | Local stdio image | `docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp` |
 | Registry entry | `io.github.yonatangross/orchestkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit) |
 
-Two tools: `orchestkit_docs_search` (ranked pages with titles and URLs) and `orchestkit_docs_get` (one page as Markdown by path). The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.yonyon.ai/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
+Two tools: `orchestkit_docs_search` (ranked pages with titles and URLs) and `orchestkit_docs_get` (one page as Markdown by path). The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.dev/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
 
 ## OrchestKit Actions MCP Server
 
@@ -384,8 +384,8 @@ OrchestKit also publishes a second MCP server: the **OrchestKit Actions MCP** ex
 
 | Surface | URL |
 |---------|-----|
-| Streamable HTTP endpoint | `https://orchestkit.yonyon.ai/api/mcp/actions` (POST; JSON-RPC 2.0) |
-| Server card | [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/actions-server-card.json) |
+| Streamable HTTP endpoint | `https://orchestkit.dev/api/mcp/actions` (POST; JSON-RPC 2.0) |
+| Server card | [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.dev/.well-known/mcp/actions-server-card.json) |
 
 Three tools:
 

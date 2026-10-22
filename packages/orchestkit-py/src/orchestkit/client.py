@@ -1,4 +1,4 @@
-"""urllib client for https://orchestkit.yonyon.ai (search, ask, read)."""
+"""urllib client for https://orchestkit.dev (search, ask, read)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
-DEFAULT_BASE_URL = "https://orchestkit.yonyon.ai"
+DEFAULT_BASE_URL = "https://orchestkit.dev"
 USER_AGENT = "orchestkit-py/0.1.0"
 
 

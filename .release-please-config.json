@@ -1,9 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "simple",
-  "versioning": "prerelease",
-  "prerelease": true,
-  "prerelease-type": "beta",
+  "prerelease": false,
   "include-component-in-tag": false,
   "changelog-sections": [
     { "type": "feat", "section": "Features", "hidden": false },
@@ -17,6 +15,7 @@
   "bootstrap-sha": "c5fbeca5028a6cb309cef3bb1f2d6cc7c2f2ddfa",
   "packages": {
     ".": {
+      "release-as": "10.0.0",
       "exclude-paths": ["docs/adr", "docs/audits", "docs/catalog-currency-audit"],
       "extra-files": [
         {

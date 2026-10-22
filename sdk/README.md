@@ -1,9 +1,9 @@
 # OrchestKit Go SDK
 
-Official Go client for the [OrchestKit](https://orchestkit.yonyon.ai) public
+Official Go client for the [OrchestKit](https://orchestkit.dev) public
 docs API.
 
-Homepage: https://orchestkit.yonyon.ai
+Homepage: https://orchestkit.dev
 
 ```
 go get github.com/yonatangross/orchestkit/sdk
@@ -15,4 +15,4 @@ hits, rate, err := c.Search("hooks", 5)
 ```
 
 The API is public, read-only, and unauthenticated. See
-https://orchestkit.yonyon.ai/sdk
+https://orchestkit.dev/sdk

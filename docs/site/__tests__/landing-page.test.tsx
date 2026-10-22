@@ -72,6 +72,7 @@ vi.mock("..//components/optimized-thumbnail", () => ({
 
 // Mock constants
 vi.mock("..//lib/constants", () => ({
+  BRAND: { mark: "/brand/george-nav.png" },
   SITE: {
     name: "OrchestKit",
     version: "6.3.0",

@@ -1,13 +1,13 @@
 /**
  * Docs tools — read-only documentation search + Markdown fetch, proxying the
  * public OrchestKit docs API (no auth). Mirrors the tool surface of the remote
- * Streamable HTTP server at https://orchestkit.yonyon.ai/api/mcp.
+ * Streamable HTTP server at https://orchestkit.dev/api/mcp.
  */
 
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-const DOCS_ORIGIN = process.env.ORCHESTKIT_DOCS_ORIGIN ?? 'https://orchestkit.yonyon.ai';
+const DOCS_ORIGIN = process.env.ORCHESTKIT_DOCS_ORIGIN ?? 'https://orchestkit.dev';
 
 type ToolText = { content: Array<{ type: 'text'; text: string }> };
 
