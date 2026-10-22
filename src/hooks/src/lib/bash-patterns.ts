@@ -39,6 +39,14 @@ export const REJECT_PATTERNS: RegExp[] = [
   // under Bash(find:*); we mirror it.
   /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok|exec|execdir)\b/,
 
+  // git options that run a configured or supplied program, write a file, or
+  // point git at another repository. Top-level options are exact; subcommand
+  // long options match on a 3-letter prefix (git accepts abbreviations);
+  // short -O may carry its value attached or sit inside a flag bundle.
+  /^git\b[^\n]*?\s(?:(?:-c|-C|--config-env|--git-dir|--work-tree|--exec-path)(?=[=\s]|$)|--(?:upl|rec|exe|out|ext|ope)[a-z-]*(?=[=\s]|$)|-[A-Za-z]*O)/,
+  // npm/pnpm/yarn options that run another directory's package.json.
+  /^(?:npm|pnpm|yarn)\b[^\n]*?\s(?:--prefix|--dir|--cwd|-C)(?=[=\s]|$)/,
+
   // Credential-path arguments (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix. Keying on the reader left the
   // door open: `fmt ~/.ssh/id_rsa`, `pr ~/.aws/credentials`, `comm` and

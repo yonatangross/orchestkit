@@ -750,6 +750,35 @@ describe('learningTracker honours the shared reject list', () => {
     expect(allowed('git stash drop')).toBe(false);
   });
 
+  test('a learned bare git approval does not cover git options that run a program, write a file or switch repository', () => {
+    learn(['git']);
+    for (const cmd of [
+      'git grep -Ox foo',
+      'git grep -O x foo',
+      'git grep -iOx foo',
+      'git grep --open-files-in-pager=x foo',
+      'git grep --open x foo',
+      'git -c core.pager=x log',
+      'git -C ../other status',
+      'git --exec-path=x status',
+      'git fetch --upload-pack=x origin',
+      'git log --output=f',
+      'git diff --ext-diff',
+    ]) {
+      expect(allowed(cmd), cmd).toBe(false);
+    }
+    expect(allowed('git grep -n foo')).toBe(true);
+    expect(allowed('git log -1')).toBe(true);
+  });
+
+  test('a learned package-manager approval does not cover running another directory', () => {
+    learn(['npm test', 'pnpm test', 'yarn test']);
+    expect(allowed('npm test --prefix ../other')).toBe(false);
+    expect(allowed('pnpm test --dir ../other')).toBe(false);
+    expect(allowed('yarn test --cwd ../other')).toBe(false);
+    expect(allowed('npm test')).toBe(true);
+  });
+
   test('a stored pattern with trailing whitespace still needs a word boundary', () => {
     learn(['git st ']);
     expect(allowed('git stash drop')).toBe(false);
