@@ -1,0 +1,11 @@
+{
+  "slug": "review-thread-replies",
+  "source": "docs/feat--review-thread-replies/index.html",
+  "title": "Review threads replied",
+  "description": "A required check that fails while any bot review thread has no reply from a person or agent, resolved or not.",
+  "tags": [
+    "ci",
+    "review"
+  ],
+  "date": "2026-10-22"
+}
