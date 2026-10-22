@@ -460,13 +460,20 @@ describe('the __orkEmptyPayload marker stays internal', () => {
 // never arms the timer for it.
 //
 // expire-stdin-timer.mjs makes that one timer fire as a microtask, so the race
-// is lost every time instead of now and then. The pipe arm is the control: a
-// pipe still goes through the timer, so the same preload must still empty it.
+// is lost every time instead of now and then.
+//
+// #4825: a pipe lost the same race. The parent writes the payload at spawn, so
+// it sits in the pipe before the timer fires, yet the timers phase ran first and
+// the hook ran on {}. The runner now defers once past a poll before it treats the
+// pipe as empty, so the pipe arm must ALLOW too. 'pipe-silent' is the hang-guard
+// control: a pipe that never delivers must still warn and run on {}.
 const EXPIRE_TIMER = join(__dirname, 'expire-stdin-timer.mjs');
 const APPROVE_HOOK = 'permission/auto-approve-safe-bash';
 const SAFE_BASH = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' } });
 
-function runApprove(stdinMode: 'file' | 'pipe'): Promise<{ stdout: string; stderr: string }> {
+function runApprove(
+  stdinMode: 'file' | 'pipe' | 'pipe-silent',
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const dir = mkdtempSync(join(tmpdir(), 'ork-4769-'));
     const payloadPath = join(dir, 'payload.json');
@@ -488,10 +495,19 @@ function runApprove(stdinMode: 'file' | 'pipe'): Promise<{ stdout: string; stder
       stderr += String(c);
     });
     if (child.stdin) {
-      child.stdin.on('error', (e: NodeJS.ErrnoException) => {
+      const stdin = child.stdin;
+      stdin.on('error', (e: NodeJS.ErrnoException) => {
         if (e.code !== 'EPIPE') throw e;
       });
-      child.stdin.end(SAFE_BASH);
+      if (stdinMode === 'pipe-silent') {
+        // Keep the pipe empty. The runner exits only once stdin closes (before
+        // and after #4825 alike), so close it, still empty, once the child has
+        // spoken: its first stderr byte is the watchdog warning.
+        child.stderr?.once('data', () => stdin.end());
+        child.on('close', () => stdin.end());
+      } else {
+        stdin.end(SAFE_BASH);
+      }
     }
     child.on('close', () => resolve({ stdout, stderr }));
   });
@@ -511,11 +527,17 @@ describe('#4769 a regular-file stdin cannot lose the 100ms race', () => {
     const { stdout, stderr } = await runApprove('file');
     expect(stderr).not.toMatch(WARNING);
     expect(behavior(stdout)).toBe('allow');
-  });
+  }, 15000);
 
-  it('control: a pipe still goes through the timer, so the same preload empties it', async () => {
+  it('#4825: allows a safe command already in a pipe even when the timer fires first', async () => {
     const { stdout, stderr } = await runApprove('pipe');
+    expect(stderr).not.toMatch(WARNING);
+    expect(behavior(stdout)).toBe('allow');
+  }, 15000);
+
+  it('control: a pipe that never delivers still warns and runs on the empty payload', async () => {
+    const { stdout, stderr } = await runApprove('pipe-silent');
     expect(stderr).toMatch(WARNING);
     expect(behavior(stdout)).toBe('passthrough');
-  });
+  }, 15000);
 });

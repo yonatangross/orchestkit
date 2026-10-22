@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The watchdog that fired with the payload in the pipe</title>
+<meta name="description" content="#4825: run-hook.mjs ran hooks on an empty payload under load although the whole payload was already in the pipe. One deferred loop turn fixes it without raising the 100ms window.">
+<style>
+  :root { --bg:#fbfaf7; --ink:#1d1d1b; --muted:#6b6862; --line:#e4e1d9; --bad:#b4442f; --good:#2f7a4a; --accent:#3557a8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17171a; --ink:#ecebe7; --muted:#a3a09a; --line:#2e2e33; --bad:#e2735e; --good:#6cc38c; --accent:#8aa6ea; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .verdict { font-size: 17px; margin: 0 0 22px; color: var(--muted); }
+  .kpis { display:flex; gap:12px; flex-wrap:wrap; margin-bottom: 20px; }
+  .kpi { border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width: 150px; }
+  .kpi b { display:block; font-size: 22px; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 14px; }
+  button { font:inherit; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; padding:5px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--good); font-weight: 600; }
+  .same { color: var(--muted); }
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  #copy-out { width:100%; min-height: 70px; font: 13px ui-monospace, monospace; background: transparent; color: var(--ink); border:1px solid var(--line); border-radius:6px; padding:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The watchdog that fired with the payload in the pipe</h1>
+  <p class="verdict">Under load, <code>run-hook.mjs</code> ran piped hooks on <code>{}</code> although every byte of the payload was already waiting in the pipe. The timer firing was read as proof the pipe was empty. One deferred loop turn fixes it; the 100ms window is not raised.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>24 / 150</b><code>printf | node</code> starved before</div>
+    <div class="kpi"><b>0 / 150</b>after one deferred turn</div>
+    <div class="kpi"><b>76 / 76</b>bytes readable when the timer fired</div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Filter rows">
+    <button data-f="all" aria-pressed="true">All rows</button>
+    <button data-f="shape" aria-pressed="false">Starvation by stdin shape</button>
+    <button data-f="suite" aria-pressed="false">Suites that failed pre-push</button>
+  </div>
+
+  <table aria-label="Measured rows, before and after">
+    <thead><tr><th>Case</th><th>Before</th><th>After</th><th>Load</th><th>Source</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <section>
+    <h2>Why it happened</h2>
+    <ul>
+      <li>The runner arms <code>setTimeout(100)</code> before it attaches the stdin <code>data</code> listener, and libuv runs the timers phase before the poll phase.</li>
+      <li>A process starved of CPU for more than 100ms right after arming reaches the timer callback first. In every starved run the instrumented copy read all 76 bytes with <code>readSync(0)</code> at fire time, while <code>readableLength</code> was still 0: the stream had not polled yet.</li>
+      <li>So the hook ran on <code>{}</code> with a valid payload one poll away. For a piped scanner such as content-secret-scanner, that is a check that silently checks nothing.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The fix</h2>
+    <ol>
+      <li>When the 100ms timer fires, defer once with <code>setImmediate</code>. The check phase runs after one poll, so anything already written is read.</li>
+      <li>Only a pipe that is still empty after that poll takes the empty-payload path, with the same #3415 warning and the same #4678 fail-closed gates.</li>
+      <li>The hang guard stays: a pipe that never delivers still runs on <code>{}</code>, one loop turn later than before. The PreToolUse budget is unchanged on every path that delivers input.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Not covered</h2>
+    <ul>
+      <li>A producer that really writes its first byte later than 100ms plus one loop turn still loses the race. That stays the #3415 warning; redirecting a file (#4769) is still the robust shape for tests.</li>
+      <li>The starvation rates by shape were measured on an instrumented copy of the runner with one hook key. The suite rows were measured on the real runner in this branch.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Copy as prompt</h2>
+    <p class="same">Pick rows with the filter above, then copy them as a note for a review session.</p>
+    <button id="copy">Copy visible rows</button>
+    <textarea id="copy-out" readonly aria-label="Copied text"></textarea>
+  </section>
+</main>
+<script>
+  const ROWS = [
+    { g: 'shape', c: 'printf payload | node (the real test shape)', b: '24 / 150 starved', a: '0 / 150', l: '113 to 193', s: 'instrumented copy' },
+    { g: 'shape', c: 'payload pre-written, writer closed before spawn', b: '19 / 150 starved', a: '0 / 150', l: '113 to 193', s: 'instrumented copy' },
+    { g: 'shape', c: 'payload pre-written, writer still open', b: '17 / 150 starved', a: '0 / 150', l: '113 to 193', s: 'instrumented copy' },
+    { g: 'shape', c: 'node run-hook.mjs key < file (#4769)', b: '0 / 150 (timer never armed)', a: '0 / 150', l: '113 to 193', s: 'instrumented copy' },
+    { g: 'shape', c: 'pipe never written (hang guard)', b: '150 / 150 empty path', a: '150 / 150 empty path, one turn later', l: '113 to 193', s: 'instrumented copy' },
+    { g: 'suite', c: 'tests/security/test-sqlite-injection.sh', b: 'failed: fire_skill ran on {} plus 6 cascading asserts', a: '16 / 16 passed, twice', l: '~160', s: 'real runner' },
+    { g: 'suite', c: 'tests/security/test-additional-security.sh', b: 'failed: traversal session_id HARNESS ERROR (50 / 51)', a: '51 / 51 passed, twice', l: '~160', s: 'real runner' },
+    { g: 'suite', c: 'tests/unit/test-security-starved-stdin-harness-error.sh', b: 'failed: control arm starved', a: '6 / 6 passed', l: '~160', s: 'real runner' },
+    { g: 'suite', c: 'run-hook-stdin-timeout.test.ts, #4825 pipe case', b: 'warning + passthrough (red)', a: 'no warning, allow', l: 'any (deterministic preload)', s: 'vitest' },
+  ];
+  let filter = 'all';
+  const tbody = document.getElementById('rows');
+  function visible() { return ROWS.filter(r => filter === 'all' || r.g === filter); }
+  function render() {
+    tbody.replaceChildren(...visible().map(r => {
+      const tr = document.createElement('tr');
+      [[r.c], [r.b, 'bad'], [r.a, 'good'], [r.l, 'same'], [r.s, 'same']].forEach(([t, cls]) => {
+        const td = document.createElement('td'); td.textContent = t; if (cls) td.className = cls; tr.append(td);
+      });
+      return tr;
+    }));
+  }
+  document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = '#4825 stdin watchdog, before / after:\n' + visible().map(r => `- ${r.c}: ${r.b} -> ${r.a} (load ${r.l}, ${r.s})`).join('\n');
+    try { await navigator.clipboard.writeText(text); } catch { /* clipboard blocked: the textarea still shows it */ }
+    document.getElementById('copy-out').value = text;
+  });
+  render();
+</script>
+</body>
+</html>
