@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.186](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.185...v10.0.0-beta.186)** · 2026-10-21
+
+- **scripts:** export chosen skills as Gemini app skill zips (#4760)
+- **deps:** vitest 4.1.12 in the hook-contract generic-client example (#4843)
+- **deps-dev:** bump happy-dom from 20.14.5 to 21.0.3 in /docs/site (#4812)
+- **deps:** bump the npm_and_yarn group across 5 directories with 1 update (#4840)
+- **deps:** bump the npm-minor-patch group (#4838)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185)** · 2026-10-21
 
 - **site:** move the canonical host to orchestkit.dev for the orank gaps (#4819)
@@ -678,15 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.179](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179)** · 2026-10-17
 
 - **deps:** upgrade Remotion to remove braces (#4791)
-
-**[v10.0.0-beta.178](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.177...v10.0.0-beta.178)** · 2026-10-17
-
-- **explore:** trial Haiku pins for Agent tool explorers (#4676)
-- **review-pr:** require fan-out or blocked verdict (#4743)
-- **traffic:** drop local referrers from snapshot rows (#4626)
-- **deps:** bump the npm-minor-patch group across 1 directory with 11 updates (#4781)
-- **deps:** bump the npm-minor-patch group across 1 directory with 3 updates (#4720)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

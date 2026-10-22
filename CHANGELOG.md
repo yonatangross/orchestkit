@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.186](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.185...v10.0.0-beta.186) (2026-10-21)
+
+
+### Features
+
+* **scripts:** export chosen skills as Gemini app skill zips ([#4760](https://github.com/yonatangross/orchestkit/issues/4760)) ([457cc59](https://github.com/yonatangross/orchestkit/commit/457cc59caceb87ddf65cbb2939c3abb5e8326f94))
+
+
+### Bug Fixes
+
+* **deps:** vitest 4.1.12 in the hook-contract generic-client example ([#4843](https://github.com/yonatangross/orchestkit/issues/4843)) ([bffd7fb](https://github.com/yonatangross/orchestkit/commit/bffd7fb57200605396945e0d69ec98d0cccb521d))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump happy-dom from 20.14.5 to 21.0.3 in /docs/site ([#4812](https://github.com/yonatangross/orchestkit/issues/4812)) ([10bc2a8](https://github.com/yonatangross/orchestkit/commit/10bc2a80d114829b0687f3bbce82a84c857e9cd3))
+* **deps:** bump the npm_and_yarn group across 5 directories with 1 update ([#4840](https://github.com/yonatangross/orchestkit/issues/4840)) ([2203d24](https://github.com/yonatangross/orchestkit/commit/2203d2477ae3460e9979591dc7e29481c5f6d00e))
+* **deps:** bump the npm-minor-patch group ([#4838](https://github.com/yonatangross/orchestkit/issues/4838)) ([74437a6](https://github.com/yonatangross/orchestkit/commit/74437a6f2dcabd6cf62a3c48556fd1a00ff9edf3))
+* **deps:** bump the npm-minor-patch group in /docs/site with 4 updates ([#4839](https://github.com/yonatangross/orchestkit/issues/4839)) ([ff633df](https://github.com/yonatangross/orchestkit/commit/ff633df955f7b6757ea552f817706c7acc542671))
+* **deps:** roll up 13 bot updates (patch/minor) ([#4818](https://github.com/yonatangross/orchestkit/issues/4818)) ([63957d4](https://github.com/yonatangross/orchestkit/commit/63957d40c88b3e71354a8c38046c6c26e39b77fe))
+
 ## [10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185) (2026-10-21)
 
 
