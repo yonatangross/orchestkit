@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>כרטיס גליף כ-MCP App: מגרש משחקים ל-PR 4663</title>
+<title>Glyph card as an MCP App: PR 4663 playground</title>
+<meta name="description" content="One MCP tool returns both an interactive ui:// card and a plain text fallback. Edit the tool input and see what each kind of host shows.">
 <style>
   :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; }
   @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; } }
@@ -34,14 +35,14 @@
 </head>
 <body>
 <main>
-  <h1>כרטיס גליף כ-MCP App, בלי SDK</h1>
-  <p class="verdict"><strong>השורה התחתונה:</strong> כלי MCP אחד מחזיר גם ממשק אינטראקטיבי (משאב <code>ui://</code>) וגם כרטיס טקסט לגיבוי. מארח שתומך ב-MCP Apps מצייר את הכרטיס, וכל מארח אחר מציג את הטקסט.</p>
-  <p class="muted">PR 4663, ענף <code>feat/genui-mcp-spike</code>. קובץ אחד: <code>src/skills/mcp-visual-output/scripts/glyph-card-server.mjs</code>, ובדיקות ב-<code>tests/unit/test-mcp-glyph-card.mjs</code>.</p>
+  <h1>Glyph card as an MCP App, no SDK</h1>
+  <p class="verdict"><strong>Verdict:</strong> one MCP tool returns both an interactive UI (a <code>ui://</code> resource) and a text card as a fallback. A host that supports MCP Apps draws the card; every other host shows the text.</p>
+  <p class="muted">PR 4663, branch <code>feat/genui-mcp-spike</code>. One file: <code>src/skills/mcp-visual-output/scripts/glyph-card-server.mjs</code>, with tests in <code>tests/unit/test-mcp-glyph-card.mjs</code>.</p>
 
-  <h2>01 / נסו בעצמכם</h2>
-  <p>ערכו את הקלט של הכלי <code>render_glyph_card</code> ולחצו "צייר". משמאל מה שמארח בלי ממשק רואה, מימין מה שמארח MCP Apps מצייר מתוך <code>structuredContent</code>.</p>
+  <h2>01 / Try it</h2>
+  <p>Edit the input of the <code>render_glyph_card</code> tool and press Draw. On the left is what a host without UI support sees; on the right is what an MCP Apps host draws from <code>structuredContent</code>.</p>
   <div class="panel">
-    <textarea id="input" aria-label="קלט הכלי ב-JSON">{
+    <textarea id="input" aria-label="Tool input as JSON">{
   "title": "Disk use",
   "rows": [
     { "label": "Docker cache", "value": 14.5, "unit": "G", "status": "warn" },
@@ -49,26 +50,26 @@
     { "label": "npm cache", "value": 6.2, "unit": "G", "status": "ok" }
   ]
 }</textarea>
-    <p><button id="draw">צייר</button> <button id="copy" class="ghost">העתק כפרומפט</button> <span id="msg" class="muted"></span></p>
+    <p><button id="draw">Draw</button> <button id="copy" class="ghost">Copy as prompt</button> <span id="msg" class="muted"></span></p>
   </div>
   <div class="grid">
-    <div class="panel"><strong>גיבוי טקסט (<code>content</code>)</strong><pre id="text"></pre></div>
-    <div class="panel"><strong>הכרטיס (<code>ui://ork-glyph/card-v1</code>)</strong><div class="card" id="card"></div></div>
+    <div class="panel"><strong>Text fallback (<code>content</code>)</strong><pre id="text"></pre></div>
+    <div class="panel"><strong>The card (<code>ui://ork-glyph/card-v1</code>)</strong><div class="card" id="card"></div></div>
   </div>
 
-  <h2>02 / מה ה-PR מוסיף</h2>
+  <h2>02 / What the PR adds</h2>
   <ul>
-    <li>הכלי מצהיר על <code>_meta.ui.resourceUri</code>, על המפתח הישן <code>ui/resourceUri</code> ועל הכינוי של ChatGPT <code>openai/outputTemplate</code>.</li>
-    <li>המשאב מוגש כ-<code>text/html;profile=mcp-app</code> ומצייר רק עם <code>textContent</code>, כך שתווית עוינת לא הופכת ל-HTML.</li>
-    <li>מצב HTTP דוחה Host או Origin שאינם מקומיים (403), אלא אם הוגדר שם אחד עם <code>--allow-host</code>.</li>
-    <li>בדיקות יחידה: 10 עוברות, 0 נכשלות, לפי גוף ה-PR.</li>
+    <li>The tool declares <code>_meta.ui.resourceUri</code>, the older <code>ui/resourceUri</code> key, and the ChatGPT alias <code>openai/outputTemplate</code>.</li>
+    <li>The resource is served as <code>text/html;profile=mcp-app</code> and draws with <code>textContent</code> only, so a hostile label never becomes HTML.</li>
+    <li>HTTP mode rejects a non-local Host or Origin with 403, unless one name is allowed with <code>--allow-host</code>.</li>
+    <li>Unit tests: 10 pass, 0 fail, per the PR body.</li>
   </ul>
 
-  <h2>03 / מה עוד לא הוכח</h2>
+  <h2>03 / Not proven yet</h2>
   <ul>
-    <li>אף מארח אמיתי (ChatGPT, claude.ai) עוד לא צייר את הכרטיס. זה דורש כתובת HTTPS ציבורית וצעד של המפעיל.</li>
-    <li>ב-Claude Code המודל מקבל את ה-JSON של <code>structuredContent</code> כשהוא קיים, ולא את כרטיס הטקסט.</li>
-    <li>אין אימות. זו הוכחת היתכנות, לא ספרייה.</li>
+    <li>No real host (ChatGPT, claude.ai) has drawn the card yet. That needs a public HTTPS URL and an operator step.</li>
+    <li>In Claude Code the model receives the <code>structuredContent</code> JSON when it is present, not the text card.</li>
+    <li>No authentication. This is a proof of concept, not a library.</li>
   </ul>
 </main>
 <script>
@@ -81,12 +82,12 @@
 
   function parse(raw) {
     let a;
-    try { a = JSON.parse(raw); } catch (e) { return { error: "JSON לא תקין: " + e.message }; }
-    if (!a || typeof a.title !== "string" || !a.title) return { error: "title חייב להיות מחרוזת לא ריקה" };
-    if (!Array.isArray(a.rows) || a.rows.length < 1 || a.rows.length > 12) return { error: "rows חייב להכיל בין 1 ל-12 שורות" };
+    try { a = JSON.parse(raw); } catch (e) { return { error: "Invalid JSON: " + e.message }; }
+    if (!a || typeof a.title !== "string" || !a.title) return { error: "title must be a non-empty string" };
+    if (!Array.isArray(a.rows) || a.rows.length < 1 || a.rows.length > 12) return { error: "rows must hold 1 to 12 rows" };
     const rows = [];
     for (const r of a.rows) {
-      if (!r || typeof r.label !== "string" || typeof r.value !== "number" || !isFinite(r.value) || r.value < 0) return { error: "כל שורה צריכה label מחרוזת ו-value מספר אי שלילי" };
+      if (!r || typeof r.label !== "string" || typeof r.value !== "number" || !isFinite(r.value) || r.value < 0) return { error: "each row needs a string label and a non-negative number value" };
       rows.push({ label: r.label, value: r.value, unit: typeof r.unit === "string" ? r.unit : "", status: ICONS[r.status] ? r.status : undefined });
     }
     const total = Math.round(rows.reduce((s, r) => s + r.value, 0) * 10) / 10;
@@ -131,7 +132,7 @@
   $("draw").addEventListener("click", draw);
   $("copy").addEventListener("click", async () => {
     const prompt = "Call the MCP tool render_glyph_card from glyph-card-server.mjs with these arguments:\n" + $("input").value;
-    try { await navigator.clipboard.writeText(prompt); $("msg").textContent = "הועתק"; } catch { $("msg").textContent = "ההעתקה נחסמה בדפדפן"; }
+    try { await navigator.clipboard.writeText(prompt); $("msg").textContent = "Copied"; } catch { $("msg").textContent = "The browser blocked the copy"; }
   });
   draw();
 </script>
