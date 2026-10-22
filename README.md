@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
+
+- **lesson-cards:** lessons are advisory, never ask or deny (#4842)
+
 **[v10.0.0-beta.186](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.185...v10.0.0-beta.186)** · 2026-10-21
 
 - **scripts:** export chosen skills as Gemini app skill zips (#4760)
@@ -683,10 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4783)
 - bump actions/create-github-app-token (#4784)
-
-**[v10.0.0-beta.179](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.178...v10.0.0-beta.179)** · 2026-10-17
-
-- **deps:** upgrade Remotion to remove braces (#4791)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
