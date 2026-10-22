@@ -141,9 +141,6 @@ describe('auto-approve-safe-bash', () => {
       'find . -type f',
       'which node',
       'type python',
-      'env',
-      'printenv',
-      'printenv PATH',
     ];
 
     test.each(safeShellCommands)('auto-approves: %s', (command) => {
@@ -235,6 +232,31 @@ describe('auto-approve-safe-bash', () => {
       'find . -fprint0 /tmp/out',
       'find . -fprintf /tmp/out "%p\\n"',
       'find / -fls /tmp/inventory',
+      // HR-1 (#4216): the five shapes the audit probe auto-approved.
+      // Command substitution — also inside double quotes (bash expands there).
+      'echo $(whoami)',
+      'echo "$(whoami)"',
+      'echo `id`',
+      // Redirect writes a file the prefix allowlist cannot see.
+      'echo hi > /tmp/out.txt',
+      'cat secret.txt >> /tmp/exfil',
+      // Environment dumps exfiltrate exported secrets.
+      'env',
+      'printenv',
+      'printenv ORCHESTKIT_HOOK_TOKEN',
+      // find -exec/-execdir run arbitrary commands per match, no ';' needed.
+      'find . -exec rm {} +',
+      'find . -name "*.log" -execdir rm {} +',
+      // Credential-path reads under a read-only prefix.
+      'cat ~/.ssh/id_rsa',
+      'cat ~/.aws/credentials',
+      'cat .env',
+      'cat .envrc',
+      'cat ~/.netrc',
+      'head -5 ~/.kube/config',
+      'tail ~/.git-credentials',
+      'cat ~/.config/gh/hosts.yml',
+      'cat /etc/master.passwd',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
@@ -300,13 +322,13 @@ describe('auto-approve-safe-bash', () => {
     });
 
     test('handles command with special characters', () => {
+      // HR-1 (#4216): $( ) inside double quotes executes — was auto-approved.
       const input = createBashInput('echo "$(whoami)"');
       const result = autoApproveSafeBash(input, testCtx);
 
-      // 9.8.x keeps its pre-#4216 classification of this command; only the
-      // output shape changes here (decision.behavior, not permissionDecision).
+      // HR-1 (#4845) rejects it; neither output shape may carry an allow.
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
