@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Drop the release-as 10.0.0 pin: playground</title>
+<meta name="description" content="The release-as pin made release-please propose 10.0.0 again after v10.0.0 shipped; removing it lets the next release be 10.0.1.">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; --bad: #f2a199; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .meter { display: grid; grid-template-columns: 7em 1fr 4em; gap: 10px; align-items: center; margin: 6px 0; }
+  .bar { height: 12px; border-radius: 6px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); }
+  .fill.bad { background: var(--bad); }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Drop the <code>release-as: 10.0.0</code> pin</h1>
+  <p class="verdict"><strong>Verdict:</strong> one line removed from <code>.release-please-config.json</code>. With the pin gone, release-please computes the next version from the commits again, so the open release PR is re-cut as 10.0.1 instead of a second 10.0.0.</p>
+  <p class="muted">Branch <code>fix/release-please-drop-release-as</code>, from main at 4b6f17cb.</p>
+
+  <h2>Before and after</h2>
+  <table>
+    <thead><tr><th></th><th>Config</th><th>Release PR proposes</th></tr></thead>
+    <tbody>
+      <tr><td>main (pin kept)</td><td><code>"release-as": "10.0.0"</code></td><td>10.0.0 again, compare v10.0.0...v10.0.0, while tag v10.0.0 already exists</td></tr>
+      <tr><td>this PR</td><td>no <code>release-as</code></td><td>the next version from the commits since v10.0.0 (a patch, 10.0.1)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Why the pin existed</h2>
+  <p>It forced the 10.0.0 GA cut out of the beta line (see the v10 GA playground). After the tag exists, a pin left in place makes release-please keep proposing that same version. The repo did the same after 7.11.0 (pin, then remove).</p>
+</main>
+</body>
+</html>
