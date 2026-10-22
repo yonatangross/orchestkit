@@ -26,21 +26,23 @@ import { NOOP_CTX } from '../lib/context.js';
  */
 const SAFE_PATTERNS: RegExp[] = [
   // Git read operations — safe: read-only, no data loss
-  /^git (status|log|diff|branch|show|fetch|pull)/,
+  /^git (status|log|diff|branch|show|fetch|pull)(?=\s|$)/,
   // SEC: git checkout <branch/file> is safe for switching branches/restoring files.
   // Destructive forms (checkout -f, checkout --, checkout .) are caught by REJECT_PATTERNS.
   /^git checkout\s+\S/,
 
   // Package managers — safe: read/run operations, no install/publish
-  /^npm (list|ls|outdated|audit|run|test)/,
-  /^pnpm (list|ls|outdated|audit|run|test)/,
-  /^yarn (list|outdated|audit|run|test)/,
-  /^poetry (show|run|env)/,
+  // Read operations and the test entry point only; a bare `run <script>`
+  // runs whatever package.json says (named scripts are allowed below).
+  /^npm (list|ls|outdated|audit|test)(?=\s|$)/,
+  /^pnpm (list|ls|outdated|audit|test)(?=\s|$)/,
+  /^yarn (list|outdated|audit|test)(?=\s|$)/,
+  /^poetry (show|env)(?=\s|$)/,
 
   // Docker — safe: read-only inspection commands
-  /^docker (ps|images|logs|inspect)/,
-  /^docker-compose (ps|logs)/,
-  /^docker compose (ps|logs)/,
+  /^docker (ps|images|logs|inspect)(?=\s|$)/,
+  /^docker-compose (ps|logs)(?=\s|$)/,
+  /^docker compose (ps|logs)(?=\s|$)/,
 
   // Basic shell commands — safe: read-only or output-only
   /^ls(\s|$)/,
@@ -75,15 +77,15 @@ const SAFE_PATTERNS: RegExp[] = [
   /^pr\s/,
 
   // GitHub CLI — safe: read-only operations only
-  /^gh (issue|pr|repo|workflow) (list|view|status)/,
+  /^gh (issue|pr|repo|workflow) (list|view|status)(?=\s|$)/,
   // SEC (#662): Restrict gh milestone to read operations only.
   // Previously /^gh milestone/ matched create/edit/delete too.
-  /^gh milestone (list|view)/,
+  /^gh milestone (list|view)(?=\s|$)/,
 
   // Testing and linting — safe: read-only analysis
   /^pytest/,
   /^poetry run pytest/,
-  /^npm run (test|lint|typecheck|format)/,
+  /^(?:npm|pnpm|yarn) run (test|lint|typecheck|format)(?:[ \t]|$)/,
   /^ruff (check|format)/,
   /^ty check/,
   /^mypy/,

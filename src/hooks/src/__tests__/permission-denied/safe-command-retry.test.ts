@@ -67,7 +67,7 @@ describe('safe-command-retry', () => {
 
       // Package manager read-only
       'npm list',
-      'npm ls --depth=0',
+      'npm ls',
       'npm outdated',
       'npm audit',
       'pnpm list',

@@ -96,14 +96,14 @@ describe('auto-approve-safe-bash', () => {
   describe('Package manager read operations (should auto-approve)', () => {
     const safePackageCommands = [
       'npm list',
-      'npm ls --depth=0',
+      'npm ls',
       'npm outdated',
       'npm audit',
       'npm run test',
       'npm test',
       'pnpm list',
       'pnpm audit',
-      'pnpm run build',
+      'pnpm run test',
       'yarn list',
       'yarn outdated',
       'yarn test',
@@ -418,26 +418,21 @@ describe('auto-approve-safe-bash', () => {
       expectNoAllow(result);
     });
 
-    test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
-      // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
-      // "npm run <anything>" — build is an allowed npm run target
+    test('npm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
       const input = createBashInput('npm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
-      // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
+    test('pnpm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
       const input = createBashInput('pnpm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 

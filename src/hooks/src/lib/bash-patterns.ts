@@ -11,6 +11,38 @@
  */
 
 /**
+ * Long git options that run a program, write a file or switch repository.
+ * The reject row matches any prefix of these names, because git expands an
+ * unambiguous abbreviation (a short prefix may also prompt for a harmless
+ * option; prompting is the safe direction).
+ */
+export const GIT_RISKY_LONG_OPTIONS = [
+  'upload-pack',
+  'receive-pack',
+  'exec',
+  'exec-path',
+  'output',
+  'ext-diff',
+  'extcmd',
+  'open-files-in-pager',
+  'config-env',
+  'git-dir',
+  'work-tree',
+  'tool',
+];
+
+function gitRiskyOptionPattern(): RegExp {
+  const prefixes = new Set<string>();
+  for (const name of GIT_RISKY_LONG_OPTIONS) {
+    for (let i = 1; i <= name.length; i++) prefixes.add(name.slice(0, i));
+  }
+  const alt = [...prefixes].sort((a, b) => b.length - a.length).join('|');
+  return new RegExp(
+    `^git\\b[^\\n]*?\\s(?:(?:-c|-C)(?=[=\\s]|$)|--(?:${alt})(?=[=\\s]|$)|-[A-Za-z]*[Ox])`,
+  );
+}
+
+/**
  * Commands that must NEVER be auto-approved or retried.
  * Checked BEFORE safe patterns — reject takes priority.
  */
@@ -39,13 +71,17 @@ export const REJECT_PATTERNS: RegExp[] = [
   // under Bash(find:*); we mirror it.
   /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok|exec|execdir)\b/,
 
-  // git options that run a configured or supplied program, write a file, or
-  // point git at another repository. Top-level options are exact; subcommand
-  // long options match on a 3-letter prefix (git accepts abbreviations);
-  // short -O may carry its value attached or sit inside a flag bundle.
-  /^git\b[^\n]*?\s(?:(?:-c|-C|--config-env|--git-dir|--work-tree|--exec-path)(?=[=\s]|$)|--(?:upl|rec|exe|out|ext|ope)[a-z-]*(?=[=\s]|$)|-[A-Za-z]*O)/,
-  // npm/pnpm/yarn options that run another directory's package.json.
-  /^(?:npm|pnpm|yarn)\b[^\n]*?\s(?:--prefix|--dir|--cwd|-C)(?=[=\s]|$)/,
+  // git options that run a program, write a file or point git at another
+  // repository. git accepts any unambiguous prefix of a long option, so the
+  // row matches every prefix of each risky name (see GIT_RISKY_LONG_OPTIONS).
+  // Short -O and -x may carry their value attached or sit in a flag bundle.
+  gitRiskyOptionPattern(),
+  // difftool and mergetool run a configured external program by design.
+  /^git\b[^\n]*?\s(?:difftool|mergetool)(?=\s|$)/,
+  // Package managers accept abbreviated long options and several of them
+  // run a program or another directory's package.json, so any option
+  // drops to a prompt.
+  /^(?:npm|pnpm|yarn)\b[^\n]*?\s-/,
 
   // Credential-path arguments (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix. Keying on the reader left the

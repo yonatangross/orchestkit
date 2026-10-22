@@ -60,7 +60,7 @@ const RETRY_SAFE_PATTERNS: RegExp[] = [
   /^gh (issue|pr|repo|workflow) (list|view|status)\b/,
 
   // Test/lint commands
-  /^npm run (test|lint|typecheck|format)\b/,
+  /^npm run (test|lint|typecheck|format)(?:[ \t]|$)/,
   /^pytest\b/,
 ];
 
