@@ -642,6 +642,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0)** · 2026-10-22
+
+- **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
+- **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav (#4823)
+- **hooks:** stdin watchdog defers one turn before an empty pipe (#4849)
+
 **[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
 
 - **lesson-cards:** lessons are advisory, never ask or deny (#4842)
@@ -682,11 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
 - **deps-dev:** bump vitest in /docs/site in the vitest group (#4778)
-
-**[v10.0.0-beta.180](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.179...v10.0.0-beta.180)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4783)
-- bump actions/create-github-app-token (#4784)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

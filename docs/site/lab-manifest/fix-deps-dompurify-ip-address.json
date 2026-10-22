@@ -1,0 +1,11 @@
+{
+  "slug": "fix-deps-dompurify-ip-address",
+  "source": "docs/fix--deps-dompurify-ip-address/index.html",
+  "title": "dompurify and ip-address patch",
+  "description": "Four npm advisories that blocked every orchestkit push, the two lockfile moves that close them, and the audit counts before and after.",
+  "tags": [
+    "security",
+    "dependencies"
+  ],
+  "date": "2026-10-22"
+}
