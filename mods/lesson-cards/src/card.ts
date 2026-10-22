@@ -77,9 +77,12 @@ export function formatContext(lesson: MatchedLesson, maxLength = 32000): string 
   if (lesson.fix) {
     text += ` Fix: ${lesson.fix}`;
   }
-  // Cap at maxLength to avoid context bloat
-  if (text.length > maxLength) {
-    text = text.slice(0, maxLength - 3) + '...';
+  // The ALLOWED-FORM line is the command the agent should run instead, so it is
+  // never cut by the cap: the body is trimmed to make room for it.
+  const allowed = lesson.allowedForm ? `\nALLOWED-FORM: ${lesson.allowedForm}` : '';
+  const room = Math.max(0, maxLength - allowed.length);
+  if (text.length > room) {
+    text = text.slice(0, Math.max(0, room - 3)) + '...';
   }
-  return text;
+  return text + allowed;
 }
