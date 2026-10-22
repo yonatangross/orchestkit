@@ -142,11 +142,81 @@ export function containsDangerousCommand(
  * stage separators.
  */
 export function blankQuotedContent(cmd: string): string {
-  // Single-quoted strings: no escaping possible inside single quotes in bash
-  let result = cmd.replace(/'[^']*'/g, "''");
-  // Double-quoted strings: handle escaped quotes inside
-  result = result.replace(/"(?:[^"\\]|\\.)*"/g, '""');
-  return result;
+  return stripQuotedRegions(cmd, true);
+}
+
+/**
+ * Remove the content of quoted regions, tracking bash quote state in one pass.
+ *
+ * The older regex form blanked '...' first and "..." second, so an apostrophe
+ * INSIDE a double-quoted string was read as the start of a single-quoted one
+ * and could swallow live shell syntax between two such apostrophes. A scanner
+ * that knows which quote it is in cannot be fooled that way.
+ *
+ * - Single quotes: content removed, no escapes inside (bash rule).
+ * - Double quotes: content removed only when `includeDouble`; a backslash
+ *   keeps the next character with it, so an escaped quote never closes.
+ * - Outside quotes: a backslash keeps the next character with it, so an
+ *   escaped quote never opens a region.
+ * - An unterminated quote keeps its content visible. Hiding text the shell
+ *   would reject anyway is the unsafe direction for every caller.
+ * - $'...' (ANSI-C) is read as a plain single quote. That can only end the
+ *   region EARLIER than bash would, which reveals more text, never less.
+ */
+export function stripQuotedRegions(cmd: string, includeDouble: boolean): string {
+  let out = '';
+  let state: 'none' | 'single' | 'double' = 'none';
+  let regionStart = -1;
+  let regionOut = -1;
+  for (let i = 0; i < cmd.length; i++) {
+    const ch = cmd[i];
+    if (state === 'single') {
+      if (ch === "'") {
+        out += "'";
+        state = 'none';
+      }
+      continue;
+    }
+    if (state === 'double') {
+      if (ch === '\\' && i + 1 < cmd.length) {
+        if (!includeDouble) out += ch + cmd[i + 1];
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        out += '"';
+        state = 'none';
+        continue;
+      }
+      if (!includeDouble) out += ch;
+      continue;
+    }
+    if (ch === '\\' && i + 1 < cmd.length) {
+      out += ch + cmd[i + 1];
+      i++;
+      continue;
+    }
+    if (ch === "'") {
+      regionOut = out.length;
+      out += "'";
+      state = 'single';
+      regionStart = i;
+      continue;
+    }
+    if (ch === '"') {
+      regionOut = out.length;
+      out += '"';
+      state = 'double';
+      regionStart = i;
+      continue;
+    }
+    out += ch;
+  }
+  if (state !== 'none' && regionStart >= 0) {
+    // Unterminated: put the raw region back so nothing is hidden.
+    out = out.slice(0, regionOut) + cmd.slice(regionStart);
+  }
+  return out;
 }
 
 /**
@@ -346,7 +416,7 @@ export function isCompoundCommand(cmd: string): boolean {
   // Command/process substitution executes inside DOUBLE quotes, so blank
   // single-quoted regions only. Escaped forms (\$( \` <( >() are literal in
   // bash but still route to manual review — the safe direction.
-  const substitutionProbe = stripBackslashEscapes(expanded.replace(/'[^']*'/g, "''"));
+  const substitutionProbe = stripBackslashEscapes(stripQuotedRegions(expanded, false));
   if (/\$\(|`|<\(|>\(/.test(substitutionProbe)) return true;
 
   // Redirects are inert inside EITHER quote type — blank both, then any
