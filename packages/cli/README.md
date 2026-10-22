@@ -1,6 +1,6 @@
 # orchestkit
 
-Official CLI for [OrchestKit](https://orchestkit.yonyon.ai), the free,
+Official CLI for [OrchestKit](https://orchestkit.dev), the free,
 MIT-licensed Claude Code plugin published by the Yonyon software studio.
 
 ```bash
@@ -58,7 +58,7 @@ The docs API is public, read-only and unauthenticated.
   after each call so scripts can pace themselves instead of probing.
 - **Errors**, RFC 9457 Problem Details. `ApiError.problem` exposes the parsed
   object, including the `links` recovery hops a 404 carries.
-- **Versioning and deprecation**, <https://orchestkit.yonyon.ai/api-policy>.
+- **Versioning and deprecation**, <https://orchestkit.dev/api-policy>.
 
 ## Requirements
 

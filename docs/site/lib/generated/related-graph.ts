@@ -111,7 +111,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/foundations/mcp-servers": {
       "title": "OrchestKit MCP Servers",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/foundations/overview": {
       "title": "What is OrchestKit?",
@@ -2680,6 +2680,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/troubleshooting/hook-debugging": [],
     "/docs/whats-new-v10": [
       "/docs/agents/overview",
+      "/docs/foundations/mcp-servers",
       "/docs/getting-started/agy",
       "/docs/getting-started/hosts",
       "/docs/getting-started/installation",

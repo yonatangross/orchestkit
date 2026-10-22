@@ -34,6 +34,12 @@ export const SITE = {
 // clients (which often do not follow a redirect on POST) keep working.
 export { LEGACY_HOST } from "./site-redirects.mjs";
 
+// The brand mark in the nav. This is the one slot to change when a new icon
+// is picked; nothing else in the nav names the image file.
+export const BRAND = {
+  mark: "/brand/george-nav.png",
+} as const;
+
 export const COUNTS = {
   skills: TOTALS.skills,
   agents: TOTALS.agents,

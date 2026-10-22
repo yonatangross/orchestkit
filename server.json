@@ -3,7 +3,7 @@
   "name": "io.github.yonatangross/orchestkit",
   "title": "OrchestKit Docs MCP",
   "description": "Read-only MCP server for the OrchestKit docs: full-text search + Markdown fetch. No auth.",
-  "websiteUrl": "https://orchestkit.yonyon.ai",
+  "websiteUrl": "https://orchestkit.dev",
   "repository": {
     "url": "https://github.com/yonatangross/orchestkit",
     "source": "github"
@@ -12,7 +12,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://orchestkit.yonyon.ai/api/mcp"
+      "url": "https://orchestkit.dev/api/mcp"
     }
   ],
   "packages": [
