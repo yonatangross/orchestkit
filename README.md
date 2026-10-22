@@ -642,6 +642,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1)** · 2026-10-22
+
+- **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
+- **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag (#4866)
+- **release:** pin stable channel to v10.0.0 (#4863)
+
 **[v10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0)** · 2026-10-22
 
 - **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
@@ -683,11 +689,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps-dev:** bump vitest (#4779)
 - **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4732)
-
-**[v10.0.0-beta.181](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
-- **deps-dev:** bump vitest in /docs/site in the vitest group (#4778)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

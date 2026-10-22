@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.1",
+    "date": "2026-10-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**deps:** patch dompurify (docs/site) and ip-address (mcp-server) ([#4862](https://github.com/yonatangross/orchestkit/issues/4862)) ([4b6f17c](https://github.com/yonatangross/orchestkit/commit/4b6f17cb09ba5067b09eea68bfe0a018737c3cba))",
+          "**release:** drop the release-as 10.0.0 pin after the v10.0.0 tag ([#4866](https://github.com/yonatangross/orchestkit/issues/4866)) ([07a3c92](https://github.com/yonatangross/orchestkit/commit/07a3c924ff6925707d8a599b3e8f9d85a40a06c8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**release:** pin stable channel to v10.0.0 ([#4863](https://github.com/yonatangross/orchestkit/issues/4863)) ([e831cb5](https://github.com/yonatangross/orchestkit/commit/e831cb5ff694f7783d18aaa77a37f91012a4c2ab))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0",
     "date": "2026-10-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0",
