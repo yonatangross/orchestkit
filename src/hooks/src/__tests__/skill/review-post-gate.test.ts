@@ -1791,7 +1791,14 @@ describe('(codex22 XREVIEW 6095963428) an allowed root is no link; temp is the t
     expect(write(join(repo, '.claude', 'chain', 'ci.yml'), repo)).toBe(true);
   });
   test('P2: a path beside the temp dir is no temp path, for Write and for a read', () => {
-    const beside = join(dirname(realpathSync.native(tmpdir())), 'C', 'cache.json');
+    // The sibling of the OUTERMOST temp root that holds tmpdir(). When TMPDIR
+    // sits under /tmp (Claude Code session dirs), the sibling of tmpdir() is
+    // itself under /tmp, a temp root the gate rightly allows, so this row went
+    // red in those sessions only.
+    const realTmp = realpathSync.native(tmpdir());
+    const realSlashTmp = realpathSync.native('/tmp');
+    const outer = realTmp.startsWith(`${realSlashTmp}/`) ? realSlashTmp : realTmp;
+    const beside = join(dirname(outer), 'C', 'cache.json');
     const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: beside, content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;
     expect(denied(reviewPostGate(input, ctx))).toBe(true);
     expect(denied(reviewPostGate(bash(`cat ${beside}`, tr()), ctx))).toBe(true);

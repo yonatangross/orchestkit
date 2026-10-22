@@ -101,20 +101,20 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     const r = await run('skill/review-post-gate');
     expect(r.code).toBe(2);
     expect(r.stderr).toMatch(/hook "skill\/review-post-gate" bundle at .*skill\.mjs exists but failed to load/);
-  });
+  }, 20000);
 
   it('(#4678) exits 2 for skill/review-post-gate when the skill bundle is absent', async () => {
     const r = await run('skill/review-post-gate');
     expect(r.code).toBe(2);
     expect(r.stdout).not.toMatch(/"continue":\s*true/);
-  });
+  }, 20000);
 
   it('(#4678) exits 2 for skill/review-post-gate when the bundle has no handler for it', async () => {
     writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), 'export const hooks = {};\n', 'utf8');
     const r = await run('skill/review-post-gate');
     expect(r.code).toBe(2);
     expect(r.stdout).not.toMatch(/"continue":\s*true/);
-  });
+  }, 20000);
 
   it('(#4678) exits 2 for skill/review-post-gate when stdin is over the size limit', async () => {
     // A working handler that would allow: the oversize input must not reach it as {}.
@@ -130,19 +130,22 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     });
     expect(r.code).toBe(2);
     expect(r.stdout).not.toMatch(/"continue":\s*true/);
-  });
+  }, 20000);
 
   // A working handler that would allow: input the gate cannot read must not reach it.
   const allowGate = () =>
     writeFileSync(join(root, 'hooks', 'dist', 'skill.mjs'), "export const hooks = { 'skill/review-post-gate': () => ({ continue: true }) };\n", 'utf8');
-  function feed(hook: string, send: (stdin: NodeJS.WritableStream) => void): Promise<{ code: number | null; stdout: string }> {
+  function feed(
+    hook: string,
+    send: (stdin: NodeJS.WritableStream, exited: Promise<void>) => void,
+  ): Promise<{ code: number | null; stdout: string }> {
     return new Promise((resolve) => {
       const child = spawn('node', [runner, hook], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_PROJECT_DIR: root } });
       let stdout = '';
       child.stdout.on('data', (c) => { stdout += String(c); });
       child.on('close', (code) => resolve({ code, stdout }));
       child.stdin.on('error', () => {});
-      send(child.stdin);
+      send(child.stdin, new Promise<void>((done) => child.on('exit', () => done())));
     });
   }
   it('(#4678) exits 2 for skill/review-post-gate on an empty pipe, non-JSON or late input', async () => {
@@ -150,7 +153,13 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     for (const send of [
       (w: NodeJS.WritableStream) => w.end(''),
       (w: NodeJS.WritableStream) => w.end('not json'),
-      (w: NodeJS.WritableStream) => setTimeout(() => w.end(payload()), 1000),
+      // Late by construction: the payload is written only after the gate has
+      // exited. A fixed 1000 ms delay was not late on a loaded machine, where
+      // node start plus the bundle import took over 1 s before run-hook armed
+      // its 100 ms stdin timer, so the payload was already in the pipe.
+      (w: NodeJS.WritableStream, exited: Promise<void>) => {
+        void exited.then(() => w.end(payload()));
+      },
     ]) {
       const r = await feed('skill/review-post-gate', send);
       expect(r.code).toBe(2);
@@ -169,7 +178,7 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
       expect(r.code, body).toBe(2);
       expect(r.stdout).not.toMatch(/"continue":\s*true/);
     }
-  });
+  }, 20000);
 
   it('(HOLD 6084834846 should) exits 2 for skill/review-post-gate instead of using another version from the cache', async () => {
     const base = mkdtempSync(join(tmpdir(), 'bundle-cache.'));
@@ -190,7 +199,7 @@ describe('run-hook.mjs when the dist bundle exists but cannot be imported (#3817
     } finally {
       rmSync(base, { recursive: true, force: true });
     }
-  });
+  }, 20000);
 
   it('exits 1 with the same stderr line and row for a non-security hook', async () => {
     const r = await run(PLAIN_HOOK);
