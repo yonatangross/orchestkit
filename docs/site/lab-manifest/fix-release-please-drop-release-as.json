@@ -1,0 +1,11 @@
+{
+  "slug": "fix-release-please-drop-release-as",
+  "source": "docs/fix--release-please-drop-release-as/index.html",
+  "title": "Drop the release-as 10.0.0 pin",
+  "description": "The release-as pin made release-please propose 10.0.0 again after v10.0.0 shipped; removing it lets the next release be 10.0.1.",
+  "tags": [
+    "release",
+    "ci"
+  ],
+  "date": "2026-10-22"
+}
