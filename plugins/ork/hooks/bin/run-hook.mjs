@@ -531,21 +531,35 @@ try {
   stdinFromFile = false;
 }
 
-const timeout = stdinFromFile ? null : setTimeout(() => {
-  if (!stdinClosed) {
-    stdinClosed = true;
-    // #4678: a gate that sees {} would allow; late or absent input blocks.
-    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got no input in time');
-    if (!process.stdin.isTTY && inputBytes === 0) {
-      process.stderr.write(
-        `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
-          `running with an EMPTY payload, so this hook measured nothing. ` +
-          `A slow producer (interpreter startup, multi-stage pipe) loses this race; ` +
-          `write the payload to a file and redirect it instead of generating it inline (#3415).\n`,
-      );
-    }
-    runHook(normalizeInput({}));
+// #4825: the timer firing is not proof the pipe is empty. Libuv runs the timers
+// phase BEFORE the poll phase, so a process starved of CPU for 100ms right after
+// this line (pre-push at load 90+) reached the callback with the whole payload
+// already sitting unread in the pipe. Measured on a loaded Mac: `printf | node`
+// starved 24 of 150 runs, every one with all bytes readable at fire time. The
+// callback therefore defers once with setImmediate: the check phase runs after
+// one poll, which reads anything already written. Only a pipe that is still
+// empty after that poll takes the empty-payload path. The window is not raised;
+// the hang guard costs one extra loop turn, and only on the path that used to
+// lose the payload.
+function onStdinTimeout() {
+  if (stdinClosed) return;
+  if (inputBytes > 0) return; // the poll delivered data: the stream path owns it now
+  stdinClosed = true;
+  // #4678: a gate that sees {} would allow; late or absent input blocks.
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got no input in time');
+  if (!process.stdin.isTTY) {
+    process.stderr.write(
+      `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
+        `running with an EMPTY payload, so this hook measured nothing. ` +
+        `A slow producer (interpreter startup, multi-stage pipe) loses this race; ` +
+        `write the payload to a file and redirect it instead of generating it inline (#3415).\n`,
+    );
   }
+  runHook(normalizeInput({}));
+}
+
+const timeout = stdinFromFile ? null : setTimeout(() => {
+  if (!stdinClosed) setImmediate(onStdinTimeout);
 }, 100);
 
 process.stdin.setEncoding('utf8');
