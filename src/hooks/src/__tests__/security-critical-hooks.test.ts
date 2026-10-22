@@ -25,6 +25,29 @@ import { redactSecrets } from '../skill/redact-secrets.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
 import { securityCommandAudit } from '../agent/security-command-audit.js';
 
+// A reject must hold in both output shapes: 9.8.1 allows via
+// permissionDecision, #4374 allows via decision.behavior. Asserting only one
+// field passes vacuously once the other shape ships.
+function expectNoAllow(result: { hookSpecificOutput?: unknown }): void {
+  const out = result.hookSpecificOutput as
+    | { permissionDecision?: string; decision?: { behavior?: string } }
+    | undefined;
+  expect(out?.permissionDecision).not.toBe('allow');
+  expect(out?.decision?.behavior).not.toBe('allow');
+}
+
+// Rejects are only meaningful with auto-approve switched on (#4374 makes it
+// opt-in); without the flag every command abstains and the asserts prove nothing.
+const __ORK_PAA_PREV_REJECT = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV_REJECT === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV_REJECT;
+});
+
+
 // =============================================================================
 // Test Utilities
 // =============================================================================
@@ -559,7 +582,7 @@ describe('autoApproveSafeBash', () => {
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       // Should NOT auto-approve — let user decide
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 
@@ -572,7 +595,7 @@ describe('autoApproveSafeBash', () => {
       const result = autoApproveSafeBash(createBashInput(command));
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 
@@ -590,7 +613,7 @@ describe('autoApproveSafeBash', () => {
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       // Should NOT have permissionDecision (let user decide)
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 

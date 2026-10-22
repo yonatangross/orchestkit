@@ -3,10 +3,33 @@
  * Tests safe command pattern matching and permission decisions
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
+
+// A reject must hold in both output shapes: 9.8.1 allows via
+// permissionDecision, #4374 allows via decision.behavior. Asserting only one
+// field passes vacuously once the other shape ships.
+function expectNoAllow(result: { hookSpecificOutput?: unknown }): void {
+  const out = result.hookSpecificOutput as
+    | { permissionDecision?: string; decision?: { behavior?: string } }
+    | undefined;
+  expect(out?.permissionDecision).not.toBe('allow');
+  expect(out?.decision?.behavior).not.toBe('allow');
+}
+
+// Rejects are only meaningful with auto-approve switched on (#4374 makes it
+// opt-in); without the flag every command abstains and the asserts prove nothing.
+const __ORK_PAA_PREV_REJECT = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV_REJECT === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV_REJECT;
+});
+
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -235,6 +258,16 @@ describe('auto-approve-safe-bash', () => {
       'tail ~/.git-credentials',
       'cat ~/.config/gh/hosts.yml',
       'cat /etc/master.passwd',
+      // HR-1 followup: the reject keys on the PATH, not the reader. fmt, pr,
+      // comm and tsort all print files and were measured auto-approved.
+      'fmt ~/.ssh/id_rsa',
+      'pr ~/.aws/credentials',
+      'comm ~/.kube/config ~/.bashrc',
+      'tsort ~/.netrc',
+      // Same holds for non-reader commands that name a secret path.
+      'cp ~/.ssh/id_rsa /tmp/staging/',
+      'wc -l .envrc',
+      'test -f ~/.aws/credentials',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
@@ -243,7 +276,7 @@ describe('auto-approve-safe-bash', () => {
 
       expect(result.continue).toBe(true);
       // Should NOT have permissionDecision (let user decide)
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 
@@ -253,7 +286,7 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('handles undefined command', () => {
@@ -283,7 +316,7 @@ describe('auto-approve-safe-bash', () => {
 
       // SEC: Compound commands are never auto-approved — require manual review
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('handles very long command', () => {
@@ -301,7 +334,7 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('rejects multiline commands (compound via newline)', () => {
@@ -310,7 +343,7 @@ describe('auto-approve-safe-bash', () => {
 
       // SEC: Multiline = compound command, requires manual review
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 
@@ -319,14 +352,14 @@ describe('auto-approve-safe-bash', () => {
       const input = createBashInput('gitignore-generator');
       const result = autoApproveSafeBash(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('does not approve partial matches', () => {
       const input = createBashInput('cat-video-player');
       const result = autoApproveSafeBash(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('approves ls with flags and paths', () => {
@@ -351,7 +384,7 @@ describe('auto-approve-safe-bash', () => {
 
       // REJECT_PATTERNS catches "git push -f" before SAFE_PATTERNS can match "git push"
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
 
     test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
@@ -385,7 +418,7 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
       expect(result.continue).toBe(true);
       // No permissionDecision — Write tool falls through as unrecognized command
-      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expectNoAllow(result);
     });
   });
 
