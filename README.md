@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.8.2](https://github.com/yonatangross/orchestkit/compare/v9.8.1...v9.8.2)** · 2026-10-22
+
+- **hooks:** backport the [#4374](https://github.com/yonatangross/orchestkit/pull/4374) permission hardening from main for GHSA-97cf-6g9r-2x39: path containment resolves symlink chains and excludes `.git` case-insensitively plus `.claude`, `.github` and `.husky`; PermissionRequest auto-approve is opt-in (`ORK_PERMISSION_AUTO_APPROVE=1`) with a hard denylist even when enabled; allows use `decision.behavior` instead of the ignored `permissionDecision`
+
 **[v9.8.1](https://github.com/yonatangross/orchestkit/compare/v9.8.0...v9.8.1)** · 2026-09-28
 
 - **hooks:** remove three matcher-group `if` keys Claude Code reports as unknown and ignores (#4515), backporting the [#4062](https://github.com/yonatangross/orchestkit/pull/4062) fix from main
@@ -319,11 +323,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump @types/node in the npm-minor-patch group (#3253)
 - **contributing:** add entry-point section and fork-CI expectation note (#3250)
 - fix nonexistent scripts/hooks path in SECURITY.md (#3248)
-
-**[v9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2)** · 2026-08-02
-
-- **hooks:** branch-switch awareness in git-validator protection (#3246)
-- glob the five orphan test dirs into blocking coverage (#3245)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

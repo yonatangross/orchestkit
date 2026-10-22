@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.8.2",
+    "date": "2026-10-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "security",
+        "items": [
+          "**hooks:** backport the [#4374](https://github.com/yonatangross/orchestkit/pull/4374) permission hardening from main for GHSA-97cf-6g9r-2x39: path containment resolves symlink chains and excludes `.git` case-insensitively plus `.claude`, `.github` and `.husky`; PermissionRequest auto-approve is opt-in (`ORK_PERMISSION_AUTO_APPROVE=1`) with a hard denylist even when enabled; allows use `decision.behavior` instead of the ignored `permissionDecision`"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.8.1",
     "date": "2026-09-28",
     "compareUrl": "",
