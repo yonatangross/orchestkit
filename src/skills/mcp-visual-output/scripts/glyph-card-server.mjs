@@ -103,14 +103,24 @@ const CARD_HTML = `<!DOCTYPE html>
     document.getElementById("total").textContent = "Total " + sc.total + (sc.rows[0].unit || "");
   };
   let nextId = 1;
+  const initId = nextId++;
+  let initialized = false;
   const send = (m) => parent.postMessage({ jsonrpc: "2.0", ...m }, "*");
   window.addEventListener("message", (e) => {
+    // Only the host frame speaks the bridge; any other window is ignored.
+    if (e.source !== window.parent) return;
     const m = e.data;
-    if (m && m.method === "ui/notifications/tool-result") draw(m.params && m.params.structuredContent);
+    if (!m || typeof m !== "object") return;
+    // The handshake: initialized goes out only after the host answers ui/initialize.
+    if (m.id === initId && !initialized && ("result" in m || "error" in m)) {
+      initialized = true;
+      if ("result" in m) send({ method: "ui/notifications/initialized", params: {} });
+      return;
+    }
+    if (m.method === "ui/notifications/tool-result") draw(m.params && m.params.structuredContent);
   });
-  send({ id: nextId++, method: "ui/initialize", params: {
+  send({ id: initId, method: "ui/initialize", params: {
     protocolVersion: "2026-01-26", appInfo: { name: "ork-glyph-card", version: "1.0.0" }, appCapabilities: {} } });
-  send({ method: "ui/notifications/initialized", params: {} });
 </script>
 </body></html>`
 
@@ -132,8 +142,11 @@ function parseArgs(args) {
   return { ok: true, title: a.title, rows }
 }
 
-/** @param {number} n */
-const round1 = (n) => Math.round(n * 10) / 10
+/** @param {number} n Values near Number.MAX_VALUE overflow when scaled, so they stay as they are. */
+const round1 = (n) => {
+  const scaled = n * 10
+  return Number.isFinite(scaled) ? Math.round(scaled) / 10 : n
+}
 
 /**
  * The text fallback: what a host with no UI (Claude Code, a plain model) shows.
@@ -156,7 +169,10 @@ function glyphText(title, rows, total) {
 function callTool(args) {
   const parsed = parseArgs(args)
   if (!parsed.ok) return { content: [{ type: 'text', text: `Invalid input: ${parsed.error}` }], isError: true }
-  const total = round1(parsed.rows.reduce((s, r) => s + r.value, 0))
+  const sum = parsed.rows.reduce((s, r) => s + r.value, 0)
+  // Finite rows can still sum to Infinity, which JSON would turn into null.
+  if (!Number.isFinite(sum)) return { content: [{ type: 'text', text: 'Invalid input: the row values are too large to total' }], isError: true }
+  const total = round1(sum)
   return {
     content: [{ type: 'text', text: glyphText(parsed.title, parsed.rows, total) }],
     structuredContent: { title: parsed.title, rows: parsed.rows, total },
@@ -176,11 +192,14 @@ const fail = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, messag
  */
 export async function handleRpc(msg) {
   if (msg.id === undefined) return null
-  const { id, method, params = {} } = msg
+  const { id, method } = msg
+  const rawParams = msg.params ?? {}
+  if (typeof rawParams !== 'object' || Array.isArray(rawParams)) return fail(id, -32602, 'Invalid params: params must be an object')
+  const params = rawParams
   switch (method) {
     case 'initialize':
       return ok(id, {
-        protocolVersion: params.protocolVersion ?? '2025-06-18',
+        protocolVersion: typeof params.protocolVersion === 'string' ? params.protocolVersion : '2025-06-18',
         capabilities: { tools: {}, resources: {} },
         serverInfo: { name: 'ork-glyph-card', version: '0.1.0' },
       })
@@ -198,6 +217,32 @@ export async function handleRpc(msg) {
       return ok(id, { contents: [{ uri: GLYPH_UI_URI, mimeType: MCP_APP_MIME, text: CARD_HTML, _meta: { ui: { prefersBorder: true } } }] })
     default:
       return fail(id, -32601, `Method not found: ${method}`)
+  }
+}
+
+/**
+ * One raw message from a transport in, a status and reply out. Never throws, so a
+ * malformed line or body cannot take the server down.
+ * @param {string} text
+ * @returns {Promise<{status: number, reply: object | null}>}
+ */
+export async function handleText(text) {
+  /** @type {unknown} */
+  let msg
+  try {
+    msg = JSON.parse(text)
+  } catch {
+    return { status: 400, reply: fail(null, -32700, 'Parse error') }
+  }
+  if (msg === null || typeof msg !== 'object' || Array.isArray(msg) || typeof (/** @type {{method?: unknown}} */ (msg)).method !== 'string') {
+    return { status: 400, reply: fail(null, -32600, 'Invalid Request') }
+  }
+  const rpcMsg = /** @type {RpcMessage} */ (msg)
+  try {
+    const reply = await handleRpc(rpcMsg)
+    return reply === null ? { status: 202, reply: null } : { status: 200, reply }
+  } catch {
+    return { status: 500, reply: fail(rpcMsg.id ?? null, -32603, 'Internal error') }
   }
 }
 
@@ -255,19 +300,8 @@ export function createHttpServer({ allowedHosts = [] } = {}) {
       chunks.push(c)
     })
     req.on('end', async () => {
-      /** @type {unknown} */
-      let msg
-      try {
-        msg = JSON.parse(Buffer.concat(chunks).toString('utf8'))
-      } catch {
-        return send(400, fail(null, -32700, 'Parse error'))
-      }
-      if (msg === null || typeof msg !== 'object' || Array.isArray(msg) || typeof (/** @type {{method?: unknown}} */ (msg)).method !== 'string') {
-        return send(400, fail(null, -32600, 'Invalid Request'))
-      }
-      const reply = await handleRpc(/** @type {RpcMessage} */ (msg))
-      if (reply === null) return send(202)
-      send(200, reply)
+      const { status, reply } = await handleText(Buffer.concat(chunks).toString('utf8'))
+      send(status, reply ?? undefined)
     })
   })
 }
@@ -285,8 +319,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else {
     for await (const line of createInterface({ input: process.stdin })) {
       if (!line.trim()) continue
-      const res = await handleRpc(JSON.parse(line))
-      if (res) process.stdout.write(`${JSON.stringify(res)}\n`)
+      const { reply } = await handleText(line)
+      if (reply) process.stdout.write(`${JSON.stringify(reply)}\n`)
     }
   }
 }
