@@ -11,6 +11,32 @@
  */
 
 /**
+ * git long options that run a configured or supplied program, write a file,
+ * or point git at another repository (whose config can run programs).
+ */
+const GIT_PROGRAM_OPTIONS = [
+  'upload-pack',
+  'receive-pack',
+  'exec',
+  'output',
+  'ext-diff',
+  'config-env',
+  'git-dir',
+  'work-tree',
+  'exec-path',
+];
+
+/**
+ * Every prefix of GIT_PROGRAM_OPTIONS, longest first. git's parse-options
+ * accepts any unambiguous prefix of a long option, so `git fetch
+ * --upload-pa=CMD` runs CMD exactly like `--upload-pack=CMD`. A prefix that
+ * git would read as some other option only drops that command to a prompt.
+ */
+const GIT_PROGRAM_OPTION_PREFIXES = [
+  ...new Set(GIT_PROGRAM_OPTIONS.flatMap((name) => Array.from(name, (_, i) => name.slice(0, i + 1)))),
+].sort((a, b) => b.length - a.length);
+
+/**
  * Commands that must NEVER be auto-approved or retried.
  * Checked BEFORE safe patterns — reject takes priority.
  */
@@ -40,9 +66,10 @@ export const REJECT_PATTERNS: RegExp[] = [
   /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok|exec|execdir)\b/,
 
   // git options that run a configured or supplied program, write a file, or
-  // point git at another repository (whose config can run programs). The
-  // read-only subcommand allowlist cannot see these, so they drop to a prompt.
-  /^git\b[^\n]*?\s(?:-c|-C|--upload-pack|--receive-pack|--exec|--output|--ext-diff|--config-env|--git-dir|--work-tree|--exec-path)(?=[=\s]|$)/,
+  // point git at another repository (whose config can run programs), in full
+  // or abbreviated. The read-only subcommand allowlist cannot see these, so
+  // they drop to a prompt.
+  new RegExp(String.raw`^git\b[^\n]*?\s(?:-c|-C|--(?:${GIT_PROGRAM_OPTION_PREFIXES.join('|')}))(?=[=\s]|$)`),
 
   // Credential-path arguments (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix. Keying on the reader left the

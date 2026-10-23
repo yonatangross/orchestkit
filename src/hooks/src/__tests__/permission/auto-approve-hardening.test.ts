@@ -245,20 +245,24 @@ describe('safe-bash allowlist refuses background jobs, risky git options and arb
     'npm run lint:fix',
     'pnpm run format-all',
     'git --exec-path=x status',
+    // git accepts any unambiguous prefix of a long option: these run x.
+    'git fetch --upload-pa=x origin',
+    'git fetch --upl x origin',
+    'git pull --upload-p=x origin main',
   ];
 
   test.each(refused)('safe-bash does not allow: %s', (cmd) => {
     expect(isAllow(autoApproveSafeBash(bashInput(cmd)))).toBe(false);
   });
 
-  test.each(['git fetch --upload-pack=x origin', 'git log --output=out.txt', 'git status &'])(
+  test.each(['git fetch --upload-pack=x origin', 'git fetch --upload-pa=x origin', 'git log --output=out.txt', 'git status &'])(
     'safe-command-retry does not retry: %s',
     (cmd) => {
       expect(isRetry(safeCommandRetry(bashInput(cmd, 'PermissionDenied')))).toBe(false);
     },
   );
 
-  test.each(['git status', 'git log --oneline -5', 'git diff HEAD', 'npm test', 'npm run test', 'npm run lint', 'pnpm run test', 'yarn run lint', 'poetry run pytest -q'])(
+  test.each(['git status', 'git log --oneline -5', 'git diff HEAD', 'git log --stat --graph', 'git diff --cached --exit-code', 'git fetch --prune --all', 'git branch --all', 'npm test', 'npm run test', 'npm run lint', 'pnpm run test', 'yarn run lint', 'poetry run pytest -q'])(
     'control: still allowed: %s',
     (cmd) => {
       expect(isAllow(autoApproveSafeBash(bashInput(cmd)))).toBe(true);
