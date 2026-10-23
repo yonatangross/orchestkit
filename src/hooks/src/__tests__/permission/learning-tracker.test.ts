@@ -753,6 +753,7 @@ describe('learningTracker learned-pattern hardening', () => {
     expect(allowed('git grep -nOx hello')).toBe(false);
     expect(allowed('git grep --open-files-in-pager=x hello')).toBe(false);
     expect(allowed('git grep --op=x hello')).toBe(false);
+    expect(allowed('git --shallow-file /dev/null grep -Opython hello')).toBe(false);
     expect(allowed('git fetch --upload-pa=x origin')).toBe(false);
     expect(allowed('git grep -n hello')).toBe(true);
     expect(allowed('git log -O order.txt -1')).toBe(true);

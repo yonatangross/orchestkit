@@ -40,12 +40,13 @@ function longOptionPrefixes(names: string[]): string {
 }
 
 /**
- * git's top-level options, before the subcommand. --namespace,
- * --super-prefix and --attr-source take their value as the next word; the
- * other value-taking ones (-c, -C, --git-dir, --work-tree, --config-env) are
- * rejected outright below, so they never need skipping here.
+ * git's top-level options, before the subcommand. Some take their value as
+ * the next word, and not all of them are documented (--shallow-file is
+ * missing from `git help git`), so no list is kept: any bare long option may
+ * consume one following word. That can only read a subcommand as a value
+ * (`git --no-pager log -p` then prompts), never let a value end the scan.
  */
-const GIT_TOP_LEVEL_OPTIONS = String.raw`(?:\s+(?:--namespace|--super-prefix|--attr-source)\s+\S+|\s+-\S+)*?`;
+const GIT_TOP_LEVEL_OPTIONS = String.raw`(?:\s+--[^\s=]+(?:\s+[^-\s]\S*)?|\s+-\S+)*?`;
 
 /**
  * Commands that must NEVER be auto-approved or retried.
@@ -83,10 +84,11 @@ export const REJECT_PATTERNS: RegExp[] = [
   new RegExp(String.raw`^git\b[^\n]*?\s(?:-c|-C|--(?:${longOptionPrefixes(GIT_PROGRAM_OPTIONS)}))(?=[=\s]|$)`),
   // git grep -O<cmd> / --open-files-in-pager=<cmd> runs <cmd> on the matched
   // files. The short form takes its value attached and can sit in a cluster
-  // (`-nOvim`), so any short cluster holding O counts. Scoped to grep:
-  // `git log -O<orderfile>` only reads a file.
+  // (`-nOvim`), so any short cluster holding O counts. Scoped to a grep word
+  // anywhere after git, so no top-level option can hide it: `git log
+  // -O<orderfile>` only reads a file.
   new RegExp(
-    String.raw`^git${GIT_TOP_LEVEL_OPTIONS}\s+grep\b[^\n]*?\s(?:-[A-Za-z0-9]*O|--(?:${longOptionPrefixes(['open-files-in-pager'])})(?=[=\s]|$))`,
+    String.raw`^git\b[^\n]*?\sgrep\b[^\n]*?\s(?:-[A-Za-z0-9]*O|--(?:${longOptionPrefixes(['open-files-in-pager'])})(?=[=\s]|$))`,
   ),
   // Top-level -p / --paginate runs the configured pager. Only before the
   // subcommand: `git log -p` is patch output, not paging.

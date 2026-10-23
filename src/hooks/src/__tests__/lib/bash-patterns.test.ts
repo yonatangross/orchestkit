@@ -37,6 +37,9 @@ describe('REJECT_PATTERNS', () => {
       // a top-level option with a separate value must not end the scan
       'git --namespace foo grep -Ovim hello',
       'git --namespace foo -p log',
+      // --shallow-file takes the next word and is not in `git help git`
+      'git --shallow-file /dev/null grep -Opython hello',
+      'git --shallow-file x -p log',
     ])('rejects: %s', (cmd) => {
       expect(matchesReject(cmd)).toBe(true);
     });
