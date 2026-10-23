@@ -521,6 +521,19 @@ describe("submission errors", () => {
     await h.press("Undo");
     expect(h.box()).toBe("login++");
   });
+  test("a long pasted brief (a herdr station prompt) is sent at once: no hold, no model call", async () => {
+    // conductor236, 2026-10-23: a 10-line station brief sat idle on a new seat.
+    // The enhancer holds only a prompt ending in ++ or one sent while its own
+    // Enhance runs; an automated brief is neither and must pass straight through.
+    const brief = Array.from({ length: 10 }, (_, i) => `line ${i + 1} of the station brief`).join("\n") + "\nBudget: 45 min";
+    const h = harness(brief);
+    const out = await h.fire("prompt.submit", submit(brief));
+    expect(out).not.toHaveProperty("drop");
+    expect(h.sent).toEqual([brief]);
+    expect(h.complete).not.toHaveBeenCalled();
+    expect(h.drops).toEqual([]);
+  });
+
   test("state errors after next do not send the prompt twice", async () => {
     const h = harness("ordinary prompt");
     h.$.state.get = async () => { throw new Error("state unavailable"); };
