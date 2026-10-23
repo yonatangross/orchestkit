@@ -2,7 +2,9 @@ import type { BandState, Dollar, On } from "../src/api.js";
 import { SYSTEM } from "../src/system.js";
 
 const BAND = { plugin: "prompt-enhancer", key: "band" } as const;
-const INITIAL: BandState = { visible: true, collapsed: false, busy: false, original: null };
+// Collapsed by default: one line above the prompt until there is a rewrite to
+// review (Enhance expands it). The band is shared, so an idle mod stays small.
+const INITIAL: BandState = { visible: true, collapsed: true, busy: false, original: null };
 
 // One rule for every action that writes shared state after an await (Enhance,
 // Undo, Send, Enter): it takes a run token in Control.current before its first
@@ -256,30 +258,44 @@ export const register = (on: On): void => {
     const state = await read($);
     if (e.props.hasSurvey || !state.visible) return next(e);
     const { Box, Text, Button } = $.ui.resolve(e);
-    return (
-      <Box flexDirection="column">
+    // The band is shared: what the mods below this one draw stays on screen.
+    const below = await next(e);
+    const enhanceButton = (
+      <Button key="enhance" label="Enhance" hotkey="e" onPress={async () => {
+        c.held = null;
+        const stamp = c.epoch;
+        const text = (await $.prompt.read()).text;
+        if (c.epoch === stamp) await enhance($, c, text);
+      }} />
+    );
+    const toggle = <Button key="collapse" label={state.collapsed ? "+" : "-"} onPress={() => { c.epoch += 1; return patch($, c, state => ({ collapsed: !state.collapsed })); }} />;
+    const mine = state.collapsed
+      ? (
         <Box>
           <Text>✨ Prompt Enhancer </Text>
-          <Button key="collapse" label={state.collapsed ? "+" : "-"} onPress={() => { c.epoch += 1; return patch($, c, state => ({ collapsed: !state.collapsed })); }} />
+          {enhanceButton}
+          {toggle}
+          {state.busy && <Text dimColor> Enhancing...</Text>}
         </Box>
-        {!state.collapsed && <Box flexDirection="column">
+      )
+      : (
+        <Box flexDirection="column">
           <Box>
-            <Button key="enhance" label="Enhance" hotkey="e" onPress={async () => {
-              c.held = null;
-              const stamp = c.epoch;
-              const text = (await $.prompt.read()).text;
-              if (c.epoch === stamp) await enhance($, c, text);
-            }} />
+            <Text>✨ Prompt Enhancer </Text>
+            {toggle}
+          </Box>
+          <Box>
+            {enhanceButton}
             <Button key="undo" label="Undo" hotkey="u" onPress={() => undo($, c)} />
             <Button key="send" label="Send" hotkey="s" onPress={() => send($, c)} />
           </Box>
-          <Text dimColor>Enhanced below: edit it, then Send (or Enter). Undo puts your original back.</Text>
+          {state.original !== null && <Text dimColor>Enhanced below: edit it, then Send (or Enter). Undo puts your original back.</Text>}
           {/* A click reaches a Button only where the terminal reports clicks
               (fullscreen); the keyboard path works everywhere. */}
-          <Text dimColor>Keys: ctrl+x tab, then e Enhance, u Undo, s Send. Esc goes back to the prompt.</Text>
+          {state.original !== null && <Text dimColor>Keys: ctrl+x tab, then e Enhance, u Undo, s Send. Esc goes back to the prompt.</Text>}
           {state.busy && <Text dimColor>Enhancing...</Text>}
-        </Box>}
-      </Box>
-    );
+        </Box>
+      );
+    return <Box flexDirection="column">{mine}{below}</Box>;
   });
 };

@@ -460,11 +460,48 @@ describe("failure and race handling", () => {
   });
   test("collapse keeps the draft intact and expand restores the controls", async () => {
     const h = harness("login");
+    await h.press("+");
     await h.press("-");
     expect(h.box()).toBe("login");
-    await h.press("+");
     await h.press("Enhance");
     expect(h.complete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the band stays small and shared", () => {
+  const render = (h: ReturnType<typeof harness>) =>
+    h.fire("ui.render", { component: "AbovePrompt", props: { hasSurvey: false, isWorking: false } });
+  const nodes = (value: unknown, out: Node[] = []): Node[] => {
+    if (!value || typeof value !== "object") return out;
+    const node = value as Node;
+    out.push(node);
+    for (const child of node.children ?? []) nodes(child, out);
+    return out;
+  };
+  const texts = (tree: unknown) => nodes(tree).filter(n => n.tag === "Text").map(n => JSON.stringify(n.children));
+  const labels = (tree: unknown) => nodes(tree).filter(n => n.tag === "Button").map(n => n.props.label);
+
+  test("it starts as one line: Enhance and expand, no Undo, Send or help text", async () => {
+    const h = harness("draft");
+    const tree = await render(h);
+    expect(labels(tree)).toEqual(["Enhance", "+"]);
+    expect(texts(tree).join(" ")).not.toContain("Enhanced below");
+  });
+
+  test("after an Enhance the review controls and help appear", async () => {
+    const h = harness("make a login page");
+    await h.press("Enhance");
+    await settle();
+    const tree = await render(h);
+    expect(labels(tree)).toEqual(expect.arrayContaining(["Enhance", "Undo", "Send", "-"]));
+    expect(texts(tree).join(" ")).toContain("Enhanced below");
+  });
+
+  test("what the mods below draw stays in the tree", async () => {
+    const h = harness("draft");
+    const tree = await render(h);
+    const kept = nodes(tree).some(n => (n as unknown as { component?: string }).component === "AbovePrompt");
+    expect(kept).toBe(true);
   });
 });
 
