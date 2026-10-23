@@ -746,8 +746,21 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
   test.each([
     ['Stop and ask if the deploy to production breaks.'],
     ['When you hit merge conflicts, just stop and report back.'],
+    // A follow-up that does not refer back to the condition keeps it an obstacle.
+    ['Stop if the deploy to production breaks, then report it.'],
   ])('the obstacle inside a stop clause is still removed: "%s"', (text) => {
     expect(matchSpecialistDomain('', text)).toBeNull();
+  });
+
+  // Reviewer HOLD 6346951302 / 6365962150 Must: when the rest of the sentence
+  // refers back to the condition ("then do it", "if so"), the condition names the
+  // work, not an obstacle, and must still route. main routed both.
+  test.each([
+    ['Stop and check if a deploy to production is needed, then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase onto main is needed, then do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed and if so run it.', 'ork:deployment-manager'],
+  ])('a condition referred back to by "then do it" or "if so" still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
   });
 
   // Known extra ask, pinned on purpose (reviewer HOLD 6344107617): the condition
@@ -778,6 +791,18 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
     );
     expect(decisionOf(result)).not.toBe('ask');
     expect(contextOf(result)).toContain('ork:release-engineer');
+  });
+
+  // CodeRabbit :473: "report only if X fails" is a conditional instruction in a
+  // task that does the work, so the specialist ask still fires.
+  test.each([
+    ['Publish a new release; report only if publishing fails.'],
+    ['Cut the release and only report if the tag push fails.'],
+  ])('a conditional "report only if" does not make the task report-only: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Publish a new release', prompt }),
+    );
+    expect(decisionOf(result)).toBe('ask');
   });
 
   test('a prompt that asks to build still turns the read nudge off', () => {

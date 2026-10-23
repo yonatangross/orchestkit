@@ -236,9 +236,13 @@ export const CONDITIONAL_STOP_PATTERN =
 
 /**
  * A task that says it only reads or reports. A domain match in it gets the
- * advisory note, never a permission ask (#4835). Exported for tests.
+ * advisory note, never a permission ask (#4835). "report only if publishing
+ * fails" is a conditional instruction inside a task that does the work, not a
+ * report-only task, so a condition word right after it does not count
+ * (CodeRabbit, :473). Exported for tests.
  */
-export const REPORT_ONLY_PATTERN = /\b(?:report(?: back)? only|only report|read[- ]only)\b/i;
+export const REPORT_ONLY_PATTERN =
+  /\b(?:report(?: back)? only|only report|read[- ]only)\b(?!\s+(?:if|when|whenever|in case|once|after|unless)\b)/i;
 
 /**
  * Clause breaks inside a conditional-stop span: punctuation plus the closed class
@@ -260,6 +264,16 @@ const CONDITION_WORD = /^(?:if|when|whenever|in case)$/i;
  */
 const OBSTACLE_HEAD =
   /^(?:(?:the|a|an|any|this|that|these|those|our|your|its|their|my)|(?:you|we|it|they|i)\s+(?:hit|hits|see|sees|get|gets|run into|runs into|encounter|encounters|find|finds|face|faces|trigger|triggers)(?:\s+(?:the|a|an|any))?)?$/i;
+
+/**
+ * The text after a stop span refers back to its condition as the work to do:
+ * "stop and check if a deploy to production is needed, then do it", "... and if
+ * so, run it". Then the condition names the work, not an obstacle, and its
+ * routed match is kept (reviewer HOLD 6346951302). Scoped to the rest of the
+ * same sentence.
+ */
+const BACK_REFERENCE =
+  /^[^.;!?\n]*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so\b)/i;
 
 /** True when the routed match in an obstacle piece is the obstacle itself. */
 function isPureObstacle(piece: string): boolean {
@@ -283,15 +297,17 @@ function isPureObstacle(piece: string): boolean {
  * is still removed, but only when the routed match IS the obstacle (OBSTACLE_HEAD);
  * a condition that runs into an instruction with no comma ("if ready deploy to
  * production, stop") keeps it, an extra ask by design (XREVIEW HOLD 6346226707).
- * Exported for tests.
+ * When the text after the span refers back to the condition ("..., then do it",
+ * BACK_REFERENCE) no obstacle is dropped. Exported for tests.
  */
-export function stripConditionalStop(span: string): string {
+export function stripConditionalStop(span: string, after = ''): string {
   const parts = span.split(STOP_SPAN_BREAK);
   const kept: string[] = [];
+  const conditionIsTheWork = BACK_REFERENCE.test(after);
   for (let i = 0; i < parts.length; i += 2) {
     const breakBefore = i > 0 ? parts[i - 1].trim() : '';
     const piece = parts[i];
-    if (CONDITION_WORD.test(breakBefore) && isPureObstacle(piece)) continue;
+    if (!conditionIsTheWork && CONDITION_WORD.test(breakBefore) && isPureObstacle(piece)) continue;
     if (SPECIALIST_DOMAINS.some((domain) => domain.pattern.test(piece))) kept.push(piece.trim());
   }
   return kept.length > 0 ? ` ${kept.join('. ')}. ` : ' ';
@@ -307,7 +323,9 @@ export function stripConditionalStop(span: string): string {
 export function stripGuardRails(text: string): string {
   return text
     .replace(AFFIRMATIVE_REMINDER_PATTERN, '.')
-    .replace(CONDITIONAL_STOP_PATTERN, (span) => stripConditionalStop(span))
+    .replace(CONDITIONAL_STOP_PATTERN, (span: string, offset: number, whole: string) =>
+      stripConditionalStop(span, whole.slice(offset + span.length)),
+    )
     .replace(NEGATED_CLAUSE_PATTERN, ' ');
 }
 
