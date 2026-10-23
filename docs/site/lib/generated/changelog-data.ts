@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.2",
+    "date": "2026-10-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**release:** exclude .claude-plugin from release-please commits ([#4870](https://github.com/yonatangross/orchestkit/issues/4870)) ([06c0860](https://github.com/yonatangross/orchestkit/commit/06c086011fe580abbe55b65647232cbda8ec5364))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.1",
     "date": "2026-10-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1",

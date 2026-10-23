@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
+
+- **release:** exclude .claude-plugin from release-please commits (#4870)
+
 **[v10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1)** · 2026-10-22
 
 - **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
@@ -684,11 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
 - **site:** let the Installation overflow check settle after each resize (#4803)
-
-**[v10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182)** · 2026-10-17
-
-- **deps-dev:** bump vitest (#4779)
-- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4732)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
