@@ -124,9 +124,9 @@ describe('format', () => {
   const hit = (d: MemoryDoc, why = ['agent-browser']): Hit => ({ doc: d, score: 10, why });
   const priv = { clientTerms: ['acme'] };
 
-  test('screen row: one per memory, title, short path, why, no newline', () => {
+  test('screen row: one per memory, title, why, no filename, no newline', () => {
     const lines = screenLines([hit(doc('feedback_x', 'Serve with portless, hand over the URL'))], priv, '/h');
-    expect(lines).toEqual(['1/1 Serve with portless, hand over the URL (feedback_x.md) · agent-browser']);
+    expect(lines).toEqual(['1/1 Serve with portless, hand over the URL · agent-browser']);
     expect(lines.every((l) => !l.includes('\n'))).toBe(true);
     expect(lines[0]).not.toContain('memory-lens');
   });

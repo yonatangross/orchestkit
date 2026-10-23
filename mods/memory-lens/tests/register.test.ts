@@ -115,11 +115,30 @@ describe('memory-lens hooks', () => {
     expect(r.context[0]).toContain('kb id kb-9');
   });
 
-  test('mid-task: a path query adds one memory not yet recalled', async () => {
-    const r = (await hooks['tool.call'](f.$, { tool: 'Read', file_path: '/work/repo/docs/agent-browser/yourself.md' }, async () => ({ text: 'file' }))) as { context?: string[] };
-    expect(r.context).toHaveLength(1);
-    const again = (await hooks['tool.call'](f.$, { tool: 'Read', file_path: '/work/repo/docs/agent-browser/yourself.md' }, async () => ({ text: 'file' }))) as { context?: string[] };
-    expect(again.context).toBeUndefined();
+  test('a file tool call is not a query: a Read whose path matches a memory passes through untouched', async () => {
+    const res = { text: 'file' };
+    const r = await hooks['tool.call'](f.$, { tool: 'Read', file_path: '/work/repo/docs/agent-browser/yourself.md' }, async () => res);
+    expect(r).toBe(res);
+  });
+
+  test('a task notification, a peer message and a meta prompt recall nothing', async () => {
+    for (const origin of [{ kind: 'task-notification' }, { kind: 'peer-send-message' }, { kind: 'scheduled-trigger' }]) {
+      const r = (await hooks['prompt.submit'](f.$, { text: 'why not do it yourself with agent-browser', origin }, async (e: unknown) => e)) as Record<string, unknown>;
+      expect(r.context).toBeUndefined();
+    }
+    const meta = (await hooks['prompt.submit'](f.$, { text: 'why not do it yourself with agent-browser', isMeta: true }, async (e: unknown) => e)) as Record<string, unknown>;
+    expect(meta.context).toBeUndefined();
+    const cmd = (await hooks['prompt.submit'](f.$, { text: '/review agent-browser yourself', command: { name: 'review' } }, async (e: unknown) => e)) as Record<string, unknown>;
+    expect(cmd.context).toBeUndefined();
+    expect(f.logs.filter((l) => l.to !== 'debug')).toHaveLength(0);
+  });
+
+  test("the person's own prompt from the terminal or the desktop app still recalls", async () => {
+    for (const kind of ['composer', 'sdk']) {
+      await start(hooks, f.$); // a fresh session: recalled memories are not offered twice
+      const r = (await hooks['prompt.submit'](f.$, { text: 'why not do it yourself with agent-browser', origin: { kind } }, async (e: unknown) => e)) as { context?: string[] };
+      expect(r.context?.[0]).toContain('feedback_portless');
+    }
   });
 
   test('other tools pass through', async () => {
@@ -139,7 +158,9 @@ describe('memory-lens hooks', () => {
   test('stats and show commands', async () => {
     await hooks['prompt.submit'](f.$, { text: 'acme roadmap this week' }, async (e: unknown) => e);
     const stats = (await hooks['command.run'](f.$, { args: 'stats' })) as { text: string };
-    expect(stats.text).toMatch(/memory-lens: 33 memories/);
+    // Claude Code prefixes the plugin name on command output; the text must not repeat it
+    expect(stats.text).toMatch(/^33 memories/);
+    expect(stats.text).not.toContain('memory-lens:');
     const show = (await hooks['command.run'](f.$, { args: 'show 1' })) as { text: string };
     expect(show.text).toContain('project_acme_lane');
   });

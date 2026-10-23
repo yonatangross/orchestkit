@@ -1,10 +1,11 @@
 /**
  * What the human sees and what the model gets.
  *
- * Screen line: title, why it matched, where it lives. A client memory shows as
- * "client memory (title hidden)": screens get shared and recorded. Model context:
- * the same hits with their descriptions, capped. Secret-shaped text reaches
- * neither.
+ * Screen line: human title and why it matched. Never the raw .md filename —
+ * that leaked into Claude Code's prompt band (operator, 2026-10-23). Model
+ * context still carries the full path. A client memory shows as
+ * "client memory (title hidden)": screens get shared and recorded. Secret-
+ * shaped text reaches neither.
  */
 
 import type { Hit, LensPrivate } from './types.js';
@@ -38,17 +39,12 @@ export function isClient(hit: Hit, priv: LensPrivate): boolean {
   return priv.clientTerms.some((t) => t.length > 1 && hay.includes(t.toLowerCase()));
 }
 
-function shortPath(id: string, home: string): string {
-  if (!id.startsWith('/')) return id;
-  const m = /\/\.claude\/projects\/([^/]+)\/memory\/(.+)$/.exec(id);
-  if (!m) return home && id.startsWith(home) ? '~' + id.slice(home.length) : id;
-  const proj = m[1].replace(/^-Users-[^-]+-coding-/, '').replace(/^-/, '');
-  return `${proj}/memory/${m[2]}`;
-}
 
+/** Prefer the description (truncated); fall back to a de-slugified name. Never raw filenames. */
 function title(hit: Hit): string {
   const d = hit.doc.desc.trim();
-  const t = d && d.length <= 90 ? d : hit.doc.name.replace(/[_-]+/g, ' ');
+  if (d) return d.length > 90 ? d.slice(0, 87) + '...' : d;
+  const t = hit.doc.name.replace(/[_-]+/g, ' ');
   return t.length > 90 ? t.slice(0, 87) + '...' : t;
 }
 
@@ -59,14 +55,13 @@ function title(hit: Hit): string {
  * prefixes every row with the plugin name, so rows carry neither.
  */
 export function screenLines(hits: Hit[], priv: LensPrivate, home = ''): string[] {
+  void home; // call-site compat; path stays in model context only
   return hits.slice(0, MAX_HITS).map((h, i) => {
     const n = `${i + 1}/${Math.min(hits.length, MAX_HITS)}`;
     if (isClient(h, priv) || docLooksSecret(h.doc)) return `${n} [locked] client memory (title hidden)`;
-    // the file name on screen, the full path in the model's context
-    const where = h.doc.source === 'local' ? (shortPath(h.doc.id, home).split('/').pop() ?? h.doc.id) : `${h.doc.source}: ${h.doc.id}`;
     const image = h.doc.image ? ` · image ${h.doc.image}` : '';
     const why = h.why.length ? ` · ${h.why.slice(0, 2).join(', ')}` : '';
-    return `${n} ${title(h)} (${where}${image})${why}`;
+    return `${n} ${title(h)}${image}${why}`;
   });
 }
 
