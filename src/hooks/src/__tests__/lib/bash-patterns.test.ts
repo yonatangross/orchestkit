@@ -59,6 +59,21 @@ describe('REJECT_PATTERNS', () => {
     });
   });
 
+  test('a long run of git options does not backtrack exponentially', () => {
+    // An ambiguous option scan took 3.5 s at 22 options and doubles per option.
+    const cmd = `git${' --x'.repeat(40)} status`;
+    const start = performance.now();
+    expect(matchesReject(cmd)).toBe(false);
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+
+  test('a long git command with many grep words stays linear', () => {
+    const cmd = `git${' grep'.repeat(20000)} hello`;
+    const start = performance.now();
+    expect(matchesReject(cmd)).toBe(false);
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+
   describe('git checkout destructive variants', () => {
     test.each([
       'git checkout -- .',

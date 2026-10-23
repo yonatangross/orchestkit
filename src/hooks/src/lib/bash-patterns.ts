@@ -45,8 +45,11 @@ function longOptionPrefixes(names: string[]): string {
  * missing from `git help git`), so no list is kept: any bare long option may
  * consume one following word. That can only read a subcommand as a value
  * (`git --no-pager log -p` then prompts), never let a value end the scan.
+ * The two branches never match the same text (long options start `--`,
+ * short ones `-` plus a non-dash), so a run of options cannot backtrack
+ * exponentially.
  */
-const GIT_TOP_LEVEL_OPTIONS = String.raw`(?:\s+--[^\s=]+(?:\s+[^-\s]\S*)?|\s+-\S+)*?`;
+const GIT_TOP_LEVEL_OPTIONS = String.raw`(?:\s+--[^\s=]+(?:=\S*)?(?:\s+[^-\s]\S*)?|\s+-[^-\s]\S*)*?`;
 
 /**
  * Commands that must NEVER be auto-approved or retried.
@@ -86,9 +89,10 @@ export const REJECT_PATTERNS: RegExp[] = [
   // files. The short form takes its value attached and can sit in a cluster
   // (`-nOvim`), so any short cluster holding O counts. Scoped to a grep word
   // anywhere after git, so no top-level option can hide it: `git log
-  // -O<orderfile>` only reads a file.
+  // -O<orderfile>` only reads a file. Two independent lookaheads, each one
+  // linear scan; nested lazy spans went quadratic on long commands.
   new RegExp(
-    String.raw`^git\b[^\n]*?\sgrep\b[^\n]*?\s(?:-[A-Za-z0-9]*O|--(?:${longOptionPrefixes(['open-files-in-pager'])})(?=[=\s]|$))`,
+    String.raw`^git\b(?=[^\n]*?\sgrep\b)(?=[^\n]*?\s(?:-[A-Za-z0-9]*O|--(?:${longOptionPrefixes(['open-files-in-pager'])})(?=[=\s]|$)))`,
   ),
   // Top-level -p / --paginate runs the configured pager. Only before the
   // subcommand: `git log -p` is patch output, not paging.
