@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>lesson-cards: retired from the marketplace</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style></head><body><main>
+<h1>lesson-cards: retired from the marketplace</h1>
+<p>lesson-cards matched the same lessons as the hq-ext <code>pretool-lesson-guard</code> with different rules (#4730) and was disabled on the operator's machine. The entry leaves <code>.claude-plugin/marketplace.json</code>; the folder stays because <code>tests/probes/function-hooks-probe.sh</code> loads it as its test mod.</p>
+<div class="card">
+<fieldset>marketplace
+<label><input type="radio" name="v" value="before"> before</label>
+<label><input type="radio" name="v" value="after" checked> after</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const v=pick('v');
+  const before=['ork','ork-alpha','lesson-cards','promote-lights','secrets-veil','memory-lens','prompt-enhancer'];
+  const list=v==='before'?before:before.filter(n=>n!=='lesson-cards');
+  const lines=list.map((n,i)=>'plugins['+i+'] '+n);
+  lines.push('', 'plugins[1] stays ork-alpha (release-please pins that index)');
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>
