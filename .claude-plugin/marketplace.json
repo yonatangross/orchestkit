@@ -110,8 +110,8 @@
     },
     {
       "name": "prompt-enhancer",
-      "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model; you edit the rewrite, then Send or Undo. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
-      "version": "0.1.1",
+      "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model into a short, stack-aware prompt (typo fixes, your real subagents, skills and MCP servers, one Done when line, no questions); you edit the rewrite, then Send or Undo. The catalog prefix is prompt-cached. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
+      "version": "0.2.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

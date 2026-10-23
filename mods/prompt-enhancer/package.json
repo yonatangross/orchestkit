@@ -1,11 +1,14 @@
 {
   "name": "@orchestkit/mod-prompt-enhancer",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "description": "Review an enhanced draft before sending it to Claude",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "catalog": "node scripts/build-catalog.mjs --bundled",
+    "catalog:check": "node scripts/build-catalog.mjs --check",
+    "catalog:local": "node scripts/build-catalog.mjs --local"
   },
   "devDependencies": {
     "@types/node": "^24.13.5",

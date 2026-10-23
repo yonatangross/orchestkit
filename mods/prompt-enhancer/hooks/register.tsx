@@ -1,5 +1,6 @@
 import type { BandState, Dollar, On } from "../src/api.js";
-import { SYSTEM } from "../src/system.js";
+import { CATALOG } from "../src/catalog.js";
+import { LOCAL_CATALOG, MAX_CATALOG_CHARS, request } from "../src/system.js";
 
 const BAND = { plugin: "prompt-enhancer", key: "band" } as const;
 const INITIAL: BandState = { visible: true, collapsed: false, busy: false, original: null };
@@ -19,6 +20,33 @@ interface Run { kind: "enhance" | "undo" | "send" | "submit"; filling: boolean; 
 // checks the token instead, so an edit during a committed fill does not abort
 // the fill (E3).
 interface Control { current: Run | null; held: string | null; reviewed: string | null; writes: Promise<void>; epoch: number }
+
+/**
+ * The stack catalog for the next Enhance: this machine's own, written by
+ * `npm run catalog:local`, or the bundled OrchestKit one when there is none.
+ * Read on every Enhance so a regenerated file is used at once; the bytes only
+ * change when the file does, so the cached prefix holds between calls.
+ */
+const catalog = async ($: Dollar): Promise<string> => {
+  try {
+    const home = await $.env.get("HOME");
+    if (home) {
+      const path = `${home.replace(/\/+$/, "")}/${LOCAL_CATALOG}`;
+      // Ask exists first so a machine without a local catalog logs no ENOENT.
+      // An engine without fs.exists throws here (the mods API allows only a
+      // direct $.fs.exists(...) call, not a feature test): then just read.
+      let present: boolean | null = null;
+      try { present = (await $.fs.exists(path)) === true; } catch { present = null; }
+      if (present !== false) {
+        const text = (await $.fs.read(path)).replace(/\r\n/g, "\n");
+        if (text.trim()) return text.slice(0, MAX_CATALOG_CHARS);
+      }
+    }
+  } catch {
+    // No HOME, no file or no read access: the bundled catalog still works.
+  }
+  return CATALOG;
+};
 
 const read = async ($: Dollar): Promise<BandState> => (await $.state.get(BAND)).value ?? { ...INITIAL };
 // State writes run one at a time, in the order they were asked for, so a write
@@ -60,10 +88,9 @@ const enhance = async ($: Dollar, c: Control, original: string): Promise<void> =
   try {
     await patch($, c, { visible: true, collapsed: false, busy: true });
     if (!live()) return;
-    const result = await $.model.complete({
-      model: "haiku", system: SYSTEM, prompt: draft,
-      maxTokens: 1024, effort: "low", timeoutMs: 12000,
-    });
+    const stack = await catalog($);
+    if (!live()) return;
+    const result = await $.model.complete(request(stack, draft));
     if (!live()) return;
     if (!result.isAnswered || !result.text?.trim()) {
       await $.ui.toast("Enhance failed. Kept your original prompt.");

@@ -1,8 +1,14 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { register } from "../hooks/register.js";
-import type { BandState, Dollar, Events, Handler, Node, On } from "../src/api.js";
+import type { BandState, Block, Dollar, Events, Handler, Node, On } from "../src/api.js";
+import { CATALOG } from "../src/catalog.js";
+import { SYSTEM } from "../src/system.js";
 
 afterEach(() => vi.unstubAllGlobals());
+
+// The draft is the last prompt block; the blocks before it are the cached catalog prefix.
+const draftOf = (prompt: string | readonly Block[]) => typeof prompt === "string" ? prompt : prompt.at(-1)?.text ?? "";
+const withDraft = (draft: string) => [expect.objectContaining({ cache: true }), { text: draft }];
 
 function harness(initial: string) {
   let box = initial;
@@ -20,6 +26,9 @@ function harness(initial: string) {
       submit: async ({ text, asUser }) => { expect(asUser).toBe(true); sent.push(text); return { text }; },
     },
     model: { complete },
+    // No local catalog by default: Enhance falls back to the bundled one.
+    env: { get: async () => undefined },
+    fs: { exists: async () => false, read: async () => { throw new Error("ENOENT"); } },
     state: {
       get: async () => ({ value: state, version: 0 }),
       set: async (_ref, value) => { state = value; return { isSet: true, version: 1 }; },
@@ -105,7 +114,7 @@ describe("Prompt Enhancer review boundary", () => {
     const result = await h.fire("prompt.submit", submit(h.box()));
     expect(result).toHaveProperty("drop");
     expect(h.drops).toEqual([{ text: "", modelCalls: 0 }]);
-    expect(h.complete).toHaveBeenCalledWith(expect.objectContaining({ model: "haiku", prompt: "add a login opage" }));
+    expect(h.complete).toHaveBeenCalledWith(expect.objectContaining({ model: "haiku", prompt: withDraft("add a login opage") }));
     expect(h.box()).toContain("Read the repo first");
     expect(h.box()).not.toContain("login opage++");
     expect(h.sent).toEqual([]);
@@ -157,7 +166,7 @@ describe("Prompt Enhancer review boundary", () => {
         if (calls === held) await new Promise<void>(resolve => { release = resolve; });
         return realSet(...args);
       };
-      h.complete.mockImplementation(async ({ prompt }) => ({ isAnswered: true, text: `Rewrite of ${prompt}` }));
+      h.complete.mockImplementation(async ({ prompt }) => ({ isAnswered: true, text: `Rewrite of ${draftOf(prompt)}` }));
       const pending = h.press("Enhance");
       await h.settle();
       h.edit("draft two");
@@ -264,7 +273,7 @@ describe("Prompt Enhancer review boundary", () => {
     h.edit("Add a login page with SSO++");
     await h.fire("prompt.submit", submit(h.box()));
     expect(h.complete).toHaveBeenCalledTimes(2);
-    expect(h.complete).toHaveBeenLastCalledWith(expect.objectContaining({ prompt: "Add a login page with SSO" }));
+    expect(h.complete).toHaveBeenLastCalledWith(expect.objectContaining({ prompt: withDraft("Add a login page with SSO") }));
     expect(h.sent).toEqual([]);
   });
   test("Undo restores the exact original bytes", async () => {
@@ -292,7 +301,7 @@ describe("Prompt Enhancer review boundary", () => {
     const original = "  login++ \r\n";
     const h = harness(original);
     await h.fire("prompt.submit", submit(original));
-    expect(h.complete).toHaveBeenCalledWith(expect.objectContaining({ prompt: "  login \r\n" }));
+    expect(h.complete).toHaveBeenCalledWith(expect.objectContaining({ prompt: withDraft("  login \r\n") }));
     await h.press("Undo");
     expect(Buffer.from(h.box())).toEqual(Buffer.from(original));
   });
@@ -630,7 +639,7 @@ describe("interleavings golden corpus", () => {
       if (holds.model !== "held") g.open();
       await g.promise;
       replies += 1;
-      return { isAnswered: true, text: `Rewrite of ${prompt}` };
+      return { isAnswered: true, text: `Rewrite of ${draftOf(prompt)}` };
     });
     const edit = (text: string) => { h.edit(text); return h.fire("prompt.change", { text, cursor: text.length, origin: { kind: "input" } }); };
     const band = async () => (await h.$.state.get({ plugin: "prompt-enhancer", key: "band" })).value;
@@ -1094,7 +1103,7 @@ describe("interleavings property", () => {
       const hold = async () => { if (rand() < 0.5) await new Promise<void>(resolve => { held.push(resolve); }); };
       const realRead = h.$.prompt.read;
       h.$.prompt.read = async () => { await hold(); return realRead(); };
-      h.complete.mockImplementation(async ({ prompt }) => { await hold(); return { isAnswered: true, text: `Rewrite of ${prompt}` }; });
+      h.complete.mockImplementation(async ({ prompt }) => { await hold(); return { isAnswered: true, text: `Rewrite of ${draftOf(prompt)}` }; });
       const pending: Promise<unknown>[] = [];
       const steps: string[] = [];
       const n = 1 + Math.floor(rand() * 5);
@@ -1162,5 +1171,91 @@ describe("band keyboard access", () => {
     const { text } = await band();
     expect(text).toContain("ctrl+x tab");
     expect(text).toMatch(/\be\b.*\bu\b.*\bs\b/);
+  });
+});
+
+// 0.2.0: the call carries a stack catalog as a cached prefix ahead of the draft.
+describe("stack catalog and prompt cache", () => {
+  const LOCAL = "/home/u/.claude/prompt-enhancer/catalog.md";
+  const blocks = (h: ReturnType<typeof harness>, call = 0) => h.complete.mock.calls[call][0].prompt as readonly Block[];
+
+  test("with no local catalog, Enhance sends the bundled one before the draft", async () => {
+    const h = harness("herdr agents cross harness");
+    await h.press("Enhance");
+    const call = h.complete.mock.calls[0][0];
+    expect(call).toMatchObject({ model: "haiku", system: SYSTEM, maxTokens: 1024, effort: "low" });
+    const [prefix, draft] = blocks(h);
+    expect(prefix.cache).toBe(true);
+    expect(prefix.text).toContain(CATALOG.trim());
+    expect(draft).toEqual({ text: "herdr agents cross harness" });
+  });
+
+  test("a local catalog under HOME replaces the bundled one", async () => {
+    const h = harness("draft");
+    const reads: string[] = [];
+    h.$.env.get = async () => "/home/u/";
+    h.$.fs = { exists: async path => path === LOCAL, read: async path => { reads.push(path); return "## Subagents\r\n- my-lane: does lane work\r\n"; } };
+    await h.press("Enhance");
+    expect(reads).toEqual([LOCAL]);
+    expect(blocks(h)[0].text).toContain("- my-lane: does lane work\n");
+    expect(blocks(h)[0].text).not.toContain(CATALOG.trim());
+  });
+
+  test("an engine without fs.exists still reads the local catalog", async () => {
+    const h = harness("draft");
+    h.$.env.get = async () => "/home/u";
+    h.$.fs = { exists: async () => { throw new TypeError("$.fs.exists is not a function"); }, read: async () => "- only-mine" };
+    await h.press("Enhance");
+    expect(blocks(h)[0].text).toContain("- only-mine");
+  });
+
+  test("an unreadable or empty local catalog falls back to the bundled one and still rewrites", async () => {
+    for (const read of [async () => { throw new Error("EACCES"); }, async () => "  \n"]) {
+      const h = harness("draft");
+      h.$.env.get = async () => "/home/u";
+      h.$.fs = { exists: async () => true, read };
+      h.complete.mockResolvedValueOnce({ isAnswered: true, text: "Rewrite" });
+      await h.press("Enhance");
+      expect(blocks(h)[0].text).toContain(CATALOG.trim());
+      expect(h.box()).toBe("Rewrite");
+    }
+  });
+
+  test("an oversized local catalog is cut, so one file cannot blow up the input", async () => {
+    const h = harness("draft");
+    h.$.env.get = async () => "/home/u";
+    h.$.fs = { exists: async () => true, read: async () => "x".repeat(100000) };
+    await h.press("Enhance");
+    expect(blocks(h)[0].text.length).toBeLessThan(25000);
+  });
+
+  test("the cached prefix is byte-identical across Enhance calls; only the draft changes", async () => {
+    const h = harness("first draft");
+    h.complete.mockResolvedValueOnce({ isAnswered: true, text: "R1" });
+    await h.press("Enhance");
+    h.edit("second draft");
+    await h.press("Enhance");
+    const [a, b] = [blocks(h, 0), blocks(h, 1)];
+    expect(a[0]).toEqual(b[0]);
+    expect(h.complete.mock.calls[0][0].system).toBe(h.complete.mock.calls[1][0].system);
+    expect(a.filter(block => block.cache)).toHaveLength(1);
+    expect(a[1].text).toBe("first draft");
+    expect(b[1].text).toBe("second draft");
+  });
+
+  test("an edit while the catalog is being read cancels Enhance before the model call", async () => {
+    const h = harness("draft");
+    let open: () => void = () => undefined;
+    h.$.env.get = () => new Promise(resolve => { open = () => resolve(undefined); });
+    const pending = h.press("Enhance");
+    await h.settle();
+    h.edit("mine");
+    await h.fire("prompt.change", { text: "mine", cursor: 4, origin: { kind: "input" } });
+    open();
+    await pending;
+    await h.settle();
+    expect(h.complete).not.toHaveBeenCalled();
+    expect(h.box()).toBe("mine");
+    expect((await h.$.state.get({ plugin: "prompt-enhancer", key: "band" })).value?.busy).toBe(false);
   });
 });
