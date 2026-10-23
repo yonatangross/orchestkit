@@ -2,6 +2,8 @@
 
 Shows CI status lights above the prompt while a promote PR (base `main`, or `PROMOTE_BASE`) is open.
 
+> The command is `/lights`; `/promote-lights` runs the same thing. The promote PR search runs after the session has started, so GitHub never holds up a new session; the band appears once the search finds an open promote PR.
+
 ## What it does
 
 - Displays a compact AbovePrompt band: one summary line (PR, head, merge state, green/yellow/red counts), then one line per required context that is not green, full name, red first, at most 5 such lines with a `+N more` line after them; when everything is green the band is the summary line alone:

@@ -247,17 +247,36 @@ function prViewArgv(t: { owner: string; repo: string; number: number }): string[
   ];
 }
 
+/**
+ * The promote PR search started by the latest session.start. It runs after
+ * the hook has answered, so two gh queries (15 s timeout each) never hold the
+ * session's start; the band draws once the search stores a snapshot.
+ */
+let discovery: Promise<void> | null = null;
+
+/** Resolves when the latest session.start search has finished (tests await it). */
+export function discoveryDone(): Promise<void> {
+  return discovery ?? Promise.resolve();
+}
+
 export const register: Register = (on) => {
   on("session.start", {}, async ($, e, next) => {
     // Rotate first, before any await: from here on nothing this process
     // stored for the previous session (a /clear) can be read or drawn.
     const previousToken = sessionToken;
     sessionToken = newToken();
+    // A refused registration must not skip the rest of the hook.
     await $.command.register({
       name: "lights",
       description: "CI lights for the open promote PR, or any PR with /lights watch",
       argumentHint: "[off|refresh|watch] [owner/repo#N]",
-    });
+    }).catch(() => undefined);
+    // The name people guess first: the plugin's own name runs the same command.
+    await $.command.register({
+      name: "promote-lights",
+      description: "Same as /lights",
+      argumentHint: "[off|refresh|watch] [owner/repo#N]",
+    }).catch(() => undefined);
     const repo = await $.session.repo();
     const key = keyFor(repo);
 
@@ -269,16 +288,21 @@ export const register: Register = (on) => {
     stopTick();
     tracked = null;
 
+    discovery = discover($, key, repo).catch(() => undefined);
+    return next(e);
+  });
+
+  async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["session"]["repo"]>>): Promise<void> {
     // Demo mode first: a configured watch target needs no promote PR and no
     // session repo.
     const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
     const watchTarget = parseWatchTarget(watchEnv);
     if (watchTarget) {
       await startWatch($, key, watchTarget);
-      return next(e);
+      return;
     }
 
-    if (!repo) return next(e);
+    if (!repo) return;
 
     const { owner, name } = repo;
 
@@ -310,7 +334,7 @@ export const register: Register = (on) => {
 
     if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
       await storeSet($, key, stamp({ error: "gh: not found" }));
-      return next(e);
+      return;
     }
 
     // One failed query must never pass silently: the search is degraded,
@@ -329,7 +353,7 @@ export const register: Register = (on) => {
 
     if (!promotePR) {
       await storeDelete($, key);
-      return next(e);
+      return;
     }
 
     tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
@@ -339,8 +363,8 @@ export const register: Register = (on) => {
       await doTick($, key);
     }
 
-    return next(e);
-  });
+    return;
+  }
 
   // Re-check on turn complete in case PR changed
   on("turn.complete", {}, async ($, e, next) => {
@@ -418,8 +442,8 @@ export const register: Register = (on) => {
     });
   });
 
-  // Manual control command
-  on("command.run", { command: "lights" }, async ($, e) => {
+  // Manual control command, under both names
+  for (const command of ["lights", "promote-lights"]) on("command.run", { command }, async ($, e) => {
     const trimmed = (e.args ?? "").trim();
     const [arg] = trimmed.split(/\s+/);
     const repo = await $.session.repo();
