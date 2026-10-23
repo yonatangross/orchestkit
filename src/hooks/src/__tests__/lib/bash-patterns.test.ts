@@ -28,6 +28,15 @@ describe('REJECT_PATTERNS', () => {
       'git -p status',
       'git --paginate log',
       'git --no-replace-objects -p log',
+      'git grep -Ovim hello',
+      'git grep -O hello',
+      'git grep -nOvim hello',
+      'git grep --open-files-in-pager=vim hello',
+      'git grep --open-files=vim hello',
+      'git grep --op=vim hello',
+      // a top-level option with a separate value must not end the scan
+      'git --namespace foo grep -Ovim hello',
+      'git --namespace foo -p log',
     ])('rejects: %s', (cmd) => {
       expect(matchesReject(cmd)).toBe(true);
     });
@@ -38,6 +47,10 @@ describe('REJECT_PATTERNS', () => {
       'git log --stat --graph',
       'git fetch --prune --all',
       'git -P log',
+      'git grep -n hello',
+      'git grep -e Option -- src',
+      'git grep --or -e a -e b',
+      'git log -O order.txt -1',
     ])('allows: %s', (cmd) => {
       expect(matchesReject(cmd)).toBe(false);
     });

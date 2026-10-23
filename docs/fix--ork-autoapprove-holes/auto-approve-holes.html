@@ -57,7 +57,7 @@
   <section>
     <h2>How the checks work now</h2>
     <ul>
-      <li>git options that run a program, write a file or point at another repository (<code>-c</code>, <code>-C</code>, <code>--upload-pack</code>, <code>--output</code>, <code>--ext-diff</code>, <code>--git-dir</code> and more) are rejected in full and in every abbreviated spelling, because git accepts any unambiguous prefix of a long option.</li>
+      <li>git options that run a program, write a file or point at another repository (<code>-c</code>, <code>-C</code>, <code>--upload-pack</code>, <code>--output</code>, <code>--ext-diff</code>, <code>--git-dir</code> and more) are rejected in full and in every abbreviated spelling, because git accepts any unambiguous prefix of a long option. So are <code>git grep -O</code> / <code>--open-files-in-pager</code> and a top-level <code>-p</code> / <code>--paginate</code>; <code>git log -p</code> stays allowed.</li>
       <li>Globs, brace and tilde-user expansion, <code>$</code> and backticks outside single quotes, and a trailing <code>&amp;</code> refuse auto-approval: an argument the hook cannot read literally cannot be checked against the credential-path list.</li>
       <li>Quote stripping is one scanner that tracks which quote it is in, so an apostrophe inside a double-quoted string no longer hides live shell syntax.</li>
       <li>The write denylist runs on the requested path and on the symlink target, and now covers files whose content later runs as code: <code>package.json</code>, <code>pyproject.toml</code>, <code>Makefile</code>, <code>conftest.py</code>, shell rc files, <code>.vscode/</code>, <code>.idea/</code>, plus <code>CLAUDE.md</code> and <code>AGENTS.md</code>.</li>
@@ -85,6 +85,7 @@
     { g: 'bash', c: 'git fetch --upload-pack=CMD origin', b: 'approved, CMD runs', a: 'prompt', w: 'upload-pack is the program git runs on the other side' },
     { g: 'bash', c: 'git fetch --upload-pa=CMD origin', b: 'approved, CMD runs', a: 'prompt', w: 'git accepts the abbreviated option' },
     { g: 'bash', c: 'git -c core.pager=CMD log', b: 'approved', a: 'prompt', w: 'config on the command line can name a program' },
+    { g: 'bash', c: 'git grep -OCMD pattern (learned git)', b: 'approved, CMD runs', a: 'prompt', w: 'opens the matched files in CMD, also as -nOCMD and --op=CMD' },
     { g: 'bash', c: 'git log --output=FILE', b: 'approved, writes FILE', a: 'prompt', w: 'writes outside the write hooks' },
     { g: 'bash', c: 'npm run build', b: 'approved', a: 'prompt', w: 'runs whatever package.json says' },
     { g: 'bash', c: 'npm run test-e2e', b: 'approved', a: 'prompt', w: 'a different script that only starts with test' },

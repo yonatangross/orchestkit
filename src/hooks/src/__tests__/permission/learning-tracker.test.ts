@@ -745,6 +745,19 @@ describe('learningTracker learned-pattern hardening', () => {
     expect(allowed('git log -1')).toBe(true);
   });
 
+  test('a learned bare git approval does not cover git grep opening files in a pager', () => {
+    learn(['git']);
+    // -O<cmd> and --open-files-in-pager=<cmd> run <cmd> on the matched files;
+    // git also accepts the short form inside a cluster and the long one abbreviated.
+    expect(allowed('git grep -Ox hello')).toBe(false);
+    expect(allowed('git grep -nOx hello')).toBe(false);
+    expect(allowed('git grep --open-files-in-pager=x hello')).toBe(false);
+    expect(allowed('git grep --op=x hello')).toBe(false);
+    expect(allowed('git fetch --upload-pa=x origin')).toBe(false);
+    expect(allowed('git grep -n hello')).toBe(true);
+    expect(allowed('git log -O order.txt -1')).toBe(true);
+  });
+
   test('a stored pattern with trailing whitespace still needs a word boundary', () => {
     learn(['git st ']);
     expect(allowed('git stash drop')).toBe(false);

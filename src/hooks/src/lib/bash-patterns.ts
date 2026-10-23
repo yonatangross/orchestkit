@@ -27,14 +27,25 @@ const GIT_PROGRAM_OPTIONS = [
 ];
 
 /**
- * Every prefix of GIT_PROGRAM_OPTIONS, longest first. git's parse-options
- * accepts any unambiguous prefix of a long option, so `git fetch
- * --upload-pa=CMD` runs CMD exactly like `--upload-pack=CMD`. A prefix that
- * git would read as some other option only drops that command to a prompt.
+ * Every prefix of the given long option names, longest first, joined as a
+ * regex alternation. git's parse-options accepts any unambiguous prefix of a
+ * long option, so `git fetch --upload-pa=CMD` runs CMD exactly like
+ * `--upload-pack=CMD`. A prefix that git would read as some other option
+ * only drops that command to a prompt.
  */
-const GIT_PROGRAM_OPTION_PREFIXES = [
-  ...new Set(GIT_PROGRAM_OPTIONS.flatMap((name) => Array.from(name, (_, i) => name.slice(0, i + 1)))),
-].sort((a, b) => b.length - a.length);
+function longOptionPrefixes(names: string[]): string {
+  return [...new Set(names.flatMap((name) => Array.from(name, (_, i) => name.slice(0, i + 1))))]
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+}
+
+/**
+ * git's top-level options, before the subcommand. --namespace,
+ * --super-prefix and --attr-source take their value as the next word; the
+ * other value-taking ones (-c, -C, --git-dir, --work-tree, --config-env) are
+ * rejected outright below, so they never need skipping here.
+ */
+const GIT_TOP_LEVEL_OPTIONS = String.raw`(?:\s+(?:--namespace|--super-prefix|--attr-source)\s+\S+|\s+-\S+)*?`;
 
 /**
  * Commands that must NEVER be auto-approved or retried.
@@ -69,10 +80,17 @@ export const REJECT_PATTERNS: RegExp[] = [
   // point git at another repository (whose config can run programs), in full
   // or abbreviated. The read-only subcommand allowlist cannot see these, so
   // they drop to a prompt.
-  new RegExp(String.raw`^git\b[^\n]*?\s(?:-c|-C|--(?:${GIT_PROGRAM_OPTION_PREFIXES.join('|')}))(?=[=\s]|$)`),
+  new RegExp(String.raw`^git\b[^\n]*?\s(?:-c|-C|--(?:${longOptionPrefixes(GIT_PROGRAM_OPTIONS)}))(?=[=\s]|$)`),
+  // git grep -O<cmd> / --open-files-in-pager=<cmd> runs <cmd> on the matched
+  // files. The short form takes its value attached and can sit in a cluster
+  // (`-nOvim`), so any short cluster holding O counts. Scoped to grep:
+  // `git log -O<orderfile>` only reads a file.
+  new RegExp(
+    String.raw`^git${GIT_TOP_LEVEL_OPTIONS}\s+grep\b[^\n]*?\s(?:-[A-Za-z0-9]*O|--(?:${longOptionPrefixes(['open-files-in-pager'])})(?=[=\s]|$))`,
+  ),
   // Top-level -p / --paginate runs the configured pager. Only before the
   // subcommand: `git log -p` is patch output, not paging.
-  /^git(?:\s+-\S+)*?\s+(?:-p|--paginate)(?=\s|$)/,
+  new RegExp(String.raw`^git${GIT_TOP_LEVEL_OPTIONS}\s+(?:-p|--paginate)(?=\s|$)`),
 
   // Credential-path arguments (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix. Keying on the reader left the
