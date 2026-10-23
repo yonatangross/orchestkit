@@ -481,11 +481,14 @@ describe("the band stays small and shared", () => {
   const texts = (tree: unknown) => nodes(tree).filter(n => n.tag === "Text").map(n => JSON.stringify(n.children));
   const labels = (tree: unknown) => nodes(tree).filter(n => n.tag === "Button").map(n => n.props.label);
 
-  test("it starts as one line: Enhance and expand, no Undo, Send or help text", async () => {
+  test("it starts as one line with every action and no review help", async () => {
     const h = harness("draft");
     const tree = await render(h);
-    expect(labels(tree)).toEqual(["Enhance", "+"]);
+    expect(labels(tree)).toEqual(["Enhance", "Undo", "Send", "+"]);
     expect(texts(tree).join(" ")).not.toContain("Enhanced below");
+    // one row: the collapsed band is a single Box with no column of children
+    const first = (tree as { children: unknown[] }).children[0] as { props: Record<string, unknown> };
+    expect(first.props.flexDirection).toBeUndefined();
   });
 
   test("after an Enhance the review controls and help appear", async () => {
@@ -942,9 +945,10 @@ describe("interleavings golden corpus", () => {
   });
   test("W6 two quick collapse presses toggle twice", async () => {
     const r = rig("draft");
-    await Promise.all([r.h.press("-"), r.h.press("-")]);
+    // The band starts collapsed (one line), so the control reads "+".
+    await Promise.all([r.h.press("+"), r.h.press("+")]);
     await r.h.settle();
-    expect((await r.band())?.collapsed).toBe(false);
+    expect((await r.band())?.collapsed).toBe(true);
   });
   // Error twins (round 7): each await's rejection path acts only on its own token.
   test("R-A an older change write that rejects late does not cancel a newer Enhance", async () => {

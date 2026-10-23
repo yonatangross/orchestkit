@@ -269,12 +269,18 @@ export const register = (on: On): void => {
       }} />
     );
     const toggle = <Button key="collapse" label={state.collapsed ? "+" : "-"} onPress={() => { c.epoch += 1; return patch($, c, state => ({ collapsed: !state.collapsed })); }} />;
+    const undoButton = <Button key="undo" label="Undo" hotkey="u" onPress={() => undo($, c)} />;
+    const sendButton = <Button key="send" label="Send" hotkey="s" onPress={() => send($, c)} />;
+    // Collapsed is one line with every action on it; only the review help waits.
     const mine = state.collapsed
       ? (
         <Box>
           <Text>✨ Prompt Enhancer </Text>
           {enhanceButton}
+          {undoButton}
+          {sendButton}
           {toggle}
+          <Text dimColor> ctrl+x tab: e u s</Text>
           {state.busy && <Text dimColor> Enhancing...</Text>}
         </Box>
       )
@@ -286,8 +292,8 @@ export const register = (on: On): void => {
           </Box>
           <Box>
             {enhanceButton}
-            <Button key="undo" label="Undo" hotkey="u" onPress={() => undo($, c)} />
-            <Button key="send" label="Send" hotkey="s" onPress={() => send($, c)} />
+            {undoButton}
+            {sendButton}
           </Box>
           {state.original !== null && <Text dimColor>Enhanced below: edit it, then Send (or Enter). Undo puts your original back.</Text>}
           {/* A click reaches a Button only where the terminal reports clicks
