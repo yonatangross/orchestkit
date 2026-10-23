@@ -43,7 +43,8 @@
   <tr><td>#4853</td><td>4 bot threads, 4 unreplied (1 resolved with no reply)</td><td>fail</td></tr><tr><td>#4858</td><td>1 bot thread, unreplied</td><td>fail</td></tr><tr><td>#4860</td><td>1 bot thread, unreplied</td><td>fail</td></tr><tr><td>#4819</td><td>2 bot threads, all replied</td><td>pass</td></tr>
   </tbody></table>
 
-  <h2>The table test (10 of 10)</h2>
+  <h2>The table test (14 of 14)</h2>
+  <p class="muted">10 fixture cases below, plus 4 fetch-path cases with a stub <code>gh</code>: a reply after comment 100 is fetched and counts, a bot-only thread past 100 still fails, a page with no cursor stops with exit 2, and a <code>gh</code> failure exits 2.</p>
   <table><thead><tr><th>Case</th><th>Input</th><th>Exit</th><th>Result</th></tr></thead><tbody>
   <tr><td><code>empty</code></td><td>no threads</td><td>0</td><td>pass</td></tr><tr><td><code>bot-replied</code></td><td>CodeRabbit thread, person replied</td><td>0</td><td>pass</td></tr><tr><td><code>bot-open-unreplied</code></td><td>CodeRabbit thread, open, no reply</td><td>1</td><td>fail</td></tr><tr><td><code>bot-resolved-unreplied</code></td><td>Codex thread, resolved, no reply (silent resolve)</td><td>1</td><td>fail</td></tr><tr><td><code>bot-only-bot-replies</code></td><td>CodeRabbit thread, only bots replied</td><td>1</td><td>fail</td></tr><tr><td><code>login-suffix-bot</code></td><td>author login ends in [bot]</td><td>1</td><td>fail</td></tr><tr><td><code>human-thread-unreplied</code></td><td>person started it, no reply (outside the rule)</td><td>0</td><td>pass</td></tr><tr><td><code>mixed-one-unreplied</code></td><td>two bot threads, one replied</td><td>1</td><td>fail</td></tr><tr><td><code>truncated-no-reply</code></td><td>more than 100 comments, none a reply</td><td>1</td><td>fail</td></tr><tr><td><code>malformed</code></td><td>unreadable input</td><td>2</td><td>could not read</td></tr>
   </tbody></table>

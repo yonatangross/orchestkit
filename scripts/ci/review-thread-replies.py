@@ -37,14 +37,30 @@ query($owner: String!, $name: String!, $pr: Int!, $after: String) {
       reviewThreads(first: 100, after: $after) {
         pageInfo { hasNextPage endCursor }
         nodes {
+          id
           isResolved
           path
           line
           comments(first: 100) {
-            pageInfo { hasNextPage }
+            pageInfo { hasNextPage endCursor }
             nodes { url author { login __typename } }
           }
         }
+      }
+    }
+  }
+}
+"""
+
+# The rest of one thread's comments, past the first 100 (Codex XREVIEW HOLD
+# 6351379772, Must 2): a reply after comment 100 must be seen, not missed.
+COMMENTS_QUERY = """
+query($id: ID!, $after: String) {
+  node(id: $id) {
+    ... on PullRequestReviewThread {
+      comments(first: 100, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        nodes { url author { login __typename } }
       }
     }
   }
@@ -88,6 +104,50 @@ def evaluate(threads: list[dict]) -> tuple[int, list[str]]:
     return bot_threads, failures
 
 
+def graphql(query: str, fields: list[str]) -> dict:
+    cmd = ["gh", "api", "graphql", "-f", f"query={query}"]
+    for field in fields:
+        cmd += ["-F", field]
+    run = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if run.returncode != 0:
+        raise ReadError(f"gh api graphql exited {run.returncode}: {run.stderr.strip()[:300]}")
+    try:
+        return json.loads(run.stdout)["data"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ReadError(f"unexpected GraphQL reply ({exc.__class__.__name__})") from exc
+
+
+def next_cursor(page: dict, what: str) -> str | None:
+    """The cursor of the next page, None on the last page. A page that says
+    there is more but carries no cursor is a read error, never a loop that
+    re-requests page 1 forever (S1 on #4864)."""
+    if not page.get("hasNextPage"):
+        return None
+    cursor = page.get("endCursor")
+    if not cursor:
+        raise ReadError(f"{what}: hasNextPage is true but endCursor is missing")
+    return str(cursor)
+
+
+def complete_comments(thread: dict) -> None:
+    """Fetch the rest of a thread's comments in place, past the first 100."""
+    conn = thread.get("comments") or {}
+    after = next_cursor(conn.get("pageInfo") or {}, "thread comments")
+    while after:
+        thread_id = thread.get("id")
+        if not thread_id:
+            raise ReadError("a thread with more than 100 comments has no id to page by")
+        data = graphql(COMMENTS_QUERY, [f"id={thread_id}", f"after={after}"])
+        try:
+            more = data["node"]["comments"]
+        except (KeyError, TypeError) as exc:
+            raise ReadError(f"unexpected comment page ({exc.__class__.__name__})") from exc
+        conn.setdefault("nodes", []).extend(more.get("nodes") or [])
+        page = more.get("pageInfo") or {}
+        conn["pageInfo"] = page
+        after = next_cursor(page, "thread comments")
+
+
 def fetch(repo: str, pr: int) -> list[dict]:
     owner, _, name = repo.partition("/")
     if not owner or not name:
@@ -95,22 +155,21 @@ def fetch(repo: str, pr: int) -> list[dict]:
     threads: list[dict] = []
     after: str | None = None
     while True:
-        cmd = ["gh", "api", "graphql", "-f", f"query={QUERY}",
-               "-F", f"owner={owner}", "-F", f"name={name}", "-F", f"pr={pr}"]
+        fields = [f"owner={owner}", f"name={name}", f"pr={pr}"]
         if after:
-            cmd += ["-F", f"after={after}"]
-        run = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if run.returncode != 0:
-            raise ReadError(f"gh api graphql exited {run.returncode}: {run.stderr.strip()[:300]}")
+            fields.append(f"after={after}")
+        data = graphql(QUERY, fields)
         try:
-            conn = json.loads(run.stdout)["data"]["repository"]["pullRequest"]["reviewThreads"]
-        except (ValueError, KeyError, TypeError) as exc:
+            conn = data["repository"]["pullRequest"]["reviewThreads"]
+        except (KeyError, TypeError) as exc:
             raise ReadError(f"unexpected GraphQL reply ({exc.__class__.__name__})") from exc
         threads.extend(conn.get("nodes") or [])
-        page = conn.get("pageInfo") or {}
-        if not page.get("hasNextPage"):
-            return threads
-        after = page.get("endCursor")
+        after = next_cursor(conn.get("pageInfo") or {}, "review threads")
+        if after is None:
+            break
+    for thread in threads:
+        complete_comments(thread)
+    return threads
 
 
 def load(path: str) -> list[dict]:

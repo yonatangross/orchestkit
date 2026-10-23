@@ -79,5 +79,59 @@ expect mixed-one-unreplied 1 "docs/x.md"
 expect truncated-no-reply 1 "more than 100 comments"
 expect malformed 2 "could not read"
 
+
+# The fetch path (Codex XREVIEW HOLD 6351379772 Must 2, S1, S3): a stub `gh`
+# on PATH answers the reviewThreads query and the per-thread comment page.
+# Must 2: a person's reply after comment 100 must be fetched, not missed.
+# S1: hasNextPage with a null endCursor must stop (exit 2), not loop forever.
+STUB="${SCRATCH}/stub-bin"; mkdir -p "${STUB}"
+cat > "${STUB}/gh" <<'GHSTUB'
+#!/usr/bin/env bash
+q="$*"
+case "${STUB_MODE:?}" in
+  fail) echo "gh: HTTP 502" >&2; exit 1 ;;
+esac
+if [[ "$q" == *"reviewThreads"* ]]; then
+  python3 - "${STUB_MODE}" <<'PY'
+import json, sys
+mode = sys.argv[1]
+bot = {"login": "coderabbitai", "__typename": "Bot"}
+page = [{"url": "u", "author": bot}] * 100
+cursor = None if mode == "nullcursor" else "C100"
+threads = [{"id": "T1", "isResolved": False, "path": "src/a.ts", "line": 3,
+            "comments": {"nodes": page, "pageInfo": {"hasNextPage": True, "endCursor": cursor}}}]
+print(json.dumps({"data": {"repository": {"pullRequest": {"reviewThreads": {
+    "nodes": threads, "pageInfo": {"hasNextPage": False, "endCursor": None}}}}}}))
+PY
+else
+  python3 - "${STUB_MODE}" <<'PY'
+import json, sys
+mode = sys.argv[1]
+author = {"login": "yonatangross", "__typename": "User"} if mode == "late-reply" else {"login": "coderabbitai", "__typename": "Bot"}
+print(json.dumps({"data": {"node": {"comments": {
+    "nodes": [{"url": "u101", "author": author}],
+    "pageInfo": {"hasNextPage": False, "endCursor": None}}}}}))
+PY
+fi
+GHSTUB
+chmod +x "${STUB}/gh"
+
+# fetch_expect <mode> <exit> <substring>
+fetch_expect() {
+  local mode="$1" want="$2" needle="$3" out rc
+  set +e
+  out="$(STUB_MODE="${mode}" PATH="${STUB}:${PATH}" perl -e 'alarm 20; exec @ARGV' python3 "${CHECK}" --repo o/r --pr 1 2>&1)"
+  rc=$?
+  set -e
+  if [ "${rc}" != "${want}" ] || [[ "${out}" != *"${needle}"* ]]; then
+    echo "not ok - fetch ${mode}: exit ${rc} (want ${want}), want '${needle}'"; echo "  # ${out}" | head -3; fail=$((fail + 1)); return
+  fi
+  echo "ok - fetch ${mode} (exit ${rc})"; pass=$((pass + 1))
+}
+fetch_expect late-reply 0 "1 bot review thread(s), all replied"
+fetch_expect bot-only 1 "src/a.ts:3"
+fetch_expect nullcursor 2 "endCursor"
+fetch_expect fail 2 "could not read"
+
 echo "# review-thread-replies: ${pass} passed, ${fail} failed"
 [ "${fail}" -eq 0 ]
