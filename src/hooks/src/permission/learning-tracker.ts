@@ -14,7 +14,7 @@ import {
   getPluginRoot,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
-import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { REJECT_PATTERNS, hasQuotedPackageManagerArgs } from '../lib/bash-patterns.js';
 import { readDistilledPatterns } from '../lib/learned-patterns-cache.js';
 import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -161,6 +161,10 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
 
     // SEC: a learned pattern never widens past the shared reject list
     // (lib/bash-patterns.ts), the same rules safe-bash and the retry hook apply.
+    if (hasQuotedPackageManagerArgs(command)) {
+      ctx.log('learning-tracker', 'Quoted package-manager arguments, skipping auto-approve');
+      return outputSilentSuccess();
+    }
     const normalizedForReject = normalizeSingle(command);
     if (REJECT_PATTERNS.some((p) => p.test(normalizedForReject))) {
       ctx.log('learning-tracker', 'Matches shared reject pattern, skipping auto-approve');

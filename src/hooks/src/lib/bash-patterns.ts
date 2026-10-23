@@ -98,3 +98,13 @@ export const REJECT_PATTERNS: RegExp[] = [
 // Note: For compound command detection, use isCompoundCommand() from
 // lib/normalize-command.ts — it handles newlines, line continuations,
 // and normalizes the command before checking.
+
+/**
+ * True for an npm/pnpm/yarn command that carries a quote, backslash or
+ * backtick. The allowlists match the normalized command, and normalization
+ * strips quoting, so a quoted argument can read as a different script name
+ * than the one the package manager runs. Such commands never auto-approve.
+ */
+export function hasQuotedPackageManagerArgs(cmd: string): boolean {
+  return /^\s*(?:npm|pnpm|yarn)\b/.test(cmd) && /['"\\`]/.test(cmd);
+}

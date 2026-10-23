@@ -22,7 +22,7 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
-import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { REJECT_PATTERNS, hasQuotedPackageManagerArgs } from '../lib/bash-patterns.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'safe-command-retry';
@@ -90,6 +90,11 @@ export function safeCommandRetry(input: HookInput, ctx: HookContext = NOOP_CTX):
   // SEC: Never retry compound commands
   if (isCompoundCommand(command)) {
     ctx.log(HOOK_NAME, 'Compound command — not retrying');
+    return outputSilentSuccess();
+  }
+
+  if (hasQuotedPackageManagerArgs(command)) {
+    ctx.log(HOOK_NAME, 'Quoted package-manager arguments — not retrying');
     return outputSilentSuccess();
   }
 

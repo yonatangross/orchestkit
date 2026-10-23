@@ -783,7 +783,8 @@ describe('learningTracker honours the shared reject list', () => {
     expect(allowed('npm test --prefix ../other')).toBe(false);
     expect(allowed('pnpm test --dir ../other')).toBe(false);
     expect(allowed('yarn test --cwd ../other')).toBe(false);
-    for (const cmd of ['npm test --script-shell=x', 'npm test --node-options=x', 'npm test --prefi=o']) {
+    learn(['npm test', 'npm run test']);
+    for (const cmd of ['npm test --script-shell=x', 'npm test --node-options=x', 'npm test --prefi=o', "npm run 'test x'", 'npm run "test x"']) {
       expect(allowed(cmd), cmd).toBe(false);
     }
     expect(allowed('npm test')).toBe(true);

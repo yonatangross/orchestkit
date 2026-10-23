@@ -48,13 +48,17 @@ describe('safe-bash refuses look-alike subcommands, program-running options and 
     'pnpm run build',
     'yarn run build',
     'poetry run python x.py',
+    "npm run 'test x'",
+    'npm run "test x"',
+    "pnpm run 'lint x'",
+    "npm test 'a b'",
   ];
 
   test.each(refused)('safe-bash does not allow: %s', (cmd) => {
     expect(isAllow(autoApproveSafeBash(bash(cmd)))).toBe(false);
   });
 
-  test.each(['npm test --prefi=o', 'npm run test-e2e'])('safe-command-retry does not retry: %s', (cmd) => {
+  test.each(['npm test --prefi=o', 'npm run test-e2e', "npm run 'test x'", 'npm run "test x"'])('safe-command-retry does not retry: %s', (cmd) => {
     expect(safeCommandRetry(bash(cmd, 'PermissionDenied')).hookSpecificOutput?.retry === true).toBe(false);
   });
 

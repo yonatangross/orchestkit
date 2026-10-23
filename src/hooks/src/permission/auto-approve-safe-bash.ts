@@ -12,7 +12,7 @@ import {
   outputSilentSuccess,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
-import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { REJECT_PATTERNS, hasQuotedPackageManagerArgs } from '../lib/bash-patterns.js';
 import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -107,6 +107,12 @@ export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CT
   // SEC: Reject compound commands — "git status && rm -rf /" must NOT auto-approve
   if (command && isCompoundCommand(command)) {
     ctx.log('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
+    return outputSilentSuccess();
+  }
+
+  // SEC: quoting must not reshape a package-manager script name.
+  if (command && hasQuotedPackageManagerArgs(command)) {
+    ctx.log('auto-approve-safe-bash', 'Quoted package-manager arguments, requiring manual approval');
     return outputSilentSuccess();
   }
 
