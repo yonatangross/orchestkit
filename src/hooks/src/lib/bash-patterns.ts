@@ -70,6 +70,9 @@ export const REJECT_PATTERNS: RegExp[] = [
   // or abbreviated. The read-only subcommand allowlist cannot see these, so
   // they drop to a prompt.
   new RegExp(String.raw`^git\b[^\n]*?\s(?:-c|-C|--(?:${GIT_PROGRAM_OPTION_PREFIXES.join('|')}))(?=[=\s]|$)`),
+  // Top-level -p / --paginate runs the configured pager. Only before the
+  // subcommand: `git log -p` is patch output, not paging.
+  /^git(?:\s+-\S+)*?\s+(?:-p|--paginate)(?=\s|$)/,
 
   // Credential-path arguments (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix. Keying on the reader left the

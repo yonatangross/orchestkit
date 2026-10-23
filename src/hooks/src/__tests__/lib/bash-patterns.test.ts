@@ -20,6 +20,29 @@ describe('REJECT_PATTERNS', () => {
     }
   });
 
+  describe('git options that run a program', () => {
+    test.each([
+      'git fetch --upload-pack=x origin',
+      'git fetch --upload-pa=x origin',
+      'git fetch --upl x origin',
+      'git -p status',
+      'git --paginate log',
+      'git --no-replace-objects -p log',
+    ])('rejects: %s', (cmd) => {
+      expect(matchesReject(cmd)).toBe(true);
+    });
+
+    test.each([
+      'git log -p',
+      'git show -p HEAD',
+      'git log --stat --graph',
+      'git fetch --prune --all',
+      'git -P log',
+    ])('allows: %s', (cmd) => {
+      expect(matchesReject(cmd)).toBe(false);
+    });
+  });
+
   describe('git checkout destructive variants', () => {
     test.each([
       'git checkout -- .',
