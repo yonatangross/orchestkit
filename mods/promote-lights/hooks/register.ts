@@ -259,6 +259,81 @@ export function discoveryDone(): Promise<void> {
   return discovery ?? Promise.resolve();
 }
 
+/** The promote PR search session.start starts and does not wait for. */
+async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["session"]["repo"]>>): Promise<void> {
+  // Demo mode first: a configured watch target needs no promote PR and no
+  // session repo.
+  const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
+  const watchTarget = parseWatchTarget(watchEnv);
+  if (watchTarget) {
+    await startWatch($, key, watchTarget);
+    return;
+  }
+
+  if (!repo) return;
+
+  const { owner, name } = repo;
+
+  // Only a real promote PR matches: dev head (or the configured
+  // promote head) with base main, or the promote label. An ordinary
+  // PR with base main must never match.
+  let promoteHead = DEFAULT_PROMOTE_HEAD;
+  const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
+  if (configured) promoteHead = configured;
+  // A dev, qa, main flow promotes into qa, so the base is configurable too
+  // (orchestkit#4623). The required checks below read this same base.
+  const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
+
+  // Both queries are filtered server side so the result is complete
+  // no matter how many ordinary open PRs the repo has. A single
+  // unfiltered list returns at most 30 PRs by default, which misses
+  // a promote PR sitting past position 30. Settled, never all: one
+  // rejected query degrades the search instead of aborting the start.
+  const [headSettled, labelSettled] = await Promise.allSettled([
+    $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
+    $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
+  ]);
+  const byHead = headSettled.status === "fulfilled"
+    ? headSettled.value
+    : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
+  const byLabel = labelSettled.status === "fulfilled"
+    ? labelSettled.value
+    : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+
+  if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+    await storeSet($, key, stamp({ error: "gh: not found" }));
+    return;
+  }
+
+  // One failed query must never pass silently: the search is degraded,
+  // the snapshot records it, and the band keeps saying DEGRADED.
+  const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
+  if (degraded) {
+    const failed = byHead.exitCode !== 0 ? "head" : "label";
+    await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
+  }
+
+  const prs = mergePRLists(
+    byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
+    byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
+  );
+  const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
+
+  if (!promotePR) {
+    await storeDelete($, key);
+    return;
+  }
+
+  tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
+
+  if (!ticking) {
+    startTick($, key);
+    await doTick($, key);
+  }
+
+  return;
+}
+
 export const register: Register = (on) => {
   on("session.start", {}, async ($, e, next) => {
     // Rotate first, before any await: from here on nothing this process
@@ -291,80 +366,6 @@ export const register: Register = (on) => {
     discovery = discover($, key, repo).catch(() => undefined);
     return next(e);
   });
-
-  async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["session"]["repo"]>>): Promise<void> {
-    // Demo mode first: a configured watch target needs no promote PR and no
-    // session repo.
-    const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
-    const watchTarget = parseWatchTarget(watchEnv);
-    if (watchTarget) {
-      await startWatch($, key, watchTarget);
-      return;
-    }
-
-    if (!repo) return;
-
-    const { owner, name } = repo;
-
-    // Only a real promote PR matches: dev head (or the configured
-    // promote head) with base main, or the promote label. An ordinary
-    // PR with base main must never match.
-    let promoteHead = DEFAULT_PROMOTE_HEAD;
-    const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
-    if (configured) promoteHead = configured;
-    // A dev, qa, main flow promotes into qa, so the base is configurable too
-    // (orchestkit#4623). The required checks below read this same base.
-    const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
-
-    // Both queries are filtered server side so the result is complete
-    // no matter how many ordinary open PRs the repo has. A single
-    // unfiltered list returns at most 30 PRs by default, which misses
-    // a promote PR sitting past position 30. Settled, never all: one
-    // rejected query degrades the search instead of aborting the start.
-    const [headSettled, labelSettled] = await Promise.allSettled([
-      $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
-      $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
-    ]);
-    const byHead = headSettled.status === "fulfilled"
-      ? headSettled.value
-      : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
-    const byLabel = labelSettled.status === "fulfilled"
-      ? labelSettled.value
-      : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
-
-    if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
-      await storeSet($, key, stamp({ error: "gh: not found" }));
-      return;
-    }
-
-    // One failed query must never pass silently: the search is degraded,
-    // the snapshot records it, and the band keeps saying DEGRADED.
-    const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
-    if (degraded) {
-      const failed = byHead.exitCode !== 0 ? "head" : "label";
-      await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
-    }
-
-    const prs = mergePRLists(
-      byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
-      byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
-    );
-    const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
-
-    if (!promotePR) {
-      await storeDelete($, key);
-      return;
-    }
-
-    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
-
-    if (!ticking) {
-      startTick($, key);
-      await doTick($, key);
-    }
-
-    return;
-  }
 
   // Re-check on turn complete in case PR changed
   on("turn.complete", {}, async ($, e, next) => {
