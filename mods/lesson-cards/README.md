@@ -1,6 +1,8 @@
 # lesson-cards
 
-**Retired 2026-10-23.** Not listed in any marketplace. It duplicated the hq-ext lesson guard with different matching rules (#4730) and was already disabled on the operator's machine. The source stays here as the test mod for `tests/probes/function-hooks-probe.sh` and the CC contract probe. Its useful idea (one short card with numbered answers: why, knew it, dismiss) moves to the guard's advisory text.
+Not listed in any marketplace.
+
+**Retired 2026-10-23.** It duplicated the hq-ext lesson guard with different matching rules (#4730) and was already disabled on the operator's machine. The source stays here as the test mod for `tests/probes/function-hooks-probe.sh` and the CC contract probe. Its useful idea (one short card with numbered answers: why, knew it, dismiss) moves to the guard's advisory text.
 
 
 Displays lesson hint cards when tool calls match known patterns. Advisory only: a lesson never blocks a tool call (operator word 2026-10-21). The classic hq-ext `pretool-lesson-guard` is advisory too as of Yonatan-HQ/hq-ext-plugin#2449.
