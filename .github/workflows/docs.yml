@@ -297,8 +297,14 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pwv.outputs.version }}
       - name: Bound apt network waits
         if: steps.gate.outputs.run == 'true'
+        # DPkg::Lock::Timeout: `timeout 120` below stops npx but not the root
+        # apt-get it started under sudo, so a timed-out attempt 1 keeps the
+        # dpkg lock and attempt 2 failed at once with "Could not get lock
+        # /var/lib/dpkg/lock-frontend". apt now waits for that lock; the
+        # orphan installs the same packages, so attempt 2 then finds them.
         run: |
           printf '%s\n' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'Acquire::Retries "2";' \
+            'DPkg::Lock::Timeout "120";' \
             | sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts >/dev/null
       - name: Install Playwright system deps
         if: steps.gate.outputs.run == 'true'
