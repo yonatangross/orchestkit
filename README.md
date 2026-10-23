@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.1.0](https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0)** · 2026-10-23
+
+- **ci:** fail a PR while a bot review thread has no reply (#4864)
+- **ci:** let apt wait for the dpkg lock in the docs deps step (#4879)
+- **hooks:** advisor decides on the description and ignores negated asks (#4853)
+- **hooks:** harden auto-approve and retry hooks (#4858)
+- **hooks:** keep a stop condition the next clause refers back to (after [#4853](https://github.com/yonatangross/orchestkit/issues/4853)) (#4880)
+- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
 
 - **release:** exclude .claude-plugin from release-please commits (#4870)
@@ -683,11 +692,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump vite to 8.3.4 for the launch-editor advisories (#4828)
 - **hooks:** three GA-blocking hook bugs from the verified picks (#4692)
 - …and 15 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183)** · 2026-10-18
-
-- **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
-- **site:** let the Installation overflow check settle after each resize (#4803)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
