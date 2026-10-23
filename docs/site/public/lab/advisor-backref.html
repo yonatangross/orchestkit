@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The stop condition that was the task</title>
+<meta name="description" content="After #4853 the task advisor dropped a stop condition as an obstacle even when the next clause said to do it, so the specialist ask vanished. A clause that refers back to the condition now keeps it.">
+<style>
+  :root { --bg:#fbfaf7; --ink:#1d1d1b; --muted:#6b6862; --line:#e4e1d9; --bad:#b4442f; --good:#2f7a4a; --accent:#3557a8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17171a; --ink:#ecebe7; --muted:#a3a09a; --line:#2e2e33; --bad:#e2735e; --good:#6cc38c; --accent:#8aa6ea; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .verdict { font-size: 17px; margin: 0 0 22px; color: var(--muted); }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 14px; }
+  button { font:inherit; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; padding:5px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--good); font-weight: 600; }
+  .same { color: var(--muted); }
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  #copy-out { width:100%; min-height: 70px; font: 13px ui-monospace, monospace; background: transparent; color: var(--ink); border:1px solid var(--line); border-radius:6px; padding:8px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The stop condition that was the task"><meta property="og:description" content="After #4853 the task advisor dropped a stop condition as an obstacle even when the next clause said to do it, so the specialist ask vanished; a clause that refers back to the condition now keeps it."><meta property="og:url" content="https://orchestkit.dev/lab/advisor-backref.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The stop condition that was the task"><meta name="twitter:description" content="After #4853 the task advisor dropped a stop condition as an obstacle even when the next clause said to do it, so the specialist ask vanished; a clause that refers back to the condition now keeps it."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>The stop condition that was the task</h1>
+  <p class="verdict">#4853 taught the task advisor to drop a stop condition as an obstacle ("stop if the deploy breaks"). It also dropped it when the next clause said to do it ("stop and check if a deploy to production is needed, then do it"), so the specialist ask vanished. A clause that refers back to the condition now keeps it, and a conditional "report only if" no longer turns the ask into a note.</p>
+
+  <div class="controls" role="group" aria-label="Filter rows">
+    <button data-f="all" aria-pressed="true">All rows</button>
+    <button data-f="fixed" aria-pressed="false">Fixed</button>
+    <button data-f="control" aria-pressed="false">Unchanged controls</button>
+  </div>
+
+  <table aria-label="Advisor result before and after">
+    <thead><tr><th>Task text</th><th>main (after #4853)</th><th>This fix</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <section>
+    <h2>How it decides</h2>
+    <ul>
+      <li>The stop span is still split at clause words, and its condition is still dropped when the routed match is the obstacle itself.</li>
+      <li>New: when the rest of the same sentence refers back to the condition (then, and or so plus do, run, apply, ship and the like plus it, that or this, or "if so"), nothing is dropped.</li>
+      <li>A follow-up that does not refer back ("then report it") or sits in the next sentence leaves a real obstacle dropped.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Copy as prompt</h2>
+    <p class="same">Pick rows with the filter above, then copy them as a note for a review session.</p>
+    <button id="copy">Copy visible rows</button>
+    <textarea id="copy-out" readonly aria-label="Copied text"></textarea>
+  </section>
+</main>
+<script>
+  const ROWS = [
+    { g: 'fixed', t: 'Stop and check if a deploy to production is needed, then do it.', b: 'no ask', a: 'ask: ork:deployment-manager' },
+    { g: 'fixed', t: 'Stop and check if a rebase onto main is needed, then do it.', b: 'no ask', a: 'ask: ork:git-operations-engineer' },
+    { g: 'fixed', t: 'Stop and check if a deploy to production is needed and if so run it.', b: 'no ask', a: 'ask: ork:deployment-manager' },
+    { g: 'fixed', t: 'Publish a new release; report only if publishing fails.', b: 'note only', a: 'ask: ork:release-engineer' },
+    { g: 'control', t: 'Deploy to production.', b: 'ask', a: 'ask' },
+    { g: 'control', t: 'Do not deploy to production.', b: 'no ask', a: 'no ask' },
+    { g: 'control', t: 'Stop if the deploy to production breaks.', b: 'no ask', a: 'no ask' },
+    { g: 'control', t: 'Stop if the deploy to production breaks, then report it.', b: 'no ask', a: 'no ask' },
+    { g: 'control', t: 'Read only.', b: 'note only', a: 'note only' },
+  ];
+  let filter = 'all';
+  const tbody = document.getElementById('rows');
+  function visible() { return ROWS.filter(r => filter === 'all' || r.g === filter); }
+  function render() {
+    tbody.replaceChildren(...visible().map(r => {
+      const tr = document.createElement('tr');
+      const fixed = r.g === 'fixed';
+      [[r.t], [r.b, fixed ? 'bad' : 'same'], [r.a, fixed ? 'good' : 'same']].forEach(([t, cls]) => {
+        const td = document.createElement('td'); td.textContent = t; if (cls) td.className = cls; tr.append(td);
+      });
+      return tr;
+    }));
+  }
+  document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = 'Advisor back-reference fix (after #4853), before / after:\n' + visible().map(r => `- ${r.t}: ${r.b} -> ${r.a}`).join('\n');
+    try { await navigator.clipboard.writeText(text); } catch { /* clipboard blocked: the textarea still shows it */ }
+    document.getElementById('copy-out').value = text;
+  });
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
