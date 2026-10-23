@@ -1,5 +1,4 @@
 import type { BandState, Dollar, On } from "../src/api.js";
-import { CATALOG } from "../src/catalog.js";
 import { LOCAL_CATALOG, MAX_CATALOG_CHARS, request } from "../src/system.js";
 
 const BAND = { plugin: "prompt-enhancer", key: "band" } as const;
@@ -23,11 +22,13 @@ interface Control { current: Run | null; held: string | null; reviewed: string |
 
 /**
  * The stack catalog for the next Enhance: this machine's own, written by
- * `npm run catalog:local`, or the bundled OrchestKit one when there is none.
- * Read on every Enhance so a regenerated file is used at once; the bytes only
- * change when the file does, so the cached prefix holds between calls.
+ * `npm run catalog:local`, or null when there is none. Nothing else says which
+ * tools are installed (the mod ships without OrchestKit), so no catalog means
+ * the rewrite names no tools. Read on every Enhance so a regenerated file is
+ * used at once; the bytes only change when the file does, so the cached prefix
+ * holds between calls.
  */
-const catalog = async ($: Dollar): Promise<string> => {
+const catalog = async ($: Dollar): Promise<string | null> => {
   try {
     const home = await $.env.get("HOME");
     if (home) {
@@ -43,9 +44,9 @@ const catalog = async ($: Dollar): Promise<string> => {
       }
     }
   } catch {
-    // No HOME, no file or no read access: the bundled catalog still works.
+    // No HOME, no file or no read access: rewrite without a catalog.
   }
-  return CATALOG;
+  return null;
 };
 
 const read = async ($: Dollar): Promise<BandState> => (await $.state.get(BAND)).value ?? { ...INITIAL };

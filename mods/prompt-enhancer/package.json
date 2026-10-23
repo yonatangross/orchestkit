@@ -6,9 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc",
-    "catalog": "node scripts/build-catalog.mjs --bundled",
-    "catalog:check": "node scripts/build-catalog.mjs --check",
-    "catalog:local": "node scripts/build-catalog.mjs --local"
+    "catalog:local": "node scripts/build-catalog.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.13.5",

@@ -40,9 +40,17 @@ Rewrite:
 The sign-in flow is broken again. Reproduce the failure, find the root cause in the recent changes and fix it.
 Done when: sign-in works end to end and the auth tests pass.`;
 
+/**
+ * The block sent when this machine has no local catalog. Nothing says which
+ * tools the user has installed, so the rewrite names none rather than guess.
+ */
+export const NO_CATALOG = "No catalog of this user's tools is available. Name no subagent, skill, slash command or MCP server.\n\nRewrite the draft in the next block.";
+
 /** The catalog block that sits between SYSTEM and the draft. */
-export const contextBlock = (catalog: string): string =>
-  `Catalog of this user's stack. Names are exact: use them as written, and only these.\n\n${catalog.trim()}\n\nRewrite the draft in the next block.`;
+export const contextBlock = (catalog: string | null): string =>
+  catalog?.trim()
+    ? `Catalog of this user's stack. Names are exact: use them as written, and only these.\n\n${catalog.trim()}\n\nRewrite the draft in the next block.`
+    : NO_CATALOG;
 
 /**
  * The model call for one draft. The catalog block carries the cache breakpoint,
@@ -53,7 +61,7 @@ export const contextBlock = (catalog: string): string =>
  * attribution block fingerprints the start of the user message, so a `system`
  * breakpoint can miss while a `prompt` one still hits.
  */
-export const request = (catalog: string, draft: string) => ({
+export const request = (catalog: string | null, draft: string) => ({
   model: "haiku",
   system: SYSTEM,
   prompt: [{ text: contextBlock(catalog), cache: true }, { text: draft }] as const satisfies readonly Block[],

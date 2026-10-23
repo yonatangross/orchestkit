@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { register } from "../hooks/register.js";
 import type { BandState, Block, Dollar, Events, Handler, Node, On } from "../src/api.js";
-import { CATALOG } from "../src/catalog.js";
-import { SYSTEM } from "../src/system.js";
+import { NO_CATALOG, SYSTEM } from "../src/system.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -26,7 +25,7 @@ function harness(initial: string) {
       submit: async ({ text, asUser }) => { expect(asUser).toBe(true); sent.push(text); return { text }; },
     },
     model: { complete },
-    // No local catalog by default: Enhance falls back to the bundled one.
+    // No local catalog by default: Enhance sends the no-catalog block.
     env: { get: async () => undefined },
     fs: { exists: async () => false, read: async () => { throw new Error("ENOENT"); } },
     state: {
@@ -1179,18 +1178,20 @@ describe("stack catalog and prompt cache", () => {
   const LOCAL = "/home/u/.claude/prompt-enhancer/catalog.md";
   const blocks = (h: ReturnType<typeof harness>, call = 0) => h.complete.mock.calls[call][0].prompt as readonly Block[];
 
-  test("with no local catalog, Enhance sends the bundled one before the draft", async () => {
+  // XREVIEW HOLD 6358186713: installed alone, the mod must not offer a tool list
+  // the user may not have, so no local catalog means no tool names at all.
+  test("with no local catalog, Enhance sends the no-catalog block before the draft", async () => {
     const h = harness("herdr agents cross harness");
     await h.press("Enhance");
     const call = h.complete.mock.calls[0][0];
     expect(call).toMatchObject({ model: "haiku", system: SYSTEM, maxTokens: 1024, effort: "low" });
     const [prefix, draft] = blocks(h);
-    expect(prefix.cache).toBe(true);
-    expect(prefix.text).toContain(CATALOG.trim());
+    expect(prefix).toEqual({ text: NO_CATALOG, cache: true });
+    expect(prefix.text).not.toMatch(/ork:|^- /m);
     expect(draft).toEqual({ text: "herdr agents cross harness" });
   });
 
-  test("a local catalog under HOME replaces the bundled one", async () => {
+  test("a local catalog under HOME is sent as the catalog block", async () => {
     const h = harness("draft");
     const reads: string[] = [];
     h.$.env.get = async () => "/home/u/";
@@ -1198,7 +1199,7 @@ describe("stack catalog and prompt cache", () => {
     await h.press("Enhance");
     expect(reads).toEqual([LOCAL]);
     expect(blocks(h)[0].text).toContain("- my-lane: does lane work\n");
-    expect(blocks(h)[0].text).not.toContain(CATALOG.trim());
+    expect(blocks(h)[0].text).not.toBe(NO_CATALOG);
   });
 
   test("an engine without fs.exists still reads the local catalog", async () => {
@@ -1209,14 +1210,14 @@ describe("stack catalog and prompt cache", () => {
     expect(blocks(h)[0].text).toContain("- only-mine");
   });
 
-  test("an unreadable or empty local catalog falls back to the bundled one and still rewrites", async () => {
+  test("an unreadable or empty local catalog sends the no-catalog block and still rewrites", async () => {
     for (const read of [async () => { throw new Error("EACCES"); }, async () => "  \n"]) {
       const h = harness("draft");
       h.$.env.get = async () => "/home/u";
       h.$.fs = { exists: async () => true, read };
       h.complete.mockResolvedValueOnce({ isAnswered: true, text: "Rewrite" });
       await h.press("Enhance");
-      expect(blocks(h)[0].text).toContain(CATALOG.trim());
+      expect(blocks(h)[0].text).toBe(NO_CATALOG);
       expect(h.box()).toBe("Rewrite");
     }
   });

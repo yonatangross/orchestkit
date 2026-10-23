@@ -3,11 +3,11 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
-import { MAX_CATALOG_CHARS as BUILD_MAX, bundled, frontmatter, local, module, purpose, render, scanRoot } from "../scripts/catalog.mjs";
-import { CATALOG } from "../src/catalog.js";
-import { MAX_CATALOG_CHARS, SYSTEM, contextBlock, request } from "../src/system.js";
+import { MAX_CATALOG_CHARS as BUILD_MAX, frontmatter, local, purpose, render, scanRoot } from "../scripts/catalog.mjs";
+import { MAX_CATALOG_CHARS, NO_CATALOG, SYSTEM, contextBlock, request } from "../src/system.js";
 
 const mod = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const SAMPLE = "## Subagents (delegate with the Agent tool, subagent_type as written)\n- ork:test-generator: Test specialist\n";
 const put = (path: string, text: string) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); };
 
 // Dogfood 2026-10-22: a 4-word draft came back as an essay that invented a repo,
@@ -45,8 +45,9 @@ describe("system prompt", () => {
   });
 
   test("the static prefix carries no date, time or counter", () => {
-    const prefix = SYSTEM + contextBlock(CATALOG);
-    expect(prefix).not.toMatch(/\b20\d\d-\d\d-\d\d\b|\b\d\d:\d\d(:\d\d)?\b/);
+    for (const catalog of [SAMPLE, null]) {
+      expect(SYSTEM + contextBlock(catalog)).not.toMatch(/\b20\d\d-\d\d-\d\d\b|\b\d\d:\d\d(:\d\d)?\b/);
+    }
   });
 });
 
@@ -61,7 +62,22 @@ describe("request", () => {
   });
 
   test("the prefix does not depend on the draft", () => {
-    expect(request(CATALOG, "a").prompt[0]).toEqual(request(CATALOG, "something else entirely").prompt[0]);
+    for (const catalog of [SAMPLE, null]) {
+      expect(request(catalog, "a").prompt[0]).toEqual(request(catalog, "something else entirely").prompt[0]);
+    }
+  });
+
+  // XREVIEW HOLD 6358186713: the mod installs without OrchestKit, so with no
+  // local catalog the call must not present any tool list as the user's stack.
+  test("with no catalog the block names no tools and tells the model to name none", () => {
+    for (const catalog of [null, "", "  \n"]) {
+      const call = request(catalog, "fix it");
+      expect(call.prompt).toHaveLength(2);
+      expect(call.prompt[0]).toEqual({ text: NO_CATALOG, cache: true });
+      expect(call.prompt[0].text).not.toMatch(/Catalog of this user's stack|ork:|^- /m);
+      expect(call.prompt[0].text).toMatch(/Name no subagent, skill, slash command or MCP server/);
+      expect(call.prompt[1]).toEqual({ text: "fix it" });
+    }
   });
 
   test("the runtime and build caps agree", () => {
@@ -138,17 +154,11 @@ describe("catalog builder", () => {
   });
 });
 
-describe("bundled catalog", () => {
-  test("is compact and names OrchestKit's own agents", () => {
-    expect(CATALOG.length).toBeLessThanOrEqual(BUILD_MAX);
-    expect(CATALOG).toContain("- ork:test-generator: ");
-    expect(CATALOG).toMatch(/^## Subagents/);
-  });
-
-  // Inside the orchestkit repo the sources are two levels up; an installed copy
-  // has no sources, so there is nothing to compare against.
-  const repo = resolve(mod, "..", "..");
-  test.skipIf(!existsSync(join(repo, "src", "agents")))("matches the repo sources (run npm run catalog when this fails)", () => {
-    expect(readFileSync(join(mod, "src", "catalog.ts"), "utf8")).toBe(module(bundled(repo)));
+describe("no bundled catalog", () => {
+  test("the mod ships no tool list of its own", () => {
+    expect(existsSync(join(mod, "src", "catalog.ts"))).toBe(false);
+    const register = readFileSync(join(mod, "hooks", "register.tsx"), "utf8");
+    // \b on both sides: LOCAL_CATALOG and MAX_CATALOG_CHARS are the local path, not a bundled list.
+    expect(register).not.toMatch(/catalog\.js|\bCATALOG\b/);
   });
 });
