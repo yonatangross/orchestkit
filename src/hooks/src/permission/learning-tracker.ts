@@ -165,8 +165,11 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
       ctx.log('learning-tracker', 'Quoted package-manager arguments, skipping auto-approve');
       return outputSilentSuccess();
     }
+    // Learned prefixes match the lowercased normalized command (shouldAutoApprove),
+    // so the reject list also sees that form: `NPM test --prefix x` must not pass.
     const normalizedForReject = normalizeSingle(command);
-    if (REJECT_PATTERNS.some((p) => p.test(normalizedForReject))) {
+    const loweredForReject = normalizedForReject.toLowerCase();
+    if (REJECT_PATTERNS.some((p) => p.test(normalizedForReject) || p.test(loweredForReject))) {
       ctx.log('learning-tracker', 'Matches shared reject pattern, skipping auto-approve');
       return outputSilentSuccess();
     }

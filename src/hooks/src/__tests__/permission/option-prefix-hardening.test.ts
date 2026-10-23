@@ -69,3 +69,30 @@ describe('safe-bash refuses look-alike subcommands, program-running options and 
     },
   );
 });
+
+// Post-merge review of #4869 (reviewer-sub-234, XREVIEW 6358655959): the
+// quoted-argument guard must read the package-manager word from the same
+// normalized form the allowlists match, so a quoted or escaped word is caught.
+// Fail-first: these rows fail on da4b24d2 and pass after.
+describe('quoted package-manager guard reads the normalized command word', () => {
+  const spelled = [
+    `"npm" run 'test x'`,
+    `'npm' run "test x"`,
+    `\\npm run 'test x'`,
+    `n''pm run "test x"`,
+    `"pnpm" run 'lint x'`,
+    `y"ar"n run 'test x'`,
+  ];
+
+  test.each(spelled)('safe-bash does not allow: %s', (cmd) => {
+    expect(isAllow(autoApproveSafeBash(bash(cmd)))).toBe(false);
+  });
+
+  test.each(spelled)('safe-command-retry does not retry: %s', (cmd) => {
+    expect(safeCommandRetry(bash(cmd, 'PermissionDenied')).hookSpecificOutput?.retry === true).toBe(false);
+  });
+
+  test.each(['npm test', 'npm run lint', 'pnpm run test', "git log -1 --format='%h'"])('control: still allowed: %s', (cmd) => {
+    expect(isAllow(autoApproveSafeBash(bash(cmd)))).toBe(true);
+  });
+});

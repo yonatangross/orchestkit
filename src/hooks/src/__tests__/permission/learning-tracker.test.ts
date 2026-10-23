@@ -790,6 +790,25 @@ describe('learningTracker honours the shared reject list', () => {
     expect(allowed('npm test')).toBe(true);
   });
 
+  // Post-merge review of #4869: learned prefixes match the lowercased
+  // normalized command, so the guards must decide on that same form.
+  // Fail-first: these rows fail on da4b24d2 and pass after.
+  test('a learned package-manager approval does not cover a quoted or escaped package-manager word', () => {
+    learn(['npm test', 'npm run test', 'pnpm run lint']);
+    for (const cmd of [`"npm" run 'test x'`, `\\npm run "test x"`, `"pnpm" run 'lint x'`]) {
+      expect(allowed(cmd), cmd).toBe(false);
+    }
+    expect(allowed('npm run test')).toBe(true);
+  });
+
+  test('a learned package-manager approval does not cover an upper-case spelling', () => {
+    learn(['npm test', 'npm run test']);
+    for (const cmd of ['NPM test --prefix ../other', 'Npm test --script-shell=x', 'NPM run "test x"']) {
+      expect(allowed(cmd), cmd).toBe(false);
+    }
+    expect(allowed('npm test')).toBe(true);
+  });
+
   test('a stored pattern with trailing whitespace still needs a word boundary', () => {
     learn(['git st ']);
     expect(allowed('git stash drop')).toBe(false);
