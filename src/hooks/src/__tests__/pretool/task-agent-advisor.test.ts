@@ -748,6 +748,8 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
     ['When you hit merge conflicts, just stop and report back.'],
     // A follow-up that does not refer back to the condition keeps it an obstacle.
     ['Stop if the deploy to production breaks, then report it.'],
+    ['Stop if the deploy to production breaks; then report it.'],
+    ['Stop if the deploy to production breaks; otherwise continue.'],
   ])('the obstacle inside a stop clause is still removed: "%s"', (text) => {
     expect(matchSpecialistDomain('', text)).toBeNull();
   });
@@ -759,6 +761,11 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
     ['Stop and check if a deploy to production is needed, then do it.', 'ork:deployment-manager'],
     ['Stop and check if a rebase onto main is needed, then do it.', 'ork:git-operations-engineer'],
     ['Stop and check if a deploy to production is needed and if so run it.', 'ork:deployment-manager'],
+    // HOLD 6369316669: the same back-reference after a ";" ("; if so, do it").
+    ['Stop and check if a rebase onto main is needed; if so, do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed; then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a deploy to production is needed; if so, run it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase of the feature branch onto main is needed; then do it.', 'ork:git-operations-engineer'],
   ])('a condition referred back to by "then do it" or "if so" still routes: "%s" → %s', (text, expected) => {
     expect(matchSpecialistDomain('', text)).toBe(expected);
   });

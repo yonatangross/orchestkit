@@ -270,10 +270,11 @@ const OBSTACLE_HEAD =
  * "stop and check if a deploy to production is needed, then do it", "... and if
  * so, run it". Then the condition names the work, not an obstacle, and its
  * routed match is kept (reviewer HOLD 6346951302). Scoped to the rest of the
- * same sentence.
+ * same sentence; a ";" is crossed only when the next clause opens with "if so"
+ * or "then" ("...is needed; if so, do it", HOLD 6369316669).
  */
 const BACK_REFERENCE =
-  /^[^.;!?\n]*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so\b)/i;
+  /^(?:[^.;!?\n]|;(?=\s*(?:if so|then)\b))*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so\b)/i;
 
 /** True when the routed match in an obstacle piece is the obstacle itself. */
 function isPureObstacle(piece: string): boolean {
