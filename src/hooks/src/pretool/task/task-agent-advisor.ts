@@ -239,10 +239,12 @@ export const CONDITIONAL_STOP_PATTERN =
  * advisory note, never a permission ask (#4835). "report only if publishing
  * fails" is a conditional instruction inside a task that does the work, not a
  * report-only task, so a condition word right after it does not count
- * (CodeRabbit, :473). Exported for tests.
+ * (CodeRabbit, :473). The lookahead stays on the same line: the description
+ * and the prompt are joined by "\n", and a prompt opening with "If ..." must not
+ * cancel a report-only description (CodeRabbit, :245). Exported for tests.
  */
 export const REPORT_ONLY_PATTERN =
-  /\b(?:report(?: back)? only|only report|read[- ]only)\b(?!\s+(?:if|when|whenever|in case|once|after|unless)\b)/i;
+  /\b(?:report(?: back)? only|only report|read[- ]only)\b(?![ \t]+(?:if|when|whenever|in case|once|after|unless)\b)/i;
 
 /**
  * Clause breaks inside a conditional-stop span: punctuation plus the closed class
@@ -271,10 +273,12 @@ const OBSTACLE_HEAD =
  * so, run it". Then the condition names the work, not an obstacle, and its
  * routed match is kept (reviewer HOLD 6346951302). Scoped to the rest of the
  * same sentence; a ";" is crossed only when the next clause opens with "if so"
- * or "then" ("...is needed; if so, do it", HOLD 6369316669).
+ * or "then" ("...is needed; if so, do it", HOLD 6369316669). "if so" counts
+ * only with a work verb after it: "if so, report it" reports the obstacle, it
+ * does not do the work (CodeRabbit, :276).
  */
 const BACK_REFERENCE =
-  /^(?:[^.;!?\n]|;(?=\s*(?:if so|then)\b))*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so\b)/i;
+  /^(?:[^.;!?\n]|;(?=\s*(?:if so|then)\b))*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so,?\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\b)/i;
 
 /** True when the routed match in an obstacle piece is the obstacle itself. */
 function isPureObstacle(piece: string): boolean {

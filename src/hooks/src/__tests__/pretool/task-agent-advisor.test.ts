@@ -750,6 +750,10 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
     ['Stop if the deploy to production breaks, then report it.'],
     ['Stop if the deploy to production breaks; then report it.'],
     ['Stop if the deploy to production breaks; otherwise continue.'],
+    // CodeRabbit :276: "if so" with no work verb after it reports, it does not do the work.
+    ['Stop if the deploy to production breaks; if so, report it.'],
+    ['Stop if the deploy to production breaks and if so, tell me.'],
+    ['Stop if the deploy to production breaks, and if so report it.'],
   ])('the obstacle inside a stop clause is still removed: "%s"', (text) => {
     expect(matchSpecialistDomain('', text)).toBeNull();
   });
@@ -810,6 +814,19 @@ describe('#4835 advisor decides on the description and ignores negated asks', ()
       makeInput({ subagent_type: 'general-purpose', description: 'Publish a new release', prompt }),
     );
     expect(decisionOf(result)).toBe('ask');
+  });
+
+  // CodeRabbit :245: the condition lookahead stays on its own line, so a prompt that
+  // opens with "If ..." or "When ..." does not cancel a report-only description.
+  test.each([
+    ['If anything looks off, list it.'],
+    ['When done, summarise.'],
+    ['If there are errors, list them.'],
+  ])('a report-only description stays report-only across the prompt join: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Review the release notes, report only', prompt }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
   });
 
   test('a prompt that asks to build still turns the read nudge off', () => {
