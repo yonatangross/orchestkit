@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>promote-lights 0.0.15: GitHub never holds up a new session</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style></head><body><main>
+<h1>promote-lights 0.0.15: GitHub never holds up a new session</h1>
+<p>0.0.14 ran two <code>gh pr list</code> queries (15 s timeout each, in parallel) inside <code>session.start</code>, which every session waits for. 0.0.15 starts the search after the hook answers; the band appears once a promote PR is found. <code>/promote-lights</code> now runs the same command as <code>/lights</code>.</p>
+<div class="card">
+<fieldset>gh answers in
+<label><input type="radio" name="g" value="0.4"> 0.4 s</label>
+<label><input type="radio" name="g" value="3" checked> 3 s</label>
+<label><input type="radio" name="g" value="15"> 15 s (timeout)</label>
+</fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="014"> 0.0.14</label>
+<label><input type="radio" name="v" value="015" checked> 0.0.15</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const g=parseFloat(pick('g')), v=pick('v');
+  const wait = v==='014' ? g : 0;
+  const lines=['session start waits for promote-lights: '+wait.toFixed(1)+' s',
+    v==='014' ? 'band: drawn when the start finishes' : 'band: drawn '+g.toFixed(1)+' s later, once the search stores a snapshot',
+    '/lights: '+(v==='014'?'works':'works'), '/promote-lights: '+(v==='014'?'Unknown command':'same as /lights')];
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>

@@ -1,0 +1,12 @@
+{
+  "slug": "promote-lights-search-after-start",
+  "source": "docs/fix--promote-lights-polish/search-after-start.html",
+  "title": "promote-lights 0.0.15: GitHub never holds up a new session",
+  "description": "Move the slider for how slow GitHub answers and see how long a new session waits for promote-lights, before and after 0.0.15.",
+  "tags": [
+    "mods",
+    "promote-lights",
+    "latency"
+  ],
+  "date": "2026-10-23"
+}
