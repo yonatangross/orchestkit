@@ -12,13 +12,13 @@ You can evaluate OrchestKit end to end without giving it write access to anythin
 The public docs API and both MCP servers need no account and no key. Nothing here can write.
 
 - **CLI**: `npx orchestkit` (short form `npx -p orchestkit ork`; bare `npx ork` resolves a different npm package). The `search`, `ask`, `read`, `doctor` and `mcp` commands query the public API or print output; they write nothing. `install` prints the install command for you to inspect.
-- **OrchestKit Actions MCP** (`https://orchestkit.yonyon.ai/api/mcp/actions`, Streamable HTTP): the product MCP. Three tools, all read-only by construction:
+- **OrchestKit Actions MCP** (`https://orchestkit.dev/api/mcp/actions`, Streamable HTTP): the product MCP. Three tools, all read-only by construction:
   - `orchestkit_list_skills`: discover user-invocable skills.
   - `orchestkit_install_plan`: returns the install commands for a skill or goal. It executes nothing.
   - `orchestkit_doctor_check`: checks a pasted JSON config fragment. It reads only the input.
 
-  Server card: [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/actions-server-card.json). There is no `dry_run` flag because no tool can mutate state.
-- **OrchestKit Docs MCP** (`https://orchestkit.yonyon.ai/api/mcp`): docs search and fetch. Details and the stdio Docker image are in [MCP servers](/docs/foundations/mcp-servers).
+  Server card: [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.dev/.well-known/mcp/actions-server-card.json). There is no `dry_run` flag because no tool can mutate state.
+- **OrchestKit Docs MCP** (`https://orchestkit.dev/api/mcp`): docs search and fetch. Details and the stdio Docker image are in [MCP servers](/docs/foundations/mcp-servers).
 
 ## 2. Plan an install without running it
 

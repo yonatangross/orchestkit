@@ -13,7 +13,7 @@ export const MAX_POST = 280;
 export const URL_WEIGHT = 23;
 export const HASHTAG = '#ClaudeCode';
 export const ELLIPSIS = '...';
-export const DOCS_CHANGELOG = 'https://orchestkit.yonyon.ai/changelog';
+export const DOCS_CHANGELOG = 'https://orchestkit.dev/changelog';
 
 const URL_RE = /https?:\/\/[^\s]+/g;
 

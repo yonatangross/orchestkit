@@ -7,12 +7,12 @@ icon: Sparkles
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-OrchestKit v10 is in beta. The first beta, 10.0.0-beta.1, shipped on 2026-09-06. This page covers the betas up to 10.0.0-beta.171 (2026-10-11). The last stable release is v9.8.1.
+OrchestKit v10.0.0 is the first stable v10 release. It follows the 10.0.0 betas, which began with 10.0.0-beta.1 on 2026-09-06. The 10 main changes below cover the betas up to 10.0.0-beta.171 (2026-10-11). The stable release before it is v9.8.1.
 
 This page gives the 10 main changes from the 10.0.0-beta sections of the [changelog](/changelog). Each item links to the page that explains it.
 
 <Callout type="info">
-To install the current beta, use the command on the [installation page](/docs/getting-started/installation). To try it first with no risk to real data, see [Try OrchestKit Safely](/docs/getting-started/sandbox). To see every change, read the [full changelog](/changelog).
+To install, use the command on the [installation page](/docs/getting-started/installation). To try it first with no risk to real data, see [Try OrchestKit Safely](/docs/getting-started/sandbox). To see every change, read the [full changelog](/changelog).
 </Callout>
 
 ## Hosts
@@ -93,3 +93,13 @@ Read more: [Careful](/docs/reference/skills/careful) and [Freeze](/docs/referenc
 The `glyph` skill gets output mode dials, a done sign-off and a page where you can try each mode (beta.163). The new `page-serve` skill gives a person a rendered HTML page at a stable HTTPS URL with no port (beta.5).
 
 Read more: [Output modes: try them](/docs/guides/output-modes) and [Page Serve](/docs/reference/skills/page-serve).
+
+## The move to orchestkit.dev
+
+The docs site now lives at [orchestkit.dev](https://orchestkit.dev). The old address, orchestkit.yonyon.ai, still works:
+
+- A page on the old address answers one permanent redirect (301) to the same page on orchestkit.dev, with the query kept.
+- The MCP endpoints, the agent API, the `.well-known` documents and `auth.md` keep answering on the old address with no redirect, so installed MCP clients and agents keep working.
+- An anonymous identity assertion issued before the move keeps working until it expires, at most 30 days later (operator decision, 2026-10-20). New assertions name orchestkit.dev.
+
+Read more: [MCP servers](/docs/foundations/mcp-servers).

@@ -25,6 +25,6 @@ export const YONYON_FAQS: ReadonlyArray<Faq> = [
 	{
 		question: "Where are Yonyon's developer resources?",
 		answer:
-			"All of OrchestKit's developer resources live under orchestkit.yonyon.ai: the docs, a read-only OpenAPI spec at /api/openapi, an MCP server at /api/mcp, a natural-language /ask endpoint, llms.txt and llms-full.txt, and well-known agent/API discovery files. Source is on GitHub at github.com/yonatangross/orchestkit.",
+			"All of OrchestKit's developer resources live under orchestkit.dev: the docs, a read-only OpenAPI spec at /api/openapi, an MCP server at /api/mcp, a natural-language /ask endpoint, llms.txt and llms-full.txt, and well-known agent/API discovery files. Source is on GitHub at github.com/yonatangross/orchestkit.",
 	},
 ];

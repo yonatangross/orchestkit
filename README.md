@@ -25,13 +25,13 @@ OrchestKit is a free, open source Claude Code plugin: skills, agents and hooks f
 claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
 ```
 
-[Docs](https://orchestkit.yonyon.ai/docs) · [What's new in v10](https://orchestkit.yonyon.ai/docs/whats-new-v10) · [yonyon.ai](https://yonyon.ai)
+[Docs](https://orchestkit.dev/docs) · [What's new in v10](https://orchestkit.dev/docs/whats-new-v10) · [yonyon.ai](https://yonyon.ai)
 <!-- X account link: add it here when the account exists. -->
 
 ---
 
 <p align="center">
-  <a href="https://orchestkit.yonyon.ai/"><strong>Explore the Docs →</strong></a> ·
+  <a href="https://orchestkit.dev/"><strong>Explore the Docs →</strong></a> ·
   <a href="https://yonyon.ai/go/orchestkit?utm_campaign=readme"><strong>OrchestKit Community →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
@@ -59,7 +59,7 @@ Pick the host you actually use. Claude Code is the full plugin (skills + agents 
 
 #### Host support matrix
 
-Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor). Antigravity measured 2026-09-18 on agy 1.2.6; full evidence in `docs/audits/agy-host-support-2026-09-18.md`.
+Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.dev/docs/guides/orchestkit-on-pi-codex-cursor). Antigravity measured 2026-09-18 on agy 1.2.6; full evidence in `docs/audits/agy-host-support-2026-09-18.md`.
 
 | Surface | Claude Code | Cursor | Codex | pi | Devin | Antigravity |
 |---|---|---|---|---|---|---|
@@ -125,7 +125,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
-**[Browse everything in the Docs →](https://orchestkit.yonyon.ai/docs/skills/overview)**
+**[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
 
 ---
 
@@ -497,7 +497,7 @@ cp .pi/mcp.json.example .pi/mcp.json
 ```
 
 Full detail and the tracking epic:
-[OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
+[OrchestKit on pi, Codex and Cursor](https://orchestkit.dev/docs/guides/orchestkit-on-pi-codex-cursor).
 
 ### Devin
 
@@ -618,7 +618,7 @@ Raising this floor is a breaking change and ships as a major release. See [STABI
 <details>
 <summary><strong>Superpowers vs OrchestKit?</strong></summary>
 
-Complementary, not a rival listing. Superpowers (official Anthropic marketplace) is process — how the agent works a task. OrchestKit is production patterns plus lifecycle hooks. Honest split: [docs](https://orchestkit.yonyon.ai/docs/getting-started/superpowers) · [yonyon.ai](https://yonyon.ai/compare/orchestkit-superpowers).
+Complementary, not a rival listing. Superpowers (official Anthropic marketplace) is process: how the agent works a task. OrchestKit is production patterns plus lifecycle hooks. Honest split: [docs](https://orchestkit.dev/docs/getting-started/superpowers) · [yonyon.ai](https://yonyon.ai/compare/orchestkit-superpowers).
 </details>
 
 ---
@@ -641,6 +641,22 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!--ork:whats-new-->
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
+
+**[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
+
+- **release:** exclude .claude-plugin from release-please commits (#4870)
+
+**[v10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1)** · 2026-10-22
+
+- **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
+- **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag (#4866)
+- **release:** pin stable channel to v10.0.0 (#4863)
+
+**[v10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0)** · 2026-10-22
+
+- **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
+- **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav (#4823)
+- **hooks:** stdin watchdog defers one turn before an empty pipe (#4849)
 
 **[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
 
@@ -672,21 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
 - **site:** let the Installation overflow check settle after each resize (#4803)
-
-**[v10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182)** · 2026-10-17
-
-- **deps-dev:** bump vitest (#4779)
-- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4732)
-
-**[v10.0.0-beta.181](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
-- **deps-dev:** bump vitest in /docs/site in the vitest group (#4778)
-
-**[v10.0.0-beta.180](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.179...v10.0.0-beta.180)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4783)
-- bump actions/create-github-app-token (#4784)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
@@ -724,7 +725,7 @@ Security policy and reporting: [SECURITY.md](SECURITY.md).
 
 <div align="center">
 
-**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://platform.yonyon.ai/circle?ref=readme)**
+**[Docs](https://orchestkit.dev/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://platform.yonyon.ai/circle?ref=readme)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

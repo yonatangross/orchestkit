@@ -48,7 +48,7 @@ export default function YonyonPage() {
 				<a href="https://www.anthropic.com/claude-code">Claude Code</a>. The
 				studio is run by{" "}
 				<a href="https://github.com/yonatangross">Yonatan Gross</a>, and its work
-				is published at <strong>orchestkit.yonyon.ai</strong>.
+				is published at <strong>orchestkit.dev</strong>.
 			</p>
 
 			<p>

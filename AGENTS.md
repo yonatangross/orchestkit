@@ -70,4 +70,4 @@ catches drift.
 - `CLAUDE.md` — the same rules with Claude-Code-specific detail.
 - `src/skills/CONTRIBUTING-SKILLS.md` — full skill-authoring standard.
 - `src/hooks/README.md` — hook architecture and the hook registry.
-- Docs site: https://orchestkit.yonyon.ai · Repo: https://github.com/yonatangross/orchestkit
+- Docs site: https://orchestkit.dev · Repo: https://github.com/yonatangross/orchestkit

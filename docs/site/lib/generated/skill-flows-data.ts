@@ -4754,6 +4754,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Smallest Proof: One Tool, UI Resource Plus…",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Client-Side Iframe App",
             "does": "",
             "out": null,

@@ -12,7 +12,7 @@
 # Exits non-zero if any contract fails, so it can gate a deploy.
 set -uo pipefail
 
-ORIGIN="${1:-https://orchestkit.yonyon.ai}"
+ORIGIN="${1:-https://orchestkit.dev}"
 FAILURES=0
 
 pass() { printf '  ok    %s\n' "$1"; }

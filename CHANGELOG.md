@@ -5,6 +5,39 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2) (2026-10-23)
+
+
+### Bug Fixes
+
+* **release:** exclude .claude-plugin from release-please commits ([#4870](https://github.com/yonatangross/orchestkit/issues/4870)) ([06c0860](https://github.com/yonatangross/orchestkit/commit/06c086011fe580abbe55b65647232cbda8ec5364))
+
+## [10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** patch dompurify (docs/site) and ip-address (mcp-server) ([#4862](https://github.com/yonatangross/orchestkit/issues/4862)) ([4b6f17c](https://github.com/yonatangross/orchestkit/commit/4b6f17cb09ba5067b09eea68bfe0a018737c3cba))
+* **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag ([#4866](https://github.com/yonatangross/orchestkit/issues/4866)) ([07a3c92](https://github.com/yonatangross/orchestkit/commit/07a3c924ff6925707d8a599b3e8f9d85a40a06c8))
+
+
+### Miscellaneous
+
+* **release:** pin stable channel to v10.0.0 ([#4863](https://github.com/yonatangross/orchestkit/issues/4863)) ([e831cb5](https://github.com/yonatangross/orchestkit/commit/e831cb5ff694f7783d18aaa77a37f91012a4c2ab))
+
+## [10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0) (2026-10-22)
+
+
+### Features
+
+* **mcp-visual-output:** glyph card MCP App proof, no SDK ([#4663](https://github.com/yonatangross/orchestkit/issues/4663)) ([4dec429](https://github.com/yonatangross/orchestkit/commit/4dec42961880c018f8abea087b3d998c35cd5d39))
+* **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav ([#4823](https://github.com/yonatangross/orchestkit/issues/4823)) ([980c9bf](https://github.com/yonatangross/orchestkit/commit/980c9bfbde9e90afb838ad13747e048fec576d1d))
+
+
+### Bug Fixes
+
+* **hooks:** stdin watchdog defers one turn before an empty pipe ([#4849](https://github.com/yonatangross/orchestkit/issues/4849)) ([640a2a5](https://github.com/yonatangross/orchestkit/commit/640a2a590abfd86f4e734dc155a07ce23e681f4a))
+
 ## [10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187) (2026-10-22)
 
 

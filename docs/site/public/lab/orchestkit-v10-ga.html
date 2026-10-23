@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit v10.0.0 GA: what ships</title>
+<meta name="description" content="The v10.0.0 GA release: orchestkit.dev everywhere, a creator and contributors section, nav submenus, and the release-please switch from beta to stable.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:24px; }
+  .kpi { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .kpi b { display:block; font-size:1.6rem; }
+  .kpi span { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .wait { color:var(--warn); font-weight:600; }
+
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit v10.0.0 GA: what ships"><meta property="og:description" content="The v10.0.0 GA release: orchestkit.dev everywhere, creator and contributors on About, nav submenus, and the switch from beta to stable."><meta property="og:url" content="https://orchestkit.dev/lab/orchestkit-v10-ga.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit v10.0.0 GA: what ships"><meta name="twitter:description" content="The v10.0.0 GA release: orchestkit.dev everywhere, creator and contributors on About, nav submenus, and the switch from beta to stable."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>OrchestKit v10.0.0 GA: what ships</h1>
+      <p class="lead">The beta train ends at 10.0.0. This PR carries the rebrand to orchestkit.dev, the About and Contributors sections, the nav submenus and the release switch.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <section class="kpis" aria-label="Key numbers">
+    <div class="kpi"><b>10.0.0</b><span>next release (was beta.184)</span></div>
+    <div class="kpi"><b>10</b><span>contributors: 7 people, 3 bots</span></div>
+    <div class="kpi"><b>3</b><span>nav submenus: Docs, Cookbook, Reference</span></div>
+    <div class="kpi"><b>8</b><span>docs folders with no landing page</span></div>
+  </section>
+
+  <h2>What changes</h2>
+  <table>
+    <thead><tr><th>Area</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td>Release</td><td><code>.release-please-config.json</code>: <code>release-as: 10.0.0</code>, <code>prerelease: false</code>, the beta keys removed. release-please reads the config from main, so the open release PR regenerates as 10.0.0. A follow-up PR removes <code>release-as</code> after the tag. No tag is edited by hand.</td></tr>
+      <tr><td>Rebrand</td><td>orchestkit.dev replaces the old host in docs, README, packages (default base URLs and homepages), <code>server.json</code>, CI messages and the Lab page heads. History stays as it was: CHANGELOG, dated playground folders, audits, ADRs and approved mockups. Links to the studio and to Yonatan stay.</td></tr>
+      <tr><td>About</td><td>A Creator section names Yonatan Gross with his GitHub link. A Contributors section lists the GitHub contributors API snapshot, people first, bots apart and marked Bot.</td></tr>
+      <tr><td>Nav</td><td>Docs, Cookbook and Reference open submenus. About joins the bar. The logo goes to the home page. The nav keeps George (operator decision); the nav icon comes from one <code>BRAND.mark</code> slot. The new rose window icon ships as the product icon in its own PR.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Docs and Cookbook gaps found</h2>
+  <table>
+    <thead><tr><th>Gap</th><th>Where</th><th>Suggested fix</th></tr></thead>
+    <tbody>
+      <tr><td>Folders with pages but no landing page</td><td><code>cookbook/roles</code> (6), <code>skills/by-category</code> (8), <code>skills/spotlights</code> (5), <code>hooks/spotlights</code> (5), <code>reference/hooks/spotlights</code> (5), two skill reference folders</td><td>One short index per folder that says what is inside and links each page.</td></tr>
+      <tr><td>Hook spotlights live in two trees</td><td><code>hooks/spotlights</code> and <code>reference/hooks/spotlights</code>, 5 pages each</td><td>Keep one tree; point the other at it.</td></tr>
+      <tr><td>Thin sections for their size</td><td>Troubleshooting 3 pages, Analytics 1 page, Agents 5 concept pages for 36 agents</td><td>Grow Troubleshooting from real issues first.</td></tr>
+      <tr><td>Roles are not in the Cookbook menu</td><td>6 role pages under "By Role"</td><td>Add a roles landing page, then a menu item for it.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Screenshots</h2>
+  <p>Taken from a local build of this branch (Vercel previews sit behind Vercel login): the menu, About and Contributors at 1440 and 390 pixels, light and dark. Listed in the lane report.</p>
+
+  <footer>Card orchestkit-v10-ga-2026-10-20. Made by ork-ga-1 (Claude via Claude Code), 2026-10-20.</footer>
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function set(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    set(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

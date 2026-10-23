@@ -1,6 +1,6 @@
 # Link card (Open Graph / X)
 
-The card at `https://orchestkit.yonyon.ai/opengraph-image`: Higgsfield conductor
+The card at `https://orchestkit.dev/opengraph-image`: Higgsfield conductor
 art, a frosted panel with the wordmark, the tagline `brand.tagline()` builds
 ("For Claude Code and N more agents", N from the host list), the counts named by
 `brand.STAT_WORDS` (skills / agents / hooks), and a "Works with" row of the eight

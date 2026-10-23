@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Stop the stable pin from cutting a release: playground</title>
+<meta name="description" content="A commit that touches only .claude-plugin/ (the stable-channel pin) no longer counts toward a release, so each pin stops opening a noise release PR.">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; --bad: #f2a199; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; }
+  .yes { color: var(--bad); font-weight: 600; }
+  .no { color: var(--accent); font-weight: 600; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Stop the stable pin from cutting a release</h1>
+  <p class="verdict"><strong>Verdict:</strong> one entry added to <code>exclude-paths</code> in <code>.release-please-config.json</code>: <code>.claude-plugin</code>. The stable-channel pin commit (#4867) touches only <code>.claude-plugin/marketplace.json</code>; today it counts as a <code>chore</code> in a visible changelog section, so every pin opens a release PR (#4868, 10.0.2, with nothing in it but the pin).</p>
+  <p class="muted">Branch <code>fix/release-please-exclude-marketplace</code>, from main at afca76a9.</p>
+
+  <h2>Why the directory and not the file</h2>
+  <p>release-please matches an <code>exclude-paths</code> entry as a directory prefix only: <code>file.indexOf(`${path}/`) === 0</code> in <code>CommitExclude.isRelevant</code>. A file entry such as <code>.claude-plugin/marketplace.json</code> would need the path <code>.claude-plugin/marketplace.json/</code> to match, so it never excludes anything. The same code is in release-please 17.11.2 and in the bundle of the pinned action (release-please-action v5.0.0, sha 45996ed1). <code>.claude-plugin/</code> holds one file today, <code>marketplace.json</code>.</p>
+
+  <h2>Proof: release-please's own filter, four commits, three configs</h2>
+  <table>
+    <thead><tr><th>Commit (files)</th><th>main today</th><th>file entry</th><th>this PR (dir entry)</th></tr></thead>
+    <tbody>
+      <tr><td>#4867 pin (<code>.claude-plugin/marketplace.json</code>)</td><td class="yes">counted</td><td class="yes">counted</td><td class="no">excluded</td></tr>
+      <tr><td>fix touching marketplace.json and <code>src/</code></td><td class="yes">counted</td><td class="yes">counted</td><td class="yes">counted</td></tr>
+      <tr><td>control: <code>docs/adr</code> only</td><td class="no">excluded</td><td class="no">excluded</td><td class="no">excluded</td></tr>
+      <tr><td>control: <code>src/</code> only</td><td class="yes">counted</td><td class="yes">counted</td><td class="yes">counted</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Counted means the commit reaches the release PR. A release PR opens only when at least one commit is counted.</p>
+
+  <h2>Side effects</h2>
+  <ul>
+    <li>A hand commit that touches only <code>.claude-plugin/</code> (today: only <code>marketplace.json</code>) cuts no release and does not appear in the changelog.</li>
+    <li>A commit that touches <code>marketplace.json</code> and anything outside <code>.claude-plugin/</code> still counts, as before.</li>
+    <li>Release-please still bumps <code>$.version</code> in <code>marketplace.json</code> through <code>extra-files</code>; <code>exclude-paths</code> filters commits, not the files a release writes.</li>
+    <li>Any file added to <code>.claude-plugin/</code> later is excluded the same way.</li>
+  </ul>
+</main>
+</body>
+</html>

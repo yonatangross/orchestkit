@@ -2611,7 +2611,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "3.2.0",
-    "sha256": "e61e603e67dbab190b9da29243f9d087cb4f5227d6cbd4e331f57e7b660772a7",
+    "sha256": "72454ea17c189097eac9b0f85d8158dce4a603090a175d6ddee3120e138b292c",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3150,7 +3150,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns.",
     "version": "1.1.0",
-    "sha256": "285d44557b1874b315656def1d3e023636e976440f62d5ecf8403a2d097fb5bb",
+    "sha256": "964603261072974ce6dfe98d29fcd061abf6af01a5f416d3e6a8177093716ff5",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3173,6 +3173,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "component-recipes.md",
         "mcp-integration.md",
         "upstream-mcp.md"
+      ],
+      "scripts": [
+        "glyph-card-server.mjs"
       ]
     },
     "plugins": [
