@@ -627,3 +627,48 @@ describe("the answer never lets core reuse the unmasked run", () => {
     expect(out).toEqual(run);
   });
 });
+
+describe("an errored run (isError) is answered with deny, never as a changed result", () => {
+  // Built at runtime: a key-shaped literal is refused on write.
+  const FAKE_ERR_TOKEN = "gh" + "p_" + "aB3dE5gH7jK9mN1pQ3sT5vW7yZ9bD1fG3hJ5";
+  // On an errored run core sets isError and `result` is the error text, a string.
+  // A changed answer is schema-checked against the tool's output shape, so a
+  // masked string `result` fails with "does not match its output shape" and the
+  // model loses the error. The masked error text has to arrive as a deny.
+  const erroredRun = (tool: string) => ({
+    isError: true,
+    ref: 3,
+    result: `${tool} failed: exit 2\nFAKE_TOKEN=${FAKE_ERR_TOKEN}\nALLOWED FORM: use git -c core.quotePath=false`,
+    text: `${tool} failed: exit 2\nFAKE_TOKEN=${FAKE_ERR_TOKEN}\nALLOWED FORM: use git -c core.quotePath=false`,
+  });
+
+  for (const tool of ["Bash", "Write"]) {
+    test(`${tool}: a masked error comes back as deny with the masked text, no result, no ref`, async () => {
+      const hooks = captureHooks();
+      const { $ } = makeFake$({});
+      await startSession(hooks, $);
+      const out = (await hooks.get("tool.call")!($, { tool, args: {} }, asNext(erroredRun(tool)))) as Record<string, unknown>;
+      expect(typeof out.deny).toBe("string");
+      expect(out.deny as string).not.toContain(FAKE_ERR_TOKEN);
+      expect(out.deny as string).toContain(`${tool} failed: exit 2`);
+      expect(out.deny as string).toContain("ALLOWED FORM: use git -c core.quotePath=false");
+      expect("result" in out).toBe(false);
+      expect("ref" in out).toBe(false);
+    });
+  }
+
+  test("an errored run with nothing masked is returned as is", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({});
+    await startSession(hooks, $);
+    const run = { isError: true, ref: 3, result: "Exit code 1\nplain failure", text: "Exit code 1\nplain failure" };
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(run));
+    expect(out).toEqual(run);
+  });
+
+  test("answerFor: a masked errored wrapper with only result (no text) still yields a non-empty deny", async () => {
+    const { answerFor } = await import("../hooks/register.js");
+    const out = answerFor({ isError: true, ref: 1, result: "boom ••••••••" }, true) as Record<string, unknown>;
+    expect(out).toEqual({ deny: "boom ••••••••" });
+  });
+});
