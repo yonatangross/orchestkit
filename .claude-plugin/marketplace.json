@@ -45,22 +45,6 @@
       }
     },
     {
-      "name": "lesson-cards",
-      "description": "Mod (function hooks): advisory lesson hint cards when a tool call matches a known pattern (never blocks a call); /lessons reloads. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
-      "version": "1.2.0",
-      "author": {
-        "name": "Yonatan Gross",
-        "email": "yonaigross@gmail.com"
-      },
-      "category": "development",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/yonatangross/orchestkit.git",
-        "path": "mods/lesson-cards",
-        "ref": "main"
-      }
-    },
-    {
       "name": "promote-lights",
       "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
       "version": "0.0.14",
