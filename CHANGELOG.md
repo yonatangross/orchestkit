@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.1.1](https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** patch npm audit advisories in four lockfiles ([#4894](https://github.com/yonatangross/orchestkit/issues/4894)) ([e34034b](https://github.com/yonatangross/orchestkit/commit/e34034b640c14f0e7fb6a9125a02d52d4753b6c8))
+
 ## [10.1.0](https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0) (2026-10-23)
 
 
