@@ -44,7 +44,7 @@
 		"@vitejs/plugin-react": "^6.1.2",
 		"ajv": "^8.20.0",
 		"ajv-formats": "^3.0.1",
-		"happy-dom": "^21.0.3",
+		"happy-dom": "^21.0.4",
 		"magic-string": "^1.4.3",
 		"postcss": "^8.5.31",
 		"remark-gfm": "^4.0.1",
