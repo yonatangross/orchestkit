@@ -97,14 +97,23 @@ FILTER_LIST="$(extract_paths filter)"
 if [[ -z "$PUSH_LIST" || -z "$FILTER_LIST" ]]; then
     bad "could not extract one of the lists (push paths or paths-filter docs); the docs.yml layout may have changed"
 else
-    # parity arm: same set, same count
-    if diff <(printf '%s\n' "$PUSH_LIST" | sort) \
-            <(printf '%s\n' "$FILTER_LIST" | sort) >/dev/null; then
+    # parity arm: same set, same count. Compared through files, not process
+    # substitution: where /dev/fd is not readable, diff <(...) exits 2 and
+    # the old arm reported that environment error as drift. diff exit 1 is a
+    # real difference; any other non-zero exit means no comparison happened.
+    PARITY_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-docs-parity.XXXXXX")"
+    trap 'rm -rf "$PARITY_DIR"' EXIT
+    printf '%s\n' "$PUSH_LIST" | sort > "$PARITY_DIR/push"
+    printf '%s\n' "$FILTER_LIST" | sort > "$PARITY_DIR/filter"
+    diff_rc=0
+    diff "$PARITY_DIR/push" "$PARITY_DIR/filter" > "$PARITY_DIR/out" 2>&1 || diff_rc=$?
+    if [[ "$diff_rc" -eq 0 ]]; then
         ok "push paths and paths-filter docs hold the same set"
-    else
+    elif [[ "$diff_rc" -eq 1 ]]; then
         bad "push paths and paths-filter docs differ:"
-        diff <(printf '%s\n' "$PUSH_LIST" | sort) \
-             <(printf '%s\n' "$FILTER_LIST" | sort) | sed 's/^/      /' || true
+        sed 's/^/      /' "$PARITY_DIR/out"
+    else
+        bad "could not compare push paths and paths-filter docs (diff exit $diff_rc): $(head -1 "$PARITY_DIR/out")"
     fi
 fi
 
