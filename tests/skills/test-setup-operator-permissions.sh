@@ -123,5 +123,69 @@ PJ2="$T/proj-true"; mkdir -p "$PJ2/.claude"; printf '{\n  "sandbox": {\n    "ena
 ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ2" --json > "$T/check-both.json" || true
 grep -q '"sandbox_override": null' "$T/check-both.json" && ok "project true over user true: no override" || bad "override reported when both scopes agree"
 
+# The unattended checks also read the process env, so every run below strips
+# the variables it asserts on: a lane that exports them must not flip a test.
+UNSET_ENV=(env -u CLAUDE_CODE_RETRY_WATCHDOG -u CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS
+  -u CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS -u CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS
+  -u CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS)
+# run_chk <home> <out> <json|text> [VAR=value ...]: these homes carry no deny payload,
+# so the checker must exit 1; any other code is a crash and fails the test.
+run_chk() {
+  local home="$1" out="$2" mode="$3" rc=0; shift 3
+  if [ "$mode" = json ]; then
+    "${UNSET_ENV[@]}" ORK_SETTINGS_HOME="$home" "$@" bash "$CHECKER" "$T/no-such-project" --json > "$out" || rc=$?
+  else
+    "${UNSET_ENV[@]}" ORK_SETTINGS_HOME="$home" "$@" bash "$CHECKER" "$T/no-such-project" > "$out" || rc=$?
+  fi
+  [ "$rc" -eq 1 ] || bad "checker exited $rc for $home (want 1, no deny payload)"
+}
+
+# 10. CC 2.1.299 idle compaction: idleCompaction:false is named with its file, never failed on.
+H4="$T/home-idle"; mkdir -p "$H4/.claude"
+printf '{\n  "idleCompaction": false,\n  "env": { "CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS": "400000" }\n}\n' > "$H4/.claude/settings.json"
+run_chk "$H4" "$T/check-idle.json" json
+node -e '
+const o=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const i=o.unattended && o.unattended.idle_compaction;
+const {normalize}=require("node:path"); const f=normalize(process.argv[2]);
+const ok = i && i.setting==="false" && i.source===f && i.min_tokens==="400000" && i.min_tokens_source===f && /idleCompaction is false/.test(i.warning||"");
+process.exit(ok?0:1)' "$T/check-idle.json" "$H4/.claude/settings.json" \
+  && ok "idleCompaction:false reported with its file and a warning" || bad "idle compaction posture wrong: $(head -c 600 "$T/check-idle.json")"
+run_chk "$H4" "$T/check-idle.txt" text
+grep -q 'warn: idleCompaction is false' "$T/check-idle.txt" && ok "text mode prints the idle compaction warning" || bad "text mode has no idle compaction warning"
+
+# 10b. control: key unset means CC's default (on), no warning
+run_chk "$H3" "$T/check-idle-unset.json" json
+node -e '
+const i=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).unattended.idle_compaction;
+process.exit(i.setting==="unset" && i.warning===null && i.min_tokens===null ? 0 : 1)' "$T/check-idle-unset.json" \
+  && ok "idleCompaction unset: no warning" || bad "idle compaction warned with the key unset"
+
+# 11. CC 2.1.301 and 2.1.305: watchdog on without the usage-limit variables gets one offer per variable.
+H5="$T/home-wd"; mkdir -p "$H5/.claude"
+printf '{\n  "env": { "CLAUDE_CODE_RETRY_WATCHDOG": "1" }\n}\n' > "$H5/.claude/settings.json"
+run_chk "$H5" "$T/check-wd.json" json
+node -e '
+const w=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).unattended.retry_watchdog;
+const vars=w.offers.map((x)=>x.variable);
+const ok = w.enabled===true && vars.includes("CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS")
+  && vars.includes("CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS") && vars.includes("CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS");
+process.exit(ok?0:1)' "$T/check-wd.json" \
+  && ok "watchdog on: offers the usage-limit wait, recheck and wait caps" || bad "watchdog offers missing: $(head -c 600 "$T/check-wd.json")"
+
+# 11b. the same variables from the process env (how a lane launcher sets them) close the offers
+run_chk "$H5" "$T/check-wd-set.json" json CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS=900000 \
+  CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS=300000 CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS=1800000
+node -e '
+const w=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).unattended.retry_watchdog;
+process.exit(w.offers.length===0 && w.max_usage_limit_wait_ms==="900000" && w.usage_limit_recheck_ms==="300000" ? 0 : 1)' "$T/check-wd-set.json" \
+  && ok "watchdog with all caps set: no offers" || bad "offers left with the caps set: $(head -c 600 "$T/check-wd-set.json")"
+
+# 11c. control: watchdog off means no offers at all
+run_chk "$H3" "$T/check-wd-off.json" json
+node -e '
+const w=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).unattended.retry_watchdog;
+process.exit(w.enabled===false && w.offers.length===0 ? 0 : 1)' "$T/check-wd-off.json" \
+  && ok "watchdog off: no offers" || bad "offers made with the watchdog off"
+
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

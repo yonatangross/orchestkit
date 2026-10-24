@@ -40,6 +40,8 @@ design-ship https://claude.ai/design/abc123     # From handoff URL
 design-ship /tmp/handoff-bundle.json            # From local file
 ```
 
+> **Standalone Claude Design closes by 2026-12-14** (CC 2.1.302 adds this notice to `/design-sync` and `/design-login`). After that date a `claude.ai/design` handoff URL may stop resolving. Export the bundle to a local file now and pass the file path, which this skill accepts.
+
 ## When to use
 You have a Claude Design handoff URL (or file) and want a PR opened against the current branch. No intermediate steps, no manual test generation, no manual PR drafting.
 

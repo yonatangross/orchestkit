@@ -870,6 +870,30 @@ Both attributes are attached only to telemetry from **workflow-spawned** agents 
 
 New in CC 2.1.214; older data lacks them, so queries must null-check before grouping. The truncation limit for captured content on these events is configurable via `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` (default 60 KB), see configure's `cc-version-settings.md`.
 
+### From 2.1.300 (cache write split, GenAI span attributes)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `cache_creation_5m_tokens` | `api_request` | non-negative integer | Cache-write tokens with the 5-minute lifetime. |
+| `cache_creation_1h_tokens` | `api_request` | non-negative integer | Cache-write tokens with the 1-hour lifetime. The two price differently (a 1h write costs more than a 5m write), so a cost panel that multiplies the old single `cache_creation_tokens` by one rate is wrong for sessions that mix both; subagents write 5m and the main conversation mostly 1h. |
+| `gen_ai.provider.name`, `gen_ai.conversation.id`, `gen_ai.tool.name`, `error.type` | trace spans | strings | OpenTelemetry GenAI semantic-convention attributes, so a generic GenAI backend can read Claude Code spans without a custom mapping. |
+
+### From 2.1.301 and 2.1.302 (auto mode decisions)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `classifier_verdict` | `tool_decision` | string | The auto mode classifier's verdict. Tells a classifier decision apart from a permission-rule decision. |
+| `permission_mode` | `tool_decision` | `default`, `auto`, `acceptEdits`, `plan`, `bypassPermissions`, ... | The mode the decision was made in. |
+| `classifier_category` | `tool_decision` | string | The built-in rule a classifier block matched. Sent only with `OTEL_LOG_TOOL_DETAILS=1`; 2.1.302 fixed it missing from most blocks, so data from 2.1.301 undercounts it. |
+
+2.1.302 also fixed the new attributes pushing `tool_use_id`, `tool_source` and `tool_parameters` out when `OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT` is low. A pre/post join on `tool_use_id` over 2.1.301 data can miss rows for that reason.
+
+### From 2.1.307 (`claude_code.safety_event`)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| (event) | `claude_code.safety_event` | one per tool call | Emitted for each tool call that a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back. ork's PreToolUse guards that deny or ask show up here, so the count of hook-caused stops per guard can be read from OTel instead of hook logs. Attribute names beyond the event name are not in the CHANGELOG; read them from one exported event before writing a panel. |
+
 Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
 
 ## Data location

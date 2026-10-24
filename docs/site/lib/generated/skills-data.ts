@@ -663,7 +663,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
     "version": "1.1.0",
-    "sha256": "6c4958b9aebcdab99dce11f6e079fe6dca663f71578d456fc4a3196d5063d269",
+    "sha256": "89681a7aae505e78954c38bc9703ad95df8837a3f854f1fe8372839968ccf3fd",
     "author": "OrchestKit",
     "tags": [
       "eval",
@@ -1524,7 +1524,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-import",
     "description": "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead.",
     "version": "1.0.0",
-    "sha256": "6c1970859e5d0c235f0baa1a2cfba0d1de348ff74ad3b33642f9c52377d1eee7",
+    "sha256": "31d8354c52c8eda5d52956ff183810ce8aefb7b64587eeb2e6d8d8af5934912c",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1573,7 +1573,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-ship",
     "description": "One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. Use when a design link should come back as a PR with no intermediate steps; if all you need is the components written to disk, run /ork:design-import instead.",
     "version": "1.0.0",
-    "sha256": "9d8e583708354434ecede67d0b04c0dcd83cbef000ae07c5b29da480973cf14e",
+    "sha256": "78db682b3885f98215e05537aafde1289d2ea63e3d47f5826bf54c3b82c65321",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1936,7 +1936,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "450392e63e8ed96691a4d8786144b1e69f022725fc51a3be143a1d1aeb717b3b",
+    "sha256": "2342f49923e7bf913077920d13b7cf6306d55aa03473cdc2e773d30023b8c551",
     "author": "OrchestKit",
     "tags": [
       "health-check",

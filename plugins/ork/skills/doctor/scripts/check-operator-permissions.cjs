@@ -83,6 +83,52 @@ if (projectSandbox && projectSandbox.enabled === false && userSandbox && userSan
     warning: `sandbox override: ${at(projectSandbox)} sets sandbox.enabled=false while ${at(userSandbox)} sets it true. The project-scope file wins, so Bash in this project runs with NO sandbox (no egress denylist, no filesystem boundary) while the user scope still reads as protected. Remove the key from the project file or set it true.`,
   };
 }
+// Unattended lanes (CC 2.1.299, 2.1.301, 2.1.305): idle compaction keeps a long
+// idle conversation inside its 1h prompt cache, and the retry watchdog's
+// usage-limit caps stop a lane waiting hours on a limit reset. Both are
+// operator settings a plugin cannot carry, so they are observed and offered,
+// never failed on. Settings `env` wins over the process env, as in CC.
+const settingsByScope = scopes.map((f) => {
+  if (!existsSync(f)) return null;
+  try { return { file: f, s: JSON.parse(readFileSync(f, 'utf8')) }; } catch { return null; }
+}).filter(Boolean);
+function envVar(name) {
+  for (const { file, s } of settingsByScope) {
+    const v = s.env && s.env[name];
+    if (v !== undefined && v !== null && v !== '') return { value: String(v), source: file };
+  }
+  const v = process.env[name];
+  return v ? { value: v, source: 'environment' } : { value: null, source: null };
+}
+const idleDecl = settingsByScope.find(({ s }) => typeof s.idleCompaction === 'boolean') || null;
+const idleMin = envVar('CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS');
+const idleCompaction = {
+  setting: idleDecl ? String(idleDecl.s.idleCompaction) : 'unset',
+  source: idleDecl ? idleDecl.file : null,
+  min_tokens: idleMin.value,
+  min_tokens_source: idleMin.source,
+  warning: idleDecl && idleDecl.s.idleCompaction === false
+    ? `idleCompaction is false in ${idleDecl.file}: a lane left idle past about 54 minutes loses its 1h prompt cache, and its next turn reprocesses the whole conversation uncached (CC 2.1.299). Remove the key unless the lane must never compact.`
+    : null,
+};
+const watchdog = envVar('CLAUDE_CODE_RETRY_WATCHDOG');
+const watchdogOn = watchdog.value === '1' || watchdog.value === 'true';
+const wdCaps = [
+  ['CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS', '2.1.295', 'caps how long the watchdog waits out 429 and 529, so a rate-limit storm cannot stall the lane for hours'],
+  ['CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS', '2.1.301', 'ends a request at a usage limit that resets too far away instead of waiting for the reset'],
+  ['CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS', '2.1.305', 'rechecks a usage limit while waiting, so a limit lifted before its reset is noticed'],
+];
+const wdValues = Object.fromEntries(wdCaps.map(([name]) => [name, envVar(name).value]));
+const retryWatchdog = {
+  enabled: watchdogOn,
+  source: watchdog.source,
+  max_wait_ms: wdValues.CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS,
+  max_usage_limit_wait_ms: wdValues.CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS,
+  usage_limit_recheck_ms: wdValues.CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS,
+  offers: watchdogOn
+    ? wdCaps.filter(([name]) => wdValues[name] === null).map(([variable, since, why]) => ({ variable, since, why }))
+    : [],
+};
 const allDeny = new Set(Object.values(denyByScope).filter(Array.isArray).flat());
 const missing = payload.deny.filter((r) => !allDeny.has(r));
 const present = payload.deny.length - missing.length;
@@ -97,6 +143,7 @@ const out = {
   sandbox,
   read_boundary: readBoundary,
   sandbox_override: sandboxOverride,
+  unattended: { idle_compaction: idleCompaction, retry_watchdog: retryWatchdog },
   remedy: missing.length
     ? 'node <plugin>/skills/setup/scripts/write-operator-permissions.mjs --scope user   (dry-run first; consent required)'
     : null,
@@ -110,6 +157,9 @@ if (jsonOut === '1') {
   if (sandboxOverride) console.log(`  warn: ${sandboxOverride.warning}`);
   console.log(`  read boundary: blockReadsOutsideWorkingDirectories=${readBoundary.block_reads_outside} additionalDirectories=${readBoundary.additional_directories.length}`);
   if (readBoundary.warning) console.log(`  warn: ${readBoundary.warning}`);
+  console.log(`  unattended: idleCompaction=${idleCompaction.setting} retryWatchdog=${watchdogOn ? 'on' : 'off'}`);
+  if (idleCompaction.warning) console.log(`  warn: ${idleCompaction.warning}`);
+  for (const o of retryWatchdog.offers) console.log(`  offer: ${o.variable} (CC ${o.since}) ${o.why}`);
   if (missing.length) {
     console.log(`  missing (${missing.length}): ${missing.slice(0, 5).join(', ')}${missing.length > 5 ? ', ...' : ''}`);
     console.log(`  remedy: ${out.remedy}`);
