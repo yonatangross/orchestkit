@@ -1,0 +1,29 @@
+# Created: 2026-10-24 (L6 artifact pairs, #4897)
+id: create-plan
+name: "Create-plan skill evaluation"
+skill_path: src/skills/create-plan/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "Research for task hook-retry is done; write the implementation plan as a reviewable file in the task directory"
+    should_trigger: true
+  - prompt: "Make a plan artifact for task add-pairs so the reviewer can comment on it"
+    should_trigger: true
+  - prompt: "The reviewer left comments on 02-plan-add-pairs.md, revise the plan"
+    should_trigger: false
+  - prompt: "Document how the hook dispatcher works today before we change it"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Write the plan for task hook-retry, slug retry-backoff; you are seat lane-x"
+    assertions:
+      - name: "created through the script"
+        check: "the artifact is created with artifact.mjs create passing --task, --kind plan, --slug and --author, not written by hand"
+      - name: "task-dir path"
+        check: "the reply names a path of the form .ork/tasks/hook-retry/NN-plan-retry-backoff.md"
+      - name: "runnable success criteria"
+        check: "the plan names the files each phase changes and ends each phase with runnable automated checks"
+      - name: "stops for review"
+        check: "the reply asks for review comments in the file and does not start implementing"
+
+tags: [create-plan, artifacts, planning, review]

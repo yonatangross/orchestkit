@@ -1294,6 +1294,45 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "create-plan": {
+    "name": "create-plan",
+    "description": "Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback.",
+    "version": "1.0.0",
+    "sha256": "058090b115d4b96acda45618b5846755877d7955327395be53654a91d49ed2f7",
+    "author": "OrchestKit",
+    "tags": [
+      "planning",
+      "artifacts",
+      "review",
+      "task-directory",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Grep",
+      "Glob"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "artifact-layout.md",
+        "plan-template.md"
+      ],
+      "scripts": [
+        "artifact.mjs"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
@@ -1346,6 +1385,45 @@ export const SKILLS: Record<string, SkillMeta> = {
       ],
       "scripts": [
         "coderabbit-harvest.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "create-research": {
+    "name": "create-research",
+    "description": "Documents how the codebase works today for a task's research questions and saves it as a file artifact (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan and reviewers build on a reviewable record. Use before planning a change in unfamiliar code; describes what exists only, never proposes changes. Pair with iterate-research.",
+    "version": "1.0.0",
+    "sha256": "2c7c91b324f9d1e01f3ad97f9330e1b2ae953f899c9e2bf6937c4c5f16f4e4ad",
+    "author": "OrchestKit",
+    "tags": [
+      "research",
+      "artifacts",
+      "codebase",
+      "documentation",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Grep",
+      "Glob",
+      "Agent"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "research-template.md"
+      ],
+      "scripts": [
+        "artifact.mjs"
       ]
     },
     "plugins": [
@@ -2931,6 +3009,77 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "iterate-plan": {
+    "name": "iterate-plan",
+    "description": "Revises an existing plan artifact (.ork/tasks/TASK/NN-plan-SLUG.md) from review comments or new instructions, rewriting the body in place while keeping every earlier review comment and bumping the revision. Use when a plan from create-plan got feedback in its comment block or the scope changed; never use it to start a new plan.",
+    "version": "1.0.0",
+    "sha256": "a7a87302d1e950ce5b5a167227d12b702934a66b85c70faa91ce62aa1d378868",
+    "author": "OrchestKit",
+    "tags": [
+      "planning",
+      "artifacts",
+      "review",
+      "iteration",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Grep",
+      "Glob"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "scripts": [
+        "artifact.mjs"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "iterate-research": {
+    "name": "iterate-research",
+    "description": "Revises an existing research artifact (.ork/tasks/TASK/NN-research-SLUG.md) from review comments or follow-up questions, re-checking the code, rewriting the body in place and keeping every earlier review comment. Use when a research file from create-research got comments, a claim was challenged, or the question widened; it stays descriptive and never proposes changes.",
+    "version": "1.0.0",
+    "sha256": "3128fab66d227d2bd67f00118878d26108b419721f2ac785cc38ac7a5aec31bf",
+    "author": "OrchestKit",
+    "tags": [
+      "research",
+      "artifacts",
+      "review",
+      "iteration",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Write",
+      "Grep",
+      "Glob",
+      "Agent"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "scripts": [
+        "artifact.mjs"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "json-render-catalog": {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
@@ -4277,6 +4426,41 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "container-queries.md",
         "fluid-typography.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "review-artifact-comments": {
+    "name": "review-artifact-comments",
+    "description": "Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. Use when a reviewer has commented on an artifact file or asks to address, resolve or approve its comments.",
+    "version": "1.0.0",
+    "sha256": "77ab62a281111cdfea586b3e1c0ed8090811f880aa59b27a2c277d80d8afa53f",
+    "author": "OrchestKit",
+    "tags": [
+      "review",
+      "artifacts",
+      "comments",
+      "approval",
+      "workflow"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Grep",
+      "Glob",
+      "AskUserQuestion"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "artifact.mjs"
       ]
     },
     "plugins": [

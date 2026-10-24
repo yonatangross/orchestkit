@@ -1,0 +1,27 @@
+# Created: 2026-10-24 (L6 artifact pairs, #4897)
+id: create-research
+name: "Create-research skill evaluation"
+skill_path: src/skills/create-research/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "Before we plan task hook-retry, document how the hook dispatcher works today and save it as a research file"
+    should_trigger: true
+  - prompt: "Map where session state is read and written, with file:line citations, as a task research artifact"
+    should_trigger: true
+  - prompt: "Write the implementation plan for task hook-retry"
+    should_trigger: false
+  - prompt: "Research the market for AI dev tools"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Research for task hook-retry: how are hook timeouts handled today? You are seat lane-r"
+    assertions:
+      - name: "created through the script"
+        check: "the artifact is created with artifact.mjs create passing --kind research and --author, not written by hand"
+      - name: "cites code"
+        check: "claims about the code carry file:line citations"
+      - name: "describes only"
+        check: "the research describes what exists and makes no recommendation, fix or critique"
+
+tags: [create-research, artifacts, research, codebase]

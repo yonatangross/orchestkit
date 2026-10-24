@@ -24,6 +24,7 @@ MODE="${1:-sync}"
 # Add new shared scripts here as the codebase grows.
 MANIFEST=(
   "render-spec.mjs|src/skills/explore/scripts/render-spec.mjs|src/skills/assess/scripts/render-spec.mjs"
+  "artifact.mjs|src/skills/create-plan/scripts/artifact.mjs|src/skills/iterate-plan/scripts/artifact.mjs|src/skills/create-research/scripts/artifact.mjs|src/skills/iterate-research/scripts/artifact.mjs|src/skills/review-artifact-comments/scripts/artifact.mjs"
 )
 
 DRIFT=0

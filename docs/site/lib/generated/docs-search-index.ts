@@ -916,9 +916,19 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
   },
   {
+    "url": "/docs/reference/skills/create-plan",
+    "title": "Create Plan",
+    "description": "Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback."
+  },
+  {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review."
+  },
+  {
+    "url": "/docs/reference/skills/create-research",
+    "title": "Create Research",
+    "description": "Documents how the codebase works today for a task's research questions and saves it as a file artifact (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan and reviewers build on a reviewable record. Use before planning a change in unfamiliar code; describes what exists only, never proposes changes. Pair with iterate-research."
   },
   {
     "url": "/docs/reference/skills/database-patterns",
@@ -1183,7 +1193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 110 OrchestKit skills."
+    "description": "Complete reference for all 115 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1194,6 +1204,16 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/issue-progress-tracking",
     "title": "Issue Progress Tracking",
     "description": "GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
+  },
+  {
+    "url": "/docs/reference/skills/iterate-plan",
+    "title": "Iterate Plan",
+    "description": "Revises an existing plan artifact (.ork/tasks/TASK/NN-plan-SLUG.md) from review comments or new instructions, rewriting the body in place while keeping every earlier review comment and bumping the revision. Use when a plan from create-plan got feedback in its comment block or the scope changed; never use it to start a new plan."
+  },
+  {
+    "url": "/docs/reference/skills/iterate-research",
+    "title": "Iterate Research",
+    "description": "Revises an existing research artifact (.ork/tasks/TASK/NN-research-SLUG.md) from review comments or follow-up questions, re-checking the code, rewriting the body in place and keeping every earlier review comment. Use when a research file from create-research got comments, a claim was challenged, or the question widened; it stays descriptive and never proposes changes."
   },
   {
     "url": "/docs/reference/skills/json-render-catalog",
@@ -1339,6 +1359,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/responsive-patterns",
     "title": "Responsive Patterns",
     "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
+  },
+  {
+    "url": "/docs/reference/skills/review-artifact-comments",
+    "title": "Review Artifact Comments",
+    "description": "Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. Use when a reviewer has commented on an artifact file or asks to address, resolve or approve its comments."
   },
   {
     "url": "/docs/reference/skills/review-pr",
@@ -1537,13 +1562,13 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "38 Commands You Can Invoke",
+    "title": "43 Commands You Can Invoke",
     "description": "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
   },
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 110 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 115 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",

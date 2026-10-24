@@ -1,0 +1,27 @@
+# Created: 2026-10-24 (L6 artifact pairs, #4897)
+id: review-artifact-comments
+name: "Review-artifact-comments skill evaluation"
+skill_path: src/skills/review-artifact-comments/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "I left comments in .ork/tasks/add-pairs/02-plan-add-pairs.md, work through them"
+    should_trigger: true
+  - prompt: "Resolve the open review comments on the hook-retry research artifact and approve it if nothing is left"
+    should_trigger: true
+  - prompt: "Review this pull request for security issues"
+    should_trigger: false
+  - prompt: "Write a plan for task hook-retry"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Address the comments on .ork/tasks/add-pairs/02-plan-add-pairs.md; I am reviewer-y"
+    assertions:
+      - name: "lists open comments first"
+        check: "the reply starts from artifact.mjs list --open and names each open comment id"
+      - name: "asks how to proceed"
+        check: "it asks whether to revise, reply or resolve before changing anything, unless the user already said"
+      - name: "approval rules"
+        check: "it approves only with no open comment, through artifact.mjs approve with --by and --ref, and never as the artifact's author"
+
+tags: [review-artifact-comments, artifacts, review, approval]
