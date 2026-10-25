@@ -9,7 +9,14 @@
  */
 
 import { describe, test, expect } from "vitest";
+import { setFlagsFromString } from "node:v8";
+import { runInNewContext } from "node:vm";
 import { buildTable, mask, DEFAULT_PATTERNS } from "../src/mask.js";
+
+// Node documents changing V8 flags after startup as unsupported; it is used here so no vitest
+// config flag is needed (the diff stays test-only). The "gc() is exposed" test trips if Node breaks it.
+setFlagsFromString("--expose-gc");
+const gc = runInNewContext("gc") as (() => void) | undefined;
 
 const table = buildTable([], {}, DEFAULT_PATTERNS, { entropy: true });
 
@@ -52,31 +59,84 @@ describe("mask() stays fast on long runs", () => {
   // runs in about 31 ms. Linear work grows about 10x from 100k to 1M; the
   // old quadratic code grew about 100x (and took 5 to 40 s at 1M). The 1 s
   // ceiling is a backstop that still fails any quadratic regression.
-  const medianMs = (text: string): number => {
-    const runs: number[] = [];
-    for (let i = 0; i < 3; i++) runs.push(timed(text).ms);
-    runs.sort((a, b) => a - b);
-    return runs[1];
+  //
+  // The ratio limit sits halfway between linear and quadratic on a log scale,
+  // sqrt(10 * 100) = 31.6x, so either side can drift about 3x before a linear
+  // run fails or a quadratic one passes. A 20x limit left only 2x: the 100k
+  // side takes about 4 ms on a shared runner, and nightly run 40154035027
+  // failed a linear run at 21.3x (84.69 ms against 3.97 ms). A fit over three
+  // log-spaced sizes would not help: its least-squares slope depends on the
+  // two end points only, so it is this same ratio test at more cost.
+  //
+  // Each size takes the MINIMUM of 7 runs, with a forced GC before each run.
+  // Host load and GC only ever add time, so the minimum is the cleanest
+  // reading; a median of 5 still measured 34x on a linear run at load 59.
+  // The spaced case builds about 200k spans per call at 1M, and garbage left
+  // by earlier runs was collected inside the measured one (GC was 257 ms of
+  // a 333 ms median). The forced GC clears it first; GC caused by the run
+  // itself still counts, so a quadratic stand-in still fails.
+  const LINEAR_RATIO_LIMIT = Math.sqrt(10 * 100);
+  const FLOOR_MS = 20;
+  const RUNS = 7;
+
+  type Run = (text: string) => void;
+  const maskRun: Run = (text) => {
+    mask(text, table);
   };
-  const scaling = (unit: string): { small: number; large: number } => {
+  const minMs = (run: Run, text: string): number => {
+    run(text); // warm-up, not counted
+    let best = Infinity;
+    for (let i = 0; i < RUNS; i++) {
+      gc?.();
+      const t0 = performance.now();
+      run(text);
+      best = Math.min(best, performance.now() - t0);
+    }
+    return best;
+  };
+  const scaling = (unit: string, run: Run = maskRun): { small: number; large: number } => {
     const small = unit.repeat(Math.ceil(100_000 / unit.length));
     const large = unit.repeat(Math.ceil(1_000_000 / unit.length));
-    medianMs(small); // warm the JIT so the small run is not inflated
-    return { small: medianMs(small), large: medianMs(large) };
+    return { small: minMs(run, small), large: minMs(run, large) };
   };
 
-  test("BEGIN markers with no END scale linearly (10x input, under 20x time) and stay under 1 s at 1M", () => {
-    const { small, large } = scaling("-----" + "BEGIN ");
-    expect(large).toBeLessThan(1000);
-    expect(large).toBeLessThan(Math.max(20 * small, 20));
+  test("gc() is exposed, so the scaling cases measure without earlier garbage", () => {
+    // Without it the forced GC is skipped and the spaced case goes back to flaking.
+    expect(typeof gc).toBe("function");
+  });
+  const scalesLinearly = ({ small, large }: { small: number; large: number }): boolean =>
+    large < Math.max(LINEAR_RATIO_LIMIT * small, FLOOR_MS);
+
+  test("BEGIN markers with no END scale linearly (10x input, under 31.6x time) and stay under 1 s at 1M", () => {
+    const times = scaling("-----" + "BEGIN ");
+    expect(times.large).toBeLessThan(1000);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
   });
 
-  test("short spaced prefix tokens scale linearly (10x input, under 20x time), stay under 1 s, and are masked", () => {
+  test("short spaced prefix tokens scale linearly (10x input, under 31.6x time), stay under 1 s, and are masked", () => {
     const unit = "AK" + "IA ";
-    const { small, large } = scaling(unit);
-    expect(large).toBeLessThan(1000);
-    expect(large).toBeLessThan(Math.max(20 * small, 20));
+    const times = scaling(unit);
+    expect(times.large).toBeLessThan(1000);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
     expect(timed(unit.repeat(200_000)).out).not.toContain("AK" + "IA");
   });
+
+  test("the scaling check accepts the linear run the 20x limit failed on 2026-10-25", () => {
+    expect(scalesLinearly({ small: 3.97, large: 84.69 })).toBe(true);
+  });
+
+  test("the scaling check still fails a quadratic implementation", () => {
+    // Stand-in for the old rescan: work grows with the square of the input,
+    // (n / 100)^2 steps, so 1M chars costs 100x what 100k does.
+    let sink = 0;
+    const quadratic: Run = (text) => {
+      const n = Math.floor(text.length / 100);
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) sink += (i ^ j) & 1;
+    };
+    const times = scaling("-----" + "BEGIN ", quadratic);
+    expect(sink).toBeGreaterThan(0);
+    expect(times.large, "quadratic stand-in must clear the floor").toBeGreaterThan(FLOOR_MS);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(false);
+  }, 30_000);
 });
 

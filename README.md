@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.1.1](https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1)** · 2026-10-24
+
+- **deps:** patch npm audit advisories in four lockfiles (#4894)
+
 **[v10.1.0](https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0)** · 2026-10-23
 
 - **ci:** fail a PR while a bot review thread has no reply (#4864)
@@ -683,15 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185)** · 2026-10-21
 
 - **site:** move the canonical host to orchestkit.dev for the orank gaps (#4819)
-
-**[v10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184)** · 2026-10-21
-
-- **docs:** new OrchestKit icon, the rose window conductor (#4833)
-- **lesson-cards:** card-only mode for unattended lanes (#4798)
-- **mods:** list prompt-enhancer in the marketplace as a beta mod (#4816)
-- **deps:** bump vite to 8.3.4 for the launch-editor advisories (#4828)
-- **hooks:** three GA-blocking hook bugs from the verified picks (#4692)
-- …and 15 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
