@@ -9,7 +9,14 @@
  */
 
 import { describe, test, expect } from "vitest";
+import { setFlagsFromString } from "node:v8";
+import { runInNewContext } from "node:vm";
 import { buildTable, mask, DEFAULT_PATTERNS } from "../src/mask.js";
+
+// Node documents changing V8 flags after startup as unsupported; it is used here so no vitest
+// config flag is needed (the diff stays test-only). The "gc() is exposed" test trips if Node breaks it.
+setFlagsFromString("--expose-gc");
+const gc = runInNewContext("gc") as (() => void) | undefined;
 
 const table = buildTable([], {}, DEFAULT_PATTERNS, { entropy: true });
 
@@ -80,7 +87,7 @@ describe("mask() stays fast on long runs", () => {
     run(text); // warm-up, not counted
     let best = Infinity;
     for (let i = 0; i < RUNS; i++) {
-      globalThis.gc?.();
+      gc?.();
       const t0 = performance.now();
       run(text);
       best = Math.min(best, performance.now() - t0);
@@ -94,9 +101,8 @@ describe("mask() stays fast on long runs", () => {
   };
 
   test("gc() is exposed, so the scaling cases measure without earlier garbage", () => {
-    // vitest.config.ts passes --expose-gc to the workers; without it the
-    // forced GC is skipped and the spaced case goes back to flaking.
-    expect(typeof globalThis.gc).toBe("function");
+    // Without it the forced GC is skipped and the spaced case goes back to flaking.
+    expect(typeof gc).toBe("function");
   });
   const scalesLinearly = ({ small, large }: { small: number; large: number }): boolean =>
     large < Math.max(LINEAR_RATIO_LIMIT * small, FLOOR_MS);
