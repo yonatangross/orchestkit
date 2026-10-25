@@ -30,7 +30,7 @@ const llmsTxt = readFileSync(
 );
 
 describe("the site's CLI claim matches the package that ships", () => {
-	const entry = DEVELOPER_RESOURCES.find((r) => r.title === "CLI (npm)");
+	const entry = DEVELOPER_RESOURCES.find((r) => r.title === "OrchestKit CLI (npm)");
 
 	it("the developer hub links the CLI on npm", () => {
 		expect(entry, "no npm package entry in DEVELOPER_RESOURCES").toBeDefined();
