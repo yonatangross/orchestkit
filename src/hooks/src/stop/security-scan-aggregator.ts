@@ -22,9 +22,10 @@
  *   walking, so child timeouts stay enforceable
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, type Dirent } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, readdirSync, type Dirent } from 'node:fs';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
@@ -42,6 +43,25 @@ const SECRET_SCAN_MAX_FILES = 5_000;
 const EXEC_MAX_BUFFER = 10 * 1024 * 1024;
 
 const LOCK_PATH = `${tmpdir()}/ork-security-scan.lock`;
+
+// `npm audit --json` is a network round trip to the registry. Running it on
+// every Stop piled load onto a busy machine, so it runs at most once per
+// project per day. Other scans stay per-Stop.
+const NPM_AUDIT_INTERVAL_MS = 24 * 60 * 60_000;
+
+function npmAuditStampPath(projectDir: string): string {
+  const key = createHash('sha256').update(projectDir).digest('hex').slice(0, 16);
+  return `${tmpdir()}/ork-npm-audit-${key}.stamp`;
+}
+
+/** True when this project was audited less than NPM_AUDIT_INTERVAL_MS ago. */
+function npmAuditRecentlyRan(projectDir: string): boolean {
+  try {
+    return Date.now() - statSync(npmAuditStampPath(projectDir)).mtimeMs < NPM_AUDIT_INTERVAL_MS;
+  } catch {
+    return false;
+  }
+}
 
 interface SecurityResults {
   npmAudit: { critical: number; high: number } | null;
@@ -103,6 +123,17 @@ async function runNpmAudit(
       !existsSync(`${projectDir}/pnpm-lock.yaml`))
   ) {
     return null;
+  }
+
+  if (npmAuditRecentlyRan(projectDir)) {
+    logHook('security-scan', 'npm audit ran within 24h, skipping');
+    return null;
+  }
+  // Stamp before the run so a timeout or a failure still throttles the retry.
+  try {
+    writeFileSync(npmAuditStampPath(projectDir), String(Date.now()));
+  } catch {
+    // An unwritable tmpdir just means the audit runs again next Stop.
   }
 
   logHook('security-scan', 'Running npm audit...');

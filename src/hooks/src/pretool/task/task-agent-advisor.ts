@@ -92,7 +92,9 @@ export const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp 
   // git, release, deploy and infra rows sit AFTER ci-cd so workflow tasks stay there,
   // and git sits before release so "rebase the release branch" is a git task.
   { agent: 'ork:git-operations-engineer', pattern: /\b(rebas(e|ing)\b[^.;\n]{0,40}\b(branch(es)?|onto|commits?|main|master)|git (rebase|cherry.?pick|bisect)|merge conflicts?|resolve (the )?(merge |git )conflicts|branch(ing)? strategy|cherry.?pick (a |the )?commits?)\b/i },
-  { agent: 'ork:release-engineer', pattern: /\b(changelog|release notes|semver|semantic versioning|version bump|bump the version|(cut|tag|publish) (a |the )?(new )?release)\b/i },
+  // A changelog or release-notes PAGE is a UI task (#4835), so a UI noun right after
+  // the phrase leaves it to the frontend row.
+  { agent: 'ork:release-engineer', pattern: /\b((?:changelog|release notes)(?![\s-]+(?:pages?|components?|views?|screens?|ui|widgets?|modals?|panels?|sections?|routes?|tabs?|cards?|buttons?|links?)\b)|semver|semantic versioning|version bump|bump the version|(cut|tag|publish) (a |the )?(new )?release)\b/i },
   { agent: 'ork:deployment-manager', pattern: /\b(blue.?green|canary (deploy|release)|zero.?downtime deploy|rollback (plan|procedure)|roll back the (deploy|release)|deploy(ing)? to (prod|production|staging))\b/i },
   { agent: 'ork:infrastructure-architect', pattern: /\b(terraform|pulumi|cloudformation|helm charts?|(kubernetes|k8s) manifests?|infrastructure as code)\b/i },
   { agent: 'ork:web-research-analyst', pattern: /\b(web research|search (the web|online)|competitor analysis|market (research|landscape))/i },
@@ -213,9 +215,128 @@ export function hasBuildIntent(description: string, prompt: string): boolean {
 /** Bound the prompt scan so regex work stays inside the PreToolUse budget. */
 const NUDGE_SCAN_MAX_CHARS = 2000;
 
-/** Find a specialist whose domain matches a general-purpose task's text. */
+/**
+ * A guard rail that stops on an obstacle: "If you hit merge conflicts, stop and
+ * report", "When the scan fails, stop", "Stop and ask if the deploy breaks". The
+ * condition names the obstacle, not the work, so the clause is removed before
+ * domain matching (#4835). The consequence must START with stop, halt, abort or
+ * bail, so "if the tests pass, rebase onto main" keeps its rebase. The clause ends
+ * at a comma or at and, then, but, instead or however, as NEGATED_CLAUSE_PATTERN
+ * does, so an ask later in the same sentence ("stop and report, then deploy to
+ * production") still routes (XREVIEW HOLD 6343034324). Between a leading stop
+ * and its condition only "and ask", "and report" and the like may join
+ * ("stop and ask if the deploy breaks"). A leading condition obeys the same
+ * rule: it may not cross a comma or a clause word before its ", stop", so "if
+ * the tests pass, deploy to production, but if they fail, stop" keeps the
+ * deploy (reviewer HOLD 6344107617). A condition joined by "and" then leaves its
+ * second half in the text, an extra ask by design. Exported for tests.
+ */
+export const CONDITIONAL_STOP_PATTERN =
+  /\b(?:if|when|whenever|in case)\b(?:(?!\b(?:and|then|but|instead|however)\b)[^.;!?\n,])*?,\s*(?:then\s+|just\s+)?(?:stop|halt|abort|bail)\b[^.;!?\n,]*?(?=[.;!?\n,]|\b(?:and|then|but|instead|however)\b|$)|\b(?:stop|halt|abort|bail)\b(?:(?!,|\bthen\b|\band\s+(?!(?:ask|report|wait|tell|notify|flag|escalate|check)\b))[^.;!?\n])*?\b(?:if|when|whenever|in case)\b[^.;!?\n,]*?(?=[.;!?\n,]|\b(?:and|then|but|instead|however)\b|$)/gi;
+
+/**
+ * A task that says it only reads or reports. A domain match in it gets the
+ * advisory note, never a permission ask (#4835). "report only if publishing
+ * fails" is a conditional instruction inside a task that does the work, not a
+ * report-only task, so a condition word right after it does not count
+ * (CodeRabbit, :473). The lookahead stays on the same line: the description
+ * and the prompt are joined by "\n", and a prompt opening with "If ..." must not
+ * cancel a report-only description (CodeRabbit, :245). Exported for tests.
+ */
+export const REPORT_ONLY_PATTERN =
+  /\b(?:report(?: back)? only|only report|read[- ]only)\b(?![ \t]+(?:if|when|whenever|in case|once|after|unless)\b)/i;
+
+/**
+ * Clause breaks inside a conditional-stop span: punctuation plus the closed class
+ * of English coordinating and subordinating conjunctions and clause adverbs. A
+ * second clause cannot start inside an obstacle without one of them, so the
+ * obstacle piece ends where the condition ends. The condition words are breaks
+ * too, so the piece right after one is the obstacle on its own.
+ */
+const STOP_SPAN_BREAK =
+  /([,:]|\b(?:if|when|whenever|in case|and|or|nor|but|yet|so|then|instead|however|otherwise|unless|before|after|while|whilst|until|till|once|as soon as|because|since|although|though|whereas|except|plus|also|meanwhile|afterwards|later|next|finally)\b)/i;
+const CONDITION_WORD = /^(?:if|when|whenever|in case)$/i;
+
+/**
+ * What may stand before a routed match for that match to BE the obstacle: nothing,
+ * a determiner ("the deploy to production breaks"), or a subject with a verb of
+ * running into something ("you hit merge conflicts"). Anything else ("ready",
+ * "the build passes") means the condition ended and an instruction followed with
+ * no comma, so the piece is kept.
+ */
+const OBSTACLE_HEAD =
+  /^(?:(?:the|a|an|any|this|that|these|those|our|your|its|their|my)|(?:you|we|it|they|i)\s+(?:hit|hits|see|sees|get|gets|run into|runs into|encounter|encounters|find|finds|face|faces|trigger|triggers)(?:\s+(?:the|a|an|any))?)?$/i;
+
+/**
+ * The text after a stop span refers back to its condition as the work to do:
+ * "stop and check if a deploy to production is needed, then do it", "... and if
+ * so, run it". Then the condition names the work, not an obstacle, and its
+ * routed match is kept (reviewer HOLD 6346951302). Scoped to the rest of the
+ * same sentence; a ";" is crossed only when the next clause opens with "if so"
+ * or "then" ("...is needed; if so, do it", HOLD 6369316669). "if so" counts
+ * only with a work verb after it: "if so, report it" reports the obstacle, it
+ * does not do the work (CodeRabbit, :276).
+ */
+const BACK_REFERENCE =
+  /^(?:[^.;!?\n]|;(?=\s*(?:if so|then)\b))*?(?:\b(?:then|and|so)\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\s+(?:it|that|this|them)\b|\bif so,?\s+(?:(?:just|please|go ahead and)\s+)?(?:do|run|apply|ship|perform|execute|handle|make|carry out|proceed with|go ahead with)\b)/i;
+
+/** True when the routed match in an obstacle piece is the obstacle itself. */
+function isPureObstacle(piece: string): boolean {
+  let first = -1;
+  for (const domain of SPECIALIST_DOMAINS) {
+    const m = domain.pattern.exec(piece);
+    if (m && (first < 0 || m.index < first)) first = m.index;
+  }
+  return first < 0 || OBSTACLE_HEAD.test(piece.slice(0, first).trim());
+}
+
+/**
+ * What a conditional-stop span leaves behind (#4835). Its boundaries are words,
+ * and an instruction can sit between the stop and its condition joined by any of
+ * them ("stop X but deploy to production if Y"), so the span is not dropped whole
+ * (reviewer HOLD 6344107617, round 3). It is split at its clause breaks, the
+ * obstacle (the piece right after if, when, whenever or in case) is dropped, and
+ * every other piece the routing detector (SPECIALIST_DOMAINS) matches is kept, so
+ * a risky action in the span still routes whatever word joins it. An obstacle
+ * that itself names the work ("stop and ask if the deploy to production breaks")
+ * is still removed, but only when the routed match IS the obstacle (OBSTACLE_HEAD);
+ * a condition that runs into an instruction with no comma ("if ready deploy to
+ * production, stop") keeps it, an extra ask by design (XREVIEW HOLD 6346226707).
+ * When the text after the span refers back to the condition ("..., then do it",
+ * BACK_REFERENCE) no obstacle is dropped. Exported for tests.
+ */
+export function stripConditionalStop(span: string, after = ''): string {
+  const parts = span.split(STOP_SPAN_BREAK);
+  const kept: string[] = [];
+  const conditionIsTheWork = BACK_REFERENCE.test(after);
+  for (let i = 0; i < parts.length; i += 2) {
+    const breakBefore = i > 0 ? parts[i - 1].trim() : '';
+    const piece = parts[i];
+    if (!conditionIsTheWork && CONDITION_WORD.test(breakBefore) && isPureObstacle(piece)) continue;
+    if (SPECIALIST_DOMAINS.some((domain) => domain.pattern.test(piece))) kept.push(piece.trim());
+  }
+  return kept.length > 0 ? ` ${kept.join('. ')}. ` : ' ';
+}
+
+/**
+ * Remove guard-rail sentences before domain matching (#4835): a prohibition ("do
+ * not deploy to production", "never rebase the release branch") and a conditional
+ * stop ("if you hit merge conflicts, stop and report") name work the agent must NOT
+ * do, so they never route an ask to the agent for that work. Reminders that ask
+ * for the work ("do not forget to deploy") stay, as in hasBuildIntent.
+ */
+export function stripGuardRails(text: string): string {
+  return text
+    .replace(AFFIRMATIVE_REMINDER_PATTERN, '.')
+    .replace(CONDITIONAL_STOP_PATTERN, (span: string, offset: number, whole: string) =>
+      stripConditionalStop(span, whole.slice(offset + span.length)),
+    )
+    .replace(NEGATED_CLAUSE_PATTERN, ' ');
+}
+
+/** Find a specialist whose domain matches a general-purpose task's text, guard rails removed. */
 export function matchSpecialistDomain(description: string, prompt: string): string | null {
-  const text = `${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`;
+  const text = stripGuardRails(`${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`);
   const match = SPECIALIST_DOMAINS.find((domain) => domain.pattern.test(text));
   return match ? match.agent : null;
 }
@@ -270,17 +391,30 @@ const MULTI_STEP_PATTERN = /\b(and|then|to|so)\b/i;
 const AUTHORING_VERB_PATTERN =
   /\b(implement\w*|edit\w*|modif\w*|chang\w*|rewrit\w*|patch\w*|resolv\w*|rebas\w*|merg\w*|delet\w*|remov\w*|renam\w*)\b/i;
 
-/** Which deterministic nudge, if any, a task deserves: worktree creation or a single-file read. */
+/**
+ * A path or file name ("docs/intro-to-terraform.md", "apply-db.sh"). Removed before
+ * the second-step and verb checks, so a word inside a file name ("to" in
+ * intro-to-terraform.md) is not read as a second step (#4835).
+ */
+const FILE_TOKEN_PATTERN = /\S*[\w-][./][\w-]\S*/g;
+
+/**
+ * Which deterministic nudge, if any, a task deserves: worktree creation or a
+ * single-file read. Decided on the DESCRIPTION (#4835): the Agent tool always
+ * carries a prompt, and a realistic one ("Create a git worktree for the fix branch
+ * and print its path", "Read x.yml and explain what triggers it") repeats the ask
+ * with reasoning words, which used to turn the nudge into silence or an ask. The
+ * prompt turns the nudge off only when it asks to build (hasBuildIntent).
+ */
 export function deterministicNudge(description: string, prompt: string): 'worktree' | 'read' | null {
-  const promptText = prompt.slice(0, NUDGE_SCAN_MAX_CHARS);
-  const promptIsAuthoring = REASONING_VERB_PATTERN.test(promptText) || AUTHORING_VERB_PATTERN.test(promptText);
-  if (promptIsAuthoring) return null;
+  if (hasBuildIntent('', prompt)) return null;
   if (WORKTREE_TASK_PATTERN.test(description)) return 'worktree';
+  const words = description.replace(FILE_TOKEN_PATTERN, ' ');
   if (
     READ_FILE_TASK_PATTERN.test(description) &&
-    !MULTI_STEP_PATTERN.test(description) &&
-    !REASONING_VERB_PATTERN.test(description) &&
-    !AUTHORING_VERB_PATTERN.test(description)
+    !MULTI_STEP_PATTERN.test(words) &&
+    !REASONING_VERB_PATTERN.test(words) &&
+    !AUTHORING_VERB_PATTERN.test(words)
   ) {
     return 'read';
   }
@@ -358,6 +492,13 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
       // by the user's own choice. Degrade the prompt to the advisory note it
       // used to be rather than blocking an unattended run on a routing
       // preference. See isBypassMode().
+      // A task that only reads or reports is not worth a permission prompt (#4835).
+      if (REPORT_ONLY_PATTERN.test(`${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`)) {
+        ctx.log(HOOK_NAME, `report-only task matches ${specialist}; advising, not asking`);
+        return outputAllowWithContext(
+          `This task matches \`${specialist}\`'s domain, prefer it over \`general-purpose\`.`,
+        );
+      }
       if (isBypassMode(input)) {
         // Record the miss so telemetry shows how often general-purpose won in bypass.
         ctx.log(HOOK_NAME, `matched-in-bypass: general-purpose kept for a ${specialist} task`);

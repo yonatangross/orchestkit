@@ -1,0 +1,12 @@
+{
+  "slug": "prompt-enhancer-one-line-band",
+  "source": "docs/fix--prompt-enhancer-quiet/one-line-band.html",
+  "title": "Prompt Enhancer 0.1.2: one line until there is something to review",
+  "description": "See the band above the prompt idle and after an Enhance, before and after 0.1.2. The band no longer hides what other mods draw there.",
+  "tags": [
+    "mods",
+    "prompt-enhancer",
+    "band"
+  ],
+  "date": "2026-10-23"
+}

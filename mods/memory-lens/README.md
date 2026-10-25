@@ -28,8 +28,9 @@ Requires Claude Code 2.1.283 or later (the `prompt.submit` answer shape below wa
 
 - **Index at session start**: reads `~/.claude/projects/<project>/memory/*.md` (Claude Code's own memory files) in the background. A worktree under `<repo>/.worktrees/<name>` maps to its parent repo's folder, because a worktree's own folder is usually empty. `MEMORY.md` index files are never recalled.
 - **Recall on each prompt**: BM25 over each memory's name, description and the start of its body. At most 3 memories, only above a score floor, so a vague prompt ("fix all") shows nothing instead of noise. Session digests and index hubs count half.
-- **Two surfaces**: the model gets one context entry of about 250 tokens (capped near 600), with each memory's name, description and path. You get one line: `n/3 title (file.md) · match words`, memories joined by a bar.
-- **Mid-task recall**: a Read, Edit, Write, Grep or Glob path is a new query; at most one memory not yet recalled this session is added to that tool's context.
+- **Two surfaces**: the model gets one context entry of about 250 tokens (capped near 600), with each memory's name, description and path. You get one line: `n/3 title · match words`, memories joined by a bar. The file name stays in the model's context only.
+- **Your turns only**: recall runs on a prompt you sent (terminal, desktop app, Remote Control). Task notifications, peer messages, schedules and slash commands recall nothing.
+- **No mid-task recall**: file tool calls are not queries. Measured 2026-10-23, about 9 of 10 path recalls were off-topic and some carried client memories into unrelated work.
 - **Fresh after a write**: a Write or Edit under the memory folder re-indexes that file, so the next prompt can find it.
 
 ## Optional local files (never committed)
@@ -49,7 +50,7 @@ Secret-shaped text (key prefixes, PEM headers) reaches neither the screen nor th
 |-------|---------|-------|
 | `session.start` | `{}` | Find the memory folder, build the index in the background, register `/memory-lens` |
 | `prompt.submit` | `{}` | Query, put the context on the event before `next()`, draw the line |
-| `tool.call` | `{}` | Read, Edit, Write, Grep, Glob only: one mid-task memory, or re-index a written memory |
+| `tool.call` | `{}` | Write and Edit only: re-index a memory that was just written |
 | `command.run` | `{ command: 'memory-lens' }` | `stats`, `reload`, `show <n>` |
 
 ### Calls

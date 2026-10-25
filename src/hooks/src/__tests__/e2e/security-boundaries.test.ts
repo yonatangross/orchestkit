@@ -132,7 +132,7 @@ describe('Security Boundaries E2E', () => {
         'npm run lint',
         'cat package.json',
         'pwd',
-        'echo $HOME',
+        'echo hello',
       ];
 
       test.each(autoApprovedCommands)('should auto-approve: %s', async (cmd) => {

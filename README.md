@@ -642,6 +642,35 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.1.1](https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1)** · 2026-10-24
+
+- **deps:** patch npm audit advisories in four lockfiles (#4894)
+
+**[v10.1.0](https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0)** · 2026-10-23
+
+- **ci:** fail a PR while a bot review thread has no reply (#4864)
+- **ci:** let apt wait for the dpkg lock in the docs deps step (#4879)
+- **hooks:** advisor decides on the description and ignores negated asks (#4853)
+- **hooks:** harden auto-approve and retry hooks (#4858)
+- **hooks:** keep a stop condition the next clause refers back to (after [#4853](https://github.com/yonatangross/orchestkit/issues/4853)) (#4880)
+- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
+
+**[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
+
+- **release:** exclude .claude-plugin from release-please commits (#4870)
+
+**[v10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1)** · 2026-10-22
+
+- **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
+- **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag (#4866)
+- **release:** pin stable channel to v10.0.0 (#4863)
+
+**[v10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0)** · 2026-10-22
+
+- **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
+- **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav (#4823)
+- **hooks:** stdin watchdog defers one turn before an empty pipe (#4849)
+
 **[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
 
 - **lesson-cards:** lessons are advisory, never ask or deny (#4842)
@@ -658,35 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.185](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.184...v10.0.0-beta.185)** · 2026-10-21
 
 - **site:** move the canonical host to orchestkit.dev for the orank gaps (#4819)
-
-**[v10.0.0-beta.184](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.183...v10.0.0-beta.184)** · 2026-10-21
-
-- **docs:** new OrchestKit icon, the rose window conductor (#4833)
-- **lesson-cards:** card-only mode for unattended lanes (#4798)
-- **mods:** list prompt-enhancer in the marketplace as a beta mod (#4816)
-- **deps:** bump vite to 8.3.4 for the launch-editor advisories (#4828)
-- **hooks:** three GA-blocking hook bugs from the verified picks (#4692)
-- …and 15 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.183](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.182...v10.0.0-beta.183)** · 2026-10-18
-
-- **mods:** prompt-enhancer band, ++ trigger, undo (#4766)
-- **site:** let the Installation overflow check settle after each resize (#4803)
-
-**[v10.0.0-beta.182](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.181...v10.0.0-beta.182)** · 2026-10-17
-
-- **deps-dev:** bump vitest (#4779)
-- **deps:** bump the npm-minor-patch group across 1 directory with 2 updates (#4732)
-
-**[v10.0.0-beta.181](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.180...v10.0.0-beta.181)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group in /src/hooks with 2 updates (#4780)
-- **deps-dev:** bump vitest in /docs/site in the vitest group (#4778)
-
-**[v10.0.0-beta.180](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.179...v10.0.0-beta.180)** · 2026-10-17
-
-- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#4783)
-- bump actions/create-github-app-token (#4784)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

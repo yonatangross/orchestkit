@@ -247,17 +247,111 @@ function prViewArgv(t: { owner: string; repo: string; number: number }): string[
   ];
 }
 
+/**
+ * The promote PR search started by the latest session.start. It runs after
+ * the hook has answered, so two gh queries (15 s timeout each) never hold the
+ * session's start; the band draws once the search stores a snapshot.
+ */
+let discovery: Promise<void> | null = null;
+
+/** Resolves when the latest session.start search has finished (tests await it). */
+export function discoveryDone(): Promise<void> {
+  return discovery ?? Promise.resolve();
+}
+
+/** The promote PR search session.start starts and does not wait for. */
+async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["session"]["repo"]>>): Promise<void> {
+  // Demo mode first: a configured watch target needs no promote PR and no
+  // session repo.
+  const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
+  const watchTarget = parseWatchTarget(watchEnv);
+  if (watchTarget) {
+    await startWatch($, key, watchTarget);
+    return;
+  }
+
+  if (!repo) return;
+
+  const { owner, name } = repo;
+
+  // Only a real promote PR matches: dev head (or the configured
+  // promote head) with base main, or the promote label. An ordinary
+  // PR with base main must never match.
+  let promoteHead = DEFAULT_PROMOTE_HEAD;
+  const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
+  if (configured) promoteHead = configured;
+  // A dev, qa, main flow promotes into qa, so the base is configurable too
+  // (orchestkit#4623). The required checks below read this same base.
+  const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
+
+  // Both queries are filtered server side so the result is complete
+  // no matter how many ordinary open PRs the repo has. A single
+  // unfiltered list returns at most 30 PRs by default, which misses
+  // a promote PR sitting past position 30. Settled, never all: one
+  // rejected query degrades the search instead of aborting the start.
+  const [headSettled, labelSettled] = await Promise.allSettled([
+    $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
+    $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
+  ]);
+  const byHead = headSettled.status === "fulfilled"
+    ? headSettled.value
+    : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
+  const byLabel = labelSettled.status === "fulfilled"
+    ? labelSettled.value
+    : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+
+  if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+    await storeSet($, key, stamp({ error: "gh: not found" }));
+    return;
+  }
+
+  // One failed query must never pass silently: the search is degraded,
+  // the snapshot records it, and the band keeps saying DEGRADED.
+  const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
+  if (degraded) {
+    const failed = byHead.exitCode !== 0 ? "head" : "label";
+    await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
+  }
+
+  const prs = mergePRLists(
+    byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
+    byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
+  );
+  const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
+
+  if (!promotePR) {
+    await storeDelete($, key);
+    return;
+  }
+
+  tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
+
+  if (!ticking) {
+    startTick($, key);
+    await doTick($, key);
+  }
+
+  return;
+}
+
 export const register: Register = (on) => {
   on("session.start", {}, async ($, e, next) => {
     // Rotate first, before any await: from here on nothing this process
     // stored for the previous session (a /clear) can be read or drawn.
     const previousToken = sessionToken;
     sessionToken = newToken();
+    // A refused registration must not skip the rest of the hook.
     await $.command.register({
       name: "lights",
       description: "CI lights for the open promote PR, or any PR with /lights watch",
       argumentHint: "[off|refresh|watch] [owner/repo#N]",
-    });
+    }).catch(() => undefined);
+    // The name people guess first: the plugin's own name runs the same command.
+    await $.command.register({
+      name: "promote-lights",
+      description: "Same as /lights",
+      argumentHint: "[off|refresh|watch] [owner/repo#N]",
+    }).catch(() => undefined);
     const repo = await $.session.repo();
     const key = keyFor(repo);
 
@@ -269,76 +363,7 @@ export const register: Register = (on) => {
     stopTick();
     tracked = null;
 
-    // Demo mode first: a configured watch target needs no promote PR and no
-    // session repo.
-    const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
-    const watchTarget = parseWatchTarget(watchEnv);
-    if (watchTarget) {
-      await startWatch($, key, watchTarget);
-      return next(e);
-    }
-
-    if (!repo) return next(e);
-
-    const { owner, name } = repo;
-
-    // Only a real promote PR matches: dev head (or the configured
-    // promote head) with base main, or the promote label. An ordinary
-    // PR with base main must never match.
-    let promoteHead = DEFAULT_PROMOTE_HEAD;
-    const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
-    if (configured) promoteHead = configured;
-    // A dev, qa, main flow promotes into qa, so the base is configurable too
-    // (orchestkit#4623). The required checks below read this same base.
-    const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
-
-    // Both queries are filtered server side so the result is complete
-    // no matter how many ordinary open PRs the repo has. A single
-    // unfiltered list returns at most 30 PRs by default, which misses
-    // a promote PR sitting past position 30. Settled, never all: one
-    // rejected query degrades the search instead of aborting the start.
-    const [headSettled, labelSettled] = await Promise.allSettled([
-      $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
-      $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
-    ]);
-    const byHead = headSettled.status === "fulfilled"
-      ? headSettled.value
-      : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
-    const byLabel = labelSettled.status === "fulfilled"
-      ? labelSettled.value
-      : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
-
-    if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
-      await storeSet($, key, stamp({ error: "gh: not found" }));
-      return next(e);
-    }
-
-    // One failed query must never pass silently: the search is degraded,
-    // the snapshot records it, and the band keeps saying DEGRADED.
-    const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
-    if (degraded) {
-      const failed = byHead.exitCode !== 0 ? "head" : "label";
-      await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
-    }
-
-    const prs = mergePRLists(
-      byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
-      byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
-    );
-    const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
-
-    if (!promotePR) {
-      await storeDelete($, key);
-      return next(e);
-    }
-
-    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
-
-    if (!ticking) {
-      startTick($, key);
-      await doTick($, key);
-    }
-
+    discovery = discover($, key, repo).catch(() => undefined);
     return next(e);
   });
 
@@ -418,8 +443,8 @@ export const register: Register = (on) => {
     });
   });
 
-  // Manual control command
-  on("command.run", { command: "lights" }, async ($, e) => {
+  // Manual control command, under both names
+  for (const command of ["lights", "promote-lights"]) on("command.run", { command }, async ($, e) => {
     const trimmed = (e.args ?? "").trim();
     const [arg] = trimmed.split(/\s+/);
     const repo = await $.session.repo();

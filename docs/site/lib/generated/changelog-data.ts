@@ -18,6 +18,114 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.1.1",
+    "date": "2026-10-24",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**deps:** patch npm audit advisories in four lockfiles ([#4894](https://github.com/yonatangross/orchestkit/issues/4894)) ([e34034b](https://github.com/yonatangross/orchestkit/commit/e34034b640c14f0e7fb6a9125a02d52d4753b6c8))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.1.0",
+    "date": "2026-10-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**ci:** fail a PR while a bot review thread has no reply ([#4864](https://github.com/yonatangross/orchestkit/issues/4864)) ([772c847](https://github.com/yonatangross/orchestkit/commit/772c84750a83ee151baa78da462ba54d0bc49ef1))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** let apt wait for the dpkg lock in the docs deps step ([#4879](https://github.com/yonatangross/orchestkit/issues/4879)) ([dfc21b2](https://github.com/yonatangross/orchestkit/commit/dfc21b2d3700e60937e190c95a87f5e27ccb0a4c))",
+          "**hooks:** advisor decides on the description and ignores negated asks ([#4853](https://github.com/yonatangross/orchestkit/issues/4853)) ([418813f](https://github.com/yonatangross/orchestkit/commit/418813f6e427a27e47c6bb699a3ebfa23cdb4a19))",
+          "**hooks:** harden auto-approve and retry hooks ([#4858](https://github.com/yonatangross/orchestkit/issues/4858)) ([181dcbe](https://github.com/yonatangross/orchestkit/commit/181dcbecb3cabe80fcbf5c5c69847b1ad7f22fa1))",
+          "**hooks:** keep a stop condition the next clause refers back to (after [#4853](https://github.com/yonatangross/orchestkit/issues/4853)) ([#4880](https://github.com/yonatangross/orchestkit/issues/4880)) ([35b614e](https://github.com/yonatangross/orchestkit/commit/35b614e0231cf729a41520a764410b8300b70a8c))",
+          "**hooks:** run npm audit at most once a day from the stop hook ([#4856](https://github.com/yonatangross/orchestkit/issues/4856)) ([5c72810](https://github.com/yonatangross/orchestkit/commit/5c728105203a108608b210bc19224e3d919f29ba))",
+          "**memory-lens:** recall on your own prompts only ([#4873](https://github.com/yonatangross/orchestkit/issues/4873)) ([8b5dac8](https://github.com/yonatangross/orchestkit/commit/8b5dac89295dd8060cb338398725cff89a762607))",
+          "**promote-lights:** search after start, accept /promote-lights ([#4875](https://github.com/yonatangross/orchestkit/issues/4875)) ([7d2cf02](https://github.com/yonatangross/orchestkit/commit/7d2cf026fa7b9a5e590d5e929ed2b2839a48e84f))",
+          "**prompt-enhancer:** one line by default, keep other bands ([#4874](https://github.com/yonatangross/orchestkit/issues/4874)) ([0ebe87d](https://github.com/yonatangross/orchestkit/commit/0ebe87d3a8a71a2e3fdc2b7509791135ea4315dd))",
+          "**secrets-veil:** answer a masked errored run with deny ([#4872](https://github.com/yonatangross/orchestkit/issues/4872)) ([ef7dbb6](https://github.com/yonatangross/orchestkit/commit/ef7dbb6309bbd4eadd13369e15812e1043adfd0e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**lesson-cards:** retire the mod from the marketplace ([#4876](https://github.com/yonatangross/orchestkit/issues/4876)) ([1b07894](https://github.com/yonatangross/orchestkit/commit/1b07894787b15475d74bf39bf658674c41668c04))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.2",
+    "date": "2026-10-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**release:** exclude .claude-plugin from release-please commits ([#4870](https://github.com/yonatangross/orchestkit/issues/4870)) ([06c0860](https://github.com/yonatangross/orchestkit/commit/06c086011fe580abbe55b65647232cbda8ec5364))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.1",
+    "date": "2026-10-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**deps:** patch dompurify (docs/site) and ip-address (mcp-server) ([#4862](https://github.com/yonatangross/orchestkit/issues/4862)) ([4b6f17c](https://github.com/yonatangross/orchestkit/commit/4b6f17cb09ba5067b09eea68bfe0a018737c3cba))",
+          "**release:** drop the release-as 10.0.0 pin after the v10.0.0 tag ([#4866](https://github.com/yonatangross/orchestkit/issues/4866)) ([07a3c92](https://github.com/yonatangross/orchestkit/commit/07a3c924ff6925707d8a599b3e8f9d85a40a06c8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**release:** pin stable channel to v10.0.0 ([#4863](https://github.com/yonatangross/orchestkit/issues/4863)) ([e831cb5](https://github.com/yonatangross/orchestkit/commit/e831cb5ff694f7783d18aaa77a37f91012a4c2ab))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0",
+    "date": "2026-10-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mcp-visual-output:** glyph card MCP App proof, no SDK ([#4663](https://github.com/yonatangross/orchestkit/issues/4663)) ([4dec429](https://github.com/yonatangross/orchestkit/commit/4dec42961880c018f8abea087b3d998c35cd5d39))",
+          "**release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav ([#4823](https://github.com/yonatangross/orchestkit/issues/4823)) ([980c9bf](https://github.com/yonatangross/orchestkit/commit/980c9bfbde9e90afb838ad13747e048fec576d1d))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** stdin watchdog defers one turn before an empty pipe ([#4849](https://github.com/yonatangross/orchestkit/issues/4849)) ([640a2a5](https://github.com/yonatangross/orchestkit/commit/640a2a590abfd86f4e734dc155a07ce23e681f4a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.187",
     "date": "2026-10-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187",

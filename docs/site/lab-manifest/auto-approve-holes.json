@@ -1,0 +1,8 @@
+{
+  "slug": "auto-approve-holes",
+  "source": "docs/fix--ork-autoapprove-holes/auto-approve-holes.html",
+  "title": "What the opt-in auto-approve hooks no longer approve",
+  "description": "With ORK_PERMISSION_AUTO_APPROVE=1 the auto-approve and retry hooks approved git options that run programs, any package script, and writes to files that later run as code; each request now drops to the normal prompt.",
+  "tags": ["hooks", "security", "permissions"],
+  "date": "2026-10-23"
+}

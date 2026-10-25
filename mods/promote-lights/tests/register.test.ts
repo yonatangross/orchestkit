@@ -66,14 +66,19 @@ function fakeElements(): Record<string, FakeCtor> {
 type Handler = ($: Fake$, e: unknown, next: (ev?: unknown) => Promise<unknown>) => unknown;
 
 /** Capture the handlers register() subscribes, keyed by event name. */
-function captureHandlers(mod: { register: (on: never) => void }): Map<string, Handler> {
+function captureHandlers(mod: { register: (on: never) => void; discoveryDone?: () => Promise<void> }): Map<string, Handler> {
   const handlers = new Map<string, Handler>();
   const on = ((
     event: string,
     _matcher: unknown,
     handler: Handler
   ) => {
-    handlers.set(event, handler);
+    // session.start answers before its promote search finishes (the search
+    // runs after the hook, off the session's start): wait for it here so each
+    // test still sees what the search stored.
+    handlers.set(event, event === "session.start" && mod.discoveryDone
+      ? (async (...args: Parameters<Handler>) => { const r = await handler(...args); await mod.discoveryDone!(); return r; }) as Handler
+      : handler);
   }) as never;
   mod.register(on);
   return handlers;
@@ -273,23 +278,25 @@ describe("register", () => {
       (call) => call[0] === "command.run"
     );
     expect(commandCall).toBeTruthy();
-    expect(commandCall?.[1]).toEqual({ command: "lights" });
+    const matchers = on.mock.calls.filter((call) => call[0] === "command.run").map((call) => call[1]);
+    expect(matchers).toEqual([{ command: "lights" }, { command: "promote-lights" }]);
     expect(on.mock.calls.some((call) => call[0] === "command.register")).toBe(false);
   });
 
   test("session.start declares /lights with $.command.register before anything else", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     // No repo: the declaration must still happen, since the command is
     // useful (it reports "no PR tracked") even outside a repo.
     const $ = createFake$({ repo: null });
 
     await handlers.get("session.start")!($, {}, NEXT);
 
-    expect($.command.register).toHaveBeenCalledTimes(1);
+    expect($.command.register).toHaveBeenCalledTimes(2);
     expect($.command.register).toHaveBeenCalledWith(
       expect.objectContaining({ name: "lights", argumentHint: "[off|refresh|watch] [owner/repo#N]" })
     );
+    expect($.command.register).toHaveBeenCalledWith(expect.objectContaining({ name: "promote-lights" }));
   });
 });
 
@@ -306,7 +313,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start with no repo calls next(e) and never runs gh", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({ repo: null });
     const e = { name: "session.start" };
     const next = vi.fn(NEXT);
@@ -322,7 +329,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start with failing gh stores the error and never starts the clock", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       run: vi.fn().mockResolvedValue({ exitCode: 1, stdout: "", stderr: "boom" }),
     });
@@ -338,7 +345,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start clears a previous session's lights before it runs gh", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       run: vi.fn().mockResolvedValue({ exitCode: 1, stdout: "", stderr: "boom" }),
     });
@@ -354,7 +361,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start with no open PR deletes stored state and does not tick", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({ prList: "[]" });
 
     await handlers.get("session.start")!($, {}, NEXT);
@@ -365,7 +372,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start with only an ordinary PR into main tracks nothing", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prList: JSON.stringify([
         { number: 4416, headRefName: "feat/ordinary-work", headRefOid: "fff1112223333", title: "ordinary work", labels: [] },
@@ -381,7 +388,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start skips an ordinary PR and tracks the dev head PR", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prList: JSON.stringify([
         { number: 4416, headRefName: "feat/ordinary-work", headRefOid: "fff1112223333", title: "ordinary work", labels: [] },
@@ -400,7 +407,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start finds a promote PR past the first 30 open PRs via server side filters", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     // 40 ordinary PRs plus one dev head promote PR at position 35.
     // A single unfiltered gh pr list page holds 30 entries, so the old
     // query missed it. The stub mimics that server behavior: unfiltered
@@ -477,7 +484,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start warns when one promote query fails and uses the other", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const fallback = makeDispatchingRun();
     const partialRun = vi.fn(
       async (argv: readonly string[], init?: Record<string, unknown>) => {
@@ -523,7 +530,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start tracks a non dev head carrying the promote label", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prList: JSON.stringify([
         { number: 4418, headRefName: "release/roundup", headRefOid: "abc123def4567", title: "roundup", labels: [{ name: "promote" }] },
@@ -541,7 +548,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start honors a configured promote head from the environment", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prList: JSON.stringify([
         { number: 4419, headRefName: "release", headRefOid: "abc123def4567", title: "promote release", labels: [] },
@@ -572,7 +579,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start honors a configured promote base: both queries and the required checks use it (orchestkit#4623)", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const env: Record<string, string> = { PROMOTE_HEAD: "development", PROMOTE_BASE: "qa" };
     const $ = createFake$({
       prList: JSON.stringify([
@@ -598,7 +605,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
 
     await handlers.get("session.start")!($, {}, NEXT);
@@ -643,7 +650,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("a PENDING required context makes the stored verdict not-passing (GH-4177 class)", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       checkRuns: JSON.stringify({
         total_count: 2,
@@ -701,7 +708,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("tick with an EMPTY required-context union refuses green and stores the refusal", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     // Protection returns an unparseable body and rulesets are empty, so the
     // union is empty. The monitor must record the refusal, not go green.
     const $ = createFake$({ protection: "{}", rulesets: "[]" });
@@ -718,7 +725,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("/lights off stops the clock and deletes stored state", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
 
     // Start tracking first so there is a clock to stop.
@@ -740,7 +747,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("/lights refresh runs a fresh tick and clears the status line", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
 
     await handlers.get("session.start")!($, {}, NEXT);
@@ -763,7 +770,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("/lights with no args reports the tracked PR status line", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
 
     // Start tracking first, then reflect the stored snapshot back through
@@ -788,7 +795,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("/lights with no tracked state says how to watch any PR", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
 
     const result = (await handlers.get("command.run")!($, { command: "lights" }, NEXT)) as {
@@ -801,7 +808,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("turn.complete with a closed PR stops tracking and deletes state", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prView: JSON.stringify({
         headRefOid: "abc123def4567",
@@ -822,7 +829,7 @@ describe("register behavior (mutant-killing)", () => {
 
   test("turn.complete with a moved head stops the clock and records why", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$({
       prView: JSON.stringify({
         headRefOid: "9999999999999",
@@ -1481,7 +1488,7 @@ describe("a store that cannot be written (EPERM in a sandboxed seat)", () => {
 
   test("session.start does not throw, passes the event on, and says so once", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
     $.store.get = eperm();
     $.store.set = eperm();
@@ -1498,7 +1505,7 @@ describe("a store that cannot be written (EPERM in a sandboxed seat)", () => {
 
   test("the band still draws the lights from memory", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
     $.store.get = eperm();
     $.store.set = eperm();
@@ -1511,7 +1518,7 @@ describe("a store that cannot be written (EPERM in a sandboxed seat)", () => {
 
   test("a second session.start in the same process does not warn again", async () => {
     const { register } = await import("../hooks/register.ts");
-    const handlers = captureHandlers({ register });
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
     const $ = createFake$();
     $.store.get = eperm();
     $.store.set = eperm();
@@ -1521,5 +1528,34 @@ describe("a store that cannot be written (EPERM in a sandboxed seat)", () => {
     await handlers.get("session.start")!($, {}, NEXT);
     const warnings = ($.ui.status as ReturnType<typeof vi.fn>).mock.calls.filter((c) => c[0] === "lights: store unavailable");
     expect(warnings).toHaveLength(1);
+  });
+});
+
+describe("session.start never waits on GitHub", () => {
+  test("the hook answers before the promote search has finished", async () => {
+    vi.resetModules();
+    const mod = await import("../hooks/register.ts");
+    const handlers = new Map<string, Handler>();
+    mod.register(((event: string, _m: unknown, handler: Handler) => { handlers.set(event, handler); }) as never);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const $ = createFake$({});
+    const run = $.process.run;
+    $.process.run = (async (...args: Parameters<typeof run>) => { await gate; return run(...args); }) as typeof run;
+    let answered = false;
+    await handlers.get("session.start")!($, {}, async (e: unknown) => { answered = true; return e; });
+    expect(answered).toBe(true);
+    release();
+    await mod.discoveryDone();
+  });
+
+  test("a refused command registration does not stop the search", async () => {
+    vi.resetModules();
+    const mod = await import("../hooks/register.ts");
+    const handlers = captureHandlers(mod);
+    const $ = createFake$({});
+    $.command.register = vi.fn(async () => { throw new Error("refused"); }) as typeof $.command.register;
+    await handlers.get("session.start")!($, {}, NEXT);
+    expect($.process.run).toHaveBeenCalled();
   });
 });

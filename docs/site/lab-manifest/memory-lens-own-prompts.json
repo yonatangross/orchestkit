@@ -1,0 +1,12 @@
+{
+  "slug": "memory-lens-own-prompts",
+  "source": "docs/fix--memory-lens-quiet/own-prompts.html",
+  "title": "memory-lens 0.1.1: recall on your own prompts only",
+  "description": "Pick where a turn came from and see whether memory-lens adds memories. Task notifications, peers, schedules and file reads no longer pull memories in.",
+  "tags": [
+    "mods",
+    "memory-lens",
+    "recall"
+  ],
+  "date": "2026-10-23"
+}

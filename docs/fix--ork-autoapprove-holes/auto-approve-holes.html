@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What the opt-in auto-approve hooks no longer approve</title>
+<meta name="description" content="#4858: the auto-approve and retry hooks behind ORK_PERMISSION_AUTO_APPROVE=1 approved commands and writes that run code. Each row shows a request before and after the fix.">
+<style>
+  :root { --bg:#fbfaf7; --ink:#1d1d1b; --muted:#6b6862; --line:#e4e1d9; --bad:#b4442f; --good:#2f7a4a; --accent:#3557a8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17171a; --ink:#ecebe7; --muted:#a3a09a; --line:#2e2e33; --bad:#e2735e; --good:#6cc38c; --accent:#8aa6ea; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .verdict { font-size: 17px; margin: 0 0 22px; color: var(--muted); }
+  .kpis { display:flex; gap:12px; flex-wrap:wrap; margin-bottom: 20px; }
+  .kpi { border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width: 150px; }
+  .kpi b { display:block; font-size: 22px; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 14px; }
+  button { font:inherit; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; padding:5px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--good); font-weight: 600; }
+  .same { color: var(--muted); }
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  #copy-out { width:100%; min-height: 70px; font: 13px ui-monospace, monospace; background: transparent; color: var(--ink); border:1px solid var(--line); border-radius:6px; padding:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>What the opt-in auto-approve hooks no longer approve</h1>
+  <p class="verdict">With <code>ORK_PERMISSION_AUTO_APPROVE=1</code>, the safe-bash, project-writes and learning-tracker hooks approved requests that run code: a git option that launches a program, a package script by any name, a write to a file a later test run executes. They now drop those to the normal prompt. Ordinary reads and test runs still pass.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>3</b>approve hooks hardened</div>
+    <div class="kpi"><b>2</b>retry hooks hardened</div>
+    <div class="kpi"><b>off</b>by default: nothing changes unless the flag is set</div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Filter rows">
+    <button data-f="all" aria-pressed="true">All rows</button>
+    <button data-f="bash" aria-pressed="false">Bash commands</button>
+    <button data-f="write" aria-pressed="false">File writes</button>
+    <button data-f="control" aria-pressed="false">Still approved</button>
+  </div>
+
+  <table aria-label="Requests before and after the fix">
+    <thead><tr><th>Request</th><th>Before</th><th>After</th><th>Why</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <section>
+    <h2>How the checks work now</h2>
+    <ul>
+      <li>git options that run a program, write a file or point at another repository (<code>-c</code>, <code>-C</code>, <code>--upload-pack</code>, <code>--output</code>, <code>--ext-diff</code>, <code>--git-dir</code> and more) are rejected in full and in every abbreviated spelling, because git accepts any unambiguous prefix of a long option. So are <code>git grep -O</code> / <code>--open-files-in-pager</code> and a top-level <code>-p</code> / <code>--paginate</code>; <code>git log -p</code> stays allowed.</li>
+      <li>Globs, brace and tilde-user expansion, <code>$</code> and backticks outside single quotes, and a trailing <code>&amp;</code> refuse auto-approval: an argument the hook cannot read literally cannot be checked against the credential-path list.</li>
+      <li>Quote stripping is one scanner that tracks which quote it is in, so an apostrophe inside a double-quoted string no longer hides live shell syntax.</li>
+      <li>The write denylist runs on the requested path and on the symlink target, and now covers files whose content later runs as code: <code>package.json</code>, <code>pyproject.toml</code>, <code>Makefile</code>, <code>conftest.py</code>, shell rc files, <code>.vscode/</code>, <code>.idea/</code>, plus <code>CLAUDE.md</code> and <code>AGENTS.md</code>.</li>
+      <li>A learned prefix must end on a word boundary, and learned approvals never override the shared reject list.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Not covered</h2>
+    <ul>
+      <li>Auto-approved project writes plus an auto-approved test run is still code execution by design: a written test file runs under <code>pytest</code> or <code>npm test</code>. The denylist keeps writes away from tool config and agent instructions; it does not make the flag safe for untrusted input.</li>
+      <li><code>npm audit</code> still matches <code>npm audit fix</code>, which installs packages. It was approved before this change too.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Copy as prompt</h2>
+    <p class="same">Pick rows with the filter above, then copy them as a note for a review session.</p>
+    <button id="copy">Copy visible rows</button>
+    <textarea id="copy-out" readonly aria-label="Copied text"></textarea>
+  </section>
+</main>
+<script>
+  const ROWS = [
+    { g: 'bash', c: 'git fetch --upload-pack=CMD origin', b: 'approved, CMD runs', a: 'prompt', w: 'upload-pack is the program git runs on the other side' },
+    { g: 'bash', c: 'git fetch --upload-pa=CMD origin', b: 'approved, CMD runs', a: 'prompt', w: 'git accepts the abbreviated option' },
+    { g: 'bash', c: 'git -c core.pager=CMD log', b: 'approved', a: 'prompt', w: 'config on the command line can name a program' },
+    { g: 'bash', c: 'git grep -OCMD pattern (learned git)', b: 'approved, CMD runs', a: 'prompt', w: 'opens the matched files in CMD, also as -nOCMD and --op=CMD' },
+    { g: 'bash', c: 'git log --output=FILE', b: 'approved, writes FILE', a: 'prompt', w: 'writes outside the write hooks' },
+    { g: 'bash', c: 'npm run build', b: 'approved', a: 'prompt', w: 'runs whatever package.json says' },
+    { g: 'bash', c: 'npm run test-e2e', b: 'approved', a: 'prompt', w: 'a different script that only starts with test' },
+    { g: 'bash', c: 'cat ~/.SSH/id_rsa', b: 'approved', a: 'prompt', w: 'case-insensitive filesystem, same store' },
+    { g: 'bash', c: 'cat ~/.ss*/id_*', b: 'approved', a: 'prompt', w: 'a glob spells the path indirectly' },
+    { g: 'bash', c: 'git status &', b: 'approved', a: 'prompt', w: 'background job outlives the check' },
+    { g: 'write', c: 'Write package.json', b: 'approved', a: 'prompt', w: 'its scripts run on npm test' },
+    { g: 'write', c: 'Write conftest.py', b: 'approved', a: 'prompt', w: 'pytest imports it' },
+    { g: 'write', c: 'Write CLAUDE.md', b: 'approved', a: 'prompt', w: 'agent instructions' },
+    { g: 'write', c: 'Write .claude/settings.json, a symlink to an ordinary file', b: 'approved (only the target was checked)', a: 'prompt', w: 'the requested name and the target are both checked' },
+    { g: 'control', c: 'git log --stat --graph', b: 'approved', a: 'approved', w: 'ordinary read' },
+    { g: 'control', c: 'git fetch --prune --all', b: 'approved', a: 'approved', w: 'ordinary fetch' },
+    { g: 'control', c: 'npm run test', b: 'approved', a: 'approved', w: 'the named test script' },
+    { g: 'control', c: 'Write src/app.ts', b: 'approved', a: 'approved', w: 'ordinary project file' },
+  ];
+  let filter = 'all';
+  const tbody = document.getElementById('rows');
+  function visible() { return ROWS.filter(r => filter === 'all' || r.g === filter); }
+  function render() {
+    tbody.replaceChildren(...visible().map(r => {
+      const tr = document.createElement('tr');
+      const after = r.a === 'approved' ? 'same' : 'good';
+      const before = r.g === 'control' ? 'same' : 'bad';
+      [[r.c], [r.b, before], [r.a, after], [r.w, 'same']].forEach(([t, cls]) => {
+        const td = document.createElement('td'); td.textContent = t; if (cls) td.className = cls; tr.append(td);
+      });
+      return tr;
+    }));
+  }
+  document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = '#4858 auto-approve hardening, before / after:\n' + visible().map(r => `- ${r.c}: ${r.b} -> ${r.a} (${r.w})`).join('\n');
+    try { await navigator.clipboard.writeText(text); } catch { /* clipboard blocked: the textarea still shows it */ }
+    document.getElementById('copy-out').value = text;
+  });
+  render();
+</script>
+</body>
+</html>

@@ -11,7 +11,12 @@ import {
   outputPermissionRequestAllow,
   outputSilentSuccess,
 } from '../lib/common.js';
-import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import {
+  isCompoundCommand,
+  normalizeSingle,
+  hasUnquotedExpansion,
+  hasBackgroundOperator,
+} from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -31,11 +36,13 @@ const SAFE_PATTERNS: RegExp[] = [
   // Destructive forms (checkout -f, checkout --, checkout .) are caught by REJECT_PATTERNS.
   /^git checkout\s+\S/,
 
-  // Package managers — safe: read/run operations, no install/publish
-  /^npm (list|ls|outdated|audit|run|test)/,
-  /^pnpm (list|ls|outdated|audit|run|test)/,
-  /^yarn (list|outdated|audit|run|test)/,
-  /^poetry (show|run|env)/,
+  // Package managers: read operations and the test entry point only. A bare
+  // `run <script>` runs whatever package.json says, so only the named
+  // test/lint/typecheck/format scripts below are allowed.
+  /^npm (list|ls|outdated|audit|test)\b/,
+  /^pnpm (list|ls|outdated|audit|test)\b/,
+  /^yarn (list|outdated|audit|test)\b/,
+  /^poetry (show|env)\b/,
 
   // Docker — safe: read-only inspection commands
   /^docker (ps|images|logs|inspect)/,
@@ -83,7 +90,9 @@ const SAFE_PATTERNS: RegExp[] = [
   // Testing and linting — safe: read-only analysis
   /^pytest/,
   /^poetry run pytest/,
-  /^npm run (test|lint|typecheck|format)/,
+  // The script name must end at whitespace or end of input: `test-e2e` or
+  // `lint:fix` are different scripts with their own package.json body.
+  /^(?:npm|pnpm|yarn) run (test|lint|typecheck|format)(?:\s|$)/,
   /^ruff (check|format)/,
   /^ty check/,
   /^mypy/,
@@ -105,6 +114,13 @@ export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CT
   // SEC: Reject compound commands — "git status && rm -rf /" must NOT auto-approve
   if (command && isCompoundCommand(command)) {
     ctx.log('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
+    return outputSilentSuccess();
+  }
+
+  // SEC: globs, expansion and background jobs hide what actually runs or
+  // which file is read from the literal patterns below.
+  if (command && (hasUnquotedExpansion(command) || hasBackgroundOperator(command))) {
+    ctx.log('auto-approve-safe-bash', 'Expansion or background operator, requiring manual approval');
     return outputSilentSuccess();
   }
 

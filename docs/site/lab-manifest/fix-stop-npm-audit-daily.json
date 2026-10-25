@@ -1,0 +1,12 @@
+{
+  "slug": "fix-stop-npm-audit-daily",
+  "source": "docs/fix--stop-npm-audit-daily/index.html",
+  "title": "npm audit runs once a day from the stop hook",
+  "description": "The stop hook ran npm audit, a registry round trip, on every Stop of a dirty tree; it now runs at most once per project per 24 hours while the other scans stay per-Stop.",
+  "tags": [
+    "hooks",
+    "performance",
+    "security"
+  ],
+  "date": "2026-10-22"
+}

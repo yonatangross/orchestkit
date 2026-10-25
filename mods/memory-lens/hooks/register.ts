@@ -10,9 +10,12 @@
  *   one context entry and to the human as one transcript line. The 2.1.283
  *   prompt.submit contract: an answer carries { text } and an optional
  *   context that is a list of non-empty strings (binary checkArgument).
- * - tool.call (Read, Edit, Write, Grep, Glob): the path is a new query; at
- *   most one memory not yet recalled this session is added as tool context.
- *   A Write or Edit under the memory folder re-indexes that file.
+ *   Only a person's own turn is a query (origin composer, bridge or sdk):
+ *   task notifications, peer messages, schedules and slash commands are not.
+ * - tool.call (Write, Edit): a write under the memory folder re-indexes that
+ *   file. File tool calls are no longer queries: measured 2026-10-23, about 9
+ *   of 10 path recalls were off-topic and some carried client memories into
+ *   unrelated work.
  * - command.run{command=memory-lens}: stats, reload, show <n>.
  *
  * Negative pins: no process.run, no http.fetch, no store. Nothing on the hot
@@ -39,12 +42,19 @@ type Lens$ = {
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
 type SessionStartEvent = { cwd?: string };
-type PromptSubmitEvent = { text?: string; [k: string]: unknown };
+type PromptSubmitEvent = { text?: string; isMeta?: true; command?: unknown; origin?: { kind?: string }; [k: string]: unknown };
 type ToolCallEvent = { tool: string; tool_use_id?: string; [argument: string]: unknown };
 type CommandEvent = { command?: string; args?: string; text?: string };
 
-/** Tools whose path argument is a useful mid-task query. */
-const PATH_TOOLS = new Set(['Read', 'Edit', 'Write', 'Grep', 'Glob']);
+/** Prompt origins that are a person's own turn: the terminal, Remote Control, and an SDK host (the desktop app, -p). */
+const PERSON_ORIGINS = new Set(['composer', 'bridge', 'sdk']);
+
+/** True when the prompt is the person's own words, not a notification, a peer, a schedule or a slash command. */
+export function isPersonPrompt(e: PromptSubmitEvent): boolean {
+  if (!e || e.isMeta === true || e.command !== undefined) return false;
+  const kind = e.origin?.kind;
+  return kind === undefined || PERSON_ORIGINS.has(kind);
+}
 
 // Module-scope state (per session)
 let home = '';
@@ -144,12 +154,6 @@ function withContext(result: unknown, entry: string): unknown {
   return { ...r, context: [...prior, entry] };
 }
 
-function pathQuery(e: ToolCallEvent): string {
-  const raw = String(e.file_path ?? e.path ?? e.pattern ?? '');
-  // the last three path segments carry the topic; the home prefix carries none
-  return raw.split('/').slice(-3).join(' ').replace(/\.[a-z0-9]+$/i, '');
-}
-
 export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
   on('session.start', async ($: Lens$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
     home = (await $.env.get('HOME').catch(() => undefined)) ?? '';
@@ -174,9 +178,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     let hits: Hit[] = [];
     // The first prompt can arrive while the index is still building (headless
     // -p sends it at once): wait for the build, at most FIRST_WAIT_MS.
-    if (!index && building) await waitFor($, building, FIRST_WAIT_MS);
+    if (!index && building && isPersonPrompt(e)) await waitFor($, building, FIRST_WAIT_MS);
     try {
-      if (index && typeof e?.text === 'string') {
+      if (index && typeof e?.text === 'string' && isPersonPrompt(e)) {
         hits = timedQuery(e.text, 3);
         ctx = hits.length ? contextText(hits) : null;
         if (ctx) ev = withContext(e, ctx) as PromptSubmitEvent;
@@ -208,7 +212,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
   on('tool.call', async ($: Lens$, e: ToolCallEvent, next?: NextFn<ToolCallEvent>) => {
     const result = next ? ((await next(e)) ?? {}) : {};
     try {
-      if (!PATH_TOOLS.has(e.tool)) return result;
+      if (e.tool !== 'Write' && e.tool !== 'Edit') return result;
       const path = String(e.file_path ?? '');
       if ((e.tool === 'Write' || e.tool === 'Edit') && memoryDir && path.startsWith(memoryDir + '/') && path.endsWith('.md')) {
         // a memory was written: re-index that one file so the next prompt can find it
@@ -217,14 +221,8 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
           docs.set(path, parseMemory(path, await $.fs.read(path)));
           index = new LensIndex([...docs.values()]);
         }
-        return result;
       }
-      if (!index) return result;
-      const hits = timedQuery(pathQuery(e), 1);
-      const ctx = contextText(hits);
-      if (!hits.length || !ctx) return result;
-      recalled.add(hits[0].doc.id);
-      return withContext(result, ctx);
+      return result;
     } catch {
       return result;
     }
@@ -235,18 +233,18 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     if (args[0] === 'reload') {
       building = build($).catch(() => undefined);
       await building;
-      return { text: `memory-lens: reloaded ${index?.size ?? 0} memories` };
+      return { text: `reloaded ${index?.size ?? 0} memories` };
     }
     if (args[0] === 'show') {
       const n = Number(args[1]) - 1;
       const h = lastHits[n];
-      if (!h) return { text: `memory-lens: no hit ${args[1] ?? ''} on the last prompt` };
+      if (!h) return { text: `no hit ${args[1] ?? ''} on the last prompt` };
       return { text: `${n + 1}. ${h.doc.name}\n   ${h.doc.desc}\n   ${h.doc.id}` };
     }
     await building;
     const p = percentiles(queryMs);
     return {
-      text: `memory-lens: ${index?.size ?? 0} memories from ${memoryDir || '(no project)'} · ${recalled.size} recalled this session · query p50 ${p.p50} ms p95 ${p.p95} ms over ${p.n}`,
+      text: `${index?.size ?? 0} memories from ${memoryDir || '(no project)'} · ${recalled.size} recalled this session · query p50 ${p.p50} ms p95 ${p.p95} ms over ${p.n}`,
     };
   });
 }

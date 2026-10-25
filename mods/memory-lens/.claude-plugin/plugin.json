@@ -1,7 +1,7 @@
 {
   "name": "memory-lens",
-  "version": "0.1.0",
-  "description": "Recalls the few memories related to each prompt: one line for the human, one context entry for the model. Local files only, no network on the hot path.",
+  "version": "0.1.1",
+  "description": "Recalls the few memories related to each prompt you send (never on automated turns or file tool calls): one line for the human, one context entry for the model. Local files only, no network on the hot path.",
   "author": {
     "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross/orchestkit"

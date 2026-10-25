@@ -1,0 +1,139 @@
+<!-- OrchestKit playground - PR fix/npm-audit-2026-10-24 - 2026-10-24 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seven advisories, four lockfiles, one override</title>
+<meta name="description" content="The npm audit gate on OrchestKit main went red on seven advisories across four lockfiles. Pick a workspace, flip between main and the fix, and see which parent pulls each vulnerable package and why one tree needed an override.">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px; padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#e6e6e6; }
+  table { width:100%; border-collapse:collapse; font:13px ui-monospace,Menlo,monospace; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid #2a2f3a; vertical-align:top; }
+  th { color:#9aa3b2; font-weight:600; }
+  .bad { color:#e5484d; } .ok { color:#4cc38a; } .warn { color:#e2a336; }
+  .meter { display:flex; gap:4px; margin:8px 0 2px; }
+  .meter span { flex:1; height:12px; border-radius:3px; background:#2a2f3a; }
+  .meter span.g { background:#4cc38a; } .meter span.r { background:#e5484d; }
+  .verdict { font:600 14px ui-monospace,Menlo,monospace; }
+  pre { background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px; padding:10px; white-space:pre-wrap; font:12.5px ui-monospace,Menlo,monospace; color:#cbd5e1; }
+  .copy { margin-top:8px; background:#6ea8fe; color:#0b0d11; border:0; border-radius:6px; padding:7px 12px; cursor:pointer; font:600 12px ui-monospace,Menlo,monospace; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Seven advisories, four lockfiles, one override"><meta property="og:description" content="The npm audit gate on OrchestKit main went red on seven advisories across four lockfiles. Pick a workspace, flip between main and the fix, and see which parent pulls each vulnerable package and why the remotion tree needed a zod override."><meta property="og:url" content="https://orchestkit.dev/lab/npm-audit-seven-advisories.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Seven advisories, four lockfiles, one override"><meta name="twitter:description" content="The npm audit gate on OrchestKit main went red on seven advisories across four lockfiles. Pick a workspace, flip between main and the fix, and see which parent pulls each vulnerable package and why the remotion tree needed a zod override."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Seven advisories, four lockfiles, one override</h1>
+<p>The required Security Tests check on main runs <code>tests/security/test-npm-audit.sh</code> over all eleven tracked lockfiles. On 2026-10-24 four of them failed, which blocked every PR into main. Each advisory was fixed in its own lockfile, without an allowlist entry. Six of the fixes are in-range bumps. One needed an override, because no released parent reaches the patched version.</p>
+
+<h2>The gate, eleven lockfiles</h2>
+<div class="panel">
+  <div class="opts" id="state">
+    <button data-s="main" aria-pressed="true">origin/main</button>
+    <button data-s="fix" aria-pressed="false">this PR</button>
+  </div>
+  <div class="meter" id="meter"></div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<h2>Advisories by workspace</h2>
+<div class="panel">
+  <div class="opts" id="ws"></div>
+  <table>
+    <thead><tr><th>package</th><th>version</th><th>advisory</th><th>severity</th><th>pulled in by</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p id="note"></p>
+</div>
+
+<h2>Why orchestkit-demos needs an override</h2>
+<div class="panel">
+  <p>Every <code>@remotion/*</code> release up to 4.0.538, the latest at the time of the fix, pins <code>zod</code> to exactly <code>4.5.4</code>. The pin is in studio, studio-server, studio-protocol, media, elevenlabs and openai-whisper. Bumping remotion cannot reach the patched 4.6.6 or later. The fix raises the project's own <code>zod</code> pin to 4.6.7 and adds <code>"zod": "$zod"</code> under <code>overrides</code>. Every remotion copy then resolves to the same patched version that the project declares.</p>
+</div>
+
+<h2>Copy as prompt</h2>
+<div class="panel">
+  <pre id="prompt"></pre>
+  <button class="copy" id="copy">copy as prompt</button>
+</div>
+</main>
+<script>
+  const GATE = { main: { pass: 7, total: 11 }, fix: { pass: 11, total: 11 } };
+  const FU = "GHSA-w74x-v6f9-j3xg, GHSA-xhq7-xmqj-769h, GHSA-wjr9-j795-jxcr, GHSA-333x-w4r6-6crp";
+  const WS = {
+    "docs/site": [
+      ["happy-dom", "21.0.3", "21.0.4", "GHSA-834v-8h66-3h79", "high", "direct devDependency, range raised to ^21.0.4"],
+      ["zod", "4.6.5", "4.6.7", "GHSA-mrhx-c7xc-m3w5", "high", "fumadocs-mdx ^4.6.5, in range"]
+    ],
+    "src/mcp-server": [
+      ["body-parser", "2.3.0", "2.4.0", "GHSA-27r3-jxmh-p828", "high", "express ^2.2.1, in range"],
+      ["fast-uri", "3.1.8", "3.1.9", FU, "moderate, low", "ajv ^3.0.1, in range"],
+      ["zod", "4.4.3", "4.6.7", "GHSA-mrhx-c7xc-m3w5", "high", "@modelcontextprotocol/sdk, in range"]
+    ],
+    "orchestkit-demos": [
+      ["zod", "4.5.4", "4.6.7", "GHSA-mrhx-c7xc-m3w5", "high", "remotion exact pin 4.5.4, override"],
+      ["fast-uri", "3.1.8", "3.1.9", FU, "moderate, low", "ajv ^3.0.1, in range"]
+    ],
+    "hook-contract/examples/generic-client": [
+      ["body-parser", "2.3.0", "2.4.0", "GHSA-27r3-jxmh-p828", "high", "express ^2.2.1, in range"]
+    ]
+  };
+  let state = "main", ws = "docs/site";
+
+  function el(tag, text, cls) { const e = document.createElement(tag); e.textContent = text; if (cls) e.className = cls; return e; }
+
+  function render() {
+    const g = GATE[state];
+    const meter = document.getElementById("meter");
+    meter.replaceChildren();
+    for (let i = 0; i < g.total; i++) meter.appendChild(Object.assign(document.createElement("span"), { className: i < g.pass ? "g" : "r" }));
+    const v = document.getElementById("verdict");
+    v.textContent = "Total: " + g.total + "  Passed: " + g.pass + "  Failed: " + (g.total - g.pass);
+    v.className = "verdict " + (g.pass === g.total ? "ok" : "bad");
+
+    document.querySelectorAll("#state button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === state)));
+    document.querySelectorAll("#ws button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.w === ws)));
+
+    const rows = document.getElementById("rows");
+    rows.replaceChildren();
+    for (const [pkg, before, after, adv, sev, via] of WS[ws]) {
+      const tr = document.createElement("tr");
+      tr.appendChild(el("td", pkg));
+      tr.appendChild(el("td", state === "main" ? before : before + " to " + after, state === "main" ? "bad" : "ok"));
+      tr.appendChild(el("td", adv));
+      tr.appendChild(el("td", state === "main" ? sev : "fixed", state === "main" ? (sev.startsWith("high") ? "bad" : "warn") : "ok"));
+      tr.appendChild(el("td", via));
+      rows.appendChild(tr);
+    }
+    document.getElementById("note").textContent = ws === "orchestkit-demos"
+      ? "This is the one tree where the parent pins the vulnerable child exactly, so the fix is an override."
+      : "Every fix in this tree is an in-range bump: the lockfile held an older resolution that the existing range already allowed past.";
+
+    document.getElementById("prompt").textContent =
+      "In OrchestKit, workspace " + ws + ", check that the lockfile resolves " +
+      WS[ws].map(r => r[0] + " >= " + r[2]).join(", ") +
+      " and that bash tests/security/test-npm-audit.sh reports Total: 11 Passed: 11 Failed: 0.";
+  }
+
+  const wsBox = document.getElementById("ws");
+  for (const name of Object.keys(WS)) {
+    const b = el("button", name); b.dataset.w = name;
+    b.addEventListener("click", () => { ws = name; render(); });
+    wsBox.appendChild(b);
+  }
+  document.querySelectorAll("#state button").forEach(b => b.addEventListener("click", () => { state = b.dataset.s; render(); }));
+  document.getElementById("copy").addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("prompt").textContent));
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -1,8 +1,8 @@
 {
   "name": "@orchestkit/mod-memory-lens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
-  "description": "Recalls the few memories related to each prompt: one line for the human, one context entry for the model.",
+  "description": "Recalls the few memories related to each prompt you send (never on automated turns or file tool calls): one line for the human, one context entry for the model.",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"

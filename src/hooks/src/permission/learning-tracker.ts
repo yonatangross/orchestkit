@@ -13,7 +13,13 @@ import {
   outputPermissionRequestAllow,
   getPluginRoot,
 } from '../lib/common.js';
-import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import {
+  isCompoundCommand,
+  normalizeSingle,
+  hasUnquotedExpansion,
+  hasBackgroundOperator,
+} from '../lib/normalize-command.js';
+import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 import { readDistilledPatterns } from '../lib/learned-patterns-cache.js';
 import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { existsSync, readFileSync } from 'node:fs';
@@ -115,8 +121,14 @@ function shouldAutoApprove(command: string): boolean {
     if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > 200) {
       continue;
     }
-    // Literal prefix match only — safe from regex injection
-    if (normalizedCommand.startsWith(pattern.toLowerCase().trim())) {
+    // Literal prefix match only — safe from regex injection. The prefix must
+    // end on a word boundary: a learned `git st` covers `git st -s`, never a
+    // different subcommand that merely starts with the same letters.
+    const prefix = pattern.toLowerCase().trim();
+    if (prefix.length === 0) continue;
+    if (!normalizedCommand.startsWith(prefix)) continue;
+    const next = normalizedCommand.charAt(prefix.length);
+    if (next === '' || /\s/.test(next)) {
       return true;
     }
   }
@@ -149,6 +161,18 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
     // SEC: Never auto-approve compound commands — require manual review
     if (isCompoundCommand(command)) {
       ctx.log('learning-tracker', 'Compound command detected, skipping auto-approve');
+      return outputSilentSuccess();
+    }
+
+    // SEC: a learned pattern never widens past the shared reject list or
+    // covers arguments the hook cannot read literally.
+    if (hasUnquotedExpansion(command) || hasBackgroundOperator(command)) {
+      ctx.log('learning-tracker', 'Expansion or background operator, skipping auto-approve');
+      return outputSilentSuccess();
+    }
+    const normalizedForReject = normalizeSingle(command);
+    if (REJECT_PATTERNS.some((p) => p.test(normalizedForReject))) {
+      ctx.log('learning-tracker', 'Matches shared reject pattern, skipping auto-approve');
       return outputSilentSuccess();
     }
 

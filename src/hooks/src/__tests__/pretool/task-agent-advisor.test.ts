@@ -611,3 +611,232 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     },
   );
 });
+
+/**
+ * #4835: the 12 rows measured in the issue, each on general-purpose in the
+ * default permission mode. Part 1: the #4630 read and worktree shapes are
+ * decided on the description, so a realistic prompt keeps the nudge. Part 2:
+ * a guard-rail sentence ("do not X", "stop and report", "report only") never
+ * raises a permission ask for the agent of X.
+ */
+describe('#4835 advisor decides on the description and ignores negated asks', () => {
+  const WORKTREE_NOTE = 'git worktree add';
+  const READ_NOTE = 'Reading a file needs no subagent';
+
+  test.each([
+    ['Create a git worktree for the fix', '', WORKTREE_NOTE],
+    ['Create a git worktree for the fix', 'Create a git worktree for the fix branch and print its path.', WORKTREE_NOTE],
+    ['Create a git worktree for the fix', 'Run git worktree add ../wt -b fix/x and report the path.', WORKTREE_NOTE],
+    ['Read example-bot.yml workflow', '', READ_NOTE],
+    ['Read example-bot.yml workflow', 'Read .github/workflows/example-bot.yml and explain what triggers it.', READ_NOTE],
+    ['Read apply-db.sh', 'Read apply-db.sh and report what it does.', READ_NOTE],
+    ['Read docs/intro-to-terraform.md', '', READ_NOTE],
+    ['Read docs/terraform-intro.md', '', READ_NOTE],
+  ])('part 1: "%s" with prompt "%s" gets the nudge, never silence or ask', (description, prompt, note) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description, prompt }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(note);
+  });
+
+  test.each([
+    ['Summarize the design doc', 'If you hit merge conflicts, stop and report.', 'ork:git-operations-engineer'],
+    ['Update the docs', 'Do not deploy to production.', 'ork:deployment-manager'],
+    ['Review the release notes', 'Do not commit and push. Report only.', 'ork:release-engineer'],
+  ])('part 2: "%s" with guard rail "%s" never asks for %s', (description, prompt, agent) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description, prompt }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(reasonOf(result)).not.toContain(agent);
+  });
+
+  test('part 2: "Build the changelog page React component" asks for the frontend agent, not release', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Build the changelog page React component' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:frontend-ui-developer');
+    expect(reasonOf(result)).not.toContain('ork:release-engineer');
+  });
+
+  // Guards on the guard: the fix must not silence real asks.
+  test.each([
+    ['Plan a blue-green deploy to production. Do not commit.', 'ork:deployment-manager'],
+    ['Do not forget to deploy to production after the review', 'ork:deployment-manager'],
+    ['Do not just review: resolve the merge conflicts on the feature branch', 'ork:git-operations-engineer'],
+    ['Write the changelog for 2.3.0', 'ork:release-engineer'],
+  ])('a real domain ask next to a negation still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    ['Do not deploy to production.', null],
+    ["Don't touch the terraform module.", null],
+    ['Never rebase the release branch onto main.', null],
+    ['If you hit merge conflicts, stop and report.', null],
+    ['When the CVE-2026-1234 scan fails, stop and ask.', null],
+  ])('a guard-rail sentence alone matches no specialist: "%s"', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6343034324 must 1: the stop clause ran to the end of the
+  // sentence, so an ask after it in the same sentence was dropped (a silent
+  // allow that main did not have). The clause now ends at a comma, and, then,
+  // but, instead or however, as NEGATED_CLAUSE_PATTERN does.
+  test.each([
+    ['If you hit merge conflicts, stop and report, then deploy to production.', 'ork:deployment-manager'],
+    ['Stop and ask if the build breaks, then deploy to production.', 'ork:deployment-manager'],
+    ['Stop if you hit merge conflicts and deploy to staging.', 'ork:deployment-manager'],
+    // Reviewer HOLD 6344107617: the CONDITION side crossed commas, so an
+    // instruction between a leading condition and a later ", stop" was removed.
+    ['If the tests pass, deploy to production, but if they fail, stop.', 'ork:deployment-manager'],
+    ['When the build is green, deploy to production and if it breaks, stop.', 'ork:deployment-manager'],
+  ])('an ask after a stop clause in the same sentence still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // Reviewer HOLD 6344107617 round 3: the STOP side crossed but, instead, however,
+  // or and "and check ... before you", so an instruction between a leading stop
+  // and its later condition was removed. A stop span is no longer dropped whole:
+  // only its obstacle (the piece right after if/when) goes, and any other piece
+  // the routing detector matches stays in the text.
+  test.each([
+    ['Stop the canary but deploy to production if the checks pass.', 'ork:deployment-manager'],
+    ['Stop the old job instead deploy to production when ready.', 'ork:deployment-manager'],
+    ['Halt the canary however deploy to production if green.', 'ork:deployment-manager'],
+    ['Stop the old worker or deploy to production if it is idle.', 'ork:deployment-manager'],
+    ['Stop and check staging before you deploy to production if green.', 'ork:deployment-manager'],
+  ])('an ask between a stop and its later condition still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // The obstacle piece ends at any conjunction or clause adverb, so an
+  // instruction joined to the condition by one of them is not dropped with it.
+  test.each([
+    ['Stop if the checks fail while you deploy to production.', 'ork:deployment-manager'],
+    ['Halt if it is red so deploy to production manually.', 'ork:deployment-manager'],
+    ['Stop if the canary fails plus deploy to production.', 'ork:deployment-manager'],
+    ['Abort if CI is red because you must rebase the feature branch onto main.', 'ork:git-operations-engineer'],
+  ])('an ask joined to the condition by a subordinator still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6346226707 Must: "or else" and "otherwise" after a stop.
+  test.each([
+    ['If it breaks, stop or else deploy to production.', 'ork:deployment-manager'],
+    ['If it breaks, stop otherwise deploy to production.', 'ork:deployment-manager'],
+    ['Stop if it breaks or else deploy to production.', 'ork:deployment-manager'],
+    ['Stop if it breaks otherwise deploy to production.', 'ork:deployment-manager'],
+  ])('an ask after "or else" or "otherwise" still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6346226707 Should, pinned as a choice: a condition with no comma
+  // runs into the instruction. The obstacle is dropped only when its routed match
+  // IS the obstacle (the condition's subject, or the object of hit, see, get and
+  // the like); anything else before the match keeps the piece, an extra ask.
+  test.each([
+    ['If ready deploy to production, then stop.', 'ork:deployment-manager'],
+    ['When done deploy to production, stop.', 'ork:deployment-manager'],
+    ['If the build passes deploy to production, stop if it fails.', 'ork:deployment-manager'],
+  ])('a comma-less condition does not swallow the instruction: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  test.each([
+    ['Stop and ask if the deploy to production breaks.'],
+    ['When you hit merge conflicts, just stop and report back.'],
+    // A follow-up that does not refer back to the condition keeps it an obstacle.
+    ['Stop if the deploy to production breaks, then report it.'],
+    ['Stop if the deploy to production breaks; then report it.'],
+    ['Stop if the deploy to production breaks; otherwise continue.'],
+    // CodeRabbit :276: "if so" with no work verb after it reports, it does not do the work.
+    ['Stop if the deploy to production breaks; if so, report it.'],
+    ['Stop if the deploy to production breaks and if so, tell me.'],
+    ['Stop if the deploy to production breaks, and if so report it.'],
+  ])('the obstacle inside a stop clause is still removed: "%s"', (text) => {
+    expect(matchSpecialistDomain('', text)).toBeNull();
+  });
+
+  // Reviewer HOLD 6346951302 / 6365962150 Must: when the rest of the sentence
+  // refers back to the condition ("then do it", "if so"), the condition names the
+  // work, not an obstacle, and must still route. main routed both.
+  test.each([
+    ['Stop and check if a deploy to production is needed, then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase onto main is needed, then do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed and if so run it.', 'ork:deployment-manager'],
+    // HOLD 6369316669: the same back-reference after a ";" ("; if so, do it").
+    ['Stop and check if a rebase onto main is needed; if so, do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed; then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a deploy to production is needed; if so, run it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase of the feature branch onto main is needed; then do it.', 'ork:git-operations-engineer'],
+  ])('a condition referred back to by "then do it" or "if so" still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // Known extra ask, pinned on purpose (reviewer HOLD 6344107617): the condition
+  // ends at a clause word too, so "and" inside a condition leaves its second half
+  // in the text. An extra ask is the safe error; reading across "and" is what let
+  // a real instruction be removed.
+  test('a condition joined by "and" leaves its second half: an extra ask, not a silent allow', () => {
+    expect(matchSpecialistDomain('', 'If the build and the deploy to staging fail, stop.')).toBe(
+      'ork:deployment-manager',
+    );
+  });
+
+  // XREVIEW HOLD 6343034324 must 2, behavior pinned on purpose: in "do not X and
+  // Y" the negation ends at "and" (unless Y is commit, push or edit), so Y still
+  // routes. English reads it both ways; an extra ask is the safe error, a
+  // negation that also swallowed Y would be a silent allow for "do not deploy
+  // and rebase the branch onto main" read as an instruction to rebase.
+  test.each([
+    ['Do not deploy to staging and rebase the feature branch onto main.', 'ork:git-operations-engineer'],
+    ['Never touch production and write unit tests for the parser.', 'ork:test-generator'],
+  ])('"do not X and Y" keeps Y: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  test('a read-only task with a real domain match gets a note, not an ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Review the release notes', prompt: 'Read only.' }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('ork:release-engineer');
+  });
+
+  // CodeRabbit :473: "report only if X fails" is a conditional instruction in a
+  // task that does the work, so the specialist ask still fires.
+  test.each([
+    ['Publish a new release; report only if publishing fails.'],
+    ['Cut the release and only report if the tag push fails.'],
+  ])('a conditional "report only if" does not make the task report-only: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Publish a new release', prompt }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // CodeRabbit :245: the condition lookahead stays on its own line, so a prompt that
+  // opens with "If ..." or "When ..." does not cancel a report-only description.
+  test.each([
+    ['If anything looks off, list it.'],
+    ['When done, summarise.'],
+    ['If there are errors, list them.'],
+  ])('a report-only description stays report-only across the prompt join: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Review the release notes, report only', prompt }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+  });
+
+  test('a prompt that asks to build still turns the read nudge off', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Read apply-db.sh',
+        prompt: 'Read apply-db.sh, then fix the lock timeout and commit.',
+      }),
+    );
+    expect(contextOf(result)).not.toContain(READ_NOTE);
+  });
+});

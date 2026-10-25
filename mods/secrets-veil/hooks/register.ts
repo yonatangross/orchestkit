@@ -337,15 +337,33 @@ export async function withTimeout($: DollarAPI, call: () => unknown, ms: number)
  * A masked answer with a `result` differs, so keeping `ref` is safe and keeps
  * the run's metadata. A masked answer WITHOUT `result` would be reused
  * unmasked, so its `ref` is dropped.
+ *
+ * An errored run (`isError: true`) carries the error text as `result`, a
+ * string. Core schema-checks a changed answer's `result` against the tool's
+ * output shape, so a masked error string fails as "does not match its output
+ * shape" and the model never reads the error (measured on 2.1.309: guard
+ * denials and failed commands alike). A masked error is answered as `{ deny }`
+ * with the masked text instead, which the model reads as the tool's error.
  */
 export function answerFor(masked: unknown, changed: boolean): unknown {
   if (!changed || masked === null || typeof masked !== "object") return masked;
   const answer = masked as Record<string, unknown>;
+  if (answer.isError === true) {
+    return { deny: errorText(answer) };
+  }
   if ("ref" in answer && answer.result === undefined) {
     const { ref: _unmaskedRun, ...rest } = answer;
     return rest;
   }
   return masked;
+}
+
+/** The masked error as the model should read it: `text`, else a string `result`, else the result as JSON. */
+function errorText(answer: Record<string, unknown>): string {
+  if (typeof answer.text === "string" && answer.text.length > 0) return answer.text;
+  if (typeof answer.result === "string" && answer.result.length > 0) return answer.result;
+  const json = answer.result === undefined ? undefined : JSON.stringify(answer.result);
+  return json !== undefined && json.length > 0 ? json : WITHHELD;
 }
 
 /**

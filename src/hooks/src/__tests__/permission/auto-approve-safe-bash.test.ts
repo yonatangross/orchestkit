@@ -80,7 +80,7 @@ describe('auto-approve-safe-bash', () => {
       'npm test',
       'pnpm list',
       'pnpm audit',
-      'pnpm run build',
+      'pnpm run test',
       'yarn list',
       'yarn outdated',
       'yarn test',
@@ -374,12 +374,13 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('approves echo with complex arguments', () => {
+    test('echo with parameter expansion drops to manual approval', () => {
+      // $VAR and ${...} still expand inside double quotes, so the hook cannot
+      // read the argument literally.
       const input = createBashInput(`echo "test $VAR \${ANOTHER:-default}"`);
       const result = autoApproveSafeBash(input, testCtx);
 
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
@@ -394,26 +395,23 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
-      // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
-      // "npm run <anything>" — build is an allowed npm run target
+    test('npm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
+      // A bare `run <script>` runs whatever package.json defines, so only the
+      // named test/lint/typecheck/format scripts are on the allowlist.
       const input = createBashInput('npm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
-      // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
+    test('pnpm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
       const input = createBashInput('pnpm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 

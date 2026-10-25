@@ -20,6 +20,60 @@ describe('REJECT_PATTERNS', () => {
     }
   });
 
+  describe('git options that run a program', () => {
+    test.each([
+      'git fetch --upload-pack=x origin',
+      'git fetch --upload-pa=x origin',
+      'git fetch --upl x origin',
+      'git -p status',
+      'git --paginate log',
+      'git --no-replace-objects -p log',
+      'git grep -Ovim hello',
+      'git grep -O hello',
+      'git grep -nOvim hello',
+      'git grep --open-files-in-pager=vim hello',
+      'git grep --open-files=vim hello',
+      'git grep --op=vim hello',
+      // a top-level option with a separate value must not end the scan
+      'git --namespace foo grep -Ovim hello',
+      'git --namespace foo -p log',
+      // --shallow-file takes the next word and is not in `git help git`
+      'git --shallow-file /dev/null grep -Opython hello',
+      'git --shallow-file x -p log',
+    ])('rejects: %s', (cmd) => {
+      expect(matchesReject(cmd)).toBe(true);
+    });
+
+    test.each([
+      'git log -p',
+      'git show -p HEAD',
+      'git log --stat --graph',
+      'git fetch --prune --all',
+      'git -P log',
+      'git grep -n hello',
+      'git grep -e Option -- src',
+      'git grep --or -e a -e b',
+      'git log -O order.txt -1',
+    ])('allows: %s', (cmd) => {
+      expect(matchesReject(cmd)).toBe(false);
+    });
+  });
+
+  test('a long run of git options does not backtrack exponentially', () => {
+    // An ambiguous option scan took 3.5 s at 22 options and doubles per option.
+    const cmd = `git${' --x'.repeat(40)} status`;
+    const start = performance.now();
+    expect(matchesReject(cmd)).toBe(false);
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+
+  test('a long git command with many grep words stays linear', () => {
+    const cmd = `git${' grep'.repeat(20000)} hello`;
+    const start = performance.now();
+    expect(matchesReject(cmd)).toBe(false);
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+
   describe('git checkout destructive variants', () => {
     test.each([
       'git checkout -- .',

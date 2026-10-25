@@ -18,7 +18,7 @@ import {
   isPermissionAutoApproveEnabled,
   isHardDeniedWritePath,
 } from '../lib/permission-auto-approve.js';
-import { resolve, isAbsolute } from 'node:path';
+import { resolve, isAbsolute, normalize } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -41,11 +41,14 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
     filePath = resolve(projectDir, filePath);
   }
 
-  // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / SEC-3)
+  // SEC: keep the requested path as well as the symlink target. A protected
+  // name can link to an ordinary file and the reverse, so the denylist and
+  // excluded-dir checks run on both (ME-001 / SEC-3).
+  const requestedPath = normalize(filePath);
   filePath = resolveRealPath(filePath, projectDir);
 
-  // SEC (#4374): hard denylist on the resolved real path, before any allow
-  if (isHardDeniedWritePath(filePath)) {
+  // SEC (#4374): hard denylist on both paths, before any allow
+  if (isHardDeniedWritePath(requestedPath) || isHardDeniedWritePath(filePath)) {
     ctx.log('auto-approve-project-writes', `Hard-denied write path: ${filePath}`);
     return outputSilentSuccess();
   }
@@ -60,7 +63,7 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
 
-    if (hasExcludedDir(filePath)) {
+    if (hasExcludedDir(requestedPath) || hasExcludedDir(filePath)) {
       ctx.log('auto-approve-project-writes', `Write to excluded directory in: ${rootDir}`);
       return outputSilentSuccess(); // Let user decide
     }

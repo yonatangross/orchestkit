@@ -46,7 +46,7 @@
     "react-dom": "19.2.9",
     "remotion": "4.0.536",
     "three": "^0.186.1",
-    "zod": "4.5.4"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.536",
@@ -68,7 +68,8 @@
     "webpack": "^5.104.1",
     "ajv": "^8.17.1",
     "yauzl": "^3.2.1",
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "zod": "$zod"
   },
   "private": true
 }

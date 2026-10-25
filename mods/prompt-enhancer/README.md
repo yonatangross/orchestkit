@@ -15,7 +15,7 @@ Undo puts the exact original text back, including the trigger when you typed it.
 Enhance a rewrite again without editing it, and Undo still goes back to your first draft. Edit the rewrite first, and Undo goes back to your edit.
 A rewrite that ends in `++` (for example `C++`) is sent as is when you press Enter on it.
 To send a prompt you typed that ends in `++` without a rewrite, press Send instead of Enter.
-The collapse control hides the buttons. Press the expand control to show them.
+The band starts as one line (Enhance, Undo, Send, an expand control and the keyboard hint) and opens by itself when a rewrite is ready to review. It keeps whatever other mods draw above the prompt. The collapse control folds it back to one line.
 
 ## What the rewrite does
 

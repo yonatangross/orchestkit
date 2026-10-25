@@ -1,0 +1,8 @@
+{
+  "slug": "advisor-backref",
+  "source": "docs/fix--advisor-backref-after-4853/advisor-backref.html",
+  "title": "The stop condition that was the task",
+  "description": "After #4853 the task advisor dropped a stop condition as an obstacle even when the next clause said to do it, so the specialist ask vanished; a clause that refers back to the condition now keeps it.",
+  "tags": ["hooks", "advisor", "permissions"],
+  "date": "2026-10-23"
+}

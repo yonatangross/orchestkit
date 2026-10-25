@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Review threads replied: PR 4864 playground</title>
+<meta name="description" content="A required check that fails while any bot review thread has no reply from a person or agent, resolved or not.">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; --bad: #f2a199; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .meter { display: grid; grid-template-columns: 7em 1fr 4em; gap: 10px; align-items: center; margin: 6px 0; }
+  .bar { height: 12px; border-radius: 6px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); }
+  .fill.bad { background: var(--bad); }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Review threads replied"><meta property="og:description" content="A required check that fails while any bot review thread has no reply from a person or agent, resolved or not."><meta property="og:url" content="https://orchestkit.dev/lab/review-thread-replies.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Review threads replied"><meta name="twitter:description" content="A required check that fails while any bot review thread has no reply from a person or agent, resolved or not."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Review threads replied</h1>
+  <p class="verdict"><strong>Verdict:</strong> a PR fails while any review thread a bot started (CodeRabbit, Codex, any <code>[bot]</code> author) has no reply from a person or agent, resolved or not. A resolved bot thread with no reply is a silent resolve.</p>
+  <p class="muted">PR 4864, branch <code>feat/review-thread-replies</code>. Operator word GROK-REVIEW-2121, items 1 and 2.</p>
+
+  <h2>The rule (item 1)</h2>
+  <p>Reply in the thread with the fix commit link, the <code>file:line</code> and the test, or with won't-fix and the reason. Resolve only after the fix is verified. A bot replying to a bot is not a reply.</p>
+
+  <h2>The check (item 2)</h2>
+  <p>Exit 0 when every bot thread has a reply, 1 when any has none (each listed with <code>file:line</code>, bot, state and link), 2 when the threads cannot be read. It reruns on pushes, new reviews and replies, and runs the script from the base branch, so a PR cannot weaken its own gate.</p>
+
+  <h2>Live on four real PRs (read only)</h2>
+  <table><thead><tr><th>PR</th><th>Bot threads</th><th>Result</th></tr></thead><tbody>
+  <tr><td>#4853</td><td>4 bot threads, 4 unreplied (1 resolved with no reply)</td><td>fail</td></tr><tr><td>#4858</td><td>1 bot thread, unreplied</td><td>fail</td></tr><tr><td>#4860</td><td>1 bot thread, unreplied</td><td>fail</td></tr><tr><td>#4819</td><td>2 bot threads, all replied</td><td>pass</td></tr>
+  </tbody></table>
+
+  <h2>The table test (14 of 14)</h2>
+  <p class="muted">10 fixture cases below, plus 4 fetch-path cases with a stub <code>gh</code>: a reply after comment 100 is fetched and counts, a bot-only thread past 100 still fails, a page with no cursor stops with exit 2, and a <code>gh</code> failure exits 2.</p>
+  <table><thead><tr><th>Case</th><th>Input</th><th>Exit</th><th>Result</th></tr></thead><tbody>
+  <tr><td><code>empty</code></td><td>no threads</td><td>0</td><td>pass</td></tr><tr><td><code>bot-replied</code></td><td>CodeRabbit thread, person replied</td><td>0</td><td>pass</td></tr><tr><td><code>bot-open-unreplied</code></td><td>CodeRabbit thread, open, no reply</td><td>1</td><td>fail</td></tr><tr><td><code>bot-resolved-unreplied</code></td><td>Codex thread, resolved, no reply (silent resolve)</td><td>1</td><td>fail</td></tr><tr><td><code>bot-only-bot-replies</code></td><td>CodeRabbit thread, only bots replied</td><td>1</td><td>fail</td></tr><tr><td><code>login-suffix-bot</code></td><td>author login ends in [bot]</td><td>1</td><td>fail</td></tr><tr><td><code>human-thread-unreplied</code></td><td>person started it, no reply (outside the rule)</td><td>0</td><td>pass</td></tr><tr><td><code>mixed-one-unreplied</code></td><td>two bot threads, one replied</td><td>1</td><td>fail</td></tr><tr><td><code>truncated-no-reply</code></td><td>more than 100 comments, none a reply</td><td>1</td><td>fail</td></tr><tr><td><code>malformed</code></td><td>unreadable input</td><td>2</td><td>could not read</td></tr>
+  </tbody></table>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

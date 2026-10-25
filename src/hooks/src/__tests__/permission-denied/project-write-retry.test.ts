@@ -52,7 +52,7 @@ describe('project-write-retry', () => {
       '/test/project/lib/utils.js',
       '/test/project/tests/test.spec.ts',
       '/test/project/README.md',
-      '/test/project/package.json',
+      '/test/project/src/data.json',
       '/test/project/tsconfig.json',
       '/test/project/deep/nested/path/file.txt',
     ];

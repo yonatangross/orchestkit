@@ -74,7 +74,7 @@ describe('F11 PermissionRequest output shape', () => {
   });
 
   test('auto-approve-project-writes never labels allow as PreToolUse', () => {
-    const filePath = path.join(process.cwd(), 'src', 'hooks', 'package.json');
+    const filePath = path.join(process.cwd(), 'src', 'hooks', 'src', 'index.ts');
     assertPermissionRequestAllow(autoApproveProjectWrites(writeEdit(filePath)));
   });
 

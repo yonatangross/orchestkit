@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>secrets-veil 0.0.9: a failed command keeps its error</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style></head><body><main>
+<h1>secrets-veil 0.0.9: a failed command keeps its error</h1>
+<p>On an errored tool run Claude Code sets <code>isError</code> and <code>result</code> is the error text, a string. secrets-veil 0.0.8 masked that string and answered a changed result, which core checked against the tool's object shape and refused, so the model never read the error (48 refusals in 9 days on one machine). 0.0.9 answers a masked error as <code>{ deny: masked text }</code>.</p>
+<div class="card">
+<fieldset>output
+<label><input type="radio" name="o" value="plain"> plain text</label>
+<label><input type="radio" name="o" value="token" checked> holds a token</label>
+</fieldset>
+<fieldset>exit code
+<label><input type="radio" name="x" value="0"> 0</label>
+<label><input type="radio" name="x" value="1" checked> 1</label>
+</fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="008"> 0.0.8</label>
+<label><input type="radio" name="v" value="009" checked> 0.0.9</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const o=pick('o'), x=pick('x'), v=pick('v');
+  const text=(x==='1'?'exit 1: guard refused this command\nALLOWED FORM: ...\n':'build ok\n')+(o==='token'?'TOKEN=ghp_' + 'x'.repeat(36):'no secrets here');
+  const masked=text.replace(/ghp_x+/,'\u2022'.repeat(8));
+  let lines;
+  if(o==='plain') lines=['veil: nothing masked, the run is returned as is','model reads: '+text];
+  else if(x==='0') lines=['veil: masks the token in the result object','model reads: '+masked];
+  else if(v==='008') lines=['veil: masks the error string and answers it as a changed result','core: tool.call step resolved Bash with a result that does not match its output shape','model reads: (the error above, nothing of the command output)'];
+  else lines=['veil: answers { deny: masked error text }','model reads (as the tool error): '+masked];
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>

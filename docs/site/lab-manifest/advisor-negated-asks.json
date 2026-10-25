@@ -1,0 +1,8 @@
+{
+  "slug": "advisor-negated-asks",
+  "source": "docs/fix--4835-advisor-negation/advisor-negated-asks.html",
+  "title": "The advisor that asked about what you forbade",
+  "description": "12 measured task-agent-advisor rows, before and after: nudges decided on the description, and guard-rail sentences that no longer raise a permission ask.",
+  "tags": ["hooks", "advisor", "routing"],
+  "date": "2026-10-22"
+}

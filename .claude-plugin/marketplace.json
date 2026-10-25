@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "10.0.0-beta.187",
+  "version": "10.1.1",
   "description": "The Complete AI Development Toolkit - 110 skills, 36 agents, 38 commands, 163 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "9.8.1",
+      "version": "10.1.1",
       "description": "Complete AI development toolkit with 105 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 218 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
@@ -25,12 +25,12 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
-        "ref": "v9.8.1"
+        "ref": "v10.1.1"
       }
     },
     {
       "name": "ork-alpha",
-      "version": "10.0.0-beta.187",
+      "version": "10.1.1",
       "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
       "author": {
         "name": "Yonatan Gross",
@@ -45,25 +45,9 @@
       }
     },
     {
-      "name": "lesson-cards",
-      "description": "Mod (function hooks): advisory lesson hint cards when a tool call matches a known pattern (never blocks a call); /lessons reloads. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
-      "version": "1.2.0",
-      "author": {
-        "name": "Yonatan Gross",
-        "email": "yonaigross@gmail.com"
-      },
-      "category": "development",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/yonatangross/orchestkit.git",
-        "path": "mods/lesson-cards",
-        "ref": "main"
-      }
-    },
-    {
       "name": "promote-lights",
       "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
-      "version": "0.0.14",
+      "version": "0.0.15",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
@@ -79,7 +63,7 @@
     {
       "name": "secrets-veil",
       "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
-      "version": "0.0.8",
+      "version": "0.0.9",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
@@ -94,8 +78,8 @@
     },
     {
       "name": "memory-lens",
-      "description": "Mod (function hooks): recalls the few memories related to each prompt; /memory-lens for stats, reload and show. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
-      "version": "0.1.0",
+      "description": "Mod (function hooks): recalls the few memories related to each prompt you send (not notifications, peers, schedules or slash commands, and never on file tool calls); /memory-lens for stats, reload and show. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
+      "version": "0.1.1",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

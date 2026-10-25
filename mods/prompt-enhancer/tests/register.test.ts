@@ -468,11 +468,51 @@ describe("failure and race handling", () => {
   });
   test("collapse keeps the draft intact and expand restores the controls", async () => {
     const h = harness("login");
+    await h.press("+");
     await h.press("-");
     expect(h.box()).toBe("login");
-    await h.press("+");
     await h.press("Enhance");
     expect(h.complete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the band stays small and shared", () => {
+  const render = (h: ReturnType<typeof harness>) =>
+    h.fire("ui.render", { component: "AbovePrompt", props: { hasSurvey: false, isWorking: false } });
+  const nodes = (value: unknown, out: Node[] = []): Node[] => {
+    if (!value || typeof value !== "object") return out;
+    const node = value as Node;
+    out.push(node);
+    for (const child of node.children ?? []) nodes(child, out);
+    return out;
+  };
+  const texts = (tree: unknown) => nodes(tree).filter(n => n.tag === "Text").map(n => JSON.stringify(n.children));
+  const labels = (tree: unknown) => nodes(tree).filter(n => n.tag === "Button").map(n => n.props.label);
+
+  test("it starts as one line with every action and no review help", async () => {
+    const h = harness("draft");
+    const tree = await render(h);
+    expect(labels(tree)).toEqual(["Enhance", "Undo", "Send", "+"]);
+    expect(texts(tree).join(" ")).not.toContain("Enhanced below");
+    // one row: the collapsed band is a single Box with no column of children
+    const first = (tree as { children: unknown[] }).children[0] as { props: Record<string, unknown> };
+    expect(first.props.flexDirection).toBeUndefined();
+  });
+
+  test("after an Enhance the review controls and help appear", async () => {
+    const h = harness("make a login page");
+    await h.press("Enhance");
+    await settle();
+    const tree = await render(h);
+    expect(labels(tree)).toEqual(expect.arrayContaining(["Enhance", "Undo", "Send", "-"]));
+    expect(texts(tree).join(" ")).toContain("Enhanced below");
+  });
+
+  test("what the mods below draw stays in the tree", async () => {
+    const h = harness("draft");
+    const tree = await render(h);
+    const kept = nodes(tree).some(n => (n as unknown as { component?: string }).component === "AbovePrompt");
+    expect(kept).toBe(true);
   });
 });
 
@@ -489,6 +529,19 @@ describe("submission errors", () => {
     await h.press("Undo");
     expect(h.box()).toBe("login++");
   });
+  test("a long pasted brief (a herdr station prompt) is sent at once: no hold, no model call", async () => {
+    // conductor236, 2026-10-23: a 10-line station brief sat idle on a new seat.
+    // The enhancer holds only a prompt ending in ++ or one sent while its own
+    // Enhance runs; an automated brief is neither and must pass straight through.
+    const brief = Array.from({ length: 10 }, (_, i) => `line ${i + 1} of the station brief`).join("\n") + "\nBudget: 45 min";
+    const h = harness(brief);
+    const out = await h.fire("prompt.submit", submit(brief));
+    expect(out).not.toHaveProperty("drop");
+    expect(h.sent).toEqual([brief]);
+    expect(h.complete).not.toHaveBeenCalled();
+    expect(h.drops).toEqual([]);
+  });
+
   test("state errors after next do not send the prompt twice", async () => {
     const h = harness("ordinary prompt");
     h.$.state.get = async () => { throw new Error("state unavailable"); };
@@ -913,9 +966,10 @@ describe("interleavings golden corpus", () => {
   });
   test("W6 two quick collapse presses toggle twice", async () => {
     const r = rig("draft");
-    await Promise.all([r.h.press("-"), r.h.press("-")]);
+    // The band starts collapsed (one line), so the control reads "+".
+    await Promise.all([r.h.press("+"), r.h.press("+")]);
     await r.h.settle();
-    expect((await r.band())?.collapsed).toBe(false);
+    expect((await r.band())?.collapsed).toBe(true);
   });
   // Error twins (round 7): each await's rejection path acts only on its own token.
   test("R-A an older change write that rejects late does not cancel a newer Enhance", async () => {

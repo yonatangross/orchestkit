@@ -24,6 +24,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
 import { isHardDeniedWritePath } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { isAbsolute, normalize, resolve } from 'node:path';
 
 const HOOK_NAME = 'project-write-retry';
 
@@ -52,10 +53,13 @@ export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX)
   // CC >= 2.1.88 delivers absolute file_path for Write/Edit/Read; the support
   // floor is far above that, so no relative-path compat branch remains.
   // SEC: Resolve symlinks before containment and denylist checks (ME-001 / PD-001)
+  // SEC: the denylist and excluded-dir checks run on the requested path AND
+  // the symlink target; a protected name can link to an ordinary file.
+  const requestedPath = normalize(isAbsolute(filePath) ? filePath : resolve(projectDir, filePath));
   filePath = resolveRealPath(filePath, projectDir);
 
   // SEC: hard denylist (same rules as PermissionRequest auto-approve)
-  if (isHardDeniedWritePath(filePath)) {
+  if (isHardDeniedWritePath(requestedPath) || isHardDeniedWritePath(filePath)) {
     ctx.log(HOOK_NAME, `Hard-denied write path: not retrying: ${filePath}`);
     return outputSilentSuccess();
   }
@@ -70,7 +74,7 @@ export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX)
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
 
-    if (hasExcludedDir(filePath)) {
+    if (hasExcludedDir(requestedPath) || hasExcludedDir(filePath)) {
       ctx.log(HOOK_NAME, `File in excluded directory — not retrying`);
       return outputSilentSuccess();
     }

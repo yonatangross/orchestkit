@@ -12,7 +12,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync, unlinkSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync, unlinkSync, utimesSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { securityScanAggregator } from '../../stop/security-scan-aggregator.js';
@@ -120,5 +121,65 @@ describe('security-scan-aggregator (#3705)', () => {
 
     expect(existsSync(join(resultsDir(), 'aggregated-report.json'))).toBe(true);
     expect(existsSync(LOCK_PATH)).toBe(false);
+  });
+  describe('npm audit throttle (at most once per project per 24h)', () => {
+    let shimDir: string;
+    let savedPath: string | undefined;
+
+    const stampPath = () =>
+      join(tmpdir(), `ork-npm-audit-${createHash('sha256').update(tmpDir).digest('hex').slice(0, 16)}.stamp`);
+    const callsLog = () => join(shimDir, 'calls.log');
+    const npmCalls = () =>
+      existsSync(callsLog()) ? readFileSync(callsLog(), 'utf8').split('\n').filter(Boolean) : [];
+
+    beforeEach(() => {
+      // A fake `npm` first on PATH records every invocation, so the test counts real audits.
+      shimDir = mkdtempSync(join(tmpdir(), 'npm-shim-'));
+      writeFileSync(
+        join(shimDir, 'npm'),
+        `#!/bin/sh\necho "$@" >> "${callsLog()}"\necho '{"metadata":{"vulnerabilities":{"critical":0,"high":0}}}'\n`,
+        { mode: 0o755 }
+      );
+      savedPath = process.env.PATH;
+      process.env.PATH = `${shimDir}:${savedPath ?? ''}`;
+      // A project npm audit applies to (manifest plus lockfile) with a dirty tree so the scan runs.
+      writeFileSync(join(tmpDir, 'package.json'), '{"name":"fixture","version":"1.0.0"}\n');
+      writeFileSync(join(tmpDir, 'package-lock.json'), '{"lockfileVersion":3}\n');
+      try {
+        unlinkSync(stampPath());
+      } catch {
+        // no stamp left from an earlier run
+      }
+    });
+
+    afterEach(() => {
+      process.env.PATH = savedPath;
+      rmSync(shimDir, { recursive: true, force: true });
+      try {
+        unlinkSync(stampPath());
+      } catch {
+        // stamp was never written
+      }
+    });
+
+    it('runs npm audit on the first Stop and not again inside 24h', async () => {
+      await securityScanAggregator(hookInput());
+      expect(npmCalls()).toEqual(['audit --json']);
+      expect(existsSync(stampPath())).toBe(true);
+
+      await securityScanAggregator(hookInput());
+      expect(npmCalls()).toHaveLength(1);
+    });
+
+    it('runs npm audit again once the stamp is older than 24h', async () => {
+      await securityScanAggregator(hookInput());
+      expect(npmCalls()).toHaveLength(1);
+
+      const old = new Date(Date.now() - 25 * 60 * 60_000);
+      utimesSync(stampPath(), old, old);
+
+      await securityScanAggregator(hookInput());
+      expect(npmCalls()).toHaveLength(2);
+    });
   });
 });

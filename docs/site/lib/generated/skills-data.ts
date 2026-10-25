@@ -3150,7 +3150,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns.",
     "version": "1.1.0",
-    "sha256": "285d44557b1874b315656def1d3e023636e976440f62d5ecf8403a2d097fb5bb",
+    "sha256": "964603261072974ce6dfe98d29fcd061abf6af01a5f416d3e6a8177093716ff5",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3173,6 +3173,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "component-recipes.md",
         "mcp-integration.md",
         "upstream-mcp.md"
+      ],
+      "scripts": [
+        "glyph-card-server.mjs"
       ]
     },
     "plugins": [
