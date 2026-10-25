@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.2.1](https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1)** · 2026-10-25
+
+- **coderabbit:** spend free OSS reviews sparingly, match org settings (#4886)
+
 **[v10.2.0](https://github.com/yonatangross/orchestkit/compare/v10.1.1...v10.2.0)** · 2026-10-25
 
 - **prompt-enhancer:** short stack-aware rewrites with a prompt-cached catalog (#4857)
@@ -679,15 +683,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
 
 - **lesson-cards:** lessons are advisory, never ask or deny (#4842)
-
-**[v10.0.0-beta.186](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.185...v10.0.0-beta.186)** · 2026-10-21
-
-- **scripts:** export chosen skills as Gemini app skill zips (#4760)
-- **deps:** vitest 4.1.12 in the hook-contract generic-client example (#4843)
-- **deps-dev:** bump happy-dom from 20.14.5 to 21.0.3 in /docs/site (#4812)
-- **deps:** bump the npm_and_yarn group across 5 directories with 1 update (#4840)
-- **deps:** bump the npm-minor-patch group (#4838)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
