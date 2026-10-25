@@ -52,31 +52,71 @@ describe("mask() stays fast on long runs", () => {
   // runs in about 31 ms. Linear work grows about 10x from 100k to 1M; the
   // old quadratic code grew about 100x (and took 5 to 40 s at 1M). The 1 s
   // ceiling is a backstop that still fails any quadratic regression.
-  const medianMs = (text: string): number => {
-    const runs: number[] = [];
-    for (let i = 0; i < 3; i++) runs.push(timed(text).ms);
-    runs.sort((a, b) => a - b);
-    return runs[1];
+  //
+  // The ratio limit sits halfway between linear and quadratic on a log scale,
+  // sqrt(10 * 100) = 31.6x, so either side can drift about 3x before a linear
+  // run fails or a quadratic one passes. A 20x limit left only 2x: the 100k
+  // side takes about 4 ms on a shared runner, and nightly run 40154035027
+  // failed a linear run at 21.3x (84.69 ms against 3.97 ms). A fit over three
+  // log-spaced sizes would not help: its least-squares slope depends on the
+  // two end points only, so it is this same ratio test at more cost.
+  const LINEAR_RATIO_LIMIT = Math.sqrt(10 * 100);
+  const FLOOR_MS = 20;
+  const RUNS = 5;
+
+  type Run = (text: string) => void;
+  const maskRun: Run = (text) => {
+    mask(text, table);
   };
-  const scaling = (unit: string): { small: number; large: number } => {
+  const medianMs = (run: Run, text: string): number => {
+    run(text); // warm-up, not counted
+    const runs: number[] = [];
+    for (let i = 0; i < RUNS; i++) {
+      const t0 = performance.now();
+      run(text);
+      runs.push(performance.now() - t0);
+    }
+    runs.sort((a, b) => a - b);
+    return runs[Math.floor(RUNS / 2)];
+  };
+  const scaling = (unit: string, run: Run = maskRun): { small: number; large: number } => {
     const small = unit.repeat(Math.ceil(100_000 / unit.length));
     const large = unit.repeat(Math.ceil(1_000_000 / unit.length));
-    medianMs(small); // warm the JIT so the small run is not inflated
-    return { small: medianMs(small), large: medianMs(large) };
+    return { small: medianMs(run, small), large: medianMs(run, large) };
   };
+  const scalesLinearly = ({ small, large }: { small: number; large: number }): boolean =>
+    large < Math.max(LINEAR_RATIO_LIMIT * small, FLOOR_MS);
 
-  test("BEGIN markers with no END scale linearly (10x input, under 20x time) and stay under 1 s at 1M", () => {
-    const { small, large } = scaling("-----" + "BEGIN ");
-    expect(large).toBeLessThan(1000);
-    expect(large).toBeLessThan(Math.max(20 * small, 20));
+  test("BEGIN markers with no END scale linearly (10x input, under 31.6x time) and stay under 1 s at 1M", () => {
+    const times = scaling("-----" + "BEGIN ");
+    expect(times.large).toBeLessThan(1000);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
   });
 
-  test("short spaced prefix tokens scale linearly (10x input, under 20x time), stay under 1 s, and are masked", () => {
+  test("short spaced prefix tokens scale linearly (10x input, under 31.6x time), stay under 1 s, and are masked", () => {
     const unit = "AK" + "IA ";
-    const { small, large } = scaling(unit);
-    expect(large).toBeLessThan(1000);
-    expect(large).toBeLessThan(Math.max(20 * small, 20));
+    const times = scaling(unit);
+    expect(times.large).toBeLessThan(1000);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
     expect(timed(unit.repeat(200_000)).out).not.toContain("AK" + "IA");
   });
+
+  test("the scaling check accepts the linear run the 20x limit failed on 2026-10-25", () => {
+    expect(scalesLinearly({ small: 3.97, large: 84.69 })).toBe(true);
+  });
+
+  test("the scaling check still fails a quadratic implementation", () => {
+    // Stand-in for the old rescan: work grows with the square of the input,
+    // (n / 100)^2 steps, so 1M chars costs 100x what 100k does.
+    let sink = 0;
+    const quadratic: Run = (text) => {
+      const n = Math.floor(text.length / 100);
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) sink += (i ^ j) & 1;
+    };
+    const times = scaling("-----" + "BEGIN ", quadratic);
+    expect(sink).toBeGreaterThan(0);
+    expect(times.large, "quadratic stand-in must clear the floor").toBeGreaterThan(FLOOR_MS);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(false);
+  }, 30_000);
 });
 
