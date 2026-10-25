@@ -5,7 +5,8 @@
   "description": "Review an enhanced draft before sending it to Claude",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "catalog:local": "node scripts/build-catalog.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.13.5",

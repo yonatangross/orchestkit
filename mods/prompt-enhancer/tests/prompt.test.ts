@@ -162,3 +162,19 @@ describe("no bundled catalog", () => {
     expect(register).not.toMatch(/catalog\.js|\bCATALOG\b/);
   });
 });
+
+// Codex XREVIEW at a8c6b0c8: a merge of main took main's package.json and dropped
+// catalog:local while the README still told users to run it.
+describe("README commands", () => {
+  test("every npm run script the README names exists, with its file", () => {
+    const readme = readFileSync(join(mod, "README.md"), "utf8");
+    const scripts: Record<string, string> = JSON.parse(readFileSync(join(mod, "package.json"), "utf8")).scripts ?? {};
+    const named = [...readme.matchAll(/npm run ([\w:-]+)/g)].map((m) => m[1]);
+    expect(named).toContain("catalog:local");
+    for (const name of named) {
+      expect(scripts, `README names npm run ${name}`).toHaveProperty([name]);
+      const file = scripts[name].match(/^node (\S+)/)?.[1];
+      if (file) expect(existsSync(join(mod, file)), `${name} runs ${file}`).toBe(true);
+    }
+  });
+});
