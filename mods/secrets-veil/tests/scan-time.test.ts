@@ -60,30 +60,44 @@ describe("mask() stays fast on long runs", () => {
   // failed a linear run at 21.3x (84.69 ms against 3.97 ms). A fit over three
   // log-spaced sizes would not help: its least-squares slope depends on the
   // two end points only, so it is this same ratio test at more cost.
+  //
+  // Each size takes the MINIMUM of 7 runs, with a forced GC before each run.
+  // Host load and GC only ever add time, so the minimum is the cleanest
+  // reading; a median of 5 still measured 34x on a linear run at load 59.
+  // The spaced case builds about 200k spans per call at 1M, and garbage left
+  // by earlier runs was collected inside the measured one (GC was 257 ms of
+  // a 333 ms median). The forced GC clears it first; GC caused by the run
+  // itself still counts, so a quadratic stand-in still fails.
   const LINEAR_RATIO_LIMIT = Math.sqrt(10 * 100);
   const FLOOR_MS = 20;
-  const RUNS = 5;
+  const RUNS = 7;
 
   type Run = (text: string) => void;
   const maskRun: Run = (text) => {
     mask(text, table);
   };
-  const medianMs = (run: Run, text: string): number => {
+  const minMs = (run: Run, text: string): number => {
     run(text); // warm-up, not counted
-    const runs: number[] = [];
+    let best = Infinity;
     for (let i = 0; i < RUNS; i++) {
+      globalThis.gc?.();
       const t0 = performance.now();
       run(text);
-      runs.push(performance.now() - t0);
+      best = Math.min(best, performance.now() - t0);
     }
-    runs.sort((a, b) => a - b);
-    return runs[Math.floor(RUNS / 2)];
+    return best;
   };
   const scaling = (unit: string, run: Run = maskRun): { small: number; large: number } => {
     const small = unit.repeat(Math.ceil(100_000 / unit.length));
     const large = unit.repeat(Math.ceil(1_000_000 / unit.length));
-    return { small: medianMs(run, small), large: medianMs(run, large) };
+    return { small: minMs(run, small), large: minMs(run, large) };
   };
+
+  test("gc() is exposed, so the scaling cases measure without earlier garbage", () => {
+    // vitest.config.ts passes --expose-gc to the workers; without it the
+    // forced GC is skipped and the spaced case goes back to flaking.
+    expect(typeof globalThis.gc).toBe("function");
+  });
   const scalesLinearly = ({ small, large }: { small: number; large: number }): boolean =>
     large < Math.max(LINEAR_RATIO_LIMIT * small, FLOOR_MS);
 
