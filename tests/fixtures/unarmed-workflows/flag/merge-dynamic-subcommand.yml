@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the gh pr subcommand comes from a variable, so no reader can tell
+# it is not merge. Fail closed.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run a pr subcommand
+        env:
+          SUB: merge
+        run: gh pr "$SUB" 123 --squash

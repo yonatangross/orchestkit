@@ -1,0 +1,21 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: actions/github-script reading a PR, merging nothing.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read from a script
+        uses: actions/github-script@0000000000000000000000000000000000000000  # fixture pin
+        with:
+          script: |
+            const { data } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: 1,
+            });
+            core.info(String(data.mergeable));

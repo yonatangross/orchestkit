@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a folded run scalar (XREVIEW 6411315417). YAML folds the two lines
+# into one command, `gh pr merge 123 --auto`, with no backslash in sight.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Arm the PR
+        run: >
+          gh pr merge 123
+          --auto

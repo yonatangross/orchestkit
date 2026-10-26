@@ -1,0 +1,20 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: backslash continuations, the word merge only inside a title.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open the snapshot PR
+        run: |
+          set -euo pipefail
+          gh pr create \
+            --base main \
+            --title "merge notes for the snapshot" \
+            --body "Opened unarmed; the merge desk merges it after a LAND."
+          BASE=$(git merge-base origin/main HEAD)
+          echo "$BASE"

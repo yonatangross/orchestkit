@@ -1,0 +1,17 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the #4913 shape, arm on one line right after gh pr create.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open the pin PR
+        env:
+          BRANCH: chore/pin
+        run: |
+          gh pr create --base main --head "$BRANCH" --title "pin" --body-file /tmp/body.md
+          gh pr merge "$BRANCH" --squash --auto

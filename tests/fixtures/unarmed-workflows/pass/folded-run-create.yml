@@ -1,0 +1,15 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: a folded run scalar that only opens a PR.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open the PR
+        run: >
+          gh pr create --base main
+          --title "pin" --body-file /tmp/body.md

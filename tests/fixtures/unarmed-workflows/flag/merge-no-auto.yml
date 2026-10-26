@@ -1,0 +1,15 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a plain gh pr merge, no --auto. It merges as soon as checks allow.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Merge the pin PR
+        env:
+          PR: "1"
+        run: gh pr merge "$PR" --squash --delete-branch
