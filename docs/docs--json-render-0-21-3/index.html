@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>json-render 0.21.3: what changed for the skills</title>
-<meta name="description" content="OrchestKit's json-render skills move from 0.21.0 to 0.21.3. Pick a package to see its export list against 0.19.0, and type a patch path to see how 0.21.3 decodes it and why a __proto__ segment is now ignored.">
+<meta name="description" content="OrchestKit's json-render skills move from 0.21.0 to 0.21.3. Pick a package to see its export list against 0.19.0, and type a patch path to see how 0.21.3 decodes it and which writers ignore a __proto__ segment and which do not.">
 <style>
   * { box-sizing:border-box; }
   body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
@@ -98,10 +98,10 @@
     raw.slice(1).split("/").forEach((t, i) => row(tbody, t, segs[i] ?? "", segs[i] === "__proto__" ? "bad" : ""));
     const v = document.getElementById("pathv");
     if (!raw.startsWith("/") || segs.length === 0) { v.textContent = "not a JSON Pointer: it must start with /"; v.className = "verdict warn"; }
-    else if (segs.includes("__proto__")) { v.textContent = "0.21.3 ignores this write: a __proto__ segment returns early, with no error"; v.className = "verdict bad"; }
+    else if (segs.includes("__proto__")) { v.textContent = "setByPath, addByPath and removeByPath ignore this write (no error); createStateStore and createStoreAdapter do NOT, so reject it yourself"; v.className = "verdict bad"; }
     else { v.textContent = "applied: " + segs.length + " segment(s)"; v.className = "verdict ok"; }
     document.getElementById("prompt").textContent =
-      "Using json-render 0.21.3, write state or patch paths as RFC 6901 JSON Pointers (~0 for ~, ~1 for /) and never use __proto__ as a key. Check this path: " + raw;
+      "Using json-render 0.21.3, write state or patch paths as RFC 6901 JSON Pointers (~0 for ~, ~1 for /) and reject __proto__, constructor and prototype keys before any state-store write (only setByPath, addByPath and removeByPath guard __proto__). Check this path: " + raw;
   }
 
   const box = document.getElementById("pkgs");
