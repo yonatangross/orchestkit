@@ -25,13 +25,13 @@
 </div>
 <div class="card after">
   <div class="label">After</div>
-  <p class="text" id="after">Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 163 hooks for review, testing, security and memory. Hooks run on prompts and tool calls; network access is opt-in and off by default.</p>
+  <p class="text" id="after">Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 163 hooks for review, testing, security and memory. Hooks run on prompts and tool calls. Telemetry and webhooks are opt-in and off by default; by default some hooks call out through your own CLIs: gh on issue branches and on gh pr merge --delete-branch, and claude (haiku) to title each session.</p>
 </div>
 
 <h2>Why</h2>
 <ul>
   <li>No long dash and no superlative ("The Complete").</li>
-  <li>The directory review tests that a description matches behavior. It now says the hooks run on prompts and tool calls, and that network access is opt-in (the README section "What OrchestKit observes" has the details).</li>
+  <li>The directory review tests that a description matches behavior. It now says the hooks run on prompts and tool calls, that telemetry and webhooks are opt-in, and which hooks call out by default through your own gh and claude CLIs (the README section "What OrchestKit observes" has the details).</li>
   <li>The count tuple keeps the form <code>N skills, M agents, K hooks</code>, so <code>scripts/stamp-counts.sh</code> still stamps it.</li>
 </ul>
 
