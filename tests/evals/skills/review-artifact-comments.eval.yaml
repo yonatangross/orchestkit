@@ -9,6 +9,8 @@ trigger_evals:
     should_trigger: true
   - prompt: "Resolve the open review comments on the hook-retry research artifact and approve it if nothing is left"
     should_trigger: true
+  - prompt: "go through the open comments on the cache-warm plan and answer each one without rewriting it"
+    should_trigger: true
   - prompt: "Review this pull request for security issues"
     should_trigger: false
   - prompt: "Write a plan for task hook-retry"

@@ -9,6 +9,8 @@ trigger_evals:
     should_trigger: true
   - prompt: "Map where session state is read and written, with file:line citations, as a task research artifact"
     should_trigger: true
+  - prompt: "before we touch task cache-warm, dig into how the cache layer works now and write it up for review"
+    should_trigger: true
   - prompt: "Write the implementation plan for task hook-retry"
     should_trigger: false
   - prompt: "Research the market for AI dev tools"

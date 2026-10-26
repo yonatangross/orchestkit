@@ -9,6 +9,8 @@ trigger_evals:
     should_trigger: true
   - prompt: "Make a plan artifact for task add-pairs so the reviewer can comment on it"
     should_trigger: true
+  - prompt: "plan out task cache-warm before anyone writes code, somewhere the reviewer can leave comments"
+    should_trigger: true
   - prompt: "The reviewer left comments on 02-plan-add-pairs.md, revise the plan"
     should_trigger: false
   - prompt: "Document how the hook dispatcher works today before we change it"

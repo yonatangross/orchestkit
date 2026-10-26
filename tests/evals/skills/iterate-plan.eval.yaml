@@ -9,6 +9,8 @@ trigger_evals:
     should_trigger: true
   - prompt: "Scope changed: drop phase 3 from the add-pairs plan artifact"
     should_trigger: true
+  - prompt: "c1 and c2 on the hook-retry plan are fair, update the plan for them"
+    should_trigger: true
   - prompt: "Write a new implementation plan for task hook-retry"
     should_trigger: false
   - prompt: "Answer the open review comments on the research file without rewriting it"

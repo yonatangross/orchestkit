@@ -151,5 +151,21 @@ mkdir -p "$T/real" && cp "$A" "$T/real/artifact.mjs" && ln -s "$T/real" "$T/link
 RC=0; node "$T/link/artifact.mjs" bogus >/dev/null 2>&1 || RC=$?
 [ "$RC" -eq 2 ] && ok "unknown command through a symlinked path exits 2" || bad "symlinked path rc=$RC"
 
+# 13. a string option with no value is a usage error (exit 2), never the value `true`
+RC=0; node "$A" create --tasks-dir "$D" --task gate-task --kind plan --slug no-title --author lane-x --body "$T/p1.md" --title >/dev/null 2>&1 || RC=$?
+[ "$RC" -eq 2 ] && [ -z "$(ls "$D/gate-task" | grep -- '-no-title.md')" ] && ok "--title with no value exits 2 and writes nothing" || bad "--title with no value rc=$RC"
+RC=0; node "$A" create --task gate-task --kind plan --slug no-dir --author lane-x --body "$T/p1.md" --tasks-dir >/dev/null 2>&1 || RC=$?
+[ "$RC" -eq 2 ] && ok "--tasks-dir with no value exits 2, not a stack trace" || bad "--tasks-dir with no value rc=$RC"
+
+# 14. comment text is stored literally: $$, $& and $` are not replacement patterns
+P4="$(node "$A" create --tasks-dir "$D" --task gate-task --kind plan --slug dollar --author lane-x --body "$T/p1.md")"
+node "$A" comment --file "$P4" --author reviewer-y --text 'costs $$5, see $& and $` here' >/dev/null 2>&1
+grep -qF 'costs $$5, see $& and $` here' "$P4" && ok "comment text with \$ patterns is stored literally" || bad "comment text with \$ patterns was rewritten"
+
+# 15. the writer refuses text it could not read back: a literal <comment in comment text
+SUM_BEFORE="$(cksum < "$P4")"
+RC=0; node "$A" comment --file "$P4" --author reviewer-y --text "the <comment tag needs an id" >/dev/null 2>&1 || RC=$?
+[ "$RC" -eq 2 ] && [ "$(cksum < "$P4")" = "$SUM_BEFORE" ] && ok "comment refuses text with <comment and writes nothing" || bad "comment with <comment in text rc=$RC"
+
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

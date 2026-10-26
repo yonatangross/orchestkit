@@ -9,6 +9,8 @@ trigger_evals:
     should_trigger: true
   - prompt: "Widen the hook-retry research to also cover the retry queue"
     should_trigger: true
+  - prompt: "the reviewer says the hook-retry research got the retry path wrong, recheck the code and fix the file"
+    should_trigger: true
   - prompt: "Revise the add-pairs plan from its comments"
     should_trigger: false
   - prompt: "Start a new research file on the memory index"
