@@ -1,0 +1,29 @@
+# Created: 2026-10-24 (L6 artifact pairs, #4897)
+id: iterate-plan
+name: "Iterate-plan skill evaluation"
+skill_path: src/skills/iterate-plan/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "The reviewer commented on .ork/tasks/add-pairs/02-plan-add-pairs.md, revise the plan from the comments"
+    should_trigger: true
+  - prompt: "Scope changed: drop phase 3 from the add-pairs plan artifact"
+    should_trigger: true
+  - prompt: "c1 and c2 on the hook-retry plan are fair, update the plan for them"
+    should_trigger: true
+  - prompt: "Write a new implementation plan for task hook-retry"
+    should_trigger: false
+  - prompt: "Answer the open review comments on the research file without rewriting it"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Revise .ork/tasks/add-pairs/02-plan-add-pairs.md from its open comments"
+    assertions:
+      - name: "iterates through the script"
+        check: "the body is rewritten with artifact.mjs iterate, not by editing the file directly"
+      - name: "comments kept"
+        check: "the reply states that every earlier review comment is kept and the revision number went up"
+      - name: "no self-resolve"
+        check: "the skill does not mark the reviewer's comments resolved on its own; it points to review-artifact-comments for that"
+
+tags: [iterate-plan, artifacts, planning, review]

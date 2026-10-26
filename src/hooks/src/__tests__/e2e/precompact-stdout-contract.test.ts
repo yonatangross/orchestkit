@@ -72,7 +72,10 @@ const PRECOMPACT_HOOKS = [
   'lifecycle/webhook-forwarder',
 ];
 
-describe('PreCompact stdout contract (#3321)', () => {
+// Every case cold-starts a real hook process (execFileSync of run-hook.mjs),
+// which vitest's 5 s default does not cover on a loaded machine: pre-push
+// failed here at load1 60 to 150 with unrelated diffs (#4911).
+describe('PreCompact stdout contract (#3321)', { timeout: 30_000 }, () => {
   it.each(PRECOMPACT_HOOKS)(
     '%s writes nothing to stdout when it does not block',
     (hookName) => {

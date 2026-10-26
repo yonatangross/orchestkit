@@ -4,9 +4,9 @@
 /**
  * Worktree Advisory Consumer — UserPromptSubmit Hook (#1794 PR-2)
  *
- * Reads pending advisories from `.claude/state/worktree-advisory-*.md`,
- * deletes the files, and injects the concatenated content as
- * `additionalContext` on the next user prompt.
+ * Reads pending advisories from `.claude/state/worktree-advisory-*.md` and
+ * injects their content as `additionalContext` on the next user prompt. The
+ * dispatcher deletes the captured files only after including that context.
  *
  * Why this exists: CC does NOT consume `additionalContext` on
  * `WorktreeCreate` events — PR-1 (#1797) had to switch
@@ -17,7 +17,7 @@
  * across the event boundary: written by the worktree hook, picked up by
  * the next `UserPromptSubmit`.
  *
- * One-shot: files are deleted after read, so advisories never repeat.
+ * One-shot: delivered files are acknowledged so advisories do not repeat.
  *
  * Hook event: UserPromptSubmit
  * Cost: one readdirSync per prompt (project root scan of `.claude/state/`),
@@ -27,13 +27,41 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { consumeWorktreeAdvisories } from '../lib/worktree-advisory.js';
+import {
+  acknowledgeWorktreeAdvisories,
+  readWorktreeAdvisories,
+  type PendingWorktreeAdvisories,
+} from '../lib/worktree-advisory.js';
 
 const HOOK_NAME = 'prompt/worktree-advisory-consumer';
 
 export function worktreeAdvisoryConsumer(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
+): HookResult {
+  return runWorktreeAdvisoryConsumer(input, ctx, false);
+}
+
+const pendingDeliveries = new WeakMap<HookResult, { projectDir: string; pending: PendingWorktreeAdvisories }>();
+
+export function worktreeAdvisoryConsumerForDispatcher(
+  input: HookInput,
+  ctx: HookContext = NOOP_CTX,
+): HookResult {
+  return runWorktreeAdvisoryConsumer(input, ctx, true);
+}
+
+export function acknowledgeWorktreeAdvisoryDelivery(result: HookResult): void {
+  const delivery = pendingDeliveries.get(result);
+  if (!delivery) return;
+  acknowledgeWorktreeAdvisories(delivery.projectDir, delivery.pending);
+  pendingDeliveries.delete(result);
+}
+
+function runWorktreeAdvisoryConsumer(
+  input: HookInput,
+  ctx: HookContext,
+  deferAcknowledgement: boolean,
 ): HookResult {
   // Defensive: malformed (null/undefined) input must not crash the hook —
   // run-hook.mjs already validates shape, but bare safety is worth ~3 lines.
@@ -45,9 +73,16 @@ export function worktreeAdvisoryConsumer(
   // Session-scoped (#2919): only advisories written by THIS session (or
   // legacy un-keyed files) are consumed — another session's advisory must
   // not be stolen-and-deleted before its owner's next prompt.
-  const advisories = consumeWorktreeAdvisories(projectDir, input.session_id || ctx.sessionId || '');
-  if (!advisories) return outputSilentSuccess();
+  const pending = readWorktreeAdvisories(projectDir, input.session_id || ctx.sessionId || '');
+  if (!pending) return outputSilentSuccess();
 
-  ctx.log(HOOK_NAME, `Injecting deferred worktree advisory (${advisories.length} chars)`);
-  return outputPromptContext(advisories);
+  ctx.log(HOOK_NAME, `Injecting deferred worktree advisory (${pending.content.length} chars)`);
+  if (!deferAcknowledgement) {
+    acknowledgeWorktreeAdvisories(projectDir, pending);
+    return outputPromptContext(pending.content);
+  }
+
+  const result = outputPromptContext(pending.content);
+  pendingDeliveries.set(result, { projectDir, pending });
+  return result;
 }

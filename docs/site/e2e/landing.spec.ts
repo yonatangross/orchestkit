@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { CHANGELOG_ENTRIES } from '../lib/generated/changelog-data';
 
 /**
  * E2E coverage for the catalog-first landing page.
@@ -280,8 +281,11 @@ test.describe('Landing changelog', () => {
     // .first(): the legend chip; the release-mix diagram renders the same words
     // asynchronously, which made this a strict-mode race.
     await expect(page.getByText('new capability').first()).toBeVisible();
-    // Releases are 10.0.0-beta.N now; RecentVersions links those anchors.
-    await expect(page.getByRole('link', { name: /10\.0\.0-beta\.\d+/ }).first()).toBeVisible();
+    // RecentVersions links the newest releases by anchor. Assert the newest
+    // one from the generated data: a hard-coded 10.0.0-beta.N pattern broke
+    // once six stable releases pushed the last beta out of the window (#4900).
+    const newest = CHANGELOG_ENTRIES[0].version;
+    await expect(page.locator(`a[href="#${newest}"]`).first()).toBeVisible();
   });
 });
 

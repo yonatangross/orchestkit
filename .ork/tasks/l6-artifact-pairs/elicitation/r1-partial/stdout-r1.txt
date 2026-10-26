@@ -1,0 +1,10 @@
+All three ran once each, in the order you asked. Results verbatim:
+
+- ask_plain: `ask_plain (task param absent) elicitation answered: {"action":"cancel"}`
+- ask_secret: `ask_secret (task param absent) elicitation answered: {"action":"decline"}`
+- ask_in_task: `ask_in_task (task param absent) elicitation answered: {"action":"cancel"}`
+
+**Open**: none
+**Decide**: none
+**Next**: State: ✅ 3 done · 🔄 0 running · ⏸ 0 waiting on you
+EXIT=0

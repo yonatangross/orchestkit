@@ -1,7 +1,7 @@
 {
   "name": "prompt-enhancer",
-  "version": "0.1.2",
-  "description": "Review enhanced prompts before sending them",
+  "version": "0.2.0",
+  "description": "Review enhanced prompts before sending them: short, stack-aware rewrites",
   "author": {
     "name": "OrchestKit"
   }

@@ -297,6 +297,51 @@ describe('spawnIdentityGenerator (RC2 — minimal child context)', () => {
     expect(opts?.cwd).toBe(tmpdir());
     expect(opts?.detached).toBe(true);
   });
+
+  it('gives the child zero tools, so it can never run Bash or WebFetch, restricted parent or not', () => {
+    spawnIdentityGenerator('do a thing', 'feat/x', join(dir, 'out.raw'), dir);
+    const [, args] = vi.mocked(spawn).mock.calls[0] as [string, string[], unknown];
+
+    // `--tools ""` disables every built-in tool (CC --help, 2.1.277 floor). A
+    // hook cannot read whether its parent session is --restricted, so the
+    // child gets nothing in either case.
+    const at = args.indexOf('--tools');
+    expect(at).toBeGreaterThan(-1);
+    expect(args[at + 1]).toBe('');
+    expect(args.filter((a) => a === '--tools')).toHaveLength(1);
+    for (const tool of ['Bash', 'WebFetch', 'Read', 'Write', 'Edit', 'default']) {
+      expect(args).not.toContain(tool);
+    }
+    // The flag must come before the prompt, or the CLI reads the prompt as a
+    // tool name list.
+    expect(at).toBeLessThan(args.length - 1);
+    expect(args[args.length - 1]).toContain('You name coding sessions');
+  });
+
+  it('pins the full child argv: restricted, zero tools, no MCP, no plugins, hooks off', () => {
+    spawnIdentityGenerator('do a thing', 'feat/x', join(dir, 'out.raw'), dir);
+    const [, args] = vi.mocked(spawn).mock.calls[0] as [string, string[], unknown];
+
+    // Every flag before the prompt, in order. Adding or dropping one has to be
+    // a deliberate change here. --restricted makes the child ignore user,
+    // project and local settings files (its cwd is tmpdir()); --settings still
+    // applies under it.
+    expect(args.slice(0, -1)).toEqual([
+      '-p',
+      '--model',
+      'haiku',
+      '--strict-mcp-config',
+      '--mcp-config',
+      '{"mcpServers":{}}',
+      '--disable-slash-commands',
+      '--tools',
+      '',
+      '--restricted',
+      '--settings',
+      '{"disableAllHooks":true,"enabledPlugins":{}}',
+    ]);
+    expect(args[args.length - 1]).toContain('You name coding sessions');
+  });
 });
 
 describe('readEffectiveLanguage (#2443)', () => {

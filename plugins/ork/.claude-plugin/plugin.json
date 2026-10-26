@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "10.1.1",
-  "description": "Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 163 hooks for review, testing, security and memory. Hooks run on prompts and tool calls; network access is opt-in and off by default.",
+  "version": "10.2.2",
+  "description": "Skills, agents and hooks for Claude Code: 115 skills, 36 agents, 161 hooks for review, testing, security and memory. Hooks run on prompts and tool calls; network access is opt-in and off by default.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com",

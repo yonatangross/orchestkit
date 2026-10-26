@@ -61,11 +61,27 @@ if [ "$RC" -ne 0 ]; then fail "claude exited $RC"; head -c 2000 "$SCRATCH/stderr
 RESULT="$(node -e 'try{const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));process.stdout.write(String(r.is_error===false&&/\bok\b/i.test(String(r.result))))}catch{process.stdout.write("false")}' "$SCRATCH/result.json")"
 [ "$RESULT" = "true" ] && pass "run completed with result ok, is_error false" || { fail "result envelope: $(head -c 400 "$SCRATCH/result.json")"; }
 
-# Assertion 2: the process really was restricted (no Bash, no WebFetch offered)
-TOOLS="$(node -e 'const fs=require("fs");const L=fs.readFileSync(process.argv[1],"utf8").trim().split("\n").map(l=>JSON.parse(l)).filter(r=>r.method==="POST"&&/\/v1\/messages/.test(r.path)&&Array.isArray(r.tools)&&r.tools.length>5);process.stdout.write(L.length?L[0].tools.join(","):"")' "$SCRATCH/requests.jsonl")"
-if [ -z "$TOOLS" ]; then fail "stub saw no /v1/messages request with a tool list"; else
-  if grep -qE '(^|,)(Bash|WebFetch)(,|$)' <<< "$TOOLS"; then fail "tool list still offers Bash/WebFetch: $TOOLS"; else pass "restricted proven: tool list has no Bash/WebFetch ($(tr ',' '\n' <<< "$TOOLS" | wc -l | tr -d ' ') tools)"; fi
-fi
+# Assertion 2: the process really was restricted (no Bash, no WebFetch offered).
+# EVERY tool-bearing request counts, not just the first: a hook that spawns a
+# nested `claude` sends its own request through the same stub, and checking only
+# the first one made the verdict depend on which request landed first (main red
+# 3 of 15 runs, 10-23 to 10-25). At least one request must carry the main loop's
+# tool list (more than 5 tools), so the check can never pass on no data.
+# Line 1 of the report: tooled main bad; then one line per offending request.
+TOOLS_REPORT="$SCRATCH/tools-report.txt"
+node -e '
+const fs=require("fs");
+const L=fs.readFileSync(process.argv[1],"utf8").trim().split("\n").map(l=>JSON.parse(l))
+  .filter(r=>r.method==="POST"&&/\/v1\/messages/.test(r.path)&&Array.isArray(r.tools)&&r.tools.length>0);
+const main=L.filter(r=>r.tools.length>5).length;
+const bad=L.filter(r=>r.tools.some(t=>t==="Bash"||t==="WebFetch"));
+const out=[`${L.length} ${main} ${bad.length}`, ...bad.map(r=>`${r.model}: ${r.tools.join(",")}`)];
+fs.writeFileSync(process.argv[2], out.join("\n")+"\n");
+' "$SCRATCH/requests.jsonl" "$TOOLS_REPORT"
+read -r N_TOOLED N_MAIN N_BAD < "$TOOLS_REPORT"
+if [ "${N_MAIN:-0}" -eq 0 ]; then fail "stub saw no /v1/messages request with the main tool list (more than 5 tools)"
+elif [ "${N_BAD:-0}" -gt 0 ]; then fail "$N_BAD of $N_TOOLED tool-bearing requests offer Bash/WebFetch: $(tail -n +2 "$TOOLS_REPORT" | tr '\n' ' ')"
+else pass "restricted proven: none of $N_TOOLED tool-bearing requests offers Bash/WebFetch"; fi
 
 # Assertion 3 + 4: plugin hooks fired, and the failing set matches the accepted list
 TIMING="$FAKE_HOME/.claude/analytics/hook-timing.jsonl"

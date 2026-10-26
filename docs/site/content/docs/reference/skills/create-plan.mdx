@@ -1,0 +1,259 @@
+---
+title: "Create Plan"
+description: "Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+
+```bash title="Invoke"
+/ork:create-plan
+```
+
+<ContextualSkillSidebar slug="create-plan" />
+
+> **Create Plan** Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback.
+
+
+# create-plan
+
+Turn what is known about a task into one plan file that a person can review line by line. The plan
+lives in the task directory, and comments are written into the file, so the review history stays
+with the plan and survives a new session.
+
+The layout (path, file name, front matter, comment block, the "done" signal) is fixed in
+[references/artifact-layout.md](references/artifact-layout.md). Only `scripts/artifact.mjs` writes
+the front matter.
+
+## Steps
+
+1. **Find the task directory.** Ask for the task name if it was not given (kebab-case, one per
+   branch, issue or lane). List what is already there:
+
+   ```bash
+   node "${CLAUDE_SKILL_DIR}/scripts/artifact.mjs" status --task-dir .ork/tasks/<task>
+   ```
+
+2. **Read every artifact in it in full**, in NN order: research, earlier plans, and their comment
+   blocks. Open comments on an earlier artifact are requirements unless they were resolved.
+3. **Read the code the research points at.** Every file the plan changes must be opened, so file
+   paths and code in the plan are real.
+4. **Write the body** to a scratch file, using
+   [references/plan-template.md](references/plan-template.md). Each phase is testable on its own,
+   names the files it changes, and ends with runnable automated checks.
+5. **Create the artifact** through the script (never write the file directly):
+
+   ```bash
+   node "${CLAUDE_SKILL_DIR}/scripts/artifact.mjs" create \
+     --task <task> --kind plan --slug <slug> --title "<title>" --author <your seat> --body /tmp/plan-body.md
+   # prints .ork/tasks/<task>/NN-plan-<slug>.md
+   ```
+
+6. **Reply with the path and stop.** Ask the reviewer to comment in the file (or run
+   `/ork:review-artifact-comments` after they do). Do not start implementing.
+
+## Rules
+
+- When documents disagree, the newest wins: plan over research over the original ask.
+- Out of scope is a section, not an afterthought: list what the plan will not do.
+- Manual checks only where a person really has to look; do not pad phases with them.
+- A second plan for the same task is a new artifact (new NN), not an edit of the old one. Revising
+  the same plan is `iterate-plan`.
+
+## Related
+
+- `/ork:iterate-plan`: revise this plan from review comments, keeping every comment.
+- `/ork:create-research`: the research artifact this plan should read first.
+- `/ork:review-artifact-comments`: read, answer and resolve comments on any artifact.
+
+
+---
+
+## References (2)
+
+### Artifact Layout
+
+# ork task artifact layout (schema 1)
+
+The contract for the artifact pairs (`create-plan`, `iterate-plan`, `create-research`,
+`iterate-research`, `review-artifact-comments`). Anything that reads artifacts, such as the L2
+auto-advance table that treats an approved artifact as "phase done", cites this file. One writer owns
+the format: `scripts/artifact.mjs` in each of the five skills (canonical copy
+`scripts/_shared/artifact.mjs`, kept in sync by `scripts/sync-shared-scripts.sh`). Never hand-write
+the front matter; hand-typed comments are fine (see Comments).
+
+Tested by `tests/skills/test-artifact-pairs.sh`. Changing any rule below is a schema change: bump
+`ork_artifact` and say so in the PR.
+
+## Path
+
+```
+<repo root>/.ork/tasks/<task>/<NN>-<kind>-<slug>.md
+```
+
+| Part | Rule |
+|---|---|
+| `<repo root>` | `git rev-parse --show-toplevel`, else the current directory. `--tasks-dir` overrides `.ork/tasks` |
+| `<task>` | kebab-case, one directory per task (a branch, an issue, a lane) |
+| `<NN>` | two digits, chronological: the highest `NN-` prefix in the directory plus 1, starting at `01` |
+| `<kind>` | `research` or `plan` (schema 1). New kinds are added to `KINDS` in the script and to this table |
+| `<slug>` | kebab-case, what the artifact is about |
+
+Example: `.ork/tasks/l6-artifact-pairs/01-plan-artifact-pairs.md`.
+
+The NN order is the reading order. A plan written after its research has a higher NN. A second plan
+for the same task is a new file with a new NN, not an overwrite.
+
+## Front matter
+
+Plain `key: value` lines between `---` fences, in this order:
+
+| Key | Values | Set by |
+|---|---|---|
+| `ork_artifact` | `1` | create |
+| `task` | the task directory name | create |
+| `kind` | `research` or `plan` | create |
+| `slug` | the slug in the file name | create |
+| `title` | a JSON string | create |
+| `author` | the seat that wrote the artifact (`--author`, required; no `<` or `>`) | create |
+| `revision` | integer, `1` on create, plus 1 on every iterate | create, iterate |
+| `status` | `draft`, `in-review` or `approved` | see Status |
+| `created` | ISO 8601 UTC, never changes | create |
+| `updated` | ISO 8601 UTC of the last change to the artifact itself | create, iterate, approve (comment, reply and resolve leave it alone) |
+| `repo`, `branch`, `sha` | git state when the artifact was created; `sha` is refreshed on iterate | create, iterate |
+| `approved_by`, `approved_at`, `approved_ref` | the approving seat, when, and the LAND message or comment id it acted on; present only once approved | approve |
+
+## Body
+
+Everything between the front matter and the comment block. `create` and `iterate` take the body
+from a file (`--body`) and refuse a body that carries its own comment block, so the comments can
+never be duplicated or dropped by a rewrite.
+
+## Comments
+
+The last part of the file, between two marker lines:
+
+```
+<!-- ork:comments -->
+<comment id="c1" author="Reviewer" status="open" at="2026-10-24T06:20:00.000Z">
+> the line the comment is about
+Say which file step A touches.
+  Author: Will do.
+</comment>
+<!-- /ork:comments -->
+```
+
+| Line | Meaning |
+|---|---|
+| `<comment id="cN" author="..." status="open\|resolved" at="...">` | one comment; ids are `c1`, `c2`, ... in order of creation; `at` is optional |
+| `> ...` | the quoted text the comment is about (optional) |
+| plain line | the comment text |
+| two spaces, `Name: text` | a reply, in order |
+| `</comment>` | end of the comment |
+
+A reviewer may type a comment into the block by hand in this shape; the script reads it like any
+other. A comment on one line (`<comment id="c2" author="Operator" status="open">Cite the hook file.</comment>`)
+and CRLF line endings read the same way. Attribute values are double-quoted and carry no `"`, `<`
+or `>` (the script refuses those in `--author` and `--by`).
+
+**The gate fails closed.** Every `<comment` opening in the block counts. One the script cannot read
+(no `</comment>`, or an open tag in another shape) is listed as an open comment with id `?` and the
+block line it starts on, so `approve` refuses and `status` reports `done: false` until someone fixes
+its shape. Resolving keeps the comment (status `resolved` plus a reply saying how). Nothing deletes a
+comment.
+
+**Iterate keeps every comment byte for byte.** `iterate` rewrites the front matter and the body and
+writes the comment block back exactly as it read it.
+
+## Status and the "phase done" signal
+
+| Event | Status |
+|---|---|
+| create | `draft` |
+| first comment added | `draft` becomes `in-review` |
+| iterate of an `approved` artifact | back to `in-review` (a changed artifact needs a new approval) |
+| approve | `approved`; needs `--by <seat>` and `--ref <LAND or comment id>` (exit 2 without them); refused (exit 1) while any comment is open or when `--by` is the `author` |
+
+An artifact is **done** when `status: approved`, it has no open comment, and `approved_by` is set and is not its `author`. A lane never approves its own artifact: L2 must not advance on self-approval. Read it with:
+
+```bash
+node scripts/artifact.mjs status --task-dir .ork/tasks/<task> --json
+# [{"file":"01-plan-x.md","kind":"plan","slug":"x","revision":2,"status":"approved","open_comments":0,"approved_by":"reviewer-y","done":true}]
+```
+
+A file named like an artifact that no longer parses is listed with `"status":"unreadable"`,
+`"done":false` and an `error`, never dropped.
+
+A phase is done when its kind has at least one `done` artifact. L2 should read `done` and not
+re-derive it from the fields.
+
+## Exit codes
+
+`0` done, `1` refused by artifact state (approve with open comments), `2` bad usage or invalid input
+(nothing written), `3` unexpected error. Every write goes to a temp file and is renamed into place, so
+a reader never sees half a file.
+
+## Provenance
+
+Ported from humanlayer's riptide plugin (`apps/riptide-rpi-claude-plugin/skills`: create/iterate
+pairs plus `review-artifact-comments`, Apache-2.0). The difference: humanlayer keeps comments in a
+cloud service behind an MCP server; ork keeps them in the artifact file, so the file is the whole
+review record and no service is needed.
+
+
+### Plan Template
+
+# Plan body template
+
+Adapted from humanlayer's riptide `plan_template.md` (Apache-2.0). This is the BODY only: the
+front matter and comment block are written by `scripts/artifact.mjs`.
+
+````markdown
+# <Task name>: implementation plan
+
+## Overview
+What is being built and why, in two or three sentences.
+
+## Current state
+What exists now, with `file:line` references. What is missing. Constraints found while reading.
+
+## Desired end state
+What is true when the plan is done, and the one check that proves it.
+
+## Out of scope
+What this plan will not do, so the review can hold it to that.
+
+## Approach
+The strategy in a paragraph, and why it beats the obvious alternative.
+
+---
+
+## Phase 1: <name>
+
+### Changes
+**File**: `path/to/file.ext` (around line N)
+What changes, then the code:
+
+```diff
++ export function newThing() \{
++   ...
++ \}
+```
+
+### Success criteria
+Automated:
+- [ ] `<command that must pass>`
+
+Manual (only if a person really must look):
+- [ ] <specific step>
+
+Stop here for the reviewer before phase 2 when a manual check is listed.
+
+---
+
+## Phase 2: <name>
+...
+````
+
+Use four backticks for the outer fence when the plan quotes markdown that contains three-backtick
+blocks.
+

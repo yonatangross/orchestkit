@@ -18,6 +18,57 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.2.2",
+    "date": "2026-10-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** consolidate prompt hook processes ([#4909](https://github.com/yonatangross/orchestkit/issues/4909)) ([854e144](https://github.com/yonatangross/orchestkit/commit/854e144b25365343ddc5c9dba5c072f4938a133b))",
+          "**hooks:** never spawn an unrestricted claude under --restricted ([#4906](https://github.com/yonatangross/orchestkit/issues/4906)) ([b850f51](https://github.com/yonatangross/orchestkit/commit/b850f51af1a66623b8a5c7c34ef7cdf7ee325a9d))",
+          "**site:** close the orank sandbox, card and discoverability gaps ([#4908](https://github.com/yonatangross/orchestkit/issues/4908)) ([c96a887](https://github.com/yonatangross/orchestkit/commit/c96a88732eea6e4dedd837bcca1241de8a598a86))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.2.1",
+    "date": "2026-10-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**coderabbit:** spend free OSS reviews sparingly, match org settings ([#4886](https://github.com/yonatangross/orchestkit/issues/4886)) ([431a0bf](https://github.com/yonatangross/orchestkit/commit/431a0bf12d775aff75c096459836ca93f070e9ba))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.2.0",
+    "date": "2026-10-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.1.1...v10.2.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**prompt-enhancer:** short stack-aware rewrites with a prompt-cached catalog ([#4857](https://github.com/yonatangross/orchestkit/issues/4857)) ([2a64faf](https://github.com/yonatangross/orchestkit/commit/2a64faf888aeaf2068e9f8b402efcdfaf1e4ff55))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**secrets-veil:** widen the scan-time scaling bound to 31.6x ([#4898](https://github.com/yonatangross/orchestkit/issues/4898)) ([0e364d5](https://github.com/yonatangross/orchestkit/commit/0e364d5430bffd44785909ef56be58084e5c5f09))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.1.1",
     "date": "2026-10-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1",

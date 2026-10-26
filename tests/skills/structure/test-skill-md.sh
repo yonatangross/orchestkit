@@ -541,7 +541,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=38  # prompt-focus (2026-10-07) is model-invocable but NOT slash-invocable, like paired-probe, to hold the slash-sprawl budget; careful + freeze added 2026-10-01 (skill-scoped guard hooks, disable-model-invocation, zero index tokens); page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
+EXPECTED_USER_INVOCABLE=43  # +5 2026-10-24: create-plan, iterate-plan, create-research, iterate-research, review-artifact-comments, the artifact-pair commands an operator types with an argument (L6); prompt-focus (2026-10-07) is model-invocable but NOT slash-invocable, like paired-probe, to hold the slash-sprawl budget; careful + freeze added 2026-10-01 (skill-scoped guard hooks, disable-model-invocation, zero index tokens); page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
 EXPECTED_INTERNAL=72  # +1: prompt-focus 2026-10-07, model-invocable local report kept off the slash menu; +1: error-analysis, model-invocable workflow kept off the /ork: menu cap (36) 2026-09-24; paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types); -1: testing-patterns redirect stub retired 2026-09-25
 
 missing_user_invocable=()
