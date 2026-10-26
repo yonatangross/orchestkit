@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ork",
-  "version": "10.3.0",
+  "version": "10.3.1",
   "description": "Skills, agents and hooks for Claude Code: 115 skills, 36 agents, 161 hooks for review, testing, security and memory. Hooks run on prompts and tool calls. Telemetry and webhooks are opt-in and off by default; by default some hooks call out through your own CLIs: gh on issue branches and on gh pr merge --delete-branch, and claude (haiku) to title each session.",
   "author": {
     "name": "Yonatan Gross",

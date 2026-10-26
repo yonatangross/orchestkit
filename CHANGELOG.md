@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1) (2026-10-26)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @biomejs/biome ([#4916](https://github.com/yonatangross/orchestkit/issues/4916)) ([6edae8e](https://github.com/yonatangross/orchestkit/commit/6edae8e1f210c678aa4bcc88f7dac953a7bb9f2e))
+* **deps:** bump the npm-minor-patch group ([#4920](https://github.com/yonatangross/orchestkit/issues/4920)) ([9995360](https://github.com/yonatangross/orchestkit/commit/9995360593bf06704edf788aaf7a6b9d78952852))
+* **deps:** bump the npm-minor-patch group in /docs/site with 6 updates ([#4917](https://github.com/yonatangross/orchestkit/issues/4917)) ([6886159](https://github.com/yonatangross/orchestkit/commit/6886159733d694944c3aaa1057c3c603613cf653))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#4919](https://github.com/yonatangross/orchestkit/issues/4919)) ([c9a68a0](https://github.com/yonatangross/orchestkit/commit/c9a68a069312b06ddc67e8a2735d3f15afb28cd3))
+* **traffic:** snapshot week of 2026-10-19 ([#4927](https://github.com/yonatangross/orchestkit/issues/4927)) ([17fc667](https://github.com/yonatangross/orchestkit/commit/17fc6671ff3514925ad05986706f866691d4a8f4))
+
+
+### CI/CD
+
+* bump the github-actions group with 6 updates ([#4921](https://github.com/yonatangross/orchestkit/issues/4921)) ([668b520](https://github.com/yonatangross/orchestkit/commit/668b520c4719ea6dbb25ffe7f21904e5c2633d52))
+
 ## [10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0) (2026-10-26)
 
 
