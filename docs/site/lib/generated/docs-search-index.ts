@@ -212,8 +212,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/getting-started/sandbox",
-    "title": "Try OrchestKit Safely",
-    "description": "Exercise OrchestKit without touching real data: read-only hosted tools, a dry-run install plan, and a throwaway local project."
+    "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
+    "description": "Exercise OrchestKit without touching real data: read-only hosted tools (every call is a dry run), a dry-run install plan, and a throwaway local project."
   },
   {
     "url": "/docs/getting-started/skills-sh",

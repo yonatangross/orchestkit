@@ -79,6 +79,18 @@ export function GET() {
 				tags: ["mcp", "documentation", "search", "read-only"],
 			},
 			{
+				identifier: `urn:air:${URN_HOST}:mcp:actions`,
+				displayName: "OrchestKit Actions MCP server",
+				type: "application/mcp-server-card+json",
+				// Draft-spec card for the product MCP at /api/mcp/actions. The older
+				// /.well-known/mcp/actions-server-card.json (with tools[]) stays served.
+				url: `${d}/api/mcp/actions/server-card`,
+				description:
+					"Read-only product MCP for OrchestKit: list skills, plan an install, check a config fragment. Executes nothing, so every call is safe to make in production. Streamable HTTP at /api/mcp/actions.",
+				trustManifest: TRUST_MANIFEST,
+				tags: ["mcp", "actions", "read-only", "sandbox"],
+			},
+			{
 				identifier: `urn:air:${URN_HOST}:skills:index`,
 				displayName: "Agent skills index",
 				type: "application/json",

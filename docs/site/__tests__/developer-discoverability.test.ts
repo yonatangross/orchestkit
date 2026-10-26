@@ -103,6 +103,32 @@ describe("/developers.md", () => {
 	});
 });
 
+// orank (2026-10-21), "developer resource discoverability" and "sandbox /
+// test mode": every resource title names the product, and the sandbox page is
+// reachable from llms.txt and the developer portal.
+describe("orank gaps 2026-10-21", () => {
+	it("every developer resource title names the product", () => {
+		for (const r of DEVELOPER_RESOURCES) {
+			expect(r.title, `title without the product name: ${r.title}`).toContain(
+				"OrchestKit",
+			);
+		}
+	});
+
+	it("the sandbox and test mode page is a named developer resource", () => {
+		const sandbox = NAMED_DEVELOPER_RESOURCES.find(
+			(r) => r.href === "/docs/getting-started/sandbox",
+		);
+		expect(sandbox?.kind).toBe("Sandbox and test mode");
+		expect(developerResourceLines().join("\n")).toContain(
+			"(/docs/getting-started/sandbox): Sandbox and test mode.",
+		);
+		expect(pageMarkdown("developers")).toContain(
+			"https://orchestkit.dev/docs/getting-started/sandbox",
+		);
+	});
+});
+
 describe("/yonyon.md", () => {
 	const md = pageMarkdown("yonyon");
 

@@ -375,7 +375,7 @@ describe("ARD catalog trust", () => {
 
 	it("EVERY entry carries a trustManifest, not just the host", async () => {
 		const c = await catalog();
-		expect(c.entries.length).toBe(5);
+		expect(c.entries.length).toBe(6);
 		for (const entry of c.entries) {
 			expect(
 				entry.trustManifest,

@@ -23,6 +23,7 @@ export type DeveloperResourceKind =
 	| "MCP server"
 	| "SDK documentation"
 	| "Auth docs"
+	| "Sandbox and test mode"
 	| "Install guide"
 	| "Reference docs";
 
@@ -62,6 +63,12 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		kind: "SDK documentation",
 	},
 	{
+		title: "OrchestKit sandbox and test mode",
+		desc: "How agents try OrchestKit with no side effects: every hosted tool is read-only (each call is a dry run), install plans execute nothing, and a scratch project holds local runs.",
+		href: "/docs/getting-started/sandbox",
+		kind: "Sandbox and test mode",
+	},
+	{
 		title: "OrchestKit plugin install and setup",
 		desc: "Install the plugin on Claude Code, Cursor, Codex, Devin, OpenCode, Muse Code, Pi or Antigravity, then configure it.",
 		href: "/docs/getting-started/installation",
@@ -92,29 +99,29 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		kind: "API docs",
 	},
 	{
-		title: "MCP server (hosted, Streamable HTTP)",
+		title: "OrchestKit Docs MCP server (hosted, Streamable HTTP)",
 		desc: "Connect AI agents to the docs natively. No auth. Server card at /.well-known/mcp/server-card.json.",
 		href: "/api/mcp",
 	},
 	{
-		title: "MCP server (stdio, Docker image)",
+		title: "OrchestKit Docs MCP server (stdio, Docker image)",
 		desc: "Run locally: docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp. Multi-arch (amd64 + arm64).",
 		href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
 		external: true,
 	},
 	{
-		title: "NLWeb natural-language endpoint",
+		title: "OrchestKit NLWeb natural-language endpoint",
 		desc: "POST or GET /ask with a question; JSON or SSE streaming responses (NLWeb protocol).",
 		href: "/ask?query=what+is+orchestkit",
 	},
 	{
-		title: "CLI (npm)",
+		title: "OrchestKit CLI (npm)",
 		desc: "orchestkit, the official CLI: install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Run it with npx orchestkit or npx ork.",
 		href: "https://www.npmjs.com/package/orchestkit",
 		external: true,
 	},
 	{
-		title: "Python package (PyPI)",
+		title: "OrchestKit Python package (PyPI)",
 		desc: "orchestkit: docs API client. orchestkit-hook-contract: typed hook I/O schemas.",
 		href: "https://pypi.org/project/orchestkit/",
 		external: true,
@@ -126,28 +133,28 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		kind: "Auth docs",
 	},
 	{
-		title: "API versioning & deprecation policy",
+		title: "OrchestKit API versioning and deprecation policy",
 		desc: "Versioning scheme, RFC 8594 Deprecation/Sunset headers, and the 6-month sunset guarantee.",
 		href: "/api-policy.md",
 	},
 	{
-		title: "llms.txt",
+		title: "OrchestKit llms.txt",
 		desc: "Machine-readable site index for AI agents: canonical description, use cases, and resource map.",
 		href: "/llms.txt",
 	},
 	{
-		title: "API catalog (RFC 9727)",
+		title: "OrchestKit API catalog (RFC 9727)",
 		desc: "Linkset of every discoverable API surface at /.well-known/api-catalog.",
 		href: "/.well-known/api-catalog",
 	},
 	{
-		title: "Source code (GitHub)",
+		title: "OrchestKit source code (GitHub)",
 		desc: "MIT-licensed monorepo: plugin source, hooks, MCP server, docs site, and CI.",
 		href: "https://github.com/yonatangross/orchestkit",
 		external: true,
 	},
 	{
-		title: "MCP registry entry",
+		title: "OrchestKit MCP registry entry",
 		desc: "io.github.yonatangross/orchestkit on the official Model Context Protocol registry, republished every release.",
 		href: "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit",
 		external: true,

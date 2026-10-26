@@ -20,6 +20,27 @@ export const SERVER_CARD_NAME = "dev.orchestkit/mcp";
 export const SERVER_CARD_DESCRIPTION =
 	"Search and read the OrchestKit Claude Code plugin docs as Markdown over MCP.";
 
+// The Actions MCP (the product MCP at /api/mcp/actions) gets its own card in
+// the same shape, served at /api/mcp/actions/server-card. It shares the
+// $schema constant above, so a schema fix lands on both cards at once.
+export const ACTIONS_SERVER_CARD_NAME = "dev.orchestkit/actions";
+
+export const ACTIONS_SERVER_CARD_DESCRIPTION =
+	"Read-only OrchestKit product MCP: list skills, plan installs, check config. Executes nothing.";
+
+export function actionsServerCard() {
+	return {
+		$schema: SERVER_CARD_SCHEMA,
+		name: ACTIONS_SERVER_CARD_NAME,
+		title: `${SITE.name} Actions MCP`,
+		description: ACTIONS_SERVER_CARD_DESCRIPTION,
+		version: SITE.version,
+		websiteUrl: SITE.domain,
+		repository: { url: SITE.github, source: "github" },
+		remotes: [{ type: "streamable-http", url: `${SITE.domain}/api/mcp/actions` }],
+	};
+}
+
 export function serverCard() {
 	return {
 		$schema: SERVER_CARD_SCHEMA,
