@@ -2935,7 +2935,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.1",
-    "sha256": "b7e0cd36f9daa780dac23be5c37ae0b8d531de4c07e8764182328bfeb2111dcb",
+    "sha256": "f9fdf30c93f0c557f2cd04fec945d5e7bdb88e90e2f0f7a64c9df905240e25b1",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3365,7 +3365,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render, one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
-    "sha256": "203b00afb602ec06e159cf3a93d4a3b769e0e97386410ff94dfd9edf4ca59df3",
+    "sha256": "ce176f15e527f2a50cb45f01c30a6ae2b918837fa18682f119c629f0f62aeccb",
     "author": "OrchestKit",
     "tags": [
       "json-render",
