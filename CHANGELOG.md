@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0) (2026-10-26)
+
+
+### Features
+
+* **skills:** plan and research artifact pairs with in-file review ([#4897](https://github.com/yonatangross/orchestkit/issues/4897)) ([266b9af](https://github.com/yonatangross/orchestkit/commit/266b9af97c0a8ff45572eddac232a5e7fca62841))
+
+
+### Bug Fixes
+
+* **ci:** open workflow PRs unarmed ([#4930](https://github.com/yonatangross/orchestkit/issues/4930)) ([0074ed3](https://github.com/yonatangross/orchestkit/commit/0074ed3254b54cdab1eb30f5aae2e4f010335ec8))
+* **plugin:** plain description that states hook scope ([#4759](https://github.com/yonatangross/orchestkit/issues/4759)) ([bf212dd](https://github.com/yonatangross/orchestkit/commit/bf212dd2385c571af5e172bf41719da91bb737fe))
+* **tests:** docs.yml parity test compares temp files, not /dev/fd ([#4933](https://github.com/yonatangross/orchestkit/issues/4933)) ([37e9abb](https://github.com/yonatangross/orchestkit/commit/37e9abb55b1b79b4b9a210a7a73c6c76b514e28b))
+
+
+### Documentation
+
+* **skills:** move the json-render skills to 0.21.3 ([#4929](https://github.com/yonatangross/orchestkit/issues/4929)) ([b09b1e6](https://github.com/yonatangross/orchestkit/commit/b09b1e6ebb56234c2d716f90a8790ab90e7ac9fc))
+
 ## [10.2.2](https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2) (2026-10-26)
 
 
