@@ -359,7 +359,7 @@ jobs:
       # not the runner default: the runner's python3 accepts PEP 695 generics
       # at compile time, which is exactly how #4265 shipped
       # `def call_llm[T: BaseModel]` into a >=3.11 codebase.
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.11"
       - name: Python skill scripts (compileall + ruff)
