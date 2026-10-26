@@ -351,6 +351,11 @@ export function spawnIdentityGenerator(
         // session was --restricted, which a hook cannot read.
         '--tools',
         '',
+        // --restricted: ignore user, project and local settings files, so a
+        // settings file in the child's cwd (tmpdir(), /tmp on Linux) cannot
+        // run an apiKeyHelper or other settings code. --settings below still
+        // applies under it. Present at the 2.1.277 floor (`claude --help`).
+        '--restricted',
         '--settings',
         '{"disableAllHooks":true,"enabledPlugins":{}}',
         buildGeneratorPrompt(firstPrompt, branch, language),
