@@ -44,6 +44,25 @@ describe('hooks.json wiring E2E', () => {
     hooksConfig = JSON.parse(content);
   });
 
+  describe('UserPromptSubmit process consolidation (#4847)', () => {
+    it('runs one dispatcher plus the two async hooks', () => {
+      const hooks = hooksConfig.hooks.UserPromptSubmit.flatMap(g => g.hooks ?? []);
+      const hookNames = hooks
+        .filter(h => h.type === 'command')
+        .map(h => h.args?.[1]);
+
+      expect(hookNames).toEqual([
+        'prompt/unified-dispatcher',
+        'prompt/thrash-detector',
+        'lifecycle/webhook-forwarder',
+      ]);
+      expect(hookNames).not.toContain('prompt/goal-tracker');
+      expect(hookNames).not.toContain('prompt/worktree-advisory-consumer');
+      expect(hooks.find(h => h.args?.[1] === 'prompt/thrash-detector')?.async).toBe(true);
+      expect(hooks.find(h => h.args?.[1] === 'lifecycle/webhook-forwarder')?.async).toBe(true);
+    });
+  });
+
   // ===========================================================================
   // StopFailure event wiring
   // ===========================================================================

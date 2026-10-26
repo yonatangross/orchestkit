@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 163-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 161-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -287,7 +287,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "163 Hooks: What Fires When",
+    "title": "161 Hooks: What Fires When",
     "description": "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
   },
   {
@@ -568,7 +568,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "OrchestKit Hooks Reference",
-    "description": "Complete reference for all 153 global lifecycle hook entries across 32 event categories."
+    "description": "Complete reference for all 151 global lifecycle hook entries across 32 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -718,7 +718,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks/user-prompt-submit",
     "title": "UserPromptSubmit",
-    "description": "Hooks triggered on UserPromptSubmit events (5 hooks)."
+    "description": "Hooks triggered on UserPromptSubmit events (3 hooks)."
   },
   {
     "url": "/docs/reference/hooks/worktree-remove",
@@ -1013,7 +1013,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/hook-validation",
     "title": "Doctor: Hook Validation",
-    "description": "OrchestKit uses 153 global hook entries across 32 event types, compiled into 11 bundles."
+    "description": "OrchestKit uses 151 global hook entries across 32 event types, compiled into 11 bundles."
   },
   {
     "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",

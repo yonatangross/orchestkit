@@ -9,7 +9,7 @@
  * handoff injector plus every-turn silent analytics, with a single
  * additionalContext output.
  *
- * 5 hooks managed by this dispatcher:
+ * 7 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
@@ -68,6 +68,13 @@ import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
 import { visualStyleNudge } from './visual-style-nudge.js';
 import { multiStepTaskNudge } from './multi-step-task-nudge.js';
+// M140 G3 (#1790) — synchronous /goal tracking and budget brake
+import { goalTracker } from './goal-tracker.js';
+// M119 PR-2 (#1794 follow-up) — deferred worktree advisory delivery
+import {
+  acknowledgeWorktreeAdvisoryDelivery,
+  worktreeAdvisoryConsumerForDispatcher,
+} from './worktree-advisory-consumer.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -92,6 +99,12 @@ interface PromptHookConfig {
   producesContext: boolean;
   /** If true, this hook runs only once per session (file-based flag tracking) */
   runOnce?: boolean;
+  /** If true, a continue:false result must stop the prompt immediately. */
+  blocksPrompt?: boolean;
+  /** If true, budget/noise filters cannot omit this context from the response. */
+  mustDeliverContext?: boolean;
+  /** Called only after the final dispatcher response contains this context. */
+  onContextDelivered?: (result: HookResult) => void;
 }
 
 // -----------------------------------------------------------------------------
@@ -99,7 +112,7 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 7 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
@@ -108,6 +121,21 @@ interface PromptHookConfig {
  * where they materialize rules files BEFORE CC loads instructions.
  */
 const HOOKS: PromptHookConfig[] = [
+  // Must stay synchronous: the budget brake has to intercept /goal before the
+  // model sees it. A block is returned directly instead of being treated as
+  // context or silently discarded.
+  { name: 'goal-tracker', fn: goalTracker, producesContext: false, blocksPrompt: true },
+
+  // Deferred WorktreeCreate advisories are consumed here so they share the
+  // dispatcher's single Node process and consolidated UserPromptSubmit output.
+  {
+    name: 'worktree-advisory-consumer',
+    fn: worktreeAdvisoryConsumerForDispatcher,
+    producesContext: true,
+    mustDeliverContext: true,
+    onContextDelivered: acknowledgeWorktreeAdvisoryDelivery,
+  },
+
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
 
@@ -402,15 +430,14 @@ function isNoisyOutput(context: string): boolean {
  * and consolidates their output into a single additionalContext response.
  */
 export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  // Guard: skip all processing for oversized or binary prompts (image paste, base64 data)
   const prompt = input.prompt || '';
-  if (prompt.length > MAX_PROMPT_LENGTH) {
-    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
-    return outputSilentSuccess();
-  }
-  if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
+  const oversizedPrompt = prompt.length > MAX_PROMPT_LENGTH;
+  const binaryPrompt = !oversizedPrompt && prompt.length > 500 && isImageOrBinaryPrompt(prompt);
+  const skipTextAnalysis = oversizedPrompt || binaryPrompt;
+  if (oversizedPrompt) {
+    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping text analysis hooks`);
+  } else if (binaryPrompt) {
     ctx.log(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
-    return outputSilentSuccess();
   }
 
   const contextParts: string[] = [];
@@ -420,6 +447,16 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // CC 2.1.94 changed default effort from 'medium' → 'high' for most user tiers.
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
+  const deliveredContexts: Array<{ hook: PromptHookConfig; result: HookResult }> = [];
+  const acknowledgeDeliveredContexts = (): void => {
+    for (const { hook, result } of deliveredContexts) {
+      try {
+        hook.onContextDelivered?.(result);
+      } catch (error) {
+        ctx.log(HOOK_NAME, `${hook.name}: failed to acknowledge delivered context: ${error}`, 'warn');
+      }
+    }
+  };
   if (effort !== DEFAULT_EFFORT_LEVEL) {
     ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
   }
@@ -429,6 +466,10 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   const projectDir = input.project_dir || (ctx.projectDir);
 
   for (const hook of HOOKS) {
+    // Blocking safety and pending-delivery hooks run before text-analysis
+    // guards; all other hooks retain protection from oversized/binary prompts.
+    if (skipTextAnalysis && !hook.blocksPrompt && !hook.mustDeliverContext) break;
+
     try {
       // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
       if (effort === 'low' && hook.runOnce && hook.producesContext) {
@@ -448,6 +489,13 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       }
 
       const result = hook.fn(input, ctx);
+
+      // goal-tracker owns the synchronous /goal budget brake. Preserve the
+      // top-level block envelope exactly; it must reach Claude Code before the
+      // prompt is processed and must not be folded into additionalContext.
+      if (hook.blocksPrompt && !result.continue) {
+        return result;
+      }
 
       // Mark once-per-session hook as done after successful execution
       if (hook.runOnce && sessionId) {
@@ -470,26 +518,38 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       }
 
       // Filter noisy/low-value context before consuming budget
-      if (isNoisyOutput(context)) {
+      if (isNoisyOutput(context) && !hook.mustDeliverContext) {
         ctx.log(HOOK_NAME, `${hook.name}: noisy output filtered`);
         continue;
       }
 
       // Budget check: don't exceed effort-adjusted token budget
       const contextTokens = estimateTokenCount(context);
-      if (totalTokens + contextTokens > tokenBudget) {
+      if (totalTokens + contextTokens > tokenBudget && !hook.mustDeliverContext) {
         ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
         continue;
       }
 
+      if (hook.mustDeliverContext && totalTokens + contextTokens > tokenBudget) {
+        ctx.log(HOOK_NAME, `Delivering ${hook.name} above the shared context budget (${contextTokens}t, cap=${tokenBudget}t)`);
+      }
+
       contextParts.push(context);
       totalTokens += contextTokens;
+      if (hook.onContextDelivered) deliveredContexts.push({ hook, result });
 
       ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
+  }
+
+  if (skipTextAnalysis) {
+    if (contextParts.length === 0) return outputSilentSuccess();
+    const output = outputPromptContext(contextParts.join('\n\n---\n\n'));
+    acknowledgeDeliveredContexts();
+    return output;
   }
 
   // Build the session title (CC 2.1.94) and decide whether to emit it.
@@ -543,7 +603,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   try {
     if (existsSync(hashFile)) {
       const lastHash = readFileSync(hashFile, 'utf8').trim();
-      if (lastHash === consolidatedHash) {
+      if (lastHash === consolidatedHash && deliveredContexts.length === 0) {
         ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
         if (emitTitle) {
           return outputPromptContextWithTitle('', sessionTitle);
@@ -568,8 +628,9 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
   }
 
-  if (emitTitle) {
-    return outputPromptContextWithTitle(consolidated, sessionTitle);
-  }
-  return outputPromptContext(consolidated);
+  const output = emitTitle
+    ? outputPromptContextWithTitle(consolidated, sessionTitle)
+    : outputPromptContext(consolidated);
+  acknowledgeDeliveredContexts();
+  return output;
 }
