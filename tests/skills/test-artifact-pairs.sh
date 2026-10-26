@@ -134,6 +134,11 @@ R="$(gate_case gt-author 't=t.replace("<!-- /ork:comments -->", "<comment id=\"c
 [ "$R" = "1 draft false" ] && ok "open comment with > in its author blocks approve" || bad "> in author: rc status done = $R"
 R="$(gate_case crlf 't=t.replace("<!-- /ork:comments -->", "<comment id=\"c1\" author=\"Operator\" status=\"open\">\r\nCite the hook file.\r\n</comment>\r\n<!-- /ork:comments -->")')"
 [ "$R" = "1 draft false" ] && ok "CRLF hand-typed open comment blocks approve" || bad "CRLF comment: rc status done = $R"
+# A tag's letter case must not hide it: each spelling is read or refused, never skipped.
+R="$(gate_case title-case 't=t.replace("<!-- /ork:comments -->", "<Comment id=\"c1\" author=\"Operator\" status=\"open\">\nCite the hook file.\n</Comment>\n<!-- /ork:comments -->")')"
+[ "$R" = "1 draft false" ] && ok "a <Comment> tag in title case blocks approve" || bad "title-case tag: rc status done = $R"
+R="$(gate_case upper-case 't=t.replace("<!-- /ork:comments -->", "<COMMENT id=\"c1\" author=\"Operator\" status=\"open\">\nCite the hook file.\n</COMMENT>\n<!-- /ork:comments -->")')"
+[ "$R" = "1 draft false" ] && ok "a <COMMENT> tag in upper case blocks approve" || bad "upper-case tag: rc status done = $R"
 R="$(gate_case broken 't=t.replace("<!-- /ork:comments -->", "<comment id=\"c1\" status=\"open\"\nCite the hook file.\n<!-- /ork:comments -->")')"
 [ "$R" = "1 draft false" ] && ok "an unreadable <comment opening blocks approve" || bad "unreadable comment: rc status done = $R"
 # The writer must never emit an attribute value it cannot read back.
@@ -166,6 +171,8 @@ grep -qF 'costs $$5, see $& and $` here' "$P4" && ok "comment text with \$ patte
 SUM_BEFORE="$(cksum < "$P4")"
 RC=0; node "$A" comment --file "$P4" --author reviewer-y --text "the <comment tag needs an id" >/dev/null 2>&1 || RC=$?
 [ "$RC" -eq 2 ] && [ "$(cksum < "$P4")" = "$SUM_BEFORE" ] && ok "comment refuses text with <comment and writes nothing" || bad "comment with <comment in text rc=$RC"
+RC=0; node "$A" comment --file "$P4" --author reviewer-y --text "the <COMMENT tag in capitals" >/dev/null 2>&1 || RC=$?
+[ "$RC" -eq 2 ] && [ "$(cksum < "$P4")" = "$SUM_BEFORE" ] && ok "comment refuses text with <COMMENT and writes nothing" || bad "comment with <COMMENT in text rc=$RC"
 
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
