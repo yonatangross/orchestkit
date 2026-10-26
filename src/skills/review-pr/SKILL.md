@@ -2,8 +2,8 @@
 name: review-pr
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
-description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
-argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
+description: "PR review in one pass over code quality, security, testing, architecture, and performance checklists, with blind refuters on every decision-bearing finding. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
+argument-hint: "[pr-number-or-branch] [--post] [--post-verdict] [--fanout]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
@@ -20,7 +20,7 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
-  version: "1.9.0"
+  version: "1.10.0"
   author: "OrchestKit"
   complexity: "medium"
   tags: "code-review, pull-request, quality, security, testing"
@@ -37,7 +37,7 @@ triggers:
 
 Host-neutral workflow. Invoke by skill name (`review-pr`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
 
-Deep code review using 6-7 parallel specialized agents.
+Deep code review in one pass in this loop, security first, with blind refuters checking every decision-bearing finding. `--fanout` restores one reviewer agent per role.
 
 ## Quick Start
 
@@ -46,7 +46,7 @@ review-pr 123
 review-pr feature-branch
 ```
 
-> **Opus 5.5**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
+> **Opus 5.5**: one loop that already holds the diff reviews it with parallel tool calls; it does not hand the diff to six fresh contexts (fold-audit 2026-10-26, #4671 measurement).
 
 ---
 
@@ -54,10 +54,10 @@ review-pr feature-branch
 
 A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
 
-Resolve the target with the script first, then review exactly that target (#3892). Read the mode and opt-in flags (`--rules`, `--standards`, `--post`, `--post-verdict`) from the arguments yourself and drop them, then run the script as one plain command (the post gate allows only simple read-only commands, so no assignment, loop or `$(...)`):
+Resolve the target with the script first, then review exactly that target (#3892). Read the mode and opt-in flags (`--rules`, `--standards`, `--post`, `--post-verdict`, `--fanout`) from the arguments yourself and drop them, then run the script as one plain command (the post gate allows only simple read-only commands, so no assignment, loop or `$(...)`):
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh <the arguments without the four flags>   # prints one JSON object: TARGET
+bash ${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh <the arguments without the five flags>   # prints one JSON object: TARGET
 ```
 
 | `kind` | Comes from | Review source |
@@ -101,15 +101,17 @@ AskUserQuestion(
 
 If the user asks for an "ultra" / "deep" / "thorough" review, do not run it from here: the post gate denies `claude ultrareview` like every command off its read list, and an ultra review is user-triggered and billed. Tell the user to type `/code-review ultra <PR>` (or run `claude ultrareview <PR> --json` in their own shell, CC 2.1.120+), and stop. Use this skill for focused modes (security-only, perf-only), project context and the KG writeback.
 
-> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill used to set `background: false` (#3093); it now runs inline (no `context: fork`), because Claude Code drops a forked skill's frontmatter hooks (measured on 2.1.294). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
+> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill used to set `background: false` (#3093); it now runs inline (no `context: fork`), because Claude Code drops a forked skill's frontmatter hooks (measured on 2.1.294). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (one pass over the security, tests, architecture and performance checklists, blind refuters on decision-bearing findings, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
 
 ---
 
 ## STEP 0b: Select Orchestration Mode
 
-Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5). Choose **Agent Teams** (mesh, reviewers cross-reference findings) or the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`.
+Default: **single pass**. This loop reviews the diff itself (Phase 3), then **Workflow** (`workflows/review-fanout.js` with `findings`) runs only the Phase 4.5 blind refuters and the gate. Every reviewer handoff re-read the same diff in a fresh context and returned a summary; the standards pass measured one agent at 107,832 tokens against 1,099,909 for the fan-out on #4667, with the same finding (#4671).
 
-**Fan-out rule:** a single pass is never a fallback. Phase 3 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a reviewer, end the run as BLOCKED and say why.
+**Single-pass rule:** the review runs in this loop, and the Phase 3 Workflow call with your `findings` is never skipped, because it runs the blind refuters at high and xhigh effort and computes the verdict; if that call does not run, end the run as BLOCKED and say why.
+
+`--fanout` (the user asks for it, or the diff is too large to review in one pass) keeps one reviewer agent per role: the Workflow call without `findings`, or **Agent Teams** / the plain **Agent tool** when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): `Read("references/orchestration-mode-selection.md")`. Read `--fanout` from the arguments with the other flags and drop it before `resolve-target.sh`.
 
 ---
 
@@ -140,7 +142,7 @@ TaskCreate(
 
 # 2. Create subtasks for each phase
 TaskCreate(subject="Gather PR information", activeForm="Gathering PR information")
-TaskCreate(subject="Launch review agents", activeForm="Dispatching review agents")
+TaskCreate(subject="Review the diff (single pass)", activeForm="Reviewing the diff")
 TaskCreate(subject="Run validation checks", activeForm="Running validation checks")
 TaskCreate(subject="Synthesize review", activeForm="Synthesizing review")
 TaskCreate(subject="Submit review", activeForm="Submitting review")
@@ -187,7 +189,7 @@ gh pr diff <PR_NUMBER> --name-only   # CHANGED_FILES, for agent scope injection
 
 From that list, decide the affected domains yourself: HAS_FRONTEND for `.ts`, `.tsx`, `.js`, `.jsx`, `.css`, `.scss`; HAS_BACKEND for `.py`, `.go`, `.rs`, `.java`; HAS_AI for paths that name llm, ai, agent, prompt or embedding.
 
-Pass `CHANGED_FILES` to every agent prompt in Phase 3. Pass domain flags to select which agents to spawn.
+Pass `CHANGED_FILES` and the domain flags to the Phase 3 Workflow call: they scope the refuters and, with `--fanout`, select the reviewers. In the single pass they also pick your checklist sections.
 
 Identify: total files changed, lines added/removed, affected domains (frontend, backend, AI).
 
@@ -208,7 +210,7 @@ When gathering PR context, run independent operations in parallel:
 - `gh pr view` (PR metadata), `gh pr diff` (changed files), `gh pr checks` (CI status)
 
 Spawn all three in ONE message. This cuts context-gathering time by 60%.
-Phase 3 runs as one Workflow call; only the Agent tool fallback launches the reviewers together by hand.
+The Phase 3 review reads with parallel tool calls the same way; only `--fanout` with the Agent tool fallback launches reviewers by hand.
 </use_parallel_tool_calls>
 
 ## Phase 2: Skills Auto-Loading
@@ -225,9 +227,9 @@ Relevant skills activated automatically:
 
 The shell owns every question, so the `/ultrareview` ask happens here, before Phase 3, never inside the workflow. Load the gate: `Read("references/ultrareview-gate.md")`: triggers from Phase 1 metadata (large diff, sensitive path, high-stakes label), the voice-friendly prompt and session-skip state, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently. A "Yes" asks the user to type `/code-review ultra <PR>` themselves (the skill cannot run it); findings they paste back merge in Phase 5 labelled "Ultrareview:".
 
-## Phase 3: Parallel Code Review (Workflow)
+## Phase 3: Review (single pass in this loop)
 
-Do NOT hand-roll the reviewers. Read CI first (Phase 4), then run the executor:
+Read CI first (Phase 4). Then review the diff yourself, in this loop: `Read("references/single-pass-review.md")` for the checklist sections (picked by FOCUS and the domain flags, security first), the rules every finding follows, and the output contract. Read with parallel tool calls; spawn no reviewer agent. Then hand your review to the executor, which runs only the blind refuters and the gate:
 
 ```python
 Workflow(
@@ -235,11 +237,14 @@ Workflow(
   args={"target": "PR #<PR_NUMBER> (or the resolved range)", "effort": EFFORT, "focus": FOCUS,
         "domains": {"backend": HAS_BACKEND, "frontend": HAS_FRONTEND, "ai": HAS_AI},
         "changedFiles": CHANGED_FILES, "projectContext": PROJECT_CONTEXT,
-        "failingChecks": <failing required checks from gh pr checks>, "modelOverride": MODEL_OVERRIDE}
+        "failingChecks": <failing required checks from gh pr checks>, "modelOverride": MODEL_OVERRIDE,
+        "findings": <your review: {status, verdict, summary, findings}>}
 )   # FOCUS from STEP 0; EFFORT is the session effort (low/medium/high/xhigh)
 ```
 
-**The script owns the mechanics, not the prose.** It picks the reviewers from `focus` and the domain flags (security first), gives each the findings schema below, and streams every decision-bearing finding (a request-changes blocker, or HIGH) to blind refuters as soon as its reviewer returns: none at low/medium, one advisory vote at high, a 3-vote quorum for a blocker and 2 for HIGH at xhigh. It dedups to root cause, never refutes ground truth, and enforces the engine section 8 ceiling of 24 refuter spawns, 6 at high (overflow comes back in `manualReview`, never dropped). It returns `verdict` (producer basis), `postRefutationVerdict`, `confirmationNeeded`, `manualReview`, `advisory`, `reviewerDisagreement`, `findings`, `ledger` and `reasons`. A dead or BLOCKED reviewer keeps approve off the table. **It never posts and never asks**: those stay in this shell. The fork does not end its turn until the call returns (#3892).
+With `--fanout`, leave out `findings` (or pass `"strategy": "fanout"`): the script then dispatches one reviewer per role instead.
+
+**The script owns the mechanics, not the prose.** In the single pass it normalizes your findings like a reviewer's; with `--fanout` it picks the reviewers from `focus` and the domain flags (security first) and gives each the findings schema below. Either way it streams every decision-bearing finding (a request-changes blocker, or HIGH) to blind refuters as soon as its reviewer returns: none at low/medium, one advisory vote at high, a 3-vote quorum for a blocker and 2 for HIGH at xhigh. It dedups to root cause, never refutes ground truth, and enforces the engine section 8 ceiling of 24 refuter spawns, 6 at high (overflow comes back in `manualReview`, never dropped). It returns `verdict` (producer basis), `postRefutationVerdict`, `confirmationNeeded`, `manualReview`, `advisory`, `reviewerDisagreement`, `findings`, `ledger` and `reasons`. A dead or BLOCKED reviewer keeps approve off the table. **It never posts and never asks**: those stay in this shell. The fork does not end its turn until the call returns (#3892).
 
 > **Trade-off:** the Workflow path gives up the fork prefix cache (CC 2.1.89 #1227, ~60% cost cut) that same-message `Agent()` spawns get. The Agent tool fallback keeps it: `Read("rules/agent-prompts-task-tool.md")`, and do NOT add `model=` or `isolation: "worktree"` there (`chain-patterns/references/fork-pattern.md`).
 
@@ -284,6 +289,8 @@ All agents MUST include a status field per `Read("../../shared/status-protocol.m
 ### Domain-Aware Agent Selection
 
 The script enforces this table from the `domains` arg; the fallback modes follow it by hand:
+
+With `--fanout` only (the single pass covers the same roles as checklist sections):
 
 | Domain Detected | Agents to Spawn |
 |----------------|-----------------|

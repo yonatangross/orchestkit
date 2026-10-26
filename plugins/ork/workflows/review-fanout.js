@@ -1,12 +1,23 @@
-// review-fanout: the executor behind /ork:review-pr Phase 3 (parallel review) and
+// review-fanout: the executor behind /ork:review-pr Phase 3 (review) and
 // Phase 4.5 (adversarial refutation).
+//
+// Strategy (fold-audit 2026-10-26): by default the SKILL.md shell reviews the
+// diff itself, in its own loop and context, against the combined checklist
+// (references/single-pass-review.md), and passes its result in as `findings`.
+// The script then runs only the blind refuters and the gate. One context that
+// already holds the diff replaces six reviewer handoffs; the refuters stay
+// separate because blindness needs a context that never saw the producer's
+// reasoning. Precedent: rule-check's standards mode, one agent at 107,832
+// tokens against 1,099,909 for the fan-out on #4667, same finding (#4671).
+// `strategy: "fanout"`, or no `findings`, keeps one reviewer agent per role.
 //
 // Replaces "launch all reviewers in ONE message" plus the refutation prose with a
 // script that owns the mechanical parts, so they hold whether or not a model
 // remembers them:
 //
-//   Review -> one reviewer per selected role (STEP 0 focus plus the Phase 1 domain
-//             flags), each returning findings in the structured output contract
+//   Review -> single: the shell's own findings, normalized like a reviewer's.
+//             fanout: one reviewer per selected role (STEP 0 focus plus the Phase 1
+//             domain flags), each returning findings in the structured output contract
 //   Refute -> every decision-bearing finding streams to blind refuters as soon as
 //             its reviewer returns (pipeline, no barrier). Effort gate: none at
 //             low/medium, one ADVISORY vote at high, quorum at xhigh (3 for a
@@ -22,7 +33,8 @@
 //
 // Run it via the Workflow tool from SKILL.md Phase 3:
 //   Workflow({ scriptPath: "<this file>", args: { target, effort, focus, domains,
-//              changedFiles, projectContext, modelOverride, failingChecks } })
+//              changedFiles, projectContext, modelOverride, failingChecks,
+//              findings, strategy } })
 //
 // It returns data and never posts: every question to the user (STEP 0 focus, the
 // /ultrareview ask, confirming a kill) and every outward write (Phase 6 gh pr
@@ -36,9 +48,9 @@
 export const meta = {
 	name: "review-fanout",
 	description:
-		"Phases 3 and 4.5 of /ork:review-pr: dispatch the focus- and domain-selected reviewers with a findings schema, stream every decision-bearing finding to blind refuters (advisory at high, quorum at xhigh, 24-spawn ceiling), and return the producer-basis verdict, the post-refutation verdict and the kills that need user confirmation. Never posts.",
+		"Phases 3 and 4.5 of /ork:review-pr: take the shell's own review (default) or dispatch the focus- and domain-selected reviewers with a findings schema (strategy fanout), stream every decision-bearing finding to blind refuters (advisory at high, quorum at xhigh, 24-spawn ceiling), and return the producer-basis verdict, the post-refutation verdict and the kills that need user confirmation. Never posts.",
 	phases: [
-		{ title: "Review", detail: "one reviewer per selected role, structured findings per the output contract" },
+		{ title: "Review", detail: "the shell's own findings (single) or one reviewer per selected role (fanout)" },
 		{ title: "Refute", detail: "blind refuters on decision-bearing findings; 1 advisory vote at high (6 max), 3 or 2 at xhigh (24 max)" },
 		{ title: "Gate", detail: "producer-basis verdict, post-refutation verdict, kills awaiting confirmation" },
 	],
@@ -106,6 +118,20 @@ const WANT = {
 	quick: ["readability"],
 }[FOCUS_SEL];
 const SELECTED = ROLES.filter((r) => WANT.includes(r.role));
+
+// Strategy. `findings` is the shell's own review: { status, verdict, findings } or a
+// bare findings array. Present means single unless the caller says fanout.
+const shellRaw = parseMaybeJson(cfg.findings, "findings");
+const STRATEGY = String(cfg.strategy || (shellRaw !== undefined ? "single" : "fanout")).toLowerCase();
+if (!["single", "fanout"].includes(STRATEGY)) throw new Error(`review-fanout: unknown strategy "${cfg.strategy}"`);
+const SINGLE = STRATEGY === "single";
+const SHELL = Array.isArray(shellRaw) ? { status: "DONE", verdict: null, findings: shellRaw } : shellRaw;
+if (SINGLE && !(SHELL && typeof SHELL === "object" && Array.isArray(SHELL.findings))) {
+	throw new Error('review-fanout: strategy "single" needs the shell review as findings ({ status, verdict, findings })');
+}
+// The shell covers every selected role's checklist in one pass, security first.
+const MAIN = { role: "main-loop", agentType: undefined, covers: SELECTED.map((r) => r.role) };
+const PRODUCERS = SINGLE ? [MAIN] : SELECTED;
 
 let EFFORT = String(cfg.effort || "high").toLowerCase();
 if (EFFORT === "max") EFFORT = "xhigh";
@@ -259,7 +285,8 @@ const reserveFor = VOTES.blocker; // HIGH findings never take the last blocker q
 
 function refuteAgent(f, v, planned) {
 	spawned += 1;
-	return agent(refutePrompt(f, v, planned), opts({ label: `refute:${f.key}`, phase: "Refute", schema: VOTE_SCHEMA, agentType: f.agentType }))
+	const typed = f.agentType ? { agentType: f.agentType } : {};
+	return agent(refutePrompt(f, v, planned), opts({ label: `refute:${f.key}`, phase: "Refute", schema: VOTE_SCHEMA, ...typed }))
 		.then((r) => r || null)
 		.catch((e) => {
 			log(`refuter ${v + 1} for ${f.key} failed (counts as upheld): ${e && e.message ? e.message : e}`);
@@ -345,12 +372,13 @@ function admit(batch) {
 	return Promise.all(jobs);
 }
 
-log(`focus=${FOCUS_SEL}, effort=${EFFORT}, ${SELECTED.length} reviewer(s), refuter ceiling ${MAX_REFUTERS}`);
+log(
+	SINGLE
+		? `strategy=single, focus=${FOCUS_SEL}, effort=${EFFORT}, shell review covers ${MAIN.covers.join(", ")}, refuter ceiling ${MAX_REFUTERS}`
+		: `strategy=fanout, focus=${FOCUS_SEL}, effort=${EFFORT}, ${SELECTED.length} reviewer(s), refuter ceiling ${MAX_REFUTERS}`,
+);
 
-const reviews = await pipeline(
-	SELECTED,
-	(r) => agent(reviewPrompt(r), opts({ label: `review:${r.role}`, phase: "Review", schema: FINDINGS_SCHEMA, agentType: r.agentType })),
-	async (res, r) => {
+async function absorb(res, r) {
 		const status = res && typeof res.status === "string" ? res.status : null;
 		if (!res || !Array.isArray(res.findings) || status === "BLOCKED" || status === "NEEDS_CONTEXT") return { role: r.role, agentType: r.agentType, outcome: "NOT-REVIEWED", status, verdict: null, findings: 0 };
 		const fresh = [];
@@ -389,11 +417,18 @@ const reviews = await pipeline(
 		await admit([...fresh, ...promoted]);
 		const verdict = ["approve", "request-changes", "comment-only"].includes(res.verdict) ? res.verdict : null;
 		return { role: r.role, agentType: r.agentType, outcome: "REVIEWED", status, verdict, findings: res.findings.length };
-	},
-);
+}
+
+const reviews = SINGLE
+	? [await absorb(SHELL, MAIN)]
+	: await pipeline(
+			SELECTED,
+			(r) => agent(reviewPrompt(r), opts({ label: `review:${r.role}`, phase: "Review", schema: FINDINGS_SCHEMA, agentType: r.agentType })),
+			absorb,
+		);
 
 phase("Gate");
-const reviewers = SELECTED.map((r, i) => reviews[i] || { role: r.role, agentType: r.agentType, outcome: "NOT-REVIEWED", status: null, verdict: null, findings: 0 });
+const reviewers = PRODUCERS.map((r, i) => reviews[i] || { role: r.role, agentType: r.agentType, outcome: "NOT-REVIEWED", status: null, verdict: null, findings: 0 });
 for (const rv of reviewers) {
 	if (rv.outcome !== "REVIEWED") raiseFloor("comment", `${rv.role} not reviewed${rv.status ? ` (status ${rv.status})` : ""}${rv.role === "security" ? ": security not reviewed" : ""}`);
 }
@@ -463,6 +498,7 @@ const ledger = findings
 
 return {
 	status: "reviewed",
+	strategy: STRATEGY,
 	target: TARGET,
 	focus: FOCUS_SEL,
 	effort: EFFORT,

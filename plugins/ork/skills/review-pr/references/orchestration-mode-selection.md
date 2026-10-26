@@ -1,8 +1,10 @@
 # Orchestration Mode Selection
 
-Choose **Agent Teams** (mesh, reviewers cross-reference findings) or **Agent tool** (star, all report to lead):
+The default is the **single pass**: the skill's own loop reviews the diff (`single-pass-review.md`) and `workflows/review-fanout.js` runs only the blind refuters and the gate. Everything below applies to `--fanout` only.
 
-0. Workflow (`workflows/review-fanout.js`) -> **default**; the rules below apply when the Workflow tool is unavailable
+With `--fanout`, choose **Agent Teams** (mesh, reviewers cross-reference findings) or **Agent tool** (star, all report to lead):
+
+0. Workflow (`workflows/review-fanout.js` without `findings`) -> **fanout default**; the rules below apply when the Workflow tool is unavailable
 1. Agent Teams mode (GA since CC 2.1.33) -> **recommended for full review with 6+ agents**
 2. Agent tool mode -> **for quick/focused review**
 3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Agent tool** (override)

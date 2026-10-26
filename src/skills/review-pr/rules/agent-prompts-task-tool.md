@@ -7,7 +7,7 @@ tags: task-tool, review, agents
 
 # Agent Prompts, Agent Tool Mode
 
-Fallback. Default: `workflows/review-fanout.js` runs Phase 3 (SKILL.md) with these roles and this contract. Without the Workflow tool, launch SIX specialized reviewers in ONE message with `run_in_background: false`.
+`--fanout` only. The default Phase 3 is the single pass in the skill's own loop (`references/single-pass-review.md`, the same checklists). With `--fanout`, `workflows/review-fanout.js` runs Phase 3 with these roles and this contract. Without the Workflow tool, launch SIX specialized reviewers in ONE message with `run_in_background: false`.
 
 **Why foreground (#3892):** review-pr runs as `context: fork`, and a fork is finished the moment its turn ends. Background reviewers let the fork end its turn with "waiting on the reviewers", so the skill reports `completed` with no verdict and the reviewer results arrive later as stray task-notifications in the parent session. Foreground calls sent in ONE message still run concurrently; the fork simply cannot end its turn until every reviewer has returned. Do not end the turn, and do not start Phase 5 synthesis, while any reviewer is still running.
 

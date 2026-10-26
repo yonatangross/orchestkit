@@ -19,6 +19,13 @@
 //   single pass is never a fallback and that skipping the fan-out ends the
 //   run as BLOCKED.
 //
+//   review-pr folded its reviewers into its own loop (fold-audit 2026-10-26,
+//   #4671 measured one agent at 107,832 tokens against 1,099,909 for the
+//   fan-out, same finding). It carries a `**Single-pass rule:**` line instead:
+//   the review runs in the loop, the Workflow call that runs the blind
+//   refuters is never skipped, and skipping it ends the run as BLOCKED. The
+//   same 2026-10-08 failure (no Workflow call on cost judgement) stays guarded.
+//
 //   Fails if: any SKILL.md that calls `Workflow(` (or ships a workflows/*.js
 //   script, #4696) sets `context: fork`; or one
 //   of the skills in FIXED stops calling Workflow( (the list would be stale)
@@ -32,7 +39,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const SKILLS = path.join(ROOT, 'src', 'skills');
-const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'review-pr', 'verify'];
+const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'verify'];
+const SINGLE_PASS = ['review-pr'];
 
 const frontmatter = (text) => {
   const m = /^---\n([\s\S]*?)\n---\n/.exec(text);
@@ -80,6 +88,26 @@ for (const name of FIXED) {
   }
 }
 
+for (const name of SINGLE_PASS) {
+  const file = path.join(SKILLS, name, 'SKILL.md');
+  const text = readFileSync(file, 'utf8');
+  if (!callers.has(name)) {
+    failures.push(`src/skills/${name}/SKILL.md: no longer calls Workflow( or ships a workflows/*.js script; update SINGLE_PASS in this test`);
+    continue;
+  }
+  const line = text.split('\n').find((l) => l.startsWith('**Single-pass rule:**'));
+  if (!line) {
+    failures.push(`src/skills/${name}/SKILL.md: no **Single-pass rule:** line at its Workflow default`);
+    continue;
+  }
+  if (!/never skipped/i.test(line) || !/refuters/i.test(line)) {
+    failures.push(`src/skills/${name}/SKILL.md: single-pass rule does not say the refuter Workflow call is never skipped`);
+  }
+  if (!/\bBLOCKED\b/.test(line)) {
+    failures.push(`src/skills/${name}/SKILL.md: single-pass rule does not end a skipped call as BLOCKED`);
+  }
+}
+
 for (const f of failures) console.log(`FAIL: ${f}`);
 if (failures.length) process.exit(1);
-console.log(`PASS: ${callers.size} skills call Workflow(, none sets context: fork, and ${FIXED.length} carry the fan-out rule`);
+console.log(`PASS: ${callers.size} skills call Workflow(, none sets context: fork, ${FIXED.length} carry the fan-out rule and ${SINGLE_PASS.length} the single-pass rule`);

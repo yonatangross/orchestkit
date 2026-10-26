@@ -6412,7 +6412,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Default: Workflow (star, workflows/review-fanout.js runs Phases 3 and 4.5). Choose Agent Teams (mesh, reviewers cross-reference findings) or the plain Agent tool when the Workflow tool is unavailable or the user wants the cross-model refuter lane (Phase 4.5): Read(\"references/orchestration-mode-selection.md\").",
+            "does": "Default: single pass. This loop reviews the diff itself (Phase 3), then Workflow (workflows/review-fanout.js with findings) runs only the Phase 4.5 blind refuters and the gate. Every reviewer handoff re-read the same diff in a fresh context and returned a summary; the standards pass measured one agent at 107,832 tokens against 1,099,909 for the fan-out on #4667, with the same finding (#4671).",
             "out": null,
             "tag": null
           }
@@ -6445,8 +6445,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "3",
-            "label": "Parallel Code Review",
-            "does": "Do NOT hand-roll the reviewers. Read CI first (Phase 4), then run the executor:",
+            "label": "Review",
+            "does": "Read CI first (Phase 4). Then review the diff yourself, in this loop: Read(\"references/single-pass-review.md\") for the checklist sections (picked by FOCUS and the domain flags, security first), the rules every finding follows, and the output contract. Read with parallel tool calls; spawn no reviewer agent. Then hand your review to the executor, which runs only the blind refuters and the gate:",
             "out": null,
             "tag": null
           },

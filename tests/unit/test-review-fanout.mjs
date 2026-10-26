@@ -513,6 +513,51 @@ await test('meta names the workflow and its three phases', async () => {
   for (const p of ['Review', 'Refute', 'Gate']) assert.match(SOURCE, new RegExp(`title: "${p}"`));
 });
 
+// 8b. strategy single (fold-audit 2026-10-26): the shell reviews, only refuters spawn
+await test('single: the shell findings go straight to refutation, no reviewer agent is spawned', async () => {
+  const { result, reviewed, refuters } = await run({ args: { findings: WITH(F()) }, refute: [UP, UP, UP] });
+  assert.deepEqual(reviewed, [], 'no review:* agent in single mode');
+  assert.equal(result.strategy, 'single');
+  assert.equal(refuters.length, 3, 'the xhigh blocker quorum still runs');
+  assert.deepEqual(result.reviewers.map((r) => [r.role, r.outcome]), [['main-loop', 'REVIEWED']]);
+  assert.equal(result.verdict, 'request-changes');
+});
+await test('single: refuters stay blind and run as a general agent (no producer type to borrow)', async () => {
+  const { refuters } = await run({ args: { findings: WITH(F()) }, refute: [UP, UP, UP] });
+  for (const c of refuters) {
+    assert.equal(c.opts.agentType, undefined);
+    assert.doesNotMatch(c.prompt, /SQL built by string concat/, 'the producer title never reaches a refuter');
+    assert.match(c.prompt, /a security defect at api\/db\.py:40/);
+  }
+});
+await test('single: a killed shell blocker needs confirmation, refutation alone never approves', async () => {
+  const { result } = await run({ args: { findings: WITH(F()) }, refute: [KILL(), KILL(), UP] });
+  assert.equal(result.verdict, 'request-changes');
+  assert.equal(result.postRefutationVerdict, 'approve');
+  assert.equal(result.confirmationNeeded.length, 1);
+});
+await test('single: a bare findings array is accepted; a BLOCKED shell review floors at comment', async () => {
+  const bare = await run({ args: { findings: [F({ severity: 'low', conventional_comment: 'nitpick', category: 'maintainability' })] } });
+  assert.equal(bare.result.strategy, 'single');
+  assert.equal(bare.result.verdict, 'approve');
+  const blocked = await run({ args: { findings: { status: 'BLOCKED', verdict: 'approve', findings: [] } } });
+  assert.equal(blocked.result.verdict, 'comment');
+  assert.match(why(blocked.result), /main-loop not reviewed/);
+});
+await test('single without findings fails loudly; fanout with findings still spawns the reviewers', async () => {
+  await assert.rejects(run({ args: { strategy: 'single' } }), /strategy "single" needs the shell review/);
+  await assert.rejects(run({ args: { strategy: 'parallel' } }), /unknown strategy "parallel"/);
+  const { reviewed, result } = await run({ args: { strategy: 'fanout', findings: WITH(F()) } });
+  assert.equal(result.strategy, 'fanout');
+  assert.deepEqual(reviewed, ['backend', 'frontend', 'readability', 'security', 'tests', 'type-safety']);
+});
+await test('single: references/single-pass-review.md carries every role checklist item (no drift)', async () => {
+  const ref = readFileSync(path.join(REPO, 'src', 'skills', 'review-pr', 'references', 'single-pass-review.md'), 'utf8');
+  const items = [...SOURCE.matchAll(/checklist: \[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
+  assert.ok(items.length >= 30, `parsed ${items.length} checklist items`);
+  for (const it of items) assert.ok(ref.includes(it.replace(/`/g, '')) || ref.includes(it), `missing from single-pass-review.md: ${it}`);
+});
+
 // 9. planted control: the harness must be able to fail
 await test('control: a stub that approves everything fails a core case of this harness', async () => {
   const stub = compile('return { status: "reviewed", verdict: "approve", postRefutationVerdict: "approve", confirmationNeeded: [], manualReview: [], advisory: [], reasons: [], reviewers: [], findings: [], ledger: [], refutersSpawned: 0, refuterCeiling: 24 };');

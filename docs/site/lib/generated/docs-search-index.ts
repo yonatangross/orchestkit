@@ -1343,7 +1343,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
-    "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
+    "description": "PR review in one pass over code quality, security, testing, architecture, and performance checklists, with blind refuters on every decision-bearing finding. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
   },
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",

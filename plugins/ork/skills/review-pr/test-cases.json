@@ -1,13 +1,14 @@
 {
   "skill": "review-pr",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "testCases": [
     {
       "id": "full-review",
       "rule": "agent-prompts-task-tool",
       "query": "Review PR #42 thoroughly",
       "expectedBehavior": [
-        "Launches 6 parallel specialized review agents",
+        "Reviews the diff in one pass in this loop, security first, and spawns no reviewer agent",
+        "Runs blind refuters through review-fanout.js on every decision-bearing finding at high or xhigh effort",
         "Covers code quality, type safety, security, tests, backend, and frontend",
         "Produces structured review report with status per area",
         "Uses conventional comment prefixes (praise, nitpick, suggestion, issue)"
@@ -29,8 +30,8 @@
       "rule": "agent-prompts-task-tool",
       "query": "Give me a quick review of PR #15",
       "expectedBehavior": [
-        "Uses single code-quality-reviewer agent only for faster turnaround",
-        "Skips deep multi-agent analysis to reduce review time",
+        "Reviews only the code-quality checklist section in one pass",
+        "Spawns no reviewer agent",
         "Provides high-level review summary with key findings highlighted",
         "Completes significantly faster than a full multi-agent review"
       ]
