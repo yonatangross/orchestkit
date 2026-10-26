@@ -2934,8 +2934,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "json-render-catalog": {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
-    "version": "1.3.0",
-    "sha256": "5ddabc022744a8dd7bf4ac2feb3a096b948166ad5da4d9a32b4622a5379f4e75",
+    "version": "1.3.1",
+    "sha256": "b7e0cd36f9daa780dac23be5c37ae0b8d531de4c07e8764182328bfeb2111dcb",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3150,7 +3150,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns.",
     "version": "1.1.0",
-    "sha256": "964603261072974ce6dfe98d29fcd061abf6af01a5f416d3e6a8177093716ff5",
+    "sha256": "8d0e4778bb0fa882cc7e95f31c8e0af6b3f570535ba354b73986c9a2f16aa2ed",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3365,7 +3365,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render, one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
-    "sha256": "55f2bbfa2c70f62f550f23adcd4887015f970e0e8738e00f0839ac3ceed96c6b",
+    "sha256": "203b00afb602ec06e159cf3a93d4a3b769e0e97386410ff94dfd9edf4ca59df3",
     "author": "OrchestKit",
     "tags": [
       "json-render",
