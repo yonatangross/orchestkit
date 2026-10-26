@@ -23,31 +23,12 @@ fail() { echo "✗ $1"; FAILS=$((FAILS + 1)); }
 ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
 
 # Prints one line per merge or arm in a workflow file, nothing when clean.
-# Exits non-zero only when it could not judge the file.
+# The checker parses the YAML and splits each run value with shell quoting
+# rules; see its docstring for exactly what it flags.
+CHECKER="$ROOT/scripts/ci/check-workflow-self-merge.py"
+[[ -f "$CHECKER" ]] || { echo "✗ missing $CHECKER"; exit 1; }
 check_workflow() {
-  awk '
-    function judge(text, at) {
-      if (text ~ /gh[[:space:]]+pr[[:space:]]+merge/ && text ~ /--auto([^[:alnum:]_-]|$)/)
-        printf "line %d runs gh pr merge with --auto\n", at
-      if (text ~ /enablePullRequestAutoMerge/)
-        printf "line %d calls enablePullRequestAutoMerge\n", at
-      if (text ~ /enable-pull-request-automerge/)
-        printf "line %d uses an automerge action\n", at
-    }
-    /^[[:space:]]*#/ { next }
-    {
-      line = $0
-      if (buf == "") start = NR
-      if (line ~ /\\[[:space:]]*$/) {
-        sub(/\\[[:space:]]*$/, " ", line)
-        buf = buf line
-        next
-      }
-      judge(buf line, start)
-      buf = ""
-    }
-    END { if (buf != "") judge(buf, start) }
-  ' "$1"
+  python3 "$CHECKER" "$1"
 }
 
 # Runs the checker on one file. Prints its findings; a checker that could
@@ -112,10 +93,9 @@ scanned=0
 if [[ "${#dirs[@]}" -gt 0 ]]; then
   while IFS= read -r -d '' wf; do
     scanned=$((scanned + 1))
-    rel="${wf#"$ROOT"/}"
     hits="$(findings_for "$wf")"
     [[ -z "$hits" ]] && continue
-    while IFS= read -r h; do fail "$rel: $h"; done <<< "$hits"  # pipebuf: bounded-small (a few short problem lines)
+    while IFS= read -r h; do fail "${h#"$ROOT"/}"; done <<< "$hits"  # pipebuf: bounded-small (a few short problem lines)
   done < <(find "${dirs[@]}" -type f \( -name '*.yml' -o -name '*.yaml' \) -print0)
 fi
 

@@ -605,6 +605,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           build-plugins: 'false'
 
+      # tests/unit/test-workflows-open-prs-unarmed.sh runs
+      # scripts/ci/check-workflow-self-merge.py, which parses each workflow
+      # with PyYAML and fails closed (exit 2) without it (#4914, #4931).
+      - name: Install PyYAML for the workflow self-merge checker
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
+
       - name: Run unit tests
         shell: bash
         run: |
