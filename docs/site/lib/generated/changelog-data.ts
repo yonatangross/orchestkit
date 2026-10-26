@@ -18,6 +18,36 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.3.0",
+    "date": "2026-10-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**skills:** plan and research artifact pairs with in-file review ([#4897](https://github.com/yonatangross/orchestkit/issues/4897)) ([266b9af](https://github.com/yonatangross/orchestkit/commit/266b9af97c0a8ff45572eddac232a5e7fca62841))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** open workflow PRs unarmed ([#4930](https://github.com/yonatangross/orchestkit/issues/4930)) ([0074ed3](https://github.com/yonatangross/orchestkit/commit/0074ed3254b54cdab1eb30f5aae2e4f010335ec8))",
+          "**plugin:** plain description that states hook scope ([#4759](https://github.com/yonatangross/orchestkit/issues/4759)) ([bf212dd](https://github.com/yonatangross/orchestkit/commit/bf212dd2385c571af5e172bf41719da91bb737fe))",
+          "**tests:** docs.yml parity test compares temp files, not /dev/fd ([#4933](https://github.com/yonatangross/orchestkit/issues/4933)) ([37e9abb](https://github.com/yonatangross/orchestkit/commit/37e9abb55b1b79b4b9a210a7a73c6c76b514e28b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**skills:** move the json-render skills to 0.21.3 ([#4929](https://github.com/yonatangross/orchestkit/issues/4929)) ([b09b1e6](https://github.com/yonatangross/orchestkit/commit/b09b1e6ebb56234c2d716f90a8790ab90e7ac9fc))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.2.2",
     "date": "2026-10-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2",

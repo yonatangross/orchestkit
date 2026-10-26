@@ -642,6 +642,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0)** · 2026-10-26
+
+- **skills:** plan and research artifact pairs with in-file review (#4897)
+- **ci:** open workflow PRs unarmed (#4930)
+- **plugin:** plain description that states hook scope (#4759)
+- **tests:** docs.yml parity test compares temp files, not /dev/fd (#4933)
+- **skills:** move the json-render skills to 0.21.3 (#4929)
+
 **[v10.2.2](https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2)** · 2026-10-26
 
 - **hooks:** consolidate prompt hook processes (#4909)
@@ -679,12 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
 - **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag (#4866)
 - **release:** pin stable channel to v10.0.0 (#4863)
-
-**[v10.0.0](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.187...v10.0.0)** · 2026-10-22
-
-- **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
-- **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav (#4823)
-- **hooks:** stdin watchdog defers one turn before an empty pipe (#4849)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
