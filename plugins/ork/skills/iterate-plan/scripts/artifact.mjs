@@ -32,15 +32,20 @@ const FILE_RE = /^(\d{2})-.+\.md$/;
 
 class UsageError extends Error {}
 
+// The only options that take no value. Every other option needs one: a string
+// option left empty used to become `true` (a "true" title, a TypeError exit 3).
+const FLAGS = new Set(['open', 'json']);
+
 function args(argv) {
   const out = { _: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (!a.startsWith('--')) { out._.push(a); continue; }
     const key = a.slice(2);
+    if (FLAGS.has(key)) { out[key] = true; continue; }
     const next = argv[i + 1];
-    if (next === undefined || next.startsWith('--')) out[key] = true;
-    else { out[key] = next; i++; }
+    if (next === undefined || next.startsWith('--')) throw new UsageError(`--${key} needs a value`);
+    out[key] = next; i++;
   }
   return out;
 }
@@ -69,7 +74,10 @@ async function defaultTasksDir() {
 
 function oneLine(s, what) {
   const v = String(s).replace(/\s*\n\s*/g, ' ').trim();
-  if (v.includes('</comment>') || v.includes('<!--')) throw new UsageError(`${what} must not contain </comment> or <!--`);
+  // <comment too: comments() would read it as a second, unreadable opening.
+  if (v.includes('</comment>') || v.includes('<!--') || v.includes('<comment')) {
+    throw new UsageError(`${what} must not contain <comment, </comment> or <!--`);
+  }
   return v;
 }
 
@@ -225,7 +233,8 @@ async function cmdComment(o) {
   const lines = [`<comment id="${id}" author="${attr(need(o, 'author'))}" status="open" at="${new Date().toISOString()}">`];
   if (typeof o.quote === 'string') lines.push(`> ${oneLine(o.quote, 'quote')}`);
   lines.push(oneLine(need(o, 'text'), 'text'), '</comment>');
-  const block = a.block.replace(CLOSE_MARK, `${lines.join('\n')}\n${CLOSE_MARK}`);
+  // A function, not a string: a replacement string would expand $$, $& and $` in the text.
+  const block = a.block.replace(CLOSE_MARK, () => `${lines.join('\n')}\n${CLOSE_MARK}`);
   if (a.fm.status === 'draft') a.fm.status = 'in-review';
   await save(path, assemble(a.fm, a.body, block, a.tail));
   console.log(id);
@@ -340,7 +349,8 @@ if (isMain) {
   const [cmd, ...rest] = process.argv.slice(2);
   const fn = COMMANDS[cmd];
   if (!fn) { console.error(USAGE); process.exit(2); }
-  fn(args(rest)).catch((e) => {
+  // args() runs inside the chain so its UsageError exits 2 like every other.
+  Promise.resolve().then(() => fn(args(rest))).catch((e) => {
     console.error(e instanceof UsageError ? `error: ${e.message}` : e.stack || String(e));
     process.exit(e instanceof UsageError ? 2 : 3);
   });
