@@ -75,7 +75,8 @@ async function defaultTasksDir() {
 function oneLine(s, what) {
   const v = String(s).replace(/\s*\n\s*/g, ' ').trim();
   // <comment too: comments() would read it as a second, unreadable opening.
-  if (v.includes('</comment>') || v.includes('<!--') || v.includes('<comment')) {
+  const low = v.toLowerCase(); // any letter case: comments() reads them all
+  if (low.includes('</comment>') || v.includes('<!--') || low.includes('<comment')) {
     throw new UsageError(`${what} must not contain <comment, </comment> or <!--`);
   }
   return v;
@@ -133,13 +134,19 @@ const OPEN_TAG = /<comment((?:\s+[a-z_]+="[^"]*")*)\s*>/y;
 export function comments(block) {
   const src = block.replace(/\r\n?/g, '\n');
   const out = [];
-  const opening = /<comment\b/g;
+  // Case-insensitive on purpose: a <Comment> or <COMMENT> tag must not be
+  // skipped. OPEN_TAG stays lowercase, so any other spelling comes back
+  // unreadable and blocks approve (review HOLD 6411209651).
+  const opening = /<comment\b/gi;
+  const nextOpening = /<comment\b/gi;
   let m;
   while ((m = opening.exec(src))) {
     OPEN_TAG.lastIndex = m.index;
     const h = OPEN_TAG.exec(src);
     const end = h ? src.indexOf('</comment>', OPEN_TAG.lastIndex) : -1;
-    const next = h ? src.indexOf('<comment', OPEN_TAG.lastIndex) : -1;
+    nextOpening.lastIndex = h ? OPEN_TAG.lastIndex : 0;
+    const nm = h ? nextOpening.exec(src) : null;
+    const next = nm ? nm.index : -1;
     if (!h || end < 0 || (next >= 0 && next < end)) {
       const line = src.slice(0, m.index).split('\n').length;
       out.push({ id: null, author: '', status: 'open', unreadable: true, quote: '',
