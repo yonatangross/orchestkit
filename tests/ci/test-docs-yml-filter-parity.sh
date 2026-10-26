@@ -97,14 +97,18 @@ FILTER_LIST="$(extract_paths filter)"
 if [[ -z "$PUSH_LIST" || -z "$FILTER_LIST" ]]; then
     bad "could not extract one of the lists (push paths or paths-filter docs); the docs.yml layout may have changed"
 else
-    # parity arm: same set, same count
-    if diff <(printf '%s\n' "$PUSH_LIST" | sort) \
-            <(printf '%s\n' "$FILTER_LIST" | sort) >/dev/null; then
+    # parity arm: same set, same count. Temp files, not process substitution:
+    # under a git hook in a sandboxed seat, diff cannot open /dev/fd/63
+    # ("Operation not permitted"), which failed this arm on an identical set.
+    PARITY_DIR="$(mktemp -d)"
+    trap 'rm -rf "$PARITY_DIR"' EXIT
+    printf '%s\n' "$PUSH_LIST" | sort > "$PARITY_DIR/push"
+    printf '%s\n' "$FILTER_LIST" | sort > "$PARITY_DIR/filter"
+    if diff "$PARITY_DIR/push" "$PARITY_DIR/filter" >/dev/null; then
         ok "push paths and paths-filter docs hold the same set"
     else
         bad "push paths and paths-filter docs differ:"
-        diff <(printf '%s\n' "$PUSH_LIST" | sort) \
-             <(printf '%s\n' "$FILTER_LIST" | sort) | sed 's/^/      /' || true
+        diff "$PARITY_DIR/push" "$PARITY_DIR/filter" | sed 's/^/      /' || true
     fi
 fi
 
