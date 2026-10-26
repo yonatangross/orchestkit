@@ -642,6 +642,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1)** · 2026-10-26
+
+- **deps-dev:** bump @biomejs/biome (#4916)
+- **deps:** bump the npm-minor-patch group (#4920)
+- **deps:** bump the npm-minor-patch group in /docs/site with 6 updates (#4917)
+- **deps:** bump the remotion group across 1 directory with 21 updates (#4919)
+- **traffic:** snapshot week of 2026-10-19 (#4927)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0)** · 2026-10-26
 
 - **skills:** plan and research artifact pairs with in-file review (#4897)
@@ -681,12 +690,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
 
 - **release:** exclude .claude-plugin from release-please commits (#4870)
-
-**[v10.0.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0...v10.0.1)** · 2026-10-22
-
-- **deps:** patch dompurify (docs/site) and ip-address (mcp-server) (#4862)
-- **release:** drop the release-as 10.0.0 pin after the v10.0.0 tag (#4866)
-- **release:** pin stable channel to v10.0.0 (#4863)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
