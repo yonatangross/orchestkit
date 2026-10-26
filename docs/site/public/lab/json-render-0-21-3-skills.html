@@ -92,14 +92,18 @@
 
   function renderPath() {
     const raw = document.getElementById("path").value;
-    const segs = raw.startsWith("/") ? raw.slice(1).split("/").map(decode) : [];
+    // Same split as parseJsonPointer in 0.21.3: one leading "/" is optional.
+    const tokens = (raw.startsWith("/") ? raw.slice(1) : raw).split("/");
+    const segs = tokens.map(decode);
+    const risky = s => s === "__proto__" || s === "constructor" || s === "prototype";
     const tbody = document.getElementById("segs");
     tbody.replaceChildren();
-    raw.slice(1).split("/").forEach((t, i) => row(tbody, t, segs[i] ?? "", segs[i] === "__proto__" ? "bad" : ""));
+    tokens.forEach((t, i) => row(tbody, t, segs[i], risky(segs[i]) ? "bad" : ""));
     const v = document.getElementById("pathv");
-    if (!raw.startsWith("/") || segs.length === 0) { v.textContent = "not a JSON Pointer: it must start with /"; v.className = "verdict warn"; }
+    if (raw === "" || raw === "/") { v.textContent = "root path: getByPath returns the whole object"; v.className = "verdict warn"; }
     else if (segs.includes("__proto__")) { v.textContent = "setByPath, addByPath and removeByPath ignore this write (no error); createStateStore and createStoreAdapter do NOT, so reject it yourself"; v.className = "verdict bad"; }
-    else { v.textContent = "applied: " + segs.length + " segment(s)"; v.className = "verdict ok"; }
+    else if (segs.some(risky)) { v.textContent = "no json-render writer guards constructor or prototype: reject this path yourself"; v.className = "verdict bad"; }
+    else { v.textContent = "no __proto__, constructor or prototype segment, so no key guard is involved: " + segs.length + " segment(s)" + (raw.startsWith("/") ? "" : " (no leading /, parsed the same)"); v.className = "verdict ok"; }
     document.getElementById("prompt").textContent =
       "Using json-render 0.21.3, write state or patch paths as RFC 6901 JSON Pointers (~0 for ~, ~1 for /) and reject __proto__, constructor and prototype keys before any state-store write (only setByPath, addByPath and removeByPath guard __proto__). Check this path: " + raw;
   }
