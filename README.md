@@ -642,6 +642,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.2.2](https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2)** · 2026-10-26
+
+- **hooks:** consolidate prompt hook processes (#4909)
+- **hooks:** never spawn an unrestricted claude under --restricted (#4906)
+- **site:** close the orank sandbox, card and discoverability gaps (#4908)
+
 **[v10.2.1](https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1)** · 2026-10-25
 
 - **coderabbit:** spend free OSS reviews sparingly, match org settings (#4886)
@@ -679,10 +685,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **mcp-visual-output:** glyph card MCP App proof, no SDK (#4663)
 - **release:** OrchestKit v10.0.0 GA, orchestkit.dev rebrand, About and nav (#4823)
 - **hooks:** stdin watchdog defers one turn before an empty pipe (#4849)
-
-**[v10.0.0-beta.187](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.186...v10.0.0-beta.187)** · 2026-10-22
-
-- **lesson-cards:** lessons are advisory, never ask or deny (#4842)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

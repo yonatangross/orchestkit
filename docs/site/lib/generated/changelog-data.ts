@@ -18,6 +18,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.2.2",
+    "date": "2026-10-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** consolidate prompt hook processes ([#4909](https://github.com/yonatangross/orchestkit/issues/4909)) ([854e144](https://github.com/yonatangross/orchestkit/commit/854e144b25365343ddc5c9dba5c072f4938a133b))",
+          "**hooks:** never spawn an unrestricted claude under --restricted ([#4906](https://github.com/yonatangross/orchestkit/issues/4906)) ([b850f51](https://github.com/yonatangross/orchestkit/commit/b850f51af1a66623b8a5c7c34ef7cdf7ee325a9d))",
+          "**site:** close the orank sandbox, card and discoverability gaps ([#4908](https://github.com/yonatangross/orchestkit/issues/4908)) ([c96a887](https://github.com/yonatangross/orchestkit/commit/c96a88732eea6e4dedd837bcca1241de8a598a86))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.2.1",
     "date": "2026-10-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1",
