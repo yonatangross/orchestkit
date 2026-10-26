@@ -100,7 +100,7 @@ else
     # parity arm: same set, same count. Temp files, not process substitution:
     # under a git hook in a sandboxed seat, diff cannot open /dev/fd/63
     # ("Operation not permitted"), which failed this arm on an identical set.
-    PARITY_DIR="$(mktemp -d)"
+    PARITY_DIR="$(mktemp -d "${TMPDIR:-/tmp}/docs-parity.XXXXXX")"
     trap 'rm -rf "$PARITY_DIR"' EXIT
     printf '%s\n' "$PUSH_LIST" | sort > "$PARITY_DIR/push"
     printf '%s\n' "$FILTER_LIST" | sort > "$PARITY_DIR/filter"
