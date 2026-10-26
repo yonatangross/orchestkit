@@ -1,0 +1,18 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: a continuation inside a subcommand that is not merge, and a
+# continuation between words, both joined the way the shell joins them.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read the PR
+        run: |
+          gh pr vi\
+          ew 123 --json state
+          gh pr view 123 \
+            --json mergeable

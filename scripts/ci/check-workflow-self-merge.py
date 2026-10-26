@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Workflow lint for #4914 and #4931: no workflow merges or arms a PR itself.
+r"""Workflow lint for #4914 and #4931: no workflow merges or arms a PR itself.
 
 Why this exists: release.yml opened the stable-pin PR and armed it with
 `gh pr merge --squash --auto`. The required checks are CI only, so #4913
 merged on CI alone, before any reviewer read it. On this repo a PR merges
 through the merge desk after a LAND names its head; a workflow only opens
 it.
+
+SCOPE: lint against accidental re-adds; not exhaustive against deliberate evasion; the real control is review + branch protection.
+The threat is us re-adding an arm to our own workflow files by mistake,
+not an attacker hiding one. A spelling found later that this misses goes
+to a follow-up issue, not a bigger rule here.
 
 How a file is read (XREVIEW 6411315417): the file is PARSED as YAML, so a
 folded (`>`) or literal (`|`) run value is judged after YAML has folded
@@ -18,20 +23,24 @@ Each `run:` value is then judged twice, and a hit from either counts:
   2. scanned with every quote and backslash removed, which reaches the
      same words when the value cannot be split (an unbalanced quote) and
      never reads less than step 1.
-Shell comment lines inside a run value are skipped by both.
+Before both, a backslash-newline is removed with nothing in its place,
+as the shell does, so `mer\` + newline + `ge` reads as `merge`
+(XREVIEW 6413344349). Shell comment lines are skipped by both.
 
 FLAGGED, no allowlist:
-  - `gh pr merge` in any form, with or without --auto, global flags
-    between `pr` and the subcommand included
+  - `gh pr merge` in any form, with or without --auto, with flags before
+    `pr` (`gh --repo o/r pr`) or between `pr` and the subcommand
   - a `gh pr` subcommand that comes from a variable or a substitution,
-    since nothing can show it is not merge
+    since nothing can show it is not merge, global flags before `pr`
+    included
   - the REST merge endpoint `pulls/<n>/merge` (gh api, curl, scripts).
     A GET of that path (is it merged?) is flagged too: deliberately
     conservative, use `pulls/<n>` and read `.merged` instead
   - the GraphQL mergePullRequest, enablePullRequestAutoMerge and
     enqueuePullRequest mutations
-  - `github.rest.pulls.merge` and the same endpoint in a github-script
-    `script:` value
+  - `github.rest.pulls.merge(`, `pulls?.merge(` and the bracket form
+    `pulls["merge"]` in a github-script `script:` value, and the REST
+    endpoint there too
   - any `uses:` action whose name says automerge or merge-pull-request
 
 Usage: check-workflow-self-merge.py FILE [FILE ...]
@@ -56,13 +65,44 @@ WORD_SPLIT = re.compile(r"[\s;&|()<>`]+")
 QUOTES_AND_BACKSLASHES = re.compile(r"[\"'\\]")
 REST_MERGE = re.compile(r"pulls/[^/\n]+/merge(?![A-Za-z0-9_-])")
 GRAPHQL_MERGE = re.compile(r"\b(mergePullRequest|enablePullRequestAutoMerge|enqueuePullRequest)\b")
-SCRIPT_MERGE = re.compile(r"\bpulls\s*\.\s*merge\s*\(")
+SCRIPT_MERGE = re.compile(
+    r"\bpulls\s*\??\.\s*merge\s*\("  # pulls.merge( and pulls?.merge(
+    r"|\bpulls\s*\??\.?\s*\[\s*([\"'`])merge\1\s*\]"  # pulls["merge"], pulls?.["merge"]
+)
 MERGE_ACTION = re.compile(r"auto-?merge|merge-?pull-?request|merge-?pr\b", re.I)
 
 
 def looks_like_gh(word: str) -> bool:
     """`gh`, a path ending in /gh, or a variable that could hold it."""
     return word == "gh" or word.endswith("/gh") or word.startswith("$")
+
+
+def gh_before(words: list[str], i: int) -> bool:
+    """Is the `pr` at index i run by gh, global flags in between allowed?
+
+    Directly before `pr`, gh or a variable that could hold it counts
+    (`gh pr`, `$GH pr`). `gh --repo o/r pr ...` puts a flag value there
+    instead (XREVIEW 6413344349), so also walk back over flags and their
+    values, but that walk only matches a LITERAL gh: a flag can take more
+    than one value (`jq --arg ts "$(date)" --arg pr "$n"`,
+    ci-sentinel.yml:298), so a $-word met on the walk is never taken as gh.
+    """
+    if i >= 1 and looks_like_gh(words[i - 1]):
+        return True
+    j = i - 1
+    while j >= 0:
+        w = words[j]
+        if w == "gh" or w.endswith("/gh"):
+            return True
+        if w.startswith("-"):
+            j -= 1
+            continue
+        prev = words[j - 1] if j >= 1 else ""
+        if prev.startswith("-") and "=" not in prev:
+            j -= 2  # w is the value of a flag such as `--repo o/r`
+            continue
+        return False
+    return False
 
 
 def subcommand_after(words: list[str], i: int) -> str | None:
@@ -84,7 +124,7 @@ def judge_words(words: list[str]) -> set[str]:
             continue
         if i + 1 < len(words) and words[i + 1] == "merge":
             found.add("runs gh pr merge")
-        if i == 0 or not looks_like_gh(words[i - 1]):
+        if not gh_before(words, i):
             continue
         sub = subcommand_after(words, i)
         if sub == "merge":
@@ -108,7 +148,9 @@ def judge_text(text: str) -> set[str]:
 
 
 def judge_run(value: str) -> set[str]:
-    joined = re.sub(r"\\\r?\n", " ", value)
+    # The shell removes a backslash-newline and inserts nothing, so a
+    # continuation inside a word joins the word (XREVIEW 6413344349).
+    joined = re.sub(r"\\\r?\n", "", value)
     code = "\n".join(line for line in joined.splitlines() if not line.lstrip().startswith("#"))
     found: set[str] = set()
 

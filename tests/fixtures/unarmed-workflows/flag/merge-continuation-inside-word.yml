@@ -1,0 +1,17 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a line continuation inside the subcommand word (XREVIEW 6413344349).
+# The shell removes the backslash-newline and inserts nothing, so this runs
+# `gh pr merge 123 --squash`.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Merge the PR
+        run: |
+          gh pr mer\
+          ge 123 --squash

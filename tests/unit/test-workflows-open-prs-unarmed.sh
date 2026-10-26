@@ -7,6 +7,9 @@
 # its PR unarmed; the merge desk arms or merges it after a LAND names the
 # head.
 #
+# SCOPE: lint against accidental re-adds; not exhaustive against deliberate evasion; the real control is review + branch protection.
+# A spelling found later that this misses goes to a follow-up issue.
+#
 # One rule, no allowlist: every workflow and composite action under
 # .github/ must pass check_workflow. The fixtures under
 # tests/fixtures/unarmed-workflows/ pin what that means: every file in

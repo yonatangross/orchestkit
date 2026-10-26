@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a gh global flag before `pr`, then a variable subcommand
+# (XREVIEW 6413344349). The word before `pr` is the flag value, not gh.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run a pr subcommand
+        env:
+          SUB: merge
+        run: gh --repo owner/repo pr "$SUB" 123 --squash

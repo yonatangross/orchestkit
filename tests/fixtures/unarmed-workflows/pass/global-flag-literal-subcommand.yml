@@ -1,0 +1,15 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: a gh global flag before `pr` with a literal, harmless subcommand.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read the PR
+        env:
+          PR: "123"
+        run: gh --repo owner/repo pr view "$PR" --json state
