@@ -236,7 +236,7 @@
         "reference_changelog_line": "Changed hooks: `updatedInput` from PreToolUse and PermissionRequest hooks is now validated like Claude's own input: unknown keys are dropped, and input the tool rejects denies the call",
         "relevance": "plugin",
         "disposition": "watch",
-        "ork_disposition_note": "Six ork hook sources build updatedInput (default-timeout-setter, gh-label-enforcer, headless-responder and three dispatchers). A key the tool does not know is now dropped silently."
+        "ork_disposition_note": "Six ork hook sources build updatedInput (default-timeout-setter, gh-label-enforcer, headless-responder and three dispatchers). A key the tool does not know is now dropped silently. headless-responder was hit: it wrote `_headless_answers`, which AskUserQuestion does not know, so it never answered anything and the key is dropped since 2.1.300; it now writes `answers` (question text -> answer string, multi-select joined with \", \"), pinned by src/hooks/src/__tests__/pretool/headless-responder.test.ts."
       },
       {
         "feature_slug": "sessionend_hooks_bg_fix",
