@@ -642,6 +642,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0)** · 2026-10-27
+
+- **cc:** adopt Claude Code 2.1.297 through 2.1.309 (#4882)
+- **hooks:** headless-responder answers through updatedInput.answers (#4941)
+- **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 (#4918)
+
 **[v10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1)** · 2026-10-26
 
 - **deps-dev:** bump @biomejs/biome (#4916)
@@ -686,10 +692,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** harden auto-approve and retry hooks (#4858)
 - **hooks:** keep a stop condition the next clause refers back to (after [#4853](https://github.com/yonatangross/orchestkit/issues/4853)) (#4880)
 - …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
-
-- **release:** exclude .claude-plugin from release-please commits (#4870)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
