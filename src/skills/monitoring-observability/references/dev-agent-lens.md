@@ -112,6 +112,10 @@ export ANTHROPIC_BASE_URL="http://localhost:4000"
 export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 ```
 
+### Alternative Proxy: Bifrost
+
+[Bifrost](https://github.com/maximhq/bifrost) is an open-source gateway that fills the same API-boundary slot. Point Claude Code at its Anthropic route (`ANTHROPIC_BASE_URL=http://localhost:8080/anthropic`, with a Bifrost virtual key in `ANTHROPIC_AUTH_TOKEN`). Bifrost logs each request with tokens, cost and latency, exposes Prometheus metrics at `/metrics`, and its OTel plugin exports GenAI-convention spans to any OTLP endpoint, including Langfuse. See the [Claude Code guide](https://docs.getbifrost.ai/cli-agents/claude-code).
+
 ## What You See in Langfuse
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:

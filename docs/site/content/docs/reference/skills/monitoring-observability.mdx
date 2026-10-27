@@ -131,7 +131,7 @@ Detection and alerting for silent failures in LLM agents.
 | `references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
 | `references/dashboards.md` | Dashboard layout conventions |
 | `references/structured-logging.md` | Structured log field conventions |
-| `references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
+| `references/dev-agent-lens.md` | LiteLLM proxy layer (or Bifrost) for API-boundary observability |
 | `examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
 | `scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 
@@ -828,6 +828,10 @@ litellm_settings:
 export ANTHROPIC_BASE_URL="http://localhost:4000"
 export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 ```
+
+### Alternative Proxy: Bifrost
+
+[Bifrost](https://github.com/maximhq/bifrost) is an open-source gateway that fills the same API-boundary slot. Point Claude Code at its Anthropic route (`ANTHROPIC_BASE_URL=http://localhost:8080/anthropic`, with a Bifrost virtual key in `ANTHROPIC_AUTH_TOKEN`). Bifrost logs each request with tokens, cost and latency, exposes Prometheus metrics at `/metrics`, and its OTel plugin exports GenAI-convention spans to any OTLP endpoint, including Langfuse. See the [Claude Code guide](https://docs.getbifrost.ai/cli-agents/claude-code).
 
 ## What You See in Langfuse
 
