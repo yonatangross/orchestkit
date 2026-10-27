@@ -833,6 +833,8 @@ export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 
 [Bifrost](https://github.com/maximhq/bifrost) is an open-source gateway that fills the same API-boundary slot. Point Claude Code at its Anthropic route (`ANTHROPIC_BASE_URL=http://localhost:8080/anthropic`, with a Bifrost virtual key in `ANTHROPIC_AUTH_TOKEN`). Bifrost logs each request with tokens, cost and latency, exposes Prometheus metrics at `/metrics`, and its OTel plugin exports GenAI-convention spans to any OTLP endpoint, including Langfuse. See the [Claude Code guide](https://docs.getbifrost.ai/cli-agents/claude-code).
 
+**Privacy:** the OTel plugin exports prompt and response content by default. Set `"disable_content_logging": true` in the `otel` plugin config to drop message content from every exported span while keeping model, tokens, cost and latency. `disable_root_span_content` on its own only strips the copy on the root span; child spans still carry full content. The global `client.disable_content_logging` covers Bifrost's own log store only and does not stop OTel export. See [Controlling exported content](https://docs.getbifrost.ai/features/observability/otel#controlling-exported-content).
+
 ## What You See in Langfuse
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:
