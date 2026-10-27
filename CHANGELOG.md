@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0) (2026-10-27)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.297 through 2.1.309 ([#4882](https://github.com/yonatangross/orchestkit/issues/4882)) ([28efa94](https://github.com/yonatangross/orchestkit/commit/28efa94fd41a495baf52f66829c33baece3093f8))
+
+
+### Bug Fixes
+
+* **hooks:** headless-responder answers through updatedInput.answers ([#4941](https://github.com/yonatangross/orchestkit/issues/4941)) ([c573ef3](https://github.com/yonatangross/orchestkit/commit/c573ef3f3aff4f3f346c379c60189ab8d5cd4aea))
+
+
+### Miscellaneous
+
+* **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 ([#4918](https://github.com/yonatangross/orchestkit/issues/4918)) ([f474b70](https://github.com/yonatangross/orchestkit/commit/f474b70990c05763843db072d2c9c66d2cca66d1))
+
 ## [10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1) (2026-10-26)
 
 
