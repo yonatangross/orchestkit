@@ -81,6 +81,22 @@ settings.json is not a settings scope CC reads (binary-proven at 2.1.226, see
 the header of this file), so the doctor OFFERS it and never sets it. Report
 at info level when absent; never fail on it.
 
+An eighth and ninth offer, for unattended lanes (CC 2.1.299 to 2.1.305), are
+reported by `check-operator-permissions.cjs` under `unattended`:
+
+- `idle_compaction`: CC 2.1.299 compacts a 200K+ token conversation idle for
+  about 54 minutes before its 1h prompt cache expires. A scope that sets
+  `"idleCompaction": false` is named with its file and a warning, because a
+  lane that waits on CI or a reviewer then reprocesses its whole context
+  uncached. `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` is reported as found.
+- `retry_watchdog`: when `CLAUDE_CODE_RETRY_WATCHDOG` is on, each missing cap
+  is offered: `_MAX_WAIT_MS` (2.1.295), `_MAX_USAGE_LIMIT_WAIT_MS` (2.1.301,
+  end a request whose usage limit resets too far away) and
+  `_USAGE_LIMIT_RECHECK_MS` (2.1.305, notice a limit lifted early). Settings
+  `env` wins over the process env.
+
+Both are info level. They never change the exit code.
+
 ## The check
 
 Read-only. Never prints an environment variable's **value** (presence is tested with

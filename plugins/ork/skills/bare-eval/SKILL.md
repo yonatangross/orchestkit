@@ -52,7 +52,7 @@ claude --version  # Must be >= 2.1.81
 | Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
 | @-file in prompt | `claude -p "grade @fixtures/case-1.md against rubric" --bare` (CC 2.1.113 Remote Control autocomplete) |
 
-> **Long harness runs (CC 2.1.199+):** set `CLAUDE_CODE_RETRY_WATCHDOG=1` for unattended eval batches — it raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on `CLAUDE_CODE_MAX_RETRIES`, so an overnight grading run survives transient API blips instead of dying mid-batch.
+> **Long harness runs (CC 2.1.199+):** set `CLAUDE_CODE_RETRY_WATCHDOG=1` for unattended eval batches: it raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on `CLAUDE_CODE_MAX_RETRIES`, so an overnight grading run survives transient API blips instead of dying mid-batch. Pair it with the three caps so a batch neither waits out a 429 storm nor sits hours on a usage limit: `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` (2.1.295), `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` (2.1.301) and `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` (2.1.305); `doctor`'s operator-permissions check offers any that are missing.
 
 ### `--output-format stream-json`
 

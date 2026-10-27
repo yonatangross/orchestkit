@@ -16,6 +16,467 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.309",
+    "features": [
+      {
+        "slug": "sandbox_startup_files_fix",
+        "category": "fix",
+        "description": "Shell startup files ran outside the sandbox before each sandboxed command.",
+        "gapScore": 7,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sandbox_permission_fixes",
+        "category": "fix",
+        "description": "denyWrite through symlinks, --mcp-config edits, Edit deny vs Bash redirect, worktree guard fixes.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sed_i_prompt",
+        "category": "changed_default",
+        "description": "sed -i runs as written with the standard Bash prompt and is no longer restored by /rewind.",
+        "gapScore": 4,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.308",
+    "features": [
+      {
+        "slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.307",
+    "features": [
+      {
+        "slug": "otel_safety_event",
+        "category": "new_attr",
+        "description": "One event per tool call a permission rule, auto mode, safety check, hook or sandbox stopped, prompted or sent back.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "claude_api_api_version",
+        "category": "new_command",
+        "description": "Moves Claude API code to API version 2026-10-21.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.306",
+    "features": [
+      {
+        "slug": "fixes",
+        "category": "fix",
+        "description": "Two fixes: cloud claude -p login and a spurious prompt-too-long with many MCP tools.",
+        "gapScore": 1,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.305",
+    "features": [
+      {
+        "slug": "retry_watchdog_usage_limit_recheck",
+        "category": "new_env",
+        "description": "The retry watchdog notices a usage limit lifted before its reset.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sandbox_nested_user_namespaces",
+        "category": "new_perm",
+        "description": "Linux sandboxed commands can create user namespaces; CC notes this gets around file protections.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "workflow_resume_journal_fix",
+        "category": "fix",
+        "description": "Workflow resume serves completed pipeline() and parallel() agents from the journal.",
+        "gapScore": 5,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.304",
+    "features": [
+      {
+        "slug": "mod_tool_check_decider_person",
+        "category": "new_attr",
+        "description": "tool.check can require a person to approve; e.isReadOnly marks read-only calls.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "auto_mode_setup",
+        "category": "new_command",
+        "description": "Guided setup that teaches auto mode about the environment.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "resume_usage_warning",
+        "category": "ui",
+        "description": "Warns before a resume would use a noticeable share of the 5-hour limit.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "compaction_resends_skill_list",
+        "category": "changed_default",
+        "description": "Compaction resends the skill list; /reload-skills sends only new or changed skills.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skill_hook_caps",
+        "category": "changed_default",
+        "description": "One source's skills register at most 1,024 hooks and 16,384 matcher characters per session.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_headless_max_turns_fix",
+        "category": "fix",
+        "description": "Plugin subagent spawns no longer extend a headless run past --max-turns or Stop.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "auto_compact_window_suffix",
+        "category": "fix",
+        "description": "The variable accepts k and M suffixes and warns on out-of-range values.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.303",
+    "features": [
+      {
+        "slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.302",
+    "features": [
+      {
+        "slug": "claude_design_shutdown",
+        "category": "changed_default",
+        "description": "Standalone Claude Design (claude.ai/design) closes by December 14, 2026.",
+        "gapScore": 9,
+        "affectedSkills": [
+          "design-import",
+          "design-ship"
+        ]
+      },
+      {
+        "slug": "auto_mode_model_env",
+        "category": "new_env",
+        "description": "Chooses the client-side auto mode classifier model; server-side auto mode is unchanged.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "idle_compaction_config_row",
+        "category": "ui",
+        "description": "/config can turn idle compaction off or on.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "otel_classifier_category_fix",
+        "category": "fix",
+        "description": "classifier_category no longer missing; new attributes no longer push out tool_use_id under a low attribute limit.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "prompt_agent_hook_concurrency",
+        "category": "changed_default",
+        "description": "At most 12 prompt or agent hooks of one event run at a time.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "fork_subagents_headless_default",
+        "category": "changed_default",
+        "description": "Fork subagents are on by default in claude -p, the SDK, desktop and VS Code.",
+        "gapScore": 4,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.301",
+    "features": [
+      {
+        "slug": "retry_watchdog_usage_limit_cap",
+        "category": "new_env",
+        "description": "The retry watchdog ends a request at a usage limit that resets too far away instead of waiting.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ]
+      },
+      {
+        "slug": "otel_tool_decision_classifier",
+        "category": "new_attr",
+        "description": "tool_decision events carry classifier_verdict and permission_mode.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "otel_tool_decision_category",
+        "category": "new_attr",
+        "description": "tool_decision carries classifier_category with OTEL_LOG_TOOL_DETAILS=1.",
+        "gapScore": 6,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mod_catch_semantics",
+        "category": "changed_default",
+        "description": "A mod hook's .catch runs only when the hook throws or times out.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skill_args_cap",
+        "category": "fix",
+        "description": "Only the first 64 argument names, each up to 64 characters, are filled in.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Search failure reporting, model switch, vim, Read binary and UI fixes.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.300",
+    "features": [
+      {
+        "slug": "otel_cache_creation_split",
+        "category": "new_attr",
+        "description": "api_request events split cache writes into 5m and 1h lifetimes.",
+        "gapScore": 9,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "otel_genai_semconv",
+        "category": "new_attr",
+        "description": "Trace spans carry gen_ai.provider.name, gen_ai.conversation.id, gen_ai.tool.name and error.type.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mod_prompt_change",
+        "category": "new_attr",
+        "description": "Mod hook raised when the prompt box text changes without a typed edit.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_agent_spawn_rewrite",
+        "category": "new_attr",
+        "description": "agent.spawn can rewrite a workflow agent's prompt and model.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_virtualtext_view_dir",
+        "category": "new_attr",
+        "description": "virtualText decorations, $.ui.view({agentId}) and a Text dir prop for right-to-left rows.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "updated_input_validated",
+        "category": "breaking",
+        "description": "updatedInput from PreToolUse and PermissionRequest hooks is validated: unknown keys dropped, rejected input denies the call.",
+        "gapScore": 7,
+        "affectedSkills": []
+      },
+      {
+        "slug": "sessionend_hooks_bg_fix",
+        "category": "fix",
+        "description": "SessionEnd hooks run when exiting with a background command still running.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Worktree, Remote Control, cloud, transcript, daemon and UI fixes.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.299",
+    "features": [
+      {
+        "slug": "idle_compaction",
+        "category": "new_attr",
+        "description": "A 200K+ token terminal conversation idle for about 54 minutes is compacted before its 1h prompt cache expires.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "idle_compact_min_tokens_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS moves the 200K minimum; idleCompaction:false turns idle compaction off.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "disable_file_mentions_env",
+        "category": "new_env",
+        "description": "@ file mentions pass paths for Claude to read with its file tools instead of contents.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "plugin_eval_disallow_tools",
+        "category": "new_attr",
+        "description": "claude plugin eval can keep built-in tools such as Agent out of eval runs.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "plugin_eval_api_error_scores_zero",
+        "category": "fix",
+        "description": "A plugin eval run that ends on an API error scores 0 and makes the suite exit 1.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "mod_text_weight_bold_deprecated",
+        "category": "new_attr",
+        "description": "Mod Text gains size, weight, mono and tabular; bold is deprecated in favor of weight.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_prompt_media_session_identity",
+        "category": "new_attr",
+        "description": "Managed mods can read prompt attachments ($.prompt.media) and sign-in identity ($.session.identity()).",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_skill_prompt_richer_input",
+        "category": "new_attr",
+        "description": "A mod's skill.prompt hook receives the skill's frontmatter, source, plugin name and path.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "userpromptsubmit_before_skill_expand",
+        "category": "changed_default",
+        "description": "UserPromptSubmit hooks run before a skill or slash command expands; a blocking hook also stops its embedded shell.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_hook_fail_closed_handoff",
+        "category": "changed_default",
+        "description": "A plugin hook that cannot be handed an action or cannot answer now refuses it instead of letting it through.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_allow_rule_exact_server",
+        "category": "breaking",
+        "description": "mcp__a no longer allows a server named a__b; agent tools: lists take only the named server.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "usage_warnings",
+        "category": "new_command",
+        "description": "/usage warns on max effort, workflows, always-on context and large tool results.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Sandbox, MCP, Remote Control, cloud, mod runtime, Windows and UI fixes.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.296",
     "features": [
       {
@@ -4504,10 +4965,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.277",
-  latestKnown: "2.1.296",
+  latestKnown: "2.1.309",
   supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "7129a7851ae9" as const;
+export const SOURCE_DIGEST = "89af6eedf7ab" as const;

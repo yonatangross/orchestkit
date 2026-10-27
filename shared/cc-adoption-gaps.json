@@ -1,5 +1,703 @@
 [
   {
+    "version": "2.1.299",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "idle_compaction",
+        "category": "new_attr",
+        "description": "A 200K+ token terminal conversation idle for about 54 minutes is compacted before its 1h prompt cache expires.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor",
+          "configure"
+        ],
+        "reference_changelog_line": "Added idle compaction in the terminal: a 200K+ token conversation left idle for about 54 minutes is compacted before its one-hour prompt cache expires, so your next message doesn't reprocess it all",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "doctor/scripts/check-operator-permissions.cjs reports unattended.idle_compaction and warns on idleCompaction:false; tests/skills/test-setup-operator-permissions.sh cases 10 and 10b. Documented in configure cc-version-settings.md."
+      },
+      {
+        "feature_slug": "idle_compact_min_tokens_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS moves the 200K minimum; idleCompaction:false turns idle compaction off.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` to change idle compaction's 200K-token minimum; `\"idleCompaction\": false` in settings.json turns it off. Both need v2.1.290 or later",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Reported as found (value and source) under unattended.idle_compaction; same tests."
+      },
+      {
+        "feature_slug": "disable_file_mentions_env",
+        "category": "new_env",
+        "description": "@ file mentions pass paths for Claude to read with its file tools instead of contents.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_DISABLE_FILE_MENTIONS` environment variable: Claude gets the paths of `@` file mentions to read with its file tools, not the files' contents",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure cc-version-settings.md; the pretool/read hooks then see ordinary Read calls."
+      },
+      {
+        "feature_slug": "plugin_eval_disallow_tools",
+        "category": "new_attr",
+        "description": "claude plugin eval can keep built-in tools such as Agent out of eval runs.",
+        "gap_score": 8,
+        "affected_skills": [
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Added `--disallow-tools` and a `disallowed_tools` case field to `claude plugin eval` to keep specific built-in tools, such as Agent, out of eval runs",
+        "relevance": "plugin-author",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up: bare-eval and the plugin eval lane could keep Agent out of skill evals. Not in this PR."
+      },
+      {
+        "feature_slug": "plugin_eval_api_error_scores_zero",
+        "category": "fix",
+        "description": "A plugin eval run that ends on an API error scores 0 and makes the suite exit 1.",
+        "gap_score": 5,
+        "affected_skills": [
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Fixed `claude plugin eval` passing runs that the API refused: a run that ends on an API error now scores 0 without grading and makes the suite exit 1",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Free: an eval suite can no longer pass on refused runs."
+      },
+      {
+        "feature_slug": "mod_text_weight_bold_deprecated",
+        "category": "new_attr",
+        "description": "Mod Text gains size, weight, mono and tabular; bold is deprecated in favor of weight.",
+        "gap_score": 6,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `size`, `weight`, `mono` and `tabular` to a mod's `Text` and named spacing steps (`xs` to `xl`) to its `Box`; `bold` is deprecated in favor of `weight`",
+        "relevance": "plugin-author",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Follow-up: mods/promote-lights/src/pane.ts and mods/lesson-cards/src/card.ts still pass bold. Not in this PR."
+      },
+      {
+        "feature_slug": "mod_prompt_media_session_identity",
+        "category": "new_attr",
+        "description": "Managed mods can read prompt attachments ($.prompt.media) and sign-in identity ($.session.identity()).",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `$.prompt.media` so a `prompt.submit` hook of a mod installed by managed settings can read the bytes of an image or document attached to the prompt",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Managed-settings mods only; ork mods are user-installed."
+      },
+      {
+        "feature_slug": "mod_skill_prompt_richer_input",
+        "category": "new_attr",
+        "description": "A mod's skill.prompt hook receives the skill's frontmatter, source, plugin name and path.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added the skill's frontmatter, source, plugin name and file path to what a mod's `skill.prompt` hook receives",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "No ork mod hooks skill.prompt today."
+      },
+      {
+        "feature_slug": "userpromptsubmit_before_skill_expand",
+        "category": "changed_default",
+        "description": "UserPromptSubmit hooks run before a skill or slash command expands; a blocking hook also stops its embedded shell.",
+        "gap_score": 6,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed `UserPromptSubmit` hooks to run before a skill or custom slash command expands, so a hook that blocks the prompt now also stops its embedded shell commands",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free for ork's prompt hooks: a block now also stops the skill's embedded shell lines."
+      },
+      {
+        "feature_slug": "plugin_hook_fail_closed_handoff",
+        "category": "changed_default",
+        "description": "A plugin hook that cannot be handed an action or cannot answer now refuses it instead of letting it through.",
+        "gap_score": 6,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed actions a plugin hook can block to be refused, not let through, when the hook cannot be handed them or cannot hand back its answer; a tool that already ran has its result withheld",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free fail-closed for ork's guards."
+      },
+      {
+        "feature_slug": "mcp_allow_rule_exact_server",
+        "category": "breaking",
+        "description": "mcp__a no longer allows a server named a__b; agent tools: lists take only the named server.",
+        "gap_score": 4,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed MCP allow rules to reach only the server they name: `mcp__a` no longer allows a server named `a__b` or `a_`; write `mcp__<server>__*` with the server's whole normalized name",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "ork ships no MCP server; agent tools: lists name mcp__context7 and similar whole names."
+      },
+      {
+        "feature_slug": "usage_warnings",
+        "category": "new_command",
+        "description": "/usage warns on max effort, workflows, always-on context and large tool results.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `/usage` warnings for max effort, workflows, always-on context and large tool results",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "CC UI."
+      },
+      {
+        "feature_slug": "misc_fixes",
+        "category": "fix",
+        "description": "Sandbox, MCP, Remote Control, cloud, mod runtime, Windows and UI fixes.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a sandboxed shell command being able to write into a `--plugin-dir` folder, whose code Claude Code reloads and runs outside the sandbox",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork surface beyond the rows above."
+      }
+    ],
+    "raw_bullets_count": 190,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.300",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "otel_cache_creation_split",
+        "category": "new_attr",
+        "description": "api_request events split cache writes into 5m and 1h lifetimes.",
+        "gap_score": 9,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added `cache_creation_5m_tokens` and `cache_creation_1h_tokens` to the OpenTelemetry `api_request` event, splitting cache writes by lifetime",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in analytics/references/otel-fields.md. Cost-estimator pricing per lifetime is a follow-up."
+      },
+      {
+        "feature_slug": "otel_genai_semconv",
+        "category": "new_attr",
+        "description": "Trace spans carry gen_ai.provider.name, gen_ai.conversation.id, gen_ai.tool.name and error.type.",
+        "gap_score": 5,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added OpenTelemetry GenAI semantic-convention attributes to trace spans, such as `gen_ai.provider.name`, `gen_ai.conversation.id`, `gen_ai.tool.name` and `error.type`",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in otel-fields.md."
+      },
+      {
+        "feature_slug": "mod_prompt_change",
+        "category": "new_attr",
+        "description": "Mod hook raised when the prompt box text changes without a typed edit.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Added the `prompt.change` mod hook, raised when the prompt box's text changes without a typed edit: a recalled history entry, a clear, an undo, or a plugin's fill",
+        "relevance": "plugin-author",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Already in use before this PR: mods/prompt-enhancer/hooks/register.tsx:222."
+      },
+      {
+        "feature_slug": "mod_agent_spawn_rewrite",
+        "category": "new_attr",
+        "description": "agent.spawn can rewrite a workflow agent's prompt and model.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Added support for rewriting a workflow agent's `prompt` and `model` in the `agent.spawn` mod hook, which could only refuse workflow agents before",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "No ork mod hooks agent.spawn."
+      },
+      {
+        "feature_slug": "mod_virtualtext_view_dir",
+        "category": "new_attr",
+        "description": "virtualText decorations, $.ui.view({agentId}) and a Text dir prop for right-to-left rows.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `virtualText` to a mod's prompt decorations: text drawn in the prompt box that never enters the draft or the submitted prompt",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork mod uses them yet."
+      },
+      {
+        "feature_slug": "updated_input_validated",
+        "category": "breaking",
+        "description": "updatedInput from PreToolUse and PermissionRequest hooks is validated: unknown keys dropped, rejected input denies the call.",
+        "gap_score": 7,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed hooks: `updatedInput` from PreToolUse and PermissionRequest hooks is now validated like Claude's own input: unknown keys are dropped, and input the tool rejects denies the call",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Six ork hook sources build updatedInput (default-timeout-setter, gh-label-enforcer, headless-responder and three dispatchers). A key the tool does not know is now dropped silently."
+      },
+      {
+        "feature_slug": "sessionend_hooks_bg_fix",
+        "category": "fix",
+        "description": "SessionEnd hooks run when exiting with a background command still running.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed SessionEnd hooks sometimes not running when you exit while a background command is still running",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free for ork's SessionEnd hooks."
+      },
+      {
+        "feature_slug": "misc_fixes",
+        "category": "fix",
+        "description": "Worktree, Remote Control, cloud, transcript, daemon and UI fixes.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Claude polling a background command's output file or sleeping while it runs",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork surface."
+      }
+    ],
+    "raw_bullets_count": 88,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.301",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "retry_watchdog_usage_limit_cap",
+        "category": "new_env",
+        "description": "The retry watchdog ends a request at a usage limit that resets too far away instead of waiting.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` so unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) ends a request at a usage limit that resets too far away instead of waiting",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Offered by check-operator-permissions when CLAUDE_CODE_RETRY_WATCHDOG is on; tests cases 11 to 11c; named in bare-eval and configure."
+      },
+      {
+        "feature_slug": "otel_tool_decision_classifier",
+        "category": "new_attr",
+        "description": "tool_decision events carry classifier_verdict and permission_mode.",
+        "gap_score": 8,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added `classifier_verdict` and `permission_mode` to OpenTelemetry `tool_decision` events, so auto mode classifier decisions can be told apart from permission rules",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in otel-fields.md."
+      },
+      {
+        "feature_slug": "otel_tool_decision_category",
+        "category": "new_attr",
+        "description": "tool_decision carries classifier_category with OTEL_LOG_TOOL_DETAILS=1.",
+        "gap_score": 6,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added `classifier_category` to OpenTelemetry `tool_decision` events, naming the built-in rule a classifier block matched, when `OTEL_LOG_TOOL_DETAILS=1`",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in otel-fields.md with the 2.1.302 fix."
+      },
+      {
+        "feature_slug": "mod_catch_semantics",
+        "category": "changed_default",
+        "description": "A mod hook's .catch runs only when the hook throws or times out.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed a mod hook's `.catch` handler to run only when the hook throws or times out; events raised beneath the hook's own calls now skip that hook without asking its `.catch`",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "mods/prompt-enhancer puts a .catch on prompt.submit; its intent (hook failure) matches the new rule."
+      },
+      {
+        "feature_slug": "skill_args_cap",
+        "category": "fix",
+        "description": "Only the first 64 argument names, each up to 64 characters, are filled in.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed skills and commands with very many or very long argument names stalling for seconds when invoked; only the first 64 names, each up to 64 characters, are now filled in",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork skill is near the cap."
+      },
+      {
+        "feature_slug": "misc_fixes",
+        "category": "fix",
+        "description": "Search failure reporting, model switch, vim, Read binary and UI fixes.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Grep and Glob reporting no matches when the search program failed unexpectedly before returning any results; they now return an error saying the search failed",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork surface."
+      }
+    ],
+    "raw_bullets_count": 51,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.302",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "claude_design_shutdown",
+        "category": "changed_default",
+        "description": "Standalone Claude Design (claude.ai/design) closes by December 14, 2026.",
+        "gap_score": 9,
+        "affected_skills": [
+          "design-import",
+          "design-ship"
+        ],
+        "reference_changelog_line": "Added a notice to `/design-sync` and `/design-login` that standalone Claude Design (claude.ai/design) closes by December 14, 2026",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Both skills now flag the shutdown and say to export bundles to a local file."
+      },
+      {
+        "feature_slug": "auto_mode_model_env",
+        "category": "new_env",
+        "description": "Chooses the client-side auto mode classifier model; server-side auto mode is unchanged.",
+        "gap_score": 4,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_AUTO_MODE_MODEL` to choose the model the client-side auto mode classifier uses; it does not change the model for server-side auto mode",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure cc-version-settings.md."
+      },
+      {
+        "feature_slug": "idle_compaction_config_row",
+        "category": "ui",
+        "description": "/config can turn idle compaction off or on.",
+        "gap_score": 3,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added an `Idle compaction` row to `/config` for turning idle compaction off or back on; the notices shown after an idle compaction now say how to turn it off",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Named in the configure idle compaction section."
+      },
+      {
+        "feature_slug": "otel_classifier_category_fix",
+        "category": "fix",
+        "description": "classifier_category no longer missing; new attributes no longer push out tool_use_id under a low attribute limit.",
+        "gap_score": 5,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Fixed `classifier_category` missing from OpenTelemetry `tool_decision` events for most auto mode classifier blocks, and new `tool_decision` attributes pushing out `tool_use_id`, `tool_source` and `tool_parameters` when `OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT` is low",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Noted in otel-fields.md: 2.1.301 data undercounts the category."
+      },
+      {
+        "feature_slug": "prompt_agent_hook_concurrency",
+        "category": "changed_default",
+        "description": "At most 12 prompt or agent hooks of one event run at a time.",
+        "gap_score": 2,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed prompt and agent hooks so that at most 12 of one event run at a time; the rest wait their turn",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork's hooks are command hooks."
+      },
+      {
+        "feature_slug": "fork_subagents_headless_default",
+        "category": "changed_default",
+        "description": "Fork subagents are on by default in claude -p, the SDK, desktop and VS Code.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed fork subagents (`subagent_type: \"fork\"`) to be on by default in `claude -p`, the Agent SDK, the desktop app and VS Code, as they already are in the terminal; `CLAUDE_CODE_FORK_SUBAGENT=0` turns them off, and `claude mcp serve` never offers them",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Headless ork runs can now fork; CLAUDE_CODE_FORK_SUBAGENT=0 turns it off."
+      }
+    ],
+    "raw_bullets_count": 63,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.303",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Bug fixes and reliability improvements",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Nothing to adopt."
+      }
+    ],
+    "raw_bullets_count": 1,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.304",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "mod_tool_check_decider_person",
+        "category": "new_attr",
+        "description": "tool.check can require a person to approve; e.isReadOnly marks read-only calls.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `decider: \"person\"` to a mod's `tool.check` answer: only the permission dialog or a host's callback can approve the ask, and it is refused with the mod's reason where nobody can be asked",
+        "relevance": "plugin-author",
+        "disposition": "watch",
+        "ork_disposition_note": "No ork mod hooks tool.check."
+      },
+      {
+        "feature_slug": "auto_mode_setup",
+        "category": "new_command",
+        "description": "Guided setup that teaches auto mode about the environment.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `/auto-mode-setup`: a guided setup that reads your project and recent sessions to teach auto mode about your environment, now also available on Bedrock, Vertex, Foundry, Claude apps gateway and telemetry-disabled sessions",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "CC command."
+      },
+      {
+        "feature_slug": "resume_usage_warning",
+        "category": "ui",
+        "description": "Warns before a resume would use a noticeable share of the 5-hour limit.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added a warning on Pro and Max plans when resuming an inactive conversation would use a noticeable share of your 5-hour usage limit: resume anyway, or start a new conversation and Claude can look up the previous one if you refer to it",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "CC UI."
+      },
+      {
+        "feature_slug": "compaction_resends_skill_list",
+        "category": "changed_default",
+        "description": "Compaction resends the skill list; /reload-skills sends only new or changed skills.",
+        "gap_score": 6,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed compaction to send Claude the skill list again afterwards; `/reload-skills` now sends only new or changed skills",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "ork skills stay visible to the model after compaction."
+      },
+      {
+        "feature_slug": "skill_hook_caps",
+        "category": "changed_default",
+        "description": "One source's skills register at most 1,024 hooks and 16,384 matcher characters per session.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed skill hooks: the skills of one source (a repo, your own folder, or a plugin) can register at most 1,024 hooks and 16,384 matcher characters per session",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "10 ork skills declare frontmatter hooks, far under the cap."
+      },
+      {
+        "feature_slug": "plugin_headless_max_turns_fix",
+        "category": "fix",
+        "description": "Plugin subagent spawns no longer extend a headless run past --max-turns or Stop.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a plugin keeping a headless run going past `--max-turns`, Stop, or ended input by spawning subagents or re-running a finished one",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free."
+      },
+      {
+        "feature_slug": "auto_compact_window_suffix",
+        "category": "fix",
+        "description": "The variable accepts k and M suffixes and warns on out-of-range values.",
+        "gap_score": 3,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed `CLAUDE_CODE_AUTO_COMPACT_WINDOW=200k` silently setting a 100K window: the variable now accepts `k` and `M` suffixes like `--autocompact`, and warns when a value is out of range or ignored",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork documents autoCompactWindow as an integer; no change."
+      }
+    ],
+    "raw_bullets_count": 76,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.305",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "retry_watchdog_usage_limit_recheck",
+        "category": "new_env",
+        "description": "The retry watchdog notices a usage limit lifted before its reset.",
+        "gap_score": 10,
+        "affected_skills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` so unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) notices a usage limit that was lifted before its reset",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Offered with the 2.1.301 cap; same tests."
+      },
+      {
+        "feature_slug": "sandbox_nested_user_namespaces",
+        "category": "new_perm",
+        "description": "Linux sandboxed commands can create user namespaces; CC notes this gets around file protections.",
+        "gap_score": 4,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `sandbox.allowNestedUserNamespaces` so sandboxed commands on Linux can create user namespaces (Chromium, rootless podman); this lets them get around the sandbox's file protections",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented as not recommended."
+      },
+      {
+        "feature_slug": "workflow_resume_journal_fix",
+        "category": "fix",
+        "description": "Workflow resume serves completed pipeline() and parallel() agents from the journal.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Workflow resume re-running already-completed `pipeline()` and `parallel()` agents instead of serving them from the run's journal",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free for ork workflow scripts."
+      }
+    ],
+    "raw_bullets_count": 38,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.306",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "fixes",
+        "category": "fix",
+        "description": "Two fixes: cloud claude -p login and a spurious prompt-too-long with many MCP tools.",
+        "gap_score": 1,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed an API error being replaced by \"prompt is too long\", and an unneeded compaction, in sessions with many MCP tools",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork surface."
+      }
+    ],
+    "raw_bullets_count": 2,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.307",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "otel_safety_event",
+        "category": "new_attr",
+        "description": "One event per tool call a permission rule, auto mode, safety check, hook or sandbox stopped, prompted or sent back.",
+        "gap_score": 8,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added the `claude_code.safety_event` OpenTelemetry event for each tool call a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in otel-fields.md; attribute names unverified."
+      },
+      {
+        "feature_slug": "claude_api_api_version",
+        "category": "new_command",
+        "description": "Moves Claude API code to API version 2026-10-21.",
+        "gap_score": 3,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `/claude-api api-version` to move Claude API code to API version `2026-10-21`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "CC built-in skill."
+      }
+    ],
+    "raw_bullets_count": 43,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.308",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Bug fixes and reliability improvements",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Nothing to adopt."
+      }
+    ],
+    "raw_bullets_count": 1,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
+    "version": "2.1.309",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "sandbox_startup_files_fix",
+        "category": "fix",
+        "description": "Shell startup files ran outside the sandbox before each sandboxed command.",
+        "gap_score": 7,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed sandboxed Bash commands on macOS and Linux running the shell's startup files outside the sandbox before each command",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Doctor floor note in version-compatibility.md; no ork code."
+      },
+      {
+        "feature_slug": "sandbox_permission_fixes",
+        "category": "fix",
+        "description": "denyWrite through symlinks, --mcp-config edits, Edit deny vs Bash redirect, worktree guard fixes.",
+        "gap_score": 5,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed sandboxed commands and auto-accepted edits being able to modify the MCP config file passed with `--mcp-config`",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Same floor note."
+      },
+      {
+        "feature_slug": "sed_i_prompt",
+        "category": "changed_default",
+        "description": "sed -i runs as written with the standard Bash prompt and is no longer restored by /rewind.",
+        "gap_score": 4,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed `sed -i` to get the standard Bash prompt and run as written, not a simulated file-edit preview; like other Bash edits, it is no longer restored by `/rewind`",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork hooks do not special-case sed -i."
+      }
+    ],
+    "raw_bullets_count": 79,
+    "triaged_by": "hand, lane ork-cc-adopt, 2026-10-23 (conductor236)"
+  },
+  {
     "version": "2.1.289",
     "parse_failed": false,
     "features": [

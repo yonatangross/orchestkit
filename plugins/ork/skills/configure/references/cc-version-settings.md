@@ -1277,3 +1277,56 @@ usual size limits in one call when it needs the whole file and the context has r
 
 **Action for OrchestKit**: none in settings. The `pretool/read/tldr-summary` hook still injects a
 summary on such a read; skipping it is a hook change tracked outside this adoption.
+
+## CC 2.1.299 to 2.1.309 Settings
+
+CC 2.1.297 and 2.1.298 have no CHANGELOG entries; 2.1.303 and 2.1.308 say only "Bug fixes and
+reliability improvements".
+
+### Idle compaction, `idleCompaction` and `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` (2.1.299, 2.1.302)
+
+CC 2.1.299 compacts a terminal conversation of 200K tokens or more that sits idle for about 54
+minutes, before its one-hour prompt cache expires, so the next message does not reprocess it all.
+`"idleCompaction": false` in settings.json turns it off; `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`
+changes the 200K minimum. Both need CC 2.1.290 or later. CC 2.1.302 adds an `Idle compaction` row
+to `/config`.
+
+**Action for OrchestKit**: leave it on for unattended lanes. A lane that waits on CI, a reviewer or
+a usage reset is exactly the idle session this protects. The doctor's
+`check-operator-permissions.sh --json` reports the setting under `unattended.idle_compaction` and
+warns, never fails, when a scope sets it to false.
+
+### Retry watchdog usage-limit caps (2.1.301, 2.1.305)
+
+| Variable | Since | Effect |
+|:-|:-|:-|
+| `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` | CC 2.1.301 | Ends a request at a usage limit that resets too far away instead of waiting |
+| `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` | CC 2.1.305 | Rechecks while waiting, so a limit lifted before its reset is noticed |
+
+**Action for OrchestKit**: an unattended lane or eval batch that sets `CLAUDE_CODE_RETRY_WATCHDOG=1`
+should set both, beside `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` (2.1.295). The doctor's
+`check-operator-permissions.sh --json` offers each missing one under
+`unattended.retry_watchdog.offers` when the watchdog is on.
+
+### `CLAUDE_CODE_AUTO_MODE_MODEL`, client-side classifier model (2.1.302)
+
+CC 2.1.302 adds `CLAUDE_CODE_AUTO_MODE_MODEL` to choose the model the client-side auto mode
+classifier uses. It does not change server-side auto mode, the default since 2.1.278.
+
+**Action for OrchestKit**: none. ork sets no classifier model.
+
+### `sandbox.allowNestedUserNamespaces` (2.1.305, Linux)
+
+CC 2.1.305 lets sandboxed commands on Linux create user namespaces (Chromium, rootless podman).
+CC's own note: this lets them get around the sandbox's file protections.
+
+**Action for OrchestKit**: do not recommend it. Browser skills on Linux that need it should say so
+and leave the choice to the operator.
+
+### `CLAUDE_CODE_DISABLE_FILE_MENTIONS` (2.1.299)
+
+With the variable set, Claude gets the paths of `@` file mentions and reads them with its file
+tools instead of receiving the contents.
+
+**Action for OrchestKit**: none. The `pretool/read` hooks then see those reads as ordinary Read
+calls.
