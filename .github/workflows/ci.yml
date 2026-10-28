@@ -351,6 +351,13 @@ jobs:
       - name: FH-ready handler policy
         run: cd src/hooks && node scripts/fh-ready-check.mjs
 
+      # Hook spawn ratchet (yellow-refactor M1): processes started per Bash,
+      # Edit, Write and Read call, counted from hooks.json. Baseline in
+      # src/hooks/scripts/spawn-ratchet-baseline.json only falls; the
+      # success-path target is 2 per call.
+      - name: Hook spawn ratchet
+        run: cd src/hooks && node scripts/spawn-ratchet.mjs
+
       # The 51 Python scripts shipped under src/skills/**/scripts/ had zero CI
       # coverage: hook-contract-py.yml and orchestkit-py.yml lint only their own
       # packages. compileall catches syntax errors; ruff runs under the repo

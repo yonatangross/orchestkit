@@ -1,0 +1,29 @@
+{
+  "comment": "Hook processes started per tool call, counted from src/hooks/hooks.json by spawn-ratchet.mjs. baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line (yellow-refactor M1: under 3 per call).",
+  "target": {
+    "Bash": 2,
+    "Edit": 2,
+    "Write": 2,
+    "Read": 2
+  },
+  "baseline": {
+    "success": {
+      "Bash": 12,
+      "Edit": 18,
+      "Write": 18,
+      "Read": 6
+    },
+    "permission": {
+      "Bash": 14,
+      "Edit": 20,
+      "Write": 20,
+      "Read": 6
+    },
+    "failure": {
+      "Bash": 6,
+      "Edit": 6,
+      "Write": 6,
+      "Read": 4
+    }
+  }
+}
