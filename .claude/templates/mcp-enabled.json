@@ -33,6 +33,27 @@
       ],
       "description": "Web search, extract, crawl, and deep research",
       "auto": "70"
+    },
+    "portless": {
+      "command": "/opt/homebrew/bin/portless",
+      "args": ["mcp"],
+      "description": "Named HTTPS .localhost URLs for dev servers. Default (core) profile, 5 tools, about 940 tokens of schema."
+    },
+    "emulate": {
+      "command": "/opt/homebrew/bin/emulate",
+      "args": ["mcp"],
+      "description": "Stateful API emulation for tests. Default profile, 4 tools, about 470 tokens of schema. The absolute path matters: zsh's builtin emulate shadows a bare name."
+    },
+    "agent-browser": {
+      "command": "/opt/homebrew/bin/agent-browser",
+      "args": ["mcp", "--tools", "core"],
+      "env": {
+        "AGENT_BROWSER_ARGS": "--mute-audio,--use-mock-keychain,--password-store=basic",
+        "AGENT_BROWSER_SESSION": "ork-mcp-cc",
+        "AGENT_BROWSER_NAMESPACE": "abmcp-ork",
+        "AGENT_BROWSER_PIN_TAB": "1"
+      },
+      "description": "Browser automation, core profile (29 tools, about 20.6k tokens of schema in a client that loads every schema up front; Claude Code defers them). Logins come from the browser-login path and 1Password via op-read.sh, never from this file."
     }
   }
 }
