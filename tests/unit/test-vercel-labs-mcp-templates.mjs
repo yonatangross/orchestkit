@@ -181,6 +181,15 @@ for (const rel of [
 		assert.ok(text.includes("op-read.sh"));
 		assert.ok(text.includes("--cdp"));
 	});
+	check(`${rel} documents isolated by default, with no CDP pin`, () => {
+		const text = read(rel);
+		assert.ok(text.includes("isolated by default"));
+		assert.ok(
+			text.includes("A lane attaches to an identity Chrome per task through the browser-login skill"),
+		);
+		assert.ok(!text.includes("also pass `--cdp 9222`"));
+		assert.ok(!text.includes("Add `--cdp <port>` before `mcp`"));
+	});
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);
