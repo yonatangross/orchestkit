@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.4.1",
+    "date": "2026-10-29",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) ([#4946](https://github.com/yonatangross/orchestkit/issues/4946)) ([e7d4810](https://github.com/yonatangross/orchestkit/commit/e7d4810b8663bc7e348c7cbc5d8aa4d4ee32baaf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**docker:** bump node from `44fce69` to `06d7adf` ([#4942](https://github.com/yonatangross/orchestkit/issues/4942)) ([5eb4075](https://github.com/yonatangross/orchestkit/commit/5eb4075f3fdc97f73097c13c7d2f4d86ea263860))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.0",
     "date": "2026-10-27",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0",
