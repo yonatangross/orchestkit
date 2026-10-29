@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.1](https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) ([#4946](https://github.com/yonatangross/orchestkit/issues/4946)) ([e7d4810](https://github.com/yonatangross/orchestkit/commit/e7d4810b8663bc7e348c7cbc5d8aa4d4ee32baaf))
+
+
+### Miscellaneous
+
+* **docker:** bump node from `44fce69` to `06d7adf` ([#4942](https://github.com/yonatangross/orchestkit/issues/4942)) ([5eb4075](https://github.com/yonatangross/orchestkit/commit/5eb4075f3fdc97f73097c13c7d2f4d86ea263860))
+
 ## [10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0) (2026-10-27)
 
 
