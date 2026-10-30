@@ -66,8 +66,10 @@ const RUFF_CONFIGS = ['ruff.toml', '.ruff.toml', 'pyproject.toml'] as const;
 const BIOME_CONFIGS = ['biome.json', 'biome.jsonc'] as const;
 const PRETTIER_CONFIGS = [
   '.prettierrc', '.prettierrc.json', '.prettierrc.json5', '.prettierrc.yaml', '.prettierrc.yml',
-  '.prettierrc.toml', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs', '.prettierrc.ts',
-  'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs', 'prettier.config.ts',
+  '.prettierrc.toml', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs',
+  '.prettierrc.ts', '.prettierrc.mts', '.prettierrc.cts',
+  'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs',
+  'prettier.config.ts', 'prettier.config.mts', 'prettier.config.cts',
   'package.json',
 ] as const;
 
