@@ -9,6 +9,6 @@ description: "Hooks triggered on UserPromptSubmit events (3 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `*` | Injects | Routes UserPromptSubmit through one dispatcher: a once-per-session handoff injector plus every-turn silent analytics, with a single additionalContext output. |
+| `unified-dispatcher` | `*` | Silent | Routes UserPromptSubmit through one dispatcher: a once-per-session handoff injector plus every-turn silent analytics, with a single additionalContext output. |
 | `thrash-detector` | `*` | Fire-and-forget | Source: usage analytics, recurring edit→format→revert→re-edit and edit→test-fail→undo→re-edit loops that burn 10+ turns on the same file. Catches the "same-file repeatedly" signal early and suggests a different approach. |
 | `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
