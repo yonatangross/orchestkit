@@ -28,6 +28,11 @@
  *             so a stalled restore cannot sit on the action's 10 minute
  *             default segment timeout (#4670). Not proven: whether the
  *             step timeout also covers the post-step cache save.
+ *   lock-wait: the install-deps step waits for every apt-get and dpkg to
+ *             exit before its retry, and names the dpkg lock holder when it
+ *             gives up (#4923). `timeout` stops npx but not the root apt-get
+ *             it started under sudo, so attempt 1's orphan kept the dpkg lock
+ *             past attempt 2's 120 s DPkg::Lock::Timeout (run 40229660456).
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -102,6 +107,17 @@ for (const s of installs) {
   if (!(tm > 0 && tm <= 5)) fail('bounded', `step "${s.name}" has timeout-minutes ${s['timeout-minutes']}, want 1 to 5`);
   if (!/for attempt in 1 2\b/.test(runOf(s))) fail('bounded', `step "${s.name}" does not retry once`);
   if (!/\btimeout \d+ npx playwright install/.test(runOf(s))) fail('bounded', `step "${s.name}" has no per-attempt timeout`);
+}
+
+// lock-wait
+if (depsIdx !== -1) {
+  const deps = runOf(steps[depsIdx]);
+  if (!/\bps\b[^\n]*-C apt-get,dpkg/.test(deps)) {
+    fail('lock-wait', `step "${steps[depsIdx].name}" does not look for apt-get and dpkg before its retry`);
+  }
+  if (!/fuser[^\n]*\/var\/lib\/dpkg\/lock-frontend/.test(deps)) {
+    fail('lock-wait', `step "${steps[depsIdx].name}" does not name the dpkg lock holder when it gives up`);
+  }
 }
 
 if (failures.length) {
