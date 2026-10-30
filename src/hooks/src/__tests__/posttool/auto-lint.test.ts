@@ -365,6 +365,32 @@ describe('autoLint', () => {
       );
     });
 
+    // Codex HOLD on #4950: Prettier also loads TypeScript module configs with
+    // the .mts and .cts extensions; the first allowlist missed all four.
+    it.each([
+      '.prettierrc.mts',
+      '.prettierrc.cts',
+      'prettier.config.mts',
+      'prettier.config.cts',
+    ])('treats %s as prettier config', (name) => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', `/test/project/${name}`);
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'prettier', ['--write', '/test/project/src/app.ts'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
     it('ignores a pyproject.toml that has no [tool.ruff] table', () => {
       // Arrange
       onlyExist('/test/project/app.py', '/test/project/pyproject.toml');
