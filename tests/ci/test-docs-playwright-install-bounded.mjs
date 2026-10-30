@@ -106,7 +106,9 @@ for (const s of installs) {
   const tm = Number(s['timeout-minutes']);
   if (!(tm > 0 && tm <= 5)) fail('bounded', `step "${s.name}" has timeout-minutes ${s['timeout-minutes']}, want 1 to 5`);
   if (!/for attempt in 1 2\b/.test(runOf(s))) fail('bounded', `step "${s.name}" does not retry once`);
-  if (!/\btimeout \d+ npx playwright install/.test(runOf(s))) fail('bounded', `step "${s.name}" has no per-attempt timeout`);
+  // A quoted variable is allowed: install-deps sizes attempt 2 from what the
+  // step budget leaves (#4923); timeout-minutes above still caps the step.
+  if (!/\btimeout (\d+|"\$\w+") npx playwright install/.test(runOf(s))) fail('bounded', `step "${s.name}" has no per-attempt timeout`);
 }
 
 // lock-wait

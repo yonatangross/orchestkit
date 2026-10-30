@@ -310,11 +310,35 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         timeout-minutes: 5
         working-directory: docs/site
+        # `timeout` stops npx but not the root apt-get it starts under sudo,
+        # so a timed-out attempt 1 left an apt-get holding the dpkg lock past
+        # attempt 2's DPkg::Lock::Timeout (#4923). Before the retry, wait for
+        # apt-get and dpkg to exit. Each attempt gets at most 120 s and never
+        # more than the 300 s step budget leaves (285 keeps a margin). On
+        # give-up, name the dpkg lock holder.
         run: |
+          apt_busy() { ps -o pid=,etime=,args= -C apt-get,dpkg,unattended-upgr; }
+          lock_holder() {
+            echo "dpkg lock holders:"
+            sudo fuser -v /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock 2>&1 || echo "  none"
+          }
           for attempt in 1 2; do
-            timeout 120 npx playwright install-deps chromium && exit 0
+            if [ "$attempt" = 2 ]; then
+              apt_busy || true
+              while apt_busy >/dev/null && [ "$SECONDS" -lt 240 ]; do sleep 2; done
+              if apt_busy >/dev/null; then
+                echo "::error::apt-get or dpkg still running after ${SECONDS}s, no time left for attempt 2"
+                apt_busy || true
+                lock_holder
+                exit 1
+              fi
+            fi
+            left=$((285 - SECONDS))
+            if [ "$left" -gt 120 ]; then left=120; fi
+            timeout "$left" npx playwright install-deps chromium && exit 0
             echo "::warning::playwright install-deps attempt $attempt failed or timed out"
           done
+          lock_holder
           exit 1
       - name: Install Playwright Chromium
         if: steps.gate.outputs.run == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
