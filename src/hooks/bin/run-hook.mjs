@@ -653,14 +653,22 @@ if (stdinFromFile) {
     // silent: handled below, the same as the stream's error event
     total = -1;
   }
-  if (total < 0) {
-    onStdinError();
-  } else {
+  if (total >= 0) {
     input = buf.toString('utf8', 0, Math.min(total, MAX_STDIN_BYTES));
     inputBytes = total;
-    if (total > MAX_STDIN_BYTES) refuseOversized();
-    else finishInput();
   }
+  // #4885: the read stays synchronous, the dispatch waits for a microtask.
+  // This block runs while the module is still evaluating, so a hook that
+  // reaches emitHookResult synchronously (the disabled short-circuit) read
+  // WORKTREE_PATH_EVENTS and the other consts declared below before they
+  // existed and crashed with a TDZ ReferenceError. A microtask runs once the
+  // module body has finished and still before any timer or stream event, so
+  // #4769 holds and stdinClosed still guards the stream handlers below.
+  queueMicrotask(() => {
+    if (total < 0) onStdinError();
+    else if (total > MAX_STDIN_BYTES) refuseOversized();
+    else finishInput();
+  });
 }
 
 process.stdin.on('end', () => {
