@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { existsSync, readFileSync } from 'node:fs';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock child_process before import — source uses execFileSync (not execSync)
@@ -252,6 +253,128 @@ describe('autoLint', () => {
         'ruff', ['format', '/test/project/app.py'],
         expect.objectContaining({ stdio: 'ignore' }),
       );
+    });
+  });
+
+  // #4945: a formatter the repo does not configure must not rewrite the whole
+  // file, and a --fix that deletes code (unused imports) needs an opt-in.
+  describe('formatter config gate (#4945)', () => {
+    const mockExists = vi.mocked(existsSync);
+    const mockRead = vi.mocked(readFileSync);
+
+    function onlyExist(...paths: string[]): void {
+      mockExists.mockImplementation((p) => paths.includes(String(p)));
+    }
+
+    function toolCalls(cmd: string): unknown[][] {
+      return mockExecFileSync.mock.calls.filter((c) => c[0] === cmd);
+    }
+
+    beforeEach(() => {
+      delete process.env.ORK_AUTO_LINT_FIX;
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        if (cmd === 'ruff' && args?.[0] === 'check' && !args.includes('--fix')) return 'app.py:1:1: F401 unused import';
+        return '';
+      });
+    });
+
+    afterEach(() => {
+      mockExists.mockImplementation(() => true);
+      mockRead.mockImplementation(() => 'file-content');
+    });
+
+    it('does not run ruff when the repo has no ruff config', () => {
+      // Arrange: only the edited file exists, no ruff.toml or [tool.ruff]
+      onlyExist('/test/project/app.py');
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/app.py', content: 'x = 1' } }), testCtx);
+
+      // Assert
+      expect(toolCalls('ruff')).toEqual([]);
+    });
+
+    it('does not run biome or prettier when the repo configures neither', () => {
+      // Arrange
+      onlyExist('/test/project/src/app.ts');
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(toolCalls('biome')).toEqual([]);
+      expect(toolCalls('prettier')).toEqual([]);
+    });
+
+    it('does not run prettier on JSON when the repo has no prettier config', () => {
+      // Arrange: biome absent, so only the prettier fallback could run
+      onlyExist('/test/project/config.json');
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/config.json', content: '{}' } }), testCtx);
+
+      // Assert
+      expect(toolCalls('prettier')).toEqual([]);
+    });
+
+    it('formats with ruff from a parent ruff.toml but never runs check --fix without the opt-in', () => {
+      // Arrange
+      onlyExist('/test/project/pkg/app.py', '/test/project/ruff.toml');
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/pkg/app.py', content: 'x = 1' } }), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'ruff', ['format', '/test/project/pkg/app.py'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+      expect(toolCalls('ruff').some((c) => (c[1] as string[]).includes('--fix'))).toBe(false);
+    });
+
+    it('runs ruff check --fix when ORK_AUTO_LINT_FIX=1', () => {
+      // Arrange
+      process.env.ORK_AUTO_LINT_FIX = '1';
+      onlyExist('/test/project/app.py', '/test/project/ruff.toml');
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/app.py', content: 'x = 1' } }), testCtx);
+
+      // Assert
+      expect(toolCalls('ruff').some((c) => (c[1] as string[]).includes('--fix'))).toBe(true);
+    });
+
+    it('treats a pyproject.toml with a [tool.ruff] table as ruff config', () => {
+      // Arrange
+      onlyExist('/test/project/app.py', '/test/project/pyproject.toml');
+      mockRead.mockImplementation((p) => (String(p).endsWith('pyproject.toml') ? '[tool.ruff]\nline-length = 100\n' : 'file-content'));
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/app.py', content: 'x = 1' } }), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'ruff', ['format', '/test/project/app.py'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
+    it('ignores a pyproject.toml that has no [tool.ruff] table', () => {
+      // Arrange
+      onlyExist('/test/project/app.py', '/test/project/pyproject.toml');
+      mockRead.mockImplementation((p) => (String(p).endsWith('pyproject.toml') ? '[project]\nname = "x"\n' : 'file-content'));
+
+      // Act
+      autoLint(makeInput({ tool_input: { file_path: '/test/project/app.py', content: 'x = 1' } }), testCtx);
+
+      // Assert
+      expect(toolCalls('ruff')).toEqual([]);
     });
   });
 });
