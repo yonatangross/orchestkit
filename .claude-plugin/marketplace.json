@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "10.1.1",
-  "description": "The Complete AI Development Toolkit - 110 skills, 36 agents, 38 commands, 163 hooks for full-stack development",
+  "version": "10.4.1",
+  "description": "The Complete AI Development Toolkit - 115 skills, 36 agents, 43 commands, 161 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com"
@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "10.1.1",
+      "version": "10.4.1",
       "description": "Complete AI development toolkit with 105 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 218 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
@@ -25,12 +25,12 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
-        "ref": "v10.1.1"
+        "ref": "v10.4.1"
       }
     },
     {
       "name": "ork-alpha",
-      "version": "10.1.1",
+      "version": "10.4.1",
       "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
       "author": {
         "name": "Yonatan Gross",
@@ -94,8 +94,8 @@
     },
     {
       "name": "prompt-enhancer",
-      "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model; you edit the rewrite, then Send or Undo. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
-      "version": "0.1.2",
+      "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model into a short, stack-aware prompt (typo fixes, your real subagents, skills and MCP servers, one Done when line, no questions); you edit the rewrite, then Send or Undo. The catalog prefix is prompt-cached. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
+      "version": "0.2.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

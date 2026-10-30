@@ -1,0 +1,15 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a third-party action that merges labelled PRs (#4931).
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Merge labelled PRs
+        uses: pascalgn/automerge-action@0000000000000000000000000000000000000000  # fixture pin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

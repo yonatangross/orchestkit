@@ -8,14 +8,14 @@ context: inherit
 metadata:
   category: mcp
   upstream-package: "@json-render/mcp"
-  upstream-version-tested: "0.21.0"
+  upstream-version-tested: "0.21.3"
   version: "1.1.0"
   author: "OrchestKit"
   complexity: "medium"
   tags: "mcp, json-render, visual-output, dashboard, iframe, sandbox, interactive-ui, genui"
 ---
 
-Upstream version reference: `@json-render/mcp` 0.21.0 (2026-09-30).
+Upstream version reference: `@json-render/mcp` 0.21.3 (2026-10-24).
 
 # MCP Visual Output
 

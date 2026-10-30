@@ -1,0 +1,8 @@
+{
+  "slug": "workflow-prs-open-unarmed",
+  "source": "docs/fix--workflow-prs-open-unarmed/index.html",
+  "title": "Workflow PRs open unarmed",
+  "description": "Workflows stop merging or arming their own PRs, and a YAML-parsing lint fails if one is re-added by mistake.",
+  "tags": ["ci", "github-actions", "merge-desk", "release"],
+  "date": "2026-10-26"
+}

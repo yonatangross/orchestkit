@@ -346,6 +346,16 @@ export function spawnIdentityGenerator(
         '--mcp-config',
         '{"mcpServers":{}}',
         '--disable-slash-commands',
+        // Zero tools: the child only prints one JSON line. Without this it ran
+        // with the full built-in set (Bash, WebFetch) even when the parent
+        // session was --restricted, which a hook cannot read.
+        '--tools',
+        '',
+        // --restricted: ignore user, project and local settings files, so a
+        // settings file in the child's cwd (tmpdir(), /tmp on Linux) cannot
+        // run an apiKeyHelper or other settings code. --settings below still
+        // applies under it. Present at the 2.1.277 floor (`claude --help`).
+        '--restricted',
         '--settings',
         '{"disableAllHooks":true,"enabledPlugins":{}}',
         buildGeneratorPrompt(firstPrompt, branch, language),

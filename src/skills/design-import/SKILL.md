@@ -48,6 +48,8 @@ design-import https://claude.ai/design/abc123      # From handoff URL
 design-import /tmp/handoff-bundle.json             # From local file
 ```
 
+> **Standalone Claude Design closes by 2026-12-14** (CC 2.1.302 adds this notice to `/design-sync` and `/design-login`). After that date a `claude.ai/design` handoff URL may stop resolving. Export the bundle to a local file now and pass the file path, which this skill accepts.
+
 ## When to use
 After exporting a handoff bundle from claude.ai/design. This skill is the **entry point** — it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `design-ship` instead.
 

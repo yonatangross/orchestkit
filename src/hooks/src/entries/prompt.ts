@@ -5,7 +5,7 @@
  * Bundle: prompt.mjs
  *
  * Issue #448: Consolidated 9 every-turn hooks into unified-dispatcher.
- * Remaining separate entries: 3 once-only + 1 background + 1 dispatcher.
+ * Remaining separate entries: 1 async observer + 1 background + 1 dispatcher.
  */
 
 // Re-export types and utilities

@@ -126,6 +126,17 @@ describe("llms.txt advertised surfaces", () => {
 		expect(txt).toContain("/llms.txt");
 		expect(txt).toContain("/llms-full.txt");
 	});
+
+	// orank 2026-10-21: the sandbox / test mode page and both draft-spec MCP
+	// server cards are reachable from llms.txt.
+	it("links the sandbox and test mode page and both draft server cards", async () => {
+		const txt = await body(getLlmsTxt());
+		expect(txt).toContain("https://orchestkit.dev/docs/getting-started/sandbox");
+		expect(txt).toMatch(/sandbox \/ test mode/);
+		expect(txt).toContain("(/docs/getting-started/sandbox): Sandbox and test mode.");
+		expect(txt).toContain("(/api/mcp/server-card)");
+		expect(txt).toContain("(/api/mcp/actions/server-card)");
+	});
 });
 
 describe("internal link integrity", () => {

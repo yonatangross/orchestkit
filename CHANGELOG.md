@@ -5,6 +5,98 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.1](https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) ([#4946](https://github.com/yonatangross/orchestkit/issues/4946)) ([e7d4810](https://github.com/yonatangross/orchestkit/commit/e7d4810b8663bc7e348c7cbc5d8aa4d4ee32baaf))
+
+
+### Miscellaneous
+
+* **docker:** bump node from `44fce69` to `06d7adf` ([#4942](https://github.com/yonatangross/orchestkit/issues/4942)) ([5eb4075](https://github.com/yonatangross/orchestkit/commit/5eb4075f3fdc97f73097c13c7d2f4d86ea263860))
+
+## [10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0) (2026-10-27)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.297 through 2.1.309 ([#4882](https://github.com/yonatangross/orchestkit/issues/4882)) ([28efa94](https://github.com/yonatangross/orchestkit/commit/28efa94fd41a495baf52f66829c33baece3093f8))
+
+
+### Bug Fixes
+
+* **hooks:** headless-responder answers through updatedInput.answers ([#4941](https://github.com/yonatangross/orchestkit/issues/4941)) ([c573ef3](https://github.com/yonatangross/orchestkit/commit/c573ef3f3aff4f3f346c379c60189ab8d5cd4aea))
+
+
+### Miscellaneous
+
+* **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 ([#4918](https://github.com/yonatangross/orchestkit/issues/4918)) ([f474b70](https://github.com/yonatangross/orchestkit/commit/f474b70990c05763843db072d2c9c66d2cca66d1))
+
+## [10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1) (2026-10-26)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @biomejs/biome ([#4916](https://github.com/yonatangross/orchestkit/issues/4916)) ([6edae8e](https://github.com/yonatangross/orchestkit/commit/6edae8e1f210c678aa4bcc88f7dac953a7bb9f2e))
+* **deps:** bump the npm-minor-patch group ([#4920](https://github.com/yonatangross/orchestkit/issues/4920)) ([9995360](https://github.com/yonatangross/orchestkit/commit/9995360593bf06704edf788aaf7a6b9d78952852))
+* **deps:** bump the npm-minor-patch group in /docs/site with 6 updates ([#4917](https://github.com/yonatangross/orchestkit/issues/4917)) ([6886159](https://github.com/yonatangross/orchestkit/commit/6886159733d694944c3aaa1057c3c603613cf653))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#4919](https://github.com/yonatangross/orchestkit/issues/4919)) ([c9a68a0](https://github.com/yonatangross/orchestkit/commit/c9a68a069312b06ddc67e8a2735d3f15afb28cd3))
+* **traffic:** snapshot week of 2026-10-19 ([#4927](https://github.com/yonatangross/orchestkit/issues/4927)) ([17fc667](https://github.com/yonatangross/orchestkit/commit/17fc6671ff3514925ad05986706f866691d4a8f4))
+
+
+### CI/CD
+
+* bump the github-actions group with 6 updates ([#4921](https://github.com/yonatangross/orchestkit/issues/4921)) ([668b520](https://github.com/yonatangross/orchestkit/commit/668b520c4719ea6dbb25ffe7f21904e5c2633d52))
+
+## [10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0) (2026-10-26)
+
+
+### Features
+
+* **skills:** plan and research artifact pairs with in-file review ([#4897](https://github.com/yonatangross/orchestkit/issues/4897)) ([266b9af](https://github.com/yonatangross/orchestkit/commit/266b9af97c0a8ff45572eddac232a5e7fca62841))
+
+
+### Bug Fixes
+
+* **ci:** open workflow PRs unarmed ([#4930](https://github.com/yonatangross/orchestkit/issues/4930)) ([0074ed3](https://github.com/yonatangross/orchestkit/commit/0074ed3254b54cdab1eb30f5aae2e4f010335ec8))
+* **plugin:** plain description that states hook scope ([#4759](https://github.com/yonatangross/orchestkit/issues/4759)) ([bf212dd](https://github.com/yonatangross/orchestkit/commit/bf212dd2385c571af5e172bf41719da91bb737fe))
+* **tests:** docs.yml parity test compares temp files, not /dev/fd ([#4933](https://github.com/yonatangross/orchestkit/issues/4933)) ([37e9abb](https://github.com/yonatangross/orchestkit/commit/37e9abb55b1b79b4b9a210a7a73c6c76b514e28b))
+
+
+### Documentation
+
+* **skills:** move the json-render skills to 0.21.3 ([#4929](https://github.com/yonatangross/orchestkit/issues/4929)) ([b09b1e6](https://github.com/yonatangross/orchestkit/commit/b09b1e6ebb56234c2d716f90a8790ab90e7ac9fc))
+
+## [10.2.2](https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **hooks:** consolidate prompt hook processes ([#4909](https://github.com/yonatangross/orchestkit/issues/4909)) ([854e144](https://github.com/yonatangross/orchestkit/commit/854e144b25365343ddc5c9dba5c072f4938a133b))
+* **hooks:** never spawn an unrestricted claude under --restricted ([#4906](https://github.com/yonatangross/orchestkit/issues/4906)) ([b850f51](https://github.com/yonatangross/orchestkit/commit/b850f51af1a66623b8a5c7c34ef7cdf7ee325a9d))
+* **site:** close the orank sandbox, card and discoverability gaps ([#4908](https://github.com/yonatangross/orchestkit/issues/4908)) ([c96a887](https://github.com/yonatangross/orchestkit/commit/c96a88732eea6e4dedd837bcca1241de8a598a86))
+
+## [10.2.1](https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1) (2026-10-25)
+
+
+### Miscellaneous
+
+* **coderabbit:** spend free OSS reviews sparingly, match org settings ([#4886](https://github.com/yonatangross/orchestkit/issues/4886)) ([431a0bf](https://github.com/yonatangross/orchestkit/commit/431a0bf12d775aff75c096459836ca93f070e9ba))
+
+## [10.2.0](https://github.com/yonatangross/orchestkit/compare/v10.1.1...v10.2.0) (2026-10-25)
+
+
+### Features
+
+* **prompt-enhancer:** short stack-aware rewrites with a prompt-cached catalog ([#4857](https://github.com/yonatangross/orchestkit/issues/4857)) ([2a64faf](https://github.com/yonatangross/orchestkit/commit/2a64faf888aeaf2068e9f8b402efcdfaf1e4ff55))
+
+
+### Bug Fixes
+
+* **secrets-veil:** widen the scan-time scaling bound to 31.6x ([#4898](https://github.com/yonatangross/orchestkit/issues/4898)) ([0e364d5](https://github.com/yonatangross/orchestkit/commit/0e364d5430bffd44785909ef56be58084e5c5f09))
+
 ## [10.1.1](https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1) (2026-10-24)
 
 

@@ -1,0 +1,24 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: `pr` as a jq variable name after flags whose values start with $.
+# Regression for the round-3 walk-back (ci-sentinel.yml:298-303): a flag
+# value such as "$(date ...)" is not a variable holding gh.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ledger row
+        env:
+          number: "1"
+          sha: abc
+        run: |
+          jq -n \
+            --arg ts "$(date -u -Iseconds)" \
+            --arg pr "$number" \
+            --arg sha "$sha" \
+            '{ts: $ts, pr: ($pr|tonumber), sha: $sha}' \
+            >> /tmp/ledger.jsonl

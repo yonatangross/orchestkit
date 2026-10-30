@@ -1,0 +1,18 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: the PR-opening action claude-release-watch.yml uses, with no arm.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open snapshot PR
+        uses: peter-evans/create-pull-request@0000000000000000000000000000000000000000  # fixture pin
+        with:
+          branch: chore/cc-snapshot-1
+          title: "chore(cc-watch): snapshot"
+          body: |
+            Data-only. Opened unarmed: it merges through the merge desk.

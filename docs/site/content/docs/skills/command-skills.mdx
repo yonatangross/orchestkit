@@ -1,5 +1,5 @@
 ---
-title: "38 Commands You Can Invoke"
+title: "43 Commands You Can Invoke"
 description: "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
 ---
 
@@ -7,7 +7,7 @@ description: "Every /ork: command skill in OrchestKit, grouped by task, with wha
 
 ## What Are Command Skills?
 
-Command skills are the **38 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
+Command skills are the **43 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
 
 Command skills differ from reference skills in three ways:
 
@@ -123,7 +123,12 @@ Commands not yet filed under a task above.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork:careful` |
+| [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. | medium | `/ork:create-plan <task> [slug]` |
+| [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how the codebase works today for a task's research questions and saves it as a research file (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan builds on a reviewable record. | medium | `/ork:create-research <task> <question or questions file>` |
 | [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
+| [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a plan written by create-plan from its review comments or new instructions: rewrites the plan body, leaves each comment intact and bumps the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
+| [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks the code behind a research file from create-research when a reviewer challenges a claim or the question widens, then revises its findings with fresh file:line citations, comments intact. | medium | `/ork:iterate-research <research file> [follow-up]` |
+| [`/ork:review-artifact-comments`](/docs/reference/skills/review-artifact-comments) | Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. | low | `/ork:review-artifact-comments [artifact file]` |
 
 ---
 

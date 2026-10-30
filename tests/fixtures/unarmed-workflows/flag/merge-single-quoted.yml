@@ -1,0 +1,14 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the subcommand in single quotes (XREVIEW 6411315417). Bash runs it
+# as `gh pr merge 123 --auto`.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Arm the PR
+        run: gh pr 'merge' 123 --auto

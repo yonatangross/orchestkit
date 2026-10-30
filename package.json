@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "10.1.1",
+  "version": "10.4.1",
   "private": true,
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "workspaces": [
@@ -75,6 +75,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.135.0"
+    "@anthropic-ai/sdk": "1.1.0"
   }
 }

@@ -275,6 +275,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 1
   },
   {
+    "id": "create-plan",
+    "label": "Create Plan",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "create-pr",
     "label": "Create Pr",
     "type": "command",
@@ -282,6 +292,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 3,
+    "usedByCount": 0
+  },
+  {
+    "id": "create-research",
+    "label": "Create Research",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -595,6 +615,26 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "iterate-plan",
+    "label": "Iterate Plan",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "iterate-research",
+    "label": "Iterate Research",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "json-render-catalog",
     "label": "Json Render Catalog",
     "type": "reference",
@@ -880,6 +920,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "review-artifact-comments",
+    "label": "Review Artifact Comments",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0

@@ -1,0 +1,13 @@
+{
+  "slug": "l6-artifact-pairs",
+  "source": "docs/feat--l6-artifact-pairs/index.html",
+  "title": "Artifact pairs: plans and research you review in the file",
+  "description": "Step through the life of one ork plan artifact: create, a reviewer comment, an iterate that keeps the comment, and approval, then copy the layout contract as a prompt.",
+  "tags": [
+    "artifacts",
+    "planning",
+    "review",
+    "workflow"
+  ],
+  "date": "2026-10-24"
+}

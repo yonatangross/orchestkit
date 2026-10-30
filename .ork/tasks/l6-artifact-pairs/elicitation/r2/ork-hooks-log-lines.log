@@ -1,0 +1,4 @@
+[2026-10-24 04:23:20] [INFO] [elicitation-guard] Allowed elicitation from l6elicit
+[2026-10-24 04:23:20] [INFO] [elicitation-result-logger] Elicitation unknown — server: unknown
+[2026-10-24 04:23:20] [INFO] [desktop] Notification: [elicitation_response] Elicitation response for server "l6elicit": cancel
+[2026-10-24 04:23:20] [INFO] [sound] Sound notification check: [elicitation_response]

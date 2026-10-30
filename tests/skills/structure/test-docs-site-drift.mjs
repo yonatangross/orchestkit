@@ -162,6 +162,7 @@ const KNOWN_ABSENT = new Map([
   ['scaffold', 'illustrative failure case — merged into `implement` in v7.2.0'],
   ['build-optimizer', 'demo-config example in demo-producer, not a real command'],
   ['code-walkthrough', 'demo-config example in demo-producer, not a real command'],
+  ['comments', 'the `<!-- ork:comments -->` marker that opens a task artifact\'s comment block (create-plan references/artifact-layout.md), an HTML comment, not a command'],
 ]);
 
 const PLACEHOLDER = new Set([

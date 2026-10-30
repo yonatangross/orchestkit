@@ -386,8 +386,8 @@ jobs:
       # with "GH006: Protected branch update failed"). Switching to the
       # same peter-evans/create-pull-request pattern used by
       # cc-support-window-bump.yml. The PR contains only data files
-      # (snapshots + gaps + issue-args), so it's safe to auto-merge once
-      # required CI checks pass.
+      # (snapshots + gaps + issue-args). It is opened unarmed and merges
+      # through the merge desk after a LAND, like every other PR (#4914).
       #
       # Detect whether there's anything to commit first; the action would
       # otherwise create an empty PR.
@@ -438,8 +438,8 @@ jobs:
 
       # Mint a Release Bot App installation token so the snapshot PR is opened
       # by the App identity (not github-actions[bot]). PRs from
-      # github-actions[bot] do NOT trigger required CI checks, so auto-merge
-      # would stall indefinitely. App-issued tokens DO trigger CI. Mirrors
+      # github-actions[bot] do NOT trigger required CI checks, so the PR
+      # would never get a CI result. App-issued tokens DO trigger CI. Mirrors
       # the pattern already used by `.github/workflows/release-please.yml`.
       - name: Mint Release Bot token for snapshot PR
         id: app_token
@@ -487,32 +487,15 @@ jobs:
               the Claude Platform release notes (#3627)
             - `shared/platform-adoption-gaps.json` — platform gap report
 
-            Safe to auto-merge once CI is green; this is data-only
-            (no code changes).
+            Data-only (no code changes). Opened unarmed: it merges
+            through the merge desk after a LAND names the head.
           labels: |
             automation
             cc-adoption
 
-      # Enable auto-merge on the snapshot PR so it doesn't get stuck behind
-      # a stale base. Branch protection has `strict: true` (PRs must be
-      # up-to-date), so a PR opened from a now-old main will be BEHIND once
-      # any other PR merges. `--auto` queues the merge for when required
-      # checks pass and triggers an automatic rebase if needed.
-      #
-      # The repo must have "Allow auto-merge" enabled in Settings → General
-      # (it is — used by cc-support-window-bump.yml's bump PRs already).
-      #
-      # NOTE: this step uses the gh CLI, which needs GH_TOKEN. Don't reuse
-      # peter-evans's auth context from the previous step (different env).
-      - name: Enable auto-merge on snapshot PR
-        if: success() && steps.cpr.outputs.pull-request-number
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
-        run: |
-          set -euo pipefail
-          gh pr merge "$PR_NUMBER" \
-            --repo "${{ github.repository }}" \
-            --auto \
-            --squash \
-            --delete-branch
+      # The snapshot PR is opened UNARMED (#4914). Data-only is not a
+      # reason to skip review: the required checks are CI only, so an armed
+      # PR merges with no reviewer. The merge desk arms or merges it after a
+      # LAND names the head, and updates the branch first if it went BEHIND.
+      # tests/unit/test-workflows-open-prs-unarmed.sh fails if any workflow
+      # arms its own PR again.

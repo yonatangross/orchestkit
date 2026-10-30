@@ -257,11 +257,11 @@ jobs:
             --title "chore(release): pin stable channel to $TAG" \
             --body-file /tmp/pin-pr-body.md
 
-          # Armed, not merged: the 18 required checks still gate it. On a repo
-          # with strict:true a PR that goes BEHIND may need a manual
-          # `gh pr update-branch` — arming makes it land the moment it is
-          # mergeable, it does not promise it lands unattended.
-          gh pr merge "$BRANCH" --squash --auto
+          # Opened UNARMED (#4914). The required checks are CI only, so an
+          # armed PR merges on CI alone with no reviewer (#4913 did). The
+          # merge desk arms or merges it after a LAND names the head.
+          # tests/unit/test-workflows-open-prs-unarmed.sh fails if any
+          # workflow arms its own PR again.
 
   # Build + push the stdio Docs MCP image to GHCR on every release. The image
   # is the OCI package surface advertised in server.json (packages[0]), so it

@@ -1,0 +1,15 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: quoted and mid-word-quoted pr subcommands that are not merge.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read and comment
+        run: |
+          gh pr 'view' 123 --json state
+          gh pr co"mment" 123 --body "held for review"

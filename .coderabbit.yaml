@@ -14,29 +14,13 @@
 # rewritten for this stack: TypeScript hooks, shell test harnesses, and
 # markdown skills/agents rather than a Python API.
 #
-# UPDATE 2026-09-14: the app now reviews this repo (coderabbitai[bot] review on
-# #4117 at 13:13Z). The 2026-09-03 diagnosis below is kept as history.
-#
-# THIS FILE IS INERT UNTIL THE APP IS INSTALLED ON THE OWNER ACCOUNT, and its
-# presence is not evidence that anything reads it. Measured 2026-09-03: this
-# config had been on main since 2026-08-25 (#3746) and CodeRabbit had posted
-# ZERO comments in the repo's entire history, on either the issue-comment or
-# the PR-review-comment surface. Every review comment on record here is from
-# github-advanced-security[bot] (56) or Copilot (9), and an explicit
-# @coderabbitai review on #3912 went unanswered. Over the same window
-# Yonatan-HQ/platform had CodeRabbit on 238 of 311 non-bot PRs, so the
-# subscription was live the whole time. CodeRabbit is therefore either
-# uninstalled on the yonatangross account or disabled account-side; a session
-# cannot tell those apart, because both post nothing and
-# `gh api /user/installations` is 403 on a normal token. The leading hypothesis
-# is the grant, since installation is scoped per OWNER ACCOUNT and the org
-# install covering Yonatan-HQ does not reach a user-owned repo. Either way no
-# edit below this line can fix it. Both live at
-# https://github.com/settings/installations and https://app.coderabbit.ai.
-#
-# orchestkit is PUBLIC, and CodeRabbit reviews public repositories for free
-# (coderabbit.ai/pricing, read 2026-09-03), so installing it here costs no
-# seat. Diagnostic ladder, with the positive control that keeps a zero honest:
+# The app reviews this repo (installed on the yonatangross account). Public
+# repos get CodeRabbit's free OSS reviews, which run out ("Review limit
+# reached ... free OSS reviews"), so settings below spend them sparingly.
+# This is a personal-account repo, so it cannot inherit the Yonatan-HQ central
+# config (Yonatan-HQ/coderabbit); the shared settings are mirrored by hand:
+# quiet profile, pause after one reviewed commit, CI linters off, no
+# auto-reply. History of the 2026-09-03 zero-review diagnosis:
 # src/skills/create-pr/references/coderabbit-zero-reviews.md
 
 language: "en-US"
@@ -59,14 +43,23 @@ tone_instructions: >-
   em-dashes.
 
 reviews:
-  profile: "chill"
+  profile: "quiet"
   request_changes_workflow: false
   high_level_summary: true
+  in_progress_fortune: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  suggested_reviewers: false
 
   auto_review:
     enabled: true
     drafts: false
     auto_incremental_review: true
+    # Free OSS reviews run out; fix pushes do not each spend one.
+    # Ask again with `@coderabbitai review`.
+    auto_pause_after_reviewed_commits: 1
+    labels:
+      - "!no-review"
     base_branches:
       - "main"
       - "dev"
@@ -169,17 +162,26 @@ reviews:
 
   # Schema v2 reads linters from reviews.tools. A root-level `tools:` key is
   # rejected ("Unrecognized key: tools") and every setting in it is ignored.
+  # biome, shellcheck and actionlint already run in CI (.github/workflows),
+  # so CodeRabbit copies would only repeat CI as comments. Security scanners
+  # (gitleaks, trufflehog, zizmor, osvScanner) stay on their defaults.
   tools:
     ruff:
       enabled: false
     eslint:
       enabled: false
     biome:
-      enabled: true
+      enabled: false
     shellcheck:
-      enabled: true
+      enabled: false
     actionlint:
-      enabled: true
+      enabled: false
+    oxc:
+      enabled: false
+    languagetool:
+      enabled: false
+    yamllint:
+      enabled: false
     semgrep:
       enabled: false
     markdownlint:
@@ -187,10 +189,12 @@ reviews:
 
 chat:
   art: false
-  auto_reply: true
+  auto_reply: false
 
 knowledge_base:
   opt_out: false
+  learnings:
+    scope: "local"
   code_guidelines:
     enabled: true
     filePatterns:

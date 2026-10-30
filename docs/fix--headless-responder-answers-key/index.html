@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A headless answer nobody read</title>
+<style>
+  :root { color-scheme: light dark; --ok:#1a7f37; --bad:#cf222e; --mut:#6e7781; }
+  body { font: 16px/1.55 system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.6rem; margin-bottom: .2rem; }
+  .sub { color: var(--mut); margin-top: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .box { border: 1px solid #d0d7de; border-radius: 8px; padding: .8rem 1rem; }
+  .box h2 { font-size: 1rem; margin: 0 0 .5rem; }
+  pre { font: 13px/1.45 ui-monospace, monospace; white-space: pre-wrap; margin: 0; }
+  .verdict { font-weight: 600; margin-top: .6rem; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  label { margin-right: 1rem; }
+  @media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>A headless answer nobody read</h1>
+<p class="sub">orchestkit #4941 · pretool/ask/headless-responder</p>
+
+<p>In CI and headless runs, ork's hook answers an AskUserQuestion call for you by returning <code>updatedInput</code>. Claude Code reads the answers from <code>answers</code> (question text to answer string; multi-select answers comma-separated). The hook wrote them under <code>_headless_answers</code>, so nothing was ever answered, and since CC 2.1.300 the unknown key is dropped. Pick a question type to see what each version sends.</p>
+
+<p>
+  <label><input type="radio" name="kind" value="single" checked> single choice</label>
+  <label><input type="radio" name="kind" value="multi"> multi-select</label>
+</p>
+
+<div class="cols">
+  <section class="box"><h2>Before</h2><pre id="before"></pre><div class="verdict bad" id="vb"></div></section>
+  <section class="box"><h2>After</h2><pre id="after"></pre><div class="verdict ok" id="va"></div></section>
+</div>
+
+<script>
+  const qs = {
+    single: { question: "Which branch?", options: ["main (Recommended)", "dev"], multiSelect: false },
+    multi: { question: "Which checks?", options: ["lint", "types", "tests"], multiSelect: true },
+  };
+  function draw(kind) {
+    const q = qs[kind];
+    const oldVal = q.multiSelect ? q.options : q.options[0];
+    const newVal = q.multiSelect ? q.options.join(", ") : q.options[0];
+    const base = { questions: [{ question: q.question, multiSelect: q.multiSelect }] };
+    document.getElementById("before").textContent =
+      JSON.stringify({ ...base, _headless_answers: { [q.question]: oldVal } }, null, 2);
+    document.getElementById("after").textContent =
+      JSON.stringify({ ...base, answers: { [q.question]: newVal } }, null, 2);
+    document.getElementById("vb").textContent = "CC drops _headless_answers: the question is not answered";
+    document.getElementById("va").textContent = "CC reads answers: \"" + newVal + "\"";
+  }
+  document.querySelectorAll("input[name=kind]").forEach((r) => r.addEventListener("change", (e) => draw(e.target.value)));
+  draw("single");
+</script>
+</body>
+</html>

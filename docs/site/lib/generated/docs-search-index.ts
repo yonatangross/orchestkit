@@ -212,8 +212,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/getting-started/sandbox",
-    "title": "Try OrchestKit Safely",
-    "description": "Exercise OrchestKit without touching real data: read-only hosted tools, a dry-run install plan, and a throwaway local project."
+    "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
+    "description": "Exercise OrchestKit without touching real data: read-only hosted tools (every call is a dry run), a dry-run install plan, and a throwaway local project."
   },
   {
     "url": "/docs/getting-started/skills-sh",
@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 163-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 161-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -287,7 +287,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "163 Hooks: What Fires When",
+    "title": "161 Hooks: What Fires When",
     "description": "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
   },
   {
@@ -568,7 +568,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "OrchestKit Hooks Reference",
-    "description": "Complete reference for all 153 global lifecycle hook entries across 32 event categories."
+    "description": "Complete reference for all 151 global lifecycle hook entries across 32 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -718,7 +718,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks/user-prompt-submit",
     "title": "UserPromptSubmit",
-    "description": "Hooks triggered on UserPromptSubmit events (5 hooks)."
+    "description": "Hooks triggered on UserPromptSubmit events (3 hooks)."
   },
   {
     "url": "/docs/reference/hooks/worktree-remove",
@@ -916,9 +916,19 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
   },
   {
+    "url": "/docs/reference/skills/create-plan",
+    "title": "Create Plan",
+    "description": "Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback."
+  },
+  {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review."
+  },
+  {
+    "url": "/docs/reference/skills/create-research",
+    "title": "Create Research",
+    "description": "Documents how the codebase works today for a task's research questions and saves it as a research file (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan builds on a reviewable record. Use before planning a change in unfamiliar code; describes, never proposes."
   },
   {
     "url": "/docs/reference/skills/database-patterns",
@@ -1003,7 +1013,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/hook-validation",
     "title": "Doctor: Hook Validation",
-    "description": "OrchestKit uses 153 global hook entries across 32 event types, compiled into 11 bundles."
+    "description": "OrchestKit uses 151 global hook entries across 32 event types, compiled into 11 bundles."
   },
   {
     "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",
@@ -1053,7 +1063,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 110 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 115 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1183,7 +1193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 110 OrchestKit skills."
+    "description": "Complete reference for all 115 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1194,6 +1204,16 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/issue-progress-tracking",
     "title": "Issue Progress Tracking",
     "description": "GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
+  },
+  {
+    "url": "/docs/reference/skills/iterate-plan",
+    "title": "Iterate Plan",
+    "description": "Revises a plan written by create-plan from its review comments or new instructions: rewrites the plan body, leaves each comment intact and bumps the revision. Use when a plan file got feedback or its scope changed; never to start a new plan."
+  },
+  {
+    "url": "/docs/reference/skills/iterate-research",
+    "title": "Iterate Research",
+    "description": "Re-checks the code behind a research file from create-research when a reviewer challenges a claim or the question widens, then revises its findings with fresh file:line citations, comments intact. Use after review comments on research; stays descriptive."
   },
   {
     "url": "/docs/reference/skills/json-render-catalog",
@@ -1339,6 +1359,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/responsive-patterns",
     "title": "Responsive Patterns",
     "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
+  },
+  {
+    "url": "/docs/reference/skills/review-artifact-comments",
+    "title": "Review Artifact Comments",
+    "description": "Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. Use when a reviewer has commented on an artifact file or asks to address, resolve or approve its comments."
   },
   {
     "url": "/docs/reference/skills/review-pr",
@@ -1537,13 +1562,13 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "38 Commands You Can Invoke",
+    "title": "43 Commands You Can Invoke",
     "description": "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
   },
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 110 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 115 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",

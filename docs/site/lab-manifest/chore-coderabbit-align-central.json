@@ -1,0 +1,12 @@
+{
+  "slug": "chore-coderabbit-align-central",
+  "source": "docs/chore--coderabbit-align-central/coderabbit-config.html",
+  "title": "CodeRabbit config: before and after",
+  "description": "Which CodeRabbit review settings changed in orchestkit to stretch the free OSS review allowance, with the reason for each, and a copy-as-prompt button.",
+  "tags": [
+    "coderabbit",
+    "config",
+    "review"
+  ],
+  "date": "2026-10-24"
+}

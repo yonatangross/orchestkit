@@ -8,15 +8,15 @@ context: inherit
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.21.0"
+  upstream-version-tested: "0.21.3"
   shadcn-component-count: 36
-  version: "1.3.0"
+  version: "1.3.1"
   author: "OrchestKit"
   complexity: "medium"
   tags: "json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel"
 ---
 
-Upstream version reference: `@json-render/core` 0.21.0 (2026-09-30).
+Upstream version reference: `@json-render/core` 0.21.3 (2026-10-24).
 
 # json-render Component Catalogs
 
@@ -35,8 +35,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.j
 
 Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
-## New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)
+## New in 2026-04 → 2026-10 (json-render 0.14 → 0.21)
 
+- **`__proto__` paths (0.21)**: only the `setByPath`, `addByPath` and `removeByPath` helpers ignore a path with a `__proto__` segment, without an error. `createStateStore().set()` / `update()` and `createStoreAdapter` write through `immutableSetByPath`, which has no guard, and no helper rejects `constructor` or `prototype`. So validate keys yourself before any state-store write: reject `__proto__`, `constructor` and `prototype` segments, and never use them as an element key, a state key or a patch path segment. RFC 6901 escaping is unchanged: write `~0` for `~` and `~1` for `/` inside a key.
+- **Experimental composition API (0.21)**: `experimental_composeSpec` and `experimental_createEvaluator` are the only new exports in `@json-render/core` 0.21 (verified against the 0.20.0 and 0.21.3 type definitions, no removals). They are marked experimental, so do not build a catalog workflow on them yet.
 - **Named slots (0.20)** — `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
 - **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
 - **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
