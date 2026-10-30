@@ -5,11 +5,14 @@
  * ElicitationResult Logger — Tracks elicitation outcomes for analytics
  * Fires on the CC `ElicitationResult` event (after the user responds).
  *
- * Reads CC's documented payload: { server_name, user_response: { action, content } }.
+ * Reads the payload CC sends, captured on 2.1.310 (#4884):
+ * { mcp_server_name, mode, action }. The { server_name, user_response: { action } }
+ * shape this hook used to read is never sent; it stays as a fallback only, so a
+ * line logged from either shape names the real server and action.
  * Log-only: CC does NOT read additionalContext on ElicitationResult (it is stripped,
  * #1794), so the prior decline-suggestion injection was dead — removed (#1264 Phase 3).
  *
- * Version: 1.1.0
+ * Version: 1.2.0
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
@@ -17,8 +20,8 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 export function elicitationResultLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const action = input.user_response?.action || 'unknown';
-  const server = input.server_name || 'unknown';
+  const action = input.action || input.user_response?.action || 'unknown';
+  const server = input.mcp_server_name || input.server_name || 'unknown';
 
   ctx.log('elicitation-result-logger',
     `Elicitation ${action} — server: ${server}`
