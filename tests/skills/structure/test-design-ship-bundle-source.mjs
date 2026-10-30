@@ -34,11 +34,15 @@ const section = (title) => {
 };
 
 const phase1 = section('Phase 1');
-const phase4 = section('Phase 4');
-const prBody = (/pr_body = f"""([\s\S]*?)"""/.exec(phase4) || [])[1];
+// The pr_body template holds its own "## Summary" heading, so a section cut
+// at the next "## " would end inside it. Read the first pr_body after the
+// Phase 4 heading instead.
+const phase4Start = text.search(/^## Phase 4/m);
+const prBody = phase4Start < 0 ? undefined : (/pr_body = f"""([\s\S]*?)"""/.exec(text.slice(phase4Start)) || [])[1];
 
 const failures = [];
 if (!phase1) failures.push('no "## Phase 1" section in design-ship SKILL.md');
+if (phase4Start < 0) failures.push('no "## Phase 4" section in design-ship SKILL.md');
 if (prBody === undefined) failures.push('no pr_body f-string in the Phase 4 section');
 if (prBody !== undefined) {
   if (prBody.includes('{bundle_url}')) {
