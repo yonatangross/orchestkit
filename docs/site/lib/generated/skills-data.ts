@@ -1651,7 +1651,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-ship",
     "description": "One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. Use when a design link should come back as a PR with no intermediate steps; if all you need is the components written to disk, run /ork:design-import instead.",
     "version": "1.0.0",
-    "sha256": "78db682b3885f98215e05537aafde1289d2ea63e3d47f5826bf54c3b82c65321",
+    "sha256": "77f64deb757570dcb2ae62f4e4253d7dcfc9230162eb4c25b5c4ef9272777eda",
     "author": "OrchestKit",
     "tags": [
       "claude-design",

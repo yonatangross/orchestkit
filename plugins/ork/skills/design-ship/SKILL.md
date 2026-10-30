@@ -74,7 +74,7 @@ Handoff bundle (URL or file)
            ▼
 ┌──────────────────────────────┐
 │ 4. create-pr             │  PR opened with:
-│                               │   - Claude Design URL link
+│                               │   - Bundle source link
 │                               │   - Before/after screenshots
 │                               │   - Component scaffold list
 │                               │   - Coverage delta
@@ -122,7 +122,12 @@ if current_branch in ("main", "master", "dev"):
 
 ## Phase 1 — Import
 
-Delegate to `design-import` with the bundle argument. Capture its output (the import manifest) — it includes the bundle_id, list of components written, and the provenance file path.
+Set `bundle_source` from the argument first, so Phase 4 can link it for either input:
+
+- URL input: `bundle_source` is the handoff URL as given.
+- Local file input: `bundle_source` is the source URL the bundle file records, else the file path.
+
+Delegate to `design-import` with the bundle argument. Capture its output (the import manifest): it includes the bundle_id, list of components written, and the provenance file path.
 
 If import fails, **stop**. Do NOT proceed to test generation against partially-imported components.
 
@@ -173,7 +178,7 @@ Use `create-pr` with a body templated from the bundle and verification results:
 
 ```python
 pr_body = f"""## Summary
-Generated from Claude Design handoff: {bundle_url}
+Generated from Claude Design handoff: {bundle_source}
 
 Bundle ID: `{bundle_id}` · Provenance: `.claude/design-handoffs/{bundle_id}.json`
 
