@@ -29,6 +29,7 @@ import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import {
   acknowledgeWorktreeAdvisories,
+  fitWorktreeAdvisories,
   readWorktreeAdvisories,
   type PendingWorktreeAdvisories,
 } from '../lib/worktree-advisory.js';
@@ -49,6 +50,24 @@ export function worktreeAdvisoryConsumerForDispatcher(
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
   return runWorktreeAdvisoryConsumer(input, ctx, true);
+}
+
+/**
+ * Shrink a pending dispatcher delivery to `maxChars` / `maxLines` (#4922).
+ * Returns the context text to deliver, or null when nothing fits (the
+ * advisory then stays on disk whole). Acknowledging afterwards deletes only
+ * the delivered part and keeps the rest for the next prompt.
+ */
+export function fitWorktreeAdvisoryDelivery(result: HookResult, maxChars: number, maxLines: number): string | null {
+  const delivery = pendingDeliveries.get(result);
+  if (!delivery) return null;
+  const fitted = fitWorktreeAdvisories(delivery.pending, maxChars, maxLines);
+  if (!fitted) {
+    pendingDeliveries.delete(result);
+    return null;
+  }
+  pendingDeliveries.set(result, { projectDir: delivery.projectDir, pending: fitted });
+  return fitted.content;
 }
 
 export function acknowledgeWorktreeAdvisoryDelivery(result: HookResult): void {
