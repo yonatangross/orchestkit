@@ -30,7 +30,7 @@ export const SITE = {
 
 // The host the site was served from before v10 GA. It stays attached to the
 // same Vercel project: middleware.ts sends pages there to SITE.domain with a
-// 308, and keeps the MCP, well-known and auth.md paths at 200 so installed MCP
+// 301, and keeps the MCP, well-known and auth.md paths at 200 so installed MCP
 // clients (which often do not follow a redirect on POST) keep working.
 export { LEGACY_HOST } from "./site-redirects.mjs";
 
