@@ -4,23 +4,28 @@
 
 ## Quick Start
 
+All commands run from `orchestkit-demos/`. The config at `orchestkit-demos/scripts/demo-cli.ts` is used in place, so there is nothing to copy.
+
 ```bash
-# 1. Copy demo config to Remotion compositions
-cp orchestkit-demos/scripts/demo-cli.ts plugins/ork/skills/demo-producer/src/components/configs/
+cd orchestkit-demos
 
-# 2. Register composition in Root.tsx (see code comments)
+# 1. Register the composition in src/Root.tsx, next to the ScrapbookShowcase
+#    composition: import { orchestkitCliDemoConfig } from "../scripts/demo-cli";
+#    <Composition id="OrchestKitCliDemo" component={ScrapbookDemo}
+#      durationInFrames={FPS * 15} fps={FPS} width={WIDTH} height={HEIGHT}
+#      schema={scrapbookDemoSchema} defaultProps={orchestkitCliDemoConfig} />
 
-# 3. Render 16:9 horizontal (YouTube/Twitter)
-npx remotion render Root OrchestKitCliDemo out/OrchestKitCliDemo.mp4 \
+# 2. Render 16:9 horizontal (YouTube/Twitter); src/index.ts is the Remotion entry
+npx remotion render src/index.ts OrchestKitCliDemo out/OrchestKitCliDemo.mp4 \
   --width=1920 --height=1080 --fps=30
 
-# 4. (Optional) Add audio
+# 3. (Optional) Add audio
 ffmpeg -i out/OrchestKitCliDemo.mp4 \
   -i audio/upbeat-tech-music.mp3 \
   -c:v copy -c:a aac -filter_complex "[1]volume=0.3[a];[0][a]amix=inputs=2:duration=first[out]" -map "[out]" -c:a aac \
   out/OrchestKitCliDemo-with-audio.mp4
 
-# 5. Optimize for platform constraints
+# 4. Optimize for platform constraints
 ffmpeg -i out/OrchestKitCliDemo-with-audio.mp4 \
   -c:v libx264 -preset fast -crf 23 \
   -b:a 128k \
@@ -97,14 +102,13 @@ ffmpeg -i out/OrchestKitCliDemo-with-audio.mp4 \
 
 ```
 orchestkit/
-├── orchestkit-demos/scripts/demo-cli.ts      ← Config (source)
 ├── docs/DEMO_PRODUCTION.md                    ← You are here
-├── out/
-│   └── OrchestKitCliDemo-final.mp4          ← Upload this
-└── plugins/ork/skills/demo-producer/
-    └── src/components/
-        └── configs/
-            └── orchestkit-cli.ts             ← Copied from orchestkit-demos/scripts/demo-cli.ts
+└── orchestkit-demos/
+    ├── scripts/demo-cli.ts                    ← Config, used in place
+    ├── src/index.ts                           ← Remotion entry
+    ├── src/Root.tsx                           ← Register the composition here
+    └── out/
+        └── OrchestKitCliDemo-final.mp4        ← Upload this
 ```
 
 ## Editing After Render
@@ -113,7 +117,7 @@ If you need to tweak the demo post-render:
 
 ```bash
 # Change social card text
-# → Edit orchestkit-cli.ts socialCards[] → re-render
+# → Edit scripts/demo-cli.ts socialCards[] → re-render
 
 # Adjust terminal output timing
 # → Edit terminalContent → re-render
