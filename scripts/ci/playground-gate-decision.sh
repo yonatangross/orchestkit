@@ -43,7 +43,9 @@ finish() {
 # when it turns a branch name into a docs directory.
 hyphen=-
 pair="${hyphen}${hyphen}"
-INERT="^(README\\.md|CHANGELOG\\.md|CONTRIBUTING\\.md|SECURITY\\.md|CODE_OF_CONDUCT\\.md|LICENSE|\\.github/.*|vercel\\.json|[^/]*\\.toml|docs/[^/]*${pair}[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\\.claude/rules/.*|docs/site/public/lab/.*|docs/site/lab-manifest/.*|docs/site/lib/generated/lab-data\\.ts)$"
+# README.md and CHANGELOG.md are docs at any depth (#4926); the rest of
+# the list stays anchored at the repo root.
+INERT="^((.*/)?README\\.md|(.*/)?CHANGELOG\\.md|CONTRIBUTING\\.md|SECURITY\\.md|CODE_OF_CONDUCT\\.md|LICENSE|\\.github/.*|vercel\\.json|[^/]*\\.toml|docs/[^/]*${pair}[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\\.claude/rules/.*|docs/site/public/lab/.*|docs/site/lab-manifest/.*|docs/site/lib/generated/lab-data\\.ts)$"
 
 # Same classifier as src/hooks/src/lib/git.ts (hasTests), which is the
 # repo's existing test globs: **/*.test.*, **/*.spec.*, **/__tests__/**,

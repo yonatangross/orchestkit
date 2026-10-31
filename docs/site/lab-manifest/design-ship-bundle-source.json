@@ -1,0 +1,8 @@
+{
+  "slug": "design-ship-bundle-source",
+  "source": "docs/fix--design-ship-bundle-source/index.html",
+  "title": "design-ship links its bundle source for a file too",
+  "description": "The PR body design-ship opens linked an undefined bundle_url for a local bundle file. One bundle_source now covers a handoff URL and a file.",
+  "tags": ["skills", "design", "claude-design"],
+  "date": "2026-10-30"
+}

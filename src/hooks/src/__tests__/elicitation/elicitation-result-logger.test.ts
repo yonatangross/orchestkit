@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import type { HookInput } from '../../types.js';
+import type { HookContext, HookInput } from '../../types.js';
 
 vi.mock('../../lib/common.js', async () => {
   const actual = await vi.importActual<typeof import('../../lib/common.js')>('../../lib/common.js');
@@ -57,5 +57,43 @@ describe('elicitation/elicitation-result-logger (#1264 Phase 3 — real CC paylo
   it('handles a missing user_response gracefully', () => {
     const r = elicitationResultLogger(result({ user_response: undefined }));
     expect(r.continue).toBe(true);
+  });
+});
+
+// #4884: the payload CC 2.1.310 actually sends, captured from a headless run
+// against a stdio test MCP server (session and path fields trimmed). It has
+// mcp_server_name and a top-level action; no server_name, no user_response.
+// The logger read only the invented fields, so every line said "unknown".
+describe('elicitation/elicitation-result-logger (#4884, captured 2.1.310 payload)', () => {
+  const CAPTURED = {
+    hook_event_name: 'ElicitationResult',
+    mcp_server_name: 'l6elicit',
+    mode: 'form',
+    action: 'cancel',
+  };
+
+  function logLine(input: HookInput): string {
+    const log = vi.fn();
+    elicitationResultLogger(input, { log } as unknown as HookContext);
+    expect(log).toHaveBeenCalledTimes(1);
+    return String(log.mock.calls[0][1]);
+  }
+
+  it('logs the action and server from the captured payload', () => {
+    const line = logLine(CAPTURED as unknown as HookInput);
+    expect(line).toContain('cancel');
+    expect(line).toContain('l6elicit');
+    expect(line).not.toContain('unknown');
+  });
+
+  it('still reads the old field names when only they are present', () => {
+    const line = logLine({ server_name: 'old-mcp', user_response: { action: 'accept' } } as unknown as HookInput);
+    expect(line).toContain('accept');
+    expect(line).toContain('old-mcp');
+  });
+
+  it('logs unknown when neither shape is present', () => {
+    const line = logLine({ hook_event_name: 'ElicitationResult' } as unknown as HookInput);
+    expect(line).toContain('unknown');
   });
 });
