@@ -46,14 +46,26 @@ export function matches(matcher, tool) {
   return new RegExp(`^(?:${matcher})$`).test(tool);
 }
 
-/** Command entries CC launches for one tool call on the success path. */
+/**
+ * Command entries CC launches for one tool call on the success path.
+ *
+ * CC runs an identical command (same command + args) once per event even
+ * when two matching groups list it. Calibrated 2026-10-31 against
+ * `claude -p --debug-file` on CC 2.1.316: lifecycle/webhook-forwarder sits in
+ * the per-tool PreToolUse group and the matcher-less one, and fires once.
+ */
 export function entriesFor(hooksDoc, tool, events = SUCCESS_EVENTS) {
   const out = [];
   for (const event of events) {
+    const seen = new Set();
     for (const group of hooksDoc.hooks?.[event] ?? []) {
       if (!matches(group.matcher, tool)) continue;
       for (const h of group.hooks ?? []) {
-        if (h.type === 'command') out.push({ event, matcher: group.matcher ?? '*', hook: h });
+        if (h.type !== 'command') continue;
+        const key = JSON.stringify([h.command, h.args ?? []]);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ event, matcher: group.matcher ?? '*', hook: h });
       }
     }
   }
