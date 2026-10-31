@@ -141,7 +141,7 @@ Detection and alerting for silent failures in LLM agents.
 | `references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
 | `references/dashboards.md` | Dashboard layout conventions |
 | `references/structured-logging.md` | Structured log field conventions |
-| `references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
+| `references/dev-agent-lens.md` | LiteLLM proxy layer (or Bifrost) for API-boundary observability |
 | `examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
 | `scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 

@@ -2395,7 +2395,7 @@ ollama pull deepseek-r1:70b-q4_0
 
 ## Claude Code `/model` Picker: Gateway Discovery (CC 2.1.129+)
 
-When using Claude Code with a custom gateway (`ANTHROPIC_BASE_URL` pointed at LiteLLM, Bedrock-via-gateway, or a custom auth proxy), gateway-discovered models are **hidden from the `/model` picker by default** as of CC 2.1.129. Re-enable discovery with the env var:
+When using Claude Code with a custom gateway (`ANTHROPIC_BASE_URL` pointed at LiteLLM, [Bifrost](https://github.com/maximhq/bifrost) (`http://localhost:8080/anthropic`), Bedrock-via-gateway, or a custom auth proxy), gateway-discovered models are **hidden from the `/model` picker by default** as of CC 2.1.129. Re-enable discovery with the env var:
 
 ```bash
 export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
