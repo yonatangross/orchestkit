@@ -20,9 +20,10 @@
  *                 `run-hook.mjs" <id>` (#4683: a context: fork skill never
  *                 runs frontmatter hooks, so it runs its loaders in the body).
  *                 Reachable, but not counted as hooks: nothing registers them.
- *   flagVariant = ids a flag-gated hooks.json variant dispatches (today only
- *                 pretool/tool-dispatcher, written by unified-pretool-hooks.mjs,
- *                 default off). Reachable when the flag is on; not counted.
+ *   flagVariant = ids a flag-gated hooks.json variant dispatches (today
+ *                 pretool/tool-dispatcher and posttool/tool-dispatcher, written
+ *                 by unified-pretool-hooks.mjs, default off). Reachable when the
+ *                 flag is on; not counted.
  *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody ∪ flagVariant
  *
  * FAIL conditions:
@@ -54,7 +55,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { load } from 'js-yaml';
-import { UNIFIED_PRETOOL_HANDLER } from './unified-pretool-hooks.mjs';
+import { UNIFIED_PRETOOL_HANDLER, UNIFIED_POSTTOOL_HANDLER } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const hooksRoot = join(__dirname, '..');
@@ -285,7 +286,7 @@ function main() {
   failures.push(...checkSchemaKeys(JSON.parse(readFileSync(hooksJsonPath, 'utf-8'))));
 
   // Closure
-  const flagVariant = new Set([UNIFIED_PRETOOL_HANDLER]);
+  const flagVariant = new Set([UNIFIED_PRETOOL_HANDLER, UNIFIED_POSTTOOL_HANDLER]);
   const seeds = new Set([...directIds, ...agents.ids, ...skills.ids, ...skillBody, ...flagVariant]);
   const closure = dispatcherFanout(seeds, registered);
 

@@ -40,10 +40,15 @@ const HOOKS_DIR = join(__dirname, '..');
 const PRELOAD = join(__dirname, 'lib', 'count-child-processes.cjs');
 const SUCCESS_EVENTS = ['PreToolUse', 'PostToolUse', 'PostToolBatch'];
 
+/**
+ * CC matcher semantics: empty or "*" matches every tool; identifier
+ * characters (hyphens included) and "|" are an exact list; anything else is
+ * an unanchored regex (CC changelog: hyphenated identifiers exact-match).
+ */
 export function matches(matcher, tool) {
   if (matcher === undefined || matcher === '' || matcher === '*') return true;
-  if (/^[\w|]+$/.test(matcher)) return matcher.split('|').includes(tool);
-  return new RegExp(`^(?:${matcher})$`).test(tool);
+  if (/^[\w|-]+$/.test(matcher)) return matcher.split('|').includes(tool);
+  return new RegExp(matcher).test(tool);
 }
 
 /**

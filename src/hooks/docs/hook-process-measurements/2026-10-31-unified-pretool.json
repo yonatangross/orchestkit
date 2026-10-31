@@ -1,7 +1,7 @@
 {
-  "measured_at": "2026-10-31T18:54:43.816Z",
+  "measured_at": "2026-10-31T19:10:45.544Z",
   "node": "v26.12.1",
-  "hooks_json": "/tmp/claude-501/ork-hooks-unified-pretool.json",
+  "hooks_json": "/tmp/claude-501/yellow-ork-hooks/hooks-pre-only.json",
   "path": "success (PreToolUse + PostToolUse + PostToolBatch, batch of one)",
   "results": [
     {
@@ -9,14 +9,14 @@
       "hookProcesses": 10,
       "childProcesses": 1,
       "total": 11,
-      "syncMs": 284,
+      "syncMs": 456,
       "runs": [
         {
           "event": "PreToolUse",
           "handler": "pretool/tool-dispatcher",
           "async": false,
           "exit": 0,
-          "ms": 96,
+          "ms": 110,
           "children": []
         },
         {
@@ -24,7 +24,7 @@
           "handler": "posttool/secret-handler",
           "async": false,
           "exit": 0,
-          "ms": 93,
+          "ms": 218,
           "children": []
         },
         {
@@ -32,7 +32,7 @@
           "handler": "skill/redact-secrets",
           "async": true,
           "exit": 0,
-          "ms": 92,
+          "ms": 181,
           "children": []
         },
         {
@@ -40,7 +40,7 @@
           "handler": "posttool/commit-nudge",
           "async": true,
           "exit": 0,
-          "ms": 99,
+          "ms": 119,
           "children": [
             "git"
           ]
@@ -50,7 +50,7 @@
           "handler": "posttool/bash/gh-rate-limit-tracker",
           "async": true,
           "exit": 0,
-          "ms": 94,
+          "ms": 115,
           "children": []
         },
         {
@@ -58,7 +58,7 @@
           "handler": "posttool/bash/session-heartbeat-publisher",
           "async": true,
           "exit": 0,
-          "ms": 92,
+          "ms": 122,
           "children": []
         },
         {
@@ -66,7 +66,7 @@
           "handler": "posttool/heartbeat",
           "async": true,
           "exit": 0,
-          "ms": 97,
+          "ms": 148,
           "children": []
         },
         {
@@ -74,7 +74,7 @@
           "handler": "posttool/chain-staleness-checker",
           "async": true,
           "exit": 0,
-          "ms": 93,
+          "ms": 124,
           "children": []
         },
         {
@@ -82,7 +82,7 @@
           "handler": "posttool/metrics-dispatcher",
           "async": false,
           "exit": 0,
-          "ms": 95,
+          "ms": 128,
           "children": []
         },
         {
@@ -90,7 +90,7 @@
           "handler": "posttool/tool-batch-observer",
           "async": true,
           "exit": 0,
-          "ms": 95,
+          "ms": 125,
           "children": []
         }
       ]
@@ -100,14 +100,14 @@
       "hookProcesses": 16,
       "childProcesses": 4,
       "total": 20,
-      "syncMs": 387,
+      "syncMs": 664,
       "runs": [
         {
           "event": "PreToolUse",
           "handler": "pretool/tool-dispatcher",
           "async": false,
           "exit": 0,
-          "ms": 101,
+          "ms": 122,
           "children": []
         },
         {
@@ -115,7 +115,7 @@
           "handler": "posttool/auto-lint",
           "async": false,
           "exit": 0,
-          "ms": 97,
+          "ms": 109,
           "children": [
             "which",
             "which"
@@ -126,7 +126,7 @@
           "handler": "posttool/ascii-lint",
           "async": true,
           "exit": 0,
-          "ms": 92,
+          "ms": 106,
           "children": []
         },
         {
@@ -134,7 +134,7 @@
           "handler": "posttool/code-comment-glyph-warn",
           "async": true,
           "exit": 0,
-          "ms": 93,
+          "ms": 109,
           "children": []
         },
         {
@@ -142,7 +142,7 @@
           "handler": "posttool/ui-change-detector",
           "async": true,
           "exit": 0,
-          "ms": 92,
+          "ms": 103,
           "children": []
         },
         {
@@ -150,7 +150,7 @@
           "handler": "skill/redact-secrets",
           "async": true,
           "exit": 0,
-          "ms": 96,
+          "ms": 123,
           "children": []
         },
         {
@@ -158,7 +158,7 @@
           "handler": "posttool/config-change/security-auditor",
           "async": true,
           "exit": 0,
-          "ms": 95,
+          "ms": 656,
           "children": []
         },
         {
@@ -166,7 +166,7 @@
           "handler": "posttool/write/stale-import-detector",
           "async": true,
           "exit": 0,
-          "ms": 101,
+          "ms": 593,
           "children": [
             "grep"
           ]
@@ -176,7 +176,7 @@
           "handler": "posttool/write/debt-marker-tracker",
           "async": true,
           "exit": 0,
-          "ms": 94,
+          "ms": 452,
           "children": []
         },
         {
@@ -184,7 +184,7 @@
           "handler": "posttool/check-plugins-drift",
           "async": false,
           "exit": 0,
-          "ms": 94,
+          "ms": 235,
           "children": []
         },
         {
@@ -192,7 +192,7 @@
           "handler": "posttool/write/edit-history-tracker",
           "async": true,
           "exit": 0,
-          "ms": 98,
+          "ms": 154,
           "children": []
         },
         {
@@ -200,7 +200,7 @@
           "handler": "posttool/commit-nudge",
           "async": true,
           "exit": 0,
-          "ms": 100,
+          "ms": 215,
           "children": [
             "git"
           ]
@@ -210,7 +210,7 @@
           "handler": "posttool/heartbeat",
           "async": true,
           "exit": 0,
-          "ms": 95,
+          "ms": 189,
           "children": []
         },
         {
@@ -218,7 +218,7 @@
           "handler": "posttool/chain-staleness-checker",
           "async": true,
           "exit": 0,
-          "ms": 96,
+          "ms": 207,
           "children": []
         },
         {
@@ -226,7 +226,7 @@
           "handler": "posttool/metrics-dispatcher",
           "async": false,
           "exit": 0,
-          "ms": 95,
+          "ms": 198,
           "children": []
         },
         {
@@ -234,7 +234,7 @@
           "handler": "posttool/tool-batch-observer",
           "async": true,
           "exit": 0,
-          "ms": 108,
+          "ms": 133,
           "children": []
         }
       ]
@@ -244,14 +244,14 @@
       "hookProcesses": 4,
       "childProcesses": 0,
       "total": 4,
-      "syncMs": 306,
+      "syncMs": 424,
       "runs": [
         {
           "event": "PreToolUse",
           "handler": "pretool/tool-dispatcher",
           "async": false,
           "exit": 0,
-          "ms": 112,
+          "ms": 124,
           "children": []
         },
         {
@@ -259,7 +259,7 @@
           "handler": "posttool/secret-handler",
           "async": false,
           "exit": 0,
-          "ms": 99,
+          "ms": 155,
           "children": []
         },
         {
@@ -267,7 +267,7 @@
           "handler": "posttool/context-crossing-warn",
           "async": false,
           "exit": 0,
-          "ms": 95,
+          "ms": 145,
           "children": []
         },
         {
@@ -275,7 +275,7 @@
           "handler": "posttool/tool-batch-observer",
           "async": true,
           "exit": 0,
-          "ms": 95,
+          "ms": 112,
           "children": []
         }
       ]
