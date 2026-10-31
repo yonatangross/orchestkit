@@ -20,7 +20,10 @@
  *                 `run-hook.mjs" <id>` (#4683: a context: fork skill never
  *                 runs frontmatter hooks, so it runs its loaders in the body).
  *                 Reachable, but not counted as hooks: nothing registers them.
- *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody
+ *   flagVariant = ids a flag-gated hooks.json variant dispatches (today only
+ *                 pretool/tool-dispatcher, written by unified-pretool-hooks.mjs,
+ *                 default off). Reachable when the flag is on; not counted.
+ *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody ∪ flagVariant
  *
  * FAIL conditions:
  *   1. GHOST:  closure references an id that is NOT registered (runtime failure)
@@ -51,6 +54,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { load } from 'js-yaml';
+import { UNIFIED_PRETOOL_HANDLER } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const hooksRoot = join(__dirname, '..');
@@ -281,7 +285,8 @@ function main() {
   failures.push(...checkSchemaKeys(JSON.parse(readFileSync(hooksJsonPath, 'utf-8'))));
 
   // Closure
-  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids, ...skillBody]);
+  const flagVariant = new Set([UNIFIED_PRETOOL_HANDLER]);
+  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids, ...skillBody, ...flagVariant]);
   const closure = dispatcherFanout(seeds, registered);
 
   // 1. GHOSTS — referenced but not registered → fails at runtime
@@ -338,6 +343,7 @@ function main() {
   console.log(`agent-scoped refs         : ${agents.refCount} (${agents.ids.size} unique ids)`);
   console.log(`skill-scoped refs         : ${skills.refCount} (${skills.ids.size} unique ids)`);
   console.log(`skill body steps          : ${skillBody.size} unique ids (reachable, not counted)`);
+  console.log(`flag variant ids          : ${flagVariant.size} unique ids (reachable when on, not counted)`);
   console.log(`reachable closure         : ${closure.size}`);
   console.log(`dead (grandfathered)      : ${dead.length - newDead.length} of baseline ${baseline.size}`);
   console.log('');
