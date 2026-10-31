@@ -71,19 +71,27 @@ const PRETTIER_CONFIGS = [
   'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs',
   'prettier.config.ts', 'prettier.config.mts', 'prettier.config.cts',
   'package.json',
+  'package.yaml',
 ] as const;
 
 /**
  * A pyproject.toml counts as ruff config only with a [tool.ruff] table, and a
- * package.json counts as prettier config only with a "prettier" key.
+ * package.json or package.yaml counts as prettier config only with a prettier key.
  */
 function configApplies(candidate: string): boolean {
-  if (!candidate.endsWith('pyproject.toml') && !candidate.endsWith('package.json')) return true;
+  const isPyproject = candidate.endsWith('pyproject.toml');
+  const isPackageJson = candidate.endsWith('package.json');
+  const isPackageYaml = candidate.endsWith('package.yaml');
+  if (!isPyproject && !isPackageJson && !isPackageYaml) return true;
   try {
     const text = String(readFileSync(candidate, 'utf8'));
-    if (candidate.endsWith('pyproject.toml')) return /^\[tool\.ruff[\].]/m.test(text);
-    const pkg: unknown = JSON.parse(text);
-    return typeof pkg === 'object' && pkg !== null && 'prettier' in pkg;
+    if (isPyproject) return /^\[tool\.ruff[\].]/m.test(text);
+    if (isPackageJson) {
+      const pkg: unknown = JSON.parse(text);
+      return typeof pkg === 'object' && pkg !== null && 'prettier' in pkg;
+    }
+    // package.yaml: YAML analog of `'prettier' in pkg`. Bundles stay zero-dep.
+    return /^["']?prettier["']?\s*:/m.test(text);
   } catch {
     return false;
   }
