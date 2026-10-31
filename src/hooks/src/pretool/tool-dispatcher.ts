@@ -25,6 +25,7 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { ProofLog, proofBreaks, proofBreakError, proofEnabled, type ProofEnv } from '../lib/dispatch-proof.js';
 import { syncBashDispatcher } from './bash/sync-bash-dispatcher.js';
 import { syncWriteEditDispatcher } from './write-edit/sync-write-edit-dispatcher.js';
 import { tldrSummary } from './read/tldr-summary.js';
@@ -87,26 +88,58 @@ export const PRETOOL_ROUTES: Route[] = [
   },
 ];
 
-async function isolated(name: string, fn: Fn, input: HookInput, ctx: HookContext): Promise<void> {
+async function isolated(
+  name: string,
+  fn: Fn,
+  input: HookInput,
+  ctx: HookContext,
+  env: ProofEnv,
+  proof: ProofLog,
+): Promise<void> {
   try {
+    if (proofBreaks(env, name)) throw proofBreakError(name);
     await fn(input, ctx);
+    proof.record(name, 'ok');
   } catch (err) {
     ctx.log(HOOK_NAME, `${name} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
+    proof.record(name, 'failed');
   }
 }
 
-export async function toolDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+/**
+ * `env` is injectable for tests; it only drives the dispatch proof
+ * (lib/dispatch-proof.ts). With proof mode off, a throw from the primary
+ * handler propagates exactly as it did from its own process.
+ */
+export async function toolDispatcher(
+  input: HookInput,
+  ctx: HookContext = NOOP_CTX,
+  env: ProofEnv = process.env,
+): Promise<HookResult> {
   const tool = input.tool_name ?? '';
   const route = PRETOOL_ROUTES.find((r) => r.match(tool));
+  const proof = new ProofLog(env, 'PreToolUse', tool);
 
   let result: HookResult = outputSilentSuccess();
   try {
-    if (route?.primary) result = await route.primary(input, ctx);
+    if (route?.primary) {
+      const primaryId = route.handlers[0];
+      try {
+        if (proofBreaks(env, primaryId)) throw proofBreakError(primaryId);
+        result = await route.primary(input, ctx);
+        proof.record(primaryId, 'ok');
+      } catch (err) {
+        proof.record(primaryId, 'failed');
+        if (!proofEnabled(env)) throw err;
+        ctx.log(HOOK_NAME, `${primaryId} failed (proof mode): ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
   } finally {
     for (const [i, observer] of (route?.observers ?? []).entries()) {
-      await isolated(route?.handlers[i + (route.primary ? 1 : 0)] ?? 'observer', observer, input, ctx);
+      await isolated(route?.handlers[i + (route.primary ? 1 : 0)] ?? 'observer', observer, input, ctx, env, proof);
     }
-    await isolated('lifecycle/webhook-forwarder', webhookForwarder, input, ctx);
+    await isolated('lifecycle/webhook-forwarder', webhookForwarder, input, ctx, env, proof);
   }
-  return result;
+  const message = proof.appendTo(result.systemMessage);
+  return message === undefined ? result : { ...result, systemMessage: message };
 }

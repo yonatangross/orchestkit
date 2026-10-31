@@ -6,7 +6,7 @@
  *
  * A lower process count also passes if the folded handlers silently do
  * nothing. Under ORK_DISPATCH_PROOF=1 each dispatcher appends one
- * `ork-proof:<event>:<tool>:<id>=ok|failed` token per handler it ran, in
+ * `ork-proof:<event>:<tool>:<id>@ok|failed` token per handler it ran, in
  * its systemMessage; ORK_DISPATCH_PROOF_BREAK=<id> swaps that handler for one
  * that throws, so a broken handler must show as failed. Off by default.
  * scripts/check-dispatch-proof.mjs counts the tokens in a live --debug-file.
@@ -92,7 +92,7 @@ describe('dispatch proof (PostToolUse)', () => {
 
 describe('proofTokens', () => {
   it('parses tokens out of a longer message', () => {
-    const msg = `lint says hi\n${PROOF_PREFIX}PreToolUse:Bash:pretool/bash/sync-bash-dispatcher=ok ${PROOF_PREFIX}PreToolUse:Bash:lifecycle/webhook-forwarder=failed`;
+    const msg = `lint says hi\n${PROOF_PREFIX}PreToolUse:Bash:pretool/bash/sync-bash-dispatcher@ok ${PROOF_PREFIX}PreToolUse:Bash:lifecycle/webhook-forwarder@failed`;
     expect(proofTokens(msg)).toEqual([
       { event: 'PreToolUse', tool: 'Bash', id: 'pretool/bash/sync-bash-dispatcher', outcome: 'ok' },
       { event: 'PreToolUse', tool: 'Bash', id: 'lifecycle/webhook-forwarder', outcome: 'failed' },

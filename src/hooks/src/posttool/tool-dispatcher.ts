@@ -32,6 +32,7 @@
 
 import type { HookInput, HookResult, HookContext, HookSpecificOutput } from '../types.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { ProofLog, proofBreaks, proofBreakError, type ProofEnv } from '../lib/dispatch-proof.js';
 import { agentTaskAutoRegister } from './task/agent-task-auto-register.js';
 import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { mcpOutputTransform } from './mcp-output-transform.js';
@@ -212,9 +213,11 @@ export async function posttoolDispatch(
   ctx: HookContext = NOOP_CTX,
   handlers: Record<string, Fn> = POSTTOOL_HANDLERS,
   groups: PosttoolGroup[] = POSTTOOL_GROUPS,
+  env: ProofEnv = process.env,
 ): Promise<HookResult> {
   const tool = input.tool_name ?? '';
   const merged: Merged = { contexts: [], messages: [], blockReasons: [] };
+  const proof = new ProofLog(env, 'PostToolUse', tool);
   const seen = new Set<string>();
   for (const group of groups) {
     if (!ccMatcherMatches(group.matcher, tool)) continue;
@@ -224,16 +227,23 @@ export async function posttoolDispatch(
       const fn = handlers[id];
       if (!fn) {
         ctx.log(HOOK_NAME, `no handler for ${id} (skipped)`);
+        proof.record(id, 'failed');
         continue;
       }
       try {
+        if (proofBreaks(env, id)) throw proofBreakError(id);
         absorb(merged, await fn(input, ctx), !async);
+        proof.record(id, 'ok');
       } catch (err) {
         ctx.log(HOOK_NAME, `${id} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
+        proof.record(id, 'failed');
       }
     }
   }
-  return build(merged);
+  const result = build(merged);
+  const message = proof.appendTo(result.systemMessage);
+  if (message !== undefined) result.systemMessage = message;
+  return result;
 }
 
 /** Entry-map handler (registered as posttool/tool-dispatcher). */

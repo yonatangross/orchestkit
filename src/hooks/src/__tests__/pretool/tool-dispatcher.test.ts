@@ -102,7 +102,7 @@ describe('pretool/tool-dispatcher', () => {
     const r = await toolDispatcher(input('Agent'), createTestContext(), { ORK_DISPATCH_PROOF: '1' });
     const msg = r.systemMessage ?? '';
     for (const id of ['pretool/task/sync-task-dispatcher', 'pretool/task/route-observer', 'lifecycle/webhook-forwarder']) {
-      expect(msg.split(`ork-proof:PreToolUse:Agent:${id}=ok`).length - 1, id).toBe(1);
+      expect(msg.split(`ork-proof:PreToolUse:Agent:${id}@ok`).length - 1, id).toBe(1);
     }
   });
 
@@ -111,8 +111,8 @@ describe('pretool/tool-dispatcher', () => {
       ORK_DISPATCH_PROOF: '1',
       ORK_DISPATCH_PROOF_BREAK: 'pretool/bash/sync-bash-dispatcher',
     });
-    expect(r.systemMessage).toContain('ork-proof:PreToolUse:Bash:pretool/bash/sync-bash-dispatcher=failed');
-    expect(r.systemMessage).toContain('ork-proof:PreToolUse:Bash:lifecycle/webhook-forwarder=ok');
+    expect(r.systemMessage).toContain('ork-proof:PreToolUse:Bash:pretool/bash/sync-bash-dispatcher@failed');
+    expect(r.systemMessage).toContain('ork-proof:PreToolUse:Bash:lifecycle/webhook-forwarder@ok');
     expect(syncBashDispatcher).not.toHaveBeenCalled();
     expect(webhookForwarder).toHaveBeenCalledTimes(1);
   });
