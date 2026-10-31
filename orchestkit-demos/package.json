@@ -69,7 +69,8 @@
     "ajv": "^8.17.1",
     "yauzl": "^3.2.1",
     "ws": "^8.21.0",
-    "zod": "$zod"
+    "zod": "$zod",
+    "minimatch": "^11.0.1"
   },
   "private": true
 }
