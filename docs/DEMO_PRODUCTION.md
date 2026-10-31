@@ -22,7 +22,7 @@ npx remotion render src/index.ts OrchestKitCliDemo out/OrchestKitCliDemo.mp4 \
 # 3. (Optional) Add audio
 ffmpeg -i out/OrchestKitCliDemo.mp4 \
   -i audio/upbeat-tech-music.mp3 \
-  -c:v copy -c:a aac -filter_complex "[1]volume=0.3[a];[0][a]amix=inputs=2:duration=first[out]" -map "[out]" -c:a aac \
+  -c:v copy -filter_complex "[1:a]volume=0.3[a]" -map 0:v -map "[a]" -c:a aac -shortest \
   out/OrchestKitCliDemo-with-audio.mp4
 
 # 4. Optimize for platform constraints
