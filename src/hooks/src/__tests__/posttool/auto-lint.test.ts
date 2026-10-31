@@ -489,6 +489,72 @@ describe('autoLint', () => {
       expect(toolCalls('prettier')).toEqual([]);
     });
 
+    // Opus b3 on #4950: Biome reads the dotted names too, so a repo that uses
+    // them must keep the biome formatting it had before the config gate.
+    it.each(['biome.json', 'biome.jsonc', '.biome.json', '.biome.jsonc'])(
+      'treats %s as biome config',
+      (name) => {
+        // Arrange: biome installed, only the edited file and the config exist
+        onlyExist('/test/project/src/app.ts', `/test/project/${name}`);
+
+        // Act
+        autoLint(makeInput(), testCtx);
+
+        // Assert
+        expect(toolCalls('biome')).not.toEqual([]);
+      },
+    );
+
+    // Codex P2 on #4950: package.yaml is YAML, so the prettier key can sit in a
+    // flow mapping or under an indented root. Prettier 3.9.10 resolves both.
+    it.each([
+      ['block style at column zero', 'name: sample\nprettier:\n  semi: false\n'],
+      ['flow mapping', '{prettier: {semi: false}}\n'],
+      ['indented root mapping', '  name: sample\n  prettier:\n    semi: false\n'],
+    ])('treats a package.yaml with a prettier key (%s) as prettier config', (_label, yaml) => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.yaml');
+      mockRead.mockImplementation((p) => (String(p).endsWith('package.yaml') ? yaml : 'file-content'));
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'prettier', ['--write', '/test/project/src/app.ts'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
+    // Controls: each of these must stay "no prettier config".
+    it.each([
+      ['no prettier key', 'name: x\n'],
+      ['flow mapping without the key', '{name: x}\n'],
+      ['prettier only nested under another key', 'name: x\nconfig:\n  prettier:\n    semi: false\n'],
+      ['empty file', ''],
+      ['unparseable YAML', 'prettier: [unclosed\n'],
+    ])('ignores a package.yaml with %s', (_label, yaml) => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.yaml');
+      mockRead.mockImplementation((p) => (String(p).endsWith('package.yaml') ? yaml : 'file-content'));
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(toolCalls('prettier')).toEqual([]);
+    });
+
     it('ignores a pyproject.toml that has no [tool.ruff] table', () => {
       // Arrange
       onlyExist('/test/project/app.py', '/test/project/pyproject.toml');
