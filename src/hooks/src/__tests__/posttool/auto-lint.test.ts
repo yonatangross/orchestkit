@@ -365,13 +365,27 @@ describe('autoLint', () => {
       );
     });
 
-    // Codex HOLD on #4950: Prettier also loads TypeScript module configs with
-    // the .mts and .cts extensions; the first allowlist missed all four.
+    // Official Prettier config filenames from prettier.io/docs/configuration.
+    // package.json / package.yaml need a prettier key and are tested below.
     it.each([
+      '.prettierrc',
+      '.prettierrc.json',
+      '.prettierrc.yml',
+      '.prettierrc.yaml',
+      '.prettierrc.json5',
+      '.prettierrc.js',
+      'prettier.config.js',
+      '.prettierrc.ts',
+      'prettier.config.ts',
+      '.prettierrc.mjs',
+      'prettier.config.mjs',
       '.prettierrc.mts',
-      '.prettierrc.cts',
       'prettier.config.mts',
+      '.prettierrc.cjs',
+      'prettier.config.cjs',
+      '.prettierrc.cts',
       'prettier.config.cts',
+      '.prettierrc.toml',
     ])('treats %s as prettier config', (name) => {
       // Arrange: biome absent, so only prettier could run
       onlyExist('/test/project/src/app.ts', `/test/project/${name}`);
@@ -389,6 +403,90 @@ describe('autoLint', () => {
         'prettier', ['--write', '/test/project/src/app.ts'],
         expect.objectContaining({ stdio: 'ignore' }),
       );
+    });
+
+    // Codex HOLD on #4950: Prettier loads a "prettier" key from package.yaml
+    // the same way it does from package.json; the allowlist never named it.
+    it('treats a package.yaml with a prettier key as prettier config', () => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.yaml');
+      mockRead.mockImplementation((p) =>
+        String(p).endsWith('package.yaml') ? 'name: x\nprettier:\n  semi: false\n' : 'file-content',
+      );
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'prettier', ['--write', '/test/project/src/app.ts'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
+    it('ignores a package.yaml that has no prettier key', () => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.yaml');
+      mockRead.mockImplementation((p) =>
+        String(p).endsWith('package.yaml') ? 'name: x\n' : 'file-content',
+      );
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(toolCalls('prettier')).toEqual([]);
+    });
+
+    it('treats a package.json with a prettier key as prettier config', () => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.json');
+      mockRead.mockImplementation((p) =>
+        String(p).endsWith('package.json') ? '{"name":"x","prettier":{}}\n' : 'file-content',
+      );
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'prettier', ['--write', '/test/project/src/app.ts'],
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+    });
+
+    it('ignores a package.json that has no prettier key', () => {
+      // Arrange: biome absent, so only prettier could run
+      onlyExist('/test/project/src/app.ts', '/test/project/package.json');
+      mockRead.mockImplementation((p) =>
+        String(p).endsWith('package.json') ? '{"name":"x"}\n' : 'file-content',
+      );
+      mockExecFileSync.mockImplementation((cmd: string, args?: string[]) => {
+        if (cmd === 'which' && args?.[0] === 'biome') throw new Error('not found');
+        if (cmd === 'which') return `/usr/local/bin/${args?.[0]}`;
+        return '';
+      });
+
+      // Act
+      autoLint(makeInput(), testCtx);
+
+      // Assert
+      expect(toolCalls('prettier')).toEqual([]);
     });
 
     it('ignores a pyproject.toml that has no [tool.ruff] table', () => {
