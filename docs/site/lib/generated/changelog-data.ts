@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.4.3",
+    "date": "2026-10-31",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**demo-production:** Quick Start uses the demo config in place ([#4959](https://github.com/yonatangross/orchestkit/issues/4959)) ([7adbf62](https://github.com/yonatangross/orchestkit/commit/7adbf62362b6fd5fb34bd427410160c27e4f85cf))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.2",
     "date": "2026-10-30",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2",
