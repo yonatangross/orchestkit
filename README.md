@@ -158,8 +158,11 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 | Memory | Knowledge graph persistence | Recommended |
 | Sequential Thinking | Structured reasoning for subagents | Recommended |
 | Tavily | Web search and extraction | Optional |
+| [agent-qa](https://vostride.com/docs/agent-qa/coding-agents) by vostride | Natural-language web/mobile testing with recorded evidence, advanced memidex memory, and self-improvement | Optional |
 
 Set `"alwaysLoad": true` on the first three in your `.mcp.json`. It skips the per-skill tool probe and shaves ~150ms off cold starts.
+
+Configure agent-qa separately for an initialized project using its linked setup guide.
 
 **Context7 is a prerequisite, and ork does not ship it.** 22 agents grant
 `mcp__context7__*` in their frontmatter, but `.mcp.json` is user-owned and project-scoped,
