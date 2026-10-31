@@ -1,0 +1,332 @@
+{
+  "measured_at": "2026-10-31T18:48:09.273Z",
+  "node": "v26.12.1",
+  "hooks_json": "/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/yellow-ork-hooks-dispatcher/src/hooks/hooks.json",
+  "path": "success (PreToolUse + PostToolUse + PostToolBatch, batch of one)",
+  "results": [
+    {
+      "tool": "Bash",
+      "hookProcesses": 12,
+      "childProcesses": 1,
+      "total": 13,
+      "syncMs": 303,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/bash/sync-bash-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 96,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 96,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 99,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/secret-handler",
+          "async": false,
+          "exit": 0,
+          "ms": 108,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "skill/redact-secrets",
+          "async": true,
+          "exit": 0,
+          "ms": 174,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/commit-nudge",
+          "async": true,
+          "exit": 0,
+          "ms": 109,
+          "children": [
+            "git"
+          ]
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/bash/gh-rate-limit-tracker",
+          "async": true,
+          "exit": 0,
+          "ms": 97,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/bash/session-heartbeat-publisher",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/heartbeat",
+          "async": true,
+          "exit": 0,
+          "ms": 125,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/chain-staleness-checker",
+          "async": true,
+          "exit": 0,
+          "ms": 101,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/metrics-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 99,
+          "children": []
+        },
+        {
+          "event": "PostToolBatch",
+          "handler": "posttool/tool-batch-observer",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        }
+      ]
+    },
+    {
+      "tool": "Edit",
+      "hookProcesses": 18,
+      "childProcesses": 4,
+      "total": 22,
+      "syncMs": 486,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/write-edit/sync-write-edit-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 96,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 126,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/auto-lint",
+          "async": false,
+          "exit": 0,
+          "ms": 194,
+          "children": [
+            "which",
+            "which"
+          ]
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/ascii-lint",
+          "async": true,
+          "exit": 0,
+          "ms": 217,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/code-comment-glyph-warn",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/ui-change-detector",
+          "async": true,
+          "exit": 0,
+          "ms": 100,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "skill/redact-secrets",
+          "async": true,
+          "exit": 0,
+          "ms": 97,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/config-change/security-auditor",
+          "async": true,
+          "exit": 0,
+          "ms": 97,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/write/stale-import-detector",
+          "async": true,
+          "exit": 0,
+          "ms": 97,
+          "children": [
+            "grep"
+          ]
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/write/debt-marker-tracker",
+          "async": true,
+          "exit": 0,
+          "ms": 94,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/check-plugins-drift",
+          "async": false,
+          "exit": 0,
+          "ms": 94,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/write/edit-history-tracker",
+          "async": true,
+          "exit": 0,
+          "ms": 95,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/commit-nudge",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": [
+            "git"
+          ]
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/heartbeat",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/chain-staleness-checker",
+          "async": true,
+          "exit": 0,
+          "ms": 96,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/metrics-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 100,
+          "children": []
+        },
+        {
+          "event": "PostToolBatch",
+          "handler": "posttool/tool-batch-observer",
+          "async": true,
+          "exit": 0,
+          "ms": 106,
+          "children": []
+        }
+      ]
+    },
+    {
+      "tool": "Read",
+      "hookProcesses": 6,
+      "childProcesses": 0,
+      "total": 6,
+      "syncMs": 320,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/read/tldr-summary",
+          "async": false,
+          "exit": 0,
+          "ms": 130,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 99,
+          "children": []
+        },
+        {
+          "event": "PreToolUse",
+          "handler": "lifecycle/webhook-forwarder",
+          "async": true,
+          "exit": 0,
+          "ms": 98,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/secret-handler",
+          "async": false,
+          "exit": 0,
+          "ms": 95,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/context-crossing-warn",
+          "async": false,
+          "exit": 0,
+          "ms": 95,
+          "children": []
+        },
+        {
+          "event": "PostToolBatch",
+          "handler": "posttool/tool-batch-observer",
+          "async": true,
+          "exit": 0,
+          "ms": 94,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
