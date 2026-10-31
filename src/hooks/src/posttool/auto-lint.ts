@@ -7,6 +7,11 @@
  * - JS/TS: biome check --write, falls back to prettier --write
  * - JSON/CSS: biome format --write, falls back to prettier --write
  *
+ * #4945: a formatter runs only when the repo configures it (a config file
+ * between the edited file and the project root), so an edit is never widened
+ * into a whole-file rewrite by a tool CI does not enforce. `ruff check --fix`
+ * can delete code (unused imports), so it also needs ORK_AUTO_LINT_FIX=1.
+ *
  * Toggle off: SKIP_AUTO_LINT=1
  */
 
@@ -15,7 +20,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
-import { basename } from 'node:path';
+import { basename, dirname } from 'node:path';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 import { safeProjectDir } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -55,6 +60,61 @@ function commandExists(cmd: string): boolean {
   } catch {
     return false;
   }
+}
+
+const RUFF_CONFIGS = ['ruff.toml', '.ruff.toml', 'pyproject.toml'] as const;
+const BIOME_CONFIGS = ['biome.json', 'biome.jsonc'] as const;
+const PRETTIER_CONFIGS = [
+  '.prettierrc', '.prettierrc.json', '.prettierrc.json5', '.prettierrc.yaml', '.prettierrc.yml',
+  '.prettierrc.toml', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs',
+  '.prettierrc.ts', '.prettierrc.mts', '.prettierrc.cts',
+  'prettier.config.js', 'prettier.config.cjs', 'prettier.config.mjs',
+  'prettier.config.ts', 'prettier.config.mts', 'prettier.config.cts',
+  'package.json',
+  'package.yaml',
+] as const;
+
+/**
+ * A pyproject.toml counts as ruff config only with a [tool.ruff] table, and a
+ * package.json or package.yaml counts as prettier config only with a prettier key.
+ */
+function configApplies(candidate: string): boolean {
+  const isPyproject = candidate.endsWith('pyproject.toml');
+  const isPackageJson = candidate.endsWith('package.json');
+  const isPackageYaml = candidate.endsWith('package.yaml');
+  if (!isPyproject && !isPackageJson && !isPackageYaml) return true;
+  try {
+    const text = String(readFileSync(candidate, 'utf8'));
+    if (isPyproject) return /^\[tool\.ruff[\].]/m.test(text);
+    if (isPackageJson) {
+      const pkg: unknown = JSON.parse(text);
+      return typeof pkg === 'object' && pkg !== null && 'prettier' in pkg;
+    }
+    // package.yaml: YAML analog of `'prettier' in pkg`. Bundles stay zero-dep.
+    return /^["']?prettier["']?\s*:/m.test(text);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether one of `names` exists in the edited file's directory or any parent
+ * up to the project root (#4945). Stops at the filesystem root when the file
+ * sits outside the project.
+ */
+function hasConfig(filePath: string, projectDir: string, names: readonly string[]): boolean {
+  let dir = dirname(filePath);
+  while (dir) {
+    for (const name of names) {
+      const candidate = `${dir}/${name}`;
+      if (existsSync(candidate) && configApplies(candidate)) return true;
+    }
+    if (dir === projectDir) return false;
+    const parent = dirname(dir);
+    if (parent === dir) return false;
+    dir = parent;
+  }
+  return false;
 }
 
 /**
@@ -115,14 +175,14 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
   try {
     switch (language) {
       case 'python':
-        if (commandExists('ruff')) {
+        if (commandExists('ruff') && hasConfig(fullPath, projectDir, RUFF_CONFIGS)) {
           try {
             const ruffCheck = execFileSync('ruff', ['check', '--output-format=concise', safePath], {
               encoding: 'utf8',
               timeout: 5000,
               stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
             });
-            if (ruffCheck) {
+            if (ruffCheck && process.env.ORK_AUTO_LINT_FIX === '1') {
               lintIssues = ruffCheck.split('\n').filter(Boolean).length;
               execFileSync('ruff', ['check', '--fix', '--unsafe-fixes=false', safePath], {
                 stdio: 'ignore', windowsHide: true,
@@ -143,7 +203,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
 
       case 'typescript':
       case 'javascript':
-        if (commandExists('biome')) {
+        if (commandExists('biome') && hasConfig(fullPath, projectDir, BIOME_CONFIGS)) {
           try {
             const biomeOut = execFileSync('biome', ['check', '--write', safePath], {
               encoding: 'utf8',
@@ -159,7 +219,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
           } catch {
             // Ignore biome errors
           }
-        } else if (commandExists('prettier')) {
+        } else if (commandExists('prettier') && hasConfig(fullPath, projectDir, PRETTIER_CONFIGS)) {
           try {
             execFileSync('prettier', ['--write', safePath], {
               stdio: 'ignore', windowsHide: true,
@@ -174,7 +234,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
 
       case 'json':
       case 'css':
-        if (commandExists('biome')) {
+        if (commandExists('biome') && hasConfig(fullPath, projectDir, BIOME_CONFIGS)) {
           try {
             execFileSync('biome', ['format', '--write', safePath], {
               stdio: 'ignore', windowsHide: true,
@@ -184,7 +244,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
           } catch {
             // Ignore format errors
           }
-        } else if (commandExists('prettier')) {
+        } else if (commandExists('prettier') && hasConfig(fullPath, projectDir, PRETTIER_CONFIGS)) {
           try {
             execFileSync('prettier', ['--write', safePath], {
               stdio: 'ignore', windowsHide: true,
