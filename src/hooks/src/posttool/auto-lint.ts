@@ -18,6 +18,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { load as loadYaml } from 'js-yaml';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { basename, dirname } from 'node:path';
@@ -63,7 +64,7 @@ function commandExists(cmd: string): boolean {
 }
 
 const RUFF_CONFIGS = ['ruff.toml', '.ruff.toml', 'pyproject.toml'] as const;
-const BIOME_CONFIGS = ['biome.json', 'biome.jsonc'] as const;
+const BIOME_CONFIGS = ['biome.json', 'biome.jsonc', '.biome.json', '.biome.jsonc'] as const;
 const PRETTIER_CONFIGS = [
   '.prettierrc', '.prettierrc.json', '.prettierrc.json5', '.prettierrc.yaml', '.prettierrc.yml',
   '.prettierrc.toml', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.mjs',
@@ -90,8 +91,11 @@ function configApplies(candidate: string): boolean {
       const pkg: unknown = JSON.parse(text);
       return typeof pkg === 'object' && pkg !== null && 'prettier' in pkg;
     }
-    // package.yaml: YAML analog of `'prettier' in pkg`. Bundles stay zero-dep.
-    return /^["']?prettier["']?\s*:/m.test(text);
+    // package.yaml: YAML analog of `'prettier' in pkg`. Parsed as YAML so flow
+    // mappings and an indented root count, like Prettier's own loader. Empty or
+    // unparseable text is "no config" (the catch below), never a thrown hook.
+    const doc: unknown = loadYaml(text);
+    return typeof doc === 'object' && doc !== null && !Array.isArray(doc) && 'prettier' in doc;
   } catch {
     return false;
   }
