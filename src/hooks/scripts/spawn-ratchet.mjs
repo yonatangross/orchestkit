@@ -30,6 +30,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { unifiedToolHooks } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOKS_JSON = join(__dirname, '..', 'hooks.json');
@@ -68,7 +69,10 @@ export function measure(hooksDoc) {
   return out;
 }
 
-export function compare(measured, baseline, target) {
+// `flagged` is the count for the dispatcher variant (unified-pretool-hooks.mjs),
+// the hooks.json the flag ships. The target is that variant's finish line; the
+// ratchet stays on the shipped hooks.json, which the flag leaves unchanged.
+export function compare(measured, baseline, target, flagged = measured) {
   const lines = [];
   let failed = false;
   for (const path of Object.keys(PATHS)) {
@@ -90,10 +94,13 @@ export function compare(measured, baseline, target) {
     }
   }
   for (const tool of TOOLS) {
-    const got = measured.success[tool];
-    if (target[tool] !== undefined && got > target[tool]) {
+    const got = flagged.success[tool];
+    if (target[tool] === undefined) continue;
+    if (got > target[tool]) {
       failed = true;
-      lines.push(`OVER TARGET  success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
+      lines.push(`OVER TARGET  flag-on success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
+    } else {
+      lines.push(`ok    flag-on success.${tool}: ${got} (target <= ${target[tool]})`);
     }
   }
   return { failed, lines };
@@ -109,7 +116,8 @@ function main() {
     console.log(`spawn-ratchet: baseline set to ${JSON.stringify(measured)}`);
     return 0;
   }
-  const { failed, lines } = compare(measured, doc.baseline, doc.target);
+  const flagged = measure(unifiedToolHooks(hooksDoc));
+  const { failed, lines } = compare(measured, doc.baseline, doc.target, flagged);
   console.log(lines.join('\n'));
   console.log(failed ? 'spawn-ratchet: FAIL' : 'spawn-ratchet: OK');
   return failed ? 1 : 0;

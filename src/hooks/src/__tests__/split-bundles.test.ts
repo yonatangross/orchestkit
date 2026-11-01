@@ -499,7 +499,11 @@ describe('Cross-Bundle Consistency', () => {
     //              name, not the argument; the body fetches ISSUE_NUMBER.
     // 179 -> 180: #4297 pretool/task/route-observer, async Agent route
     //              observation moved out of the sync task dispatcher (#4692).
-    expect(totalHooks).toBe(180);
+    // 180 -> 182: pretool/tool-dispatcher and posttool/tool-dispatcher, one
+    //              process per event for the flagged hooks.json variant
+    //              (scripts/unified-pretool-hooks.mjs); the shipped hooks.json
+    //              names neither, so validate-counts.sh is unchanged.
+    expect(totalHooks).toBe(182);
   });
 });
 

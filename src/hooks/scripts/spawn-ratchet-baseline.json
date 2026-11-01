@@ -1,5 +1,5 @@
 {
-  "comment": "Hook processes started per tool call, counted from src/hooks/hooks.json by spawn-ratchet.mjs. baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line (yellow-refactor M1: under 3 per call).",
+  "comment": "Hook processes started per tool call, counted from src/hooks/hooks.json by spawn-ratchet.mjs. baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line for the flag-on hooks.json from unified-pretool-hooks.mjs (yellow-refactor M1: under 3 per call); the shipped hooks.json is held by baseline.",
   "target": {
     "Bash": 2,
     "Edit": 2,
