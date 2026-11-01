@@ -97,6 +97,9 @@ check $'docs/audits/a.md\npyproject.toml'      no  "an audit record plus a root 
 sep=-
 sep="${sep}${sep}"
 check "docs/feat${sep}slug/index.html"        no  "a lab directory only"
+# #4926: a README or CHANGELOG is docs at any depth, not only at the root.
+check $'src/hooks/README.md\nplugins/ork/hooks/README.md' no "a nested README and its generated copy (the #4909 registry entry)"
+check "src/hooks/CHANGELOG.md"                 no  "a nested CHANGELOG"
 
 section "3. Anything user-facing still REQUIRES a playground"
 check "src/skills/glyph/SKILL.md"           yes "a skill change"
@@ -111,6 +114,9 @@ check $'docs/audits/a.md\nsrc/hooks/src/prompt/foo.ts' yes "an audit record plus
 
 section "4. Mixed diffs are decided by the non-inert file"
 check $'README.md\nsrc/skills/glyph/SKILL.md' yes "docs + a skill"
+check $'src/hooks/README.md\nsrc/hooks/src/prompt/foo.ts' yes "a nested README + a hook change"
+check "src/hooks/NOTREADME.md"                 yes "a name that only ends in README.md"
+check "src/hooks/README.md.ts"                 yes "a name that only starts with README.md"
 check $'.github/workflows/ci.yml\ntests/x.sh'    no "config + a test"
 
 section "5. Fail-closed on unknown paths"

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>auto-lint runs only the formatters a repo configures</title>
+<meta name="description" content="The auto-lint hook reformatted whole files with ruff, biome or prettier after every Edit, even in repos that never chose that tool. Pick a file and the configs your repo has, and compare what ran before and what runs now.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  label{cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="auto-lint runs only the formatters a repo configures"><meta property="og:description" content="The auto-lint hook reformatted whole files with ruff, biome or prettier after every Edit, even in repos that never chose that tool. Pick a file and the configs your repo has, and compare what ran before and what runs now."><meta property="og:url" content="https://orchestkit.dev/lab/auto-lint-config-gate.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="auto-lint runs only the formatters a repo configures"><meta name="twitter:description" content="The auto-lint hook reformatted whole files with ruff, biome or prettier after every Edit, even in repos that never chose that tool. Pick a file and the configs your repo has, and compare what ran before and what runs now."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>auto-lint runs only the formatters a repo configures</h1>
+<p class="sub">Branch fix/4945-auto-lint-config-gate, 2026-10-30, issue #4945. The PostToolUse hook <code>posttool/auto-lint</code> ran a formatter over the whole edited file after every Write or Edit, whether or not the repo uses that formatter. Measured on 2026-10-28: a few-line test edit became a 260 insertion, 155 deletion diff.</p>
+
+<section><h2>1. Pick a file and the repo's configs</h2>
+<div class="controls">
+  <select id="file" aria-label="edited file">
+    <option value="py">app.py</option>
+    <option value="ts">src/app.ts</option>
+    <option value="json">config.json</option>
+  </select>
+  <label><input type="checkbox" id="ruff"> ruff.toml</label>
+  <label><input type="checkbox" id="pyproj"> pyproject.toml with [tool.ruff]</label>
+  <label><input type="checkbox" id="biome"> biome.json</label>
+  <label><input type="checkbox" id="prettier"> .prettierrc</label>
+  <label><input type="checkbox" id="fix"> ORK_AUTO_LINT_FIX=1</label>
+</div>
+<p class="dim" style="font-size:.75rem;margin:0 0 .6rem">Assumes ruff, biome and prettier are all installed, the common case on a dev machine.</p>
+<div class="grid">
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">BEFORE: whatever is installed runs</div><div class="out" id="old"></div></div>
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">NOW: only what the repo configures</div><div class="out" id="new"></div></div>
+</div>
+<p class="note"><strong>The rule.</strong> A config counts when it sits in the edited file's directory or any parent up to the project root. A <code>pyproject.toml</code> counts for ruff only with a <code>[tool.ruff]</code> table; a <code>package.json</code> counts for prettier only with a <code>"prettier"</code> key. <code>ruff check --fix</code> can delete code it calls unused (side-effect imports), so it also needs <code>ORK_AUTO_LINT_FIX=1</code>. <code>SKIP_AUTO_LINT=1</code> still turns the hook off.</p>
+</section>
+
+<section><h2>2. What is not in this change</h2>
+<p class="dim" style="font-size:.82rem;margin:0">Formatting only the changed lines (ruff and prettier both have range options) was the issue's first choice. The hook gets the edit as <code>old_string</code> and <code>new_string</code>, not as line numbers, so a range has to be derived; that is left for a follow-up, and this PR takes the second choice: a formatter the repo has not chosen never runs. Red tests: 5 cases failed before the fix and pass after it, plus 2 controls that pass both ways.</p>
+</section>
+
+<script>
+(function(){
+  function on(id){return document.getElementById(id).checked;}
+  function plan(file,isNew){
+    var ruffCfg=on('ruff')||on('pyproj'), biomeCfg=on('biome'), prettierCfg=on('prettier'), runs=[];
+    if(file==='py'){
+      if(!isNew||ruffCfg){
+        runs.push(['ruff check --output-format=concise app.py','ok']);
+        if(!isNew||on('fix'))runs.push(['ruff check --fix app.py   (may delete imports)','bad']);
+        runs.push(['ruff format app.py   (whole file)',isNew?'ok':'warn']);
+      }
+    }else{
+      var name=file==='ts'?'src/app.ts':'config.json', verb=file==='ts'?'biome check --write ':'biome format --write ';
+      if(!isNew||biomeCfg)runs.push([verb+name+'   (whole file)',isNew?'ok':'warn']);
+      else if(prettierCfg)runs.push(['prettier --write '+name+'   (whole file)','ok']);
+    }
+    return runs;
+  }
+  function render(id,runs){
+    var el=document.getElementById(id);el.innerHTML='';
+    if(!runs.length){var s=document.createElement('div');s.className='dim';s.textContent='nothing runs: the diff stays exactly your edit';el.appendChild(s);return;}
+    runs.forEach(function(r){var d=document.createElement('div');d.className=r[1];d.textContent=r[0];el.appendChild(d);});
+  }
+  function show(){var f=document.getElementById('file').value;render('old',plan(f,false));render('new',plan(f,true));}
+  document.querySelectorAll('select,input').forEach(function(el){el.onchange=show;});
+  show();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

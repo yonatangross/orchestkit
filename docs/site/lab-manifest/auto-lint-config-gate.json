@@ -1,0 +1,12 @@
+{
+  "slug": "auto-lint-config-gate",
+  "source": "docs/fix--4945-auto-lint-config-gate/index.html",
+  "title": "auto-lint runs only the formatters a repo configures",
+  "description": "The auto-lint hook reformatted whole files with ruff, biome or prettier after every Edit, even in repos that never chose that tool. Pick a file and the configs your repo has, and compare what ran before and what runs now.",
+  "tags": [
+    "hooks",
+    "formatting",
+    "posttool"
+  ],
+  "date": "2026-10-30"
+}

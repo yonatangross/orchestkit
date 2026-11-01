@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A worktree advisory that no longer falls off the context cap</title>
+<meta name="description" content="Claude Code cuts additionalContext at 8,000 characters or 200 lines without saying so, and the prompt dispatcher deleted the advisory file it had just sent. Size an advisory and the other context, and see what the old and new dispatcher deliver on each prompt.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem .8rem;align-items:center;font-size:.8rem;margin-bottom:1rem}
+  input[type=range]{width:100%}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:7rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A worktree advisory that no longer falls off the context cap"><meta property="og:description" content="Claude Code cuts additionalContext at 8,000 characters or 200 lines without saying so, and the prompt dispatcher deleted the advisory file it had just sent. Size an advisory and the other context, and see what the old and new dispatcher deliver on each prompt."><meta property="og:url" content="https://orchestkit.dev/lab/advisory-cap-split.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A worktree advisory that no longer falls off the context cap"><meta name="twitter:description" content="Claude Code cuts additionalContext at 8,000 characters or 200 lines without saying so, and the prompt dispatcher deleted the advisory file it had just sent. Size an advisory and the other context, and see what the old and new dispatcher deliver on each prompt."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>A worktree advisory that no longer falls off the cap</h1>
+<p class="sub">Branch fix/4922-advisory-cap-split, 2026-10-30, issue #4922. The UserPromptSubmit dispatcher sends a pending worktree advisory inside one <code>additionalContext</code>, then deletes the advisory file. Claude Code cuts <code>additionalContext</code> at 8,000 characters or 200 lines without reporting it, so a long advisory lost its tail for good.</p>
+
+<section><h2>1. Size the advisory and the other context</h2>
+<div class="controls">
+  <label for="adv">advisory lines</label><input type="range" id="adv" min="1" max="500" value="300"><span id="advv"></span>
+  <label for="other">other hooks, chars</label><input type="range" id="other" min="0" max="4000" step="100" value="1200"><span id="otherv"></span>
+</div>
+<p class="dim" style="font-size:.75rem;margin:0 0 .6rem">Each advisory line is about 40 characters. Other hooks are held to the effort token budget, so they stay well under the cap on their own; the advisory is the one part delivered past that budget.</p>
+<div class="grid">
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">BEFORE: send all, delete the file</div><div class="out" id="old"></div></div>
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">NOW: send what fits, keep the rest on disk</div><div class="out" id="new"></div></div>
+</div>
+<p class="note"><strong>The rule.</strong> Before anything is joined or acknowledged, the dispatcher checks the joined text against both caps. If it would pass either, a part that can keep a remainder (today only the worktree advisory) is shrunk to the room the other parts leave: whole advisories while they fit, then the next one split at a line, with a one-line note that it continues. Acknowledging deletes only the delivered part and rewrites the file with the undelivered lines, so they arrive on the next prompt.</p>
+</section>
+
+<section><h2>2. The proof</h2>
+<p class="dim" style="font-size:.82rem;margin:0">The new dispatcher test writes a 300-line advisory, about 12,000 characters. Before the fix the first prompt carried all of it (past both caps) and the file was gone. After the fix the first prompt stays within 8,000 characters and 200 lines with the file still on disk, and the second prompt delivers the rest: every line exactly once across the two.</p>
+</section>
+
+<script>
+(function(){
+  var CAP_CHARS=8000, CAP_LINES=200, LINE=40, NOTE=48, JOIN=7;
+  function el(id){return document.getElementById(id);}
+  function rows(id,list){var o=el(id);o.innerHTML='';list.forEach(function(r){var d=document.createElement('div');d.className=r[1];d.textContent=r[0];o.appendChild(d);});}
+  function show(){
+    var adv=+el('adv').value, other=+el('other').value;
+    el('advv').textContent=adv+' lines'; el('otherv').textContent=other+' chars';
+    var otherLines=other?Math.ceil(other/LINE):0, join=other?JOIN:0, joinLines=other?3:0;
+    var total=adv*LINE+other+join, totalLines=adv+otherLines+joinLines;
+    var cut=total>CAP_CHARS||totalLines>CAP_LINES;
+    var keptOld=cut?Math.max(0,Math.min(Math.floor((CAP_CHARS-other-join)/LINE),CAP_LINES-otherLines-joinLines)):adv;
+    rows('old',[
+      ['prompt 1: sends '+total+' chars, '+totalLines+' lines',cut?'warn':'ok'],
+      cut?['CC keeps about '+keptOld+' of '+adv+' advisory lines','bad']:['fits under both caps','ok'],
+      ['advisory file deleted',cut?'bad':'ok'],
+      cut?['lost for good: '+(adv-keptOld)+' lines','bad']:['nothing lost','ok']
+    ]);
+    if(!cut){rows('new',[['prompt 1: sends '+total+' chars, '+totalLines+' lines','ok'],['fits, so nothing changes','ok'],['advisory file deleted','ok']]);return;}
+    var prompts=[], left=adv, n=0;
+    while(left>0&&n<6){
+      n++;
+      var roomC=CAP_CHARS-other-join, roomL=CAP_LINES-otherLines-joinLines;
+      var whole=left*LINE<=roomC&&left<=roomL;
+      var take=whole?left:Math.max(0,Math.min(Math.floor((roomC-NOTE-1)/LINE),roomL-1));
+      if(take===0){prompts.push(['prompt '+n+': no room, advisory held back whole','warn']);break;}
+      left-=take;
+      prompts.push(['prompt '+n+': '+take+' advisory lines'+(left>0?' + continues note':''),'ok']);
+    }
+    prompts.push([left>0?'remainder still on disk: '+left+' lines':'file deleted after the last part, every line sent once',left>0?'warn':'ok']);
+    rows('new',prompts);
+  }
+  el('adv').oninput=show; el('other').oninput=show; show();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
