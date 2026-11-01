@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **hooks:** close three fail-open edges in the tool dispatcher follow-up ([#4971](https://github.com/yonatangross/orchestkit/issues/4971)) ([6aa15cb](https://github.com/yonatangross/orchestkit/commit/6aa15cbbfc02671178705815523432fcfee87ec2))
+
+
+### Miscellaneous
+
+* prune 541 archived playground dirs from main ([#4965](https://github.com/yonatangross/orchestkit/issues/4965)) ([5807369](https://github.com/yonatangross/orchestkit/commit/58073698255f2191586e371f94af65a3f128540d))
+
 ## [10.5.0](https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0) (2026-11-01)
 
 
