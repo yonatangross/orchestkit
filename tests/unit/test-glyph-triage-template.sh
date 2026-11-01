@@ -42,7 +42,8 @@ grep -q 'escapeHtml(data.raw' "$PAGE" || fail "raw dump is not escaped at insert
 COPIES=(
   "$ROOT/src/skills/glyph/templates/triage.html"
   "$ROOT/plugins/ork/skills/glyph/templates/triage.html"
-  "$ROOT/docs/feat--glyph-triage/index.html"
+  # docs/feat--glyph-triage/ was archived off main by prune-playgrounds
+  # (#4571); the Lab copy below is checked on its own.
 )
 digest() { python3 -c 'import hashlib,sys; print(hashlib.md5(open(sys.argv[1],"rb").read()).hexdigest())' "$1"; }
 base="$(digest "$PAGE")"
