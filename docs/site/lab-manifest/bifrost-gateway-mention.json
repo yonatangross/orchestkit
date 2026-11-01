@@ -1,0 +1,8 @@
+{
+  "slug": "bifrost-gateway-mention",
+  "source": "docs/docs--bifrost-gateway-mention/index.html",
+  "title": "Bifrost is named next to LiteLLM as a gateway option",
+  "description": "Two one-line mentions in skill reference text name Bifrost beside LiteLLM. The setup section, privacy advice and vendor links stay out until verified.",
+  "tags": ["skills", "docs"],
+  "date": "2026-11-01"
+}
