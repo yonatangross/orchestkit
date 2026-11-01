@@ -19,12 +19,32 @@ import { judge } from '../../../scripts/check-dispatch-proof.mjs';
 const HOOKS = join(__dirname, '..', '..', '..');
 
 describe('run-hook.mjs: a missing dispatcher fails closed', () => {
-  it('lists both tool dispatchers in FAIL_CLOSED_WHEN_MISSING', () => {
-    const src = readFileSync(join(HOOKS, 'bin', 'run-hook.mjs'), 'utf8');
-    const m = src.match(/FAIL_CLOSED_WHEN_MISSING = new Set\(\[([^\]]*)\]\)/);
-    expect(m?.[1]).toContain("'pretool/tool-dispatcher'");
-    expect(m?.[1]).toContain("'posttool/tool-dispatcher'");
-    expect(m?.[1]).toContain("'skill/review-post-gate'");
+  const src = readFileSync(join(HOOKS, 'bin', 'run-hook.mjs'), 'utf8');
+  const setOf = (name: string) => src.match(new RegExp(`${name} = new Set\\(\\[([^\\]]*)\\]`))?.[1] ?? '';
+
+  it('lists both tool dispatchers in the bundle fail-closed set', () => {
+    const bundle = setOf('FAIL_CLOSED_ON_BUNDLE');
+    expect(bundle).toContain("'pretool/tool-dispatcher'");
+    expect(bundle).toContain("'posttool/tool-dispatcher'");
+  });
+
+  // b10 HOLD 6560089425 on #4971: the dispatchers in FAIL_CLOSED_WHEN_MISSING
+  // also turned every input path (a 600 KB Write, starved stdin, empty input)
+  // into a block with a wrong "Rebuild" hint. Only a missing or stale bundle
+  // or handler blocks them; every input path stays on the original set.
+  it('keeps the dispatchers out of the input and throw paths', () => {
+    const inputSet = setOf('FAIL_CLOSED_WHEN_MISSING');
+    expect(inputSet).not.toContain('tool-dispatcher');
+    expect(inputSet).toContain("'skill/review-post-gate'");
+    const bundleChecks = ["would load another version's bundle", 'has no bundle', 'has no handler in its bundle'];
+    for (const line of src.split('\n').filter((l) => /\.has\(hookName\)/.test(l) && /FAIL_CLOSED/.test(l))) {
+      const isBundleCheck = bundleChecks.some((b) => line.includes(b)) || /effectiveDistDir !== distDir/.test(line);
+      if (line.includes('FAIL_CLOSED_ON_BUNDLE')) expect(isBundleCheck, line.trim()).toBe(true);
+    }
+    for (const b of bundleChecks.slice(1)) {
+      const line = src.split('\n').find((l) => l.includes(`failMissing('${b}')`));
+      expect(line, b).toContain('FAIL_CLOSED_ON_BUNDLE');
+    }
   });
 });
 
