@@ -18,7 +18,7 @@ export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
     return execFileSync('git', args, {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',
-      timeout,
+      killSignal: 'SIGKILL', timeout,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
@@ -103,7 +103,7 @@ export function getRepoRoot(projectDir?: string): string {
     return execFileSync('git', ['rev-parse', '--show-toplevel'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
@@ -120,7 +120,7 @@ export function isGitRepo(projectDir?: string): boolean {
     execFileSync('git', ['rev-parse', '--git-dir'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return true;
@@ -157,7 +157,7 @@ export function getGitStatus(projectDir?: string): string {
     return execFileSync('git', ['--no-optional-locks', 'status', '--short'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 10000,
+      killSignal: 'SIGKILL', timeout: 10000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
@@ -181,7 +181,7 @@ export function getDirtyFileCount(projectDir?: string): number {
     const output = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 3000,
+      killSignal: 'SIGKILL', timeout: 3000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return output.trim().split('\n').filter(l => l.trim()).length;
@@ -200,7 +200,7 @@ export function getDefaultBranch(projectDir?: string): string {
     execFileSync('git', ['rev-parse', '--verify', 'main'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return 'main';
@@ -210,7 +210,7 @@ export function getDefaultBranch(projectDir?: string): string {
       execFileSync('git', ['rev-parse', '--verify', 'master'], {
         cwd: dir,
         encoding: 'utf8',
-        timeout: 5000,
+        killSignal: 'SIGKILL', timeout: 5000,
         stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       });
       return 'master';
@@ -257,7 +257,7 @@ export function getStagedFiles(projectDir?: string): string[] {
     const output = execFileSync('git', ['diff', '--cached', '--name-only'], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 10000,
+      killSignal: 'SIGKILL', timeout: 10000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];
@@ -279,7 +279,7 @@ export function getStagedSourceFiles(filter = 'ACMR'): string[] {
     const output = execFileSync('git', ['diff', '--cached', '--name-only', `--diff-filter=${sanitized}`], {
       cwd: dir,
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];

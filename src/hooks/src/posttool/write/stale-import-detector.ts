@@ -172,7 +172,7 @@ function findStaleReferences(
   try {
     const out = execFileSync('grep', ['-rnE', ...includes, '--', pattern, ...roots], {
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
     if (!out) return [];

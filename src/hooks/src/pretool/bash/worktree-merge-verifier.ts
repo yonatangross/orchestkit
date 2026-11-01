@@ -51,7 +51,7 @@ function git(
     const out = execFileSync('git', args, {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: opts.timeout ?? 3000,
+      killSignal: 'SIGKILL', timeout: opts.timeout ?? 3000,
       maxBuffer: 32 * 1024 * 1024,
       input: opts.input,
       stdio: opts.input ? ['pipe', 'pipe', 'ignore'] : ['ignore', 'pipe', 'ignore'],

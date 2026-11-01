@@ -93,7 +93,7 @@ export function pluginsTouchedSince(projectDir: string, sinceIso: string): boole
     const out = execFileSync(
       'git',
       ['-C', projectDir, 'log', `--since=${sinceIso}`, '--name-only', '--pretty=format:', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: GIT_TIMEOUT_MS },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], killSignal: 'SIGKILL', timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
   } catch {
@@ -118,7 +118,7 @@ export function pluginsDirtyNow(projectDir: string): boolean {
     const out = execFileSync(
       'git',
       ['--no-optional-locks', '-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: GIT_TIMEOUT_MS },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], killSignal: 'SIGKILL', timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
   } catch {
