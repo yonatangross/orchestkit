@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.5.0",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** one-process tool dispatchers behind a flagged hooks.json variant ([#4962](https://github.com/yonatangross/orchestkit/issues/4962)) ([a4f4f61](https://github.com/yonatangross/orchestkit/commit/a4f4f618f6257a91ecff39e9fa0a98273770f04f))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** playground gate reads the PR files API, not the diff ([#4967](https://github.com/yonatangross/orchestkit/issues/4967)) ([37e4047](https://github.com/yonatangross/orchestkit/commit/37e4047f32badf78d38ae5ca4903a36e70f5f765))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.4",
     "date": "2026-11-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4",
