@@ -64,7 +64,7 @@ function run(
     const out = execFileSync(file, args, {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout,
+      killSignal: 'SIGKILL', timeout,
       stdio: ['ignore', 'pipe', 'ignore'],
     });
     return String(out ?? '').trim() || null;

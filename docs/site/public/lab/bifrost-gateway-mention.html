@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bifrost is named next to LiteLLM as a gateway option</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 48rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Bifrost is named next to LiteLLM as a gateway option"><meta property="og:description" content="Two one-line mentions in skill reference text name Bifrost beside LiteLLM. The setup section, privacy advice and vendor links stay out until verified."><meta property="og:url" content="https://orchestkit.dev/lab/bifrost-gateway-mention.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Bifrost is named next to LiteLLM as a gateway option"><meta name="twitter:description" content="Two one-line mentions in skill reference text name Bifrost beside LiteLLM. The setup section, privacy advice and vendor links stay out until verified."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Bifrost is named next to LiteLLM as a gateway option</h1>
+  <p class="sub">PR playground for the re-land of #4940: two one-line mentions in skill reference text.</p>
+
+  <div class="card">
+    <h2>What changes in the skills</h2>
+    <table>
+      <thead><tr><th>place</th><th>before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td><code>llm-integration/references/model-selection.md</code> (gateway discovery line)</td><td class="bad">LiteLLM, Bedrock-via-gateway, custom auth proxy</td><td class="good">LiteLLM, Bifrost, Bedrock-via-gateway, custom auth proxy</td></tr>
+        <tr><td><code>monitoring-observability/SKILL.md</code> (reference table row)</td><td class="bad">LiteLLM proxy layer</td><td class="good">LiteLLM proxy layer (or Bifrost)</td></tr>
+        <tr><td>generated docs data and two reference pages</td><td colspan="2">regenerated to match, nothing else</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>What stays out, and why</h2>
+    <p style="margin-block-start:0">
+      The original contribution also carried a Bifrost setup section, OTel privacy advice and several
+      vendor links. Those are left out of the plugin until they are verified here. The neutral mention
+      stays, and the contributor keeps authorship of the two original commits.
+    </p>
+  </div>
+
+  <footer>Skill reference text only. No runtime change.</footer>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

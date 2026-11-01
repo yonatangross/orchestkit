@@ -1,0 +1,13 @@
+{
+  "slug": "ork-hook-dispatcher",
+  "source": "docs/feat--ork-hook-dispatcher/index.html",
+  "title": "ork tool hooks in one process per event, behind a flag",
+  "description": "Claude Code starts one process per matching hooks.json entry. Pick a tool and flip the flag to compare how many ork hook processes one tool call launches today and with the dispatcher variant.",
+  "tags": [
+    "hooks",
+    "performance",
+    "pretool",
+    "posttool"
+  ],
+  "date": "2026-10-31"
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork tool hooks in one process per event, behind a flag</title>
+<meta name="description" content="Claude Code starts one process per matching hooks.json entry. Pick a tool and flip the flag to compare how many ork hook processes one tool call launches today and with the dispatcher variant.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  label{cursor:pointer}
+  .row{display:grid;grid-template-columns:9rem 1fr 3rem;gap:.6rem;align-items:center;font-size:.8rem;margin:.35rem 0}
+  .bar{height:.9rem;border-radius:3px;background:var(--bad)}
+  .bar.on{background:var(--ok)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  .dim{color:var(--dim)} .ok{color:var(--ok)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="ork tool hooks in one process per event, behind a flag"><meta property="og:description" content="Claude Code starts one process per matching hooks.json entry. Pick a tool and flip the flag to compare how many ork hook processes one tool call launches today and with the dispatcher variant."><meta property="og:url" content="https://orchestkit.dev/lab/ork-hook-dispatcher.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ork tool hooks in one process per event, behind a flag"><meta name="twitter:description" content="Claude Code starts one process per matching hooks.json entry. Pick a tool and flip the flag to compare how many ork hook processes one tool call launches today and with the dispatcher variant."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>ork tool hooks in one process per event, behind a flag</h1>
+<p class="sub">Branch feat/ork-hook-dispatcher, measured 2026-10-31 on Claude Code 2.1.316 in fresh headless sessions with <code>--debug-file</code>. Claude Code launches every matching hooks.json command as its own process, so only a different hooks.json can lower the count. The flag is that variant, written by <code>scripts/unified-pretool-hooks.mjs</code>; the shipped hooks.json is unchanged.</p>
+
+<section><h2>1. Pick a tool and the flag</h2>
+<div class="controls">
+  <select id="tool" aria-label="tool">
+    <option>Bash</option><option>Edit</option><option>Read</option>
+  </select>
+  <label><input type="checkbox" id="flag"> flag on (dispatcher variant)</label>
+</div>
+<div id="rows"></div>
+<div class="out" id="out"></div>
+</section>
+
+<section><h2>2. Every folded handler still runs once</h2>
+<div class="out" id="proof"></div>
+<p class="note"><strong>Negative control.</strong> With <code>ORK_DISPATCH_PROOF_BREAK=posttool/commit-nudge</code> the checker shows commit-nudge as failed and every other handler as ok; the same broken log judged as healthy fails, so the check can disagree.</p>
+</section>
+
+<script>
+const LIVE = {
+  off: { Bash: 10, Edit: 16, Read: 4 },
+  on:  { Bash: 2,  Edit: 2,  Read: 2 }
+};
+const PROOF = {
+  Bash: { pre: 2, post: 8 }, Edit: { pre: 2, post: 14 }, Read: { pre: 2, post: 2 }
+};
+const max = 16;
+function render() {
+  const t = document.getElementById('tool').value;
+  const on = document.getElementById('flag').checked;
+  const rows = document.getElementById('rows');
+  rows.textContent = '';
+  for (const [k, v] of [['today', LIVE.off[t]], ['flag on', LIVE.on[t]]]) {
+    const r = document.createElement('div'); r.className = 'row';
+    const a = document.createElement('span'); a.textContent = k;
+    const b = document.createElement('div'); b.className = 'bar' + (k === 'flag on' ? ' on' : '');
+    b.style.width = (v / max * 100) + '%';
+    b.style.opacity = (on === (k === 'flag on')) ? '1' : '.35';
+    const c = document.createElement('span'); c.textContent = v;
+    r.append(a, b, c); rows.append(r);
+  }
+  const n = on ? LIVE.on[t] : LIVE.off[t];
+  document.getElementById('out').textContent = on
+    ? `${t}: ${n} ork processes per call (one PreToolUse dispatcher, one PostToolUse dispatcher). PostToolBatch: 0 (tool-batch-observer dropped in the flag variant only).`
+    : `${t}: ${n} ork processes per call, one per matching hooks.json entry. PostToolBatch adds 1 per batch.`;
+  const p = PROOF[t];
+  document.getElementById('proof').textContent =
+    `PreToolUse:${t}   expected ${p.pre}  seen ${p.pre}  failed 0\n` +
+    `PostToolUse:${t}  expected ${p.post}  seen ${p.post}  failed 0\n` +
+    `verdict OK (ORK_DISPATCH_PROOF=1, scripts/check-dispatch-proof.mjs)`;
+}
+document.getElementById('tool').addEventListener('change', render);
+document.getElementById('flag').addEventListener('change', render);
+render();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

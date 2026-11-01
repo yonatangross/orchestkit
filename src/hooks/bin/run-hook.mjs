@@ -462,6 +462,12 @@ if (bundleLoadError) {
 // #4678: a gate that is the only check on a write must not pass when its
 // code is absent: a missing bundle or a missing handler blocks (exit 2).
 const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+
+// #4962: the tool dispatchers abandon a handler at its budget (lib/budget.ts)
+// instead of awaiting it. Its timers or I/O would keep this process alive
+// past the verdict until CC killed it, and a killed hook's output is lost, so
+// these exit once their output is flushed.
+const EXIT_AFTER_EMIT = new Set(['pretool/tool-dispatcher', 'posttool/tool-dispatcher']);
 function failMissing(what) {
   process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" ${what}, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.\n`);
   process.exit(2);
@@ -653,14 +659,22 @@ if (stdinFromFile) {
     // silent: handled below, the same as the stream's error event
     total = -1;
   }
-  if (total < 0) {
-    onStdinError();
-  } else {
+  if (total >= 0) {
     input = buf.toString('utf8', 0, Math.min(total, MAX_STDIN_BYTES));
     inputBytes = total;
-    if (total > MAX_STDIN_BYTES) refuseOversized();
-    else finishInput();
   }
+  // #4885: the read stays synchronous, the dispatch waits for a microtask.
+  // This block runs while the module is still evaluating, so a hook that
+  // reaches emitHookResult synchronously (the disabled short-circuit) read
+  // WORKTREE_PATH_EVENTS and the other consts declared below before they
+  // existed and crashed with a TDZ ReferenceError. A microtask runs once the
+  // module body has finished and still before any timer or stream event, so
+  // #4769 holds and stdinClosed still guards the stream handlers below.
+  queueMicrotask(() => {
+    if (total < 0) onStdinError();
+    else if (total > MAX_STDIN_BYTES) refuseOversized();
+    else finishInput();
+  });
 }
 
 process.stdin.on('end', () => {
@@ -989,5 +1003,9 @@ async function runHook(parsedInput) {
     // back to CLAUDE_SESSION_ID). Pass it through so lifecycle events, which
     // carry session_id only in stdin, are no longer invisible to the census.
     trackHookTriggered(hookName, success, durationMs, projectDir, timing, parsedInput?.session_id, verdict);
+  }
+  if (EXIT_AFTER_EMIT.has(hookName)) {
+    // An empty write's callback runs after every earlier stdout write flushed.
+    process.stdout.write('', () => process.exit());
   }
 }

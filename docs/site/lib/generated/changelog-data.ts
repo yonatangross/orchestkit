@@ -18,6 +18,50 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.4.4",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** disabled hook on a file stdin no longer hits a TDZ ([#4885](https://github.com/yonatangross/orchestkit/issues/4885)) ([#4949](https://github.com/yonatangross/orchestkit/issues/4949)) ([3148345](https://github.com/yonatangross/orchestkit/commit/3148345eeb2b18a9909f513c55a8e0dde468a137))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**skills:** add Bifrost as a gateway option (re-land of [#4940](https://github.com/yonatangross/orchestkit/issues/4940)) ([#4966](https://github.com/yonatangross/orchestkit/issues/4966)) ([302c20e](https://github.com/yonatangross/orchestkit/commit/302c20e64f3ac8b906120ba0a30196ef71f75545))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.4.3",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** docs install-deps waits for the dpkg lock before its retry ([#4948](https://github.com/yonatangross/orchestkit/issues/4948)) ([e35ec03](https://github.com/yonatangross/orchestkit/commit/e35ec03cd94762e5454e484a24af8784034be43c))",
+          "**ci:** docs parity test reports a diff error, never false drift ([#4902](https://github.com/yonatangross/orchestkit/issues/4902)) ([564287e](https://github.com/yonatangross/orchestkit/commit/564287e2fbf99e9c0c4b0e4ca92a7a45a2fff42d))",
+          "**hooks:** auto-lint runs only formatters the repo configures ([#4945](https://github.com/yonatangross/orchestkit/issues/4945)) ([#4950](https://github.com/yonatangross/orchestkit/issues/4950)) ([3722977](https://github.com/yonatangross/orchestkit/commit/37229773e9a294fe57649feca4baa1626012d1b7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**demo-production:** Quick Start uses the demo config in place ([#4959](https://github.com/yonatangross/orchestkit/issues/4959)) ([7adbf62](https://github.com/yonatangross/orchestkit/commit/7adbf62362b6fd5fb34bd427410160c27e4f85cf))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.2",
     "date": "2026-10-30",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2",

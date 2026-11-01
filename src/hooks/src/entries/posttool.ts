@@ -71,6 +71,9 @@ import { checkPluginsDrift } from '../posttool/check-plugins-drift.js';
 // P3-A3: PostToolBatch observer (CC 2.1.208) — observer-only telemetry
 import { toolBatchObserver } from '../posttool/tool-batch-observer.js';
 
+// Tool dispatcher (1): every PostToolUse handler in one process, flagged variant only (M1)
+import { posttoolToolDispatcher } from '../posttool/tool-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -81,6 +84,8 @@ export const hooks: Record<string, HookFn> = {
   'posttool/metrics-bridge': metricsBridge,
   'posttool/context-crossing-warn': contextCrossingWarn,
   'posttool/metrics-dispatcher': metricsDispatcher,
+  // Wired only by scripts/unified-pretool-hooks.mjs (default off)
+  'posttool/tool-dispatcher': posttoolToolDispatcher,
 
   // PostTool/Write hooks (4) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector; debt-marker-tracker added
   'posttool/write/stale-import-detector': staleImportDetector,
