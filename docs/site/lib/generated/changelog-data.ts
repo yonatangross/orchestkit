@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.5.1",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** close three fail-open edges in the tool dispatcher follow-up ([#4971](https://github.com/yonatangross/orchestkit/issues/4971)) ([6aa15cb](https://github.com/yonatangross/orchestkit/commit/6aa15cbbfc02671178705815523432fcfee87ec2))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "prune 541 archived playground dirs from main ([#4965](https://github.com/yonatangross/orchestkit/issues/4965)) ([5807369](https://github.com/yonatangross/orchestkit/commit/58073698255f2191586e371f94af65a3f128540d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.5.0",
     "date": "2026-11-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0",

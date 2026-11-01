@@ -642,6 +642,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1)** · 2026-11-01
+
+- **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
+- prune 541 archived playground dirs from main (#4965)
+
 **[v10.5.0](https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0)** · 2026-11-01
 
 - **hooks:** one-process tool dispatchers behind a flagged hooks.json variant (#4962)
@@ -686,14 +691,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the remotion group across 1 directory with 21 updates (#4919)
 - **traffic:** snapshot week of 2026-10-19 (#4927)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.3.0](https://github.com/yonatangross/orchestkit/compare/v10.2.2...v10.3.0)** · 2026-10-26
-
-- **skills:** plan and research artifact pairs with in-file review (#4897)
-- **ci:** open workflow PRs unarmed (#4930)
-- **plugin:** plain description that states hook scope (#4759)
-- **tests:** docs.yml parity test compares temp files, not /dev/fd (#4933)
-- **skills:** move the json-render skills to 0.21.3 (#4929)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
