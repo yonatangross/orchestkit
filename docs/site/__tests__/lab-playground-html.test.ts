@@ -68,6 +68,15 @@ describe("Lab playgrounds parse and render", () => {
 		expect(ALL.length).toBeGreaterThan(100);
 	});
 
+	// The prune tooling archives old playground dirs (#4571, #4965), and a
+	// pruned entry is served from its committed public/lab copy. Skipping it
+	// left most of the Lab unchecked and walked the count toward the floor
+	// above. Every manifest entry is checked, from its source or its copy.
+	it("checks every Lab entry, pruned ones from the committed copy", () => {
+		const entries = readdirSync(MANIFEST).filter((f) => f.endsWith(".json")).length;
+		expect(ALL.length).toBe(entries);
+	});
+
 	it.each(ALL.map((p) => [p.slug, p] as const))("%s closes every <style> and <script>", (_slug, page) => {
 		expect(scanRawText(page.html).unclosed, page.source).toEqual([]);
 	});
