@@ -7,13 +7,15 @@
  *
  * Two rules:
  * - every execSync / execFileSync / spawnSync call reachable from either tool
- *   dispatcher passes a `timeout` option, so blocking work is bounded by the
- *   child-process timeout the event loop cannot provide;
+ *   dispatcher passes a `timeout` with `killSignal: 'SIGKILL'`, so blocking
+ *   work is bounded by a kill the child cannot ignore (the event loop cannot
+ *   provide one, and SIGTERM waits for a child that traps it);
  * - a result that arrives after its budget is discarded (lib/budget.ts),
  *   so late work never decides.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve, relative } from 'node:path';
 import { TIMED_OUT, withBudget } from '../../lib/budget.js';
 
@@ -53,7 +55,12 @@ function untimedSyncCalls(file: string): string[] {
       if (s[j] === '(') depth++;
       else if (s[j] === ')' && --depth === 0) break;
     }
-    if (!/\btimeout\b/.test(s.slice(open, j + 1))) {
+    const args = s.slice(open, j + 1);
+    // A timeout alone sends SIGTERM and then WAITS for the child to exit, so
+    // a TERM-ignoring child outlasts it (Codex 6557806212, b6 6557838470:
+    // 3024 ms under a 500 ms timeout). The bound is enforceable only with
+    // killSignal SIGKILL.
+    if (!/\btimeout\b/.test(args) || !/killSignal:\s*'SIGKILL'/.test(args)) {
       out.push(`${relative(SRC, file)}:${s.slice(0, m.index).split('\n').length} ${m[1]}`);
     }
   }
@@ -67,7 +74,7 @@ describe('tool dispatchers: blocking work is bounded', () => {
     expect(files).toContain(join('pretool', 'bash', 'sync-bash-dispatcher.ts'));
   });
 
-  it('every sync child-process call reachable from a tool dispatcher passes a timeout', () => {
+  it('every sync child-process call reachable from a tool dispatcher passes a timeout and killSignal SIGKILL', () => {
     const offenders = reachable().flatMap(untimedSyncCalls);
     expect(offenders).toEqual([]);
   });
@@ -75,6 +82,26 @@ describe('tool dispatchers: blocking work is bounded', () => {
   it('the scan sees an untimed call and ignores one in a comment (negative control)', () => {
     const probe = stripComments("// execFileSync('git', ['log'])\nexecFileSync('git', ['status']);\nexecFileSync('git', [], { timeout: 1 });");
     expect(probe.match(/execFileSync\s*\(/g)).toHaveLength(2);
+  });
+});
+
+describe('an enforceable bound on a TERM-ignoring child', () => {
+  // The child traps SIGTERM and sleeps 3 s. With the default SIGTERM the
+  // timeout waits it out; with SIGKILL it returns at the timeout.
+  const IGNORE_TERM = "process.on('SIGTERM', () => {}); setTimeout(() => {}, 3000);";
+
+  it('killSignal SIGKILL returns at the timeout', () => {
+    const started = Date.now();
+    expect(() =>
+      execFileSync(process.execPath, ['-e', IGNORE_TERM], { stdio: 'ignore', timeout: 300, killSignal: 'SIGKILL' }),
+    ).toThrow();
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+
+  it('the default SIGTERM does not (negative control: the probe can disagree)', () => {
+    const started = Date.now();
+    expect(() => execFileSync(process.execPath, ['-e', IGNORE_TERM], { stdio: 'ignore', timeout: 300 })).toThrow();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(2000);
   });
 });
 
