@@ -108,6 +108,17 @@ describe('pretool/tool-dispatcher', () => {
     expect(result).toEqual(deny);
   });
 
+  // conductor263 on Codex HOLD 6557208634: the primary's verdict lost to its
+  // budget fails closed, a deny naming the hook, instead of an allow.
+  it('a primary that runs out of budget denies, naming itself', async () => {
+    vi.mocked(syncBashDispatcher).mockReturnValueOnce(new Promise<HookResult>(() => {}) as unknown as HookResult);
+    const started = Date.now();
+    const r = await toolDispatcher(input('Bash', { command: 'ls' }), createTestContext(), {}, { budgetMs: () => 50 });
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('deny');
+    expect(r.hookSpecificOutput?.permissionDecisionReason).toContain('pretool/bash/sync-bash-dispatcher');
+  });
+
   it('budgets mirror the shipped PreToolUse timeouts, and fit in the entry timeout', async () => {
     const { PRETOOL_TIMEOUTS_S, PRETOOL_RUN_BUDGET_MS } = await import('../../pretool/tool-dispatcher.js');
     const { PRETOOL_ENTRY_TIMEOUT_S } = await import('../../../scripts/unified-pretool-hooks.mjs');

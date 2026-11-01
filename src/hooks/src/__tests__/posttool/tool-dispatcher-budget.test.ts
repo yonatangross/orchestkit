@@ -63,7 +63,9 @@ describe('posttool/tool-dispatcher budgets', () => {
     expect(r.reason).toContain('stale import');
   });
 
-  it('a hung guard is abandoned at its own budget and the next guard still decides', async () => {
+  // conductor263 on Codex HOLD 6557208634: a guard verdict lost to its budget
+  // fails closed. Observers stay silent, as a CC timeout left them.
+  it('a hung guard blocks (fail closed), naming itself, and the next guard still decides', async () => {
     const groups = [
       {
         matcher: 'Edit',
@@ -78,6 +80,21 @@ describe('posttool/tool-dispatcher budgets', () => {
     const r = await posttoolDispatch(input('Edit'), createTestContext(), map, groups);
     expect(Date.now() - started).toBeLessThan(1000);
     expect(r.decision).toBe('block');
+    expect(r.reason).toContain('hung-guard');
+    expect(r.reason).toContain('no');
+  });
+
+  it('a rewake guard that runs out of budget blocks too', async () => {
+    const groups = [{ matcher: 'Edit', hooks: [{ id: 'rewake-guard', async: true, rewake: true as const, timeout: 0.05 }] }];
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), { 'rewake-guard': never }, groups);
+    expect(r.decision).toBe('block');
+    expect(r.reason).toContain('rewake-guard');
+  });
+
+  it('an observer that runs out of budget stays silent', async () => {
+    const groups = [{ matcher: 'Edit', hooks: [{ id: 'slow-observer', async: true, timeout: 0.05 }] }];
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), { 'slow-observer': never }, groups);
+    expect(r.decision).toBeUndefined();
   });
 
   it('a handler that never settles is not awaited past the run', async () => {
