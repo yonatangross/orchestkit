@@ -21,8 +21,8 @@
  *   results are ignored and a throw never changes the verdict.
  * - The webhook forward runs last and is isolated the same way.
  * - Every handler runs within its hooks.json timeout (lib/budget.ts); one
- *   over budget is abandoned with no verdict, as when CC killed it, so a
- *   hung observer or forwarder cannot hold the primary's verdict.
+ *   over budget is abandoned, so a hung observer or forwarder cannot hold
+ *   the primary's verdict; a primary over budget denies (fail closed).
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
@@ -173,9 +173,17 @@ export async function toolDispatcher(
           return primary(input, ctx);
         }, budget);
         if (r === TIMED_OUT) {
-          // As when CC killed it at its timeout: no verdict, the call goes on.
-          ctx.log(HOOK_NAME, `${primaryId} over its ${budget} ms budget (abandoned)`);
+          // A verdict lost to time fails closed: deny, naming the hook.
+          ctx.log(HOOK_NAME, `${primaryId} over its ${budget} ms budget (abandoned, denies)`);
           proof.record(primaryId, 'failed');
+          result = {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: 'PreToolUse',
+              permissionDecision: 'deny',
+              permissionDecisionReason: `[orchestkit] hook "${primaryId}" did not finish within its ${budget} ms budget, so it denies.`,
+            },
+          };
         } else {
           result = r;
           proof.record(primaryId, 'ok');
