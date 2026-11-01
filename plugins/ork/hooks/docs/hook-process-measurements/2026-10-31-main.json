@@ -1,7 +1,7 @@
 {
   "measured_at": "2026-10-31T19:02:48.875Z",
   "node": "v26.12.1",
-  "hooks_json": "/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/yellow-ork-hooks-dispatcher/src/hooks/hooks.json",
+  "hooks_json": "src/hooks/hooks.json",
   "path": "success (PreToolUse + PostToolUse + PostToolBatch, batch of one)",
   "results": [
     {

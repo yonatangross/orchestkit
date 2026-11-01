@@ -32,11 +32,17 @@
 import { spawnSync, execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname, resolve } from 'node:path';
+import { basename, join, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOKS_DIR = join(__dirname, '..');
+const REPO_ROOT = join(HOOKS_DIR, '..', '..');
+
+function displayPath(p) {
+  const rel = relative(REPO_ROOT, p);
+  return rel && !rel.startsWith('..') ? rel : `${basename(p)} (outside the repo)`;
+}
 const PRELOAD = join(__dirname, 'lib', 'count-child-processes.cjs');
 const SUCCESS_EVENTS = ['PreToolUse', 'PostToolUse', 'PostToolBatch'];
 
@@ -205,7 +211,9 @@ function main() {
     const doc = {
       measured_at: new Date().toISOString(),
       node: process.version,
-      hooks_json: hooksPath,
+      // Never a home path in a committed result: the public-surface gate
+      // refuses it. Repo files are named from the repo root, others by name.
+      hooks_json: displayPath(hooksPath),
       path: 'success (PreToolUse + PostToolUse + PostToolBatch, batch of one)',
       results: results.map(({ runs, ...rest }) => ({
         ...rest,

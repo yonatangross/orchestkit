@@ -1,7 +1,7 @@
 {
   "measured_at": "2026-10-31T19:10:46.449Z",
   "node": "v26.12.1",
-  "hooks_json": "/tmp/claude-501/yellow-ork-hooks/hooks-flag-on.json",
+  "hooks_json": "hooks-flag-on.json (outside the repo)",
   "path": "success (PreToolUse + PostToolUse + PostToolBatch, batch of one)",
   "results": [
     {
