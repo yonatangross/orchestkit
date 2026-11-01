@@ -37,6 +37,7 @@ import { memoryValidator } from './mcp/memory-validator.js';
 import headlessResponder from './ask/headless-responder.js';
 import { workflowAgentTypeAdvisor } from './task/workflow-agenttype-advisor.js';
 import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
+import { ccMatcherMatches } from '../lib/cc-matcher.js';
 
 const HOOK_NAME = 'tool-dispatcher';
 
@@ -53,35 +54,34 @@ interface Route {
   observers: Fn[];
 }
 
-const exact = (...names: string[]) => (tool: string) => names.includes(tool);
-const prefix = (p: string) => (tool: string) => tool.startsWith(p);
+/** A route matches exactly as CC reads the shipped group's matcher. */
+const cc = (matcher: string) => (tool: string) => ccMatcherMatches(matcher, tool);
 
 /**
- * Mirrors the PreToolUse groups of src/hooks/hooks.json (2026-10-31).
- * The mcp groups use matchers "mcp__context7__*" and "mcp__memory__*"; their
- * intent is a prefix match, which is what is routed here.
+ * Mirrors the PreToolUse groups of src/hooks/hooks.json (2026-10-31); each
+ * route carries its group's matcher verbatim (asserted by test).
  */
 export const PRETOOL_ROUTES: Route[] = [
-  { match: exact('Bash'), handlers: ['pretool/bash/sync-bash-dispatcher'], primary: syncBashDispatcher, observers: [] },
+  { match: cc('Bash'), handlers: ['pretool/bash/sync-bash-dispatcher'], primary: syncBashDispatcher, observers: [] },
   {
-    match: exact('Write', 'Edit'),
+    match: cc('Write|Edit'),
     handlers: ['pretool/write-edit/sync-write-edit-dispatcher'],
     primary: syncWriteEditDispatcher,
     observers: [],
   },
-  { match: exact('Read'), handlers: ['pretool/read/tldr-summary'], primary: tldrSummary, observers: [] },
+  { match: cc('Read'), handlers: ['pretool/read/tldr-summary'], primary: tldrSummary, observers: [] },
   {
-    match: exact('Agent'),
+    match: cc('Agent'),
     handlers: ['pretool/task/sync-task-dispatcher', 'pretool/task/route-observer'],
     primary: syncTaskDispatcher,
     observers: [routeObserver],
   },
-  { match: exact('Skill'), handlers: ['pretool/skill/skill-tracker'], observers: [skillTracker] },
-  { match: prefix('mcp__context7__'), handlers: ['pretool/mcp/context7-tracker'], primary: context7Tracker, observers: [] },
-  { match: prefix('mcp__memory__'), handlers: ['pretool/mcp/memory-validator'], primary: memoryValidator, observers: [] },
-  { match: exact('AskUserQuestion'), handlers: ['pretool/ask/headless-responder'], primary: headlessResponder, observers: [] },
+  { match: cc('Skill'), handlers: ['pretool/skill/skill-tracker'], observers: [skillTracker] },
+  { match: cc('mcp__context7__*'), handlers: ['pretool/mcp/context7-tracker'], primary: context7Tracker, observers: [] },
+  { match: cc('mcp__memory__*'), handlers: ['pretool/mcp/memory-validator'], primary: memoryValidator, observers: [] },
+  { match: cc('AskUserQuestion'), handlers: ['pretool/ask/headless-responder'], primary: headlessResponder, observers: [] },
   {
-    match: exact('Workflow'),
+    match: cc('Workflow'),
     handlers: ['pretool/task/workflow-agenttype-advisor'],
     primary: workflowAgentTypeAdvisor,
     observers: [],

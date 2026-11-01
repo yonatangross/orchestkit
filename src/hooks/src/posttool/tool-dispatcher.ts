@@ -27,6 +27,10 @@
  * - Only a handler that was sync may block (decision:'block', continue:false)
  *   or replace tool output (updatedToolOutput / updatedMCPToolOutput); an
  *   async one never could, because CC had already moved on.
+ * - Except a rewake handler ("asyncRewake": true with --rewake): CC woke
+ *   Claude with its stopReason, so its stop still blocks, with that reason.
+ * - A sync or rewake handler missing from the build blocks (fail closed); a
+ *   missing plain async handler is skipped, as run-hook.mjs does today.
  * - Each handler is isolated: a throw is logged and the rest still run.
  */
 
@@ -58,14 +62,28 @@ import { heartbeat as sessionHeartbeat } from './heartbeat.js';
 import { chainStalenessChecker } from './chain-staleness-checker.js';
 import { metricsDispatcher } from './metrics-dispatcher.js';
 import { contextCrossingWarn } from './context-crossing-warn.js';
+import { ccMatcherMatches } from '../lib/cc-matcher.js';
+
+export { ccMatcherMatches };
 
 const HOOK_NAME = 'posttool/tool-dispatcher';
 
 type Fn = (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
 
+/**
+ * One shipped entry's role. `rewake` mirrors `"asyncRewake": true` with
+ * `--rewake`: CC woke Claude with the handler's stopReason when it stopped,
+ * so in one process that stop must still reach Claude, as a block.
+ */
+export interface PosttoolMember {
+  id: string;
+  async: boolean;
+  rewake?: true;
+}
+
 export interface PosttoolGroup {
   matcher: string;
-  hooks: { id: string; async: boolean }[];
+  hooks: PosttoolMember[];
 }
 
 /** Handler for every id POSTTOOL_GROUPS routes to. */
@@ -99,6 +117,7 @@ export const POSTTOOL_HANDLERS: Record<string, Fn> = {
 
 const A = (id: string) => ({ id, async: true });
 const S = (id: string) => ({ id, async: false });
+const R = (id: string) => ({ id, async: true, rewake: true as const });
 const EVERY_WRITER = 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit';
 
 /** Mirror of src/hooks/hooks.json PostToolUse, in order (asserted by test). */
@@ -115,7 +134,7 @@ export const POSTTOOL_GROUPS: PosttoolGroup[] = [
       A('posttool/ui-change-detector'),
       A('skill/redact-secrets'),
       A('posttool/config-change/security-auditor'),
-      A('posttool/write/stale-import-detector'),
+      R('posttool/write/stale-import-detector'),
       A('posttool/write/debt-marker-tracker'),
       S('posttool/check-plugins-drift'),
       A('posttool/write/edit-history-tracker'),
@@ -143,17 +162,6 @@ export const POSTTOOL_GROUPS: PosttoolGroup[] = [
   { matcher: 'Read|Grep|Glob|WebFetch|WebSearch', hooks: [S('posttool/context-crossing-warn')] },
 ];
 
-/** CC hook matcher semantics (see file header). */
-export function ccMatcherMatches(matcher: string | undefined, tool: string): boolean {
-  if (matcher === undefined || matcher === '' || matcher === '*') return true;
-  if (/^[\w|-]+$/.test(matcher)) return matcher.split('|').includes(tool);
-  try {
-    return new RegExp(matcher).test(tool);
-  } catch {
-    return false;
-  }
-}
-
 interface Merged {
   contexts: string[];
   messages: string[];
@@ -163,12 +171,18 @@ interface Merged {
   updatedMCPToolOutput?: unknown;
 }
 
-function absorb(m: Merged, r: HookResult | undefined, wasSync: boolean): void {
+function absorb(m: Merged, r: HookResult | undefined, member: PosttoolMember): void {
   if (!r) return;
   const hso: HookSpecificOutput | undefined = r.hookSpecificOutput;
   if (hso?.additionalContext) m.contexts.push(hso.additionalContext);
   if (r.systemMessage) m.messages.push(r.systemMessage);
-  if (!wasSync) return;
+  if (member.rewake) {
+    // run-hook.mjs --rewake: a stop exits 2 with the stopReason, and CC
+    // wakes Claude with it. Here it becomes a block reason Claude sees now.
+    if (r.continue === false) m.blockReasons.push(r.stopReason ?? r.reason ?? `${member.id} stopped`);
+    return;
+  }
+  if (member.async) return;
   if (r.continue === false && !m.stop) m.stop = r;
   if (r.decision === 'block') m.blockReasons.push(r.reason ?? r.stopReason ?? 'blocked');
   if (hso?.updatedToolOutput !== undefined && m.updatedToolOutput === undefined) m.updatedToolOutput = hso.updatedToolOutput;
@@ -221,18 +235,28 @@ export async function posttoolDispatch(
   const seen = new Set<string>();
   for (const group of groups) {
     if (!ccMatcherMatches(group.matcher, tool)) continue;
-    for (const { id, async } of group.hooks) {
+    for (const member of group.hooks) {
+      const { id } = member;
       if (seen.has(id)) continue;
       seen.add(id);
       const fn = handlers[id];
       if (!fn) {
-        ctx.log(HOOK_NAME, `no handler for ${id} (skipped)`);
         proof.record(id, 'failed');
+        if (member.async && !member.rewake) {
+          // Same as run-hook.mjs today: a missing observer is skipped.
+          ctx.log(HOOK_NAME, `no handler for ${id} (skipped)`);
+          continue;
+        }
+        // A handler whose verdict counts must not pass when its code is absent.
+        ctx.log(HOOK_NAME, `no handler for ${id} (blocks)`);
+        merged.blockReasons.push(
+          `[orchestkit] hook "${id}" has no handler in this build, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.`,
+        );
         continue;
       }
       try {
         if (proofBreaks(env, id)) throw proofBreakError(id);
-        absorb(merged, await fn(input, ctx), !async);
+        absorb(merged, await fn(input, ctx), member);
         proof.record(id, 'ok');
       } catch (err) {
         ctx.log(HOOK_NAME, `${id} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
