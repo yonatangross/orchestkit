@@ -1,0 +1,12 @@
+{
+  "slug": "build-intent-gerund-after-and",
+  "source": "docs/fix--build-intent-gerund-after-and/index.html",
+  "title": "Build-intent check: a gerund after without and stays negated",
+  "description": "Issue 4715. Pick a review-only prompt and compare how the task advisor read it before and after: a gerund after 'and' now stays under 'without', while a bare verb after 'and' still counts as a build request.",
+  "tags": [
+    "hooks",
+    "task-advisor",
+    "regex"
+  ],
+  "date": "2026-11-01"
+}
