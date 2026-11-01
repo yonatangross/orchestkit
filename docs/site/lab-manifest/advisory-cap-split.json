@@ -1,0 +1,12 @@
+{
+  "slug": "advisory-cap-split",
+  "source": "docs/fix--4922-advisory-cap-split/index.html",
+  "title": "A worktree advisory that no longer falls off the context cap",
+  "description": "Claude Code cuts additionalContext at 8,000 characters or 200 lines without saying so, and the prompt dispatcher deleted the advisory file it had just sent. Size an advisory and the other context, and see what the old and new dispatcher deliver on each prompt.",
+  "tags": [
+    "hooks",
+    "prompt",
+    "context-cap"
+  ],
+  "date": "2026-10-30"
+}

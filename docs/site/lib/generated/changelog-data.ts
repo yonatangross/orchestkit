@@ -18,6 +18,53 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.4.3",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** docs install-deps waits for the dpkg lock before its retry ([#4948](https://github.com/yonatangross/orchestkit/issues/4948)) ([e35ec03](https://github.com/yonatangross/orchestkit/commit/e35ec03cd94762e5454e484a24af8784034be43c))",
+          "**ci:** docs parity test reports a diff error, never false drift ([#4902](https://github.com/yonatangross/orchestkit/issues/4902)) ([564287e](https://github.com/yonatangross/orchestkit/commit/564287e2fbf99e9c0c4b0e4ca92a7a45a2fff42d))",
+          "**hooks:** auto-lint runs only formatters the repo configures ([#4945](https://github.com/yonatangross/orchestkit/issues/4945)) ([#4950](https://github.com/yonatangross/orchestkit/issues/4950)) ([3722977](https://github.com/yonatangross/orchestkit/commit/37229773e9a294fe57649feca4baa1626012d1b7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**demo-production:** Quick Start uses the demo config in place ([#4959](https://github.com/yonatangross/orchestkit/issues/4959)) ([7adbf62](https://github.com/yonatangross/orchestkit/commit/7adbf62362b6fd5fb34bd427410160c27e4f85cf))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.4.2",
+    "date": "2026-10-30",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** playground gate treats a nested README as docs ([#4951](https://github.com/yonatangross/orchestkit/issues/4951)) ([c1d4bc7](https://github.com/yonatangross/orchestkit/commit/c1d4bc771283ec0e76e3e6e78b2ab1afd2266a37))",
+          "**hooks:** elicitation logger reads mcp_server_name and action ([#4884](https://github.com/yonatangross/orchestkit/issues/4884)) ([#4953](https://github.com/yonatangross/orchestkit/issues/4953)) ([cb8271d](https://github.com/yonatangross/orchestkit/commit/cb8271d8e42267557bf82ea0b07733e91d9ccbf1))",
+          "**hooks:** split a worktree advisory at the context cap ([#4922](https://github.com/yonatangross/orchestkit/issues/4922)) ([#4954](https://github.com/yonatangross/orchestkit/issues/4954)) ([8ee4f67](https://github.com/yonatangross/orchestkit/commit/8ee4f67a9d67540c2d601590e20127c42fb4d934))",
+          "**skills:** design-ship links a bundle source for file and URL input ([#4956](https://github.com/yonatangross/orchestkit/issues/4956)) ([e7a4bed](https://github.com/yonatangross/orchestkit/commit/e7a4bed15823635a7fe76302eeca87b5eb1b03eb))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**site:** legacy host redirect comment says 301, like the code ([#4957](https://github.com/yonatangross/orchestkit/issues/4957)) ([c8c2331](https://github.com/yonatangross/orchestkit/commit/c8c233106c72fe1c7a9c7902b889055654dbba7d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.1",
     "date": "2026-10-29",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1",
