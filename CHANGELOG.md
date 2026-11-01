@@ -5,6 +5,50 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* **ci:** playground gate treats a nested README as docs ([#4951](https://github.com/yonatangross/orchestkit/issues/4951)) ([c1d4bc7](https://github.com/yonatangross/orchestkit/commit/c1d4bc771283ec0e76e3e6e78b2ab1afd2266a37))
+* **hooks:** elicitation logger reads mcp_server_name and action ([#4884](https://github.com/yonatangross/orchestkit/issues/4884)) ([#4953](https://github.com/yonatangross/orchestkit/issues/4953)) ([cb8271d](https://github.com/yonatangross/orchestkit/commit/cb8271d8e42267557bf82ea0b07733e91d9ccbf1))
+* **hooks:** split a worktree advisory at the context cap ([#4922](https://github.com/yonatangross/orchestkit/issues/4922)) ([#4954](https://github.com/yonatangross/orchestkit/issues/4954)) ([8ee4f67](https://github.com/yonatangross/orchestkit/commit/8ee4f67a9d67540c2d601590e20127c42fb4d934))
+* **skills:** design-ship links a bundle source for file and URL input ([#4956](https://github.com/yonatangross/orchestkit/issues/4956)) ([e7a4bed](https://github.com/yonatangross/orchestkit/commit/e7a4bed15823635a7fe76302eeca87b5eb1b03eb))
+
+
+### Documentation
+
+* **site:** legacy host redirect comment says 301, like the code ([#4957](https://github.com/yonatangross/orchestkit/issues/4957)) ([c8c2331](https://github.com/yonatangross/orchestkit/commit/c8c233106c72fe1c7a9c7902b889055654dbba7d))
+
+## [10.4.1](https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) ([#4946](https://github.com/yonatangross/orchestkit/issues/4946)) ([e7d4810](https://github.com/yonatangross/orchestkit/commit/e7d4810b8663bc7e348c7cbc5d8aa4d4ee32baaf))
+
+
+### Miscellaneous
+
+* **docker:** bump node from `44fce69` to `06d7adf` ([#4942](https://github.com/yonatangross/orchestkit/issues/4942)) ([5eb4075](https://github.com/yonatangross/orchestkit/commit/5eb4075f3fdc97f73097c13c7d2f4d86ea263860))
+
+## [10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0) (2026-10-27)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.297 through 2.1.309 ([#4882](https://github.com/yonatangross/orchestkit/issues/4882)) ([28efa94](https://github.com/yonatangross/orchestkit/commit/28efa94fd41a495baf52f66829c33baece3093f8))
+
+
+### Bug Fixes
+
+* **hooks:** headless-responder answers through updatedInput.answers ([#4941](https://github.com/yonatangross/orchestkit/issues/4941)) ([c573ef3](https://github.com/yonatangross/orchestkit/commit/c573ef3f3aff4f3f346c379c60189ab8d5cd4aea))
+
+
+### Miscellaneous
+
+* **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 ([#4918](https://github.com/yonatangross/orchestkit/issues/4918)) ([f474b70](https://github.com/yonatangross/orchestkit/commit/f474b70990c05763843db072d2c9c66d2cca66d1))
+
 ## [10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1) (2026-10-26)
 
 

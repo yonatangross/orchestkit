@@ -73,6 +73,7 @@ import { goalTracker } from './goal-tracker.js';
 // M119 PR-2 (#1794 follow-up) — deferred worktree advisory delivery
 import {
   acknowledgeWorktreeAdvisoryDelivery,
+  fitWorktreeAdvisoryDelivery,
   worktreeAdvisoryConsumerForDispatcher,
 } from './worktree-advisory-consumer.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -105,7 +106,22 @@ interface PromptHookConfig {
   mustDeliverContext?: boolean;
   /** Called only after the final dispatcher response contains this context. */
   onContextDelivered?: (result: HookResult) => void;
+  /**
+   * Shrink this hook's context to the given room, or return null to drop it
+   * this turn (#4922). Only hooks that can keep the undelivered part for a
+   * later prompt implement it.
+   */
+  fitContext?: (result: HookResult, maxChars: number, maxLines: number) => string | null;
 }
+
+// #4922: CC cuts additionalContext at 8,000 characters or 200 lines without
+// reporting it (.claude/rules/hooks-development.md, "Output caps are real and
+// silent").
+const ADDITIONAL_CONTEXT_MAX_CHARS = 8000;
+const ADDITIONAL_CONTEXT_MAX_LINES = 200;
+const CONTEXT_JOIN = '\n\n---\n\n';
+/** Lines a CONTEXT_JOIN adds between two parts: the blank, the rule, the blank. */
+const CONTEXT_JOIN_LINES = 3;
 
 // -----------------------------------------------------------------------------
 // Hook Registry
@@ -134,6 +150,7 @@ const HOOKS: PromptHookConfig[] = [
     producesContext: true,
     mustDeliverContext: true,
     onContextDelivered: acknowledgeWorktreeAdvisoryDelivery,
+    fitContext: fitWorktreeAdvisoryDelivery,
   },
 
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
@@ -447,7 +464,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // CC 2.1.94 changed default effort from 'medium' → 'high' for most user tiers.
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
-  const deliveredContexts: Array<{ hook: PromptHookConfig; result: HookResult }> = [];
+  const deliveredContexts: Array<{ hook: PromptHookConfig; result: HookResult; partIndex: number }> = [];
   const acknowledgeDeliveredContexts = (): void => {
     for (const { hook, result } of deliveredContexts) {
       try {
@@ -456,6 +473,41 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
         ctx.log(HOOK_NAME, `${hook.name}: failed to acknowledge delivered context: ${error}`, 'warn');
       }
     }
+  };
+  // #4922: a must-deliver part can push the joined context past CC's cap,
+  // and the cut part would be acknowledged (deleted) anyway. Shrink each part
+  // that can keep a remainder to the room the other parts leave, or hold it
+  // back whole this turn, before anything is joined or acknowledged.
+  const joinContextPartsWithinCap = (): string => {
+    const fits = (text: string): boolean =>
+      text.length <= ADDITIONAL_CONTEXT_MAX_CHARS && text.split('\n').length <= ADDITIONAL_CONTEXT_MAX_LINES;
+    if (!fits(contextParts.join(CONTEXT_JOIN))) {
+      for (let i = deliveredContexts.length - 1; i >= 0; i--) {
+        const { hook, result, partIndex } = deliveredContexts[i];
+        if (!hook.fitContext) continue;
+        const others = contextParts.filter((part, idx) => idx !== partIndex && part.length > 0);
+        const othersText = others.join(CONTEXT_JOIN);
+        const roomChars = ADDITIONAL_CONTEXT_MAX_CHARS - othersText.length - (others.length > 0 ? CONTEXT_JOIN.length : 0);
+        const roomLines = ADDITIONAL_CONTEXT_MAX_LINES
+          - (others.length > 0 ? othersText.split('\n').length + CONTEXT_JOIN_LINES : 0);
+        let fitted: string | null = null;
+        try {
+          fitted = roomChars > 0 && roomLines > 0 ? hook.fitContext(result, roomChars, roomLines) : null;
+        } catch (error) {
+          ctx.log(HOOK_NAME, `${hook.name}: failed to fit context to the cap: ${error}`, 'warn');
+        }
+        if (fitted) {
+          ctx.log(HOOK_NAME, `${hook.name}: shrunk to ${fitted.length} chars to stay under the additionalContext cap`);
+          contextParts[partIndex] = fitted;
+        } else {
+          ctx.log(HOOK_NAME, `${hook.name}: held back this turn, no room under the additionalContext cap`);
+          contextParts[partIndex] = '';
+          deliveredContexts.splice(i, 1);
+        }
+        if (fits(contextParts.filter((part) => part.length > 0).join(CONTEXT_JOIN))) break;
+      }
+    }
+    return contextParts.filter((part) => part.length > 0).join(CONTEXT_JOIN);
   };
   if (effort !== DEFAULT_EFFORT_LEVEL) {
     ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
@@ -536,7 +588,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
 
       contextParts.push(context);
       totalTokens += contextTokens;
-      if (hook.onContextDelivered) deliveredContexts.push({ hook, result });
+      if (hook.onContextDelivered) deliveredContexts.push({ hook, result, partIndex: contextParts.length - 1 });
 
       ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
@@ -546,8 +598,9 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   }
 
   if (skipTextAnalysis) {
-    if (contextParts.length === 0) return outputSilentSuccess();
-    const output = outputPromptContext(contextParts.join('\n\n---\n\n'));
+    const joined = joinContextPartsWithinCap();
+    if (!joined) return outputSilentSuccess();
+    const output = outputPromptContext(joined);
     acknowledgeDeliveredContexts();
     return output;
   }
@@ -582,16 +635,16 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     titleBranch,
   );
 
+  // Single consolidated output, held under CC's additionalContext cap (#4922)
+  const consolidated = joinContextPartsWithinCap();
+
   // No context produced — still try to set the title if we have one
-  if (contextParts.length === 0) {
+  if (!consolidated) {
     if (emitTitle) {
       return outputPromptContextWithTitle('', sessionTitle);
     }
     return outputSilentSuccess();
   }
-
-  // Single consolidated output
-  const consolidated = contextParts.join('\n\n---\n\n');
 
   // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
   // Note: the title is still emitted on delta-skip turns because it's cheap

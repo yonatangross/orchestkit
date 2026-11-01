@@ -27,21 +27,19 @@ function timed(text: string): { ms: number; out: string } {
 }
 
 describe("mask() stays fast on long runs", () => {
-  test("a 100k-character run of a repeated key prefix finishes under 200 ms and is masked", () => {
+  test("a 100k-character run of a repeated key prefix scales linearly against a tenth of it and is masked", () => {
     const run = "AK" + "IA";
     const text = run.repeat(25_000);
     expect(text.length).toBe(100_000);
-    const { ms, out } = timed(text);
-    expect(ms).toBeLessThan(200);
-    expect(out).not.toContain(run);
+    expectLinearAgainstTenth(text);
+    expect(timed(text).out).not.toContain(run);
   });
 
-  test("a minified line full of a prefix inside ordinary words finishes under 200 ms", () => {
+  test("a minified line full of a prefix inside ordinary words scales linearly against a tenth of it", () => {
     // "props_" contains the service-account prefix "ops_".
     const text = "{props_a:1,props_b:2,props_c:3}".repeat(3_300);
     expect(text.length).toBeGreaterThan(100_000);
-    const { ms } = timed(text);
-    expect(ms).toBeLessThan(200);
+    expectLinearAgainstTenth(text);
   });
 
   test("a repeated named value is still found everywhere it occurs", () => {
@@ -106,6 +104,21 @@ describe("mask() stays fast on long runs", () => {
   });
   const scalesLinearly = ({ small, large }: { small: number; large: number }): boolean =>
     large < Math.max(LINEAR_RATIO_LIMIT * small, FLOOR_MS);
+
+  // #4899: the two 100k cases above used one wall-clock reading against a
+  // fixed 200 ms, and a loaded host failed linear code that way (310 ms at
+  // load1 about 52, 2026-10-25). They now take the same minimum-of-7 ratio as
+  // the scaling cases, against the first tenth of the same input, with the
+  // 1 s backstop so a quadratic regression still fails if both sides slow
+  // down together. Defined here, used by tests that run after this body.
+  const expectLinearAgainstTenth = (text: string): void => {
+    const times = {
+      small: minMs(maskRun, text.slice(0, Math.ceil(text.length / 10))),
+      large: minMs(maskRun, text),
+    };
+    expect(times.large).toBeLessThan(1000);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
+  };
 
   test("BEGIN markers with no END scale linearly (10x input, under 31.6x time) and stay under 1 s at 1M", () => {
     const times = scaling("-----" + "BEGIN ");

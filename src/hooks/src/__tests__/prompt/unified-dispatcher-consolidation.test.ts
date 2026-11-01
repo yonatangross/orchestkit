@@ -171,6 +171,34 @@ describe('prompt/unified-dispatcher consolidation', () => {
     expect(existsSync(join(projectDir, '.claude', 'state', 'worktree-advisory-feature-repeat.repeat-advisory-session.md'))).toBe(false);
   });
 
+  // #4922: CC cuts additionalContext at 8,000 characters or 200 lines without
+  // reporting it. The advisory file is deleted once delivered, so a cut part
+  // used to be lost for good. Deliver what fits, keep the rest on disk, and
+  // send it on the next prompt.
+  it('splits an advisory that would pass the additionalContext cap and delivers the rest next prompt', () => {
+    const sessionId = 'capped-advisory-session';
+    const lines = Array.from({ length: 300 }, (_, i) => `- sparse path ${String(i).padStart(3, '0')}: src/packages/area-${i}/`);
+    expect(writeWorktreeAdvisory(lines.join('\n'), 'feature/capped', projectDir, sessionId)).toBe(true);
+    const file = join(projectDir, '.claude', 'state', 'worktree-advisory-feature-capped.capped-advisory-session.md');
+    const context = createTestContext({ projectDir, sessionId });
+
+    const first = unifiedPromptDispatcher(input('continue', sessionId), context);
+    const firstText = first.hookSpecificOutput?.additionalContext ?? '';
+    expect(firstText.length).toBeLessThanOrEqual(8000);
+    expect(firstText.split('\n').length).toBeLessThanOrEqual(200);
+    expect(firstText).toContain(lines[0]);
+    expect(firstText).not.toContain(lines[299]);
+    expect(existsSync(file)).toBe(true);
+
+    const second = unifiedPromptDispatcher(input('keep going', sessionId), context);
+    const secondText = second.hookSpecificOutput?.additionalContext ?? '';
+    expect(secondText).toContain(lines[299]);
+    for (const line of lines) {
+      expect([firstText, secondText].filter((text) => text.includes(line))).toHaveLength(1);
+    }
+    expect(existsSync(file)).toBe(false);
+  });
+
   it('keeps advisory updates written after a delivery snapshot', () => {
     const sessionId = 'updated-advisory-session';
     expect(writeWorktreeAdvisory('Original advice.', 'feature/update', projectDir, sessionId)).toBe(true);

@@ -642,6 +642,25 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2)** · 2026-10-30
+
+- **ci:** playground gate treats a nested README as docs (#4951)
+- **hooks:** elicitation logger reads mcp_server_name and action (#4884) (#4953)
+- **hooks:** split a worktree advisory at the context cap (#4922) (#4954)
+- **skills:** design-ship links a bundle source for file and URL input (#4956)
+- **site:** legacy host redirect comment says 301, like the code (#4957)
+
+**[v10.4.1](https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1)** · 2026-10-29
+
+- **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) (#4946)
+- **docker:** bump node from `44fce69` to `06d7adf` (#4942)
+
+**[v10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0)** · 2026-10-27
+
+- **cc:** adopt Claude Code 2.1.297 through 2.1.309 (#4882)
+- **hooks:** headless-responder answers through updatedInput.answers (#4941)
+- **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 (#4918)
+
 **[v10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1)** · 2026-10-26
 
 - **deps-dev:** bump @biomejs/biome (#4916)
@@ -673,23 +692,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **prompt-enhancer:** short stack-aware rewrites with a prompt-cached catalog (#4857)
 - **secrets-veil:** widen the scan-time scaling bound to 31.6x (#4898)
-
-**[v10.1.1](https://github.com/yonatangross/orchestkit/compare/v10.1.0...v10.1.1)** · 2026-10-24
-
-- **deps:** patch npm audit advisories in four lockfiles (#4894)
-
-**[v10.1.0](https://github.com/yonatangross/orchestkit/compare/v10.0.2...v10.1.0)** · 2026-10-23
-
-- **ci:** fail a PR while a bot review thread has no reply (#4864)
-- **ci:** let apt wait for the dpkg lock in the docs deps step (#4879)
-- **hooks:** advisor decides on the description and ignores negated asks (#4853)
-- **hooks:** harden auto-approve and retry hooks (#4858)
-- **hooks:** keep a stop condition the next clause refers back to (after [#4853](https://github.com/yonatangross/orchestkit/issues/4853)) (#4880)
-- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.2](https://github.com/yonatangross/orchestkit/compare/v10.0.1...v10.0.2)** · 2026-10-23
-
-- **release:** exclude .claude-plugin from release-please commits (#4870)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

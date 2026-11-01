@@ -1,0 +1,13 @@
+{
+  "slug": "ork-cc-adopt",
+  "source": "docs/feat--ork-cc-adopt/index.html",
+  "title": "CC 2.1.297 to 2.1.309 adoption",
+  "description": "Filter the 51 Claude Code changes from 2.1.299 to 2.1.309 by release and by what they mean for ork: adopted with code, doc adoption, free or no-op, or a follow-up, and copy a selection as a prompt.",
+  "tags": [
+    "cc-adoption",
+    "triage",
+    "otel",
+    "unattended"
+  ],
+  "date": "2026-10-23"
+}

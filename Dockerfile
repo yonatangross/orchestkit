@@ -14,7 +14,7 @@
 # Kept in step with .nvmrc and the root package.json engines range; the docker
 # ecosystem in .github/dependabot.yml bumps it (#3477). To refresh manually:
 #   docker buildx imagetools inspect node:24-alpine
-FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f AS build
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 WORKDIR /app
 COPY src/mcp-server/package.json src/mcp-server/package-lock.json ./
 RUN npm ci
@@ -22,7 +22,7 @@ COPY src/mcp-server/tsconfig.json src/mcp-server/esbuild.config.mjs ./
 COPY src/mcp-server/src ./src
 RUN npm run build
 
-FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
 # MCP registry ownership validation, must match server.json "name"
 LABEL io.modelcontextprotocol.server.name="io.github.yonatangross/orchestkit"
 # Auto-links the GHCR package to this repo (grants Actions GITHUB_TOKEN write

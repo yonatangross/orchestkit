@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The legacy host comment now says 301, like the code</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 48rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The legacy host comment now says 301, like the code</h1>
+  <p class="sub">PR playground for #4855: one word in a comment in
+    <code>docs/site/lib/constants.ts</code>.</p>
+
+  <div class="card">
+    <h2>Comment against code</h2>
+    <table>
+      <thead><tr><th>place</th><th>before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/site/lib/constants.ts:33</code> (comment)</td><td class="bad">says the legacy host sends pages a 308</td><td class="good">says 301</td></tr>
+        <tr><td><code>docs/site/middleware.ts:108</code> (code)</td><td><code>NextResponse.redirect(legacyTarget, 301)</code></td><td>unchanged</td></tr>
+        <tr><td>MCP, well-known and <code>auth.md</code> paths</td><td colspan="2">stay at 200 on the legacy host, unchanged</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why the comment, not the code</h2>
+    <p style="margin-block-start:0">
+      The 301 is the intended behaviour: one permanent redirect for pages. The comment arrived
+      with #4819 and named the wrong status. CodeRabbit raised it on #4823, where a code push
+      would have reset that PR's verdicts, so it lands here on its own.
+    </p>
+  </div>
+
+  <footer>Comment only. No runtime change, so no test can show it red.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A lockfile bump that clears a moderate advisory</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 48rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>A lockfile bump that clears a moderate advisory</h1>
+  <p class="sub">PR playground: <code>@hono/node-server</code> 2.1.0 to 2.1.5 in
+    <code>src/mcp-server</code> (GHSA-rmxm-3fg6-px4f).</p>
+
+  <div class="card">
+    <h2>What changed</h2>
+    <table>
+      <thead><tr><th>item</th><th>before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td><code>@hono/node-server</code></td><td class="bad">2.1.0 (vulnerable range 1.19.10 to below 2.1.3)</td><td class="good">2.1.5 (patched from 2.1.3)</td></tr>
+        <tr><td>major version</td><td>2</td><td>2 (no major crossing)</td></tr>
+        <tr><td><code>package.json</code></td><td colspan="2">unchanged; the file touched is <code>src/mcp-server/package-lock.json</code></td></tr>
+        <tr><td>npm overrides, audit allowlist</td><td colspan="2">none added</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why behaviour does not change</h2>
+    <p style="margin-block-start:0">
+      The package arrives only through <code>@modelcontextprotocol/sdk</code>, whose range is
+      <code>^1.19.9 || ^2.0.5</code>, so a lockfile refresh was enough. The MCP server runs over
+      stdio (<code>src/docs-server.ts</code> uses <code>StdioServerTransport</code>). Nothing in
+      <code>src/mcp-server</code> imports the SDK's HTTP transport, which is the only caller of
+      <code>@hono/node-server</code>, and <code>serveStatic</code>, the vulnerable function, is
+      not used anywhere. The server is not exposed at runtime; the bump clears the audit gate.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Verification</h2>
+    <table>
+      <thead><tr><th>check</th><th>result</th></tr></thead>
+      <tbody>
+        <tr><td><code>tests/security/test-npm-audit.sh</code></td><td class="good">Total 11, Passed 11, Failed 0</td></tr>
+        <tr><td><code>npm audit</code> in <code>src/mcp-server</code></td><td class="good">0 vulnerabilities</td></tr>
+        <tr><td><code>npm ci</code>, typecheck, build in <code>src/mcp-server</code></td><td class="good">clean (the package has no test script)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Lockfile-only security bump. No user-facing change.</footer>
+</main>
+</body>
+</html>
