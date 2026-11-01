@@ -31,6 +31,9 @@
  *   Claude with its stopReason, so its stop still blocks, with that reason.
  * - A sync or rewake handler missing from the build blocks (fail closed); a
  *   missing plain async handler is skipped, as run-hook.mjs does today.
+ * - Guards (sync, rewake) run before observers, and every handler runs
+ *   within its hooks.json timeout (lib/budget.ts); one over budget is
+ *   abandoned with no verdict, as when CC killed it, and the run goes on.
  * - Each handler is isolated: a throw is logged and the rest still run.
  */
 
@@ -63,6 +66,7 @@ import { chainStalenessChecker } from './chain-staleness-checker.js';
 import { metricsDispatcher } from './metrics-dispatcher.js';
 import { contextCrossingWarn } from './context-crossing-warn.js';
 import { ccMatcherMatches } from '../lib/cc-matcher.js';
+import { TIMED_OUT, withBudget } from '../lib/budget.js';
 
 export { ccMatcherMatches };
 
@@ -79,6 +83,8 @@ export interface PosttoolMember {
   id: string;
   async: boolean;
   rewake?: true;
+  /** hooks.json timeout in seconds (CC default 15): this handler's budget. */
+  timeout?: number;
 }
 
 export interface PosttoolGroup {
@@ -115,51 +121,93 @@ export const POSTTOOL_HANDLERS: Record<string, Fn> = {
   'posttool/context-crossing-warn': contextCrossingWarn,
 };
 
-const A = (id: string) => ({ id, async: true });
-const S = (id: string) => ({ id, async: false });
-const R = (id: string) => ({ id, async: true, rewake: true as const });
+const A = (id: string, timeout: number) => ({ id, async: true, timeout });
+const S = (id: string, timeout: number) => ({ id, async: false, timeout });
+const R = (id: string, timeout: number) => ({ id, async: true, rewake: true as const, timeout });
 const EVERY_WRITER = 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit';
+
+/**
+ * Whole-run budget. Guards on the worst route fit inside it (asserted by
+ * test), and it stays under the variant's fixed entry timeout
+ * (POSTTOOL_ENTRY_TIMEOUT_S), so CC never kills the process mid-guard.
+ */
+export const RUN_BUDGET_MS = 50_000;
 
 /** Mirror of src/hooks/hooks.json PostToolUse, in order (asserted by test). */
 export const POSTTOOL_GROUPS: PosttoolGroup[] = [
-  { matcher: 'Agent', hooks: [A('posttool/task/agent-task-auto-register'), A('lifecycle/webhook-forwarder')] },
-  { matcher: 'mcp__*', hooks: [S('posttool/mcp-output-transform'), A('lifecycle/webhook-forwarder')] },
-  { matcher: 'Read|Bash|Grep|Glob', hooks: [S('posttool/secret-handler')] },
+  {
+    matcher: 'Agent',
+    hooks: [
+      A('posttool/task/agent-task-auto-register', 5),
+      A('lifecycle/webhook-forwarder', 15),
+    ],
+  },
+  {
+    matcher: 'mcp__*',
+    hooks: [
+      S('posttool/mcp-output-transform', 5),
+      A('lifecycle/webhook-forwarder', 15),
+    ],
+  },
+  {
+    matcher: 'Read|Bash|Grep|Glob',
+    hooks: [
+      S('posttool/secret-handler', 5),
+    ],
+  },
   {
     matcher: 'Write|Edit',
     hooks: [
-      S('posttool/auto-lint'),
-      A('posttool/ascii-lint'),
-      A('posttool/code-comment-glyph-warn'),
-      A('posttool/ui-change-detector'),
-      A('skill/redact-secrets'),
-      A('posttool/config-change/security-auditor'),
-      R('posttool/write/stale-import-detector'),
-      A('posttool/write/debt-marker-tracker'),
-      S('posttool/check-plugins-drift'),
-      A('posttool/write/edit-history-tracker'),
-      A('posttool/commit-nudge'),
+      S('posttool/auto-lint', 10),
+      A('posttool/ascii-lint', 5),
+      A('posttool/code-comment-glyph-warn', 5),
+      A('posttool/ui-change-detector', 5),
+      A('skill/redact-secrets', 10),
+      A('posttool/config-change/security-auditor', 10),
+      R('posttool/write/stale-import-detector', 8),
+      A('posttool/write/debt-marker-tracker', 5),
+      S('posttool/check-plugins-drift', 5),
+      A('posttool/write/edit-history-tracker', 3),
+      A('posttool/commit-nudge', 10),
     ],
   },
   {
     matcher: 'Bash',
     hooks: [
-      A('skill/redact-secrets'),
-      A('posttool/commit-nudge'),
-      A('posttool/bash/gh-rate-limit-tracker'),
-      A('posttool/bash/session-heartbeat-publisher'),
+      A('skill/redact-secrets', 10),
+      A('posttool/commit-nudge', 10),
+      A('posttool/bash/gh-rate-limit-tracker', 5),
+      A('posttool/bash/session-heartbeat-publisher', 5),
     ],
   },
-  { matcher: 'Agent|TaskUpdate|TaskCreate', hooks: [A('posttool/task/team-member-start')] },
+  {
+    matcher: 'Agent|TaskUpdate|TaskCreate',
+    hooks: [
+      A('posttool/task/team-member-start', 5),
+    ],
+  },
   {
     matcher: 'Skill',
-    hooks: [A('posttool/expect/fingerprint-saver'), A('posttool/expect/snapshot-recorder'), A('posttool/design-import/auto-verify')],
+    hooks: [
+      A('posttool/expect/fingerprint-saver', 5),
+      A('posttool/expect/snapshot-recorder', 5),
+      A('posttool/design-import/auto-verify', 5),
+    ],
   },
   {
     matcher: EVERY_WRITER,
-    hooks: [A('posttool/heartbeat'), A('posttool/chain-staleness-checker'), S('posttool/metrics-dispatcher')],
+    hooks: [
+      A('posttool/heartbeat', 3),
+      A('posttool/chain-staleness-checker', 3),
+      S('posttool/metrics-dispatcher', 5),
+    ],
   },
-  { matcher: 'Read|Grep|Glob|WebFetch|WebSearch', hooks: [S('posttool/context-crossing-warn')] },
+  {
+    matcher: 'Read|Grep|Glob|WebFetch|WebSearch',
+    hooks: [
+      S('posttool/context-crossing-warn', 3),
+    ],
+  },
 ];
 
 interface Merged {
@@ -219,7 +267,8 @@ function build(m: Merged): HookResult {
 }
 
 /**
- * Run every handler the matching groups name, each id once, in file order.
+ * Run every handler the matching groups name, each id once: guards first,
+ * then observers, each in file order and within its own budget.
  * `handlers` and `groups` are injectable for tests.
  */
 export async function posttoolDispatch(
@@ -232,36 +281,55 @@ export async function posttoolDispatch(
   const tool = input.tool_name ?? '';
   const merged: Merged = { contexts: [], messages: [], blockReasons: [] };
   const proof = new ProofLog(env, 'PostToolUse', tool);
+  // Every member the matching groups name, each id once, in file order; the
+  // guards (sync, rewake) then run before every plain async observer.
   const seen = new Set<string>();
+  const members: PosttoolMember[] = [];
   for (const group of groups) {
     if (!ccMatcherMatches(group.matcher, tool)) continue;
     for (const member of group.hooks) {
-      const { id } = member;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      const fn = handlers[id];
-      if (!fn) {
-        proof.record(id, 'failed');
-        if (member.async && !member.rewake) {
-          // Same as run-hook.mjs today: a missing observer is skipped.
-          ctx.log(HOOK_NAME, `no handler for ${id} (skipped)`);
-          continue;
-        }
-        // A handler whose verdict counts must not pass when its code is absent.
-        ctx.log(HOOK_NAME, `no handler for ${id} (blocks)`);
-        merged.blockReasons.push(
-          `[orchestkit] hook "${id}" has no handler in this build, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.`,
-        );
+      if (seen.has(member.id)) continue;
+      seen.add(member.id);
+      members.push(member);
+    }
+  }
+  const isGuard = (m: PosttoolMember) => !m.async || m.rewake === true;
+  const ordered = [...members.filter(isGuard), ...members.filter((m) => !isGuard(m))];
+  const deadline = Date.now() + RUN_BUDGET_MS;
+  for (const member of ordered) {
+    const { id } = member;
+    const fn = handlers[id];
+    if (!fn) {
+      proof.record(id, 'failed');
+      if (!isGuard(member)) {
+        // Same as run-hook.mjs today: a missing observer is skipped.
+        ctx.log(HOOK_NAME, `no handler for ${id} (skipped)`);
         continue;
       }
-      try {
+      // A handler whose verdict counts must not pass when its code is absent.
+      ctx.log(HOOK_NAME, `no handler for ${id} (blocks)`);
+      merged.blockReasons.push(
+        `[orchestkit] hook "${id}" has no handler in this build, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.`,
+      );
+      continue;
+    }
+    const budget = Math.min((member.timeout ?? 15) * 1000, deadline - Date.now());
+    try {
+      const r = await withBudget(() => {
         if (proofBreaks(env, id)) throw proofBreakError(id);
-        absorb(merged, await fn(input, ctx), member);
-        proof.record(id, 'ok');
-      } catch (err) {
-        ctx.log(HOOK_NAME, `${id} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
+        return fn(input, ctx);
+      }, budget);
+      if (r === TIMED_OUT) {
+        // As when CC killed it at its timeout: no verdict from this handler.
+        ctx.log(HOOK_NAME, `${id} over its ${budget} ms budget (abandoned)`);
         proof.record(id, 'failed');
+        continue;
       }
+      absorb(merged, r, member);
+      proof.record(id, 'ok');
+    } catch (err) {
+      ctx.log(HOOK_NAME, `${id} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
+      proof.record(id, 'failed');
     }
   }
   const result = build(merged);

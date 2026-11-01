@@ -35,6 +35,12 @@ import { fileURLToPath } from 'node:url';
 export const UNIFIED_PRETOOL_HANDLER = 'pretool/tool-dispatcher';
 export const UNIFIED_POSTTOOL_HANDLER = 'posttool/tool-dispatcher';
 
+// Fixed, not derived: each dispatcher keeps its own run under a 50 s budget
+// (PRETOOL_RUN_BUDGET_MS, RUN_BUDGET_MS), so CC never kills it mid-guard; a
+// killed hook is a non-blocking error, i.e. its verdict is lost.
+export const PRETOOL_ENTRY_TIMEOUT_S = 60;
+export const POSTTOOL_ENTRY_TIMEOUT_S = 60;
+
 function command(handler, timeout) {
   return {
     type: 'command',
@@ -44,16 +50,12 @@ function command(handler, timeout) {
   };
 }
 
-function timeoutsOf(groups, { syncOnly }) {
-  return groups.flatMap((g) => (g.hooks ?? []).filter((h) => !syncOnly || !h.async).map((h) => h.timeout ?? 15));
-}
-
 /** Return a copy of hooksDoc with PreToolUse collapsed to one dispatcher entry. */
 export function unifiedPretoolHooks(hooksDoc) {
   const doc = structuredClone(hooksDoc);
   const groups = doc.hooks?.PreToolUse ?? [];
   doc.hooks.PreToolUse = [
-    { hooks: [command(UNIFIED_PRETOOL_HANDLER, Math.max(15, ...timeoutsOf(groups, { syncOnly: true })))] },
+    { hooks: [command(UNIFIED_PRETOOL_HANDLER, PRETOOL_ENTRY_TIMEOUT_S)] },
   ];
   return doc;
 }
@@ -84,15 +86,13 @@ export function unionMatcher(matchers) {
 
 /**
  * Return a copy of hooksDoc whose PostToolUse groups are replaced by one
- * dispatcher entry. The handlers run in sequence inside one process, so the
- * timeout is the longest single handler timeout plus 15 s of slack.
+ * dispatcher entry, with the fixed POSTTOOL_ENTRY_TIMEOUT_S.
  */
 export function unifiedPosttoolHooks(hooksDoc) {
   const doc = structuredClone(hooksDoc);
   const groups = doc.hooks?.PostToolUse ?? [];
   if (!groups.length) return doc;
-  const timeout = Math.max(15, ...timeoutsOf(groups, { syncOnly: false })) + 15;
-  const one = { hooks: [command(UNIFIED_POSTTOOL_HANDLER, timeout)] };
+  const one = { hooks: [command(UNIFIED_POSTTOOL_HANDLER, POSTTOOL_ENTRY_TIMEOUT_S)] };
   const matcher = unionMatcher(groups.map((g) => g.matcher));
   doc.hooks.PostToolUse = [matcher === undefined ? one : { matcher, ...one }];
   return doc;

@@ -20,6 +20,9 @@
  * - Observers (today registered async) run after the primary handler; their
  *   results are ignored and a throw never changes the verdict.
  * - The webhook forward runs last and is isolated the same way.
+ * - Every handler runs within its hooks.json timeout (lib/budget.ts); one
+ *   over budget is abandoned with no verdict, as when CC killed it, so a
+ *   hung observer or forwarder cannot hold the primary's verdict.
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
@@ -38,6 +41,7 @@ import headlessResponder from './ask/headless-responder.js';
 import { workflowAgentTypeAdvisor } from './task/workflow-agenttype-advisor.js';
 import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { ccMatcherMatches } from '../lib/cc-matcher.js';
+import { TIMED_OUT, withBudget } from '../lib/budget.js';
 
 const HOOK_NAME = 'tool-dispatcher';
 
@@ -88,6 +92,31 @@ export const PRETOOL_ROUTES: Route[] = [
   },
 ];
 
+/** hooks.json timeout per PreToolUse handler, in seconds: its budget (asserted by test). */
+export const PRETOOL_TIMEOUTS_S: Record<string, number> = {
+  'pretool/bash/sync-bash-dispatcher': 15,
+  'lifecycle/webhook-forwarder': 15,
+  'pretool/write-edit/sync-write-edit-dispatcher': 15,
+  'pretool/skill/skill-tracker': 5,
+  'pretool/mcp/context7-tracker': 10,
+  'pretool/mcp/memory-validator': 10,
+  'pretool/task/sync-task-dispatcher': 15,
+  'pretool/task/route-observer': 5,
+  'pretool/read/tldr-summary': 15,
+  'pretool/ask/headless-responder': 5,
+  'pretool/task/workflow-agenttype-advisor': 10,
+};
+
+/** Whole-run budget, under the variant's fixed entry timeout (PRETOOL_ENTRY_TIMEOUT_S). */
+export const PRETOOL_RUN_BUDGET_MS = 50_000;
+
+export interface DispatchOptions {
+  /** Budget for a handler id, in ms. Defaults to its hooks.json timeout. */
+  budgetMs?: (id: string) => number;
+}
+
+const defaultBudget = (id: string) => (PRETOOL_TIMEOUTS_S[id] ?? 15) * 1000;
+
 async function isolated(
   name: string,
   fn: Fn,
@@ -95,10 +124,18 @@ async function isolated(
   ctx: HookContext,
   env: ProofEnv,
   proof: ProofLog,
+  budget: number,
 ): Promise<void> {
   try {
-    if (proofBreaks(env, name)) throw proofBreakError(name);
-    await fn(input, ctx);
+    const r = await withBudget(() => {
+      if (proofBreaks(env, name)) throw proofBreakError(name);
+      return fn(input, ctx);
+    }, budget);
+    if (r === TIMED_OUT) {
+      ctx.log(HOOK_NAME, `${name} over its ${budget} ms budget (abandoned)`);
+      proof.record(name, 'failed');
+      return;
+    }
     proof.record(name, 'ok');
   } catch (err) {
     ctx.log(HOOK_NAME, `${name} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
@@ -115,9 +152,13 @@ export async function toolDispatcher(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
   env: ProofEnv = process.env,
+  opts: DispatchOptions = {},
 ): Promise<HookResult> {
   const tool = input.tool_name ?? '';
   const route = PRETOOL_ROUTES.find((r) => r.match(tool));
+  const budgetOf = opts.budgetMs ?? defaultBudget;
+  const deadline = Date.now() + PRETOOL_RUN_BUDGET_MS;
+  const left = (id: string) => Math.min(budgetOf(id), deadline - Date.now());
   const proof = new ProofLog(env, 'PreToolUse', tool);
 
   let result: HookResult = outputSilentSuccess();
@@ -125,9 +166,20 @@ export async function toolDispatcher(
     if (route?.primary) {
       const primaryId = route.handlers[0];
       try {
-        if (proofBreaks(env, primaryId)) throw proofBreakError(primaryId);
-        result = await route.primary(input, ctx);
-        proof.record(primaryId, 'ok');
+        const primary = route.primary;
+        const budget = left(primaryId);
+        const r = await withBudget(() => {
+          if (proofBreaks(env, primaryId)) throw proofBreakError(primaryId);
+          return primary(input, ctx);
+        }, budget);
+        if (r === TIMED_OUT) {
+          // As when CC killed it at its timeout: no verdict, the call goes on.
+          ctx.log(HOOK_NAME, `${primaryId} over its ${budget} ms budget (abandoned)`);
+          proof.record(primaryId, 'failed');
+        } else {
+          result = r;
+          proof.record(primaryId, 'ok');
+        }
       } catch (err) {
         proof.record(primaryId, 'failed');
         if (!proofEnabled(env)) throw err;
@@ -136,9 +188,10 @@ export async function toolDispatcher(
     }
   } finally {
     for (const [i, observer] of (route?.observers ?? []).entries()) {
-      await isolated(route?.handlers[i + (route.primary ? 1 : 0)] ?? 'observer', observer, input, ctx, env, proof);
+      const id = route?.handlers[i + (route.primary ? 1 : 0)] ?? 'observer';
+      await isolated(id, observer, input, ctx, env, proof, left(id));
     }
-    await isolated('lifecycle/webhook-forwarder', webhookForwarder, input, ctx, env, proof);
+    await isolated('lifecycle/webhook-forwarder', webhookForwarder, input, ctx, env, proof, left('lifecycle/webhook-forwarder'));
   }
   const message = proof.appendTo(result.systemMessage);
   return message === undefined ? result : { ...result, systemMessage: message };
