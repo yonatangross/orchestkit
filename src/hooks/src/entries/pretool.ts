@@ -71,6 +71,9 @@ import { syncBashDispatcher } from '../pretool/bash/sync-bash-dispatcher.js';
 import { syncWriteEditDispatcher } from '../pretool/write-edit/sync-write-edit-dispatcher.js';
 import { syncTaskDispatcher } from '../pretool/task/sync-task-dispatcher.js';
 
+// Tool dispatcher (1): every PreToolUse handler in one process, flagged variant only (M1)
+import { toolDispatcher } from '../pretool/tool-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -135,6 +138,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
   'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
   'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
+  // Wired only by scripts/unified-pretool-hooks.mjs (default off)
+  'pretool/tool-dispatcher': toolDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -47,7 +47,7 @@ export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP
 
   try {
     execFileSync('bash', [scriptPath, 'save'], {
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: 'pipe',
       cwd: safeProjectDir(input.project_dir),
     });

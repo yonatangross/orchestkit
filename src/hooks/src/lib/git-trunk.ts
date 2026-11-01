@@ -33,7 +33,7 @@ export function resolveTrunkBranch(projectDir: string): string | null {
     const out = execFileSync('git', ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 3000,
+      killSignal: 'SIGKILL', timeout: 3000,
       stdio: ['ignore', 'pipe', 'ignore'],
     });
     const ref = String(out ?? '').trim();

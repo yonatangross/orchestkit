@@ -40,7 +40,7 @@ function parentCommit(projectDir: string): string | null {
       cwd: projectDir,
       stdio: ['ignore', 'pipe', 'ignore'],
       encoding: 'utf8',
-      timeout: 2000,
+      killSignal: 'SIGKILL', timeout: 2000,
     }).trim();
   } catch {
     return null;

@@ -1,0 +1,21 @@
+{
+  "measured_at": "2026-10-31T19:12:00Z",
+  "claude_code": "2.1.316",
+  "method": "fresh headless session (claude -p --plugin-dir <plugins/ork snapshot with the flag-on hooks.json from scripts/unified-pretool-hooks.mjs and freshly built hooks/dist> --debug-file), one Bash, one Read and one Edit call",
+  "plugin": "ork, feat/ork-hook-dispatcher, flag on",
+  "ork_hook_processes_per_call": {
+    "Bash": 2,
+    "Edit": 2,
+    "Read": 2
+  },
+  "ork_post_tool_batch_per_batch": 0,
+  "dispatcher_runs": [
+    { "event": "PreToolUse", "tool": "Bash", "status": 0, "ms": 138 },
+    { "event": "PostToolUse", "tool": "Bash", "status": 0, "ms": 157 },
+    { "event": "PreToolUse", "tool": "Read", "status": 0, "ms": 103 },
+    { "event": "PostToolUse", "tool": "Read", "status": 0, "ms": 102 },
+    { "event": "PreToolUse", "tool": "Edit", "status": 0, "ms": 177 },
+    { "event": "PostToolUse", "tool": "Edit", "status": 0, "ms": 139 }
+  ],
+  "baseline": "2026-10-31-main-live.json: Bash 10, Edit 16, Read 4 per call, plus 1 PostToolBatch per batch"
+}

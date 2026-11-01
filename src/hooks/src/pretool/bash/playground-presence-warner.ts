@@ -48,7 +48,7 @@ function getCurrentBranch(projectDir: string): string | null {
     const out = execSync('git branch --show-current', {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 1000,
+      killSignal: 'SIGKILL', timeout: 1000,
       stdio: ['pipe', 'pipe', 'ignore'],
     }).trim();
     return out || null;
