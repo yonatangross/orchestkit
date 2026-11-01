@@ -642,6 +642,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.2](https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2)** · 2026-11-01
+
+- **ci:** fail when the repo description carries stale counts (#4975)
+- **docs:** Lab render check covers pruned entries from public/lab (#4976)
+- **hooks:** gerund after 'without ... and' stays negated (#4715) (#4978)
+
 **[v10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1)** · 2026-11-01
 
 - **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
@@ -682,15 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc:** adopt Claude Code 2.1.297 through 2.1.309 (#4882)
 - **hooks:** headless-responder answers through updatedInput.answers (#4941)
 - **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 (#4918)
-
-**[v10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1)** · 2026-10-26
-
-- **deps-dev:** bump @biomejs/biome (#4916)
-- **deps:** bump the npm-minor-patch group (#4920)
-- **deps:** bump the npm-minor-patch group in /docs/site with 6 updates (#4917)
-- **deps:** bump the remotion group across 1 directory with 21 updates (#4919)
-- **traffic:** snapshot week of 2026-10-19 (#4927)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
