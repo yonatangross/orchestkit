@@ -160,6 +160,46 @@ describe('unified PreToolUse hooks.json variant (flag)', () => {
     }
   });
 
+  // Reachability is not enough (b5 on #4962): a sync guard routed as an
+  // observer would lose its deny. Each shipped group's sync handler must be
+  // the route's primary and its async handlers the observers, and no entry
+  // may carry a role key the dispatcher does not model (asyncRewake).
+  it('keeps each shipped handler in its role: sync is the primary, async are observers', async () => {
+    const { PRETOOL_ROUTES } = await import('../../pretool/tool-dispatcher.js');
+    type R = { handlers: string[]; primary?: unknown; observers: unknown[] };
+    for (const group of shipped.hooks.PreToolUse) {
+      type E = { args?: string[]; async?: boolean; asyncRewake?: boolean };
+      const ids = (group.hooks as E[]).filter((h) => h.args?.[1] !== 'lifecycle/webhook-forwarder');
+      if (!ids.length) continue;
+      for (const h of ids) expect(h.asyncRewake, h.args?.[1]).toBeUndefined();
+      const route = (PRETOOL_ROUTES as R[]).find((r) => r.handlers.includes(ids[0].args?.[1] ?? ''));
+      expect(route, group.matcher).toBeDefined();
+      const sync = ids.filter((h) => !h.async).map((h) => h.args?.[1]);
+      const async = ids.filter((h) => h.async).map((h) => h.args?.[1]);
+      expect(route?.primary ? [route.handlers[0]] : [], group.matcher).toEqual(sync);
+      expect(route?.handlers.slice(route.primary ? 1 : 0), group.matcher).toEqual(async);
+      expect(route?.observers.length, group.matcher).toBe(async.length);
+    }
+  });
+
+  // Routes match the way CC reads the shipped matcher, not a hand-written
+  // approximation (b5 on #4962: "mcp__context7__*" is a regex to CC, the
+  // route was a prefix).
+  it.each(['mcp__context7__query-docs', 'mcp__memory__search_nodes', 'xmcp__context7__a', 'mcp__context7_', 'Bash', 'BashOutput'])(
+    'routes %s exactly as the shipped PreToolUse matchers do',
+    async (tool) => {
+      const { PRETOOL_ROUTES } = await import('../../pretool/tool-dispatcher.js');
+      const { ccMatcherMatches } = await import('../../lib/cc-matcher.js');
+      type R = { handlers: string[]; match: (t: string) => boolean };
+      for (const group of shipped.hooks.PreToolUse) {
+        const id = group.hooks.map((h: { args?: string[] }) => h.args?.[1]).find((x: string) => x !== 'lifecycle/webhook-forwarder');
+        if (!id) continue;
+        const route = (PRETOOL_ROUTES as R[]).find((r) => r.handlers.includes(id));
+        expect(route?.match(tool), `${group.matcher} ${tool}`).toBe(ccMatcherMatches(group.matcher, tool));
+      }
+    },
+  );
+
   it('default stays off: the shipped hooks.json does not reference the dispatcher', () => {
     expect(JSON.stringify(shipped)).not.toContain(UNIFIED_PRETOOL_HANDLER);
   });

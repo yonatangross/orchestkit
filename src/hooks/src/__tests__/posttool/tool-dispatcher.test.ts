@@ -57,12 +57,27 @@ function fakes(result: (id: string) => HookResult = () => SILENT) {
 }
 
 describe('posttool/tool-dispatcher route table', () => {
-  it('mirrors the shipped PostToolUse groups exactly (matcher, id, async, order)', () => {
-    const fromJson = shipped.hooks.PostToolUse.map((g: { matcher?: string; hooks: { args: string[]; async?: boolean }[] }) => ({
+  // Every role a shipped entry carries is mirrored, not only async: missing
+  // asyncRewake let flag-on mode drop stale-import-detector's block (Codex
+  // HOLD 6556481069, b5 6556488353 on #4962).
+  it('mirrors the shipped PostToolUse groups exactly (matcher, id, async, rewake, order)', () => {
+    type Entry = { args: string[]; async?: boolean; asyncRewake?: boolean };
+    const fromJson = shipped.hooks.PostToolUse.map((g: { matcher?: string; hooks: Entry[] }) => ({
       matcher: g.matcher ?? '*',
-      hooks: g.hooks.map((h) => ({ id: h.args[1], async: Boolean(h.async) })),
+      hooks: g.hooks.map((h) => ({
+        id: h.args[1],
+        async: Boolean(h.async),
+        ...(h.asyncRewake ? { rewake: true } : {}),
+      })),
     }));
     expect(POSTTOOL_GROUPS).toEqual(fromJson);
+  });
+
+  it('knows every key a shipped PostToolUse entry carries', () => {
+    const known = new Set(['type', 'command', 'args', 'async', 'timeout', 'asyncRewake']);
+    for (const g of shipped.hooks.PostToolUse) {
+      for (const h of g.hooks) for (const k of Object.keys(h)) expect(known, `${h.args?.[1]}: ${k}`).toContain(k);
+    }
   });
 
   it('has a handler for every id it routes to', () => {
@@ -97,6 +112,40 @@ describe('posttool/tool-dispatcher routing', () => {
     ];
     await posttoolDispatch(input('Edit'), createTestContext(), map, groups);
     expect(calls).toEqual(['posttool/commit-nudge']);
+  });
+
+  it('a rewake handler that stops still blocks, with its reason, in flag-on mode', async () => {
+    const id = 'posttool/write/stale-import-detector';
+    const { map } = fakes((h) =>
+      h === id ? { continue: false, stopReason: 'stale import: src/x.ts imports ./gone' } : SILENT,
+    );
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), map);
+    expect(r.decision).toBe('block');
+    expect(r.reason).toContain('stale import: src/x.ts imports ./gone');
+  });
+
+  it('a plain async handler that stops is still dropped (its block was inert before)', async () => {
+    const { map } = fakes((h) => (h === 'posttool/commit-nudge' ? { continue: false, stopReason: 'nudge' } : SILENT));
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), map);
+    expect(r.decision).toBeUndefined();
+    expect(r.continue).toBe(true);
+  });
+
+  it('fails closed when a sync or rewake handler is missing from the build', async () => {
+    for (const id of ['posttool/auto-lint', 'posttool/write/stale-import-detector']) {
+      const { map } = fakes();
+      delete map[id];
+      const r = await posttoolDispatch(input('Edit'), createTestContext(), map);
+      expect(r.decision, id).toBe('block');
+      expect(r.reason, id).toContain(id);
+    }
+  });
+
+  it('a missing plain async handler is skipped, as run-hook.mjs does today', async () => {
+    const { map } = fakes();
+    delete map['posttool/commit-nudge'];
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), map);
+    expect(r.decision).toBeUndefined();
   });
 
   it('a tool no group matches runs nothing', async () => {
