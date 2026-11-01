@@ -91,6 +91,38 @@ describe('pretool/tool-dispatcher', () => {
     expect(webhookForwarder).toHaveBeenCalledTimes(1);
   });
 
+  // Codex HOLD 6556943971 on #4962, PreToolUse side: observers and the
+  // forwarder ran after the primary with no budget, so one that never settles
+  // held the deny until CC killed the process (a killed hook is an allow).
+  it('a hung forwarder or observer is abandoned at its budget and the deny still returns', async () => {
+    const deny: HookResult = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: 'no' },
+    };
+    vi.mocked(syncTaskDispatcher).mockReturnValueOnce(deny);
+    vi.mocked(routeObserver).mockReturnValueOnce(new Promise<HookResult>(() => {}) as unknown as HookResult);
+    vi.mocked(webhookForwarder).mockReturnValueOnce(new Promise<HookResult>(() => {}));
+    const started = Date.now();
+    const result = await toolDispatcher(input('Agent'), createTestContext(), {}, { budgetMs: () => 50 });
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(result).toEqual(deny);
+  });
+
+  it('budgets mirror the shipped PreToolUse timeouts, and fit in the entry timeout', async () => {
+    const { PRETOOL_TIMEOUTS_S, PRETOOL_RUN_BUDGET_MS } = await import('../../pretool/tool-dispatcher.js');
+    const { PRETOOL_ENTRY_TIMEOUT_S } = await import('../../../scripts/unified-pretool-hooks.mjs');
+    const shippedDoc = JSON.parse(readFileSync(HOOKS_JSON, 'utf8'));
+    for (const g of shippedDoc.hooks.PreToolUse) {
+      for (const h of g.hooks) expect(PRETOOL_TIMEOUTS_S[h.args[1]], h.args[1]).toBe(h.timeout ?? 15);
+    }
+    // Worst route: its primary, its observers and the forwarder, back to back.
+    const worst = 15 + 5 + 15;
+    expect(worst * 1000).toBeLessThanOrEqual(PRETOOL_RUN_BUDGET_MS);
+    expect(PRETOOL_RUN_BUDGET_MS).toBeLessThan(PRETOOL_ENTRY_TIMEOUT_S * 1000);
+    const entry = unifiedPretoolHooks(shippedDoc).hooks.PreToolUse[0].hooks[0] as { timeout: number };
+    expect(entry.timeout).toBe(PRETOOL_ENTRY_TIMEOUT_S);
+  });
+
   it('a tool with no ork handler only forwards, and stays silent', async () => {
     const result = await toolDispatcher(input('Grep'), createTestContext());
     expect(result.continue).toBe(true);

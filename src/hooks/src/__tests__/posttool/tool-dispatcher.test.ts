@@ -60,14 +60,15 @@ describe('posttool/tool-dispatcher route table', () => {
   // Every role a shipped entry carries is mirrored, not only async: missing
   // asyncRewake let flag-on mode drop stale-import-detector's block (Codex
   // HOLD 6556481069, b5 6556488353 on #4962).
-  it('mirrors the shipped PostToolUse groups exactly (matcher, id, async, rewake, order)', () => {
-    type Entry = { args: string[]; async?: boolean; asyncRewake?: boolean };
+  it('mirrors the shipped PostToolUse groups exactly (matcher, id, async, rewake, timeout, order)', () => {
+    type Entry = { args: string[]; async?: boolean; asyncRewake?: boolean; timeout?: number };
     const fromJson = shipped.hooks.PostToolUse.map((g: { matcher?: string; hooks: Entry[] }) => ({
       matcher: g.matcher ?? '*',
       hooks: g.hooks.map((h) => ({
         id: h.args[1],
         async: Boolean(h.async),
         ...(h.asyncRewake ? { rewake: true } : {}),
+        timeout: h.timeout ?? 15,
       })),
     }));
     expect(POSTTOOL_GROUPS).toEqual(fromJson);
