@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.5.2](https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **ci:** fail when the repo description carries stale counts ([#4975](https://github.com/yonatangross/orchestkit/issues/4975)) ([f01f13c](https://github.com/yonatangross/orchestkit/commit/f01f13cdd860aa71b3fbc85a8bd4417f36b887d1))
+* **docs:** Lab render check covers pruned entries from public/lab ([#4976](https://github.com/yonatangross/orchestkit/issues/4976)) ([8e91103](https://github.com/yonatangross/orchestkit/commit/8e911030e729e0fccb90ce1e9a8601c65c2a0e08))
+* **hooks:** gerund after 'without ... and' stays negated ([#4715](https://github.com/yonatangross/orchestkit/issues/4715)) ([#4978](https://github.com/yonatangross/orchestkit/issues/4978)) ([595f440](https://github.com/yonatangross/orchestkit/commit/595f440ada4dd62650219782249aa20fd5e611c1))
+
 ## [10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1) (2026-11-01)
 
 
