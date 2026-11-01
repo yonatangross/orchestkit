@@ -74,7 +74,9 @@ describe('posttool/tool-dispatcher route table', () => {
   });
 
   it('knows every key a shipped PostToolUse entry carries', () => {
-    const known = new Set(['type', 'command', 'args', 'async', 'timeout', 'asyncRewake']);
+    // statusMessage is spinner text only (no verdict); the one dispatcher
+    // entry shows none. Every other key must be a role the dispatcher models.
+    const known = new Set(['type', 'command', 'args', 'async', 'timeout', 'asyncRewake', 'statusMessage']);
     for (const g of shipped.hooks.PostToolUse) {
       for (const h of g.hooks) for (const k of Object.keys(h)) expect(known, `${h.args?.[1]}: ${k}`).toContain(k);
     }
