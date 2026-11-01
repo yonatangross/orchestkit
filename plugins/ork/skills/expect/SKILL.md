@@ -2,7 +2,7 @@
 name: expect
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires agent-browser >= 0.31.1 (Rust-native, no Playwright; 0.27.1 documented broken on prod pages)."
-description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
+description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components. Not for writing new tests (use cover), grading an existing suite (use verify), or running unit tests."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
@@ -403,4 +403,4 @@ Load on demand with `Read("references/<file>")`:
 | `jev-shadow.md` | Opt-in Jev step judge per step: bounded-action Choice + verify Nouls; shadow logs, act drives with fail-closed fallback |
 
 
-**Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
+**Version:** 1.2.0 (frontmatter `metadata.version` is the source of truth). First scaffold March 2026, M99 milestone.
