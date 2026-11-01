@@ -461,7 +461,9 @@ if (bundleLoadError) {
 
 // #4678: a gate that is the only check on a write must not pass when its
 // code is absent: a missing bundle or a missing handler blocks (exit 2).
-const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+// #4962: the tool dispatchers are the only tool-event entries in the flag
+// variant, so a missing or stale dispatcher bundle must block too.
+const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate', 'pretool/tool-dispatcher', 'posttool/tool-dispatcher']);
 
 // #4962: the tool dispatchers abandon a handler at its budget (lib/budget.ts)
 // instead of awaiting it. Its timers or I/O would keep this process alive
