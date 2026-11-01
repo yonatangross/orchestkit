@@ -2,9 +2,10 @@
 # #4220 CodeQL: esc() must map " and ' (js/incomplete-html-attribute-sanitization).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+# The PR source dir was archived off main by prune-playgrounds (#4571);
+# the committed Lab copy is the page the site serves.
 FILES=(
   "$ROOT/docs/site/public/lab/chrono-board-release.html"
-  "$ROOT/docs/feat--docs-chrono-board-release/chrono-board.html"
 )
 for FILE in "${FILES[@]}"; do
   if ! grep -F 'esc = s => String(s).replace(/[&<>"'"'"']/g' "$FILE" >/dev/null; then
@@ -21,4 +22,4 @@ for FILE in "${FILES[@]}"; do
     exit 1
   fi
 done
-echo "PASS: esc() includes quote sanitization (lab + source)"
+echo "PASS: esc() includes quote sanitization (lab copy)"
