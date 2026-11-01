@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.4.4",
+    "date": "2026-11-01",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** disabled hook on a file stdin no longer hits a TDZ ([#4885](https://github.com/yonatangross/orchestkit/issues/4885)) ([#4949](https://github.com/yonatangross/orchestkit/issues/4949)) ([3148345](https://github.com/yonatangross/orchestkit/commit/3148345eeb2b18a9909f513c55a8e0dde468a137))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**skills:** add Bifrost as a gateway option (re-land of [#4940](https://github.com/yonatangross/orchestkit/issues/4940)) ([#4966](https://github.com/yonatangross/orchestkit/issues/4966)) ([302c20e](https://github.com/yonatangross/orchestkit/commit/302c20e64f3ac8b906120ba0a30196ef71f75545))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.4.3",
     "date": "2026-11-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3",
