@@ -97,6 +97,25 @@ describe('posttool/tool-dispatcher budgets', () => {
     expect(r.decision).toBeUndefined();
   });
 
+  // conductor263: a guard that throws loses its verdict the same way; it
+  // fails closed too. run-hook.mjs would emit a silent continue on a throw
+  // (its catch, except FAIL_CLOSED_WHEN_MISSING), so the dispatcher must.
+  it('a guard that throws blocks, naming itself; an observer that throws stays silent', async () => {
+    const boom = () => {
+      throw new Error('boom');
+    };
+    const guarded = [{ matcher: 'Edit', hooks: [{ id: 'throwing-guard', async: false, timeout: 1 }] }];
+    const r = await posttoolDispatch(input('Edit'), createTestContext(), { 'throwing-guard': boom }, guarded);
+    expect(r.decision).toBe('block');
+    expect(r.reason).toContain('throwing-guard');
+    const rewake = [{ matcher: 'Edit', hooks: [{ id: 'throwing-rewake', async: true, rewake: true as const, timeout: 1 }] }];
+    const r2 = await posttoolDispatch(input('Edit'), createTestContext(), { 'throwing-rewake': boom }, rewake);
+    expect(r2.decision).toBe('block');
+    const observed = [{ matcher: 'Edit', hooks: [{ id: 'throwing-observer', async: true, timeout: 1 }] }];
+    const r3 = await posttoolDispatch(input('Edit'), createTestContext(), { 'throwing-observer': boom }, observed);
+    expect(r3.decision).toBeUndefined();
+  });
+
   it('a handler that never settles is not awaited past the run', async () => {
     const groups = [{ matcher: 'Edit', hooks: [{ id: 'slow-observer', async: true, timeout: 0.05 }] }];
     const r = await posttoolDispatch(input('Edit'), createTestContext(), { 'slow-observer': never }, groups);

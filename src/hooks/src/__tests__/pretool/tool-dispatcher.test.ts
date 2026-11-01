@@ -119,6 +119,18 @@ describe('pretool/tool-dispatcher', () => {
     expect(r.hookSpecificOutput?.permissionDecisionReason).toContain('pretool/bash/sync-bash-dispatcher');
   });
 
+  // conductor263: a primary that throws used to propagate to run-hook.mjs,
+  // whose catch emits a silent continue (an allow). It denies instead.
+  it('a primary that throws denies, naming itself, and the forward still runs', async () => {
+    vi.mocked(syncBashDispatcher).mockImplementationOnce(() => {
+      throw new Error('boom');
+    });
+    const r = await toolDispatcher(input('Bash', { command: 'ls' }), createTestContext(), {});
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('deny');
+    expect(r.hookSpecificOutput?.permissionDecisionReason).toContain('pretool/bash/sync-bash-dispatcher');
+    expect(webhookForwarder).toHaveBeenCalledTimes(1);
+  });
+
   it('budgets mirror the shipped PreToolUse timeouts, and fit in the entry timeout', async () => {
     const { PRETOOL_TIMEOUTS_S, PRETOOL_RUN_BUDGET_MS } = await import('../../pretool/tool-dispatcher.js');
     const { PRETOOL_ENTRY_TIMEOUT_S } = await import('../../../scripts/unified-pretool-hooks.mjs');
