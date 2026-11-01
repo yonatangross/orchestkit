@@ -642,6 +642,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.4.3](https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3)** · 2026-11-01
+
+- **ci:** docs install-deps waits for the dpkg lock before its retry (#4948)
+- **ci:** docs parity test reports a diff error, never false drift (#4902)
+- **hooks:** auto-lint runs only formatters the repo configures (#4945) (#4950)
+- **demo-production:** Quick Start uses the demo config in place (#4959)
+
 **[v10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2)** · 2026-10-30
 
 - **ci:** playground gate treats a nested README as docs (#4951)
@@ -687,11 +694,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.2.1](https://github.com/yonatangross/orchestkit/compare/v10.2.0...v10.2.1)** · 2026-10-25
 
 - **coderabbit:** spend free OSS reviews sparingly, match org settings (#4886)
-
-**[v10.2.0](https://github.com/yonatangross/orchestkit/compare/v10.1.1...v10.2.0)** · 2026-10-25
-
-- **prompt-enhancer:** short stack-aware rewrites with a prompt-cached catalog (#4857)
-- **secrets-veil:** widen the scan-time scaling bound to 31.6x (#4898)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

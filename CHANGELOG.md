@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.3](https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* **ci:** docs install-deps waits for the dpkg lock before its retry ([#4948](https://github.com/yonatangross/orchestkit/issues/4948)) ([e35ec03](https://github.com/yonatangross/orchestkit/commit/e35ec03cd94762e5454e484a24af8784034be43c))
+* **ci:** docs parity test reports a diff error, never false drift ([#4902](https://github.com/yonatangross/orchestkit/issues/4902)) ([564287e](https://github.com/yonatangross/orchestkit/commit/564287e2fbf99e9c0c4b0e4ca92a7a45a2fff42d))
+* **hooks:** auto-lint runs only formatters the repo configures ([#4945](https://github.com/yonatangross/orchestkit/issues/4945)) ([#4950](https://github.com/yonatangross/orchestkit/issues/4950)) ([3722977](https://github.com/yonatangross/orchestkit/commit/37229773e9a294fe57649feca4baa1626012d1b7))
+
+
+### Documentation
+
+* **demo-production:** Quick Start uses the demo config in place ([#4959](https://github.com/yonatangross/orchestkit/issues/4959)) ([7adbf62](https://github.com/yonatangross/orchestkit/commit/7adbf62362b6fd5fb34bd427410160c27e4f85cf))
+
 ## [10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2) (2026-10-30)
 
 
