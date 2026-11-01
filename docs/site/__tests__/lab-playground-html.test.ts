@@ -23,13 +23,19 @@ function pages(): Page[] {
 			slug: string;
 			source: string;
 		};
+		// A pruned or gitignored source is served from its committed
+		// public/lab copy (lab-manifest.mjs readPage), so that copy is what
+		// gets checked. Both missing throws: an entry is never skipped.
+		const copy = join("docs/site/public/lab", `${slug}.html`);
+		let path = source;
 		let html: string;
 		try {
 			html = readFileSync(join(REPO, source), "utf8");
 		} catch {
-			continue; // pruned or gitignored sources are served from their committed copy
+			path = copy;
+			html = readFileSync(join(REPO, copy), "utf8");
 		}
-		out.push({ slug, source, html });
+		out.push({ slug, source: path, html });
 	}
 	return out;
 }
