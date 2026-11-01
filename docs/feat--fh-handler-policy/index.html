@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FH-ready handler policy (#3917)</title>
+<style>
+  :root{--bg:#0b0e14;--card:#131722;--line:#232a3b;--tx:#dbe2f0;--mut:#8a93a8;--green:#3ecf8e;--amber:#e8b339;--red:#e5646c}
+  body{background:var(--bg);color:var(--tx);font:15px/1.6 ui-sans-serif,system-ui;max-width:900px;margin:auto;padding:28px}
+  h1{font-size:20px} h2{font-size:15px;color:var(--mut);margin-top:24px} a{color:#5b9dff}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px} .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .before{border-top:3px solid var(--red)} .after{border-top:3px solid var(--green)}
+  pre{background:#0f1320;border:1px solid var(--line);border-radius:8px;padding:10px;font:12.5px/1.45 ui-monospace,Menlo,monospace;overflow-x:auto;white-space:pre}
+  .m{color:var(--mut)} .g{color:var(--green)} .r{color:var(--red)}
+</style></head><body>
+<h1>FH-ready handler policy</h1>
+<p>Claude Code is designing <a href="https://github.com/anthropics/claude-code/issues/91870">Function Hooks</a>: in-process middleware, no ambient filesystem or network, every side effect through <code>$</code>. Whether or not it ships, a handler that receives its I/O is testable and portable; one that owns it is neither. Watch issue: <a href="https://github.com/yonatangross/orchestkit/issues/3917">#3917</a>.</p>
+<div class="grid">
+<div class="card before"><b>Before: the handler owns its I/O</b>
+<pre>import { execSync } from 'node:child_process';
+export function guard(input, ctx) {
+  const branch = execSync('git branch --show-current');
+  ...
+}</pre></div>
+<div class="card after"><b>After: the runner hands it in</b>
+<pre>export function guard(input, deps) {
+  const branch = deps.git('branch --show-current');
+  ...
+}
+<span class="m">// deps today: execSync-backed. Under FH: $.process-backed.</span></pre></div>
+</div>
+<h2>The gate</h2>
+<pre><span class="m">$</span> node scripts/fh-ready-check.mjs
+<span class="g">fh-ready-check: OK (111 grandfathered, 0 new)</span>
+
+<span class="m">$</span> node scripts/fh-ready-check.mjs   <span class="m"># after adding a handler that imports node:fs</span>
+<span class="r">fh-ready-check: 1 NEW handler(s) own their I/O (node:fs, node:child_process, or fetch).</span>
+  src/pretool/zz-probe/probe.ts</pre>
+<h2>The cap</h2>
+<p>CC 2.1.258 truncates <code>additionalContext</code> at 8,000 characters or 200 lines, mid-word, with no report. Measured on this tree: 93 context handlers, largest static template 709 chars, 37 build context from files at runtime. The new test fails at 4,000 static chars and lists the 37.</p>
+<p class="m">Full analysis, mocks and decision record: platform <code>docs/playgrounds/dev/2026-09-04-cc-function-hooks-summary.html</code>.</p>
+</body></html>

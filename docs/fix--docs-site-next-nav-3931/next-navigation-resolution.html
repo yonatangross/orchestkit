@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One ESM import, two resolvers</title>
+  <meta name="description" content="See why the docs build accepts an extensionless ESM subpath while Vitest needs to inline the analytics package until upstream corrects its build.">
+  <style>
+    :root { --bg: #10131b; --panel: #19202d; --edge: #344055; --ink: #e6edf8; --dim: #a9b8ce; --ok: #6ee7b7; --bad: #fca5a5; --accent: #93c5fd; }
+    * { box-sizing: border-box; } body { margin: 0; padding: 2.5rem 1.25rem; background: var(--bg); color: var(--ink); font: 16px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    main { max-width: 52rem; margin: auto; } h1 { margin: 0; font-size: 1.45rem; } .sub { color: var(--dim); margin: .5rem 0 2rem; }
+    section { margin-top: 1rem; padding: 1.25rem; border: 1px solid var(--edge); border-radius: .75rem; background: var(--panel); } h2 { margin-top: 0; color: var(--accent); font-size: 1rem; }
+    button { margin: .25rem .5rem .25rem 0; padding: .55rem .8rem; border: 1px solid var(--edge); border-radius: .4rem; color: var(--ink); background: #111827; font: inherit; cursor: pointer; } button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+    pre { overflow: auto; margin: 1rem 0 0; padding: 1rem; border-radius: .4rem; background: #0b0f16; color: var(--dim); } .ok { color: var(--ok); } .bad { color: var(--bad); } code { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>One ESM import, two resolvers</h1>
+    <p class="sub">Analytics 1.2.0 imports <code>next/navigation</code> without an extension. The build resolver accepts it. Plain Node ESM does not.</p>
+    <section>
+      <h2>Pick a test path</h2>
+      <div id="choices"></div>
+      <pre id="output"></pre>
+    </section>
+    <section>
+      <h2>Repair boundary</h2>
+      <p>The docs-site Vitest config inlines <code>@yonatan-hq/analytics</code>, so Vite resolves the subpath during tests. The package remains unmodified. Yonatan-HQ/core, <code>typescript/analytics</code>, owns the upstream correction.</p>
+    </section>
+  </main>
+  <script>
+    const paths = [
+      ["build", "Docs build", "webpack or Turbopack resolves next/navigation\n<span class='ok'>build passes</span>"],
+      ["node", "Vitest before", "Node ESM imports next/navigation literally\n<span class='bad'>Cannot find module next/navigation</span>"],
+      ["inline", "Vitest after", "Vitest inlines @yonatan-hq/analytics\nVite resolves the subpath during the test transform\n<span class='ok'>44 test files pass</span>"]
+    ];
+    const choices = document.getElementById("choices");
+    const output = document.getElementById("output");
+    function select(id) {
+      const entry = paths.find((path) => path[0] === id);
+      for (const button of choices.children) button.setAttribute("aria-pressed", String(button.dataset.id === id));
+      output.innerHTML = entry[2];
+    }
+    for (const [id, label] of paths) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.dataset.id = id;
+      button.addEventListener("click", () => select(id));
+      choices.appendChild(button);
+    }
+    select("node");
+  </script>
+</body>
+</html>

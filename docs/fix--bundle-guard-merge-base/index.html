@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bundle guard: frozen base.sha vs current base tip</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; font:13px/1.3 ui-monospace, monospace; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font:14px/1.4 ui-monospace, monospace; }
+  td, th { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { color:var(--muted); font-weight:normal; }
+  .allow { color:var(--ok); }
+  .ask { color:var(--bad); }
+  .note { font-size:14px; }
+  code { color:var(--ink); }
+  .graph { font:12px/1.5 ui-monospace, monospace; background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px 16px; white-space:pre; overflow-x:auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The frozen base.sha that taxed every open PR</h1>
+  <p>The hook-bundle guard diffed <code>github.event.pull_request.base.sha</code>
+  (frozen when the PR opened) against the merge ref. When release-please's
+  bundle rebuild landed on main afterwards, that diff showed main's newer
+  bundles as if the PR had authored them: every open PR red, and the printed
+  remedy (<code>git checkout BASE_SHA -- dist/</code>) would have reverted the
+  newer bundles. The fix diffs <code>merge-base(origin/base, HEAD)</code>,
+  which on the merge ref is the current base tip, and skips dist paths whose
+  content is identical to that tip (inherited, not authored, the #4277
+  pre-commit exception).</p>
+
+  <h2>Replay a scenario</h2>
+  <div class="row" id="presets"></div>
+  <div class="graph" id="graph"></div>
+  <table>
+    <tr><th>guard</th><th>diff range</th><th>dist changed?</th><th>verdict</th></tr>
+    <tr><td>before: frozen base.sha</td><td id="bRange"></td><td id="bChanged"></td><td id="bVerdict"></td></tr>
+    <tr><td>after: merge-base(current tip)</td><td id="aRange"></td><td id="aChanged"></td><td id="aVerdict"></td></tr>
+  </table>
+  <p class="note">Mirror of the lifted step in tests/ci/test-hook-bundle-guard.sh:
+  arms A/C are green under the new guard (both were red under the old one);
+  arms B/D stay red because the dist edit is genuinely authored.</p>
+</main>
+<script>
+// A tiny git-graph model: commits have parents; dist content per commit.
+const SCENARIOS = {
+  A: {
+    name: 'A: PR forked, main rebuilt bundles, merge-ref checkout',
+    frozen: 'v1', tip: 'v2', mergeDist: 'v2', mbDist: 'v2',
+    note: 'main rebuilt the bundles after the PR opened; merge ref carries v2.',
+  },
+  B: {
+    name: 'B: PR authored a dist edit, merge-ref checkout',
+    frozen: 'v1', tip: 'v2', mergeDist: 'hacked', mbDist: 'hacked',
+    note: 'the PR itself changed dist; that must stay red under both guards.',
+  },
+  C: {
+    name: 'C: PR head committed bundles identical to main tip',
+    frozen: 'v1', tip: 'v2', mergeDist: 'v2', mbDist: 'v1', headDist: 'v2',
+    headOnly: true,
+    note: 'head checkout: diff vs fork point lists dist, but content equals the current tip, so it is inherited, not authored.',
+  },
+};
+
+function verdict(scn, mode) {
+  // mode 'old': diff frozen base.sha -> HEAD ; 'new': merge-base(tip, HEAD) + inherited exception
+  const headDist = scn.headOnly ? scn.headDist : scn.mergeDist;
+  const mbDist = scn.headOnly ? scn.mbDist : scn.tip;
+  if (mode === 'old') {
+    const changed = headDist !== scn.frozen;
+    return { range: 'base.sha -> HEAD', changed, green: !changed };
+  }
+  const changedVsBase = headDist !== mbDist;
+  const identicalToTip = headDist === scn.tip;
+  const authored = changedVsBase && !identicalToTip;
+  return { range: 'merge-base(origin/base, HEAD) -> HEAD', changed: authored, green: !authored };
+}
+
+const $ = id => document.getElementById(id);
+function cell(el, text, bad) { el.textContent = text; el.className = bad ? 'ask' : 'allow'; }
+
+function render(scn) {
+  $('graph').textContent =
+    (scn.headOnly
+      ? 'main  v1 ---- v2 (bundle rebuild)\n           \\\n head        +-- pr (dist == v2, committed)\n\nmerge-base(origin/main, head) = v1, but dist bytes equal the tip.'
+      : 'main  v1 ---- v2 (bundle rebuild) ------+\n           \\                                |\n head        +-- pr (' + (scn.mergeDist === 'hacked' ? 'edits dist' : 'src only') + ') ---- merge ref\n\nmerge-base(origin/main, merge ref) = v2, the current tip.') +
+    '\n\n' + scn.note;
+  const b = verdict(scn, 'old'), a = verdict(scn, 'new');
+  $('bRange').textContent = b.range;
+  cell($('bChanged'), b.changed ? 'yes (main rebuild, not the PR)' : 'no', b.changed);
+  cell($('bVerdict'), b.green ? 'GREEN' : 'RED (false positive)', !b.green);
+  $('aRange').textContent = a.range;
+  cell($('aChanged'), a.changed ? 'yes (authored)' : 'no', a.changed);
+  cell($('aVerdict'), a.green ? 'GREEN' : 'RED (correct)', !a.green);
+}
+
+const presets = $('presets');
+for (const k of Object.keys(SCENARIOS)) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = SCENARIOS[k].name;
+  b.onclick = () => render(SCENARIOS[k]);
+  presets.appendChild(b);
+}
+render(SCENARIOS.A);
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eight shortcuts that could never have worked</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:64ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass)}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">issue #3393 &middot; EPIC C mechanism 10 &middot; 2026-08-10</div>
+<h1>Eight shortcuts that <span>could never have worked.</span></h1>
+<p class="lede">The docs site advertised 8 <code>ctrl+k</code> chords bound to OrchestKit skills and
+named a file to customize them in. The bindings did not exist, the file has no such key, and
+<b>no keybinding of any kind can invoke a skill</b> — so this was never a regression to restore.
+It was a feature that was documented into existence and never built.</p>
+
+<h2>Two independent reasons it was dead</h2>
+<div class="card"><h3>1. The key was never read</h3>
+<p><code>a93ccb735</code> (#3357) removed <code>keybindings</code>, <code>statusLine</code> and
+<code>spinnerVerbs</code> from the plugin settings because Claude Code reads only a narrow set of
+keys from a plugin <code>settings.json</code>. Correct deletion. Nothing downstream was updated.</p></div>
+<div class="card"><h3>2. The binding target does not exist</h3>
+<p>This is the decisive one, and it is independent of where the config lives. Claude Code's
+keybindings map a keystroke to a <b>closed set of built-in <code>namespace:action</code>
+identifiers</b>. Read the official action tables end to end and there is no action that runs a
+slash command or invokes a skill:</p>
+<pre>chat:submit  chat:externalEditor  chat:stash  app:toggleTodos  app:interrupt
+history:search  scroll:bottom  select:accept  diff:nextFile  voice:pushToTalk  ...
+<span class="bad">(no action anywhere in the enumeration runs /ork:commit)</span></pre>
+<p>CC validates the file on load and reports parse and structure errors to the debug log, so the
+old installer would not have quietly half-worked — it would have been rejected.</p></div>
+
+<h2>What the setup wizard was writing</h2>
+<pre>Phase 8 wrote:            CC actually expects:
+[                         {
+  {"key": "ctrl+shift+c",    "bindings": [
+   "command": "/ork:commit"}   {"context": "Chat",
+]                              "bindings": {"ctrl+e": "chat:externalEditor"}}
+                             ]
+<span class="bad">flat array</span>                 }
+<span class="bad">"command" + a slash command</span>   <span class="ok">object + per-context blocks + built-in actions</span></pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Wrong container, wrong field, and a
+value drawn from a vocabulary that does not include commands. Three errors deep, shipped as a
+recommended onboarding step.</p>
+
+<h2>The gate that should have caught it could not fail</h2>
+<div class="card"><h3>Four blocks, all guarded on presence, all passing</h3>
+<pre>if [[ "$kb_count" -gt 0 ]];        then ... else <span class="bad">pass "Keybindings: not configured (optional)"</span>
+if [[ "$has_statusline" == true ]]; then ... else <span class="bad">pass "StatusLine: not configured (optional)"</span>
+if [[ "$has_spinner"    == true ]]; then ... else <span class="bad">pass "SpinnerVerbs: not configured (optional)"</span>
+if [[ "$has_tips"       == true ]]; then ... else <span class="bad">pass "SpinnerTips: not configured (optional)"</span></pre>
+<p>Once #3357 removed the keys, every one of these took the else branch and <b>reported success
+while asserting nothing</b>. Worse than skipping: "optional" states that the key is a supported
+choice, which is the opposite of true. Test 6 (permissions) only printed counts. Of six tests in
+the file, exactly one — valid JSON — could still fail.</p></div>
+
+<h2>Replaced with one assertion that provably fails</h2>
+<pre>$ bash tests/plugins/test-settings-validation.sh
+  <span class="ok">PASS</span> Retired keys absent: keybindings statusLine spinnerVerbs spinnerTipsOverride
+  <span class="ok">PASS</span> Permissions: 6 allow, 26 deny rules
+
+$ # control: reintroduce the key and re-run
+  <span class="bad">FAIL</span> CC never reads these from a plugin settings.json — remove: keybindings (see #3357)
+  Total: 3  |  Passed: 2  |  Failed: 1        <span class="faint">exit 1</span></pre>
+
+<h2>Changed</h2>
+<table><thead><tr><th>file</th><th>before</th><th>after</th></tr></thead><tbody>
+<tr><td><code>setup/references/keybindings.md</code></td><td>41 lines, installs an invalid file</td><td class="ok">deleted</td></tr>
+<tr><td><code>setup/SKILL.md</code></td><td>Phase 8 installs 5 shortcuts</td><td class="ok">phase removed, wizard is 7-phase</td></tr>
+<tr><td><code>configuration.mdx</code></td><td>8-chord table + false customize path</td><td class="ok">CC owns keybindings, and why skills cannot bind</td></tr>
+<tr><td><code>navigating.mdx</code></td><td>"By Keyboard Shortcut" chord table</td><td class="ok">points at <code>/ork:</code> autocomplete</td></tr>
+<tr><td><code>CONTRIBUTING-SKILLS.md</code></td><td>"keybindings defined there"</td><td class="ok">do not add keys CC never reads</td></tr>
+<tr><td><code>test-settings-validation.sh</code></td><td>6 tests, 1 could fail</td><td class="ok">retired-key guard, control-verified</td></tr>
+</tbody></table>
+
+<h2>What this says about the epic</h2>
+<p class="foot">EPIC C's rule is re-home the opinion, observe it firing, then delete the pipe, and it
+exists because deleting first has already cost this repo two pull requests. #3357 deleted first, and
+the docs kept selling the deleted feature for the whole interval. But the more useful finding is that
+the rule assumed a re-home target existed. Here it does not: <code>~/.claude/keybindings.json</code>
+is the right home for keybindings in general and is <i>still</i> not a home for skill shortcuts,
+because the action vocabulary is closed. Some of the nine mechanisms will retire this way — nothing
+to re-home, only a claim to withdraw — and the audit's pair-of-issues template quietly assumes
+otherwise. Worth checking per mechanism before opening a re-home ticket for a target that cannot
+receive it.</p>
+</div></body></html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>session-identity: one spawn per session</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e6e6e6; --muted: #9aa3b2;
+    --ok: #6fd18b; --bad: #f07178; --line: #2a2f3a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.4rem; margin: 0 0 6px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-top: 16px; }
+  label { display: block; font-weight: 600; margin: 0 0 8px; }
+  label.inline { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 18px 0 0; }
+  input[type=number] { width: 96px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+  td.bad { color: var(--bad); font-weight: 700; }
+  td.ok { color: var(--ok); font-weight: 700; }
+  .note { color: var(--muted); font-size: 0.9rem; margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One generator spawn per session</h1>
+  <p class="lead">
+    The session titler used to respawn a detached <code>claude -p</code> generator
+    whenever the per-session spawn marker was invalidated: a live-branch change
+    deleted it during regeneration, and a failed spawn left nothing behind, so
+    the next prompt tried again. Simulate a session below and compare spawn
+    attempts before and after the fix.
+  </p>
+
+  <section class="panel">
+    <label for="turns">UserPromptSubmit turns in this session</label>
+    <input id="turns" type="number" min="1" max="200" value="40">
+    <div style="margin-top:10px">
+      <label class="inline"><input id="flip" type="checkbox" checked> branch changed mid-session</label>
+      <label class="inline"><input id="fail" type="checkbox"> generator spawn fails</label>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>scenario</th>
+          <th>spawn attempts before</th>
+          <th>spawn attempts after</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="desc">branch flip + 40 turns</td>
+          <td id="before" class="bad">40</td>
+          <td id="after" class="ok">1</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note" id="note"></p>
+  </section>
+</main>
+<script>
+(function () {
+  var turns = document.getElementById("turns");
+  var flip = document.getElementById("flip");
+  var fail = document.getElementById("fail");
+  var desc = document.getElementById("desc");
+  var before = document.getElementById("before");
+  var after = document.getElementById("after");
+  var note = document.getElementById("note");
+
+  function render() {
+    var n = parseInt(turns.value, 10);
+    if (!isFinite(n) || n < 1) n = 1;
+    if (n > 200) n = 200;
+    n = Math.floor(n);
+
+    var parts = [];
+    if (flip.checked) parts.push("branch flip");
+    if (fail.checked) parts.push("failed spawn");
+    desc.textContent = (parts.length ? parts.join(" + ") : "clean session") + " + " + n + " turns";
+
+    // Before: a branch flip deleted the spawned marker every regen, so each
+    // later turn respawned. A failed spawn left no marker either, so every
+    // turn retried. Without either, one spawn per session already held.
+    var b = (flip.checked || fail.checked) ? n : 1;
+    // After: the marker is written before the spawn and survives regen; a
+    // failed spawn leaves a tombstone. One attempt per session, always.
+    var a = 1;
+
+    before.textContent = String(b);
+    after.textContent = String(a);
+    before.className = b === 1 ? "ok" : "bad";
+    after.className = "ok";
+
+    if (b === 1 && !fail.checked && !flip.checked) {
+      note.textContent = "A clean session already spawned once; the storm came from invalidation, not the happy path.";
+    } else if (fail.checked) {
+      note.textContent = "Before: a failed spawn was retried on every later turn. After: the attempt is tombstoned and the session stops waiting.";
+    } else {
+      note.textContent = "Measured 2026-09-18: 38-43 detached generator calls per hour on a shared account. After: one attempt per session, plus a host-wide cap of 10 per 10 minutes as a backstop.";
+    }
+  }
+
+  turns.addEventListener("input", render);
+  flip.addEventListener("change", render);
+  fail.addEventListener("change", render);
+  render();
+})();
+</script>
+</body>
+</html>

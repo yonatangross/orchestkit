@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The gate that was never fired</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%);--warn:hsl(38 92% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.faint{color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">EPIC B &middot; #3308 &middot; 2026-08-10</div>
+<h1>The gate against "never fires" <span>was never fired.</span></h1>
+<p class="lede">The 2026-08-08 audit found one defect thirty-four times: OrchestKit writes to CC
+contracts nobody verified against the binary. The fix — a script that derives the contract
+<i>from</i> the binary — was written, and is good. Grepping all 31 workflows for it returned
+<b>zero hits</b>. Nothing ever ran it.</p>
+
+<h2>The chain, and where it breaks</h2>
+<pre>derive-cc-output-keys.mjs  ──reads──▶  the shipped binary
+          │
+          └──writes──▶  src/hooks/bin/cc-output-keys.generated.mjs
+                              │
+                              └──CI validates ork against this──▶ <span class="ok">green</span>
+
+<span class="bad">nothing re-runs step one.</span> CI has been checking OrchestKit against a
+snapshot no process refreshes — correct only for as long as it
+happens to still be current.</pre>
+
+<h2>Why a floor-pinned host would have been worse than nothing</h2>
+<div class="card"><h3>The check is missing-only, so an old binary passes vacuously</h3>
+<pre>derive-cc-output-keys.mjs:141
+  binaryEvents.filter(e =&gt; !allowed.has(e))</pre>
+<p>It fails only when the binary names an event the allow-list <b>lacks</b>. An <b>older</b> binary
+names a <i>subset</i>, so the difference is empty and the gate prints <code>OK</code>. Every other CC
+install in this repo is pinned to the support floor — correct for reproducible jobs, fatal here. A
+floor-pinned host would not merely miss newer drift; it would <b>report a pass it did not earn</b>,
+which is the exact failure the audit was about.</p>
+<p>So this probe installs the newest published release and accepts that its version moves underneath
+it. That is the point, not a compromise.</p></div>
+
+<h2>Five candidate hosts, all rejected</h2>
+<table><thead><tr><th>workflow</th><th>why not</th></tr></thead><tbody>
+<tr><td><code>plugin-validation.yml</code></td><td>installs CC, but the job is <code>continue-on-error: true</code> — a drift exit would be swallowed. Also floor-pinned.</td></tr>
+<tr><td><code>claude-release-watch.yml</code></td><td>installs CC, but its header forbids automatic triggers, and it is <b>structurally unschedulable</b>: its text matches the LLM-in-CI guard's signature list.</td></tr>
+<tr><td><code>contract-parity.yml</code></td><td>semantically right, installs no binary, no schedule.</td></tr>
+<tr><td><code>hook-contract.yml</code></td><td>path filters can never match the derive script; no dispatch trigger either.</td></tr>
+<tr><td><code>cc-support-window-bump.yml</code></td><td>fires only <i>after</i> a human has already recorded the new version in-repo.</td></tr>
+</tbody></table>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Hence a new file, modeled on
+<code>labs-version-probe.yml</code> — which exists for precisely this reason: that guard is
+<b>file-scoped and textual</b>, so a scheduled job must live in a file that does not quote the
+pattern. This one describes the policy strictly by reference.</p>
+
+<h2>Failure is loud here, unlike the precedent</h2>
+<pre>exit 0   OK              every event the binary names is in the allow-list
+exit 1   DRIFT           <span class="bad">fails the job</span> — hooks are writing to a contract
+                         the binary contradicts
+exit 2   CANNOT-OBSERVE  <span class="bad">fails the job</span> — the binary was not found, so the
+                         gate saw nothing</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px"><code>labs-version-probe.yml</code>
+deliberately never fails its nightly, because pin drift is informational. Both exits here are
+actionable, and exit 2 especially: <b>a contract gate that cannot observe must never look
+green.</b></p>
+
+<h2>The open question this run answers</h2>
+<div class="card"><h3>Nobody knows if the binary lands where the script looks</h3>
+<p><code>findBinary()</code> searches only
+<code>~/.local/share/claude/versions/&lt;x.y.z&gt;</code>. No workflow references that path, and whether
+the npm install populates it on a GitHub runner was <b>not determinable from the repo</b>. If it does
+not, this gate returns <code>CANNOT-OBSERVE</code> forever — a gate that never fires, shipped while
+fixing gates that never fire.</p>
+<p>So the layout step prints the directory listing <b>unconditionally, before</b> the check runs. A
+<code>CANNOT-OBSERVE</code> result therefore names the actual layout instead of leaving the next
+person to repeat the experiment.</p></div>
+
+<h2>Two bugs caught before shipping</h2>
+<pre><span class="bad">1.</span> Actions runs `run:` with bash -e, so a non-zero exit would kill the step
+   BEFORE the summary was written — a red X with no explanation of which
+   failure it was. Fixed with `|| rc=$?`, and the comment says why so the
+   next editor does not "simplify" it back.
+
+<span class="bad">2.</span> A `case` with duplicated patterns and `;&amp;` fallthrough. Replaced with
+   plain if/elif.</pre>
+
+<h2>Verification</h2>
+<pre>actionlint .github/workflows/cc-contract-probe.yml   <span class="ok">exit 0</span>
+   (first pass flagged SC2129 — individual redirects; fixed to one block)
+
+bash tests/unit/test-no-llm-in-ci.sh
+   <span class="ok">PASS</span>: all 7 LLM workflow(s) are manual-only (46 scanned)
+   ← this file is scanned and NOT classified as an LLM workflow,
+     so its schedule is legal</pre>
+
+<p class="foot"><b>What remains unproven, deliberately.</b> This PR cannot verify that the runner
+populates the lookup path, because <code>workflow_dispatch</code> only becomes available once the
+file is on the default branch. The honest sequence is merge, dispatch, read the layout summary, and
+fix the install or the lookup if it reports <code>CANNOT-OBSERVE</code> — rather than asserting here
+that it works. If the first scheduled run fails that way, that is the gate doing its job: it is
+designed to be loud about not being able to see, which is the one thing the thirty-four defects had
+in common.</p>
+</div></body></html>

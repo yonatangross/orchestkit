@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#3461: metadata is not a grant</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e;
+    --red: #f85149; --green: #3fb950; --amber: #d29922; --blue: #58a6ff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 2rem 1rem; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 1px solid var(--border); padding-bottom: .35rem; }
+  .sub { color: var(--dim); margin-bottom: 1.5rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem; margin: 1rem 0; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: .9rem; }
+  .card .num { font-size: 1.7rem; font-weight: 700; font-family: var(--mono); }
+  .card .lbl { color: var(--dim); font-size: .8rem; }
+  .red { color: var(--red); } .green { color: var(--green); } .amber { color: var(--amber); } .blue { color: var(--blue); }
+  .toggle { display: flex; gap: .5rem; margin: 1rem 0; }
+  .toggle button { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: .45rem 1.1rem; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+  .toggle button.active-before { border-color: var(--red); color: var(--red); font-weight: 600; }
+  .toggle button.active-after { border-color: var(--green); color: var(--green); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-weight: 600; }
+  td.mono, .mono { font-family: var(--mono); font-size: .8rem; }
+  .pill { display: inline-block; padding: .05rem .5rem; border-radius: 999px; font-size: .75rem; font-family: var(--mono); }
+  .pill.dead { background: rgba(248,81,73,.15); color: var(--red); }
+  .pill.live { background: rgba(63,185,80,.15); color: var(--green); }
+  .pill.held { background: rgba(210,153,34,.15); color: var(--amber); }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-family: var(--mono); font-size: .78rem; margin: .75rem 0; }
+  .note { background: var(--panel); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: .75rem 1rem; margin: .75rem 0; font-size: .88rem; }
+  .flow { font-family: var(--mono); font-size: .8rem; white-space: pre; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: .75rem 0; }
+  .srv-filter { display: flex; gap: .5rem; margin: .75rem 0; flex-wrap: wrap; }
+  .srv-filter button { background: var(--panel); border: 1px solid var(--border); color: var(--dim); padding: .3rem .8rem; border-radius: 6px; cursor: pointer; font-size: .8rem; font-family: var(--mono); }
+  .srv-filter button.on { color: var(--blue); border-color: var(--blue); }
+  footer { color: var(--dim); font-size: .78rem; margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>#3461 &middot; metadata is not a grant</h1>
+  <p class="sub">28 OrchestKit agents declared an MCP server in <span class="mono">mcpServers:</span> frontmatter that Claude Code ignores for plugin agents. The real capability grant is the <span class="mono">tools:</span> list, and none of them had one, so every declared lookup silently degraded to WebSearch.</p>
+
+  <div class="cards">
+    <div class="card"><div class="num red" id="n-dead">28</div><div class="lbl">declared but could not call</div></div>
+    <div class="card"><div class="num green" id="n-live">28</div><div class="lbl">granted read-only after fix</div></div>
+    <div class="card"><div class="num amber">4</div><div class="lbl">fake tool names corrected</div></div>
+    <div class="card"><div class="num blue">0</div><div class="lbl">write tools granted</div></div>
+  </div>
+
+  <h2>How the silent degrade works</h2>
+  <div class="flow">agent run needs library docs
+     |
+     v
+mcpServers: [context7]        <- metadata, Claude Code ignores it
+     |
+     v
+tools: [Read, Bash, ...]      <- the ACTUAL grant, no mcp__context7__* entry
+     |
+     v
+mcp__context7__query-docs     -> NOT AVAILABLE, no error raised
+     |
+     v
+falls through to WebSearch    -> stale or wrong docs, silently</div>
+
+  <h2>Explore the 28 agents</h2>
+  <div class="toggle">
+    <button id="btn-before" class="active-before" onclick="setMode('before')">before</button>
+    <button id="btn-after" onclick="setMode('after')">after</button>
+  </div>
+  <div class="srv-filter" id="srv-filter"></div>
+  <table>
+    <thead><tr><th>agent</th><th>declares</th><th>grant state</th><th>tools</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <h2>Read-only surfaces granted, per server</h2>
+  <table>
+    <thead><tr><th>server</th><th>granted (read)</th><th>withheld (write / mutating)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">context7</td>
+        <td class="mono green">resolve-library-id, query-docs</td>
+        <td class="mono dim">none exist (server is read-only)</td>
+      </tr>
+      <tr>
+        <td class="mono">tavily</td>
+        <td class="mono green">tavily_search, tavily_extract, tavily_crawl, tavily_map, tavily_research</td>
+        <td class="mono dim">none exist (server is read-only)</td>
+      </tr>
+      <tr>
+        <td class="mono">memory</td>
+        <td class="mono green">search_nodes, read_graph, open_nodes</td>
+        <td class="mono amber">create_entities, create_relations, add_observations, delete_*</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note">debug-investigator gets the read trio only: a debug run may read the knowledge graph, never mutate it.</div>
+
+  <h2>Fake tool names (a grant of a nonexistent tool is a no-op)</h2>
+  <table>
+    <thead><tr><th>where</th><th>was</th><th>now</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">skills/implement</td><td class="mono red">mcp__context7__query_docs</td><td class="mono green">resolve-library-id + query-docs</td></tr>
+      <tr><td class="mono">skills/fix-issue</td><td class="mono red">mcp__context7__get_library_docs</td><td class="mono green">resolve-library-id + query-docs</td></tr>
+      <tr><td class="mono">agents/web-research-analyst</td><td class="mono red">mcp__memory__add_node</td><td class="mono green">mcp__memory__create_entities</td></tr>
+      <tr><td class="mono">skills/quality-gates (rule)</td><td class="mono red">mcp__memory__add_node</td><td class="mono green">mcp__memory__create_entities</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Left alone, on purpose</h2>
+  <table>
+    <thead><tr><th>what</th><th>why</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">7x mcpServers: []</td><td>Deliberate "considered MCP, wants none" markers, required by the test-mcp-overhead.sh gate. A prior attempt to delete them was reverted by CI.</td></tr>
+      <tr><td class="mono">stitch, storybook-mcp declarations</td><td>Not configured in .mcp.json at all. Granting tools for an unconfigured server achieves nothing; those need a configure-or-drop decision.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The gate that keeps it fixed</h2>
+  <pre>tests/agents/test-mcp-declared-vs-granted.sh
+
+(a) every agent declaring a CONFIGURED server in mcpServers:
+    must grant at least one matching mcp__&lt;server&gt;__* tool
+(b) every mcp__&lt;server&gt;__&lt;tool&gt; token in agents/skills markdown
+    must name a tool the server actually exposes
+
+before this PR: 28 (a)-failures + 4 (b)-failures -> exit 1
+after this PR:  PASS</pre>
+
+  <footer>PR playground for branch fix/3461-grant-mcp-tools &middot; OrchestKit #3461 &middot; self-contained, no external resources</footer>
+</div>
+
+<script>
+  const AGENTS = [
+    ["accessibility-specialist", "context7"],
+    ["backend-system-architect", "context7"],
+    ["ci-cd-engineer", "context7"],
+    ["claude-design-orchestrator", "context7"],
+    ["code-quality-reviewer", "context7"],
+    ["data-pipeline-engineer", "context7"],
+    ["database-engineer", "context7"],
+    ["deployment-manager", "context7"],
+    ["design-context-extractor", "context7"],
+    ["design-system-architect", "context7"],
+    ["eval-runner", "context7"],
+    ["event-driven-architect", "context7"],
+    ["frontend-performance-engineer", "context7"],
+    ["frontend-ui-developer", "context7"],
+    ["git-operations-engineer", "context7"],
+    ["infrastructure-architect", "context7"],
+    ["llm-integrator", "context7"],
+    ["multimodal-specialist", "context7"],
+    ["python-performance-engineer", "context7"],
+    ["release-engineer", "context7"],
+    ["test-generator", "context7"],
+    ["workflow-architect", "context7"],
+    ["ai-safety-auditor", "tavily"],
+    ["market-intelligence", "tavily"],
+    ["monitoring-engineer", "tavily"],
+    ["product-strategist", "tavily"],
+    ["web-research-analyst", "tavily"],
+    ["debug-investigator", "memory"]
+  ];
+  const GRANTS = {
+    context7: "resolve-library-id, query-docs",
+    tavily: "tavily_search, tavily_extract, tavily_crawl, tavily_map, tavily_research",
+    memory: "search_nodes, read_graph, open_nodes"
+  };
+  let mode = "before";
+  let srv = "all";
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById("btn-before").className = m === "before" ? "active-before" : "";
+    document.getElementById("btn-after").className = m === "after" ? "active-after" : "";
+    render();
+  }
+  function setSrv(s) { srv = s; render(); }
+
+  function render() {
+    const rows = AGENTS.filter(a => srv === "all" || a[1] === srv).map(([name, server]) => {
+      const dead = mode === "before";
+      const pill = dead
+        ? '<span class="pill dead">UNGRANTED, degrades to WebSearch</span>'
+        : '<span class="pill live">GRANTED, read-only</span>';
+      const tools = dead ? '<span class="mono" style="color:var(--dim)">(none)</span>'
+                         : '<span class="mono">' + GRANTS[server] + "</span>";
+      return "<tr><td class='mono'>" + name + "</td><td class='mono'>" + server + "</td><td>" + pill + "</td><td>" + tools + "</td></tr>";
+    });
+    document.getElementById("tbody").innerHTML = rows.join("");
+    const counts = { all: AGENTS.length, context7: 22, tavily: 5, memory: 1 };
+    document.getElementById("srv-filter").innerHTML =
+      ["all", "context7", "tavily", "memory"].map(s =>
+        "<button class='" + (srv === s ? "on" : "") + "' onclick=\"setSrv('" + s + "')\">" + s + " (" + counts[s] + ")</button>"
+      ).join("");
+  }
+  render();
+</script>
+</body>
+</html>

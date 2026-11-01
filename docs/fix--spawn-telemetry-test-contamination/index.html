@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#3533: test fixtures contaminated live spawn telemetry</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e;
+    --red: #f85149; --green: #3fb950; --amber: #d29922; --blue: #58a6ff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 2rem 1rem; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 1px solid var(--border); padding-bottom: .35rem; }
+  .sub { color: var(--dim); margin-bottom: 1.5rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem; margin: 1rem 0; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: .9rem; }
+  .card .num { font-size: 1.7rem; font-weight: 700; font-family: var(--mono); }
+  .card .lbl { color: var(--dim); font-size: .8rem; }
+  .red { color: var(--red); } .green { color: var(--green); } .amber { color: var(--amber); }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-weight: 600; }
+  .mono { font-family: var(--mono); font-size: .8rem; }
+  .bar { display: inline-block; height: .7rem; border-radius: 3px; vertical-align: middle; }
+  .bar.real { background: var(--green); }
+  .bar.fake { background: var(--red); }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-family: var(--mono); font-size: .78rem; margin: .75rem 0; }
+  .note { background: var(--panel); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: .75rem 1rem; margin: .75rem 0; font-size: .88rem; }
+  .flow { font-family: var(--mono); font-size: .8rem; white-space: pre; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: .75rem 0; }
+  label.sw { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; user-select: none; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: .45rem .9rem; font-size: .9rem; }
+  footer { color: var(--dim); font-size: .78rem; margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>#3533 &middot; the spawn log was lying about 5 agents</h1>
+  <p class="sub">Two shell test harnesses ran the compiled hooks with <span class="mono">CLAUDE_PROJECT_DIR</span> pointed at the real repo, so every test run appended fixture rows (<span class="mono">session_id: "test-123"</span>, one per agent in a loop) to the live <span class="mono">.claude/logs/subagent-spawns.jsonl</span>. Dormant agents read as healthy.</p>
+
+  <div class="cards">
+    <div class="card"><div class="num red">494</div><div class="lbl">fixture rows in the current rotated log</div></div>
+    <div class="card"><div class="num amber">5</div><div class="lbl">effectively-dead agents masked as healthy</div></div>
+    <div class="card"><div class="num green">2</div><div class="lbl">writers now honor ORK_TELEMETRY_DISABLE=1</div></div>
+  </div>
+
+  <h2>Real spawns vs what the contaminated log showed</h2>
+  <table>
+    <thead><tr><th>agent</th><th>log said</th><th>real (lifetime)</th><th></th></tr></thead>
+    <tbody>
+      <tr><td class="mono">genui-architect</td><td class="mono">13-14</td><td class="mono red">1</td><td><span class="bar fake" style="width:120px"></span><span class="bar real" style="width:9px"></span></td></tr>
+      <tr><td class="mono">claude-design-orchestrator</td><td class="mono">13-14</td><td class="mono red">1</td><td><span class="bar fake" style="width:120px"></span><span class="bar real" style="width:9px"></span></td></tr>
+      <tr><td class="mono">event-driven-architect</td><td class="mono">13-14</td><td class="mono red">1</td><td><span class="bar fake" style="width:120px"></span><span class="bar real" style="width:9px"></span></td></tr>
+      <tr><td class="mono">demo-producer</td><td class="mono">13-14</td><td class="mono red">2</td><td><span class="bar fake" style="width:120px"></span><span class="bar real" style="width:18px"></span></td></tr>
+      <tr><td class="mono">security-layer-auditor</td><td class="mono">13-14</td><td class="mono red">2</td><td><span class="bar fake" style="width:120px"></span><span class="bar real" style="width:18px"></span></td></tr>
+    </tbody>
+  </table>
+  <p class="sub" style="margin-top:.5rem">red = fixture rows, green = real spawns. Activation audits and prune decisions read this file.</p>
+
+  <h2>The fix, at the writer</h2>
+  <label class="sw"><input type="checkbox" id="sw" onchange="render()" checked> <span class="mono">ORK_TELEMETRY_DISABLE=1</span> (exported by both test harnesses)</label>
+  <div class="flow" id="flow"></div>
+
+  <h2>Why inlined in each writer, not in lib/common</h2>
+  <div class="note">The check lives inside <span class="mono">subagent-validator.logSpawn</span> and <span class="mono">spawn-intent-logger</span> directly. <span class="mono">lib/common</span> and <span class="mono">analytics-buffer</span> are wholesale-mocked in most unit tests, so an imported helper would vanish under the mock and the guard would silently not exist exactly where it is tested.</div>
+
+  <footer>PR playground for branch fix/spawn-telemetry-test-contamination &middot; OrchestKit #3533 &middot; self-contained, no external resources</footer>
+</div>
+
+<script>
+  function render() {
+    const on = document.getElementById("sw").checked;
+    document.getElementById("flow").textContent = on
+      ? "test harness (ORK_TELEMETRY_DISABLE=1)\n" +
+        "   |\n" +
+        "   v\n" +
+        "hook runs fully: warnings, permission profiles, context   <- unchanged\n" +
+        "   |\n" +
+        "   v\n" +
+        "logSpawn / spawn-intent-logger\n" +
+        "   |\n" +
+        "   X  persist SKIPPED -> live subagent-spawns.jsonl stays clean"
+      : "real session (no flag)\n" +
+        "   |\n" +
+        "   v\n" +
+        "hook runs fully: warnings, permission profiles, context\n" +
+        "   |\n" +
+        "   v\n" +
+        "logSpawn / spawn-intent-logger\n" +
+        "   |\n" +
+        "   v  persist -> subagent-spawns.jsonl records the REAL spawn";
+  }
+  render();
+</script>
+</body>
+</html>

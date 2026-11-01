@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The guard that shipped the shape it exists to prevent</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%);--warn:hsl(38 92% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.faint{color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">hooks &middot; output-guard &middot; 2026-09-19</div>
+<h1>The envelope that <span>lost its own label.</span></h1>
+<p class="lede">Claude Code started rejecting hook output with
+<code>hookSpecificOutput is missing required field hookEventName</code>. The envelope came
+from OrchestKit's own output guard — the component whose entire job is keeping malformed
+envelopes off stdout.</p>
+
+<h2>The two-line bug</h2>
+<pre>stdin delivered 0 bytes in 100ms (the #3415 watchdog race)
+        │
+        ▼
+hook_event = 'unknown'          ← normalizeInput's fallback
+        │
+        ▼
+default-timeout-setter emits    hookSpecificOutput: { hookEventName:'PreToolUse',
+                                updatedInput:{ command:'', timeout:120000 } }
+        │
+        ▼
+output-guard Rule 1: 'unknown' is not allow-listed
+        └── delete hookEventName  <span class="bad">← but keep everything else</span>
+        │
+        ▼
+{"hookSpecificOutput":{"updatedInput":{"command":"","timeout":120000}}}
+        │
+        ▼
+<span class="bad">CC: "hookSpecificOutput is missing required field hookEventName"</span></pre>
+
+<h2>Why the strip was worse than the bug it guarded</h2>
+<div class="card"><h3>Every key inside hookSpecificOutput is event-scoped</h3>
+<p><code>updatedInput</code>, <code>permissionDecision</code>, <code>worktreePath</code> — none mean
+anything without the event label that tells CC how to read them. Deleting only the label left a
+body CC could not place: guaranteed to fail validation, every time. The honest move on an event
+that cannot consume the object is to drop the object, not to remove its name and keep the rest.</p></div>
+
+<h2>The regression that refined the fix</h2>
+<p>Dropping wholesale on <code>unknown</code> fixed production but broke the security suite
+(<i>expected deny, got abstain</i>). The cause: the harness fires hooks with real commands and
+<b>no <code>hook_event_name</code></b> — so <code>unknown</code> was conflating two very different
+situations.</p>
+<table><thead><tr><th>payload</th><th>meaning</th><th>ruling</th></tr></thead><tbody>
+<tr><td>empty (<code>{}</code>)</td><td>watchdog / stdin error — hook measured nothing</td><td class="bad">drop the envelope: a verdict on no input is noise</td></tr>
+<tr><td>real, no event field</td><td>probes, test harness — the hook did real work</td><td class="ok">trust the declared hookEventName; CC routes on it</td></tr>
+<tr><td>known non-consumer</td><td>e.g. WorktreeCreate carrying a PreToolUse label</td><td class="bad">drop the whole object (#1794)</td></tr>
+<tr><td>consuming, nameless</td><td>hand-rolled envelope missing the field</td><td class="ok">inject the firing event</td></tr>
+</tbody></table>
+
+<h2>What changed</h2>
+<div class="card"><h3><code>output-guard.mjs</code> — the boundary</h3>
+<p>An <code>emptyPayload</code> flag flows from <code>normalizeInput</code> through
+<code>emitHookResult</code>: on an empty payload the envelope is dropped before any other rule.
+On unidentifiable events a self-describing envelope now survives; a garbage-labeled or nameless
+one still dies at the final invariant. Three <code>pretool/bash</code> emitters that hand-rolled
+bare envelopes carry <code>hookEventName</code> at the source.</p></div>
+
+<div class="card"><h3>The invariant, stated once</h3>
+<pre>∀ result leaving the guard:
+  result.hookSpecificOutput ≠ undefined
+    ⇒ result.hookSpecificOutput.hookEventName ∈ EVENTS_WITH_HOOK_EVENT_NAME</pre>
+<p>Forty-one contract tests pin it across every known event plus <code>unknown</code> and
+<code>''</code>; the byte-exact production repro (empty stdin → timeout-setter) now emits
+<code>{"continue":true,"suppressOutput":true}</code> and nothing else.</p></div>
+
+<p class="foot">Refs: the CC validation error reported in super-conductor-33; the #3415 stdin
+watchdog that makes empty payloads possible; #1794, the mismatched-label incident this guard
+was built for; and the security-suite abstain regression that split 'unknown' into its two
+honest meanings.</p>
+</div></body></html>

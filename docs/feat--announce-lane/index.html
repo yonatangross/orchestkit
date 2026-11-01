@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Release Automation Gap Analysis: OrchestKit + platform</title>
+<style>
+  :root{
+    --bg:#0b0e14;
+    --bg-panel:#12161f;
+    --bg-panel-2:#161b26;
+    --border:#242a38;
+    --border-soft:#1b202c;
+    --text:#e7e9ee;
+    --text-dim:#8b93a7;
+    --text-faint:#5b6274;
+    --auto:#34d399;
+    --auto-bg:rgba(52,211,153,0.10);
+    --manual:#fbbf24;
+    --manual-bg:rgba(251,191,36,0.10);
+    --dead:#f87171;
+    --dead-bg:rgba(248,113,113,0.08);
+    --new:#60a5fa;
+    --new-bg:rgba(96,165,250,0.10);
+    --gate:#a78bfa;
+    --gate-bg:rgba(167,139,250,0.14);
+    --radius:10px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{padding:0 0 80px 0;}
+  a{color:var(--new);}
+  h1,h2,h3,h4{font-weight:600;margin:0 0 8px 0;}
+  h1{font-size:1.5rem;}
+  h2{font-size:1.15rem;letter-spacing:0.01em;}
+  h3{font-size:0.95rem;}
+  p{color:var(--text-dim);line-height:1.5;margin:0 0 12px 0;}
+  code{font-family:var(--mono);font-size:0.82em;background:var(--bg-panel-2);padding:1px 5px;border-radius:4px;color:var(--new);}
+  .container{max-width:1180px;margin:0 auto;padding:0 20px;}
+
+  header.top{border-bottom:1px solid var(--border);padding:28px 0 20px 0;background:linear-gradient(180deg,#0e1220,#0b0e14);}
+  header.top .eyebrow{font-family:var(--mono);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:6px;}
+  header.top .subtitle{max-width:760px;font-size:0.92rem;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .badge{font-family:var(--mono);font-size:0.72rem;padding:4px 9px;border-radius:999px;border:1px solid var(--border);color:var(--text-dim);background:var(--bg-panel);}
+
+  nav.jump{position:sticky;top:0;z-index:20;background:rgba(11,14,20,0.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);}
+  nav.jump .container{display:flex;gap:4px;flex-wrap:wrap;padding:10px 20px;}
+  nav.jump a{font-size:0.78rem;color:var(--text-dim);text-decoration:none;padding:6px 11px;border-radius:7px;border:1px solid transparent;}
+  nav.jump a:hover{color:var(--text);border-color:var(--border);background:var(--bg-panel);}
+
+  section{padding:36px 0;border-bottom:1px solid var(--border-soft);}
+  section:last-of-type{border-bottom:none;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;}
+  .section-num{font-family:var(--mono);color:var(--text-faint);font-size:0.78rem;margin-right:8px;}
+
+  /* legend */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 22px 0;font-family:var(--mono);font-size:0.74rem;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;color:var(--text-dim);}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot.auto{background:var(--auto);}
+  .dot.manual{background:var(--manual);}
+  .dot.dead{background:var(--dead);}
+  .dot.new{background:var(--new);}
+  .dot.gate{background:var(--gate);}
+
+  /* view toggle */
+  .toggle{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px;}
+  .toggle button{font-family:var(--mono);font-size:0.8rem;background:var(--bg-panel);color:var(--text-dim);border:none;padding:8px 16px;cursor:pointer;}
+  .toggle button.active{background:var(--new-bg);color:var(--new);}
+  .toggle button:not(:last-child){border-right:1px solid var(--border);}
+
+  /* flow columns */
+  .flow-wrap{display:flex;flex-direction:column;gap:6px;}
+  .flow-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+  @media (max-width: 760px){.flow-cols{grid-template-columns:1fr;}}
+  .flow-col h4{font-family:var(--mono);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);margin-bottom:10px;}
+  .flow-stack{display:flex;flex-direction:column;align-items:stretch;}
+  .arrow-down{align-self:center;color:var(--text-faint);font-size:0.9rem;padding:2px 0;font-family:var(--mono);}
+  .merge-note{text-align:center;color:var(--text-faint);font-family:var(--mono);font-size:0.76rem;margin:14px 0 6px 0;}
+  .funnel{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;}
+  .funnel .node{max-width:560px;width:100%;}
+  .leaf-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:760px;}
+  @media (max-width: 700px){.leaf-row{grid-template-columns:1fr;}}
+  .side-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:560px;margin-top:6px;}
+  @media (max-width: 600px){.side-row{grid-template-columns:1fr;}}
+
+  .node{
+    text-align:left;width:100%;
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:11px 13px;cursor:pointer;color:var(--text);font-family:var(--sans);
+    transition:border-color .12s, transform .08s;
+  }
+  .node:hover{border-color:#3a4256;}
+  .node:active{transform:scale(0.997);}
+  .node.selected{border-color:var(--new);box-shadow:0 0 0 1px var(--new) inset;}
+  .node .n-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .node .n-label{font-size:0.86rem;font-weight:500;}
+  .status-chip{font-family:var(--mono);font-size:0.66rem;padding:2px 7px;border-radius:5px;white-space:nowrap;letter-spacing:0.03em;}
+  .status-chip.AUTO{background:var(--auto-bg);color:var(--auto);}
+  .status-chip.MANUAL{background:var(--manual-bg);color:var(--manual);}
+  .status-chip.DEAD{background:var(--dead-bg);color:var(--dead);}
+  .status-chip.NEW{background:var(--new-bg);color:var(--new);}
+  .status-chip.CHANGED{background:var(--new-bg);color:var(--new);}
+  .status-chip.GATE{background:var(--gate-bg);color:var(--gate);}
+  .node .n-badge{margin-top:6px;font-family:var(--mono);font-size:0.7rem;color:var(--text-faint);}
+  .node .n-badge.hl{color:var(--gate);}
+  .node.dim{opacity:0.4;}
+  .node.hl-effect{border-color:var(--gate);box-shadow:0 0 0 1px var(--gate) inset;}
+
+  .node.gate-node{
+    border:1px solid var(--gate);
+    background:var(--gate-bg);
+    padding:16px 16px;
+  }
+  .node.gate-node .n-label{font-size:0.95rem;color:var(--gate);}
+  @keyframes pulseGate{0%{box-shadow:0 0 0 0 rgba(167,139,250,0.45);}70%{box-shadow:0 0 0 9px rgba(167,139,250,0);}100%{box-shadow:0 0 0 0 rgba(167,139,250,0);}}
+  .node.gate-node.pulse{animation:pulseGate 2.4s infinite;}
+  @media (prefers-reduced-motion: reduce){.node.gate-node.pulse{animation:none;}}
+
+  /* detail panel */
+  .detail{background:var(--bg-panel-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;min-height:64px;}
+  .detail .d-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .detail .d-label{font-weight:600;font-size:0.94rem;}
+  .detail .d-empty{color:var(--text-faint);font-size:0.85rem;font-family:var(--mono);}
+  .detail .d-file{font-family:var(--mono);font-size:0.76rem;color:var(--text-faint);margin-top:8px;}
+
+  /* case study table */
+  table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+  th{text-align:left;font-family:var(--mono);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);padding:8px 12px;border-bottom:1px solid var(--border);}
+  td{padding:12px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);vertical-align:top;}
+  tr:hover td{background:var(--bg-panel);}
+  td.silent{color:var(--dead);font-style:normal;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);}
+  .table-wrap table{min-width:640px;}
+
+  /* artifact mockups */
+  .artifact-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width: 760px){.artifact-grid{grid-template-columns:1fr;}}
+  .mock-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .mock-card .mock-label{font-family:var(--mono);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:9px 14px;border-bottom:1px solid var(--border-soft);background:var(--bg-panel-2);}
+  .mock-body{padding:16px;}
+
+  /* x post mock */
+  .x-post .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6d5ef0,#3fb6ff);flex:none;}
+  .x-post .head{display:flex;gap:10px;}
+  .x-post .who{display:flex;flex-direction:column;line-height:1.25;}
+  .x-post .name{font-weight:600;font-size:0.88rem;}
+  .x-post .handle{color:var(--text-faint);font-size:0.8rem;}
+  .x-post .body-text{margin:10px 0 12px 0;font-size:0.9rem;line-height:1.5;color:var(--text);}
+  .x-post .link-chip{display:inline-block;font-family:var(--mono);font-size:0.78rem;color:var(--new);border:1px solid var(--border);border-radius:8px;padding:3px 9px;}
+  .x-post .meta{font-size:0.76rem;color:var(--text-faint);margin-top:10px;}
+  .x-post .stats{display:flex;gap:18px;margin-top:12px;font-size:0.78rem;color:var(--text-faint);font-family:var(--mono);}
+
+  /* whatsapp mock */
+  .wa-mock .wa-header{display:flex;align-items:center;gap:8px;padding:8px 0 12px 0;border-bottom:1px solid var(--border-soft);margin-bottom:12px;}
+  .wa-mock .wa-title{font-size:0.86rem;font-weight:600;}
+  .wa-mock .wa-sub{font-size:0.74rem;color:var(--text-faint);font-family:var(--mono);}
+  .wa-bubble{background:#123524;border:1px solid #1e4a33;border-radius:10px 10px 10px 2px;padding:10px 12px;font-size:0.85rem;line-height:1.5;color:#dff5e8;max-width:100%;}
+  .wa-bubble ol{margin:6px 0 0 18px;padding:0;}
+  .wa-bubble li{margin-bottom:2px;}
+  .wa-actions{display:flex;gap:8px;margin-top:12px;}
+  .wa-btn{font-family:var(--mono);font-size:0.76rem;padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:var(--bg-panel-2);color:var(--text-dim);}
+  .wa-btn.approve{color:var(--auto);border-color:rgba(52,211,153,0.35);}
+  .wa-btn.skip{color:var(--dead);border-color:rgba(248,113,113,0.3);}
+  .wa-note{font-family:var(--mono);font-size:0.7rem;color:var(--text-faint);margin-top:10px;}
+
+  /* rss mock */
+  .rss-mock .url-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-panel-2);border-radius:8px;font-family:var(--mono);font-size:0.76rem;color:var(--text-faint);margin-bottom:14px;}
+  .rss-icon{width:14px;height:14px;border-radius:3px;background:var(--manual);display:inline-flex;align-items:center;justify-content:center;color:#1a1400;font-size:9px;font-weight:800;flex:none;}
+  .rss-entry .rss-title{font-size:0.92rem;font-weight:600;margin-bottom:3px;}
+  .rss-entry .rss-date{font-family:var(--mono);font-size:0.74rem;color:var(--text-faint);margin-bottom:8px;}
+  .rss-entry p{margin-bottom:10px;}
+  .rss-sub{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:0.76rem;color:var(--manual);}
+
+  /* news card mock */
+  .news-mock .news-img{height:120px;border-radius:8px;background:radial-gradient(circle at 30% 30%, #2a3350, #10131c 70%);margin-bottom:12px;position:relative;overflow:hidden;}
+  .news-mock .news-img::after{content:"IMAGE PLACEHOLDER";position:absolute;bottom:8px;right:10px;font-family:var(--mono);font-size:0.62rem;color:var(--text-faint);}
+  .news-mock .news-head{font-size:0.98rem;font-weight:700;margin-bottom:6px;line-height:1.3;}
+  .news-mock .news-dek{color:var(--text-dim);font-size:0.85rem;margin-bottom:10px;}
+  .news-mock .news-byline{font-family:var(--mono);font-size:0.72rem;color:var(--text-faint);display:flex;justify-content:space-between;}
+
+  /* decisions */
+  .decision-grid{display:flex;flex-direction:column;gap:14px;}
+  .decision-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+  .decision-card .d-title{font-weight:600;font-size:0.92rem;margin-bottom:5px;}
+  .decision-card .d-context{font-size:0.82rem;color:var(--text-dim);margin-bottom:12px;}
+  .opt-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt-btn{font-family:var(--mono);font-size:0.78rem;padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--bg-panel-2);color:var(--text-dim);cursor:pointer;}
+  .opt-btn:hover{border-color:#3a4256;}
+  .opt-btn.active{border-color:var(--new);color:var(--new);background:var(--new-bg);}
+  .decision-note{margin-top:20px;font-family:var(--mono);font-size:0.78rem;color:var(--gate);border:1px dashed var(--gate);border-radius:8px;padding:10px 14px;background:var(--gate-bg);}
+
+  /* backlog */
+  .filter-chips{display:flex;gap:8px;margin-bottom:16px;}
+  .chip{font-family:var(--mono);font-size:0.78rem;padding:6px 13px;border-radius:999px;border:1px solid var(--border);background:var(--bg-panel);color:var(--text-dim);cursor:pointer;}
+  .chip.active{border-color:var(--new);color:var(--new);background:var(--new-bg);}
+  .effort-pill{font-family:var(--mono);font-size:0.68rem;padding:2px 8px;border-radius:5px;font-weight:700;}
+  .effort-pill.S{background:var(--auto-bg);color:var(--auto);}
+  .effort-pill.M{background:var(--manual-bg);color:var(--manual);}
+  .effort-pill.L{background:var(--dead-bg);color:var(--dead);}
+  .dir-pill{font-family:var(--mono);font-size:0.68rem;color:var(--text-faint);}
+  tr.hidden-row{display:none;}
+
+  footer.foot{padding:30px 0 10px 0;text-align:center;}
+  footer.foot p{font-size:0.76rem;color:var(--text-faint);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="container">
+    <div class="eyebrow">Gap analysis, generated 2026-08-21</div>
+    <h1>Release Automation: OrchestKit + yonatan-hq/platform</h1>
+    <p class="subtitle">What ships is not what the world sees. Three release rails exist end to end and two of them are structurally dark. This is the today flow, the target flow, the last three releases as a case study, and the five decisions that reroute the gap.</p>
+    <div class="badge-row">
+      <span class="badge">2 repos</span>
+      <span class="badge">19 pipeline stages today</span>
+      <span class="badge">3 recent releases, all silent</span>
+      <span class="badge">1 standing human gate: #1739</span>
+      <span class="badge">no new bypass proposed</span>
+    </div>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="container">
+    <a href="#flow">Flow</a>
+    <a href="#case-study">Case study</a>
+    <a href="#artifacts">Outward artifacts</a>
+    <a href="#decisions">Decisions</a>
+    <a href="#backlog">Backlog</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ============ SECTION 1: FLOW ============ -->
+  <section id="flow">
+    <div class="section-head">
+      <h2><span class="section-num">01</span>Release flow: today vs target</h2>
+    </div>
+    <p>Click any stage for detail. The five decisions below re-annotate the target view live, so flip a decision then scroll back up.</p>
+
+    <div class="legend">
+      <span><i class="dot auto"></i>AUTO</span>
+      <span><i class="dot manual"></i>MANUAL</span>
+      <span><i class="dot dead"></i>DEAD</span>
+      <span><i class="dot new"></i>NEW / CHANGED</span>
+      <span><i class="dot gate"></i>HUMAN GATE</span>
+    </div>
+
+    <div class="toggle" id="viewToggle">
+      <button data-view="today" class="active">Today</button>
+      <button data-view="target">Target</button>
+    </div>
+
+    <div class="detail" id="detailPanel">
+      <div class="d-empty">Click a stage to see its file references and current behavior.</div>
+    </div>
+
+    <div id="flowToday" class="flow-wrap"></div>
+    <div id="flowTarget" class="flow-wrap" style="display:none;"></div>
+  </section>
+
+  <!-- ============ SECTION 2: CASE STUDY ============ -->
+  <section id="case-study">
+    <div class="section-head">
+      <h2><span class="section-num">02</span>Last 3 releases: what the world actually saw</h2>
+    </div>
+    <p>Reconstructed from CHANGELOG.md and git tags (the automated recon agent for this window returned null). All three landed in the same silent window.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Version</th><th>Date</th><th>What shipped</th><th>What the world saw</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>v10.0.0-alpha.43</code></td>
+            <td>2026-08-19<br><span style="color:var(--text-faint);font-family:var(--mono);font-size:0.74rem;">tagged 08-20</span></td>
+            <td>doctor credential-guard fix, stdin-operand hook fix, mktemp TMPDIR fix, glyph budget docs</td>
+            <td class="silent">Changelog page auto-updated. GitHub Release + video assets attached. No feed, no post, no announce. Alpha skip band: effectively nothing unless you were already watching the repo.</td>
+          </tr>
+          <tr>
+            <td><code>v10.0.0-alpha.42</code></td>
+            <td>2026-08-19</td>
+            <td>hook subcount fix, apt-get bound, context7 session cap</td>
+            <td class="silent">Same: auto changelog page + GitHub Release only. Nothing outward.</td>
+          </tr>
+          <tr>
+            <td><code>v10.0.0-alpha.41</code></td>
+            <td>2026-08-19</td>
+            <td>context7 shipped as a plugin-native MCP server, a genuinely marketable feature</td>
+            <td class="silent">Same. A feature worth announcing fell entirely inside the alpha skip band.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;">Platform side, same window: nightly promotes produced <code>#deploys</code> Slack lines (ship_ledger) and CalVer GitHub Releases. No user-facing channel fired; <code>promote_digest</code> flag is off.</p>
+  </section>
+
+  <!-- ============ SECTION 3: ARTIFACTS ============ -->
+  <section id="artifacts">
+    <div class="section-head">
+      <h2><span class="section-num">03</span>Outward artifacts, mocked</h2>
+    </div>
+    <p>What the target flow's four outward surfaces would actually look like for the alpha.41 context7 release, if the gate at #1739 were approved.</p>
+
+    <div class="artifact-grid">
+
+      <div class="mock-card">
+        <div class="mock-label">Mockup, X post as @yonyon2ai</div>
+        <div class="mock-body x-post">
+          <div class="head">
+            <div class="avatar"></div>
+            <div class="who">
+              <span class="name">OrchestKit</span>
+              <span class="handle">@yonyon2ai</span>
+            </div>
+          </div>
+          <div class="body-text">OrchestKit v10.0.0-alpha.41 is out. context7 now ships as a plugin-native MCP server, pull live docs for any library straight into your Claude Code session. No separate install, no config file.<br><br><span class="link-chip">orchestkit.yonyon.ai/changelog</span></div>
+          <div class="stats">
+            <span>3 replies</span>
+            <span>12 reposts</span>
+            <span>41 likes</span>
+          </div>
+          <div class="meta">2026-08-19, 14:32, mockup only, not a real post</div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="mock-label">Mockup, 06:00 WhatsApp digest, self-chat</div>
+        <div class="mock-body wa-mock">
+          <div class="wa-header">
+            <div>
+              <div class="wa-title">Release digest, self-chat</div>
+              <div class="wa-sub">06:00 daily digest, #1739 gate</div>
+            </div>
+          </div>
+          <div class="wa-bubble">
+            Release digest ready for review, 3 items:
+            <ol>
+              <li>X post, @yonyon2ai: v10.0.0-alpha.41 context7 MCP server</li>
+              <li>Changelog entry: orchestkit.yonyon.ai</li>
+              <li>NotebookLM podcast: private</li>
+            </ol>
+            Reply <b>1</b> to approve the release, <b>2</b> to skip.
+          </div>
+          <div class="wa-actions">
+            <span class="wa-btn approve">1, Approve release</span>
+            <span class="wa-btn skip">2, Skip</span>
+          </div>
+          <div class="wa-note">nonce-gated, one-shot, default-deny on timeout, mockup only</div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="mock-label">Mockup, orchestkit.yonyon.ai RSS/changelog entry</div>
+        <div class="mock-body rss-mock">
+          <div class="url-bar"><span class="rss-icon">R</span>orchestkit.yonyon.ai/changelog</div>
+          <div class="rss-entry">
+            <div class="rss-title">v10.0.0-alpha.41</div>
+            <div class="rss-date">2026-08-19</div>
+            <p>context7 ships as a plugin-native MCP server. Pull live docs for any library straight into your Claude Code session.</p>
+            <div class="rss-sub"><span class="rss-icon">R</span>Subscribe via RSS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="mock-label">Mockup, yonyon.ai/news card</div>
+        <div class="mock-body news-mock">
+          <div class="news-img"></div>
+          <div class="news-head">OrchestKit ships context7 as a native MCP server</div>
+          <div class="news-dek">The v10.0.0-alpha.41 release turns context7 into a first-class plugin capability, no separate install required.</div>
+          <div class="news-byline"><span>Yonatan HQ</span><span>2026-08-19</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4: DECISIONS ============ -->
+  <section id="decisions">
+    <div class="section-head">
+      <h2><span class="section-num">04</span>Five decision points</h2>
+    </div>
+    <p>Standing operator policy: no autonomous public posting without a gate, drafts-first. None of these five decisions add a new bypass around the #1739 ladder. Pick an option and the Target flow above re-annotates.</p>
+    <div class="decision-grid" id="decisionGrid"></div>
+    <div class="decision-note">Changed a decision? Scroll up, the Target view is now showing your selections as badges on the affected stages.</div>
+  </section>
+
+  <!-- ============ SECTION 5: BACKLOG ============ -->
+  <section id="backlog">
+    <div class="section-head">
+      <h2><span class="section-num">05</span>Effort backlog</h2>
+    </div>
+    <p>Inward improvements harden the pipeline that already exists. Outward improvements are the ones that actually change what the world sees.</p>
+    <div class="filter-chips">
+      <span class="chip active" data-filter="all">All (14)</span>
+      <span class="chip" data-filter="inward">Inward (7)</span>
+      <span class="chip" data-filter="outward">Outward (7)</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Effort</th><th>Direction</th><th>Upgrade</th><th>File / gate</th></tr>
+        </thead>
+        <tbody id="backlogBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer class="foot">
+  <div class="container">
+    <p>Source of truth: release-automation-synthesis.md, synthesized 2026-08-21 from 3 of 5 recon agents. orkRail and lastThree returned null and were reconstructed locally. Scratchpad artifact, not written to either repo.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+
+  // ---------------------------------------------------------------
+  // DATA: today flow
+  // ---------------------------------------------------------------
+  var TODAY_OK = [
+    {id:'ok-t1', label:'PR merges to main', status:'AUTO', detail:'Standard flow.', file:''},
+    {id:'ok-t2', label:'release-please opens/updates release PR', status:'AUTO', detail:'Bot job regenerates changelog-data.ts + README What\'s New onto the PR.', file:'.github/workflows/release-please.yml (~200-260), scripts/build-plugins.sh:614'},
+    {id:'ok-t3', label:'Operator merges the release PR', status:'MANUAL', detail:'The only human step in this chain. Produces tag + GitHub Release (10.0.0-alpha.N, prerelease).', file:'.release-please-config.json'},
+    {id:'ok-t4', label:'Vercel deploys docs site', status:'AUTO', detail:'Public changelog page updates on every main merge.', file:'docs/site/vercel.json, docs/site/content/docs/changelog/index.mdx'},
+    {id:'ok-t5', label:'release-video.yml renders MP4/GIF', status:'AUTO', detail:'Attaches to the GitHub Release. Never referenced by either website.', file:'.github/workflows/release-video.yml'},
+    {id:'ok-t6', label:'release-announce.yml POSTs to platform', status:'DEAD', detail:'Dead for the entire alpha series. Minor/major X.Y.0 only, prereleases structurally skipped. Secrets HQ_API_URL/HQ_API_TOKEN are set (2026-06-26), so the rail is armed, just gated shut.', file:'.github/workflows/release-announce.yml:115-121'},
+    {id:'ok-t7', label:'/lab showcase', status:'MANUAL', detail:'Hand-edit lab-manifest.json + run generate-lab-data.mjs. Releases never touch it.', file:'docs/site/lab-manifest.json'},
+    {id:'ok-t8', label:'NotebookLM sync', status:'MANUAL', detail:'Private output, no CI trigger.', file:'src/skills/release-sync/SKILL.md'},
+    {id:'ok-t9', label:'Blog/RSS on orchestkit.yonyon.ai', status:'DEAD', detail:'Does not exist. Zero rss/feed hits under docs/site/app.', file:''}
+  ];
+
+  var TODAY_PF = [
+    {id:'pf-t1', label:'daily-promote.yml opens+merges dev to main', status:'AUTO', detail:'Nightly cron, 19:00 UTC.', file:'.github/workflows/daily-promote.yml:24-32'},
+    {id:'pf-t2', label:'Push to main triggers deploy', status:'AUTO', detail:'ci-deploy.yml -> cd-hetzner.yml deploys, runs health+smoke, auto-rolls-back, appends deploy-history.jsonl.', file:'infra/hetzner/deploy.sh'},
+    {id:'pf-t3', label:'prod-verify.yml asserts running sha', status:'AUTO', detail:'Its WAHA page leg self-skips (owner-chat-id is not a platform secret). Failure only opens a GitHub issue.', file:'prod-verify.yml:108-111'},
+    {id:'pf-t4', label:'Failure alerts', status:'AUTO', detail:'WAHA WhatsApp + GitHub comment, failure() only. There is no success-side notify step in any workflow.', file:'cd-hetzner.yml:617-641'},
+    {id:'pf-t5', label:'ship_ledger posts to #deploys Slack', status:'AUTO', detail:'One line per successful deploy, every 15 minutes. The only always-on success announcement.', file:'apps/api/app/workers/hq_bot/ship_ledger.py'},
+    {id:'pf-t6', label:'promote_digest, ship-with-story digest', status:'DEAD', detail:'Redis flag bot_promote_digest default=False, on the inert-features watch list.', file:'promote_digest.py, inert_features.py:95'},
+    {id:'pf-t7', label:'release-tag.yml tags + releases', status:'AUTO', detail:'PR-closed-to-main -> CalVer tag + GitHub Release + RELEASES.md PR. GitHub-internal only, no announce.', file:'release-tag.yml:5-13'},
+    {id:'pf-t8', label:'Marketing intakes draft content', status:'AUTO', detail:'x_draft producer (04:40 UTC, from yesterday\'s merged PRs, not deploys) and insight-announce sweep (05:30 UTC). Draft only, surfaced in the 06:00 WhatsApp digest, human-gated at #1739. The push-trigger insight-announce.yml path is structurally dark for bot-merged records.', file:'x_draft_tasks.py, insight-announce.yml'},
+    {id:'pf-t9', label:'POST /api/marketing/release-announce', status:'DEAD', detail:'Dead for platform\'s own releases. Nothing in the repo calls it. Its only consumers are OrchestKit\'s gated action + MCP.', file:'release_announce.py:40-57'},
+    {id:'pf-t10', label:'Approved content publishes', status:'AUTO', detail:'Every 5 minutes to X/LinkedIn/Instagram/Threads adapters, after human approval.', file:'_publish.py, _schedule.py:48'}
+  ];
+
+  // ---------------------------------------------------------------
+  // DATA: target flow
+  // ---------------------------------------------------------------
+  var TARGET_OK = [
+    {id:'ok-m1', label:'Release PR merged', status:'GATE', detail:'Human #1, unchanged. Still the trigger for everything downstream.', file:''},
+    {id:'ok-m2', label:'Tag + GitHub Release + changelog page', status:'AUTO', detail:'Unchanged from today.', file:''},
+    {id:'ok-m3', label:'RSS route', status:'NEW', detail:'Generated from the same changelog-data.ts. Zero new data plumbing.', file:'docs/site/lib/generated/changelog-data.ts'},
+    {id:'ok-m4', label:'release-video assets', status:'AUTO', detail:'Unchanged. Gets linked from the changelog page as an inward upgrade.', file:'.github/workflows/release-video.yml'},
+    {id:'ok-m5', label:'release-announce.yml, widened', status:'CHANGED', detail:'Fires on alphas or on an explicit announce label, not just X.Y.0.', file:'.github/workflows/release-announce.yml'}
+  ];
+
+  var TARGET_PF = [
+    {id:'pf-m1', label:'Nightly promote -> deploy -> deploy-history.jsonl', status:'AUTO', detail:'Unchanged.', file:'cd-hetzner.yml, deploy.sh'},
+    {id:'pf-m2', label:'ship_ledger -> #deploys Slack', status:'AUTO', detail:'Unchanged, still the only live success channel until promote_digest is flipped.', file:'ship_ledger.py'},
+    {id:'pf-m3', label:'promote_digest -> #deploys', status:'CHANGED', detail:'Flip the Redis flag. Code already exists and is beat-scheduled.', file:'promote_digest.py'},
+    {id:'pf-m4', label:'release-tag.yml POSTs its own releases', status:'CHANGED', detail:'New call into the shared intake, see decision 4 below.', file:'release-tag.yml'}
+  ];
+
+  var TARGET_MID = [
+    {id:'intake', label:'POST /api/marketing/release-announce', status:'NEW', detail:'Idempotent per repo+version. Already exists, currently only OrchestKit\'s gated action calls it.', file:'release_announce.py'},
+    {id:'drafts', label:'DRAFT ContentItems + changelogEntry Sanity draft', status:'NEW', detail:'draft_release_posts already composes per-channel drafts per (repo, version). The Sanity draft writer is net-new.', file:'marketing_tasks.py, release_idea.py'},
+    {id:'gate2', label:'HUMAN GATE #1739: 06:00 WhatsApp digest', status:'GATE', detail:'approve -> approve-for-publish ladder. PATCH cannot skip it. This is deliberate (LinkedIn spam incident, 2026-04-15 re-enable with 3 guards), not a defect. No decision below adds a bypass around it.', file:'content.py approval ladder'},
+    {id:'publish', label:'publish_scheduled_content beat, 300s', status:'AUTO', detail:'Runs after approval, unchanged.', file:'_publish.py, _schedule.py:48'}
+  ];
+
+  var TARGET_LEAVES = [
+    {id:'x-post', label:'X via TwitterAdapter, @yonyon2ai', status:'AUTO', detail:'Nothing new to build. TwitterAdapter + twitter_guard + publish beat are live. The missing piece was only that release drafts never reached the queue.', file:'twitter.py, twitter_guard.py'},
+    {id:'other-adapters', label:'Dev.to / Hashnode / Substack / Threads', status:'AUTO', detail:'Same adapters already used for other content.', file:'_publish.py'},
+    {id:'sanity-publish', label:'Sanity publish -> yonyon.ai/news', status:'NEW', detail:'Wires the dormant changelogEntry Sanity schema: a writer that creates a draft doc per release, plus a page/section that queries it.', file:'hq-ext:hq-publish flow, dry_run default'}
+  ];
+
+  var TARGET_SIDE = [
+    {id:'notebooklm', label:'release:published -> NotebookLM notebook + podcast', status:'MANUAL', detail:'CI-trigger hq-ext:hq-release-notebook, then an explicit notebook_share_public step and an embed in the release notes. See decision 5.', file:'src/skills/release-sync/SKILL.md'},
+    {id:'waha', label:'WAHA self-notify, operator-only', status:'NEW', detail:'One WAHA sendText on release:published, self-chat, not public. No gate needed. Reuses the cd-hetzner failure-step pattern on the success side.', file:'WAHA sendText pattern'}
+  ];
+
+  var ALL_TARGET_NODES = [].concat(TARGET_OK, TARGET_PF, TARGET_MID, TARGET_LEAVES, TARGET_SIDE);
+
+  // ---------------------------------------------------------------
+  // DECISIONS
+  // ---------------------------------------------------------------
+  var DECISIONS = [
+    {
+      id:'d1',
+      title:'1. Announce alphas, or wait for 10.0.0 GA?',
+      context:'Widening the gate now exercises the whole rail during alpha, drafts are cheap and human-gated. Keeping the X.Y.0 gate means silence until GA. A middle path fires only on an explicit announce label.',
+      target:'ok-m5',
+      options:[
+        {id:'wait', label:'Wait for GA', badge:'gated: X.Y.0 only, silent through alpha', dim:true},
+        {id:'widen', label:'Widen to alphas now', badge:'fires on every alpha release', hl:true, def:true},
+        {id:'label', label:'Label-gated', badge:'fires only with an announce label'}
+      ],
+      extra:{'intake':{whenNot:['wait'], badge:'receives alpha drafts'}, whenIs:{'wait':{node:'intake', badge:'never reached during alpha', dim:true}}}
+    },
+    {
+      id:'d2',
+      title:'2. X API tier for @yonyon2ai?',
+      context:'Free tier: 1,500 posts/month, self-capped 50/day, HTTP 402 permanently flips items to manual-copy. Fine for release cadence today. Standing rule: no paid spend without explicit consent.',
+      target:'x-post',
+      options:[
+        {id:'free', label:'Free tier (current)', badge:'1,500/mo, 50/day cap, 402 -> manual-copy', def:true},
+        {id:'paid', label:'Paid tier', badge:'no cap, requires spend approval', hl:true}
+      ]
+    },
+    {
+      id:'d3',
+      title:'3. Approve per-post, or per-release?',
+      context:'The #1739 ladder gates each ContentItem individually. A release produces 5+ drafts across channels. One digest-card approval could batch-approve the whole set, or per-item approval stays as is.',
+      target:'gate2',
+      options:[
+        {id:'per-item', label:'Per-item approval (current)', badge:'5+ separate approve taps per release', def:true},
+        {id:'per-release', label:'Per-release batch approval', badge:'1 tap approves the whole release', hl:true}
+      ]
+    },
+    {
+      id:'d4',
+      title:'4. Unified vs per-repo announce?',
+      context:'Route platform\'s own releases through the same /api/marketing/release-announce intake, one pipeline, idempotent per repo+version, or keep platform Slack-only. The intake was built for multi-repo use.',
+      target:'pf-m4',
+      options:[
+        {id:'slack-only', label:'Platform stays Slack-only', badge:'stops at GitHub, no announce', dim:true},
+        {id:'unified', label:'Unified intake', badge:'POSTs to the shared intake', hl:true, def:true}
+      ],
+      extra:{whenIs:{'slack-only':{node:'intake', badge:'orchestkit-only'}, 'unified':{node:'intake', badge:'multi-repo, idempotent'}}}
+    },
+    {
+      id:'d5',
+      title:'5. How public is the NotebookLM output?',
+      context:'Today, private by design. This also settles whether release-sync moves into CI or stays a manual post-tag ritual.',
+      target:'notebooklm',
+      options:[
+        {id:'private', label:'Stay private', badge:'operator study aid, manual trigger', def:true},
+        {id:'public', label:'Public + embed', badge:'CI-triggered, share_public, embedded in changelog', hl:true}
+      ]
+    }
+  ];
+
+  var decisionState = {};
+  DECISIONS.forEach(function(d){
+    var def = d.options.filter(function(o){return o.def;})[0] || d.options[0];
+    decisionState[d.id] = def.id;
+  });
+
+  // ---------------------------------------------------------------
+  // RENDER: node card
+  // ---------------------------------------------------------------
+  function nodeCard(n, extraClass){
+    var classes = 'node' + (extraClass ? ' '+extraClass : '');
+    if(n.status === 'GATE'){ classes += ' gate-node pulse'; }
+    var badgeHtml = n._badge ? '<div class="n-badge'+(n._hl?' hl':'')+'">'+esc(n._badge)+'</div>' : '';
+    return '<button class="'+classes+(n._dim?' dim':'')+(n._hl?' hl-effect':'')+'" data-id="'+n.id+'">'+
+      '<div class="n-top"><span class="n-label">'+esc(n.label)+'</span><span class="status-chip '+n.status+'">'+n.status+'</span></div>'+
+      badgeHtml+
+    '</button>';
+  }
+
+  function esc(s){
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function stack(nodes, extraClass){
+    return nodes.map(function(n, i){
+      return nodeCard(n, extraClass) + (i < nodes.length-1 ? '<div class="arrow-down">&#8595;</div>' : '');
+    }).join('');
+  }
+
+  // ---------------------------------------------------------------
+  // RENDER: today flow
+  // ---------------------------------------------------------------
+  function renderToday(){
+    var html = '<div class="flow-cols">' +
+      '<div class="flow-col"><h4>OrchestKit, public plugin</h4><div class="flow-stack">'+stack(TODAY_OK)+'</div></div>'+
+      '<div class="flow-col"><h4>Platform, prod at Hetzner</h4><div class="flow-stack">'+stack(TODAY_PF)+'</div></div>'+
+    '</div>';
+    document.getElementById('flowToday').innerHTML = html;
+  }
+
+  // ---------------------------------------------------------------
+  // RENDER: target flow (annotated by decisions)
+  // ---------------------------------------------------------------
+  function computeOverrides(){
+    var overrides = {}; // nodeId -> {badge, hl, dim}
+    DECISIONS.forEach(function(d){
+      var chosen = decisionState[d.id];
+      var opt = d.options.filter(function(o){return o.id === chosen;})[0];
+      if(opt){
+        overrides[d.target] = {badge: opt.badge, hl: !!opt.hl, dim: !!opt.dim};
+      }
+      if(d.extra && d.extra.whenIs && d.extra.whenIs[chosen]){
+        var ex = d.extra.whenIs[chosen];
+        overrides[ex.node] = {badge: ex.badge, hl: !!ex.hl, dim: !!ex.dim};
+      }
+    });
+    return overrides;
+  }
+
+  function applyOverrides(list, overrides){
+    return list.map(function(n){
+      var copy = {};
+      for(var k in n){ copy[k] = n[k]; }
+      var ov = overrides[n.id];
+      if(ov){
+        copy._badge = ov.badge;
+        copy._hl = ov.hl;
+        copy._dim = ov.dim;
+      }
+      return copy;
+    });
+  }
+
+  function renderTarget(){
+    var overrides = computeOverrides();
+    var ok = applyOverrides(TARGET_OK, overrides);
+    var pf = applyOverrides(TARGET_PF, overrides);
+    var mid = applyOverrides(TARGET_MID, overrides);
+    var leaves = applyOverrides(TARGET_LEAVES, overrides);
+    var side = applyOverrides(TARGET_SIDE, overrides);
+
+    var html = '<div class="flow-cols">'+
+      '<div class="flow-col"><h4>OrchestKit source</h4><div class="flow-stack">'+stack(ok)+'</div></div>'+
+      '<div class="flow-col"><h4>Platform source</h4><div class="flow-stack">'+stack(pf)+'</div></div>'+
+    '</div>'+
+    '<div class="merge-note">both tracks merge into the shared intake &#8595;</div>'+
+    '<div class="funnel">'+
+      nodeCard(mid[0]) + '<div class="arrow-down">&#8595;</div>' +
+      nodeCard(mid[1]) + '<div class="arrow-down">&#8595;</div>' +
+      nodeCard(mid[2]) + '<div class="arrow-down">&#8595;</div>' +
+      nodeCard(mid[3]) + '<div class="arrow-down">&#8595;</div>' +
+      '<div class="leaf-row">'+ leaves.map(function(n){return nodeCard(n);}).join('') +'</div>'+
+      '<div class="merge-note" style="margin-top:16px;">parallel, does not block the gate</div>'+
+      '<div class="side-row">'+ side.map(function(n){return nodeCard(n);}).join('') +'</div>'+
+    '</div>';
+
+    document.getElementById('flowTarget').innerHTML = html;
+  }
+
+  // ---------------------------------------------------------------
+  // detail panel + click handling
+  // ---------------------------------------------------------------
+  var ALL_NODES = {};
+  [].concat(TODAY_OK, TODAY_PF, TARGET_OK, TARGET_PF, TARGET_MID, TARGET_LEAVES, TARGET_SIDE).forEach(function(n){
+    ALL_NODES[n.id] = n;
+  });
+
+  function showDetail(id){
+    var n = ALL_NODES[id];
+    if(!n) return;
+    var fileHtml = n.file ? '<div class="d-file">'+esc(n.file)+'</div>' : '';
+    document.getElementById('detailPanel').innerHTML =
+      '<div class="d-head"><span class="d-label">'+esc(n.label)+'</span><span class="status-chip '+n.status+'">'+n.status+'</span></div>'+
+      '<p style="margin:0;">'+esc(n.detail)+'</p>'+fileHtml;
+    document.querySelectorAll('.node').forEach(function(el){ el.classList.remove('selected'); });
+    document.querySelectorAll('.node[data-id="'+id+'"]').forEach(function(el){ el.classList.add('selected'); });
+  }
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.node');
+    if(btn){ showDetail(btn.getAttribute('data-id')); }
+  });
+
+  // ---------------------------------------------------------------
+  // view toggle
+  // ---------------------------------------------------------------
+  var currentView = 'today';
+  function setView(view){
+    currentView = view;
+    document.querySelectorAll('#viewToggle button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view') === view);
+    });
+    document.getElementById('flowToday').style.display = view === 'today' ? '' : 'none';
+    document.getElementById('flowTarget').style.display = view === 'target' ? '' : 'none';
+  }
+  document.getElementById('viewToggle').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-view]');
+    if(btn){ setView(btn.getAttribute('data-view')); }
+  });
+
+  // ---------------------------------------------------------------
+  // decisions render
+  // ---------------------------------------------------------------
+  function renderDecisions(){
+    var html = DECISIONS.map(function(d){
+      var opts = d.options.map(function(o){
+        var active = decisionState[d.id] === o.id;
+        return '<button class="opt-btn'+(active?' active':'')+'" data-decision="'+d.id+'" data-option="'+o.id+'">'+esc(o.label)+'</button>';
+      }).join('');
+      return '<div class="decision-card">'+
+        '<div class="d-title">'+esc(d.title)+'</div>'+
+        '<div class="d-context">'+esc(d.context)+'</div>'+
+        '<div class="opt-row">'+opts+'</div>'+
+      '</div>';
+    }).join('');
+    document.getElementById('decisionGrid').innerHTML = html;
+  }
+
+  document.getElementById('decisionGrid') && document.addEventListener('click', function(e){
+    var opt = e.target.closest('.opt-btn');
+    if(!opt) return;
+    var dId = opt.getAttribute('data-decision');
+    var oId = opt.getAttribute('data-option');
+    decisionState[dId] = oId;
+    renderDecisions();
+    renderTarget();
+    setView('target');
+    document.getElementById('flow').scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
+  });
+
+  // ---------------------------------------------------------------
+  // backlog
+  // ---------------------------------------------------------------
+  var BACKLOG = [
+    {dir:'inward', effort:'S', upgrade:'Flip bot_promote_digest in prod Redis, the ship-with-story digest is already written and beat-scheduled', file:'apps/api/app/workers/hq_bot/promote_digest.py'},
+    {dir:'inward', effort:'S', upgrade:'Add owner-chat-id as a platform secret so prod-verify failures page the phone', file:'platform/.github/workflows/prod-verify.yml:108-111'},
+    {dir:'inward', effort:'S', upgrade:'Add a success-side notify step to cd-hetzner, one WAHA/Slack line from CI', file:'platform/.github/workflows/cd-hetzner.yml'},
+    {dir:'inward', effort:'M', upgrade:'Trigger ork:release-sync from CI on release:published', file:'orchestkit/.github/workflows/release-please.yml, src/skills/release-sync/SKILL.md'},
+    {dir:'inward', effort:'M', upgrade:'Key the x_draft producer to deploy-history instead of merged PRs', file:'apps/api/app/workers/x_draft_tasks.py'},
+    {dir:'inward', effort:'M', upgrade:'Link release-video MP4/GIF from the changelog page', file:'docs/site/lib/generated/changelog-data.ts, scripts/generate-changelog-data.js'},
+    {dir:'inward', effort:'L', upgrade:'Auto-append released playgrounds to /lab', file:'docs/site/lab-manifest.json, docs/site/scripts/generate-lab-data.mjs'},
+    {dir:'outward', effort:'S', upgrade:'Widen release-announce.yml to alphas/label, platform POSTs its own releases too', file:'gate: none needed, produces drafts only'},
+    {dir:'outward', effort:'S', upgrade:'Reuse draft_release_posts for the release notes digest', file:'marketing_tasks.py, release_idea.py, already exists'},
+    {dir:'outward', effort:'S', upgrade:'X post via @yonyon2ai, nothing new to build', file:'gate: approve-for-publish, before the 300s publisher'},
+    {dir:'outward', effort:'S', upgrade:'orchestkit.yonyon.ai RSS/atom route from the same changelog-data.ts', file:'gate: none, publish-on-merge like the page itself'},
+    {dir:'outward', effort:'M', upgrade:'Wire the dormant changelogEntry Sanity schema for yonyon.ai/news', file:'gate: Sanity draft to publish, hq-ext:hq-publish, dry_run default'},
+    {dir:'outward', effort:'M', upgrade:'CI-trigger hq-ext:hq-release-notebook + add notebook_share_public', file:'gate: operator confirm before share-public'},
+    {dir:'outward', effort:'S', upgrade:'WhatsApp self-notify on release:published, self-chat, not public', file:'gate: none, operator-only channel'}
+  ];
+
+  function renderBacklog(filter){
+    var body = document.getElementById('backlogBody');
+    body.innerHTML = BACKLOG.map(function(row){
+      var hidden = (filter !== 'all' && row.dir !== filter) ? ' hidden-row' : '';
+      return '<tr class="'+row.dir+hidden+'">'+
+        '<td><span class="effort-pill '+row.effort+'">'+row.effort+'</span></td>'+
+        '<td><span class="dir-pill">'+row.dir+'</span></td>'+
+        '<td>'+esc(row.upgrade)+'</td>'+
+        '<td><code>'+esc(row.file)+'</code></td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  document.querySelectorAll('.filter-chips .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.filter-chips .chip').forEach(function(c){c.classList.remove('active');});
+      chip.classList.add('active');
+      renderBacklog(chip.getAttribute('data-filter'));
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // init
+  // ---------------------------------------------------------------
+  renderToday();
+  renderTarget();
+  renderDecisions();
+  renderBacklog('all');
+
+})();
+</script>
+
+</body>
+</html>

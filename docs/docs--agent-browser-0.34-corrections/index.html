@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#3534: agent-browser docs corrected against live 0.34.0</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e;
+    --red: #f85149; --green: #3fb950; --amber: #d29922; --blue: #58a6ff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 2rem 1rem; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 1px solid var(--border); padding-bottom: .35rem; }
+  .sub { color: var(--dim); margin-bottom: 1.5rem; }
+  .filter { display: flex; gap: .5rem; margin: .75rem 0; flex-wrap: wrap; }
+  .filter button { background: var(--panel); border: 1px solid var(--border); color: var(--dim); padding: .3rem .8rem; border-radius: 6px; cursor: pointer; font-size: .8rem; font-family: var(--mono); }
+  .filter button.on { color: var(--blue); border-color: var(--blue); }
+  table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  .mono { font-family: var(--mono); font-size: .78rem; }
+  .wrong { color: var(--red); text-decoration: line-through; text-decoration-color: rgba(248,81,73,.6); }
+  .right { color: var(--green); }
+  .tag { display: inline-block; padding: .02rem .45rem; border-radius: 999px; font-size: .72rem; font-family: var(--mono); background: rgba(88,166,255,.12); color: var(--blue); white-space: nowrap; }
+  .note { background: var(--panel); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: .75rem 1rem; margin: .75rem 0; font-size: .88rem; }
+  footer { color: var(--dim); font-size: .78rem; margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>#3534 &middot; docs said commands that agent-browser 0.34.0 does not have</h1>
+  <p class="sub">Skills and agents taught command forms the CLI rejects: nonexistent verbs, flags that are not flags, a <span class="mono">find</span> grammar written backwards. Every correction below was verified against the installed <span class="mono">agent-browser 0.34.0 --help</span> (and per-command help) before editing. An agent copying the old docs got a CLI error, or silently wrong behavior, at test time.</p>
+
+  <h2>Wrong form &rarr; real form</h2>
+  <div class="filter" id="filter"></div>
+  <table>
+    <thead><tr><th>defect</th><th>docs said</th><th>0.34.0 reality</th><th>fixed in</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <h2>The self-contradiction that motivated the sweep</h2>
+  <div class="note"><span class="mono">skills/expect/SKILL.md</span> taught <span class="mono">find --role button "X"</span> while its own executor, <span class="mono">agents/expect-agent.md</span>, already used the correct grammar. The same inverted form was then found by sweep in <span class="mono">test-generator</span>, <span class="mono">frontend-ui-developer</span>, and <span class="mono">web-research-analyst</span>. When a skill and its executor disagree, one of them is training agents to fail.</div>
+
+  <footer>PR playground for branch docs/agent-browser-0.34-corrections &middot; OrchestKit #3534 &middot; self-contained, no external resources</footer>
+</div>
+
+<script>
+  const ROWS = [
+    ["F3 nonexistent command", "wait-for-network-idle", "wait --load networkidle", "verify/references/visual-capture.md"],
+    ["F3 nonexistent command", "wait-for-navigation", "wait --load networkidle", "verify/references/visual-capture.md"],
+    ["F3 wrong flags", "screenshot --full-page --path shot.png", "screenshot [selector] [path] --full  (path is positional, no --path)", "verify/references/visual-capture.md"],
+    ["F4 trace path on wrong end", "trace start trace.zip", "trace start; trace stop [path]  (output: DevTools trace JSON, not Playwright .zip)", "test-generator, frontend-ui-developer, browser-tools/rules/browser-debug-recording.md"],
+    ["F5 find grammar inverted", "find --role button \"X\"", "find <locator> <value> [action] [text]  with --name as accessible-name filter", "expect/SKILL.md, test-generator, frontend-ui-developer, web-research-analyst"]
+  ];
+  let cat = "all";
+  const CATS = ["all", "F3", "F4", "F5"];
+  function setCat(c) { cat = c; render(); }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function render() {
+    document.getElementById("filter").innerHTML = CATS.map(c =>
+      "<button class='" + (cat === c ? "on" : "") + "' onclick=\"setCat('" + c + "')\">" + c + "</button>").join("");
+    document.getElementById("tbody").innerHTML = ROWS
+      .filter(r => cat === "all" || r[0].startsWith(cat))
+      .map(r =>
+        "<tr><td><span class='tag'>" + esc(r[0]) + "</span></td>" +
+        "<td class='mono wrong'>" + esc(r[1]) + "</td>" +
+        "<td class='mono right'>" + esc(r[2]) + "</td>" +
+        "<td class='mono'>" + esc(r[3]) + "</td></tr>").join("");
+  }
+  render();
+</script>
+</body>
+</html>

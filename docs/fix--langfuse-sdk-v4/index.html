@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Langfuse SDK v4 eval harness</title>
+<style>
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:#0f1419; color:#e7e9ea; }
+  main { max-width:760px; margin:0 auto; padding:28px 18px 64px; }
+  button { margin:4px 4px 4px 0; padding:8px 12px; border-radius:8px; border:1px solid #38444d; background:#15202b; color:#e7e9ea; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:#1d9bf0; color:#1d9bf0; }
+  pre { background:#000; border:1px solid #38444d; border-radius:10px; padding:12px; white-space:pre-wrap; }
+  .bad { color:#f4212e; }
+  .ok { color:#00ba7c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Eval harness must fail on zero</h1>
+  <p>Issue 2971. A Langfuse v4 run that processed nothing used to exit 0. Pick a result.</p>
+  <div>
+    <button type="button" data-k="ok" aria-pressed="true">12 items, 1 run</button>
+    <button type="button" data-k="zero" aria-pressed="false">0 items, 0 runs</button>
+  </div>
+  <pre id="out"></pre>
+</main>
+<script>
+var out = document.getElementById("out");
+function show(key) {
+  document.querySelectorAll("button").forEach(function (b) {
+    b.setAttribute("aria-pressed", String(b.getAttribute("data-k") === key));
+  });
+  if (key === "ok") {
+    out.className = "ok";
+    out.textContent = "items=12 dataset_runs=1\nexit 0";
+  } else {
+    out.className = "bad";
+    out.textContent = "RuntimeError: eval no-op: items=0 dataset_runs=0\nexit 1";
+  }
+}
+document.querySelectorAll("button").forEach(function (b) {
+  b.addEventListener("click", function () { show(b.getAttribute("data-k")); });
+});
+show("ok");
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Function Hooks adoption gate</title>
+  <meta name="description" content="Explore the evidence states that keep OrchestKit Function Hooks work watch-only until Claude Code ships a public contract.">
+  <style>
+    :root { --bg:#11100d; --panel:#201d18; --ink:#fff8e9; --muted:#c7bda8; --line:#4d4537; --accent:#ffc857; --go:#72e3ad; --stop:#ff8b7e; color-scheme:dark; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:linear-gradient(125deg,#282014 0,transparent 36rem),var(--bg); font:1rem/1.55 ui-sans-serif,system-ui,sans-serif; }
+    main { width:min(70rem,calc(100% - 2rem)); margin:auto; padding:3rem 0; }
+    .eyebrow { color:var(--accent); font-size:.78rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:.4rem 0 .8rem; font-size:clamp(2.2rem,6vw,4.8rem); line-height:.98; }
+    .intro { max-width:68ch; color:var(--muted); }
+    .panel { margin-top:2rem; padding:1.25rem; border:1px solid var(--line); border-radius:1rem; background:var(--panel); }
+    .states { display:flex; flex-wrap:wrap; gap:.65rem; }
+    button { padding:.65rem .9rem; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:#2d281f; cursor:pointer; font:inherit; }
+    button:hover,button[aria-pressed="true"] { border-color:var(--accent); background:#4a391b; }
+    button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+    .verdict { display:grid; grid-template-columns:minmax(12rem,.7fr) 2fr; gap:1rem; margin-top:1.25rem; }
+    .signal,.actions { padding:1rem; border:1px solid var(--line); border-radius:.8rem; background:#171510; }
+    .signal strong { display:block; margin:.4rem 0; font-size:1.55rem; color:var(--stop); }
+    .signal.go strong { color:var(--go); }
+    ul { margin:.55rem 0 0; padding-left:1.2rem; }
+    li { margin:.35rem 0; }
+    code { color:#ffe29a; }
+    .note { color:var(--muted); }
+    @media (max-width:44rem) { .verdict { grid-template-columns:1fr; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Function Hooks · evidence gate</p>
+    <h1>Observed is not shipped.</h1>
+    <p class="intro">A disabled prototype appeared in Claude Code 2.1.260 and 2.1.261, but OrchestKit needs a public contract before adopting it. Select the upstream evidence to see which work is allowed.</p>
+    <section class="panel" aria-labelledby="gate-title">
+      <h2 id="gate-title">Upstream evidence</h2>
+      <div class="states" role="group" aria-label="Function Hooks evidence state">
+        <button type="button" data-state="prototype" aria-pressed="true">Private prototype</button>
+        <button type="button" data-state="closed" aria-pressed="false">Issue closed, no shipment</button>
+        <button type="button" data-state="public" aria-pressed="false">Publicly shipped contract</button>
+      </div>
+      <div class="verdict">
+        <article class="signal" id="signal"><small>Gate verdict</small><strong>WATCH ONLY</strong><span id="reason">Disabled-by-default internals are not a public API.</span></article>
+        <article class="actions"><strong>Permitted OrchestKit work</strong><ul id="actions"><li>Record observed versions and evidence.</li><li>Keep handlers Function-Hooks-ready.</li><li>Do not add modules config, rollout flags, runtime adoption, or support-floor changes.</li></ul></article>
+      </div>
+      <p class="note">Public shipment and upstream issue closure are separate outcomes. Closing an issue without a shipped contract does not fire the adoption gate.</p>
+    </section>
+  </main>
+  <script>
+    const copy = {
+      prototype: { verdict:'WATCH ONLY', reason:'Disabled-by-default internals are not a public API.', go:false, actions:['Record observed versions and evidence.','Keep handlers Function-Hooks-ready.','Do not add modules config, rollout flags, runtime adoption, or support-floor changes.'] },
+      closed: { verdict:'WATCH ONLY', reason:'Issue closure without shipment is a distinct, non-adoption outcome.', go:false, actions:['Record the upstream closure separately.','Preserve the existing watch gate.','Wait for public documentation and a supported configuration surface.'] },
+      public: { verdict:'REASSESS', reason:'A public contract fires the gate; it does not pre-approve implementation.', go:true, actions:['Verify public docs and supported versions.','Open a scoped adoption plan with tests and rollback.','Revisit configuration and the support floor using fresh evidence.'] }
+    };
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    const signal = document.getElementById('signal');
+    const reason = document.getElementById('reason');
+    const actions = document.getElementById('actions');
+    function render(state) {
+      const item = copy[state];
+      signal.querySelector('strong').textContent = item.verdict;
+      signal.classList.toggle('go', item.go);
+      reason.textContent = item.reason;
+      actions.replaceChildren(...item.actions.map((text) => { const li=document.createElement('li'); li.textContent=text; return li; }));
+      buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.state === state)));
+    }
+    buttons.forEach((button) => button.addEventListener('click', () => render(button.dataset.state)));
+  </script>
+</body>
+</html>

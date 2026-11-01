@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install matrix — Claude Code, Cursor, skills.sh, Codex</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif;padding:28px}
+    main{max-width:880px;margin:auto}h1{margin:0 0 6px}.sub{color:var(--muted);line-height:1.5}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:24px 0}
+    .card,section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px}
+    .card button{width:100%;background:none;border:0;color:var(--text);text-align:left;cursor:pointer;font:inherit}
+    .card.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+    .tag{font:12px var(--mono);color:var(--blue)}.ok{color:var(--green)}.warn{color:var(--amber)}.no{color:var(--red)}
+    code,pre{font-family:var(--mono)}pre{white-space:pre-wrap;background:#010409;border:1px solid var(--line);border-radius:7px;padding:13px;line-height:1.5}
+    li{margin:.45rem 0}footer{color:var(--muted);font-size:13px;margin-top:18px}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+    th{color:var(--muted);font-size:11px;text-transform:uppercase}
+  </style>
+</head>
+<body><main>
+  <h1>One plugin. Four first commands.</h1>
+  <p class="sub">This PR kills the install zoo: README, docs, and skills.sh all pointed at different first commands, doctor still showed <code>ork v8.63.2</code> / 113 skills, and Codex had no <code>$ork-implement</code> so skills.sh 404ed it.</p>
+  <div class="grid" id="modes">
+    <div class="card active" data-mode="cc"><button><span class="tag">Claude Code</span><br>Full plugin + hooks</button></div>
+    <div class="card" data-mode="cursor"><button><span class="tag">Cursor</span><br>Same ork, no CC hooks</button></div>
+    <div class="card" data-mode="skills"><button><span class="tag">skills.sh</span><br>Starter 12, not 298</button></div>
+    <div class="card" data-mode="codex"><button><span class="tag">Codex</span><br>$ork-implement exists</button></div>
+  </div>
+  <section>
+    <div class="tag" id="label">Claude Code</div>
+    <h2 id="title">Marketplace add, then install ork</h2>
+    <p id="body">The full plugin: 106 skills, 36 agents, 171 hooks. Doctor prints the installed version from <code>claude plugins</code>, not a frozen v8.x sample.</p>
+    <pre id="command">/plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+# or: claude install orchestkit/ork</pre>
+    <ul id="points">
+      <li><span class="ok">✓</span> Hooks fire without being asked</li>
+      <li><span class="ok">✓</span> <code>/ork:implement</code> is the Claude command</li>
+      <li><span class="no">✗</span> Do not quote skills.sh 29.4K as unique users</li>
+    </ul>
+  </section>
+  <h2>What 404ed</h2>
+  <section>
+    <table>
+      <thead><tr><th>URL / command</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td><code>skills.sh/.../ork-implement</code></td><td class="no">404</td><td class="ok">Codex skill ships</td></tr>
+        <tr><td><code>skills.sh/.../implement</code></td><td class="ok">Claude skill, always existed</td><td class="ok">still the CC name</td></tr>
+        <tr><td>npx skills add (no -s)</td><td class="warn">298 SKILL.md firehose</td><td>starter 12 is the advertised path</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <footer>Click a host. Superpowers is process (official marketplace). OrchestKit is production patterns + hooks. Complementary, not a rival listing.</footer>
+</main>
+<script>
+const data={
+  cc:{
+    label:'Claude Code',
+    title:'Marketplace add, then install ork',
+    body:'The full plugin: 106 skills, 36 agents, 171 hooks. Doctor prints the installed version from claude plugins, not a frozen v8.x sample.',
+    command:'/plugin marketplace add yonatangross/orchestkit\n/plugin install ork\n# or: claude install orchestkit/ork',
+    points:['<span class="ok">✓</span> Hooks fire without being asked','<span class="ok">✓</span> /ork:implement is the Claude command','<span class="no">✗</span> Do not quote skills.sh 29.4K as unique users']
+  },
+  cursor:{
+    label:'Cursor',
+    title:'Marketplace yonatangross/orchestkit, enable ork, new chat',
+    body:'Same plugins/ork tree Claude Code installs. Claude hook scripts are not registered (they need CLAUDE_PLUGIN_ROOT). A leftover SKILL.md from Include third-party Plugins is not an install.',
+    command:'Settings → Plugins / marketplaces → yonatangross/orchestkit\nenable ork\nopen a NEW chat',
+    points:['<span class="ok">✓</span> Full skill catalog, not a five-skill fork','<span class="no">✗</span> Hooks stay in the consuming project .cursor/hooks.json','<span class="warn">→</span> Existing threads will not pick the plugin up']
+  },
+  skills:{
+    label:'skills.sh',
+    title:'Starter 12. Not the indexer firehose.',
+    body:'www.skills.sh/yonatangross/orchestkit lists every SKILL.md it can see (~298). That is skill-install events, not unique people, and not the 106 plugin skills.',
+    command:'npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember',
+    points:['<span class="ok">✓</span> implement is the CC skill URL','<span class="no">✗</span> ork-implement was a Codex-shaped 404','<span class="warn">→</span> npx skills add with no -s is the firehose']
+  },
+  codex:{
+    label:'Codex',
+    title:'ork-codex now has six workflows',
+    body:'The pack already had brainstorm, explore, assess, verify, review-pr, plus ork_implementer as a role. The missing piece was the $ork-implement skill, which skills.sh indexed as a 404.',
+    command:'codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex\ncodex plugin add ork-codex@orchestkit-codex\n$ork-implement',
+    points:['<span class="ok">✓</span> src/codex and plugins/ork-codex stay in diff lockstep','<span class="ok">✓</span> test-codex-plugin.sh expects 6 skills','<span class="warn">→</span> Superpowers remains the official process plugin']
+  }
+};
+for (const card of document.querySelectorAll('.card')) card.onclick=()=>{
+  document.querySelector('.active').classList.remove('active');
+  card.classList.add('active');
+  const d=data[card.dataset.mode];
+  document.querySelector('#label').textContent=d.label;
+  document.querySelector('#title').textContent=d.title;
+  document.querySelector('#body').textContent=d.body;
+  document.querySelector('#command').textContent=d.command;
+  document.querySelector('#points').innerHTML=d.points.map(p=>'<li>'+p+'</li>').join('');
+};
+</script>
+</body>
+</html>

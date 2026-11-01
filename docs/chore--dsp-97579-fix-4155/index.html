@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seven AbortErrors that came from a card entrance</title>
+<meta name="description" content="How the host install picker tests picked up seven unhandled AbortError rejections from a spring entrance, and how a prefers-reduced-motion stub in beforeEach silenced them without touching the component.">
+<style>
+  :root {
+    --pg-bg:hsl(232 26% 7%); --pg-ink:hsl(220 18% 93%); --pg-muted:hsl(220 12% 64%);
+    --pg-faint:hsl(220 10% 46%); --pg-line:hsl(0 0% 100% / 0.10);
+    --pg-glass:hsl(0 0% 100% / 0.05); --pg-glass-edge:hsl(0 0% 100% / 0.18);
+    --pg-accent:hsl(248 84% 68%); --pg-rose:hsl(345 76% 63%); --pg-emerald:hsl(160 68% 45%);
+    --pg-warm:hsl(38 95% 60%); --pg-r-md:16px; --pg-dur-fast:200ms;
+    --pg-ease:cubic-bezier(.2,.8,.25,1);
+    --pg-font:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    --pg-mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding-block:3rem;padding-inline:1.5rem;font-family:var(--pg-font);
+       color:var(--pg-ink);background:var(--pg-bg);line-height:1.6}
+  main{max-inline-size:50rem;margin-inline:auto}
+  h1{font-size:1.5rem;line-height:1.25;margin-block-end:.25rem}
+  .sub{color:var(--pg-muted);margin-block-start:0;font-size:.95rem}
+  .card{border:1px solid var(--pg-line);background:var(--pg-glass);
+        border-radius:var(--pg-r-md);padding:1.1rem 1.25rem;margin-block:1.25rem}
+  h2{font-size:1.02rem;margin-block:0 .7rem}
+  pre{font-family:var(--pg-mono);font-size:.78rem;overflow-x:auto;background:hsl(232 30% 4%);
+      border:1px solid var(--pg-line);border-radius:10px;padding:.85rem 1rem;margin:0}
+  .bad{color:var(--pg-rose)} .good{color:var(--pg-emerald)} .warn{color:var(--pg-warm)} .dim{color:var(--pg-faint)}
+  a{color:var(--pg-accent)} code{font-family:var(--pg-mono);font-size:.87em}
+  button{font:inherit;font-size:.85rem;color:var(--pg-ink);background:var(--pg-glass);
+         border:1px solid var(--pg-glass-edge);border-radius:9px;padding:.5rem .85rem;
+         cursor:pointer;transition:background var(--pg-dur-fast) var(--pg-ease)}
+  button:hover{background:hsl(0 0% 100% / 0.10)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  label.toggle{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;cursor:pointer;
+               border:1px solid var(--pg-glass-edge);border-radius:9px;padding:.5rem .85rem}
+  .toolbar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-block:1rem}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem;
+        min-block-size:5.2rem;padding:.65rem;border:1px dashed var(--pg-line);border-radius:12px}
+  .host-card{border:1px solid var(--pg-glass-edge);background:hsl(0 0% 100% / 0.04);
+             border-radius:10px;padding:.55rem .6rem;font-size:.8rem;font-weight:600}
+  .host-card small{display:block;font-weight:400;color:var(--pg-muted);font-size:.68rem;margin-block-start:.15rem}
+  #log{font-family:var(--pg-mono);font-size:.75rem;white-space:pre-wrap;background:hsl(232 30% 4%);
+       border:1px solid var(--pg-line);border-radius:10px;padding:.85rem 1rem;min-block-size:6.5rem;
+       max-block-size:16rem;overflow-y:auto;margin:0}
+  .verdict{font-size:.95rem;border-inline-start:3px solid var(--pg-emerald);
+           padding:.65rem .9rem;background:hsl(160 68% 45% / 0.08);border-radius:0 10px 10px 0}
+  footer{color:var(--pg-faint);font-size:.82rem;margin-block-start:2rem}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Seven AbortErrors that came from a card entrance</h1>
+  <p class="sub">GH-4155: the docs site CI job was green on 763 tests and still failed the step,
+    because vitest exited nonzero on seven unhandled rejections of
+    <code>AbortError: The animation was canceled</code>. This page replays the mechanism and the fix.</p>
+
+  <div class="card">
+    <h2>The mechanism, in one paragraph</h2>
+    <p>PR #4153 made each host card start its entrance from a post-mount
+      <code>animate</code> (a <code>mounted</code> state set in <code>useEffect</code>), so the static
+      HTML never bakes in invisible cards. In a browser that is a spring entrance. In the vitest run the
+      environment is happy-dom, whose <code>Element.animate</code> is real enough that motion-dom starts
+      actual Web Animations: seven cards, 500 ms each, staggered by 50 ms. When the test ends,
+      <code>@testing-library</code> unmounts the tree, motion cancels the animations mid-flight, and each
+      cancelled <code>Animation.finished</code> promise rejects. Nobody in the component awaits that
+      promise, so the rejection surfaces as unhandled and vitest counts it in an
+      <code>Errors</code> line that gates the job. It is timing dependent: the same job was green on the
+      PR head, because whether a cancel lands mid-flight depends on how long each test takes.</p>
+  </div>
+
+  <div class="card">
+    <h2>Replay it right here</h2>
+    <p>The grid below mounts the seven host cards with the same keyframes and stagger the real picker
+      uses. The checkbox is the test fix: with <code>prefers-reduced-motion: reduce</code> reported, the
+      component never passes an <code>animate</code> prop, so nothing starts and nothing can be cancelled.
+      Cancel must land mid-flight to produce rejections; wait for the entrance to settle and the finished
+      promises have already resolved.</p>
+    <div class="toolbar">
+      <label class="toggle"><input type="checkbox" id="reduceToggle" checked>
+        prefers-reduced-motion: reduce (the test stub)</label>
+      <button id="mountBtn" type="button">Mount cards</button>
+      <button id="unmountBtn" type="button" disabled>Unmount mid-flight</button>
+      <button id="scenarioBtn" type="button">Full test scenario</button>
+    </div>
+    <div id="grid" role="group" aria-label="Host cards"></div>
+    <p class="dim" style="font-size:.8rem">Rejections caught on this page: <strong id="count">0</strong>.
+      Equivalent vitest summary: <span id="verdictLine" class="good">Errors line absent (0)</span></p>
+    <pre id="log" aria-live="polite">Press Mount cards, then Unmount mid-flight, or run the full scenario.</pre>
+  </div>
+
+  <div class="card">
+    <h2>The fix, test side only</h2>
+    <p>The component is untouched. <code>docs/site/__tests__/host-install-picker.test.tsx</code> installs
+      a <code>matchMedia</code> stub in <code>beforeEach</code> that reports reduce, except for the one test
+      that exists to assert reduced-motion rendering and keeps its own explicit stub. Placement matters:
+      motion initializes a module-global ref from <code>matchMedia</code> on the first
+      <code>useReducedMotion()</code> call and never re-reads it, so the stub has to be in place before the
+      first render of the file, which is exactly what <code>beforeEach</code> guarantees.</p>
+<pre><span class="good">+function reducedMotionMatchMedia(query: string) {
++  return {
++    matches: query.includes("reduce"),
++    media: query,
++    onchange: null,
++    addEventListener: vi.fn(),
++    removeEventListener: vi.fn(),
++    addListener: vi.fn(),
++    removeListener: vi.fn(),
++    dispatchEvent: vi.fn(),
++  } as unknown as MediaQueryList;
++}
+ describe("HostInstallPicker", () => {
+   beforeEach(() => {
+     search = new URLSearchParams();
+     replace.mockClear();
+     vi.mocked(track).mockClear();
++    vi
++      .spyOn(window, "matchMedia")
++      .mockImplementation(reducedMotionMatchMedia);
+   });</span></pre>
+    <p>Cleanup was already covered: <code>docs/site/__tests__/setup.ts</code> registers an explicit
+      <code>afterEach(cleanup)</code>, so the tree unmounts before the next test and no extra hook was
+      needed.</p>
+  </div>
+
+  <div class="card">
+    <h2>The proof</h2>
+    <p>Three consecutive runs of the picker suite after the fix, then one full docs site run:</p>
+<pre>$ npx vitest run -c vitest.site.config.ts __tests__/host-install-picker.test.tsx
+<span class="good">Test Files  1 passed (1)</span>
+<span class="good">     Tests  16 passed (16)</span>   <span class="dim">Duration 590ms</span>
+<span class="good">Test Files  1 passed (1)</span>
+<span class="good">     Tests  16 passed (16)</span>   <span class="dim">Duration 735ms</span>
+<span class="good">Test Files  1 passed (1)</span>
+<span class="good">     Tests  16 passed (16)</span>   <span class="dim">Duration 644ms</span>
+
+$ npx vitest run -c vitest.site.config.ts
+<span class="good">Test Files  64 passed (64)</span>
+<span class="good">     Tests  763 passed (763)</span>  <span class="dim">Duration 10.52s</span></pre>
+    <p>Before the fix the picker run printed <span class="bad">Errors&nbsp;7 errors</span> under the same
+      counts; after it the Errors line is gone from every run.</p>
+  </div>
+
+  <div class="card">
+    <h2>Why not fix the component</h2>
+    <p>Awaiting the finished promises inside <code>host-install.tsx</code>, or gating the entrance on a
+      test-only flag, would put test plumbing into a shipping component for an artifact that only exists
+      under a simulated environment. Reduced motion is a real user preference the component already
+      honors; telling the test environment to report it keeps the simulation honest and the diff inside
+      <code>__tests__</code>.</p>
+  </div>
+
+  <footer>GH-4155 · OrchestKit docs site · every number on this page comes from the verification runs in the PR.</footer>
+</main>
+<script>
+(function() {
+  var HOSTS = [
+    ["Claude Code", "claude"], ["Cursor", "cursor"], ["Codex", "codex"],
+    ["Muse Code", "muse"], ["Pi", "pi"], ["OpenCode", "opencode"], ["Devin", "devin"]
+  ];
+  var grid = document.getElementById("grid");
+  var log = document.getElementById("log");
+  var countEl = document.getElementById("count");
+  var verdictEl = document.getElementById("verdictLine");
+  var mountBtn = document.getElementById("mountBtn");
+  var unmountBtn = document.getElementById("unmountBtn");
+  var scenarioBtn = document.getElementById("scenarioBtn");
+  var reduceToggle = document.getElementById("reduceToggle");
+  var active = [];
+  var rejections = 0;
+
+  function print(line, cls) {
+    var row = document.createElement("span");
+    if (cls) row.className = cls;
+    row.textContent = line + "\n";
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+  }
+  function refresh() {
+    countEl.textContent = String(rejections);
+    if (rejections === 0) {
+      verdictEl.textContent = "Errors line absent (0)";
+      verdictEl.className = "good";
+    } else {
+      verdictEl.textContent = "Errors " + rejections + " errors (job fails)";
+      verdictEl.className = "bad";
+    }
+  }
+  function mount() {
+    unmountAll(true);
+    grid.replaceChildren();
+    active = [];
+    print("$ render(<HostInstallPicker />)", "dim");
+    var reduce = reduceToggle.checked;
+    HOSTS.forEach(function(host, index) {
+      var card = document.createElement("div");
+      card.className = "host-card";
+      card.textContent = host[0];
+      var small = document.createElement("small");
+      small.textContent = "host: " + host[1];
+      card.appendChild(small);
+      grid.appendChild(card);
+      if (reduce) return;
+      var anim = card.animate(
+        [
+          { opacity: 0, transform: "scale(0.8) translateY(20px)" },
+          { opacity: 1, transform: "scale(1.01) translateY(0px)", offset: 0.5 },
+          { opacity: 1, transform: "scale(1) translateY(0px)" }
+        ],
+        { duration: 500, delay: index * 50, easing: "cubic-bezier(0.175,0.885,0.32,1.275)", fill: "backwards" }
+      );
+      active.push(anim);
+      anim.finished.catch(function(err) {
+        rejections += 1;
+        refresh();
+        print("Unhandled Rejection: " + err.name + ": " + err.message, "bad");
+      });
+    });
+    if (reduce) {
+      print("reduce motion reported: no animate prop, 0 animations started", "good");
+    } else {
+      print("7 WAAPI entrance animations started (500ms, 50ms stagger)", "warn");
+    }
+    unmountBtn.disabled = false;
+  }
+  function unmountAll(silent) {
+    active.forEach(function(anim) {
+      try { anim.cancel(); } catch (e) { /* already gone */ }
+    });
+    active = [];
+    unmountBtn.disabled = true;
+    if (!silent) print("$ cleanup(): unmount, motion cancels in-flight animations", "dim");
+  }
+  mountBtn.addEventListener("click", mount);
+  unmountBtn.addEventListener("click", function() { unmountAll(false); });
+  scenarioBtn.addEventListener("click", function() {
+    reduceToggle.checked = false;
+    rejections = 0; refresh();
+    log.replaceChildren();
+    print("== scenario: test without the reduced-motion stub ==", "dim");
+    mount();
+    setTimeout(function() {
+      unmountAll(false);
+      setTimeout(function() {
+        print("== scenario again, with the stub (checkbox on) ==", "dim");
+        reduceToggle.checked = true;
+        mount();
+        setTimeout(function() {
+          unmountAll(false);
+          print("scenario done: stub on means the Errors line never appears", "good");
+        }, 120);
+      }, 120);
+    }, 120);
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

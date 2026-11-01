@@ -1,0 +1,202 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homepage hero PR: before and after</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d1017; color: #e6e8ee; font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  header { padding: 20px 24px 8px; }
+  h1 { margin: 0 0 4px; font-size: 18px; }
+  .sub { color: #98a0b3; margin: 0; }
+  main { display: grid; grid-template-columns: 280px 1fr; gap: 20px; padding: 16px 24px; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .panel { background: #151a24; border: 1px solid #252c3a; border-radius: 10px; padding: 16px; }
+  .group { margin-bottom: 16px; }
+  .group h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #98a0b3; margin: 0 0 8px; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  button.opt { background: #1d2330; color: #e6e8ee; border: 1px solid #2d3546; border-radius: 7px; padding: 6px 10px; cursor: pointer; font: inherit; }
+  button.opt[aria-pressed="true"] { border-color: #6d8cff; background: #26304a; }
+  button.opt:focus-visible, #copy:focus-visible { outline: 2px solid #6d8cff; outline-offset: 2px; }
+  .preview { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
+  .device { position: relative; background: #0a0d13; border: 1px solid #2d3546; border-radius: 12px; overflow: hidden; }
+  .block { position: absolute; left: 8%; width: 84%; border-radius: 4px; }
+  .fold { position: absolute; left: 0; right: 0; border-top: 2px dashed #ff6b6b; }
+  .fold span { position: absolute; right: 6px; top: 2px; font-size: 10px; color: #ff6b6b; }
+  .cmd { background: #2b6cff; box-shadow: 0 0 0 2px #9db8ff; }
+  .cmdlabel { position: absolute; left: 8%; font: 11px ui-monospace, Menlo, monospace; color: #cfe0ff; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #252c3a; vertical-align: top; }
+  th { color: #98a0b3; font-weight: 500; }
+  td.v { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .good { color: #7ee2a8; } .bad { color: #ff8f8f; }
+  .src { color: #98a0b3; font-size: 11px; }
+  .prompt { margin: 0 24px 24px; }
+  pre#prompt { white-space: pre-wrap; background: #151a24; border: 1px solid #252c3a; border-radius: 10px; padding: 14px; font: 12.5px/1.55 ui-monospace, Menlo, monospace; margin: 0; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  #copy { background: #2b6cff; color: #fff; border: 0; border-radius: 7px; padding: 6px 12px; cursor: pointer; font: inherit; }
+  @media (prefers-reduced-motion: no-preference) { .block, .fold { transition: top .25s ease, height .25s ease; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Homepage hero PR: before and after</h1>
+  <p class="sub">Static <code>/</code>, one install command above the fold, <code>host_selected</code>, and a working <code>POST /mcp</code>. Every number below is measured; the source of each is noted.</p>
+</header>
+<main>
+  <section class="panel" aria-label="Controls">
+    <div class="group">
+      <h2>Presets</h2>
+      <div class="seg" id="presets"></div>
+    </div>
+    <div class="group">
+      <h2>State</h2>
+      <div class="seg" data-key="version">
+        <button class="opt" data-val="before">Before (main)</button>
+        <button class="opt" data-val="after">After (this PR)</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Viewport</h2>
+      <div class="seg" data-key="viewport">
+        <button class="opt" data-val="mobile">375 x 812</button>
+        <button class="opt" data-val="desktop">1024 x 768</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Focus</h2>
+      <div class="seg" data-key="focus">
+        <button class="opt" data-val="hero">Hero offset</button>
+        <button class="opt" data-val="cache">Rendering and cache</button>
+        <button class="opt" data-val="mcp">/mcp</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel preview" aria-label="Preview">
+    <div id="device" class="device" role="img"></div>
+    <table id="facts"></table>
+  </section>
+</main>
+<section class="prompt">
+  <div class="row"><strong>Prompt</strong><button id="copy" type="button">Copy</button></div>
+  <pre id="prompt" aria-live="polite"></pre>
+</section>
+
+<script>
+const VIEWPORTS = { mobile: { w: 375, h: 812, label: "375 x 812" }, desktop: { w: 1024, h: 768, label: "1024 x 768" } };
+// Command top offsets in CSS px from the top of the page.
+// Before: from the site audit (install snippet sat under six host cards).
+// After: measured with getBoundingClientRect on next start of this branch.
+const OFFSET = { before: { mobile: 954, desktop: 827 }, after: { mobile: 437, desktop: 464 } };
+const FACTS = {
+  before: [
+    ["Route in build table", "f /  (dynamic, rendered per request)", "bad", "page awaited searchParams"],
+    ["cache-control on /", "private, no-cache, no-store, max-age=0, must-revalidate", "bad", "curl on production"],
+    ["x-vercel-cache on /", "MISS", "bad", "curl on production"],
+    ["Cold TTFB on /", "3.05 s (docs pages about 0.25 s)", "bad", "site audit"],
+    ["Hero primary action", "Get started link to docs; command below six host cards", "bad", "site audit"],
+    ["POST /mcp", "404 structured JSON, agent:not-found fired", "bad", "curl on production"],
+    ["Host card selection event", "none", "bad", "code"]
+  ],
+  after: [
+    ["Route in build table", "o /  (static, revalidate 1h, expire 1y)", "good", "next build of this branch"],
+    ["Cache-Control on /", "s-maxage=3600, stale-while-revalidate=31532400", "good", "curl on next start"],
+    ["x-nextjs-cache on /", "HIT (x-nextjs-prerender: 1)", "good", "curl on next start"],
+    ["TTFB on / (local)", "5 to 20 ms from the prerender cache", "good", "curl on next start; not a production number"],
+    ["Hero primary action", "copyable install command, Get started beside it, hosts below", "good", "browser at both viewports"],
+    ["POST /mcp", "200 application/json, tools/list returned", "good", "curl on next start"],
+    ["Host card selection event", "host_selected { host }", "good", "unit test"]
+  ]
+};
+const FOCUS_ROWS = { hero: [4, 6], cache: [0, 1, 2, 3], mcp: [5] };
+const DEFAULTS = { version: "after", viewport: "mobile", focus: "hero" };
+const PRESETS = {
+  "Mobile, before": { version: "before", viewport: "mobile", focus: "hero" },
+  "Mobile, after": { version: "after", viewport: "mobile", focus: "hero" },
+  "Desktop, after": { version: "after", viewport: "desktop", focus: "hero" },
+  "Cache story": { version: "before", viewport: "desktop", focus: "cache" },
+  "MCP fix": { version: "after", viewport: "desktop", focus: "mcp" }
+};
+const state = { ...DEFAULTS };
+
+function renderControls() {
+  document.querySelectorAll(".seg[data-key]").forEach((seg) => {
+    seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(state[seg.dataset.key] === b.dataset.val)));
+  });
+}
+
+function renderPreview() {
+  const vp = VIEWPORTS[state.viewport];
+  const pageH = Math.max(1100, OFFSET.before[state.viewport] + 150);
+  const scale = 360 / pageH;
+  const dev = document.getElementById("device");
+  dev.style.width = Math.round(vp.w * scale * (state.viewport === "mobile" ? 1 : 0.55)) + "px";
+  dev.style.height = Math.round(pageH * scale) + "px";
+  const top = OFFSET[state.version][state.viewport];
+  const rows = [
+    [56, 34, "#20283a"], [110, 70, "#1b2231"], [190, 50, "#1b2231"]
+  ];
+  let html = rows.map(([y, h, c]) => `<div class="block" style="top:${y * scale}px;height:${h * scale}px;background:${c}"></div>`).join("");
+  if (state.version === "before") {
+    html += `<div class="block" style="top:${(top - 360) * scale}px;height:${330 * scale}px;background:#232b3d"></div>`;
+  }
+  html += `<div class="block cmd" style="top:${top * scale}px;height:${44 * scale}px"></div>`;
+  html += `<div class="cmdlabel" style="top:${(top + 48) * scale}px">command top ${top}px</div>`;
+  html += `<div class="fold" style="top:${vp.h * scale}px"><span>fold ${vp.h}px</span></div>`;
+  dev.innerHTML = html;
+  dev.setAttribute("aria-label", `${state.version} at ${vp.label}: install command top at ${top}px, fold at ${vp.h}px, ${top + 44 <= vp.h ? "above" : "below"} the fold`);
+
+  const all = FACTS[state.version];
+  const pick = FOCUS_ROWS[state.focus].map((i) => all[i]);
+  const other = FACTS[state.version === "before" ? "after" : "before"];
+  const heroRow = ["Command top at " + vp.label, `${top}px (${top + 44 <= vp.h ? "above" : "below"} the ${vp.h}px fold)`, top + 44 <= vp.h ? "good" : "bad", state.version === "before" ? "site audit" : "browser, next start"];
+  const list = state.focus === "hero" ? [heroRow, ...pick] : pick;
+  document.getElementById("facts").innerHTML =
+    `<tr><th>${state.version === "before" ? "Before" : "After"}</th><th>Value</th></tr>` +
+    list.map(([k, v, cls, src]) => `<tr><td>${k}<div class="src">${src}</div></td><td class="v ${cls}">${v}</td></tr>`).join("") +
+    `<tr><td colspan="2" class="src">Toggle State to compare with ${state.version === "before" ? "this PR" : "main"} (${other.length} facts each).</td></tr>`;
+}
+
+function updatePrompt() {
+  const vp = VIEWPORTS[state.viewport];
+  const top = OFFSET[state.version][state.viewport];
+  const parts = [];
+  if (state.focus === "hero") {
+    parts.push(state.version === "before"
+      ? `On main the homepage install command starts at ${top}px on a ${vp.label} viewport, below the fold. Review whether this PR's hero (command at ${OFFSET.after[state.viewport]}px) is the right primary action.`
+      : `This PR puts the install command at ${top}px on ${vp.label}, above the fold. Check the hero on a real device at that size, confirm the copy button focus ring and the status announcement, and confirm host alternatives still read clearly below.`);
+  }
+  if (state.focus === "cache") {
+    parts.push(`Verify after deploy that https://orchestkit.yonyon.ai/ returns a public s-maxage cache-control and x-vercel-cache HIT on a second request, instead of private, no-store and MISS.`);
+  }
+  if (state.focus === "mcp") {
+    parts.push(`Verify after deploy that POST https://orchestkit.yonyon.ai/mcp with a JSON-RPC tools/list body returns 200 JSON, and that no agent:not-found event is recorded for /mcp.`);
+  }
+  if (state.viewport !== DEFAULTS.viewport && state.focus !== "hero") parts.push(`Use a ${vp.label} viewport for any visual check.`);
+  document.getElementById("prompt").textContent = parts.join(" ");
+}
+
+function updateAll() { renderControls(); renderPreview(); updatePrompt(); }
+
+document.querySelectorAll(".seg[data-key] button").forEach((b) => b.addEventListener("click", () => {
+  state[b.parentElement.dataset.key] = b.dataset.val; updateAll();
+}));
+const presets = document.getElementById("presets");
+Object.entries(PRESETS).forEach(([name, p]) => {
+  const b = document.createElement("button");
+  b.className = "opt"; b.type = "button"; b.textContent = name;
+  b.addEventListener("click", () => { Object.assign(state, p); updateAll(); });
+  presets.appendChild(b);
+});
+document.getElementById("copy").addEventListener("click", async (e) => {
+  try { await navigator.clipboard.writeText(document.getElementById("prompt").textContent); e.target.textContent = "Copied!"; }
+  catch { e.target.textContent = "Copy failed"; }
+  setTimeout(() => { e.target.textContent = "Copy"; }, 1500);
+});
+updateAll();
+</script>
+</body>
+</html>

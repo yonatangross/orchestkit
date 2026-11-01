@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>memory-lens: the few memories that matter, on every prompt</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--fg:#14161a;--mut:#56606d;--faint:#8b93a1;--line:#e2e5ea;--a:#b8860b;--g:#1e8e5a;--r:#c0392b;--term:#161b26;--termfg:#e8ecf1}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 20px 60px}
+h1{font-size:28px;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:34px 0 10px}
+p.lead{color:var(--mut);margin-top:0;max-width:760px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.verdict{border-left:4px solid var(--a)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid>*{min-width:0}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+textarea{width:100%;box-sizing:border-box;font:14px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:56px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chips button{border:1px solid var(--line);background:#fafbfc;border-radius:999px;padding:4px 10px;font:12.5px -apple-system,sans-serif;cursor:pointer;color:var(--mut)}
+.term{background:var(--term);color:var(--termfg);border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;overflow-wrap:anywhere;min-height:44px}
+.term .dot{color:#9aa4b2}.term .lens{color:#f2c46d}.term .quiet{color:#7c8594}
+pre.ctx{background:#f7f8fa;border:1px dashed var(--line);border-radius:10px;padding:12px;font:12px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;min-height:44px}
+.lbl{font-size:12px;color:var(--faint);margin:0 0 6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.bar{height:10px;background:#eceef2;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g);width:0;transition:width 1s}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+.ok{color:var(--g);font-weight:600}.no{color:var(--r);font-weight:600}
+</style></head><body><main>
+<h1>memory-lens: the few memories that matter, on every prompt</h1>
+<p class="lead">A new mod in <code>mods/memory-lens</code>. At session start it indexes the project's Claude Code memory files. On each prompt it sends the top 3 matches above a score floor to the model as one context entry, and draws one line for the human. Local files only; no network on the hot path.</p>
+
+<div class="card verdict"><b>Measured on Claude Code 2.1.283:</b> the model receives the context (it named the injected memory in a headless run where it had said NONE before the fix), the line draws in the terminal, and a query takes 2.5 ms at the median and 3.4 ms at p95 over 20 real prompts. Half the memories it shows are useful; it stays quiet on vague follow-ups.</div>
+
+<h2>01 / Try it (made-up corpus of 12 memories)</h2>
+<div class="card">
+  <textarea id="q">why not open the page yourself with the browser tool</textarea>
+  <div class="chips" id="chips"></div>
+  <div class="grid">
+    <div><p class="lbl">What you see under your prompt</p><div class="term" id="screen"></div></div>
+    <div><p class="lbl">What the model gets (one context entry)</p><pre class="ctx" id="ctx"></pre></div>
+  </div>
+  <p class="lbl" style="margin-top:10px">Demo note: the same tokenizer and BM25 scoring as the mod, with the score floor scaled to a third because 12 memories give smaller scores than a real folder of hundreds.</p>
+</div>
+
+<h2>02 / How it hooks in</h2>
+<div class="card"><table>
+<tr><th>Event</th><th>What it does</th><th>Measured</th></tr>
+<tr><td><code>session.start</code></td><td>Find the project's memory folder (a worktree maps to its parent repo) and build the index in the background.</td><td>379 files in 309 ms; 2,046 files in 936 ms</td></tr>
+<tr><td><code>prompt.submit</code></td><td>Query before <code>next()</code> and put the context on the event, so it travels down the chain. The first prompt waits for a building index, at most 2 s.</td><td>An answer built after <code>next()</code> never reached the model: the turn had already started</td></tr>
+<tr><td><code>tool.call</code></td><td>Read, Edit, Write, Grep and Glob paths are a new query: at most one memory not yet recalled. A write under the memory folder re-indexes that file.</td><td>unit tested</td></tr>
+<tr><td><code>command.run</code></td><td><code>/memory-lens</code> stats, reload, show &lt;n&gt;</td><td>unit tested</td></tr>
+</table>
+<p class="lbl" style="margin-top:10px">Screen line rules found in the TUI: a newline inside one <code>$.ui.log</code> call draws as a replacement glyph, and only the first log call per hook call drew. So the lens draws one line with the memories joined by a bar.</p></div>
+
+<h2>03 / Quality on 20 real prompts</h2>
+<div class="card" id="bars">
+<table>
+<tr><td style="width:44%">Useful among shown (24 of 48)</td><td><div class="bar"><i data-w="50"></i></div></td><td style="width:70px"><b>50 %</b></td></tr>
+<tr><td>Prompts with at least one useful memory (13 of 20)</td><td><div class="bar"><i data-w="65"></i></div></td><td><b>65 %</b></td></tr>
+<tr><td>Strict precision@3, empty slots count as misses</td><td><div class="bar"><i data-w="40"></i></div></td><td><b>40 %</b></td></tr>
+<tr><td>Stayed quiet (2 of 20), both correctly</td><td><div class="bar"><i data-w="10"></i></div></td><td><b>2 / 20</b></td></tr>
+</table>
+<p class="lbl" style="margin-top:10px">Labels are the author's judgement: would this memory help answer the prompt. The prompts and memory names are private, so this page carries the totals only. Misses cluster on vague follow-ups ("fix all") and typos.</p></div>
+
+<h2>04 / What it never does</h2>
+<div class="card"><table>
+<tr><td class="no">no network</td><td>no <code>http.fetch</code>, no <code>process.run</code>, no <code>store</code>; remote knowledge arrives only as an optional local mirror file written by something else</td></tr>
+<tr><td class="no">no secrets</td><td>secret-shaped text (key prefixes, PEM headers) reaches neither the screen nor the model</td></tr>
+<tr><td class="no">no client titles on screen</td><td>a memory in a <code>clients-*</code> project, or matching a local untracked word list, shows as "client memory (title hidden)"</td></tr>
+<tr><td class="ok">capped</td><td>at most 3 memories and about 600 tokens per prompt</td></tr>
+</table></div>
+</main>
+<script>
+(function(){
+  var STOP=new Set(("a an the and or but if then so of to in on at for with from by as is are was were be been it its this that these those i you we he she they me my our your us them do does did done not no yes can could should would will just also very more most much many some any all what which who whom why how when where there here into out up down over under again about than too only own same other such each both few new now get got make made go going want need like see show let lets please pls ok okay im dont doesnt didnt cant wont thats whats btw etc one two image seems still wtf ugly damn think maybe better good well part first last right have give everything never continue really missing fix ahead tell him her use find alot lot thing things stuff way work because since yet even though already always something anything nothing doing said say says theres wasnt isnt arent explain").split(" "));
+  function tok(t){var o=[];(t.toLowerCase().match(/[a-z0-9][a-z0-9_.+-]*[a-z0-9]|[a-z0-9]/g)||[]).forEach(function(r){var w=r.replace(/^[.+_-]+|[.+_-]+$/g,"");if(w.length<2||STOP.has(w))return;o.push(w);if(/[-_.]/.test(w))w.split(/[-_.]/).forEach(function(p){if(p.length>1&&!STOP.has(p))o.push(p)})});return o}
+  var DOCS=[
+    ["feedback_serve_pages_hand_over_url","Serve a page on a named local URL and hand it over; never open the page yourself with the browser tool"],
+    ["feedback_headless_browser_renders_dark","A light page screenshots dark in a headless browser; set the theme before judging"],
+    ["feedback_verify_ui_in_real_browser","Verify a UI change in a real browser session, not by reading the code"],
+    ["reference_accounts_and_login","Which account to log in to for each workspace, and how to rotate when one nears its limit"],
+    ["feedback_squash_merge_ancestry","After a squash merge, ancestry checks are false for every commit; ask the PR instead"],
+    ["feedback_ci_rerun_is_not_a_fix","Re-running CI is not fixing it; read the failing step first"],
+    ["feedback_no_secrets_in_prompts","Never paste a token into a prompt or a commit; use the secret manager"],
+    ["project_release_train_notes","How the release train cuts, tags and publishes each beta"],
+    ["feedback_ask_with_the_question_dialog","Ask the human with the question dialog, options first, one recommended"],
+    ["feedback_worktree_per_session","Use a worktree per concurrent session; a shared tree thrashes"],
+    ["reference_docs_site_build","The docs site build regenerates the lab pages; run the full build, not one step"],
+    ["project_handoff_session_digest","Session digest: browser, worktree, release, account, CI, verify, merge handoff"]
+  ].map(function(d){return{name:d[0],desc:d[1]}});
+  var F={name:3,desc:2},K1=1.2,B=0.75,FLOOR=7,RARE=4;
+  var tf=[],len={name:[],desc:[]},df=new Map();
+  DOCS.forEach(function(d){var seen=new Set(),per={};Object.keys(F).forEach(function(f){var ts=tok(f==="name"?d.name.replace(/[_-]/g," ")+" "+d.name:d.desc);len[f].push(ts.length);var m=new Map();ts.forEach(function(t){m.set(t,(m.get(t)||0)+1);seen.add(t)});per[f]=m});seen.forEach(function(t){df.set(t,(df.get(t)||0)+1)});tf.push(per)});
+  var avg={};Object.keys(F).forEach(function(f){avg[f]=len[f].reduce(function(a,b){return a+b},0)/len[f].length||1});
+  function query(text){var q=Array.from(new Set(tok(text))),N=DOCS.length,hits=[];tf.forEach(function(per,i){var s=0,why=[],rare=false;q.forEach(function(t){var d=df.get(t);if(!d)return;var idf=Math.log(1+(N-d+.5)/(d+.5)),w=0;Object.keys(F).forEach(function(f){var c=per[f].get(t);if(c)w+=F[f]*c/(1-B+B*len[f][i]/avg[f])});if(!w)return;s+=idf*w*(K1+1)/(w+K1);why.push(t);if(idf>=RARE)rare=true});if(/handoff/.test(DOCS[i].name))s*=.5;if(s>=FLOOR/3&&(why.length>=2||rare))hits.push({d:DOCS[i],s:s,why:why})});hits.sort(function(a,b){return b.s-a.s});return hits.slice(0,3)}
+  function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+  function run(){var t=document.getElementById("q").value,h=query(t),sc=document.getElementById("screen"),cx=document.getElementById("ctx");
+    if(!h.length){sc.innerHTML='<span class="quiet">(no line: nothing cleared the score floor)</span>';cx.textContent="(nothing injected)";return}
+    var rows=h.map(function(x,i){return (i+1)+"/"+h.length+" "+x.d.desc.slice(0,60)+(x.d.desc.length>60?"...":"")+" ("+x.d.name+".md) · "+x.why.slice(0,2).join(", ")});
+    sc.innerHTML='<span class="dot">⏺</span> <span class="lens">memory-lens:</span> '+esc(rows.join("  │  "));
+    cx.textContent="Related memories (memory-lens; weigh them, they may be stale or disagree with the prompt):\n"+h.map(function(x){return "- "+x.d.name+": "+x.d.desc+" [~/.claude/projects/<project>/memory/"+x.d.name+".md]"}).join("\n")}
+  ["why not open the page yourself with the browser tool","which account do I log in to","ci failed again, rerun it","fix all, make it better","squash merge ancestry check says not merged"].forEach(function(s){var b=document.createElement("button");b.textContent=s;b.onclick=function(){document.getElementById("q").value=s;run()};document.getElementById("chips").appendChild(b)});
+  document.getElementById("q").addEventListener("input",run);run();
+  var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){document.querySelectorAll("#bars i").forEach(function(i){i.style.width=i.dataset.w+"%"});io.disconnect()}});io.observe(document.getElementById("bars"));
+})();
+</script>
+</body></html>

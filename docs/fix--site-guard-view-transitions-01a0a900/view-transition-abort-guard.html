@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View transition abort guard</title>
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:52rem;margin-inline:auto}
+  h1{font-size:1.2rem;margin:0 0 .35rem}
+  .sub{color:var(--dim);margin:0 0 1.4rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.1rem 1.25rem;margin-block:1rem}
+  h2{font-size:.8rem;margin:0 0 .8rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
+  button{background:#1d2330;color:var(--ink);border:1px solid #2d3546;border-radius:7px;padding:.45rem .8rem;cursor:pointer;font:inherit;font-size:.82rem}
+  button[aria-pressed="true"]{border-color:#6d8cff;background:#26304a}
+  button:focus-visible{outline:2px solid #6d8cff;outline-offset:2px}
+  .log{min-height:7rem;margin:0;padding:1rem;border-radius:7px;background:#0b0f16;color:var(--dim);white-space:pre-wrap;font-size:.8rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  code{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>View transition abort guard</h1>
+  <p class="sub">PostHog issues 01a0a900 / 01a094ab / 01a0b835. Chromium rejects <code>ViewTransition.ready</code> when a transition is skipped. The docs site guard serializes starts and swallows only that abort class.</p>
+
+  <section>
+    <h2>Guard</h2>
+    <div class="row" role="group" aria-label="Guard mode">
+      <button type="button" id="btn-off" aria-pressed="true">Unguarded</button>
+      <button type="button" id="btn-on" aria-pressed="false">Guarded</button>
+    </div>
+    <p class="sub" id="mode-label">Native <code>startViewTransition</code> only. Aborts surface as unhandled rejections.</p>
+  </section>
+
+  <section>
+    <h2>Trigger</h2>
+    <div class="row">
+      <button type="button" id="btn-overlap">Overlap two starts</button>
+      <button type="button" id="btn-resize">Resize mid-flight</button>
+      <button type="button" id="btn-hide">Hide mid-flight</button>
+      <button type="button" id="btn-clear">Clear log</button>
+    </div>
+    <pre class="log" id="log" aria-live="polite">Ready.</pre>
+  </section>
+</main>
+<script>
+(function () {
+  const logEl = document.getElementById("log");
+  const modeLabel = document.getElementById("mode-label");
+  const btnOff = document.getElementById("btn-off");
+  const btnOn = document.getElementById("btn-on");
+  let guarded = false;
+  let uninstall = null;
+  let active = null;
+  const lines = [];
+
+  function paint() {
+    logEl.innerHTML = lines.join("\n") || "Ready.";
+  }
+  function note(html) {
+    lines.push(html);
+    paint();
+  }
+  function sleep(ms) {
+    return new Promise(function (r) { setTimeout(r, ms); });
+  }
+
+  const ABORT = /Transition was (?:aborted|skipped)|ViewTransition was aborted|viewport size changed|document being hidden/i;
+  function isBenign(err) {
+    const list = [err];
+    if (err && err.cause) list.push(err.cause);
+    for (const c of list) {
+      if (!c) continue;
+      const name = c.name || "";
+      const msg = c.message || String(c);
+      if ((name === "InvalidStateError" || name === "AbortError") && ABORT.test(msg)) return true;
+      if (/ViewTransition was aborted early/i.test(msg)) return true;
+    }
+    return false;
+  }
+
+  window.addEventListener("unhandledrejection", function (event) {
+    if (isBenign(event.reason)) {
+      if (guarded) {
+        event.preventDefault();
+        note("<span class='ok'>swallowed:</span> " + (event.reason && event.reason.message));
+      } else {
+        note("<span class='bad'>unhandled:</span> " + (event.reason && event.reason.message));
+      }
+      return;
+    }
+    note("<span class='bad'>other rejection:</span> " + String(event.reason));
+  });
+
+  function safeSkip(t) {
+    if (!t) return;
+    try { t.skipTransition(); } catch (_) {}
+  }
+
+  function installGuard() {
+    if (typeof document.startViewTransition !== "function") {
+      note("<span class='bad'>startViewTransition not available in this browser</span>");
+      return;
+    }
+    if (uninstall) return;
+    const original = document.startViewTransition.bind(document);
+    document.startViewTransition = function () {
+      const args = arguments;
+      if (active) {
+        safeSkip(active);
+        active = null;
+      }
+      const transition = original.apply(document, args);
+      active = transition;
+      transition.ready.catch(function (err) {
+        if (isBenign(err)) return;
+        return Promise.reject(err);
+      });
+      transition.finished.finally(function () {
+        if (active === transition) active = null;
+      });
+      return transition;
+    };
+    const onVis = function () {
+      if (document.visibilityState === "hidden") safeSkip(active);
+    };
+    const onResize = function () { safeSkip(active); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("resize", onResize);
+    uninstall = function () {
+      document.startViewTransition = original;
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("resize", onResize);
+      active = null;
+      uninstall = null;
+    };
+  }
+
+  function setGuard(on) {
+    guarded = on;
+    btnOff.setAttribute("aria-pressed", String(!on));
+    btnOn.setAttribute("aria-pressed", String(on));
+    if (on) {
+      installGuard();
+      modeLabel.innerHTML = "Patched <code>startViewTransition</code>: serialize, skip on resize/hidden, swallow VT abort class.";
+    } else {
+      if (uninstall) uninstall();
+      modeLabel.innerHTML = "Native <code>startViewTransition</code> only. Aborts surface as unhandled rejections.";
+    }
+  }
+
+  function startLong(ms) {
+    if (typeof document.startViewTransition !== "function") {
+      note("<span class='bad'>no View Transitions API</span>");
+      return null;
+    }
+    return document.startViewTransition(function () { return sleep(ms); });
+  }
+
+  document.getElementById("btn-overlap").addEventListener("click", function () {
+    note("overlap: start 200ms, then start 50ms");
+    startLong(200);
+    startLong(50);
+  });
+  document.getElementById("btn-resize").addEventListener("click", function () {
+    note("resize: start 300ms, then fire resize");
+    startLong(300);
+    setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 30);
+  });
+  document.getElementById("btn-hide").addEventListener("click", function () {
+    note("hide: start 300ms, then visibilitychange hidden");
+    startLong(300);
+    setTimeout(function () {
+      const desc = Object.getOwnPropertyDescriptor(Document.prototype, "visibilityState");
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: function () { return "hidden"; },
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+      setTimeout(function () {
+        if (desc) Object.defineProperty(document, "visibilityState", desc);
+        else Reflect.deleteProperty(document, "visibilityState");
+        document.dispatchEvent(new Event("visibilitychange"));
+      }, 40);
+    }, 30);
+  });
+  document.getElementById("btn-clear").addEventListener("click", function () {
+    lines.length = 0;
+    paint();
+  });
+  btnOff.addEventListener("click", function () { setGuard(false); });
+  btnOn.addEventListener("click", function () { setGuard(true); });
+
+  setGuard(false);
+})();
+</script>
+</body>
+</html>

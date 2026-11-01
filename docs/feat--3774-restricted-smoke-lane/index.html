@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Restricted, and still all 34 hooks fired: the --restricted smoke lane</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;font:12px ui-monospace,Menlo,monospace}
+.h{border:1px solid var(--line);border-radius:6px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h.ok{border-color:#2f5e3a}.h.bad{border-color:var(--r);background:#2a1418}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin-right:8px}
+button.on{border-color:var(--a)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:var(--a)}.no{color:var(--r)}.num{font-variant-numeric:tabular-nums}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+.note{color:var(--mut);font-size:13px}
+</style></head><body><main>
+<h1>Restricted, and still all 34 hooks fired</h1>
+<p class="lead">CC 2.1.248 added <code>--restricted</code>: no Bash, no WebFetch, no user or project settings, file tools fenced to the working directory. The open question for a plugin with 154 hook entries was which of them break in that mode. Measured on 2.1.251: none. This page shows the lane that keeps it that way on every PR, at zero model spend.</p>
+
+<h2>1. What the process was offered, by mode</h2>
+<div class="card">
+ <p><button id="bR" class="on">--restricted</button><button id="bN">plain -p (control)</button></p>
+ <table><tbody>
+ <tr><th>tools in the request CC sent</th><td id="tools" class="num"></td></tr>
+ <tr><th>Bash / WebFetch present</th><td id="bw"></td></tr>
+ <tr><th>distinct plugin hooks that fired</th><td id="hk" class="num"></td></tr>
+ <tr><th>hooks reporting ok: false</th><td id="fl" class="num"></td></tr>
+ <tr><th>model spend</th><td>$0 (local stub of the Messages API answered all 7 requests)</td></tr>
+ </tbody></table>
+ <p class="note" id="why"></p>
+</div>
+
+<h2>2. The hooks that fired under --restricted</h2>
+<p class="note">One-turn session ("reply ok"). PreToolUse and PostToolUse hooks are absent because no tool ran, which is correct for a one-turn prompt; Stop and SessionEnd hooks are included because the runner waits three seconds for them to flush.</p>
+<div class="grid" id="hooks"></div>
+
+<h2>3. How the lane asserts it</h2>
+<table><thead><tr><th>#</th><th>Assertion</th><th>What proves it</th><th>Negative control</th></tr></thead><tbody>
+<tr><td>1</td><td>the run completed and answered</td><td><code>result: ok</code>, <code>is_error: false</code></td><td>stub down: run fails</td></tr>
+<tr><td>2</td><td>the process really was restricted</td><td>the stub logged the tool list; no <code>Bash</code>, no <code>WebFetch</code></td><td>same run without the flag: <span class="no">FAIL</span>, 38 tools including Bash and WebFetch</td></tr>
+<tr><td>3</td><td>plugin hooks fired</td><td><code>hook-timing.jsonl</code> in the run's private HOME has entries</td><td>plugin not loaded: file absent, <span class="no">FAIL</span></td></tr>
+<tr><td>4</td><td>the failing set is the accepted set</td><td>hooks with <code>ok:false</code> equal <code>expected-hook-failures.txt</code> (empty)</td><td>list edited to name one hook: <span class="no">FAIL</span>, <code>[] != ["lifecycle/nonexistent-hook"]</code></td></tr>
+</tbody></table>
+<p class="note">The runner gives <code>claude</code> a fresh HOME, so the hook log it reads can only have been written by this run (twelve other sessions were live on the machine that produced these numbers). The stub is 60 lines of node: every <code>POST /v1/messages</code> gets an SSE stream that says "ok"; everything else is logged and 404s. The policy that real model calls never run in CI holds.</p>
+<script>
+const R={tools:"Agent, CronDelete, CronList, DesignSync, Edit, EnterWorktree, ExitWorktree, Glob, Grep, ListAgents, NotebookEdit, PushNotification, Read, ReportFindings, ScheduleWakeup, SendMessage, Skill, TaskOutput, TaskStop, WebSearch, Write (20)",bw:'<span class="ok">absent</span>',hk:"34 (36 entries)",fl:"0",why:"Restricted removed the two tools it promises to remove and left the plugin loader, the hooks runner and every lifecycle hook untouched."};
+const N={tools:"the same list plus Bash, CronCreate, LSP, Monitor, Workflow, WaitForMcpServers, WebFetch, the MCP resource tools and 11 mcp__ tools (38)",bw:'<span class="no">present</span>',hk:"40 (62 entries)",fl:"0",why:"The control run offers Bash and WebFetch and, because user settings load, the MCP servers from ~/.claude too. Assertion 2 fails on this run, which is the proof that the assertion can fail."};
+const hooks="instructions-loaded/session-rules-audit lifecycle/analytics-liveness-check lifecycle/ask-fallback-injector lifecycle/cc-version-check lifecycle/cleanup-envelope-corruption lifecycle/hook-token-check lifecycle/nudge-outcome-resolver lifecycle/pattern-sync-pull lifecycle/plugins-drift-snapshot lifecycle/rules-size-check lifecycle/session-env-setup lifecycle/session-handoff-injector lifecycle/session-registrar lifecycle/stale-cache-cleanup lifecycle/stale-team-cleanup lifecycle/sweep-stale-worktrees lifecycle/sync-session-dispatcher lifecycle/telemetry-dark-check lifecycle/type-error-indexer lifecycle/webhook-forwarder notification/message-display-observer prompt/goal-tracker prompt/thrash-detector prompt/unified-dispatcher prompt/worktree-advisory-consumer skill/coverage-check skill/coverage-threshold-gate skill/cross-instance-test-validator skill/evidence-collector stop/goal-tracker stop/handoff-writer stop/ledger-cleanup stop/session-summary stop/task-completion-check".split(" ");
+document.getElementById('hooks').innerHTML=hooks.map(h=>`<div class="h ok" title="${h}">${h}</div>`).join('');
+function set(m){const d=m?R:N;bR.classList.toggle('on',m);bN.classList.toggle('on',!m);tools.textContent=d.tools;bw.innerHTML=d.bw;hk.textContent=d.hk;fl.textContent=d.fl;why.textContent=d.why;}
+bR.onclick=()=>set(true);bN.onclick=()=>set(false);set(true);
+</script>
+</main></body></html>

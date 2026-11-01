@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The drift gate named a directory, not the fix</title>
+<meta name="description" content="The build-drift gate printed a roster of directories and left the contributor to guess the source path. Paste a drifted path and see the gate before and after #3507: every drifted file under plugins/ork/skills/ now prints the src/skills/ path it is generated from.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto} h1{font-size:1.3rem;margin:0 0 .3rem} .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.35rem .5rem;border-bottom:1px solid var(--edge);vertical-align:top} th{color:var(--dim);font-weight:600}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0} button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.8rem;cursor:pointer} button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;overflow:auto;margin:.6rem 0;white-space:pre-wrap}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media (max-width:52rem){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--edge);border-radius:8px;padding:.8rem 1rem;background:#0b0d13}
+  .card h3{margin:0 0 .5rem;font-size:.8rem;color:var(--dim)}
+  p{font-size:.85rem;margin:.4rem 0}
+  textarea{width:100%;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:.7rem .8rem;font-family:inherit;font-size:.78rem;min-height:7rem}
+  input[type=text]{width:100%;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:.55rem .7rem;font-family:inherit;font-size:.8rem}
+  .chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0} .chips button{font-size:.72rem;padding:.25rem .55rem}
+  .arrow{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>The drift gate named a directory, not the fix</h1>
+<p class="sub">Issue #3507, cost case #3495. 2026-09-14. One workflow step, one added while-loop, exit behavior untouched.</p>
+
+<section>
+<h2>The cost, in one incident</h2>
+<p>The gate <code>Check for uncommitted build changes</code> fails a PR that edits generated output without rebuilding. Its error named the roster, not the mistake:</p>
+<pre>::error::Build drift detected! Run 'npm run build' and commit the changes (plugins/ :!plugins/ork/hooks/dist README.md docs/site/lib/generated/ docs/site/public/lab/ plugin.json).</pre>
+<p>In #3495 an outside contributor edited <code>plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py</code> and had to be told by hand that the source lives at <code>src/skills/api-design/scripts/problem-detail-exceptions.py</code>. A directory list is not a correction. The most common cause of this gate failing, by a wide margin, is editing generated output instead of its source, and the mapping is mechanical:</p>
+<pre>plugins/ork/skills/<span class="arrow">&lt;rest&gt;</span>  comes from  src/skills/<span class="arrow">&lt;rest&gt;</span></pre>
+</section>
+
+<section>
+<h2>Run the gate on a drifted tree</h2>
+<p>One path per line. Both panels run the same tree. The exit code is 1 in both; only what the contributor gets to read changed.</p>
+<div class="chips" role="group" aria-label="example paths">
+  <button data-p="plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py">the #3495 path</button>
+  <button data-p="plugins/ork/skills/api-design/SKILL.md">a skill page</button>
+  <button data-p="plugins/ork/agents/architect.md">an agent bundle (out of scope)</button>
+  <button data-p="README.md">README stamp</button>
+</div>
+<textarea id="paths" spellcheck="false">plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py
+plugins/ork/agents/architect.md
+README.md</textarea>
+<div class="controls">
+  <button id="run">run the gate</button>
+  <button id="clean">show a clean tree instead</button>
+</div>
+<div class="grid">
+  <div class="card">
+    <h3>before #3507</h3>
+    <pre id="out-before"></pre>
+  </div>
+  <div class="card">
+    <h3>after #3507</h3>
+    <pre id="out-after"></pre>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>The mapping, live</h2>
+<p>The hint is a prefix strip, the shell already has the operator for it: <code>${f#plugins/ork/skills/}</code>.</p>
+<input type="text" id="map-in" value="plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py" spellcheck="false" aria-label="drifted path">
+<pre id="map-out"></pre>
+<table>
+  <thead><tr><th>drifted path</th><th>hint printed</th><th>why</th></tr></thead>
+  <tbody>
+    <tr><td>plugins/ork/skills/&lt;rest&gt;</td><td class="ok">src/skills/&lt;rest&gt;</td><td>the mapping this PR adds (#3507)</td></tr>
+    <tr><td>plugins/ork/agents/&lt;rest&gt;</td><td class="dim">none</td><td>out of scope for #3507; a separate prefix, a separate decision</td></tr>
+    <tr><td>plugins/ork/hooks/dist/&lt;rest&gt;</td><td class="dim">none</td><td>excluded from the roster entirely: release-owned since #3578</td></tr>
+    <tr><td>README.md, docs/site/lib/generated/, plugin.json</td><td class="dim">none</td><td>generated, but not a src/skills mapping</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section>
+<h2>The whole change</h2>
+<p>Added lines in <code>.github/workflows/ci.yml</code>, inside the drift branch of the step. The original error, the stat, and the <code>exit 1</code> are untouched; the loop is additive.</p>
+<pre>git diff --name-only -- "${GENERATED[@]}" | while read -r f; do
+  case "$f" in
+    plugins/ork/skills/*)
+      echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+  esac
+done</pre>
+<p>Properties that did not change: drift still exits 1, a clean tree still exits 0 silently, the roster existence pre-check still runs first, and the hint only fires for paths the diff actually names.</p>
+<p class="dim">Why no hint for <code>plugins/ork/agents/</code>: #3507 scopes the mapping to skills, where the incident happened and where the roster excludes nothing. Widening the prefix is a one-line follow-up with its own issue.</p>
+</section>
+
+<script>
+(function(){
+  var P = 'plugins/ork/skills/';
+  function mapPath(f){ return f.indexOf(P) === 0 ? 'src/skills/' + f.slice(P.length) : null; }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var ROSTER = "plugins/ :!plugins/ork/hooks/dist README.md docs/site/lib/generated/ docs/site/public/lab/ plugin.json";
+
+  function paths(){
+    return document.getElementById('paths').value.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  }
+
+  function render(){
+    var ps = paths();
+    var before, after;
+    if (ps.length === 0){
+      before = "(working tree clean)\n$ git diff --quiet -- <roster>\n" + ok("exit 0, no output");
+      after = before;
+    } else {
+      before = bad("::error::Build drift detected! Run 'npm run build' and commit the changes (" + ROSTER + ").") +
+        "\n " + esc(ps.join(' | ')) + "\n(git diff --stat follows)\n" + bad("exit 1") +
+        "\n\n" + warn("the contributor still has to guess the source path");
+      after = bad("::error::Build drift detected! Run 'npm run build' and commit the changes (" + ROSTER + ").") +
+        "\n " + esc(ps.join(' | ')) + "\n(git diff --stat follows)\n";
+      var hints = 0;
+      ps.forEach(function(f){
+        var src = mapPath(f);
+        if (src){ hints++; after += bad("::error::Did you edit generated output? Source: " + esc(src)) + "\n"; }
+      });
+      after += bad("exit 1");
+      if (hints === 0){ after += "\n" + warn("no plugins/ork/skills/ path in this drift, so no hint: same output as before"); }
+    }
+    document.getElementById('out-before').innerHTML = before;
+    document.getElementById('out-after').innerHTML = after;
+  }
+
+  function mapRender(){
+    var f = document.getElementById('map-in').value.trim();
+    var src = mapPath(f);
+    document.getElementById('map-out').innerHTML = src === null
+      ? esc(f || '(empty)') + "\n" + warn("no hint: outside plugins/ork/skills/")
+      : esc(f) + "\n" + ok("::error::Did you edit generated output? Source: " + esc(src));
+  }
+
+  function ok(s){ return '<span class="ok">' + esc(s) + '</span>'; }
+  function bad(s){ return '<span class="bad">' + esc(s) + '</span>'; }
+  function warn(s){ return '<span class="warn">' + esc(s) + '</span>'; }
+
+  document.getElementById('run').addEventListener('click', render);
+  document.getElementById('clean').addEventListener('click', function(){
+    document.getElementById('paths').value = '';
+    render();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chips button'), function(b){
+    b.addEventListener('click', function(){
+      var ta = document.getElementById('paths');
+      ta.value = (ta.value.trim() + '\n' + b.getAttribute('data-p')).trim() + '\n';
+      render();
+    });
+  });
+  document.getElementById('map-in').addEventListener('input', mapRender);
+  render();
+  mapRender();
+})();
+</script>
+</main>
+</body>
+</html>

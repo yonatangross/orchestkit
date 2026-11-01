@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit · Skill Ban-Voice Triage</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-good: hsl(152 62% 52%);
+    --pg-bad: hsl(354 78% 62%);
+    --r-sm:9px; --r-md:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:48px 24px 96px;
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 92% 8%, hsl(268 80% 62% / .13), transparent 60%),
+      radial-gradient(700px 500px at 50% 105%, hsl(228 84% 60% / .10), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color:var(--pg-ink);
+    font:15px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Inter,sans-serif;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:33px;line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+  h2{font-size:21px;margin:48px 0 16px;letter-spacing:-.01em}
+  h3{font-size:14px;margin:0 0 8px;color:var(--pg-muted);font-weight:600}
+  .sub{color:var(--pg-muted);margin:0 0 8px}
+  .meta{color:var(--pg-faint);font-size:12.5px;font-family:ui-monospace,Menlo,monospace}
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+        padding:24px;backdrop-filter:blur(14px);
+        box-shadow:0 20px 60px -22px hsl(232 40% 2% / .7), 0 4px 12px -6px hsl(232 40% 2% / .5)}
+  .card + .card{margin-top:16px}
+  .banner{border-left:3px solid var(--pg-warm);background:linear-gradient(90deg,hsl(38 95% 60% / .10),var(--pg-glass))}
+  .banner.bad{border-left-color:var(--pg-bad);background:linear-gradient(90deg,hsl(354 78% 62% / .10),var(--pg-glass))}
+  .banner.good{border-left-color:var(--pg-good);background:linear-gradient(90deg,hsl(152 62% 52% / .10),var(--pg-glass))}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+  td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+  code{font-family:ui-monospace,Menlo,monospace;background:hsl(0 0% 100% / .07);padding:1.5px 5px;border-radius:5px;font-size:12.5px}
+  pre{font-family:ui-monospace,Menlo,monospace;background:hsl(232 30% 4% / .75);border:1px solid hsl(0 0% 100% / .10);
+      border-radius:var(--r-sm);padding:14px 16px;overflow-x:auto;font-size:12.5px;line-height:1.55;margin:0}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .stat{background:var(--pg-glass-2);border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:16px}
+  .stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--pg-faint)}
+  .stat .v{font-size:27px;font-weight:650;margin:6px 0 2px;font-family:ui-monospace,Menlo,monospace;letter-spacing:-.02em}
+  .stat .d{font-size:12px;color:var(--pg-muted)}
+  .bucket{border-radius:var(--r-md);padding:20px;border:1px solid var(--pg-glass-edge)}
+  .b-keep{background:linear-gradient(160deg,hsl(152 62% 52% / .12),var(--pg-glass));border-color:hsl(152 62% 52% / .35)}
+  .b-rw{background:linear-gradient(160deg,hsl(38 95% 60% / .12),var(--pg-glass));border-color:hsl(38 95% 60% / .35)}
+  .b-cut{background:linear-gradient(160deg,hsl(354 78% 62% / .12),var(--pg-glass));border-color:hsl(354 78% 62% / .35)}
+  .bucket .n{font-size:32px;font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:-.02em}
+  .bucket .pct{font-size:13px;color:var(--pg-muted);margin-left:6px}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:820px){.ba{grid-template-columns:1fr}}
+  .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;font-weight:650}
+  .lab.b{color:hsl(354 78% 72%)} .lab.a{color:hsl(152 62% 64%)}
+  .mermaid{background:hsl(232 30% 4% / .55);border:1px solid hsl(0 0% 100% / .10);border-radius:var(--r-md);
+           padding:20px;margin-top:12px;text-align:center;overflow-x:auto}
+  .mermaid svg{max-width:100%;height:auto}
+  details{border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:14px 16px;background:var(--pg-glass);margin-top:12px}
+  details[open]{background:var(--pg-glass-2)}
+  summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--pg-accent)}
+  details[open] summary::before{content:"▾ "}
+  ul{margin:8px 0;padding-left:20px} li{margin:6px 0}
+  .foot{color:var(--pg-faint);font-size:12px;margin-top:48px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="meta">ORCHESTKIT · branch chore/opus5-trim-assessment · measured 2026-07-28 · 105 skills, 36 agents</p>
+  <h1>Skill ban-voice triage</h1>
+  <p class="sub">"Flag every rule that boxes you in without adding real information, and rewrite the keepers as judgement calls instead of bans." Applied to <code>src/skills</code> and <code>src/agents</code>, which the CLAUDE.md pass never touched.</p>
+
+  <div class="card banner">
+    <b>Where this stands.</b> <code>CLAUDE.md</code> is done: NEVER, MUST and ALWAYS are all at <b>0</b>, and the file got <i>smaller</i> (4,621 to 4,575 bytes). The skills surface is <b>completely untouched</b>: byte-identical to main. This page is the plan for that second half.
+  </div>
+
+  <h2>1 · The scale</h2>
+  <div class="card">
+    <div class="grid g4">
+      <div class="stat"><div class="k">Ban-voice lines</div><div class="v">469</div><div class="d">src/skills + src/agents</div></div>
+      <div class="stat"><div class="k">NEVER</div><div class="v">252</div><div class="d">occurrences</div></div>
+      <div class="stat"><div class="k">MUST</div><div class="v">145</div><div class="d">occurrences</div></div>
+      <div class="stat"><div class="k">CRITICAL:</div><div class="v">47</div><div class="d">occurrences</div></div>
+    </div>
+    <p class="sub" style="margin-top:16px;font-size:13.5px">
+      For comparison, <code>.claude/rules/</code> has <b>1 NEVER and 1 MUST</b> in total. The rules directory is already clean. All of the debt is in the skills.
+    </p>
+  </div>
+
+  <h2>2 · The triage test</h2>
+  <p class="sub">One question per line, and it is not "is this a ban" but <b>"does it carry information the model does not already have"</b>.</p>
+
+  <div class="mermaid">
+flowchart TD
+  A["a line containing<br/>NEVER · MUST · ALWAYS · CRITICAL:"]
+  B{"is it ISSUING a rule,<br/>or illustrating one?"}
+  C{"does it name a real<br/>incident, issue # or<br/>measured number?"}
+  D{"does it name a concrete<br/>artifact: a path, symbol,<br/>package, token?"}
+  K["KEEP VERBATIM<br/>the ban IS the information"]
+  R["REWRITE to judgement-voice<br/>keep the artifact, state the reason"]
+  X["CUT<br/>restates general practice"]
+  S["SKIP<br/>it is a teaching example"]
+  A --> B
+  B -->|illustrating| S
+  B -->|issuing| C
+  C -->|yes| K
+  C -->|no| D
+  D -->|yes| R
+  D -->|no| X
+  classDef keep fill:#1f3d2b,stroke:#3fbf7f,color:#e8f5ee
+  classDef rw   fill:#3d331f,stroke:#e0a23f,color:#f5f0e8
+  classDef cut  fill:#3d1f28,stroke:#e0475f,color:#f5e8ea
+  classDef q    fill:#1c2333,stroke:#4a5568,color:#e8e6f0
+  class K keep
+  class R rw
+  class X cut
+  class A,B,C,D,S q
+  </div>
+
+  <h2>3 · What the 469 actually split into</h2>
+  <div class="grid g3">
+    <div class="bucket b-keep">
+      <h3 style="color:hsl(152 62% 64%)">KEEP · incident-backed</h3>
+      <div><span class="n">9</span><span class="pct">2%</span></div>
+      <p class="sub" style="font-size:13px;margin:10px 0 0">The ban names the failure that produced it. Deleting it deletes the reason.</p>
+    </div>
+    <div class="bucket b-rw">
+      <h3 style="color:hsl(38 95% 70%)">REWRITE · names an artifact</h3>
+      <div><span class="n">94</span><span class="pct">20%</span></div>
+      <p class="sub" style="font-size:13px;margin:10px 0 0">Real repo-specific content wearing a ban. Keep the fact, drop the shouting.</p>
+    </div>
+    <div class="bucket b-cut">
+      <h3 style="color:hsl(354 78% 74%)">CUT · bare assertion</h3>
+      <div><span class="n">362</span><span class="pct">77%</span></div>
+      <p class="sub" style="font-size:13px;margin:10px 0 0">General good practice restated as a prohibition. Zero information for Opus 5.</p>
+    </div>
+  </div>
+
+  <div class="card banner bad" style="margin-top:16px">
+    <b>Read that 77% as a ranking, not a verdict.</b> I hand-checked the samples and the classifier is wrong roughly one time in six, in both directions. It flagged the doc's own <code>**Weak:**</code> example as a real violation, and it counted a log level named <code>CRITICAL</code> as inflation. A regex can tell you <i>where to look first</i>; it cannot decide whether a ban earns its keep. The actual pass is per-line judgement over ~100 files.
+  </div>
+
+  <h2>4 · The finding that changes the plan</h2>
+  <div class="card banner good">
+    <b>Most of the inflation is not 469 independent decisions. It is one template, copied.</b>
+    <code>CONTRIBUTING-SKILLS.md:665</code> ships a <code>```python</code> block that authors copy verbatim, and it opens with <code>## CRITICAL: Task Management is MANDATORY</code>. <b>13 skills carry that copied header today.</b> Fix the template and the pattern stops reproducing; fix only the 13 copies and it grows back with the next skill.
+    <div class="meta" style="margin-top:10px">assess · audit-activation · audit-full · brainstorm · demo-producer · explore · expect · github-operations · fix-issue · release-management · setup · review-pr · visualize-plan</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <p class="sub" style="margin:0 0 10px"><b>The same file states the rule 135 lines earlier.</b> Verbatim, <code>CONTRIBUTING-SKILLS.md:530</code>:</p>
+<pre>If you find yourself writing ALWAYS or NEVER in all caps, that's a yellow
+flag. Today's LLMs are smart, they have good theory of mind and when given a
+clear explanation of *why* something matters, they go beyond rote
+instructions. Reframe heavy-handed rules into reasoning</pre>
+    <p class="sub" style="margin:12px 0 0;font-size:13.5px">The guidance is already correct and already written down. It was never applied to the boilerplate the same document hands out, which is why the practice never propagated.</p>
+  </div>
+
+  <h2>5 · The three buckets, verbatim</h2>
+
+  <details open>
+    <summary>KEEP · a ban that earns it <span class="meta">ci-debug/SKILL.md:139</span></summary>
+<pre>- **NEVER `dontAsk`** — it silently REFUSES permission-requiring tools
+  (including Bash), so every analysis returns empty output with no error
+  (#1862 Bug C).</pre>
+    <p class="sub" style="margin-top:12px;font-size:13.5px">
+      This is the shape to aim for, and it is why blanket conversion would be vandalism. It carries four things a model cannot derive: the specific flag, the mechanism (<i>silently refuses</i>), the observable symptom (<i>empty output, no error</i>), and the incident (<i>#1862 Bug C</i>). The word NEVER is the least important part of the sentence. <b>Leave it exactly as is.</b>
+    </p>
+  </details>
+
+  <details>
+    <summary>REWRITE · real content wearing a ban <span class="meta">design-stylecards/SKILL.md:101</span></summary>
+    <div class="ba">
+      <div>
+        <div class="lab b">Before</div>
+<pre>- **NEVER** freehand shadow/gradient/blur
+  values when a recipe exists — that
+  defeats the catalog</pre>
+      </div>
+      <div>
+        <div class="lab a">After</div>
+<pre>- The catalog exists so these values stay
+  consistent across sessions. Freehanding
+  a shadow, gradient or blur that already
+  has a recipe re-introduces the drift the
+  catalog removed, so paste the recipe.</pre>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:12px;font-size:13.5px">
+      The fact survives (recipes exist, use them). What changes is that the model is told <i>what goes wrong</i> instead of being forbidden, so it can reason about the edge case the ban never anticipated: a value the catalog does not cover.
+    </p>
+  </details>
+
+  <details>
+    <summary>CUT · pure inflation <span class="meta">visualize-plan/SKILL.md:58 and 12 siblings</span></summary>
+    <div class="ba">
+      <div>
+        <div class="lab b">Before</div>
+<pre>## CRITICAL: Task Tracking</pre>
+      </div>
+      <div>
+        <div class="lab a">After</div>
+<pre>## Task tracking</pre>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:12px;font-size:13.5px">
+      <code>CRITICAL:</code> appears <b>47 times</b> across the tree. When 47 things are critical, none are: the word stops marking priority and becomes visual noise the model learns to skip. Nothing about the section changes if it goes. This is the single highest-count, lowest-risk edit in the whole pass.
+    </p>
+  </details>
+
+  <h2>6 · How to run it</h2>
+  <div class="card">
+    <table>
+      <tr><th>Wave</th><th>Scope</th><th class="num">Lines</th><th>Risk</th><th>Why this order</th></tr>
+      <tr>
+        <td><b>A</b></td>
+        <td>Fix the <b>template</b> at <code>CONTRIBUTING-SKILLS.md:665</code>, then the 13 copied headers</td>
+        <td class="num">~13</td>
+        <td>low</td>
+        <td>Stops the pattern reproducing. Everything after this is finite.</td>
+      </tr>
+      <tr>
+        <td><b>B</b></td>
+        <td>Drop the <code>CRITICAL:</code> prefix everywhere it is not a log level</td>
+        <td class="num">~47</td>
+        <td>low</td>
+        <td>Mechanical, no information can be lost by deleting an adjective.</td>
+      </tr>
+      <tr>
+        <td><b>C</b></td>
+        <td>Convert the 94 artifact-bearing bans to judgement-voice</td>
+        <td class="num">~94</td>
+        <td><b>med</b></td>
+        <td>Needs per-line reading. The artifact must survive verbatim.</td>
+      </tr>
+      <tr>
+        <td><b>D</b></td>
+        <td>Delete bare assertions after confirming each names nothing</td>
+        <td class="num">~300</td>
+        <td><b>med</b></td>
+        <td>Biggest bucket, but every line needs a human-grade check first.</td>
+      </tr>
+    </table>
+    <p class="sub" style="margin-top:14px;font-size:13.5px">
+      A and B are ~60 lines and carry essentially no risk of information loss. C and D are the real work and are where an over-eager sweep would delete wiring, which is exactly the failure mode the first audit's adversarial pass caught when a fabricated finding would have deleted 30 statically wired skills.
+    </p>
+  </div>
+
+  <div class="card banner" style="margin-top:16px">
+    <b>The guard rail.</b> The first audit proved <code>frontend-ui-developer.md</code> has 16 NEVERs of which about 11 encode real wiring: <code>@/lib/dates</code>, <code>useFormatting</code>, <code>i18n.t('time.minutesShort')</code>, design tokens. Only ~3 are generic. That single file is the whole argument against a blanket sweep: the highest ban-count file in the tree is also mostly legitimate.
+  </div>
+
+  <h2>7 · What this is worth</h2>
+  <div class="card">
+    <table>
+      <tr><th>Claim</th><th>Honest answer</th></tr>
+      <tr><td>Token savings</td><td><b>Near zero for the index.</b> Skill bodies load only on invoke, and they are not in the always-loaded 5,830-token index. This pass is not a token optimisation and should not be sold as one.</td></tr>
+      <tr><td>Then why do it</td><td>Same reason the CLAUDE.md pass paid: a ban with no reason cannot be reasoned about at the edge case, and inflation trains the model to skip emphasis. The measured win is <b>fewer wrong calls in situations the rule never anticipated</b>.</td></tr>
+      <tr><td>Biggest risk</td><td>Deleting a line that names non-derivable wiring. Mitigated by doing A and B first, and by requiring that every C/D edit preserves the named artifact verbatim.</td></tr>
+    </table>
+  </div>
+
+  <p class="foot">
+    Measured on branch <code>chore/opus5-trim-assessment</code> · 2026-07-28<br>
+    Companion: <code>index.html</code> (the Opus 5 trim assessment) · <code>plan.md</code> · <code>before-after-exhibits.md</code>
+  </p>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad:true, theme:'base', securityLevel:'loose',
+    flowchart:{ useMaxWidth:false, htmlLabels:true, nodeSpacing:44, rankSpacing:52, padding:16 },
+    themeVariables:{
+      fontFamily:'ui-sans-serif,-apple-system,Segoe UI,Inter,sans-serif', fontSize:'14px',
+      background:'transparent', primaryColor:'#1c2333', primaryTextColor:'#e8e6f0',
+      primaryBorderColor:'#4a5568', lineColor:'#7c6cf0', secondaryColor:'#2a1f3d',
+      tertiaryColor:'#1f3d2b', clusterBkg:'hsl(0 0% 100% / .03)', clusterBorder:'#4a5568'
+    }});
+</script>
+</body>
+</html>

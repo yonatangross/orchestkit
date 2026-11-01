@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feeding tr before anyone is reading</title>
+<meta name="description" content="The third and last here-string in the dead-generation guard: tr -d '[:space:]' fed by <<< "$OUT" at line 66. Same self-deadlock mechanism as #3190, converted to the printf pipe form as prevention. Toggle the form and payload size, watch the writer block or drain.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;
+    --ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;overflow-x:auto;font-size:.79rem;margin:.6rem 0 0;line-height:1.45}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+  .pick{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .8rem}
+  .pick button{font:inherit;font-size:.8rem;padding:.4rem .7rem;border-radius:8px;cursor:pointer;background:#0b0d13;color:var(--ink);border:1px solid var(--edge)}
+  .pick button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  .legend{font-size:.78rem;color:var(--dim);margin:0 0 .2rem}
+  .out{font-size:1rem;font-weight:700;padding:.6rem .8rem;border-radius:8px;border:1px solid var(--edge);background:#0b0d13;margin-top:.6rem}
+  .out.ok{color:var(--ok);border-color:var(--ok)} .out.bad{color:var(--bad)}
+  .why{font-size:.8rem;color:var(--dim);margin-top:.4rem;min-height:2.4em}
+  .meter{margin-top:.7rem;height:14px;border:1px solid var(--edge);border-radius:7px;background:#0b0d13;overflow:hidden;position:relative}
+  .meter i{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent);opacity:.75;transition:width .25s}
+  .meter.stuck i{background:var(--bad);width:100%;animation:none;opacity:.35}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .diff del{color:var(--bad)} .diff ins{color:var(--ok);text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Feeding tr before anyone is reading</h1>
+  <p class="sub">The third and last here-string in tests/evals/test-dead-generation-guard.sh. #4059 converted the two grep lines; this page covers the remaining one at line 66.</p>
+
+  <section>
+    <h2>1. The line, before and after</h2>
+    <div class="pick" id="formPick" role="group" aria-label="Line form">
+      <button data-form="before" aria-pressed="true">before</button>
+      <button data-form="after" aria-pressed="false">after</button>
+    </div>
+    <pre id="line"></pre>
+    <p class="why" id="lineWhy"></p>
+    <div class="note"><strong>Why bother:</strong> the stall never reproduced on bash 3.2.57 during #4059 either. The fix there was verified as prevention, and so is this one: same mechanism, one line left, rationale completed.</div>
+  </section>
+
+  <section>
+    <h2>2. The mechanism, in three moves</h2>
+    <pre>OUT=$(extract_output_text "$ENVELOPE")   # writer: a dead variable
+tr -d '[:space:]' &lt;&lt;&lt; "$OUT"             # bash 5.x backs this with a pipe
+                                         # payload written BEFORE a reader exists</pre>
+    <p class="why">A here-string has no producer process. Bash writes the whole payload into a pipe it created; if the payload exceeds the pipe capacity (64 KiB on macOS) and the reader side is not attached yet, the write blocks at zero CPU. Nothing times out, nothing fails, the test just never comes back.</p>
+  </section>
+
+  <section>
+    <h2>2b. Toggle it yourself</h2>
+    <div class="legend">payload size</div>
+    <div class="pick" role="group" aria-label="Payload size">
+      <button data-size="16" aria-pressed="false">16 B</button>
+      <button data-size="1024" aria-pressed="false">1 KiB</button>
+      <button data-size="65537" aria-pressed="true">64 KiB + 1 B</button>
+    </div>
+    <pre id="simLine"></pre>
+    <div class="out" id="simOut">writer state</div>
+    <div class="meter" id="simMeter"><i></i></div>
+    <p class="why" id="simWhy"></p>
+  </section>
+
+  <section>
+    <h2>3. Why the printf pipe form drains</h2>
+    <pre>printf '%s\n' "$OUT" | tr -d '[:space:]'</pre>
+    <p class="why">Now the payload has a real producer: printf writes and exits, tr reads until EOF. If a consumer exits early it SIGPIPEs the producer, the pipeline still completes. No version-dependent fd trick, no orphaned buffer, works on bash 3.2 through 5.3.</p>
+    <div class="note"><strong>Equivalence check:</strong> printf adds one trailing newline; tr -d '[:space:]' strips every whitespace byte including that newline, so the -z emptiness test sees the same value.</div>
+  </section>
+</main>
+<script>
+(function(){
+  var CAP = 65536;
+  var FORMS = {
+    before: {
+      code: 'if [[ -z "$(tr -d \'[:space:]\' <<< "$OUT")" ]]; then',
+      why: 'Here-string: bash materializes a pipe, writes the payload first, attaches tr second. Past capacity the write parks forever at zero CPU.'
+    },
+    after: {
+      code: 'if [[ -z "$(printf \'%s\\n\' "$OUT" | tr -d \'[:space:]\')" ]]; then',
+      why: 'Printf-piped: a real producer process, a drained pipeline, identical emptiness semantics for the -z test.'
+    }
+  };
+  var SIZES = { "16": 16, "1024": 1024, "65537": CAP + 1 };
+  var form = 'before', size = '65537';
+
+  function renderLine(){
+    document.getElementById('lineWhy').textContent = FORMS[form].why;
+    document.getElementById('simLine').textContent = FORMS[form].code;
+  }
+  function renderSim(){
+    var bytes = SIZES[size], out = document.getElementById('simOut'),
+        meter = document.getElementById('simMeter');
+    document.getElementById('simLine').textContent = FORMS[form].code.replace('$OUT', '$OUT (' + bytes + ' B)');
+    if (form === 'after') {
+      out.className = 'out ok';
+      out.textContent = 'drained: printf wrote ' + bytes + ' B and exited; tr consumed it; rc=0';
+      meter.className = 'meter'; meter.querySelector('i').style.width = '100%';
+    } else if (bytes <= CAP) {
+      out.className = 'out ok';
+      out.textContent = 'passed: ' + bytes + ' B fit the 64 KiB pipe buffer (this is why small payloads never hang)';
+      meter.className = 'meter'; meter.querySelector('i').style.width = (bytes / CAP * 100) + '%';
+    } else {
+      out.className = 'out bad';
+      out.textContent = 'stuck: write of byte ' + (CAP + 1) + ' blocks at zero CPU, no reader, no timeout';
+      meter.className = 'meter stuck'; meter.querySelector('i').style.width = '100%';
+    }
+  }
+  function wire(sel, fn){
+    var box = document.querySelector(sel);
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b) return;
+      box.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      fn(b.dataset);
+    });
+  }
+  wire('#formPick', function(d){ form = d.form; renderLine(); renderSim(); });
+  document.querySelectorAll('.pick').forEach(function(box){
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b || !b.dataset.size) return;
+      box.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      size = b.dataset.size; renderSim();
+    });
+  });
+  renderLine(); renderSim();
+})();
+</script>
+</body>
+</html>

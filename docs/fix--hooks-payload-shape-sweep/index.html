@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sweep T1: hooks read the payload CC actually sends</title>
+<meta name="description" content="Four hook fixes: read tool_response instead of the never-sent tool_output, normalize the ork: skill prefix, lock agent-attribution read-modify-write, and log only the sink URL host on failure.">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --ink:#e6edf3; --dim:#8b949e; --mute:#6e7681;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --acc:#58a6ff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 72px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  h1{margin:0 0 8px;font-size:24px;letter-spacing:-.02em}
+  h2{font-size:16px;margin:28px 0 10px}
+  p{margin:0 0 10px}
+  .lede{color:var(--dim);max-width:72ch}
+  code{font-family:var(--mono);font-size:.9em}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border:1px solid var(--line);border-radius:999px;color:var(--dim);margin:0 6px 6px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card.bad{border-color:rgba(248,81,73,.45)}
+  .card.ok{border-color:rgba(63,185,80,.45)}
+  .card h3{margin:0 0 8px;font-size:14px}
+  pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.5;white-space:pre-wrap;
+    color:var(--dim);background:var(--panel2);border-radius:8px;padding:12px}
+  .sim{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  button{cursor:pointer;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;font:inherit}
+  button[aria-pressed="true"]{border-color:var(--acc);background:#12253f}
+  .out{font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;background:var(--panel2);
+    border:1px solid var(--line);min-height:4em}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Four hooks that could never fire now read the real payload</h1>
+  <p class="lede">
+    Estate sweep T1. CC sends <code>tool_response</code> on PostToolUse, never
+    <code>tool_output</code>; Skill inputs arrive as <code>ork:&lt;name&gt;</code>;
+    and a session-state read outside the lock lost parallel agent entries.
+    Each fix was proven fail-first at origin/main, then verified green.
+  </p>
+  <p>
+    <span class="tag">sweep T1</span><span class="tag">hooks</span>
+    <span class="tag">tool_response</span><span class="tag">locking</span>
+  </p>
+</header>
+
+<h2>Before vs after</h2>
+<div class="grid">
+  <div class="card bad">
+    <h3>Before (origin/main)</h3>
+    <pre>session-heartbeat-publisher
+  read input.tool_output (never sent)
+  &rarr; last_commit/push/pr = null
+
+auto-verify + 2 expect hooks
+  skill === 'expect' &amp;&amp; tool_output
+  &rarr; ork:expect never matched
+
+recordAgentStart
+  read outside the lock
+  &rarr; parallel SubagentStart lost ids
+
+sink-registry
+  logged full config.url on failure
+  &rarr; path + query (tokens) in logs</pre>
+  </div>
+  <div class="card ok">
+    <h3>After (this PR)</h3>
+    <pre>session-heartbeat-publisher
+  tool_response ?? tool_output
+  &rarr; scans {stdout, stderr} for real
+
+auto-verify + 2 expect hooks
+  strip /^ork:/ then match name
+  &rarr; fires on the real payload
+
+recordAgentStart / resolve
+  updateSessionState(fn)
+  &rarr; lock covers read+modify+write
+
+sink-registry
+  logs new URL(u).host only
+  &rarr; '&lt;unparseable-url&gt;' fallback</pre>
+  </div>
+</div>
+
+<h2>Replay the payload</h2>
+<div class="sim">
+  <div class="row" role="group" aria-label="Scenario">
+    <button type="button" id="btn-bash" aria-pressed="true">Bash git commit</button>
+    <button type="button" id="btn-skill" aria-pressed="false">Skill ork:expect pass</button>
+    <button type="button" id="btn-race" aria-pressed="false">8 parallel SubagentStart</button>
+    <button type="button" id="btn-sink" aria-pressed="false">Sink ctor fails</button>
+  </div>
+  <div id="out" class="out" aria-live="polite">Pick a scenario.</div>
+</div>
+
+<h2>Fail-first evidence</h2>
+<div class="card">
+  <pre>(a) fixture as real {stdout,stderr} shape  &rarr; last_commit null   (3 failed | 17 passed)
+(b) skill 'ork:expect' + tool_response       &rarr; hook silent         (6 failed | 5 passed)
+(c) 8 spawned processes, one state file      &rarr; missing agent-N       (1 failed)
+(d) url /private/ingest?token=sekret123      &rarr; full URL logged       (1 failed)
+
+after: 10 test files, 172 tests, all pass. typecheck + both builds clean.</pre>
+</div>
+
+<footer>
+  Repo path under docs/ for this PR playground (see lab-manifest source). Lab slug: <code>hooks-payload-shape-sweep-t1</code>.
+</footer>
+</div>
+<script>
+(function () {
+  var out = document.getElementById('out');
+  var buttons = {
+    'btn-bash': {
+      label: 'PostToolUse Bash, git commit, real payload',
+      html: 'tool_response={stdout:"[main 5c9a906] feat: x"}<br>' +
+        '<span class="bad">old: reads tool_output &rarr; last_commit=null</span><br>' +
+        '<span class="ok">new: stringifyOutput scans stdout+stderr &rarr; sha 5c9a906 recorded</span>'
+    },
+    'btn-skill': {
+      label: 'PostToolUse Skill, ork:expect, RUN_COMPLETED|passed',
+      html: 'tool_input.skill="ork:expect", tool_response="RUN_COMPLETED|passed"<br>' +
+        '<span class="bad">old: "ork:expect" !== "expect" &rarr; silent, fingerprint never saved</span><br>' +
+        '<span class="ok">new: /^ork:/ stripped &rarr; marker found &rarr; fingerprint saved</span>'
+    },
+    'btn-race': {
+      label: 'Two SubagentStart processes on one session-state.json',
+      html: 'P1 reads {} ... P2 reads {} ... P1 writes {a1} ... P2 writes {a2}<br>' +
+        '<span class="bad">old: last writer wins, agent-1 is gone</span><br>' +
+        '<span class="ok">new: lock covers read+modify+write, both ids survive (8/8 in the test)</span>'
+    },
+    'btn-sink': {
+      label: 'User sink ctor throws on https://explode.example.com/private/ingest?token=sekret123',
+      html: '<span class="bad">old log: Failed to create sink ... /private/ingest?token=sekret123</span><br>' +
+        '<span class="ok">new log: Failed to create sink from user config: explode.example.com</span>'
+    }
+  };
+
+  function select(id) {
+    Object.keys(buttons).forEach(function (key) {
+      document.getElementById(key).setAttribute('aria-pressed', key === id ? 'true' : 'false');
+    });
+    var s = buttons[id];
+    out.innerHTML = '<strong>' + s.label + '</strong><br>' + s.html;
+  }
+
+  Object.keys(buttons).forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function () { select(id); });
+  });
+  select('btn-bash');
+})();
+</script>
+</body>
+</html>

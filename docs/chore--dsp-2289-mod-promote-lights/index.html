@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Promote Lights | OrchestKit Lab</title>
+  <meta name="description" content="See CI check status lights above the prompt while a promote PR is open. One REST page per minute, PR-open only.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    legend { font-weight: 600; }
+    .light-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 0; }
+    .light { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.05); font-size: 14px; }
+    .light span { font-size: 18px; }
+    .green { color: #4ade80; }
+    .yellow { color: #facc15; }
+    .red { color: #f87171; }
+    .cancelled { color: #fb923c; }
+    button { font: inherit; color: #101822; background: #8fd8ff; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 3px solid #ffd580; outline-offset: 4px; }
+    .status-line { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; }
+    .note { color: #b8c5d1; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · GH-4165</p>
+    <h1>Promote Lights</h1>
+    <p>CI status band above the prompt while a promote PR is open. One REST page per minute, PR-open only. Cancelled is its own bucket.</p>
+    <fieldset>
+      <legend>Simulate check states</legend>
+      <div class="light-row" id="lights">
+        <div class="light"><span class="green">&#x1F7E2;</span> lint</div>
+        <div class="light"><span class="green">&#x1F7E2;</span> test</div>
+        <div class="light"><span class="yellow">&#x1F7E1;</span> build</div>
+        <div class="light"><span class="cancelled">&#x26A0;</span> e2e</div>
+        <div class="light"><span class="red">&#x1F534;</span> deploy-preview</div>
+        <span class="note" id="behind">e9884a0 BEHIND</span>
+      </div>
+    </fieldset>
+    <article aria-labelledby="controls">
+      <h2 id="controls">Controls</h2>
+      <p>Click to change check states and watch the status line update.</p>
+      <button id="all-green" type="button">All passing</button>
+      <button id="one-cancelled" type="button">One cancelled</button>
+      <button id="in-progress" type="button">Build running</button>
+      <button id="missing" type="button">Missing check</button>
+      <div class="status-line" id="status">promote #4165: 2 green, 1 yellow, 1 cancelled, 1 red, BEHIND</div>
+    </article>
+    <h2>The contract</h2>
+    <p>Hooks: <code>session.start</code>, <code>turn.complete</code>, <code>command.register</code>, <code>ui.render</code> with <code>{ component: 'AbovePrompt' }</code>.</p>
+    <p>Calls: <code>$.process.run</code> (gh CLI), <code>$.fs.read</code>, <code>$.session.repo</code>, <code>$.clock.every</code>, <code>$.store.get/set</code>, <code>$.ui.status</code>, <code>$.ui.invalidate</code>.</p>
+    <p>Cancelled checks are never green. Missing is red. One REST page per minute, only while PR is open.</p>
+    <p><a href="https://github.com/yonatangross/orchestkit/pull/4165">Read PR 4165</a> · <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <footer>GH-4165 · OrchestKit docs site · promote-lights mod, CI status lights above the prompt.</footer>
+  </main>
+  <script>
+    (function() {
+      var CHECKS = [
+        { name: "lint", state: "success" },
+        { name: "test", state: "success" },
+        { name: "build", state: "pending" },
+        { name: "e2e", state: "cancelled" },
+        { name: "deploy-preview", state: "failure" },
+      ];
+      var ICON = {
+        success: '<span class="green">&#x1F7E2;</span>',
+        pending: '<span class="yellow">&#x1F7E1;</span>',
+        cancelled: '<span class="cancelled">&#x26A0;</span>',
+        failure: '<span class="red">&#x1F534;</span>',
+        missing: '<span class="red">&#x1F534;</span>',
+      };
+      var LABEL = { success: "green", pending: "yellow", cancelled: "cancelled", failure: "red", missing: "red" };
+      var lights = document.getElementById("lights");
+      var status = document.getElementById("status");
+
+      function behindNote() {
+        return Math.random() < 0.5 ? "e9884a0 BEHIND" : "e9884a0 IN SYNC";
+      }
+
+      function render() {
+        var counts = {};
+        CHECKS.forEach(function(c) { counts[LABEL[c.state]] = (counts[LABEL[c.state]] || 0) + 1; });
+        lights.innerHTML = CHECKS.map(function(c) {
+          return '<div class="light">' + (ICON[c.state] || "") + " " + c.name + "</div>";
+        }).join("") + '<span class="note" id="behind">' + behindNote() + "</span>";
+        var behind = lights.querySelector(".note").textContent;
+        var parts = ["promote #4165"];
+        ["green", "yellow", "cancelled", "red"].forEach(function(k) {
+          if (counts[k]) parts.push(counts[k] + " " + k);
+        });
+        parts.push(behind.split(" ")[1]);
+        status.textContent = parts.join(", ");
+      }
+
+      function setState(predicate) {
+        CHECKS.forEach(function(c) { if (predicate(c)) c.state = "success"; });
+        render();
+      }
+
+      document.getElementById("all-green").addEventListener("click", function() {
+        setState(function() { return true; });
+      });
+      document.getElementById("one-cancelled").addEventListener("click", function() {
+        setState(function(c) { return c.name !== "e2e"; });
+        var e2e = CHECKS.filter(function(c) { return c.name === "e2e"; })[0];
+        if (e2e) e2e.state = "cancelled";
+        render();
+      });
+      document.getElementById("in-progress").addEventListener("click", function() {
+        setState(function(c) { return c.name !== "build"; });
+        var build = CHECKS.filter(function(c) { return c.name === "build"; })[0];
+        if (build) build.state = "pending";
+        render();
+      });
+      document.getElementById("missing").addEventListener("click", function() {
+        setState(function(c) { return c.name !== "deploy-preview"; });
+        var deploy = CHECKS.filter(function(c) { return c.name === "deploy-preview"; })[0];
+        if (deploy) deploy.state = "missing";
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>auto-approve: credential reject keyed on the path</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; font:13px/1.3 ui-monospace, monospace; }
+  input { width:100%; background:#0c0e14; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:12px 14px; font:14px/1.4 ui-monospace, monospace; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font:14px/1.4 ui-monospace, monospace; }
+  td, th { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:normal; }
+  .allow { color:var(--ok); }
+  .ask { color:var(--bad); }
+  .note { font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The reader list was the bug</h1>
+  <p>Issue 4216 follow-up. The credential reject matched five readers
+  (<code>cat head tail less more</code>) before the secret path, but the safe
+  list approves other file-printing commands too. <code>fmt</code>,
+  <code>pr</code>, <code>comm</code> and <code>tsort</code> all printed
+  <code>~/.ssh/id_rsa</code> and <code>~/.aws/credentials</code> with an
+  auto-approve. The durable fix keys the reject on the PATH: any command
+  whose arguments name a secret store prompts, whatever the executable.</p>
+
+  <h2>Try a command</h2>
+  <input id="cmd" value='fmt ~/.ssh/id_rsa' spellcheck="false">
+  <div class="row" id="presets"></div>
+  <table>
+    <tr><th>decision path</th><th>before (reader-anchored)</th><th>after (path-keyed)</th></tr>
+    <tr><td>credential reject</td><td id="bReject"></td><td id="aReject"></td></tr>
+    <tr><td>verdict</td><td id="bVerdict"></td><td id="aVerdict"></td></tr>
+  </table>
+  <p class="note">Mirror of src/hooks/src/lib/bash-patterns.ts: the secret-path
+  alternation is unchanged; only the reader anchor
+  <code>/^(?:cat|head|tail|less|more)\b.../</code> is gone, so the path
+  matches anywhere in the command line.</p>
+</main>
+<script>
+const PRESETS = [
+  'fmt ~/.ssh/id_rsa',
+  'pr ~/.aws/credentials',
+  'comm ~/.kube/config ~/.bashrc',
+  'tsort ~/.netrc',
+  'wc -l .envrc',
+  'test -f ~/.aws/credentials',
+  'cat ~/.ssh/id_rsa',
+  'head -5 ~/.kube/config',
+  'ls -la',
+  'cat README.md',
+  'grep -r foo src/',
+];
+
+const PATHS = '(?:\\/etc\\/(?:shadow|gshadow|sudoers|master\\.passwd)|\\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|envrc|credentials?)\\b|id_(?:rsa|ed25519|ecdsa|dsa)\\b|\\.(?:pem|key|p12|pfx|keystore)\\b|\\.config\\/gh\\/hosts\\.yml\\b)';
+const OLD_CRED = new RegExp('^(?:cat|head|tail|less|more)\\b[^\\n]*?' + PATHS);
+const NEW_CRED = new RegExp(PATHS);
+
+const $ = id => document.getElementById(id);
+function cell(el, text, bad) {
+  el.textContent = text;
+  el.className = bad ? 'ask' : 'allow';
+}
+function run() {
+  const c = $('cmd').value;
+  const br = OLD_CRED.test(c), ar = NEW_CRED.test(c);
+  cell($('bReject'), br ? 'match' : 'no match', br);
+  cell($('aReject'), ar ? 'match' : 'no match', ar);
+  cell($('bVerdict'), br ? 'manual (reject)' : 'AUTO-APPROVED', br);
+  cell($('aVerdict'), ar ? 'manual (reject)' : 'eligible', ar);
+}
+const presets = $('presets');
+for (const p of PRESETS) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = p;
+  b.onclick = () => { $('cmd').value = p; run(); };
+  presets.appendChild(b);
+}
+$('cmd').addEventListener('input', run);
+run();
+</script>
+</body>
+</html>

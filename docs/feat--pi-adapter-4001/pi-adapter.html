@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The pi adapter: what one package.json key changes</title>
+<style>
+  :root{
+    --pg-bg:          hsl(232 26% 7%);
+    --pg-panel:       hsl(232 22% 11%);
+    --pg-ink:         hsl(220 18% 93%);
+    --pg-muted:       hsl(220 12% 64%);
+    --pg-faint:       hsl(220 10% 46%);
+    --pg-line:        hsl(0 0% 100% / 0.10);
+    --pg-glass:       hsl(0 0% 100% / 0.05);
+    --pg-accent:      hsl(248 84% 68%);
+    --pg-emerald:     hsl(160 68% 45%);
+    --pg-warm:        hsl(38 95% 60%);
+    --pg-rose:        hsl(345 76% 63%);
+    --pg-shadow: 0 20px 60px -22px hsl(232 40% 2% / 0.7), 0 4px 12px -6px hsl(232 40% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px;
+    --pg-dur-instant: 100ms; --pg-dur-fast: 200ms; --pg-dur-normal: 300ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:28px;font-family:var(--pg-font);color:var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 88% -8%, hsl(248 84% 68% / 0.14), transparent 60%),
+      radial-gradient(820px 620px at 4% 110%, hsl(160 68% 45% / 0.10), transparent 58%),
+      var(--pg-bg);
+    min-block-size:100%;
+  }
+  main{max-inline-size:1000px;margin-inline:auto}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:-0.01em}
+  h2{margin:0 0 10px;font-size:17px}
+  h3{margin:0 0 6px;font-size:14px}
+  .sub{color:var(--pg-muted);line-height:1.55;margin-block:0 22px}
+  section{
+    background:var(--pg-panel);border:1px solid var(--pg-line);border-radius:var(--pg-r-md);
+    padding:18px;margin-block-end:16px;box-shadow:var(--pg-shadow);
+  }
+  code,pre{font-family:var(--pg-mono)}
+  pre{
+    white-space:pre-wrap;background:var(--pg-glass);border:1px solid var(--pg-line);
+    border-radius:var(--pg-r-sm);padding:13px;line-height:1.55;font-size:13px;margin:0;
+  }
+  .switch{display:flex;gap:10px;flex-wrap:wrap;margin-block-end:14px}
+  button{
+    font:inherit;font-size:13px;color:var(--pg-ink);background:var(--pg-glass);
+    border:1px solid var(--pg-line);border-radius:var(--pg-r-sm);padding:8px 13px;cursor:pointer;
+    transition:border-color var(--pg-dur-fast) var(--pg-ease), background var(--pg-dur-fast) var(--pg-ease);
+  }
+  button:hover{border-color:var(--pg-accent)}
+  button[aria-pressed="true"]{border-color:var(--pg-accent);background:hsl(248 84% 68% / 0.16)}
+  .count{font-family:var(--pg-mono);font-size:34px;letter-spacing:-0.02em}
+  .count.zero{color:var(--pg-rose)}
+  .count.good{color:var(--pg-emerald)}
+  .count.odd{color:var(--pg-warm)}
+  .meter{font-family:var(--pg-mono);font-size:13px;color:var(--pg-muted);margin-block-start:4px}
+  table{inline-size:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:start;padding:8px 6px;border-block-end:1px solid var(--pg-line);vertical-align:top}
+  th{color:var(--pg-faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .tool{
+    display:inline-block;font-family:var(--pg-mono);font-size:12px;
+    padding:3px 8px;border-radius:999px;margin:3px 4px 0 0;border:1px solid var(--pg-line);
+  }
+  .tool.allow{color:var(--pg-emerald);border-color:hsl(160 68% 45% / 0.45)}
+  .tool.deny{color:var(--pg-faint);text-decoration:line-through}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .note{color:var(--pg-muted);font-size:13px;line-height:1.55}
+  footer{color:var(--pg-faint);font-size:12.5px;margin-block-start:20px;line-height:1.6}
+  .copy{margin-block-start:10px}
+  .copied{color:var(--pg-emerald)}
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:0.01ms !important;animation-duration:0.01ms !important}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>The pi adapter: what one <code>package.json</code> key changes</h1>
+  <p class="sub">
+    Measured on pi 0.85.0, 2026-09-08. pi resolves a package through the <code>pi</code> key,
+    else the default <code>skills/ extensions/ prompts/ themes/</code> directories at the package
+    root. OrchestKit had neither, so <code>pi install</code> registered nothing and said nothing.
+    Flip the manifest below to see what pi's own resolver returns for each shape.
+  </p>
+
+  <section>
+    <h2>1. The manifest, three shapes</h2>
+    <div class="switch" id="shapes"></div>
+    <div class="grid">
+      <div>
+        <div class="count" id="count">0</div>
+        <div class="meter" id="meter"></div>
+        <p class="note" id="verdict"></p>
+      </div>
+      <div>
+        <pre id="snippet"></pre>
+      </div>
+    </div>
+    <p class="note" id="explain"></p>
+  </section>
+
+  <section>
+    <h2>2. What the loader is actually asked</h2>
+    <p class="note">
+      Two pi entry points, and they can disagree. <code>collectPackageResources</code> decides
+      which FILES get registered, which is what <code>pi list</code> shows.
+      <code>loadSkillsFromDir</code> decides which of those files becomes a skill the model can
+      see. A file that registers but never parses is invisible and raises nothing, which is the
+      108-versus-107 row below.
+    </p>
+    <table>
+      <thead><tr><th>Shape</th><th>Files registered</th><th>Skills parsed</th><th>Diagnostics</th></tr></thead>
+      <tbody id="loader"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. The MCP allowlist, per server</h2>
+    <p class="note">
+      <code>.pi/mcp.json.example</code>. <code>includeTools</code> is fail-closed at
+      metadata-build time: an excluded tool never enters the tool map and is not reachable
+      through the mcp proxy either. It is a convenience filter, not a perimeter, because pi
+      ships a <code>bash</code> tool and inherits the environment that started it.
+    </p>
+    <div class="switch" id="servers"></div>
+    <div id="tools"></div>
+    <p class="note" id="reason"></p>
+  </section>
+
+  <section>
+    <h2>4. Reproduce it</h2>
+    <pre id="repro"></pre>
+    <button class="copy" id="copy" type="button">Copy the commands</button>
+    <span id="copystate" class="note"></span>
+  </section>
+
+  <footer>
+    Sources: pi 0.85.0 <code>dist/core/pi-manifest.js</code> and
+    <code>dist/core/package-manager.js</code>, read directly;
+    <code>docs/audits/multi-engine-support-2026-09-08.md</code>; and the gate
+    <code>tests/plugins/test-pi-plugin.sh</code>, whose REAL arm runs pi's own resolver against
+    the tree. Skill counts here are loader output, never a model's count: a cheap model asked to
+    count the catalog answered 55 skills for an empty directory with nothing installed.
+  </footer>
+</main>
+
+<script type="application/json" id="data">
+{
+  "shapes": [
+    {
+      "id": "none",
+      "label": "no pi key",
+      "snippet": "{\n  \"name\": \"orchestkit\",\n  \"engines\": { \"node\": \">=24 <25\" }\n}",
+      "files": 0,
+      "skills": 0,
+      "diagnostics": 0,
+      "verdict": "pi install registers nothing, and exits 0.",
+      "tone": "zero",
+      "explain": "The fallback looks for skills/ extensions/ prompts/ themes/ at the package root. OrchestKit keeps its skills in plugins/ork/skills, so no default matches and readPiManifest returns null. This was the state of the repo before #4001."
+    },
+    {
+      "id": "dir",
+      "label": "directory entry only",
+      "snippet": "\"pi\": {\n  \"skills\": [\n    \"./plugins/ork/skills\"\n  ]\n}",
+      "files": 108,
+      "skills": 107,
+      "diagnostics": 0,
+      "verdict": "107 skills load, plus one file that is not a skill.",
+      "tone": "odd",
+      "explain": "collectSkillEntries in pi mode takes every markdown child of the entry directory, so CONTRIBUTING-SKILLS.md is registered too. It parses to zero skills and zero diagnostics, so it sits in pi list as a resource that is not a skill and nothing ever complains."
+    },
+    {
+      "id": "shipped",
+      "label": "shipped: directory plus force-exclude",
+      "snippet": "\"pi\": {\n  \"skills\": [\n    \"./plugins/ork/skills\",\n    \"-plugins/ork/skills/CONTRIBUTING-SKILLS.md\"\n  ]\n}",
+      "files": 107,
+      "skills": 107,
+      "diagnostics": 0,
+      "verdict": "107 registered, 107 parsed, nothing spare.",
+      "tone": "good",
+      "explain": "A leading minus is a force-exclude in applyPatterns, applied after every include. Registered files and parsed skills now agree, which is exactly the equality the gate asserts. Of the 107, pi auto-lists 78 to the model; the other 29 carry disable-model-invocation and stay reachable as /skill:<name>."
+    }
+  ],
+  "servers": [
+    {
+      "id": "context7",
+      "label": "context7",
+      "allow": ["resolve-library-id", "query-docs"],
+      "deny": [],
+      "reason": "Both tools are reads and both are the entire surface on every published version, 2.x through 4.x. Any other spelling grants nothing and fails silently. HTTP transport, so no local process."
+    },
+    {
+      "id": "memory",
+      "label": "memory",
+      "allow": ["search_nodes", "read_graph", "open_nodes"],
+      "deny": ["create_entities", "create_relations", "add_observations", "delete_entities", "delete_observations", "delete_relations"],
+      "reason": "Read-only slice of the knowledge graph. Drop the includeTools line if the pi lane is meant to WRITE memory."
+    },
+    {
+      "id": "sequential-thinking",
+      "label": "sequential-thinking",
+      "allow": ["sequentialthinking"],
+      "deny": [],
+      "reason": "One tool, and it is a pure reasoning scratchpad: no filesystem, no network, no state outside the call. Marked $allowAll on purpose, so an unrestricted server in a read-only template is a decision and not an omission."
+    },
+    {
+      "id": "tavily",
+      "label": "tavily",
+      "allow": ["tavily_search", "tavily_extract", "tavily_map"],
+      "deny": ["tavily_crawl", "tavily_research"],
+      "reason": "Every tavily tool is a read, so this allowlist is about cost, not mutation: the two withheld ones fan out over many pages per call and bill credits accordingly."
+    }
+  ],
+  "repro": "# pi 0.85.0, fresh directory, fresh agent dir\nexport PI_CODING_AGENT_DIR=\"$PWD/agent\"\npi install -l --approve git:github.com/yonatangross/orchestkit\n\n# headless: --mode json, and close stdin or pi -p never returns\npi -p \"Open the skill named cover and reply with SKILL_PATH=<the absolute path you read>\" \\\n  --mode json --approve --no-session </dev/null\n\n# the gate, which runs pi's own resolver when pi is installed\nbash tests/plugins/test-pi-plugin.sh\n\n# the MCP template\ncp .pi/mcp.json.example .pi/mcp.json"
+}
+</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("data").textContent);
+  const BAR_WIDTH = 10;
+
+  function meter(value, max) {
+    const filled = max === 0 ? 0 : Math.round((Math.min(value, max) / max) * BAR_WIDTH);
+    return "▓".repeat(filled) + "░".repeat(BAR_WIDTH - filled) + "  " + value + " of 107 skills";
+  }
+
+  function renderShape(shape) {
+    const count = document.getElementById("count");
+    count.textContent = String(shape.skills);
+    count.className = "count " + shape.tone;
+    document.getElementById("meter").textContent = meter(shape.skills, 107);
+    document.getElementById("verdict").textContent = shape.verdict;
+    document.getElementById("snippet").textContent = shape.snippet;
+    document.getElementById("explain").textContent = shape.explain;
+    for (const button of document.querySelectorAll("#shapes button")) {
+      button.setAttribute("aria-pressed", String(button.dataset.id === shape.id));
+    }
+  }
+
+  const shapeBar = document.getElementById("shapes");
+  for (const shape of DATA.shapes) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.id = shape.id;
+    button.textContent = shape.label;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => renderShape(shape));
+    shapeBar.appendChild(button);
+  }
+
+  const loader = document.getElementById("loader");
+  for (const shape of DATA.shapes) {
+    const row = document.createElement("tr");
+    for (const cell of [shape.label, shape.files, shape.skills, shape.diagnostics]) {
+      const td = document.createElement("td");
+      td.textContent = String(cell);
+      row.appendChild(td);
+    }
+    loader.appendChild(row);
+  }
+
+  function renderServer(server) {
+    const box = document.getElementById("tools");
+    box.textContent = "";
+    for (const name of server.allow) {
+      const span = document.createElement("span");
+      span.className = "tool allow";
+      span.textContent = name;
+      box.appendChild(span);
+    }
+    for (const name of server.deny) {
+      const span = document.createElement("span");
+      span.className = "tool deny";
+      span.textContent = name;
+      box.appendChild(span);
+    }
+    document.getElementById("reason").textContent = server.reason;
+    for (const button of document.querySelectorAll("#servers button")) {
+      button.setAttribute("aria-pressed", String(button.dataset.id === server.id));
+    }
+  }
+
+  const serverBar = document.getElementById("servers");
+  for (const server of DATA.servers) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.id = server.id;
+    button.textContent = server.label + "  " + server.allow.length + "/" + (server.allow.length + server.deny.length);
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => renderServer(server));
+    serverBar.appendChild(button);
+  }
+
+  document.getElementById("repro").textContent = DATA.repro;
+  document.getElementById("copy").addEventListener("click", async () => {
+    const state = document.getElementById("copystate");
+    try {
+      await navigator.clipboard.writeText(DATA.repro);
+      state.textContent = "copied";
+      state.className = "note copied";
+    } catch {
+      state.textContent = "clipboard blocked, select the block above instead";
+      state.className = "note";
+    }
+  });
+
+  renderShape(DATA.shapes[DATA.shapes.length - 1]);
+  renderServer(DATA.servers[0]);
+</script>
+</body>
+</html>

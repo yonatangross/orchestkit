@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dist restore: tip equality without MERGE_HEAD</title>
+<style>
+:root{color-scheme:dark}body{margin:0;background:#101916;color:#eef6f0;font:18px/1.55 system-ui}
+main{max-width:760px;margin:auto;padding:40px 24px}section{padding:22px;border:1px solid #496451;border-radius:14px;margin:22px 0}
+select{font:inherit;padding:10px;max-width:100%}output{display:block;font-weight:700;margin-top:18px;color:#9ce5b5}
+code{background:#26382d;padding:3px 6px}p,.dim{color:#c1d0c5}a{color:#9ce5b5}
+.bad{color:#f87171}.ok{color:#9ce5b5}
+</style></head>
+<body><main>
+<h1>Pre-commit must accept the restore CI prints.</h1>
+<p class="dim">Issue #4300. The release-owned gate tells you to restore dist from origin/main. Before this fix, that commit had no MERGE_HEAD, so the guard classified tip-equal content as authored.</p>
+<section>
+<label for="case">Staged dist situation</label><br>
+<select id="case">
+<option value="restore">Plain restore, index equals origin/main tip, no MERGE_HEAD</option>
+<option value="authored">Authored edit, index differs from tip, no MERGE_HEAD</option>
+<option value="merge">Merge in progress, index matches MERGE_HEAD from main</option>
+<option value="neither">Merge in progress, index matches neither MERGE_HEAD nor tip</option>
+</select>
+<output id="verdict" aria-live="polite"></output>
+<p id="detail"></p>
+</section>
+<section>
+<h2>What the guard asks</h2>
+<ol>
+<li>If MERGE_HEAD is an ancestor of origin/main and the index matches MERGE_HEAD, inherit.</li>
+<li>Else if the index matches <code>refs/remotes/origin/main</code>, inherit (the #4300 path).</li>
+<li>Else print the path; pre-commit blocks.</li>
+</ol>
+<p>Authored dist that differs from the tip still fails. That half is the hole check.</p>
+</section>
+<script>
+const cases={
+restore:['Allow','Tip equality fires with no MERGE_HEAD. Same predicate CI uses against the base tip.'],
+authored:['Refuse','Index differs from origin/main. Still a feature edit; do not open a hole.'],
+merge:['Allow','Existing MERGE_HEAD inherit path. Kept.'],
+neither:['Refuse','Matches neither incoming parent nor tip. Authored during merge.']
+};
+function render(){const[v,d]=cases[document.getElementById('case').value];
+document.getElementById('verdict').textContent=v;
+document.getElementById('verdict').className=v==='Allow'?'ok':'bad';
+document.getElementById('detail').textContent=d;}
+document.getElementById('case').addEventListener('change',render);render();
+</script>
+</main></body></html>

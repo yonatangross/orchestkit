@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Match the package and advertise its twin</title><meta name="description" content="Try npm URL lookalikes and inspect the Markdown alternates for pricing and API policy.">
+<style>body{margin:0;background:#101827;color:#e7edf6;font:17px/1.6 system-ui,sans-serif}main{max-width:940px;margin:auto;padding:44px 22px 80px}h1{font-size:clamp(2rem,5vw,3rem);line-height:1.15}h2{font-size:1.25rem}a{color:#9dc8ff}section{margin:26px 0;padding:24px;background:#192438;border:1px solid #425471;border-radius:14px}label{display:block;margin:14px 0}input,select,button{font:inherit;max-width:100%;box-sizing:border-box}input[type=text],select{display:block;width:100%;padding:10px;margin-top:8px;background:#0c1320;color:#fff;border:1px solid #8193ae;border-radius:6px}input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-right:10px}button{padding:7px 12px;border:1px solid #8193ae;border-radius:6px;background:#243754;color:white;cursor:pointer;margin:4px}button:hover,button:focus-visible{background:#385782}*:focus-visible{outline:3px solid #ffd477;outline-offset:3px}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.result{padding:16px;border:1px solid #8193ae;border-radius:8px}.result strong{display:block;font-size:1.55rem}.pass{color:#85ecc5}.fail{color:#ffb3a8}.muted{color:#bdcbe0}code{overflow-wrap:anywhere;font-size:.9em}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;border-bottom:1px solid #425471}</style></head><body><main>
+<header><p class="muted">OrchestKit review playground | Issue 3684</p><h1>Match the package and advertise its twin</h1><p>Try npm URL lookalikes and inspect the Markdown alternates for pricing and API policy.</p><p><a href="https://github.com/yonatangross/orchestkit/pull/4481">Review draft PR 4481</a></p></header>
+<section aria-labelledby="scenario-heading"><h2 id="scenario-heading">Try a package link</h2>
+<label for="url">Resource URL<input id="url" type="text" spellcheck="false" value="https://www.npmjs.com/package/orchestkit"></label>
+<button type="button" data-case="valid">Exact package</button><button type="button" data-case="redirect">Wrong host with redirect text</button><button type="button" data-case="subpath">Version subpath</button><button type="button" data-case="invalid">Invalid URL</button>
+<div class="result" aria-live="polite">Exact host and package check<strong id="verdict"></strong></div><p id="reason"></p></section>
+<section><h2>Advertised Markdown twins</h2><table><caption>Page metadata now exposes the existing alternate routes</caption><thead><tr><th scope="col">HTML page</th><th scope="col">Markdown alternate</th></tr></thead><tbody><tr><td>/pricing</td><td><a href="/pricing.md">/pricing.md</a></td></tr><tr><td>/api-policy</td><td><a href="/api-policy.md">/api-policy.md</a></td></tr></tbody></table><p>Middleware already negotiated these routes. The page metadata now advertises the matching text/markdown representation instead of suppressing it with a canonical-only object.</p></section>
+<section><h2>Regression evidence</h2><p>The package test rejects wrong hosts, redirect text, nested paths and other package names. The metadata test imports both page exports and checks their exact alternate URLs. Counterfactual assertions verify that removing each guard is detected.</p><p><a href="https://github.com/yonatangross/orchestkit/blob/fix/backlog-3684-npm-host/docs/site/__tests__/published-packages.test.ts">Package regression</a> and <a href="https://github.com/yonatangross/orchestkit/blob/fix/backlog-3684-npm-host/docs/site/__tests__/agent-surface-honesty.test.ts">metadata regression</a></p></section>
+<p class="muted">This interactive model explains the change. The linked regression tests and CI establish its behavior.</p>
+</main><script>const field = document.getElementById('url');
+const examples = {
+  valid: 'https://www.npmjs.com/package/orchestkit',
+  redirect: 'https://example.invalid/?redirect=https://www.npmjs.com/package/orchestkit',
+  subpath: 'https://www.npmjs.com/package/orchestkit/versions',
+  invalid: 'not a URL'
+};
+function update() {
+  let matches = false;
+  let reason;
+  try {
+    const url = new URL(field.value);
+    matches = url.hostname === 'www.npmjs.com' && url.pathname === '/package/orchestkit';
+    reason = 'Parsed host: ' + url.hostname + '. Parsed path: ' + url.pathname + '.';
+  } catch {
+    reason = 'This value cannot be parsed as a URL.';
+  }
+  const verdict = document.getElementById('verdict');
+  verdict.textContent = matches ? 'MATCH' : 'REJECT';
+  verdict.className = matches ? 'pass' : 'fail';
+  document.getElementById('reason').textContent = reason;
+}
+field.addEventListener('input', update);
+document.querySelectorAll('[data-case]').forEach((button) => button.addEventListener('click', () => {
+  field.value = examples[button.dataset.case];
+  update();
+}));
+update();</script></body></html>

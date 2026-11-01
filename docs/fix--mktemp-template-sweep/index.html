@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The template is the fix, not the directory</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+*{box-sizing:border-box}
+body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);font:15px/1.6 ui-monospace,Menlo,Consolas,monospace}
+main{max-width:60rem;margin:0 auto}h1{font-size:1.3rem;margin:0 0 .35rem}
+h2{font-size:1rem;margin:2rem 0 .7rem;color:var(--accent)}p.lede{color:var(--dim);margin:0 0 1.5rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem}
+fieldset{border:1px solid var(--line);border-radius:6px;padding:.7rem 1rem;margin:0 0 .6rem}
+legend{color:var(--dim);font-size:.82rem;padding:0 .4rem}
+fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:0 1.4rem .2rem 0}
+.v{margin-top:.9rem;padding:.8rem 1rem;border-radius:6px;background:#0b0f14;border:1px solid var(--line);border-left-width:4px}
+.v.ok{border-left-color:var(--ok)}.v.bad{border-left-color:var(--bad)}
+.v strong{display:block}.v.ok strong{color:var(--ok)}.v.bad strong{color:var(--bad)}
+.v p{margin:.3rem 0 0;font-size:.85rem;color:var(--dim)}
+pre{margin:0;background:#0b0f14;padding:.7rem;border-radius:6px;border:1px solid var(--line);font-size:.84rem;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;padding:.35rem .6rem;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:400}td.n{text-align:right;font-variant-numeric:tabular-nums}
+.bar{display:inline-block;height:12px;background:var(--accent);border-radius:2px;vertical-align:middle}
+code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+.foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style></head><body><main>
+<h1>The template is the fix, not the directory</h1>
+<p class="lede">
+  A bare <code>mktemp</code> ignores <code>$TMPDIR</code> on macOS. Setting
+  TMPDIR therefore looks like a fix and changes nothing. Toggle both.
+</p>
+
+<div class="panel">
+  <fieldset>
+    <legend>conditions</legend>
+    <label><input type="checkbox" id="tmpdir" checked> TMPDIR points somewhere writable</label>
+    <label><input type="checkbox" id="tpl"> the call has an explicit template</label>
+    <label><input type="checkbox" id="deny" checked> system temp dir denies the write</label>
+  </fieldset>
+  <pre id="cmd"></pre>
+  <div class="v" id="v"><strong id="vt"></strong><p id="vp"></p></div>
+</div>
+
+<h2>Why two earlier sweeps of this class both "succeeded"</h2>
+<div class="panel">
+  <table>
+    <thead><tr><th>sweep</th><th>scoped by</th><th class="n">covered</th><th class="n">real</th></tr></thead>
+    <tbody>
+      <tr><td>#3550</td><td>directory (<code>.github/</code>)</td><td class="n">part</td><td class="n">bin/ too</td></tr>
+      <tr><td>this PR, 1st pass</td><td>regex dialect (<code>grep -E '\s'</code>)</td><td class="n">30</td><td class="n">76</td></tr>
+      <tr><td>this PR, shipped</td><td>whole tree, one dialect</td><td class="n">76</td><td class="n">76</td></tr>
+    </tbody>
+  </table>
+  <p style="margin:.8rem 0 0;font-size:.85rem;color:var(--dim)">
+    ERE has no <code>\s</code>, so the scan matched nothing useful and reported a
+    76-file surface as 30 — including the very file being fixed. Both sweeps
+    reported success. A gate that scans the whole tree in one dialect is the only
+    thing that can claim coverage.
+  </p>
+</div>
+
+<h2>Measured, on the test that was failing</h2>
+<div class="panel">
+  <table>
+    <tbody>
+      <tr><td>before</td><td class="n">9 pass / 5 fail</td><td><span class="bar" style="width:90px;background:var(--bad)"></span> 6 denials</td></tr>
+      <tr><td>after</td><td class="n">14 pass / 0 fail</td><td><span class="bar" style="width:140px"></span> 0 denials</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="foot">
+  Six sightings in one day: <code>count-hooks.sh</code>,
+  <code>run-all-tests.sh</code>, two <code>tests/ci/</code> scripts written to
+  catch this class, <code>test-dead-generation-guard.sh</code>, and
+  <code>pre-commit</code>'s hardcoded <code>/tmp</code> actionlint log.
+</div>
+</main>
+<script>
+(function(){
+  var t=document.getElementById('tmpdir'),p=document.getElementById('tpl'),d=document.getElementById('deny'),
+      cmd=document.getElementById('cmd'),v=document.getElementById('v'),vt=document.getElementById('vt'),vp=document.getElementById('vp');
+  function r(){
+    var T=t.checked,P=p.checked,D=d.checked;
+    cmd.textContent = (T?'TMPDIR=/writable ':'') + (P
+      ? 'f=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")'
+      : 'f=$(mktemp)');
+    var lands = P ? (T?'$TMPDIR':'/tmp') : 'the system temp dir';
+    var broken = !P && D;
+    v.className='v '+(broken?'bad':'ok');
+    if(broken){
+      vt.textContent='mkstemp failed: Operation not permitted';
+      vp.textContent='No template, so $TMPDIR is ignored and the call goes to '+lands+' regardless. Under set -e the whole script dies here — often before anything useful runs, which is why the failure gets misread as "your change broke the tests".';
+    } else if(!P && !D){
+      vt.textContent='works, by luck';
+      vp.textContent='No template, but the system temp dir happens to be writable. This is the state CI runs in, which is exactly why CI can never catch this class.';
+    } else {
+      vt.textContent='works, by construction';
+      vp.textContent='The template makes $TMPDIR effective, so the file lands in '+lands+'. Same code, same denial, different outcome.';
+    }
+  }
+  [t,p,d].forEach(function(e){e.addEventListener('change',r)}); r();
+})();
+</script></body></html>

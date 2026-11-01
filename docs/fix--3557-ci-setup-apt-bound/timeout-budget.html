@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3557 — where a hung package mirror spends your CI budget</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --dim:#8b949e;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:60rem;margin:0 auto}
+  h1{font-size:1.35rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.75rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  label{display:block;margin:.85rem 0 .3rem;color:var(--dim);font-size:.85rem}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{color:var(--fg);font-weight:700}
+  .row{display:flex;gap:1.5rem;flex-wrap:wrap}
+  .row>div{flex:1 1 14rem}
+  .bar{height:26px;border-radius:4px;background:#21262d;position:relative;
+       overflow:hidden;margin:.4rem 0 .2rem;border:1px solid var(--line)}
+  .fill{height:100%;transition:width .18s ease,background .18s ease}
+  .caption{font-size:.82rem;color:var(--dim)}
+  .verdict{margin-top:1rem;padding:.85rem 1rem;border-radius:6px;
+           border-left:4px solid var(--line);background:#0b0f14}
+  .verdict.bad{border-left-color:var(--bad)}
+  .verdict.ok{border-left-color:var(--ok)}
+  .verdict strong{display:block;margin-bottom:.25rem}
+  fieldset{border:1px solid var(--line);border-radius:6px;padding:.75rem 1rem;margin:1rem 0 0}
+  legend{color:var(--dim);font-size:.82rem;padding:0 .4rem}
+  fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:0 1.25rem 0 0;color:var(--fg)}
+  table{border-collapse:collapse;width:100%;font-size:.88rem;margin-top:.5rem}
+  th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:400}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px;font-size:.88em}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Where a hung package mirror spends your CI budget</h1>
+  <p class="lede">
+    On fork PR #3555, three jobs died inside <code>Setup environment</code> without
+    running a single test. Drag the controls to see why the failure time tracked the
+    job's own cap instead of the hang.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="cap">Job <code>timeout-minutes</code>: <span class="val" id="capV">15</span> min</label>
+        <input id="cap" type="range" min="5" max="60" step="5" value="15">
+      </div>
+      <div>
+        <label for="hang">Mirror stops responding for: <span class="val" id="hangV">unreachable</span></label>
+        <input id="hang" type="range" min="0" max="61" step="1" value="61">
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>install path</legend>
+      <label><input type="radio" name="mode" value="raw" checked> raw <code>sudo apt-get update</code></label>
+      <label><input type="radio" name="mode" value="bounded"> <code>ensure-system-deps.sh</code></label>
+    </fieldset>
+
+    <div class="bar"><div class="fill" id="fill" style="width:100%;background:var(--bad)"></div></div>
+    <div class="caption" id="caption"></div>
+
+    <div class="verdict bad" id="verdict"><strong id="vTitle"></strong><span id="vBody"></span></div>
+  </div>
+
+  <h2>What actually happened, 2026-08-19</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>job</th><th class="n">cap</th><th class="n">died after</th><th>step</th></tr></thead>
+      <tbody>
+        <tr><td>Security Tests</td><td class="n">15 min</td><td class="n">15m 16s</td><td>Setup environment</td></tr>
+        <tr><td>Compliance Tests</td><td class="n">15 min</td><td class="n">15m 16s</td><td>Setup environment</td></tr>
+        <tr><td>Unit Tests (node 20)</td><td class="n">30 min</td><td class="n">30m 15s</td><td>Setup environment</td></tr>
+      </tbody>
+    </table>
+    <p class="caption" style="margin-top:.9rem">
+      Each job died at its own cap, to the second. That is <code>timeout-minutes</code>
+      firing, not a test failing and not concurrency cancelling. GitHub reports a
+      cap-killed job as <em>cancelled</em>, which is what made it read like an infra flake.
+    </p>
+  </div>
+
+  <h2>Why the existing guard could not help</h2>
+  <div class="panel">
+    <p style="margin:0 0 .6rem">The call site carried what looks like a safety net:</p>
+    <pre style="margin:0;overflow-x:auto"><code>if ! sudo apt-get update -qq; then
+    log_warn "apt-get update had issues, continuing anyway..."
+fi</code></pre>
+    <p class="caption" style="margin-top:.75rem">
+      That catches a non-zero <strong>exit</strong>. A hang never exits, so the guard
+      never runs. Only an external watchdog (<code>timeout</code>) converts a hang into
+      an exit the guard can see.
+    </p>
+  </div>
+
+  <div class="foot">
+    Fix: every package install routes through <code>.github/scripts/ensure-system-deps.sh</code>,
+    which skips the package manager when the tools are already present and bounds the call at
+    <code>SYSTEM_DEPS_TIMEOUT</code> (90s default) otherwise.
+    <code>tests/ci/test-no-unbounded-package-manager.sh</code> greps the whole CI-executed
+    surface so the next call site cannot reintroduce this. Issue #3557.
+  </div>
+</main>
+
+<script>
+(function(){
+  var cap=document.getElementById('cap'), hang=document.getElementById('hang'),
+      capV=document.getElementById('capV'), hangV=document.getElementById('hangV'),
+      fill=document.getElementById('fill'), caption=document.getElementById('caption'),
+      verdict=document.getElementById('verdict'), vTitle=document.getElementById('vTitle'),
+      vBody=document.getElementById('vBody'),
+      BOUND=1.5; // ensure-system-deps.sh: 90s per package-manager call
+
+  function mode(){
+    var r=document.querySelectorAll('input[name=mode]');
+    for(var i=0;i<r.length;i++) if(r[i].checked) return r[i].value;
+    return 'raw';
+  }
+  function fmt(m){
+    if(m<1) return Math.round(m*60)+'s';
+    var whole=Math.floor(m), s=Math.round((m-whole)*60);
+    return whole+'m'+(s?' '+s+'s':'');
+  }
+
+  function render(){
+    var c=+cap.value, h=+hang.value, m=mode(), unreachable=(h>60);
+    capV.textContent=c;
+    hangV.textContent = unreachable ? 'unreachable' : fmt(h);
+
+    var cost, outcome, why, colour;
+
+    if(m==='bounded'){
+      // The common path never touches the package manager at all: jq ships on the image.
+      if(unreachable || h>BOUND){
+        cost=BOUND; outcome='fails fast, named cause'; colour='var(--warn)';
+        why='The watchdog cuts the call at 90s and prints "the package mirror is '+
+            'unreachable or throttled. This is an infrastructure failure in setup, not a '+
+            'test failure." You lose 90 seconds and you know exactly why.';
+      } else {
+        cost=h; outcome='installs and continues'; colour='var(--ok)';
+        why='The mirror answered inside the bound, so the install completes normally. '+
+            'On a hosted runner jq is already present, so the usual cost here is ~0s: '+
+            'the helper skips the package manager entirely.';
+      }
+    } else {
+      if(unreachable || h>c){
+        cost=c; outcome='job cancelled at its cap'; colour='var(--bad)';
+        why='Nothing bounds the call, so it runs until the job cap kills it. Zero tests '+
+            'ran, the whole cap is burnt, and the job reports "cancelled" — which reads '+
+            'as an infra flake rather than a hang with an address.';
+      } else {
+        cost=h; outcome='recovers, silently slow'; colour='var(--warn)';
+        why='The mirror answered before the cap, so this run passes. The cost is invisible '+
+            'and paid on every single job, which is why the defect survived unnoticed.';
+      }
+    }
+
+    var pct=Math.max(2,Math.min(100,(cost/c)*100));
+    fill.style.width=pct+'%';
+    fill.style.background=colour;
+    caption.textContent='Setup environment burns '+fmt(cost)+' of the '+c+
+      '-minute cap ('+Math.round((cost/c)*100)+'%) before the job resolves.';
+
+    verdict.className='verdict '+(colour==='var(--bad)'?'bad':'ok');
+    vTitle.textContent=outcome;
+    vBody.textContent=why;
+  }
+
+  cap.addEventListener('input',render);
+  hang.addEventListener('input',render);
+  var radios=document.querySelectorAll('input[name=mode]');
+  for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',render);
+  render();
+})();
+</script>
+</body>
+</html>

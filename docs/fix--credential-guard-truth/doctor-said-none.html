@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doctor said NONE. Measured.</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--accent:#58a6ff}
+*{box-sizing:border-box}
+body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);font:15px/1.6 ui-monospace,Menlo,Consolas,monospace}
+main{max-width:58rem;margin:0 auto}h1{font-size:1.3rem;margin:0 0 .35rem}
+h2{font-size:1rem;margin:2rem 0 .7rem;color:var(--accent)}p.lede{color:var(--dim);margin:0 0 1.5rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem}
+input[type=text]{width:100%;background:#0b0f14;border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:.55rem .7rem;font:inherit}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:.7rem 0 0}
+.chip{background:#21262d;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:.18rem .65rem;font-size:.78rem;cursor:pointer}
+.chip:hover{color:var(--fg);border-color:var(--accent)}
+.v{margin-top:1rem;padding:.75rem 1rem;border-radius:6px;background:#0b0f14;border:1px solid var(--line);border-left-width:4px}
+.v.deny{border-left-color:var(--bad)}.v.deny strong{color:var(--bad)}
+.v.allow{border-left-color:var(--ok)}.v.allow strong{color:var(--ok)}
+.v p{margin:.3rem 0 0;font-size:.85rem;color:var(--dim)}
+pre{margin:0;background:#0b0f14;padding:.7rem;border-radius:6px;border:1px solid var(--line);font-size:.84rem;overflow-x:auto}
+code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+.foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style></head><body><main>
+<h1>Doctor said NONE. Measured.</h1>
+<p class="lede">
+  <code>/ork:doctor</code> told operators that reading <code>~/.ssh/id_rsa</code>
+  had zero hook coverage. A hook had been denying it since 2026-08-16.
+</p>
+
+<div class="panel">
+  <input id="p" type="text" spellcheck="false" value="~/.ssh/id_rsa">
+  <div class="chips" id="chips"></div>
+  <div class="v" id="v"><strong id="vt"></strong><p id="vp"></p></div>
+</div>
+
+<h2>What the check actually shipped</h2>
+<div class="panel">
+<pre><code>| ❌ permissions.deny  0 credential-read rules across 4 scopes |
+|    Read(~/.ssh/**) has ZERO hook coverage. Measured, not assumed. |</code></pre>
+  <p style="margin:.7rem 0 0;font-size:.85rem;color:var(--dim)">
+    "Measured, not assumed" is the part that stings: the claim was measured once,
+    became false when the guard landed, and kept asserting its own rigour. The
+    same dangling-pointer class #3553 fixed one section over.
+  </p>
+</div>
+
+<h2>Second gap: nothing tested it</h2>
+<div class="panel">
+  <p style="margin:0;font-size:.88rem;color:var(--dim)">
+    The guard shipped with zero behavioural tests. Its two hardest-won
+    behaviours — the macOS case-fold bypass (<code>~/.SSH/id_rsa</code> opens the
+    same bytes on APFS) and dual lexical/realpath matching — were asserted by
+    nothing. Dropping the fold would have shipped green. There are now 20 tests,
+    mutation-checked three ways: removing the fold fails 2, narrowing the rules
+    fails 3, and denying everything fails 6.
+  </p>
+</div>
+
+<div class="foot">
+  The guard covers the <strong>Read tool</strong> only. <code>cat ~/.ssh/id_rsa</code>
+  through Bash is a different lane. Deny rules are still worth having as defence
+  in depth — which is what the corrected row now says.
+</div>
+</main>
+<script>
+(function(){
+  var p=document.getElementById('p'),v=document.getElementById('v'),
+      vt=document.getElementById('vt'),vp=document.getElementById('vp'),chips=document.getElementById('chips');
+  var PRE=['~/.ssh/id_rsa','~/.SSH/id_rsa','~/.gnupg/secring.gpg','~/.aws/credentials','~/.aws/config','~/.netrc','~/.npmrc','~/.kube/config','/srv/project/.npmrc','/tmp/../root/.ssh/id_rsa'];
+  PRE.forEach(function(x){var b=document.createElement('button');b.className='chip';b.textContent=x;b.onclick=function(){p.value=x;r();};chips.appendChild(b);});
+  var TREES=['.ssh','.gnupg'], FILES=['.aws/credentials','.netrc','.npmrc'];
+  function norm(s){
+    s=s.trim().replace(/^~\//,'HOME/');
+    var parts=[],segs=s.split('/');
+    for(var i=0;i<segs.length;i++){var g=segs[i];
+      if(g==='..'){parts.pop();} else if(g!=='.'&&g!==''){parts.push(g);} }
+    return parts.join('/');
+  }
+  function r(){
+    var n=norm(p.value), low=n.toLowerCase(), home=low.indexOf('home/')===0;
+    var rest=home?low.slice(5):null, hit=null;
+    if(rest!==null){
+      TREES.forEach(function(t){ if(rest===t||rest.indexOf(t+'/')===0) hit=t; });
+      FILES.forEach(function(f){ if(rest===f) hit=f; });
+    }
+    if(hit){ v.className='v deny'; vt.textContent='DENY  '+hit;
+      vp.textContent='Matched after ~ expansion, .. collapse and case folding. Rewriting the path does not change the answer.'; }
+    else { v.className='v allow'; vt.textContent='allow';
+      vp.textContent = home ? 'In home, but not one of the five guarded classes. Widening the table widens the contract, so it is a deliberate decision, not a default.'
+                            : 'Every rule is anchored under the home directory, so repo-local files that share a basename are untouched.'; }
+  }
+  p.addEventListener('input',r); r();
+})();
+</script></body></html>

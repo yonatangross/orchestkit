@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3558 — the skill's own authority said UNLIMITED</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:60rem;margin:0 auto}
+  h1{font-size:1.3rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.5rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  label{display:block;margin:.8rem 0 .3rem;color:var(--dim);font-size:.85rem}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{color:var(--fg);font-weight:700}
+  .row{display:flex;gap:1.5rem;flex-wrap:wrap}.row>div{flex:1 1 14rem}
+  .bar{height:22px;border-radius:4px;background:#21262d;position:relative;
+       overflow:hidden;border:1px solid var(--line);margin:.35rem 0}
+  .fill{height:100%;transition:width .15s,background .15s}
+  .v{margin-top:1rem;padding:.8rem 1rem;border-radius:6px;background:#0b0f14;
+     border:1px solid var(--line);border-left-width:4px}
+  .v.ok{border-left-color:var(--ok)} .v.bad{border-left-color:var(--bad)}
+  .v strong{display:block;margin-bottom:.2rem}
+  .v.ok strong{color:var(--ok)} .v.bad strong{color:var(--bad)}
+  .v p{margin:0;font-size:.85rem;color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.85rem}
+  th,td{text-align:left;padding:.35rem .6rem;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:400}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>The skill's own authority said UNLIMITED</h1>
+  <p class="lede">
+    Nothing bounded a reply's visual volume. The one file the glyph skill cites
+    as its authority actively encouraged more. Drag to see where the budget bites.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="vis">Visual lines in the reply: <span class="val" id="visV">28</span></label>
+        <input id="vis" type="range" min="0" max="60" value="28">
+      </div>
+      <div>
+        <label for="tot">Total reply lines: <span class="val" id="totV">40</span></label>
+        <input id="tot" type="range" min="1" max="120" value="40">
+      </div>
+    </div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="v" id="verdict"><strong id="vT"></strong><p id="vP"></p></div>
+  </div>
+
+  <h2>Every repo source pushed one way</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>source</th><th>says about volume</th></tr></thead>
+      <tbody>
+        <tr><td><code>src/rules/visual-style.md:52</code></td><td style="color:var(--bad)">"UNLIMITED" · "Lean in"</td></tr>
+        <tr><td><code>skills/glyph/rules/…</code></td><td style="color:var(--bad)">byte-identical copy</td></tr>
+        <tr><td><code>CLAUDE.md:15</code></td><td>no ceiling</td></tr>
+        <tr><td><code>visual-style-nudge.ts</code></td><td>"render it as ASCII art" · no ceiling</td></tr>
+        <tr><td><code>glyph/SKILL.md:192</code></td><td>width &lt; 80 · <em>per diagram</em></td></tr>
+        <tr><td><code>ascii-lint.ts</code></td><td>width, corners, density · <em>per block</em></td></tr>
+        <tr><td><code>validate-visual-style.py</code></td><td style="color:var(--warn)">which CHARACTERS · never how many</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:.8rem 0 0;font-size:.85rem;color:var(--dim)">
+      Six sources speak to chat visuals. Every one bounds a line's width or a
+      block's characters. <strong>None bounds the reply.</strong>
+    </p>
+  </div>
+
+  <h2>Why a line budget, not a block count</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>measure</th><th class="n">p50</th><th class="n">p75</th><th class="n">p90</th><th class="n">max</th></tr></thead>
+      <tbody>
+        <tr><td>block length (lines)</td><td class="n">8</td><td class="n">10</td><td class="n">13</td><td class="n">23</td></tr>
+        <tr><td>visual share of reply</td><td class="n">36%</td><td class="n">43%</td><td class="n">53%</td><td class="n">81%</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:.8rem 0 0;font-size:.85rem;color:var(--dim)">
+      From 151 replies, 28 carrying a visual. A block-COUNT rule binds almost
+      nothing: 24 of the 28 already used exactly one block, while the worst reply
+      was 81% visual and would have passed it. Volume is the failure mode.
+    </p>
+  </div>
+
+  <div class="foot">
+    No gate can enforce this. <code>validate-visual-style.py</code> reads a PR
+    title and body; <code>ascii-lint</code> fires on file writes. A chat reply is
+    neither, so it is unobservable to both. This is a docs fix by necessity, not
+    by preference. Issue #3558.
+  </div>
+</main>
+
+<script>
+(function(){
+  var vis=document.getElementById('vis'), tot=document.getElementById('tot'),
+      visV=document.getElementById('visV'), totV=document.getElementById('totV'),
+      fill=document.getElementById('fill'), verdict=document.getElementById('verdict'),
+      vT=document.getElementById('vT'), vP=document.getElementById('vP');
+  function render(){
+    var v=+vis.value, t=+tot.value;
+    if(v>t){ t=v; tot.value=v; }
+    visV.textContent=v; totV.textContent=t;
+    var share=t? v/t : 0;
+    var overLines=v>12, overShare=share>0.40, bad=overLines||overShare;
+    fill.style.width=Math.min(100,share*100)+'%';
+    fill.style.background=bad?'var(--bad)':'var(--ok)';
+    if(!bad){
+      vT.textContent='within budget'; verdict.className='v ok';
+      vP.textContent=v+' visual lines, '+Math.round(share*100)+'% of the reply. Both under the ceiling.';
+    } else {
+      vT.textContent='over budget'; verdict.className='v bad';
+      var why=[];
+      if(overLines) why.push(v+' visual lines exceeds 12');
+      if(overShare) why.push(Math.round(share*100)+'% exceeds 40%');
+      vP.textContent=why.join(' · ')+'. This is not a bigger chat answer, it is a different deliverable: write the playground or file and print the path.';
+    }
+  }
+  vis.addEventListener('input',render); tot.addEventListener('input',render); render();
+})();
+</script></body></html>

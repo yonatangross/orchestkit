@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three false signals: free memory, the zsh loop, the silent rsync</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem;
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, Segoe UI, Inter, system-ui, sans-serif;
+    background: hsl(232 26% 7%); color: hsl(220 18% 93%); line-height: 1.55;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin: 0 0 .25rem; }
+  .sub { color: hsl(220 12% 64%); margin: 0 0 1.5rem; font-size: .95rem; }
+  .card {
+    border: 1px solid hsl(0 0% 100% / .12); background: hsl(0 0% 100% / .04);
+    border-radius: 14px; padding: 1rem 1.2rem; margin: 0 0 1.1rem;
+  }
+  h2 { font-size: 1.02rem; margin: 0 0 .5rem; }
+  .mono { font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: .86rem; }
+  pre {
+    font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    font-size: .84rem; background: hsl(232 26% 11%); border: 1px solid hsl(0 0% 100% / .08);
+    border-radius: 8px; padding: .6rem .8rem; overflow-x: auto; margin: .5rem 0; white-space: pre-wrap;
+  }
+  button {
+    font: inherit; font-size: .85rem; padding: .35rem .8rem; border-radius: 8px;
+    border: 1px solid hsl(248 84% 68% / .55); background: hsl(248 84% 68% / .12);
+    color: hsl(248 90% 82%); cursor: pointer; margin: .15rem .35rem .35rem 0;
+  }
+  button.on { background: hsl(248 84% 68% / .35); color: hsl(0 0% 100%); }
+  .verdict { border-radius: 8px; padding: .55rem .75rem; margin: .5rem 0 0; font-size: .9rem; }
+  .bad  { background: hsl(345 76% 63% / .14); border: 1px solid hsl(345 76% 63% / .4); }
+  .good { background: hsl(160 68% 45% / .12); border: 1px solid hsl(160 68% 45% / .4); }
+  .row { display: flex; gap: .8rem; flex-wrap: wrap; }
+  .row > div { flex: 1 1 16rem; }
+  .tag { color: hsl(220 12% 64%); font-size: .8rem; }
+  ul { margin: .4rem 0 .2rem 1.1rem; padding: 0; }
+  li { margin: .2rem 0; }
+  footer { color: hsl(220 10% 46%); font-size: .82rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Three false signals: free memory, the zsh loop, the silent rsync</h1>
+  <p class="sub">Three diagnosis traps from one operator session, each with the rule that would have caught it. Evidence cited in the PR body.</p>
+
+  <div class="card">
+    <h2>1. Free percentage is not evidence (doctor guidance)</h2>
+    <p>What the quick tool printed during a live load diagnosis:</p>
+    <div class="row">
+      <div>
+        <span class="tag">memory_pressure</span>
+        <pre>System-wide memory free percentage: 84%</pre>
+        <button id="mTrust" onclick="flipM(0)">trust the percentage</button>
+        <button id="mProbe" onclick="flipM(1)">read the real evidence</button>
+        <div id="mOut" class="verdict bad">Diagnosis: the machine has memory to spare, so the load must be the app on screen. (This is the wrong culprit.)</div>
+      </div>
+      <div>
+        <span class="tag">the probes</span>
+        <pre>sysctl vm.swapusage
+  vm.swapusage: total = 8192.0M
+    used = 7065.6M  free = 1126.4M
+vm_stat  (wire + compressor occupy the rest)
+  59 of 64 GB in use</pre>
+        <p class="tag">Swap nearly exhausted while "84% free" prints: the percentage answers a different question than "is the machine under memory pressure". Name a culprit only after a process tree confirms one.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. The zsh one liner that never split (display-lint hook message)</h2>
+    <p>A loop written as a shell one liner, run through the Bash tool:</p>
+    <pre>set -- $spec
+for url in "$@"; do fetch "$url"; done</pre>
+    <button id="sZsh" onclick="flipS('zsh')">Bash tool shell: zsh (macOS default)</button>
+    <button id="sBash" onclick="flipS('bash')">bash</button>
+    <div class="row">
+      <div id="sZshBox">
+        <div class="verdict bad" id="sZshOut">zsh does not word split $var: the loop body runs ONCE with the whole spec string as one argument. Every fetch got one malformed URL. Five minutes of 404s.</div>
+      </div>
+      <div id="sBashBox">
+        <div class="verdict good">bash splits $var on IFS: the loop body runs once per word, each iteration gets one well formed argument. Same one liner, different shell, different behaviour.</div>
+      </div>
+    </div>
+    <p class="tag">Rule: loops belong in bash script files, where the shell is the one you wrote. The ork display-lint advisory now says why: script files render as one short tool card, survive line wrap, and get real bash word splitting.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. The rsync output that was not there (test guidance)</h2>
+    <p>Dry run rsync on macOS (openrsync) vs CI (GNU rsync), parsed by a test:</p>
+    <button id="rQuiet" onclick="flipR(0)">without -v</button>
+    <button id="rLoud" onclick="flipR(1)">with -v</button>
+    <div class="row">
+      <div>
+        <span class="tag">macOS openrsync</span>
+        <pre id="rMac"></pre>
+      </div>
+      <div>
+        <span class="tag">CI GNU rsync</span>
+        <pre id="rGnu"></pre>
+      </div>
+    </div>
+    <p class="tag">Both dialects are silent without -v and wrap the file list in different banners. A test that parses rsync output must prove itself on both; the safe subset is plain filename lines, which is what the #4079 ratchet test greps.</p>
+  </div>
+
+  <footer>Lane docs-ork | orchestkit PR playground | 2026-09-13</footer>
+</main>
+<script>
+  var mLines = [
+    "memory_pressure said 84% free, so the diagnosis stopped at the first name that came to mind. It was wrong.",
+    "59 of 64 GB in use, swap 6.9 of 8 GB: the machine was drowning. The real load was a test suite in another project, found via a process tree."
+  ];
+  function flipM(i) {
+    var v = document.getElementById("mOut");
+    v.className = "verdict " + (i ? "good" : "bad");
+    v.textContent = mLines[i];
+    document.getElementById("mTrust").className = i ? "" : "on";
+    document.getElementById("mProbe").className = i ? "on" : "";
+  }
+  flipM(0);
+  function flipS(which) {
+    document.getElementById("sZshBox").style.display = which === "zsh" ? "" : "none";
+    document.getElementById("sBashBox").style.display = which === "bash" ? "" : "none";
+    document.getElementById("sZsh").className = which === "zsh" ? "on" : "";
+    document.getElementById("sBash").className = which === "bash" ? "on" : "";
+  }
+  flipS("zsh");
+  var rOut = [
+    ["(no output at all)", "(no output at all)"],
+    [
+      " Transfer starting: 3 files\n bin/run-hook.mjs\n hooks.json\n package.json\n\n sent 1,234 bytes",
+      " sending incremental file list\n bin/run-hook.mjs\n hooks.json\n package.json\n\n sent 1,234 bytes  received 21 bytes"
+    ]
+  ];
+  function flipR(i) {
+    document.getElementById("rMac").textContent = rOut[i][0];
+    document.getElementById("rGnu").textContent = rOut[i][1];
+    document.getElementById("rQuiet").className = i ? "" : "on";
+    document.getElementById("rLoud").className = i ? "on" : "";
+  }
+  flipR(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork-elicit leftover — a file that contradicted itself</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--accent:#58a6ff;--warn:#d29922}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);padding:32px 20px;
+       font:14px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 24px;font-size:13px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:0 0 12px;font-weight:600}
+  code,pre{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  pre{background:#0d1117;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;font-size:12px;margin:0}
+  .cap{color:var(--dim);font-size:12px;margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  td.mono{font-family:ui-monospace,monospace;font-size:12px}
+  .bad{color:var(--bad)}.ok{color:var(--ok)}
+  .note{border-left:3px solid var(--warn);padding-left:12px;color:var(--dim);font-size:13px}
+  .btn{display:inline-block;background:#0d1117;border:1px solid var(--line);border-radius:5px;
+       padding:6px 12px;margin:3px 6px 3px 0;cursor:pointer;font-size:12px;font-family:ui-monospace,monospace}
+  .btn:hover,.btn.on{border-color:var(--accent);color:var(--accent)}
+  .row{padding:5px 9px;border-radius:4px;font-family:ui-monospace,monospace;font-size:12px;margin:3px 0}
+  .row.keep{background:rgba(63,185,80,.10);color:var(--ok)}
+  .row.drop{background:rgba(248,81,73,.10);color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>A file that contradicted itself</h1>
+  <p class="sub">The esbuild header advertised a build output that stopped existing in #3400. Nineteen lines below, the same file said the opposite.</p>
+
+  <div class="panel">
+    <h2>The contradiction, in one file</h2>
+    <pre>esbuild.config.mjs:6    * - dist/server.mjs  — ork-elicit (setup-wizard form elicitation)
+                              ^^^^^^^^^^^^^^^ advertises an output
+
+esbuild.config.mjs:25   // The ork-elicit entry point was retired (EPIC C mechanism 11)
+esbuild.config.mjs:28   await build({
+esbuild.config.mjs:30     entryPoints: ['./src/docs-server.ts'],
+esbuild.config.mjs:31     outfile:     './dist/docs-server.mjs'
+                              ^^^^^^^^^^^^^^^^^^^^ the only thing actually built</pre>
+    <p class="cap">Verified rather than taken from the PR body: there is exactly one <code>build()</code> call in the file, and nothing produces <code>dist/server.mjs</code>.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Not every mention is a leftover</h2>
+    <div>
+      <span class="btn on" id="b-drop">stale claim — remove</span>
+      <span class="btn" id="b-keep">honest history — keep</span>
+    </div>
+    <div id="out" style="margin-top:12px"></div>
+    <p class="cap" id="why"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Every `ork-elicit` string in the repo</h2>
+    <table>
+      <tr><th>Location</th><th>Tense</th><th>Verdict</th></tr>
+      <tr><td class="mono">esbuild.config.mjs:6</td><td>present — "bundles ... to"</td><td class="bad">stale claim, removed here</td></tr>
+      <tr><td class="mono">esbuild.config.mjs:25</td><td>past — "was retired"</td><td class="ok">keep</td></tr>
+      <tr><td class="mono">setup/references/configure-wizard.md:34</td><td>past — "that consolidated"</td><td class="ok">keep</td></tr>
+      <tr><td class="mono">release-sync/SKILL.md:92</td><td>past — "This used to prefer"</td><td class="ok">keep</td></tr>
+    </table>
+    <p class="note" style="margin-top:12px">The repo's own authoring rule says it directly: historical and citation prose is <b>exempt</b>. "Deprecated in v1.0" is accurate documentation; rewriting it to look current is the opposite of a cleanup. Only line 6 asserts something false in the present tense.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Correction to the PR body</h2>
+    <p class="cap" style="margin-top:0">The description called this "the last stale <code>ork-elicit</code> reference in the repo." It is the last stale <i>claim</i> — three mentions remain, and all three should stay. Also worth recording: <code>.mcp.json</code> is untracked, so the <code>ork-elicit</code> server entry removed there today was a local operator edit, not a repo change.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var DROP = [["drop","esbuild.config.mjs:6   * - dist/server.mjs — ork-elicit (setup-wizard form elicitation)"]];
+  var KEEP = [
+    ["keep","esbuild.config.mjs:25          // The ork-elicit entry point was retired (EPIC C mech 11)"],
+    ["keep","configure-wizard.md:34         behind an `ork-elicit` MCP form that consolidated all five"],
+    ["keep","release-sync/SKILL.md:92       This used to prefer an ork-elicit MCP form and fall back to"]
+  ];
+  var WHY = {
+    drop: "Present tense. It tells the reader the build emits dist/server.mjs. It does not. That is a false claim, so it goes.",
+    keep: "Past tense. Each one records that something WAS true and no longer is. Removing these would delete the explanation of why the code looks the way it does."
+  };
+  var out = document.getElementById("out"), why = document.getElementById("why");
+  var bd = document.getElementById("b-drop"), bk = document.getElementById("b-keep");
+  function render(which){
+    bd.classList.toggle("on", which === "drop");
+    bk.classList.toggle("on", which === "keep");
+    var rows = which === "drop" ? DROP : KEEP;
+    out.innerHTML = "";
+    rows.forEach(function(r){
+      var d = document.createElement("div");
+      d.className = "row " + r[0];
+      d.textContent = r[1];
+      out.appendChild(d);
+    });
+    why.textContent = WHY[which];
+  }
+  bd.addEventListener("click", function(){ render("drop"); });
+  bk.addEventListener("click", function(){ render("keep"); });
+  render("drop");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Codex mech profile: which file codex actually reads</title>
+<style>
+  :root{
+    --pg-bg:          hsl(232 26% 7%);
+    --pg-panel:       hsl(232 22% 11%);
+    --pg-ink:         hsl(220 18% 93%);
+    --pg-muted:       hsl(220 12% 64%);
+    --pg-faint:       hsl(220 10% 46%);
+    --pg-line:        hsl(0 0% 100% / 0.10);
+    --pg-glass:       hsl(0 0% 100% / 0.05);
+    --pg-accent:      hsl(248 84% 68%);
+    --pg-emerald:     hsl(160 68% 45%);
+    --pg-warm:        hsl(38 95% 60%);
+    --pg-rose:        hsl(345 76% 63%);
+    --pg-shadow: 0 20px 60px -22px hsl(232 40% 2% / 0.7), 0 4px 12px -6px hsl(232 40% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px;
+    --pg-dur-instant: 100ms; --pg-dur-fast: 200ms; --pg-dur-normal: 300ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:28px;font-family:var(--pg-font);color:var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 88% -8%, hsl(248 84% 68% / 0.14), transparent 60%),
+      radial-gradient(820px 620px at 4% 110%, hsl(160 68% 45% / 0.10), transparent 58%),
+      var(--pg-bg);
+    min-block-size:100%;
+  }
+  main{max-inline-size:1000px;margin-inline:auto}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:-0.01em}
+  h2{margin:0 0 10px;font-size:17px}
+  .sub{color:var(--pg-muted);line-height:1.55;margin-block:0 22px}
+  section{
+    background:var(--pg-panel);border:1px solid var(--pg-line);border-radius:var(--pg-r-md);
+    padding:18px;margin-block-end:16px;box-shadow:var(--pg-shadow);
+  }
+  code,pre{font-family:var(--pg-mono)}
+  pre{
+    white-space:pre-wrap;background:var(--pg-glass);border:1px solid var(--pg-line);
+    border-radius:var(--pg-r-sm);padding:13px;line-height:1.55;font-size:13px;margin:0;
+  }
+  .switch{display:flex;gap:10px;flex-wrap:wrap;margin-block-end:14px}
+  button{
+    font:inherit;font-size:13px;color:var(--pg-ink);background:var(--pg-glass);
+    border:1px solid var(--pg-line);border-radius:var(--pg-r-sm);padding:8px 13px;cursor:pointer;
+    transition:border-color var(--pg-dur-fast) var(--pg-ease), background var(--pg-dur-fast) var(--pg-ease);
+  }
+  button:hover{border-color:var(--pg-accent)}
+  button[aria-pressed="true"]{border-color:var(--pg-accent);background:hsl(248 84% 68% / 0.16)}
+  .verdict{font-family:var(--pg-mono);font-size:20px;letter-spacing:-0.01em;margin-block-end:4px}
+  .verdict.bad{color:var(--pg-rose)}
+  .verdict.silent{color:var(--pg-warm)}
+  .verdict.good{color:var(--pg-emerald)}
+  table{inline-size:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:start;padding:8px 6px;border-block-end:1px solid var(--pg-line);vertical-align:top}
+  th{color:var(--pg-faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .root{
+    display:inline-block;font-family:var(--pg-mono);font-size:12px;
+    padding:3px 8px;border-radius:999px;margin:3px 4px 0 0;border:1px solid var(--pg-line);
+  }
+  .root.on{color:var(--pg-emerald);border-color:hsl(160 68% 45% / 0.45)}
+  .root.off{color:var(--pg-faint);text-decoration:line-through}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .note{color:var(--pg-muted);font-size:13px;line-height:1.55}
+  footer{color:var(--pg-faint);font-size:12.5px;margin-block-start:20px;line-height:1.6}
+  .copy{margin-block-start:10px}
+  .copied{color:var(--pg-emerald)}
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:0.01ms !important;animation-duration:0.01ms !important}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>The Codex mech profile: which file <code>codex</code> actually reads</h1>
+  <p class="sub">
+    Measured on codex-cli 0.153.4, 2026-09-08, against an isolated <code>CODEX_HOME</code> with
+    no auth, so every run ends at HTTP 401 and nothing is billed. The issue that opened this lane
+    asked for a <code>[profiles.ork-mech]</code> block. That shape does not work any more: the
+    flag is <code>CONFIG_PROFILE_V2</code> and it layers a separate file. Pick a placement below
+    and read what codex says back.
+  </p>
+
+  <section>
+    <h2>1. Where you put the profile</h2>
+    <div class="switch" id="placements"></div>
+    <div class="grid">
+      <div>
+        <div class="verdict" id="verdict"></div>
+        <p class="note" id="explain"></p>
+      </div>
+      <div>
+        <pre id="snippet"></pre>
+      </div>
+    </div>
+    <p class="note" style="margin-block-start:12px"><strong>codex says:</strong></p>
+    <pre id="output"></pre>
+  </section>
+
+  <section>
+    <h2>2. Writable roots inside a git worktree</h2>
+    <p class="note">
+      <code>workspace-write</code> grants the workdir, <code>/tmp</code> and
+      <code>$TMPDIR</code>. A linked worktree's git common dir is not the worktree, so the first
+      commit dies on <code>index.lock</code>. Toggle the flag and watch the roots line from the
+      real <code>codex exec</code> header.
+    </p>
+    <div class="switch" id="dirs"></div>
+    <div id="roots"></div>
+    <p class="note" id="dirnote"></p>
+  </section>
+
+  <section>
+    <h2>3. The two silent states</h2>
+    <table>
+      <thead><tr><th>Situation</th><th>What you expect</th><th>What codex 0.153.4 does</th></tr></thead>
+      <tbody id="silent"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>4. Reproduce it</h2>
+    <pre id="repro"></pre>
+    <button class="copy" id="copy" type="button">Copy the commands</button>
+    <span id="copystate" class="note"></span>
+  </section>
+
+  <footer>
+    Sources: <code>codex --version</code>, <code>codex exec --help</code>, and four probe scripts
+    against throwaway <code>CODEX_HOME</code> directories; the shipped artifact
+    <code>src/codex/ork-codex/profiles/ork-mech.config.toml</code>, loaded verbatim under
+    <code>codex exec --strict-config</code>; <code>docs/audits/multi-engine-support-2026-09-08.md</code>;
+    and the gate <code>tests/plugins/test-codex-plugin.sh</code> with its fault arms in
+    <code>tests/plugins/fault-arms/codex-plugin.sh</code>. Every header line quoted here is
+    codex's own output, not a summary of it.
+  </footer>
+</main>
+
+<script type="application/json" id="data">
+{
+  "placements": [
+    {
+      "id": "legacy",
+      "label": "[profiles.ork-mech] in config.toml",
+      "tone": "bad",
+      "verdict": "hard error at config load",
+      "snippet": "# ~/.codex/config.toml\n[profiles.ork-mech]\napproval_policy = \"never\"\nsandbox_mode = \"workspace-write\"",
+      "output": "Error loading config.toml: --profile `ork-mech` cannot be used\nwhile \u003chome>/config.toml contains legacy `profile = \"ork-mech\"`\nor `[profiles.ork-mech]` config; move those settings into\n\u003chome>/ork-mech.config.toml and remove the legacy profile\nselector/table.",
+      "explain": "This is the shape the issue proposed, and it is the one shape that cannot run. The flag's own type is CONFIG_PROFILE_V2. Codex names the file it wants in the error, which is the only reason this was cheap to find. The installer refuses to run next to this table rather than leaving you to hit it later."
+    },
+    {
+      "id": "nothing",
+      "label": "no profile file at all",
+      "tone": "silent",
+      "verdict": "no error, wrong sandbox",
+      "snippet": "# ~/.codex/ork-mech.config.toml\n# (does not exist)\n\n$ codex exec --profile ork-mech ...",
+      "output": "approval: never\nsandbox: workspace-write [workdir, /tmp, $TMPDIR]\nreasoning effort: none",
+      "explain": "A --profile naming a file that does not exist is not an error. Codex proceeds on the base config. Note the two lines that changed: no network access, and reasoning effort none. A typo in the profile name gives a run that looks fine and is not the run you asked for, so check the header rather than the flag."
+    },
+    {
+      "id": "shipped",
+      "label": "shipped: ork-mech.config.toml",
+      "tone": "good",
+      "verdict": "the lane you asked for",
+      "snippet": "# ~/.codex/ork-mech.config.toml\napproval_policy = \"never\"\nsandbox_mode = \"workspace-write\"\nmodel_reasoning_effort = \"high\"\n\n[sandbox_workspace_write]\nnetwork_access = true",
+      "output": "approval: never\nsandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)\nreasoning effort: high",
+      "explain": "Loaded verbatim from the shipped file under --strict-config, which rejects unrecognized keys. The positive control that the file is really read: putting sandbox_mode = \"bogus-mode\" in it fails at ork-mech.config.toml:2:16, unknown variant. No model is pinned (pass -m), and --dangerously-bypass-approvals-and-sandbox is deliberately absent: it drops the sandbox rather than widening it."
+    }
+  ],
+  "dirs": [
+    {
+      "id": "without",
+      "label": "without --add-dir",
+      "roots": [
+        {"path": "workdir (the worktree)", "on": true},
+        {"path": "/tmp", "on": true},
+        {"path": "$TMPDIR", "on": true},
+        {"path": "…/orchestkit/.git (the common dir)", "on": false}
+      ],
+      "note": "sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled). The worktree's .git is a file pointing at the primary repo, so the index the commit needs is outside every writable root."
+    },
+    {
+      "id": "with",
+      "label": "with --add-dir \u003cgit common dir>",
+      "roots": [
+        {"path": "workdir (the worktree)", "on": true},
+        {"path": "/tmp", "on": true},
+        {"path": "$TMPDIR", "on": true},
+        {"path": "…/orchestkit/.git (the common dir)", "on": true}
+      ],
+      "note": "sandbox: workspace-write [workdir, /tmp, $TMPDIR, /Users/…/orchestkit/.git] (network access enabled). The header lists the added path, which is how you confirm the flag landed instead of assuming it."
+    }
+  ],
+  "silent": [
+    ["--profile names a file that does not exist", "an error naming the missing file", "no error. The base config runs, so the sandbox and reasoning effort are quietly not what the flag implied."],
+    ["codex exec with a prompt argument and an inherited open stdin", "the prompt argument is the prompt", "blocks on \"Reading additional input from stdin...\" with no timeout. Close it with \u003c/dev/null, the same contract as pi -p."]
+  ],
+  "repro": "# install the shipped profile (refuses an overwrite and the legacy table)\nplugins/ork-codex/scripts/install-codex-profile.sh ~/.codex\n\n# run it, closing stdin, with the worktree's git common dir writable\ncodex exec --profile ork-mech \\\n  --add-dir \"$(git rev-parse --path-format=absolute --git-common-dir)\" \\\n  \"\u003ctask>\" \u003c/dev/null\n\n# prove the config layer without spending a token: isolate CODEX_HOME so the\n# run ends at HTTP 401, and read the header codex prints before it dials out\nCODEX_HOME=$(mktemp -d) codex exec --strict-config --profile ork-mech \"hi\" \u003c/dev/null\n\n# the gate, and the arms that prove it bites\nbash tests/plugins/test-codex-plugin.sh\nbash tests/plugins/test-fault-arms.sh\n\n# the cache-lag check, after every release\ncodex plugin update\ncodex plugin list | grep ork-codex\njq -r .version plugins/ork-codex/.codex-plugin/plugin.json"
+}
+</script>
+<script>
+  const DATA = JSON.parse(document.getElementById("data").textContent);
+
+  function renderPlacement(placement) {
+    const verdict = document.getElementById("verdict");
+    verdict.textContent = placement.verdict;
+    verdict.className = "verdict " + placement.tone;
+    document.getElementById("snippet").textContent = placement.snippet;
+    document.getElementById("output").textContent = placement.output;
+    document.getElementById("explain").textContent = placement.explain;
+    for (const button of document.querySelectorAll("#placements button")) {
+      button.setAttribute("aria-pressed", String(button.dataset.id === placement.id));
+    }
+  }
+
+  const placementBar = document.getElementById("placements");
+  for (const placement of DATA.placements) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.id = placement.id;
+    button.textContent = placement.label;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => renderPlacement(placement));
+    placementBar.appendChild(button);
+  }
+
+  function renderDir(entry) {
+    const box = document.getElementById("roots");
+    box.textContent = "";
+    for (const root of entry.roots) {
+      const span = document.createElement("span");
+      span.className = "root " + (root.on ? "on" : "off");
+      span.textContent = root.path;
+      box.appendChild(span);
+    }
+    document.getElementById("dirnote").textContent = entry.note;
+    for (const button of document.querySelectorAll("#dirs button")) {
+      button.setAttribute("aria-pressed", String(button.dataset.id === entry.id));
+    }
+  }
+
+  const dirBar = document.getElementById("dirs");
+  for (const entry of DATA.dirs) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.id = entry.id;
+    button.textContent = entry.label;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => renderDir(entry));
+    dirBar.appendChild(button);
+  }
+
+  const silent = document.getElementById("silent");
+  for (const row of DATA.silent) {
+    const tr = document.createElement("tr");
+    for (const cell of row) {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    }
+    silent.appendChild(tr);
+  }
+
+  document.getElementById("repro").textContent = DATA.repro;
+  document.getElementById("copy").addEventListener("click", async () => {
+    const state = document.getElementById("copystate");
+    try {
+      await navigator.clipboard.writeText(DATA.repro);
+      state.textContent = "copied";
+      state.className = "note copied";
+    } catch {
+      state.textContent = "clipboard blocked, select the block above instead";
+      state.className = "note";
+    }
+  });
+
+  renderPlacement(DATA.placements[DATA.placements.length - 1]);
+  renderDir(DATA.dirs[0]);
+</script>
+</body>
+</html>

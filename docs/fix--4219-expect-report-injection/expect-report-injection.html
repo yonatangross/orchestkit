@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="OrchestKit playground, PR fix/4219-expect-report-injection (#4219), 2026-09-18. expect report.sh passed agent stdout into python3 -c as source; now every run field reaches Python as data.">
+<title>Agent stdout is data, not Python source</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .panel h3 { margin:0 0 10px; font:600 12px ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:#9aa3b2; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px;
+        padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#6ea8fe; }
+  textarea { width:100%; min-height:64px; background:#0b0d11; color:#e6e6e6; border:1px solid #2a2f3a;
+        border-radius:8px; padding:9px 11px; font:12.5px/1.5 ui-monospace,Menlo,monospace; resize:vertical; }
+  .res { margin-top:10px; padding:12px 14px; border-radius:8px; border:1px solid #2a2f3a; }
+  .res .r { font:700 15px ui-monospace,monospace; }
+  .yes { background:rgba(76,195,138,.10); border-color:rgba(76,195,138,.5); }
+  .yes .r { color:#4cc38a; }
+  .no { background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.5); }
+  .no .r { color:#e5484d; }
+  .res p { color:#e6e6e6; margin:6px 0 0; font-size:13.5px; max-width:none; }
+  pre { margin:8px 0 0; padding:11px; background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px;
+        overflow:auto; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre-wrap; color:#cbd5e1; }
+  pre .inj { color:#e5484d; font-weight:700; }
+  pre .data { color:#4cc38a; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:6px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid #2a2f3a; vertical-align:top; }
+  th { color:#9aa3b2; font:600 11px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.05em; }
+  td.k { font:12px ui-monospace,Menlo,monospace; white-space:nowrap; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font:600 10.5px ui-monospace,monospace; letter-spacing:.04em; text-transform:uppercase; }
+  .bad { color:#e5484d; background:rgba(229,72,77,.12); }
+  .ok { color:#4cc38a; background:rgba(76,195,138,.12); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:760px) { .two { grid-template-columns:1fr; } }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .run { background:#6ea8fe; color:#0b0d11; border:0; border-radius:8px; padding:8px 14px; font:600 12.5px ui-monospace,Menlo,monospace; cursor:pointer; }
+  small.note { display:block; margin-top:9px; color:#9aa3b2; font-size:12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent stdout is data, not Python source</h1>
+  <p>Issue <code>#4219</code> (audit AF-4): <code>expect/scripts/report.sh</code> built a Python program inside <code>python3 -c "..."</code> with bash double-quote expansion, so <code>RUN_RESULT</code> and <code>RUN_SUMMARY</code> parsed from the browser agent's stdout became Python source. A page that steers the agent's <code>RUN_COMPLETED</code> line got code execution on the operator's machine. The fix sends every run field to Python through environment variables inside a quoted-heredoc program. Type any payload below and watch what each shape does with it.</p>
+
+  <h2>Feed a RUN_COMPLETED line</h2>
+  <div class="panel">
+    <h3>payload</h3>
+    <textarea id="payload" spellcheck="false">x'};import os;os.system('touch /tmp/pwned')#</textarea>
+    <div class="opts" style="margin-top:10px">
+      <button data-p="dict" aria-pressed="true">dict breakout + os.system</button>
+      <button data-p="quote" aria-pressed="false">quote + backtick + $()</button>
+      <button data-p="plain" aria-pressed="false">ordinary summary</button>
+    </div>
+    <div class="row"><button class="run" id="go">Run through both shapes</button></div>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <h3>before: spliced into python3 -c</h3>
+      <p>The summary landed inside the program text between single quotes. Close the quote and the dict and the rest of the line is source.</p>
+      <pre id="before"></pre>
+      <div class="res" id="beforeres"><div class="r"></div><p></p></div>
+    </div>
+    <div class="panel">
+      <h3>after: env var into quoted heredoc</h3>
+      <p>The program is a single-quoted heredoc, so bash expands nothing in it. The summary travels in <code>REPORT_SUMMARY</code> and is read with <code>os.environ</code>, then escaped by <code>json.dumps</code>.</p>
+      <pre id="after"></pre>
+      <div class="res" id="afterres"><div class="r"></div><p></p></div>
+    </div>
+  </div>
+
+  <h2>Siblings fixed in the same pass</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>script</th><th>hole</th><th>fix</th></tr></thead>
+      <tbody>
+        <tr><td class="k">expect/route-map.sh</td><td>changed filename interpolated into fnmatch source</td><td>passed as <code>sys.argv[1]</code></td></tr>
+        <tr><td class="k">expect/diff-scan.sh</td><td>COMMIT_HASH word-split into git argv (<code>--output=</code> write)</td><td><code>^[0-9a-f]{7,40}$</code> gate + single quoted word</td></tr>
+        <tr><td class="k">release-management/release-scripts.sh</td><td><code>$version</code> spliced into <code>node -e</code> and sed</td><td>semver gate + <code>PKG_VERSION</code> env</td></tr>
+        <tr><td class="k">demo-producer/generate.sh</td><td>command written raw into a script vhs later runs</td><td><code>printf %q</code> self-quoting literal</td></tr>
+        <tr><td class="k">page-serve/stop.sh</td><td><code>rm -f "$STATE_DIR/$1.json"</code> path traversal</td><td>serve.sh's subdomain-label check</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Proof it would have fired</h2>
+  <div class="panel">
+    <p>The regression test (<code>tests/unit/test-expect-report-injection.sh</code>) feeds the line in the box, asserts exit 0, parses the JSON, compares <code>result</code> and <code>summary</code> to the literal input, and checks a canary file the payload would create does not exist. Spliced into the old source, the default payload runs <code>touch /tmp/pwned</code> and still exits 0.</p>
+  </div>
+</main>
+<script>
+const SAMPLES = {
+  dict:  "x'};import os;os.system('touch /tmp/pwned')#",
+  quote: "y'; print(`id`); $(touch /tmp/pwned); z='",
+  plain: "3 passed, 0 failed"
+};
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// Naive check: does the payload close the summary string AND the dict literal
+// before its own text resumes? Mirrors what made the old shape exploitable.
+function breaksOut(p){
+  const i = p.indexOf("'");
+  if (i < 0) return false;
+  const rest = p.slice(i+1);
+  return /^\s*}/.test(rest) || /;\s*(import|os\.|exec|eval|print|__)/.test(rest);
+}
+
+document.querySelectorAll('#shapes, .opts button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.opts button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    document.getElementById('payload').value = SAMPLES[b.dataset.p] || '';
+  });
+});
+
+document.getElementById('go').addEventListener('click', ()=>{
+  const p = document.getElementById('payload').value;
+  const boom = breaksOut(p);
+
+  const before = document.getElementById('before');
+  before.innerHTML =
+    "report = {'timestamp': '<span class=\"data\">${ts}</span>',\n" +
+    "  'steps': steps, 'passed': <span class=\"data\">${PASSED}</span>,\n" +
+    "  'failed': <span class=\"data\">${FAILED}</span>,\n" +
+    "  'result': '<span class=\"data\">${RUN_RESULT}</span>',\n" +
+    "  'summary': '" + "<span class=\"inj\">" + esc(p) + "</span>" + "'}";
+  const br = document.getElementById('beforeres');
+  if (boom) {
+    br.className = 'res no';
+    br.querySelector('.r').textContent = 'executes: payload is program text';
+    br.querySelector('p').textContent = 'The line closed the string and the dict literal, so everything after ran as Python. os.system fired; the report still printed and exit code stayed 0.';
+  } else {
+    br.className = 'res warn';
+    br.style.background = 'rgba(226,163,54,.10)';
+    br.style.borderColor = 'rgba(226,163,54,.5)';
+    br.querySelector('.r').style.color = '#e2a336';
+    br.querySelector('.r').textContent = 'no breakout this time, still source';
+    br.querySelector('p').textContent = 'This payload stayed inside the literal, but it was written into the program anyway. One quote earlier and it would have run.';
+  }
+
+  const after = document.getElementById('after');
+  after.innerHTML =
+    "REPORT_SUMMARY=\"<span class=\"data\">" + esc(p) + "</span>\" \\\n" +
+    "python3 - <<'PY'\n" +
+    "import json, os\n" +
+    "report['summary'] = os.environ['REPORT_SUMMARY']\n" +
+    "print(json.dumps(report))\n" +
+    "PY";
+  const ar = document.getElementById('afterres');
+  ar.className = 'res yes';
+  ar.querySelector('.r').textContent = 'inert: payload is a JSON string value';
+  ar.querySelector('p').textContent = 'The heredoc is quoted so bash expands nothing, and the value crosses on env, never into the program. json.dumps escapes it; the report carries it verbatim.';
+});
+</script>
+</body>
+</html>

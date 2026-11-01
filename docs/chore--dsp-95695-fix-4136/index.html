@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4136: the stdin-timeout test raced its own child's boot</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 2rem 1rem; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 1px solid #30363d; padding-bottom: .35rem; }
+  .sub { color: #8b949e; margin-bottom: 1.5rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem; margin: 1rem 0; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: .9rem; }
+  .card .num { font-size: 1.7rem; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .card .lbl { color: #8b949e; font-size: .8rem; }
+  .red { color: #f85149; } .green { color: #3fb950; } .amber { color: #d29922; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; }
+  .note { background: #161b22; border-left: 3px solid #d29922; border-radius: 0 8px 8px 0; padding: .75rem 1rem; margin: .75rem 0; font-size: .88rem; }
+  label.sw { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; user-select: none; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: .45rem .9rem; font-size: .9rem; margin-right: .5rem; }
+  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem; margin: .75rem 0; }
+  .tl { position: relative; height: 74px; margin-top: 1rem; }
+  .seg { position: absolute; top: 22px; height: 18px; border-radius: 4px; }
+  .seg.boot { background: #30363d; }
+  .seg.win { background: rgba(210, 153, 34, 0.55); border: 1px solid #d29922; }
+  .mark { position: absolute; top: 6px; width: 2px; height: 50px; }
+  .mark.w { background: #58a6ff; }
+  .mark.e { background: #f85149; }
+  .mlbl { position: absolute; top: 58px; font-size: .68rem; color: #8b949e; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; transform: translateX(-50%); }
+  .verdict { margin-top: .6rem; font-size: .95rem; font-weight: 600; }
+  .axis { position: relative; height: 1.1rem; margin-top: .25rem; }
+  .axis span { position: absolute; font-size: .68rem; color: #8b949e; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; transform: translateX(-50%); }
+  input[type=range] { width: 260px; vertical-align: middle; }
+  footer { color: #8b949e; font-size: .78rem; margin-top: 2.5rem; border-top: 1px solid #30363d; padding-top: .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>#4136 &middot; the stdin-timeout test raced its own child's boot</h1>
+  <p class="sub"><span class="mono">runWithDelay(300)</span> started its 300ms write timer at SPAWN, but the child's 100ms stdin window (run-hook.mjs, #3415) opens only after node boots and the bundle loads. Under host load the payload was already buffered in the pipe when the window opened, so the data event cleared the timeout and the WARNS assertion failed. The fix anchors the write to the child's first stderr byte instead of raising the delay.</p>
+
+  <div class="cards">
+    <div class="card"><div class="num amber">100ms</div><div class="lbl">child stdin window, opens after boot</div></div>
+    <div class="card"><div class="num red">200ms</div><div class="lbl">boot time above which the old timer flakes</div></div>
+    <div class="card"><div class="num green">0ms</div><div class="lbl">extra wait added by the fix</div></div>
+  </div>
+
+  <h2>Live race simulator</h2>
+  <p class="sub">Drag the boot time. The old code writes at a fixed t=300ms measured from spawn; the new code writes on the child's first stderr byte, which in this scenario IS the warning.</p>
+  <div class="panel">
+    <label class="sw"><input type="radio" name="g" value="old" onchange="render()"> old: timer 300ms from spawn</label>
+    <label class="sw"><input type="radio" name="g" value="new" onchange="render()" checked> new: first stderr byte (readiness)</label>
+    <div style="margin-top:.8rem">
+      <span class="mono">node boot + bundle load:</span>
+      <input type="range" id="boot" min="40" max="400" step="10" value="80" oninput="render()">
+      <span class="mono" id="bootv">80ms</span>
+      <button class="sw" style="margin-left:.6rem" onclick="document.getElementById('boot').value=280;render()">simulate load spike</button>
+    </div>
+    <div class="tl" id="tl"></div>
+    <div class="axis" id="axis"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <h2>The three arms after the fix</h2>
+  <div class="cards">
+    <div class="card"><div class="num green">WARNS</div><div class="lbl">write waits for the first stderr byte, then writes the payload. The warning is already out and stdinClosed is already set, so the late payload is discarded silently. Deterministic at any boot speed.</div></div>
+    <div class="card"><div class="num green">SILENT</div><div class="lbl">delay 0, unchanged: payload written immediately, buffered before the child even boots, warning must not fire. Negative control against a fix that over-guards.</div></div>
+    <div class="card"><div class="num green">NEW</div><div class="lbl">regression probe: a test wrapper holds run-hook.mjs back by SLOW_BOOT_MS=250 while the parent delay is 50ms. On pre-fix code the payload lands before the window opens and this test fails.</div></div>
+  </div>
+
+  <h2>Two details the fix had to respect</h2>
+  <div class="note">The child HANGS on the empty-payload path: after the 100ms timeout runs the hook, its stdin is still a flowing open pipe, so the event loop never drains. Writing and ending stdin right after the first stderr byte is what lets the child exit, which is why "never write at all" would deadlock rather than be the purest fix.</div>
+  <div class="note">A child that exits right after writing stderr (failBundleLoad) makes a late write EPIPE. The spawner now swallows EPIPE like the oversized-payload spawner already did, and skips the write entirely when the child has already exited.</div>
+
+  <h2>Also in this PR: the pre-push vitest log survives failure</h2>
+  <p class="sub">bin/git-hooks/pre-push ran the hooks vitest suite into a mktemp file removed by an EXIT trap and showed only tail 20. On failure it now copies the full log to <span class="mono">.cache/pre-push/hooks-vitest.log</span> (gitignored) and prints the path, so a failing push names every failing test.</p>
+
+  <footer>PR playground for branch chore/dsp-95695-fix-4136 &middot; OrchestKit #4136 &middot; self-contained, no external resources</footer>
+</div>
+
+<script>
+  var SPAN = 450;
+  function px(t, w) { return Math.max(0, Math.min(t / SPAN, 1)) * w; }
+  function render() {
+    var boot = parseInt(document.getElementById('boot').value, 10);
+    var mode = document.querySelector('input[name=g]:checked').value;
+    var winOpen = boot, winClose = boot + 100;
+    var writeAt = mode === 'old' ? 300 : winClose;
+    var warned = mode === 'new' || winClose <= 300;
+    var w = document.getElementById('tl').clientWidth || 900;
+    var html = '';
+    html += '<div class="seg boot" style="left:0;width:' + px(boot, w) + 'px"></div>';
+    html += '<div class="seg win" style="left:' + px(winOpen, w) + 'px;width:' + Math.max(px(winClose, w) - px(winOpen, w), 2) + 'px"></div>';
+    html += '<div class="mark w" style="left:' + px(writeAt, w) + 'px"></div><div class="mlbl" style="left:' + px(writeAt, w) + 'px">payload written t=' + writeAt + '</div>';
+    if (!warned) {
+      html += '<div class="mark e" style="left:' + px(writeAt, w) + 'px;opacity:.4"></div>';
+    } else {
+      html += '<div class="mark e" style="left:' + px(winClose, w) + 'px"></div><div class="mlbl" style="left:' + px(winClose, w) + 'px">warning t=' + winClose + '</div>';
+    }
+    document.getElementById('tl').innerHTML = html;
+    var ax = '';
+    [0, 100, 200, 300, 400].forEach(function(t) {
+      ax += '<span style="left:' + px(t, w) + 'px">' + t + 'ms</span>';
+    });
+    document.getElementById('axis').innerHTML = ax;
+    document.getElementById('bootv').textContent = boot + 'ms';
+    var v = document.getElementById('verdict');
+    if (warned) {
+      v.className = 'verdict green';
+      v.textContent = 'WARNING emitted at t=' + winClose + ', late payload discarded by the stdinClosed guard. Test passes. Gray = boot, amber = stdin window, blue = write.';
+    } else {
+      v.className = 'verdict red';
+      v.textContent = 'Payload buffered at t=300, BEFORE the window closes at t=' + winClose + ': the data event clears the timeout, no warning fires, the WARNS assertion fails. This is the #4136 flake. Gray = boot, amber = stdin window, blue = write.';
+    }
+  }
+  window.addEventListener('resize', render);
+  render();
+</script>
+</body>
+</html>

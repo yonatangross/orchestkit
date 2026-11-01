@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>redact-secrets: object vs string Bash tool_response</title>
+<meta name="description" content="Part 1 of #4217: RegExp.test on an object coerces to [object Object] and never matches. stringifyOutput scans stdout and stderr so the real Bash shape warns again.">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --ink:#e6edf3; --dim:#8b949e; --mute:#6e7681;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --info:#58a6ff; --acc:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 72px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  h1{margin:0 0 8px;font-size:26px;letter-spacing:-.02em}
+  h2{font-size:17px;margin:34px 0 12px;letter-spacing:-.01em}
+  p{margin:0 0 12px;color:var(--ink)}
+  .lede{color:var(--dim);max-width:74ch}
+  code{font-family:var(--mono);font-size:.9em}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border:1px solid var(--line);border-radius:999px;color:var(--dim);margin-right:6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card.bad{border-color:rgba(248,81,73,.45)}
+  .card.ok{border-color:rgba(63,185,80,.45)}
+  .card h3{margin:0 0 8px;font-size:14px}
+  pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre-wrap;
+    word-break:break-word;color:var(--dim);background:var(--panel2);border-radius:8px;padding:12px}
+  .sim{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  button{cursor:pointer;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;font:inherit}
+  button[aria-pressed="true"]{border-color:var(--acc);background:#241d33}
+  .out{font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;background:var(--panel2);
+    border:1px solid var(--line);min-height:3.2em}
+  .warn{color:var(--warn)}.silent{color:var(--ok)}.dead{color:var(--bad)}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--dim)}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>redact-secrets never saw the real Bash payload</h1>
+  <p class="lede">
+    Part 1 of <code>#4217</code>. Docs and fixtures treated Bash
+    <code>tool_response</code> as a string. Claude Code sends an object
+    <code>{stdout, stderr, interrupted}</code>.
+    <code>RegExp.test(object)</code> coerces to <code>[object Object]</code>,
+    so the warner stayed silent while the suite stayed green.
+  </p>
+  <p>
+    <span class="tag">hooks</span><span class="tag">PostToolUse</span>
+    <span class="tag">#4217</span><span class="tag">redact-secrets</span>
+  </p>
+</header>
+
+<h2>Two shapes, one coercion</h2>
+<div class="grid">
+  <div class="card bad">
+    <h3>Before (dead on real Bash)</h3>
+    <pre>tool_response = {
+  stdout: "TOKEN=test-api-key-4217",
+  stderr: "",
+  interrupted: false
+}
+
+String(tool_response)
+  === "[object Object]"
+
+API_KEY_PATTERN.test(tool_response)
+  === false   // never matches</pre>
+  </div>
+  <div class="card ok">
+    <h3>After (shared stringifyOutput)</h3>
+    <pre>text = stringifyOutput(tool_response)
+  === "TOKEN=test-api-key-4217\n"
+
+// stdout and stderr both scanned
+pattern.test(text) === true
+  → ::warning::Potential API key...</pre>
+  </div>
+</div>
+
+<h2>Try the shapes</h2>
+<p class="lede">Obviously fake placeholders only. No realistic secret material on this public page.</p>
+<div class="sim">
+  <div class="row" role="group" aria-label="Payload shape">
+    <button type="button" id="btn-object" aria-pressed="true">Object (real Bash)</button>
+    <button type="button" id="btn-string" aria-pressed="false">String (docs / old fixture)</button>
+    <button type="button" id="btn-stderr" aria-pressed="false">Token only in stderr</button>
+    <button type="button" id="btn-clean" aria-pressed="false">Clean object</button>
+  </div>
+  <pre id="payload"></pre>
+  <p style="margin:12px 0 6px;color:var(--dim);font-size:13px">Hook scan result</p>
+  <div class="out" id="result" aria-live="polite"></div>
+</div>
+
+<h2>Acceptance matrix</h2>
+<table>
+  <thead><tr><th>Case</th><th>Before</th><th>After</th></tr></thead>
+  <tbody>
+    <tr><td>Object with placeholder in stdout</td><td class="dead">0 warnings</td><td class="warn">warns</td></tr>
+    <tr><td>String tool_response</td><td class="warn">warns</td><td class="warn">warns</td></tr>
+    <tr><td>Placeholder only in stderr</td><td class="dead">miss</td><td class="warn">warns</td></tr>
+    <tr><td>Clean object / interrupted empty</td><td class="silent">silent</td><td class="silent">silent, no throw</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  Fix lives in <code>src/hooks/src/lib/stringify-output.ts</code> and
+  <code>skill/redact-secrets.ts</code>. Parts 2 and 3 of #4217 (handler default OFF,
+  audit log raw commands) stay open. Refs #4217.
+</footer>
+
+</div>
+<script>
+(function () {
+  var PLACEHOLDER = 'test-api-key-4217';
+  var cases = {
+    object: {
+      label: 'Object (real Bash)',
+      payload: { stdout: 'DEMO_TOKEN=' + PLACEHOLDER, stderr: '', interrupted: false },
+      before: 'dead',
+      after: 'warn'
+    },
+    string: {
+      label: 'String (docs / old fixture)',
+      payload: 'DEMO_TOKEN=' + PLACEHOLDER,
+      before: 'warn',
+      after: 'warn'
+    },
+    stderr: {
+      label: 'Token only in stderr',
+      payload: { stdout: 'ok', stderr: 'leak ' + PLACEHOLDER, interrupted: false },
+      before: 'dead',
+      after: 'warn'
+    },
+    clean: {
+      label: 'Clean object',
+      payload: { stdout: 'build finished', stderr: '', interrupted: false },
+      before: 'silent',
+      after: 'silent'
+    }
+  };
+
+  function stringifyOutput(output) {
+    if (typeof output === 'string') return output;
+    if (output == null) return null;
+    if (typeof output === 'object' && (typeof output.stdout === 'string' || typeof output.stderr === 'string')) {
+      return (typeof output.stdout === 'string' ? output.stdout : '') + '\n' +
+        (typeof output.stderr === 'string' ? output.stderr : '');
+    }
+    try { return JSON.stringify(output); } catch (e) { return null; }
+  }
+
+  function looksLikePlaceholder(text) {
+    return typeof text === 'string' && text.indexOf(PLACEHOLDER) !== -1;
+  }
+
+  function render(key) {
+    var c = cases[key];
+    document.getElementById('payload').textContent = JSON.stringify(c.payload, null, 2);
+    var buttons = document.querySelectorAll('.row button');
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute('aria-pressed', buttons[i].id === 'btn-' + key ? 'true' : 'false');
+    }
+    var coerced = String(c.payload);
+    var beforeHit = looksLikePlaceholder(coerced);
+    var afterText = stringifyOutput(c.payload);
+    var afterHit = looksLikePlaceholder(afterText);
+    var el = document.getElementById('result');
+    var beforeLine = beforeHit
+      ? '<span class="warn">BEFORE: would warn (string coercion happened to include the value)</span>'
+      : '<span class="dead">BEFORE: silent (coerced to ' + JSON.stringify(coerced) + ')</span>';
+    var afterLine = afterHit
+      ? '<span class="warn">AFTER: ::warning::Potential API key detected in output - verify redaction</span>'
+      : '<span class="silent">AFTER: silent success</span>';
+    el.innerHTML = beforeLine + '<br>' + afterLine;
+  }
+
+  document.getElementById('btn-object').onclick = function () { render('object'); };
+  document.getElementById('btn-string').onclick = function () { render('string'); };
+  document.getElementById('btn-stderr').onclick = function () { render('stderr'); };
+  document.getElementById('btn-clean').onclick = function () { render('clean'); };
+  render('object');
+})();
+</script>
+</body>
+</html>

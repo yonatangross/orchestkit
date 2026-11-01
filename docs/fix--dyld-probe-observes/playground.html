@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>The gate that could never pass</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--ink:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--warn:#d29922;--acc:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:32px 20px}
+.wrap{max-width:940px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 26px;font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+h2{font-size:16px;margin:0 0 10px}code,pre{font-family:var(--mono);font-size:13px}
+pre{background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;margin:10px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.dim{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-weight:500}
+td.m{font-family:var(--mono)}
+.note{border-left:3px solid var(--warn);padding:10px 14px;background:rgba(210,153,34,.07);border-radius:0 6px 6px 0;font-size:13px;margin-top:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer;font-size:13px;font-family:var(--mono)}
+button:hover{border-color:var(--acc)}button[aria-pressed="true"]{background:var(--acc);color:#0d1117;font-weight:600}
+.out{border-left:3px solid var(--line);padding:12px 14px;background:#0b0f14;border-radius:0 6px 6px 0;margin-top:12px}
+</style></head><body><div class="wrap"><h1>The gate that could never pass</h1><p class="sub">One probe killed node before it started, and took the whole security suite with it.</p>
+<div class="card"><h2>Before / after</h2><pre>FIXED tree    run-security-tests.sh   rc=0   18 passed  0 failed
+CONTROL main  run-security-tests.sh   rc=1   17 passed  1 failed
+
+test-additional-security.sh alone:
+  here   82 lines, rc=0     &#9664; reaches the end
+  main   51 lines, rc=134   &#9664; dies at section 6
+  &rArr; 31 lines of assertions had NEVER executed</pre></div>
+ <div class="card"><h2>Why it was invisible</h2>
+ <pre>DYLD_INSERT_LIBRARIES=/nope/evil.dylib node -e 1   -&gt; 134   macOS
+node -e 1                                          -&gt;   0   control
+LD_PRELOAD=/nope/evil.so node -e 1                 -&gt;   0   linux</pre>
+ <p>macOS dyld <b>terminates the process</b> when an inserted library cannot load &mdash; before node&rsquo;s first instruction. On Linux the variable is meaningless, so CI stayed green while every macOS developer&rsquo;s <code>pre-push</code> died.</p></div>
+ <div class="card"><h2>Three outcomes, not two</h2><pre>rc 0    + verdict unchanged  -&gt; pass    property holds
+rc 0    + verdict changed    -&gt; fail    property broke
+rc &gt;=128                      -&gt; fail    measured NOTHING; say so   &#9664; NEW</pre>
+ <p>Plus the payload now points at a <b>real</b> dylib (<code>/usr/lib/libSystem.B.dylib</code>) so node starts and the verdict is observable. A missing library only tested dyld&rsquo;s error path.</p></div>
+</div></body></html>

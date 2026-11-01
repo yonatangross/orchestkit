@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>#3367 — nine code-scanning alerts, three root causes</title>
+<style>
+  :root {
+    --pg-bg: hsl(20 14% 7%);
+    --pg-ink: hsl(28 20% 94%);
+    --pg-muted: hsl(28 10% 64%);
+    --pg-faint: hsl(28 8% 46%);
+    --pg-line: hsl(0 0% 100% / 0.10);
+    --pg-glass: hsl(0 0% 100% / 0.05);
+    --pg-glass-2: hsl(0 0% 100% / 0.08);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+    --pg-accent: hsl(160 68% 45%);
+    --pg-accent-deep: hsl(166 70% 30%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-shadow: 0 20px 60px -22px hsl(20 40% 2% / 0.7), 0 4px 12px -6px hsl(20 40% 2% / 0.5);
+    --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-fast: 200ms; --pg-dur-normal: 300ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+    /* data marks (dataviz-validated, hex is correct here) */
+    --status-fixed: #34d399;
+    --status-open: #fbbf24;
+    --status-phantom: #64748b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 72px;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, hsl(160 40% 18% / 0.35), transparent 60%),
+      var(--pg-bg);
+    color: var(--pg-ink); font-family: var(--pg-font);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin-inline: auto; }
+
+  header { margin-block-end: 32px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--pg-accent); font-weight: 700; margin-block-end: 10px;
+  }
+  h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 38px); line-height: 1.12; letter-spacing: -0.02em; }
+  .sub { margin: 0; color: var(--pg-muted); font-size: 15.5px; max-width: 68ch; line-height: 1.55; }
+
+  .panel {
+    background: var(--pg-glass); border: 1px solid var(--pg-line);
+    border-radius: var(--pg-r-lg); box-shadow: var(--pg-shadow);
+    padding: 24px; margin-block-end: 22px;
+  }
+  h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -0.01em; }
+  .hint { margin: 0 0 18px; color: var(--pg-faint); font-size: 13px; }
+
+  /* ── collapse diagram ── */
+  .collapse { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; }
+  @media (max-width: 720px) { .collapse { grid-template-columns: 1fr; } }
+  .col-label {
+    font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--pg-faint); font-weight: 700; margin-block-end: 10px;
+  }
+  .arrow { color: var(--pg-faint); font-size: 22px; text-align: center; }
+  @media (max-width: 720px) { .arrow { transform: rotate(90deg); } }
+
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 11px;
+    border: 1px solid var(--pg-line); background: var(--pg-glass-2);
+    margin-block-end: 8px; font-size: 13.5px;
+  }
+  .row .n {
+    font-family: var(--pg-mono); font-size: 12px; font-weight: 700;
+    min-width: 22px; text-align: end; color: var(--pg-muted);
+  }
+  .row .rule { font-family: var(--pg-mono); font-size: 12px; color: var(--pg-ink); }
+  .dot { inline-size: 8px; block-size: 8px; border-radius: 50%; flex: none; }
+  .dot.fixed { background: var(--status-fixed); }
+  .dot.open { background: var(--status-open); }
+  .dot.phantom { background: var(--status-phantom); }
+
+  /* ── findings ── */
+  .finding {
+    border: 1px solid var(--pg-line); border-radius: var(--pg-r-md);
+    background: var(--pg-glass-2); padding: 0; overflow: hidden;
+    margin-block-end: 12px;
+  }
+  .finding > summary {
+    cursor: pointer; padding: 15px 18px; list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    transition: background var(--pg-dur-fast) var(--pg-ease);
+  }
+  .finding > summary::-webkit-details-marker { display: none; }
+  .finding > summary:hover { background: var(--pg-glass); }
+  .finding[open] > summary { border-block-end: 1px solid var(--pg-line); }
+  .badge {
+    font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    font-weight: 800; padding: 4px 9px; border-radius: 999px; flex: none;
+  }
+  .badge.fixed { background: hsl(160 60% 45% / 0.16); color: var(--status-fixed); }
+  .badge.open  { background: hsl(38 90% 60% / 0.16);  color: var(--status-open); }
+  .f-title { font-size: 14.5px; font-weight: 640; flex: 1; }
+  .f-file { font-family: var(--pg-mono); font-size: 11.5px; color: var(--pg-faint); }
+  .f-body { padding: 16px 18px 18px; font-size: 14px; line-height: 1.62; color: var(--pg-muted); }
+  .f-body p { margin: 0 0 12px; }
+  .f-body p:last-child { margin-block-end: 0; }
+  .f-body strong { color: var(--pg-ink); font-weight: 640; }
+  pre {
+    margin: 12px 0; padding: 13px 15px; overflow-x: auto;
+    background: hsl(20 20% 4%); border: 1px solid var(--pg-line);
+    border-radius: 11px; font-family: var(--pg-mono); font-size: 12.5px;
+    line-height: 1.6; color: var(--pg-ink);
+  }
+  .quote {
+    border-inline-start: 3px solid var(--pg-warm);
+    padding: 4px 0 4px 14px; margin: 12px 0; color: var(--pg-muted); font-style: italic;
+  }
+
+  /* ── copy-prompt bar ── */
+  .copybar {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 16px; border-radius: var(--pg-r-md);
+    border: 1px solid var(--pg-glass-edge); background: var(--pg-glass-2);
+  }
+  .copybar .label { flex: 1; font-size: 13px; color: var(--pg-muted); }
+  .copy {
+    flex: none; cursor: pointer; font: inherit; font-weight: 650; font-size: 12.5px;
+    color: hsl(160 40% 8%); border-radius: 11px; padding: 11px 16px;
+    border: 1px solid transparent;
+    background: linear-gradient(180deg, var(--pg-accent), var(--pg-accent-deep));
+    transition: transform var(--pg-dur-fast) var(--pg-ease);
+  }
+  .copy:hover { transform: translateY(-1px); }
+  .copy.done { background: var(--pg-glass-2); color: var(--pg-ink); border-color: var(--pg-line); }
+
+  footer { margin-block-start: 28px; color: var(--pg-faint); font-size: 12.5px; line-height: 1.6; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .copy:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">PR #3367 · security</div>
+    <h1>Nine code-scanning alerts, three root causes</h1>
+    <p class="sub">
+      The badge said nine. Two were real defects and are fixed here. Three are
+      one written decision counted three times. The remaining four are the same
+      three findings counted twice, because <code>plugins/</code> is build output
+      generated from <code>src/</code> and the scanner reads both.
+    </p>
+  </header>
+
+  <section class="panel">
+    <h2>The collapse</h2>
+    <p class="hint">Nine badge entries on the left, what they actually are on the right.</p>
+    <div class="collapse">
+      <div>
+        <div class="col-label">Reported</div>
+        <div class="row"><span class="n">6&times;</span><span class="rule">PinnedDependenciesID</span></div>
+        <div class="row"><span class="n">2&times;</span><span class="rule">js/incomplete-html-attribute-sanitization</span></div>
+        <div class="row"><span class="n">1&times;</span><span class="rule">zizmor/artipacked</span></div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div>
+        <div class="col-label">Actual</div>
+        <div class="row"><span class="dot fixed"></span><span class="n">1</span><span class="rule">attribute escaping &mdash; fixed</span></div>
+        <div class="row"><span class="dot fixed"></span><span class="n">1</span><span class="rule">credential persistence &mdash; fixed</span></div>
+        <div class="row"><span class="dot open"></span><span class="n">1</span><span class="rule">Dockerfile tag pin &mdash; deliberate</span></div>
+        <div class="row"><span class="dot phantom"></span><span class="n">&mdash;</span><span class="rule">rest: src/ vs plugins/ double count</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>The three findings</h2>
+    <p class="hint">Open each for the reasoning. Two shipped, one deliberately did not.</p>
+
+    <details class="finding" open>
+      <summary>
+        <span class="badge fixed">fixed</span>
+        <span class="f-title">Escaping helper covered angle brackets but not quotes</span>
+        <span class="f-file">plan-viz.html:173</span>
+      </summary>
+      <div class="f-body">
+        <p>
+          <code>esc()</code> escaped <code>&amp;</code>, <code>&lt;</code> and
+          <code>&gt;</code> and nothing else, while its output is interpolated into
+          <strong>attributes</strong>:
+        </p>
+        <pre>class="chip ${esc(h.p)}"      line 196
+data-f="${esc(h.f)}"          line 200</pre>
+        <p>
+          A value containing a double quote closes the attribute and opens a new
+          one. <code>esc()</code> now escapes both quote forms.
+        </p>
+        <p>
+          Blast radius is genuinely small &mdash; a static playground with hardcoded
+          data, no user input path. It is fixed anyway because an escaping helper
+          is exactly the kind of thing that gets copied into somewhere that does
+          take input.
+        </p>
+      </div>
+    </details>
+
+    <details class="finding">
+      <summary>
+        <span class="badge fixed">fixed</span>
+        <span class="f-title">Checkout left the token in .git/config for every later step</span>
+        <span class="f-file">import-symbol-watch.yml</span>
+      </summary>
+      <div class="f-body">
+        <p>
+          The checkout was already SHA-pinned, which was right, but left
+          <code>persist-credentials</code> at its default of <code>true</code>.
+          That keeps <code>GITHUB_TOKEN</code> in <code>.git/config</code> for the
+          rest of the job.
+        </p>
+        <p>
+          The job declares <code>contents: read</code>, uses no secrets, and runs
+          no <code>git push</code> or <code>gh api</code>, so the credential has
+          nothing to do after checkout.
+        </p>
+        <p>
+          This was the <strong>outlier, not a new convention</strong>: 40 other
+          workflows already set <code>persist-credentials: false</code>.
+          <code>actionlint</code> rc=0.
+        </p>
+      </div>
+    </details>
+
+    <details class="finding">
+      <summary>
+        <span class="badge open">left open</span>
+        <span class="f-title">Dockerfile pins by tag, and says so in writing</span>
+        <span class="f-file">devops-deployment/scripts/Dockerfile</span>
+      </summary>
+      <div class="f-body">
+        <p>
+          Three alerts land on lines 9, 19 and 33. The file already carries a
+          reasoned position at lines 3&ndash;6:
+        </p>
+        <div class="quote">
+          pin by tag here, not by digest. A digest pin freezes the base layer
+          forever, so the image can never pick up an upstream security patch. If
+          you do pin a digest for reproducibility, treat it as a dependency and
+          refresh it deliberately (renovate/dependabot or a scheduled bump), never
+          set-and-forget.
+        </div>
+        <p>
+          A scanner cannot see that argument, so it reports the absence of a digest
+          as a finding. <strong>Operator decision, 2026-08-09: leave as-is and do
+          not dismiss.</strong> The three alerts stay open as a standing
+          known-accepted item rather than being silenced, so the position stays
+          visible and re-arguable instead of disappearing into a dismissal reason.
+        </p>
+        <p>
+          The escape hatch the comment itself names &mdash; digest plus a scheduled
+          refresh &mdash; remains available if the trade-off is ever revisited.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <h2>What the badge count is worth</h2>
+    <p class="hint">The generated-output double count is the part worth remembering.</p>
+    <div class="f-body" style="padding: 0;">
+      <p>
+        <code>plugins/</code> is build output assembled from <code>src/</code> by
+        <code>npm run build</code>. Both trees are committed, so a single defect in
+        a skill file is scanned and reported twice. Any alert total that includes
+        generated paths overstates by roughly the size of the duplicated surface.
+      </p>
+      <p>
+        That is not an argument for ignoring the badge, it is an argument for
+        collapsing it to root causes before deciding anything &mdash; which is what
+        the diagram above does. Nine entries, three decisions, two commits.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="copybar">
+      <span class="label">Re-run this triage on the current alert set.</span>
+      <button class="copy" id="copyBtn" type="button">Copy prompt</button>
+    </div>
+  </section>
+
+  <footer>
+    PR #3367 &middot; two fixes shipped, three alerts deliberately left open.
+    Generated for the OrchestKit playground gate.
+  </footer>
+
+</div>
+
+<script>
+const PROMPT = [
+  "Triage the open code-scanning alerts in this repo.",
+  "",
+  "Collapse the raw alert list to distinct ROOT CAUSES before proposing any fix:",
+  "1. Group alerts by rule id AND by the underlying defect, not by file.",
+  "2. Discount duplicates caused by generated output (plugins/ is built from src/,",
+  "   both are committed, so one defect is reported twice).",
+  "3. For each root cause decide: real defect, or a deliberate trade-off the code",
+  "   already argues for in a comment? Read the file before deciding.",
+  "",
+  "Fix the real defects. For a deliberate trade-off, do NOT silently 'fix' it to",
+  "clear the badge - surface it and ask, and say plainly whether the alert should",
+  "be dismissed or left open.",
+  "",
+  "Report: reported count, actual root-cause count, and the decision per cause."
+].join("\n");
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(PROMPT).then(() => {
+    const b = document.getElementById("copyBtn");
+    b.textContent = "Copied";
+    b.classList.add("done");
+    setTimeout(() => { b.textContent = "Copy prompt"; b.classList.remove("done"); }, 2000);
+  });
+});
+</script>
+</body>
+</html>

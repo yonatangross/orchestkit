@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3552 — a size guard that measured the tool, not the file</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:60rem;margin:0 auto}
+  h1{font-size:1.3rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.75rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  label{display:block;margin:.8rem 0 .3rem;color:var(--dim);font-size:.85rem}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{color:var(--fg);font-weight:700}
+  .row{display:flex;gap:1.5rem;flex-wrap:wrap}
+  .row>div{flex:1 1 14rem}
+  fieldset{border:1px solid var(--line);border-radius:6px;padding:.7rem 1rem;margin:0 0 .5rem}
+  legend{color:var(--dim);font-size:.82rem;padding:0 .4rem}
+  fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:0 1.5rem 0 0;color:var(--fg)}
+  .verdicts{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.25rem}
+  .v{flex:1 1 16rem;padding:.85rem 1rem;border-radius:6px;background:#0b0f14;
+     border:1px solid var(--line);border-left-width:4px}
+  .v h3{margin:0 0 .3rem;font-size:.78rem;color:var(--dim);font-weight:400;
+        text-transform:uppercase;letter-spacing:.04em}
+  .v .r{font-size:1.02rem;font-weight:700}
+  .v.deny{border-left-color:var(--bad)} .v.deny .r{color:var(--bad)}
+  .v.ask{border-left-color:var(--warn)} .v.ask .r{color:var(--warn)}
+  .v.pass{border-left-color:var(--ok)} .v.pass .r{color:var(--ok)}
+  .v p{margin:.4rem 0 0;font-size:.85rem;color:var(--dim)}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>A size guard that measured the tool, not the file</h1>
+  <p class="lede">
+    The guard only ran on <code>Write</code>. The identical body landed
+    friction-free through <code>Edit</code>, so what it actually gated was tool
+    choice. Change the inputs and compare the two columns.
+  </p>
+
+  <div class="panel">
+    <fieldset>
+      <legend>tool</legend>
+      <label><input type="radio" name="tool" value="Write" checked> Write</label>
+      <label><input type="radio" name="tool" value="Edit"> Edit</label>
+    </fieldset>
+
+    <div class="row">
+      <div>
+        <label for="cur">Lines already on disk: <span class="val" id="curV">458</span></label>
+        <input id="cur" type="range" min="0" max="900" value="458">
+      </div>
+      <div>
+        <label for="res">Lines after this call: <span class="val" id="resV">400</span></label>
+        <input id="res" type="range" min="0" max="900" value="400">
+      </div>
+    </div>
+    <label for="lim">Limit (<code>ORCHESTKIT_MAX_FILE_LINES</code>): <span class="val" id="limV">400</span></label>
+    <input id="lim" type="range" min="100" max="800" step="10" value="400">
+
+    <div class="verdicts">
+      <div class="v" id="oldV"><h3>before</h3><div class="r" id="oldR"></div><p id="oldP"></p></div>
+      <div class="v" id="newV"><h3>after this PR</h3><div class="r" id="newR"></div><p id="newP"></p></div>
+    </div>
+  </div>
+
+  <h2>Three defects, one guard</h2>
+  <div class="panel">
+    <p style="margin:0 0 .5rem"><strong>1. It sized the tool, not the file.</strong>
+    Only <code>Write</code> was checked, so an over-cap file could be grown
+    indefinitely one <code>Edit</code> at a time. The fix projects the
+    post-write body: for <code>Edit</code> it reads the current file and applies
+    the replacement before measuring.</p>
+    <p style="margin:.7rem 0 .5rem"><strong>2. It was un-satisfiable on the files
+    it most wanted smaller.</strong> Comparing only against the fixed limit meant
+    a 458-line file could not be rewritten to 400 any more than to 600. The only
+    way to comply was to stop using <code>Write</code>. Now a call that shrinks
+    an already-over-cap file passes.</p>
+    <p style="margin:.7rem 0 0"><strong>3. It denied where it should ask.</strong>
+    Crossing the limit can be a deliberate, informed choice. A hard deny repeats
+    the #2947 display-lint mistake: block correct work, and the lesson the user
+    learns is the escape hatch. It now returns <code>ask</code>, matching the
+    sibling context-file-budget-guard.</p>
+  </div>
+
+  <div class="foot">
+    Projection failure is pass-through by design: a missing file, an unreadable
+    one, or an <code>old_string</code> that does not match all return null and
+    the guard stands aside. A guard must never block on its own failure. Issue
+    #3552.
+  </div>
+</main>
+
+<script>
+(function(){
+  var cur=document.getElementById('cur'), res=document.getElementById('res'), lim=document.getElementById('lim'),
+      curV=document.getElementById('curV'), resV=document.getElementById('resV'), limV=document.getElementById('limV'),
+      oldV=document.getElementById('oldV'), oldR=document.getElementById('oldR'), oldP=document.getElementById('oldP'),
+      newV=document.getElementById('newV'), newR=document.getElementById('newR'), newP=document.getElementById('newP');
+
+  function tool(){
+    var r=document.querySelectorAll('input[name=tool]');
+    for(var i=0;i<r.length;i++) if(r[i].checked) return r[i].value;
+    return 'Write';
+  }
+  function set(el,rEl,pEl,cls,txt,why){ el.className='v '+cls; rEl.textContent=txt; pEl.textContent=why; }
+
+  function render(){
+    var c=+cur.value, n=+res.value, l=+lim.value, t=tool();
+    curV.textContent=c; resV.textContent=n; limV.textContent=l;
+
+    // before: only Write was measured, and only against the fixed limit
+    if(t==='Edit'){
+      set(oldV,oldR,oldP,'pass','not checked at all',
+        'The guard returned early on any tool that was not Write. This body never gets measured, so an over-cap file grows one Edit at a time.');
+    } else if(n>l){
+      set(oldV,oldR,oldP,'deny','DENY '+n+'/'+l,
+        c>l ? 'Denied even though this SHRINKS the file from '+c+' to '+n+'. Compliance was impossible; the only way out was to stop using Write.'
+            : 'Over the limit, so blocked outright with no way to proceed deliberately.');
+    } else {
+      set(oldV,oldR,oldP,'pass','allowed '+n+'/'+l,'Under the limit.');
+    }
+
+    // after: projected body, shrink exemption, ask instead of deny
+    if(n<=l){
+      set(newV,newR,newP,'pass','allowed '+n+'/'+l,'Under the limit, measured from the projected post-write body regardless of which tool wrote it.');
+    } else if(c>l && n<=c){
+      set(newV,newR,newP,'pass','allowed '+c+' → '+n,
+        'Still over '+l+', but improving. A guard that wants files smaller must not block the change that makes them smaller.');
+    } else {
+      set(newV,newR,newP,'ask','ASK '+n+'/'+l,
+        'Confirmation, not refusal. Approve to proceed, or split first. Override with ORCHESTKIT_MAX_FILE_LINES. Skipped entirely under --dangerously-skip-permissions, since nothing here denies.');
+    }
+  }
+  [cur,res,lim].forEach(function(el){ el.addEventListener('input',render); });
+  var radios=document.querySelectorAll('input[name=tool]');
+  for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',render);
+  render();
+})();
+</script>
+</body>
+</html>

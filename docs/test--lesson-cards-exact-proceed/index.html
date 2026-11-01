@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lesson-cards: only the exact "Proceed anyway" runs a block lesson | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { border: 1px solid #e3ddd0; padding: 8px 10px; text-align: left; }
+  code { background: #efe9dd; padding: 1px 5px; }
+  .ok { color: #2f5d3a; font-weight: 600; }
+  .no { color: #8f2d21; font-weight: 600; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · TESTS ONLY</p>
+<h1>Only the exact "Proceed anyway" runs a block lesson</h1>
+<p>Claude Code maps a dialog answer back to its label only on an exact match, so anything the person types reaches lesson-cards as raw text. The mod already runs the call only on the exact label, but no test pinned that. A looser check (ignoring case, or trimming spaces) passed every test. These rows now fail on either loosening.</p>
+<table>
+  <tr><th>Answer</th><th>Runs the call?</th></tr>
+  <tr><td><code>Proceed anyway</code></td><td class="ok">yes</td></tr>
+  <tr><td><code>proceed anyway</code></td><td class="no">no</td></tr>
+  <tr><td><code>PROCEED ANYWAY</code></td><td class="no">no</td></tr>
+  <tr><td><code>Proceed</code></td><td class="no">no</td></tr>
+  <tr><td><code>Proceed anyway&#9251;</code> (trailing space)</td><td class="no">no</td></tr>
+  <tr><td><code>&#9251;Proceed anyway&#9251;</code> (padded)</td><td class="no">no</td></tr>
+  <tr><td><code>Proceed anyway, Cancel</code></td><td class="no">no</td></tr>
+</table>
+<p>Mutation check: replacing the exact comparison with a lowercase or a trimmed comparison makes 2 of 82 tests fail. The README, a code comment and a test title now say "lesson id" where they said "lesson title", matching what the question shows.</p>
+</body>
+</html>

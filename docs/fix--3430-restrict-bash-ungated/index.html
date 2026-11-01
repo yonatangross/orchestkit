@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#3430 — turning on a security control that never ran</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--text:#e6edf3;
+        --dim:#9aa4b2;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;
+        --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:30px 26px 70px}
+  h1{font-size:23px;letter-spacing:-.01em}
+  .sub{color:var(--dim);margin-top:6px;font-size:14px}
+  .chips{display:flex;gap:9px;margin:15px 0 0;flex-wrap:wrap}
+  .chip{background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:5px 13px;font-size:12.5px}
+  .chip b{color:var(--accent)} .chip.bad b{color:var(--red)} .chip.ok b{color:var(--green)}
+  section{margin-top:40px}
+  h2{font-size:18px;margin-bottom:6px}
+  .lead{color:var(--dim);margin-bottom:15px;max-width:880px}
+  .lead b,td b,li b{color:var(--text)}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;background:var(--panel2)}
+  tr:last-child td{border-bottom:none}
+  code{font-family:var(--mono);font-size:12.5px}
+  pre{background:#0b0f14;border:1px solid var(--border);border-radius:9px;padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+  .ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:15px}
+  .callout{border-left:3px solid var(--purple);background:var(--panel);border-radius:0 9px 9px 0;padding:14px 18px;margin:14px 0}
+  .callout.red{border-left-color:var(--red)}
+  .callout.green{border-left-color:var(--green)}
+  ul{margin:8px 0 8px 20px}li{margin-bottom:5px}
+  .path{font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>🔌 #3430 — turning on a security control that had never run</h1>
+<div class="sub">Plus #3438, which turned out to be the same gate seen from a different angle.</div>
+<div class="chips">
+  <span class="chip bad">before: <b>0</b> timing entries / 193,606 rows</span>
+  <span class="chip">allowlist reach <b>4 of 32</b> under the old gate</span>
+  <span class="chip ok">after: <b>9/9</b> control · <b>7553</b> hook tests</span>
+  <span class="chip">cost <b>47.9ms</b> vs 50ms budget</span>
+</div>
+
+<section>
+  <h2>What was actually wrong</h2>
+  <p class="lead"><code>agent/restrict-bash</code> was a well-built allowlist — 40 entries, deny-by-default, correct compound handling — with <b>zero registrations in hooks.json</b>. Its unit tests passed for months against a control no session was ever subject to. This change makes it fire for the first time, and everything below was discovered in the act of doing that.</p>
+  <div class="callout red">
+    <b>The specified fix would not have worked.</b> The issue's decision comment says to route it through <code>sync-bash-dispatcher</code> "because that array demonstrably fires." It does fire — behind an <code>if</code> gate admitting 13 command prefixes. Handing a deny-by-default allowlist that view inverts it: <b>28 of 32</b> allowlisted head-commands are never evaluated, and <code>ssh</code>, <code>wget</code>, <code>nc</code>, <code>scp</code> pass silently. An enumerated gate cannot front an allowlist — whatever is not enumerated is never judged. So the gate is deleted, not widened, which is also the entirety of #3438.
+  </div>
+  <div class="callout red">
+    <b>And its verification would have passed anyway.</b> Required gate item 4 says "assert a <code>restrict-bash</code> timing entry appears." It would have — <code>git status</code> reaches the hook. A green control test beside an ineffective control is the exact failure this issue exists to end, so case 4 of the new suite deliberately asserts on commands <i>outside</i> the old 13 prefixes.
+  </div>
+</section>
+
+<section>
+  <h2>Three findings from wiring it up</h2>
+  <table>
+    <tr><th>#</th><th>Finding</th><th>Why it matters</th></tr>
+    <tr><td>1</td><td><b>The <code>if</code> gate</b> — deleted from the Bash matcher block</td><td>Fixes #3438 too: <code>network-egress-guard</code> could see 1 of the 7 vectors it documents</td></tr>
+    <tr><td>2</td><td><b>Identity from payload, not env.</b> <code>process.env.CLAUDE_AGENT_ID</code> → <code>input.agent_type ?? input.subagent_type</code>, via <code>normalizeAgentName</code></td><td>The env var has no guarantee inside a global hook; reading <code>'unknown'</code> would restrict every session or none. <code>ork:</code> prefix stripping is the #3354 defect.</td></tr>
+    <tr><td>3</td><td><b>Member order decides the verdict.</b> Moved before <code>network-egress-guard</code></td><td>The dispatcher short-circuits on first non-silent result. Placed after, a restricted agent running <code>nc -l 1234</code> got <code class="warn">ask</code> — a prompt a human might approve — instead of <code class="bad">deny</code>. Caught by case 4.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>The bypass sitting inside the allowlist</h2>
+  <p class="lead">Found while fixing a failing test. Four entries were filed under <b>"Misc read-only"</b>:</p>
+  <pre>  'pwd', 'date', 'echo', 'which', 'env', 'printenv',
+<span class="bad">  'node -e', 'node --eval', 'python -c', 'python3 -c',   ← arbitrary code execution</span></pre>
+  <p class="lead"><code>python -c "import os; os.system(...)"</code> passes a read-only allowlist whose own denial message promises <i>"this agent investigates and reports — it does not modify the system."</i> Harmless while the control was inert; activating it would have shipped a <b>live bypass</b> on day one. Removed, with a regression test that fails if they return.</p>
+</section>
+
+<section>
+  <h2>Safe by construction, not by assumption</h2>
+  <pre>restrictBash(input)
+  │
+  ├─ agent = normalizeAgentName(input.agent_type ?? input.subagent_type ?? '')
+  ├─ RESTRICTED_AGENTS.has(agent)?  ── no ──▶ <span class="ok">outputSilentSuccess()</span>   ← 99% of calls
+  │                                            main thread lands here
+  ├─ compound operators?  ────────── yes ──▶ <span class="bad">deny</span>
+  └─ allowlist match?  ───────────── no ───▶ <span class="bad">deny</span>  / yes ──▶ allow + log</pre>
+  <p class="lead">This is an allowlist of <b>restricted agents</b>, deliberately not a test for "am I a subagent". A missing or unrecognised identity falls through to today's exact behaviour, so if CC's payload does not carry the field the change degrades to a no-op rather than to restrict-everything or restrict-nothing.</p>
+</section>
+
+<section>
+  <h2>The perf trade, measured before committing</h2>
+  <table>
+    <tr><th>Measurement</th><th>Value</th><th>Note</th></tr>
+    <tr><td>bare node startup</td><td class="mono">33.6 ms</td><td>the floor — unavoidable per hook process</td></tr>
+    <tr><td>dispatcher, benign command</td><td class="mono">47.9 ms</td><td>~14 ms is our own member chain</td></tr>
+    <tr><td>PreToolUse budget</td><td class="mono">50 ms</td><td><span class="warn">~2 ms headroom; CI runners are slower</span></td></tr>
+  </table>
+  <p class="lead">Removing the gate moves the dispatcher onto every Bash call, not just 13 prefixes. That is required for correctness but it is a real cost, so <span class="path">restrict-bash-budget.test.ts</span> guards the part this change controls — the in-process member chain — rather than asserting wall-clock, which would be flaky on CI. My first two attempts to measure this were wrong (one spawned two python processes per iteration; the next used <code>$SECONDS</code>, granularity 1s, and reported "0ms"). The 47.9 figure is the third attempt, with timing outside the loop.</p>
+</section>
+
+<section>
+  <h2>Verification</h2>
+  <ul>
+    <li><b>9/9</b> positive control, including the two regressions found while writing it</li>
+    <li><b>7553</b> hook unit tests pass, 314 files — the member reorder broke no sibling</li>
+    <li><b>19/19</b> security suite (gates push)</li>
+    <li><code>validate-counts.sh</code> PASSED · typecheck clean · zero build drift</li>
+  </ul>
+  <div class="callout green">
+    <b>Still unproven, stated plainly:</b> the four cases assert reachability through the dispatcher in-process. They do <i>not</i> prove CC populates <code>agent_type</code> on a real subagent Bash call — that needs a live spawn and a timing entry in production telemetry. If CC does not send it, this change is a no-op rather than a regression, by the design above. The honest next check is a real restricted-agent run with a <code>restrict-bash</code> entry in the timing log.
+  </div>
+</section>
+
+</div></body></html>

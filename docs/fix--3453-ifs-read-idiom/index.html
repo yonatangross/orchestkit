@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFS= read: what the validator used to block, and why</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+    --text:#e6edf3; --dim:#8b949e;
+    --deny:#f85149; --allow:#3fb950; --warn:#d29922; --accent:#58a6ff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:32px 20px}
+  .wrap{max-width:940px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:var(--dim);margin:0 0 28px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:20px;margin-bottom:20px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);
+    margin:0 0 14px;font-weight:600}
+  input[type=text]{width:100%;background:var(--bg);color:var(--text);
+    border:1px solid var(--border);border-radius:7px;padding:12px 14px;
+    font-family:var(--mono);font-size:14px}
+  input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .presets button{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:999px;padding:6px 13px;font-family:var(--mono);font-size:12px;cursor:pointer}
+  .presets button:hover{border-color:var(--accent);color:var(--accent)}
+  .verdicts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:680px){.verdicts{grid-template-columns:1fr}}
+  .v{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:16px}
+  .v .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);
+    margin-bottom:10px}
+  .badge{display:inline-block;font-family:var(--mono);font-weight:700;font-size:16px;
+    padding:5px 12px;border-radius:6px}
+  .DENY{background:rgba(248,81,73,.15);color:var(--deny);border:1px solid rgba(248,81,73,.4)}
+  .ALLOW{background:rgba(63,185,80,.15);color:var(--allow);border:1px solid rgba(63,185,80,.4)}
+  .why{margin-top:11px;font-size:13px;color:var(--dim);font-family:var(--mono);
+    word-break:break-all;line-height:1.5}
+  .delta{margin-top:16px;padding:12px 14px;border-radius:7px;font-size:14px;display:none}
+  .delta.fixed{display:block;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.35)}
+  .delta.same{display:block;background:rgba(139,148,158,.08);border:1px solid var(--border);
+    color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:9px 10px;border-bottom:1px solid rgba(48,54,61,.5);font-family:var(--mono);
+    font-size:12.5px}
+  td:last-child,th:last-child{text-align:right}
+  .tag{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px}
+  code{background:var(--panel2);border:1px solid var(--border);border-radius:4px;
+    padding:1px 6px;font-family:var(--mono);font-size:12.5px}
+  pre{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:14px;
+    overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+  .k{color:var(--accent)} .c{color:var(--dim)} .s{color:var(--warn)}
+  p{margin:0 0 12px} ul{margin:0;padding-left:20px} li{margin-bottom:7px}
+  .note{border-left:3px solid var(--warn);padding-left:14px;color:var(--dim);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Why <code>IFS= read</code> was blocked, and what changed</h1>
+  <p class="sub">PR #3454 &middot; closes #3453 &middot; <code>compound-command-validator</code></p>
+
+  <div class="card">
+    <h2>Try a command</h2>
+    <input type="text" id="cmd" spellcheck="false"
+      value="cat f | while IFS= read -r p; do echo &quot;$p&quot;; done">
+    <div class="presets" id="presets"></div>
+
+    <div class="verdicts">
+      <div class="v">
+        <div class="lbl">Before (shipped in alpha.25)</div>
+        <span class="badge" id="oldB">.</span>
+        <div class="why" id="oldW"></div>
+      </div>
+      <div class="v">
+        <div class="lbl">After (this PR)</div>
+        <span class="badge" id="newB">.</span>
+        <div class="why" id="newW"></div>
+      </div>
+    </div>
+    <div class="delta" id="delta"></div>
+  </div>
+
+  <div class="card">
+    <h2>The bug in one line</h2>
+    <p>The DENY branch matched <em>any</em> <code>IFS=</code> assignment, including the empty
+       one. So the idiomatic safe read loop was hard-blocked.</p>
+    <p>The command was not the operator's. OrchestKit's own <code>ork:dream</code> skill ships
+       that exact line at <code>src/skills/dream/SKILL.md:437</code>, so STEP 8 of the skill was
+       un-runnable on every invocation. It was found by running the skill, not by reading it.</p>
+    <pre><span class="c">// before</span>
+<span class="k">if</span> (/\$\{?IFS\}?/.test(unquoted) || /\bIFS=/.test(unquoted)) {
+  findings.push(<span class="s">'IFS manipulation detected'</span>);
+}</pre>
+  </div>
+
+  <div class="card">
+    <h2>Why the empty assignment is not manipulation</h2>
+    <p>The DENY exists for a real reason: redefining <code>IFS</code> re-tokenizes a command and
+       can hide it from the substring denylist. That reasoning holds for <code>IFS=,</code> and
+       <code>IFS=$'\n'</code>. It does not hold for <code>IFS=</code>:</p>
+    <ul>
+      <li>the value is empty, so it <strong>removes</strong> splitting rather than redefining it</li>
+      <li>it is a prefix assignment scoped to one builtin, never exported to the shell</li>
+      <li><code>read</code> executes no command text, so nothing can hide behind it</li>
+      <li>it is the form shellcheck SC2162 and POSIX style guides prescribe</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>The trap the fix avoids</h2>
+    <p>The obvious patch is "allow any command that contains the benign form". That is a
+       <strong>bypass</strong>: one harmless occurrence would launder a real manipulation
+       elsewhere in the same command.</p>
+    <pre><span class="c">// naive, and exploitable:</span>
+<span class="k">if</span> (!/\bIFS=\s+read\b/.test(u) &amp;&amp; /\bIFS=/.test(u)) deny();
+<span class="c">//   IFS=, cmd &amp;&amp; IFS= read   ->  ALLOWED. wrong.</span>
+
+<span class="c">// shipped: strip the benign form, judge the REMAINDER</span>
+<span class="k">const</span> ifsProbe = unquoted.replace(/\bIFS=(?:''|"")?(?=\s+read\b)/g, <span class="s">''</span>);
+<span class="k">if</span> (/\$\{?IFS\}?/.test(ifsProbe) || /\bIFS=/.test(ifsProbe)) deny();</pre>
+    <p class="note">That mixed case is covered by a regression test, not just by argument.</p>
+  </div>
+
+  <div class="card">
+    <h2>Test matrix</h2>
+    <table>
+      <thead><tr><th>Command</th><th>Before</th><th>After</th></tr></thead>
+      <tbody id="matrix"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Third instance of one class</h2>
+    <p>This is not an isolated bug. Same shape, three times:</p>
+    <ul>
+      <li><strong>#842</strong> added the IFS / brace / procsub detection. Correct in intent.</li>
+      <li><strong>#3384</strong> fixed POSIX brace <em>groups</em> being read as brace
+          <em>expansion</em>.</li>
+      <li><strong>#3453</strong> is the same over-match on the IFS branch.</li>
+    </ul>
+    <p>Every one matched a <em>syntactic shape</em> instead of the <em>evasive capability</em>
+       that shape sometimes carries. Worth a sweep of the remaining DENY branches rather than a
+       fourth one-off.</p>
+  </div>
+
+</div>
+
+<script>
+const CASES = [
+  "cat f | while IFS= read -r p; do echo \"$p\"; done",
+  "IFS=, read -r a b",
+  "cat${IFS}/etc/passwd",
+  "IFS=, cmd && while IFS= read -r p; do :; done",
+  "IFS=$'\\n' read -r x",
+  "while IFS='' read -r line; do :; done"
+];
+
+// Mirrors src/hooks/src/lib/normalize-command.ts
+function oldVerdict(u){
+  const hit = /\$\{?IFS\}?/.test(u) || /\bIFS=/.test(u);
+  return { deny: hit, why: hit ? "matched /\\bIFS=/ or /${IFS}/ anywhere in the string"
+                               : "no IFS token present" };
+}
+function newVerdict(u){
+  const probe = u.replace(/\bIFS=(?:''|"")?(?=\s+read\b)/g, '');
+  const hit = /\$\{?IFS\}?/.test(probe) || /\bIFS=/.test(probe);
+  return { deny: hit,
+    why: (probe === u ? "nothing stripped. " : "after stripping benign form: " + (probe.trim() || "(empty)") + ". ")
+       + (hit ? "remainder still carries an IFS manipulation" : "remainder is clean") };
+}
+
+const $ = id => document.getElementById(id);
+
+function render(){
+  const u = $('cmd').value;
+  const o = oldVerdict(u), n = newVerdict(u);
+  for (const [b,w,v] of [['oldB','oldW',o],['newB','newW',n]]){
+    const el = $(b);
+    el.textContent = v.deny ? 'DENY' : 'ALLOW';
+    el.className = 'badge ' + (v.deny ? 'DENY' : 'ALLOW');
+    $(w).textContent = v.why;
+  }
+  const d = $('delta');
+  if (o.deny && !n.deny){
+    d.className = 'delta fixed';
+    d.innerHTML = '<strong>Unblocked by this PR.</strong> Correct work that used to be refused.';
+  } else if (!o.deny && n.deny){
+    d.className = 'delta fixed';
+    d.innerHTML = '<strong>Newly blocked.</strong> Unexpected: report it.';
+  } else {
+    d.className = 'delta same';
+    d.textContent = 'Same verdict before and after. The fix is narrow by design.';
+  }
+}
+
+$('presets').innerHTML = CASES.map((c,i) =>
+  `<button data-i="${i}">${c.length > 42 ? c.slice(0,42)+'…' : c}</button>`).join('');
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  $('cmd').value = CASES[+b.dataset.i]; render();
+});
+$('cmd').addEventListener('input', render);
+
+$('matrix').innerHTML = CASES.map(c => {
+  const o = oldVerdict(c), n = newVerdict(c);
+  const tag = v => `<span class="tag ${v.deny?'DENY':'ALLOW'}">${v.deny?'DENY':'ALLOW'}</span>`;
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<tr><td>${esc(c)}</td><td>${tag(o)}</td><td>${tag(n)}</td></tr>`;
+}).join('');
+
+render();
+</script>
+</body>
+</html>

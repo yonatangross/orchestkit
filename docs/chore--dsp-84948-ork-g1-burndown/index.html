@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>allowed-tools normalised: frontmatter baseline burndown</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 32px 20px; color: #1d1d1f; background: #fbf8f2; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  .lede { color: #444; margin: 0 0 24px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .kpi { background: #fff; border: 1px solid #e3ddd2; border-radius: 10px; padding: 14px; }
+  .kpi b { display: block; font-size: 1.7rem; }
+  .kpi span { color: #666; font-size: .85rem; }
+  .bars { background: #fff; border: 1px solid #e3ddd2; border-radius: 10px; padding: 16px; margin-bottom: 24px; }
+  .row { display: grid; grid-template-columns: 150px 1fr 60px; align-items: center; gap: 10px; margin: 8px 0; }
+  .track { background: #eee7da; border-radius: 6px; height: 18px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 6px; }
+  .before { background: #b3261e; } .after { background: #2f7d32; }
+  code { background: #f0ebe1; padding: 1px 5px; border-radius: 4px; }
+  pre { background: #fff; border: 1px solid #e3ddd2; border-radius: 10px; padding: 12px; overflow-x: auto; font-size: .85rem; }
+  .toggle button { margin-right: 6px; }
+</style>
+</head>
+<body>
+<h1>allowed-tools, normalised in 97 skills</h1>
+<p class="lede">Every skill now writes <code>allowed-tools</code> as one space-separated string. The frontmatter ratchet baseline drops by 97 violations, and the docs generator splits the string back into a list so the site keeps its <code>string[]</code> type.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>97</b><span>allowed-tools values normalised</span></div>
+  <div class="kpi"><b id="k-v">203 → 106</b><span>baseline violations</span></div>
+  <div class="kpi"><b>101 → 64</b><span>files with violations</span></div>
+</div>
+
+<div class="bars">
+  <strong>configs/frontmatter-baseline.json, before and after</strong>
+  <div class="row"><span>violations, before</span><div class="track"><div class="fill before" style="width:100%"></div></div><span>203</span></div>
+  <div class="row"><span>violations, after</span><div class="track"><div class="fill after" style="width:52.2%"></div></div><span>106</span></div>
+  <div class="row"><span>files, before</span><div class="track"><div class="fill before" style="width:100%"></div></div><span>101</span></div>
+  <div class="row"><span>files, after</span><div class="track"><div class="fill after" style="width:63.4%"></div></div><span>64</span></div>
+</div>
+
+<p class="toggle"><button data-f="list">Before: YAML list</button><button data-f="str">After: one string</button></p>
+<pre id="fm"></pre>
+
+<p><strong>Generator fix.</strong> <code>scripts/generate-docs-data.js</code> copied the raw value into <code>allowedTools: string[]</code>, so a string broke the docs site type check. It now reads the value through <code>toolList()</code>: a string splits on whitespace, a list passes through, a missing value becomes <code>[]</code>.</p>
+
+<script>
+  const forms = {
+    list: "allowed-tools:\n  - Read\n  - Write\n  - Edit\n  - Glob\n  - Grep\n  - Bash",
+    str: 'allowed-tools: "Read Write Edit Glob Grep Bash"'
+  };
+  const pre = document.getElementById('fm');
+  const show = f => { pre.textContent = forms[f]; };
+  document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => show(b.dataset.f)));
+  show('str');
+</script>
+</body>
+</html>

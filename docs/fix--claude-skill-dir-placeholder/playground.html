@@ -1,0 +1,269 @@
+<!doctype html>
+<!--
+  ════════════════════════════════════════════════════════════════════════
+  TESTS THAT COULD NOT FAIL · PR #3288
+  Conforms to: skills/shared/rules/playground-visual-standard.md
+  Zero dependencies. Single file. Persona: cool-glass (indigo).
+
+  Three independent repairs share one shape: a check that reported success
+  without ever being able to report anything else. Toggle the mutation
+  probe to see which assertions actually hold the line.
+  ════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tests that could not fail · PR #3288</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-glass-2:    hsl(0 0% 100% / 0.08);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+
+    --pg-accent:      hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 60% 52%);
+    --pg-rose:        hsl(345 76% 63%);
+    --pg-warm:        hsl(38 95% 60%);
+    --pg-emerald:     hsl(160 68% 45%);
+
+    --pg-shadow: 0 20px 60px -22px hsl(232 40% 2% / 0.7), 0 4px 12px -6px hsl(232 40% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-instant: 100ms; --pg-dur-fast: 200ms; --pg-dur-normal: 300ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--pg-font); color: var(--pg-ink); min-height: 100vh;
+    background:
+      radial-gradient(900px 600px at 88% -8%, hsl(248 84% 68% / 0.16), transparent 60%),
+      radial-gradient(820px 620px at 4% 110%, hsl(160 68% 45% / 0.09), transparent 58%),
+      var(--pg-bg);
+    background-attachment: fixed; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 26px 22px 48px; display: flex; flex-direction: column; gap: 18px; }
+  .head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .logo {
+    width: 46px; height: 46px; border-radius: 14px; flex: none; display: grid; place-items: center; font-size: 22px;
+    background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep));
+    box-shadow: 0 8px 22px -8px hsl(248 84% 60% / 0.7), inset 0 1px 0 hsl(0 0% 100% / 0.4);
+  }
+  h1 { margin: 0; font-size: 20px; letter-spacing: -.3px; }
+  .sub { margin: 4px 0 0; font-size: 13px; color: var(--pg-muted); max-width: 68ch; line-height: 1.55; }
+  .head .right { margin-inline-start: auto; display: flex; gap: 8px; align-items: center; }
+
+  .panel {
+    background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: var(--pg-r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--pg-shadow); padding: 18px;
+  }
+  h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-muted); font-weight: 650; }
+
+  .toggle {
+    cursor: pointer; font: inherit; font-size: 12px; font-weight: 650; color: var(--pg-muted);
+    background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: 999px; padding: 8px 15px;
+    transition: color var(--pg-dur-fast), border-color var(--pg-dur-fast), background var(--pg-dur-fast);
+  }
+  .toggle:hover { color: var(--pg-ink); border-color: var(--pg-glass-edge); }
+  .toggle[aria-pressed="true"] { color: var(--pg-ink); background: var(--pg-glass-2); border-color: var(--pg-rose); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: start; font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--pg-faint); font-weight: 700; padding: 0 10px 8px 0; }
+  td { padding: 9px 10px 9px 0; border-top: 1px solid var(--pg-line); vertical-align: top; }
+  td.name { font-family: var(--pg-mono); font-size: 12px; color: var(--pg-ink); }
+  .pill { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.pass  { color: var(--pg-emerald); background: hsl(160 68% 45% / 0.14); }
+  .pill.blind { color: var(--pg-rose);    background: hsl(345 76% 63% / 0.14); }
+  .pill.holds { color: var(--pg-emerald); background: hsl(160 68% 45% / 0.14); }
+
+  .meter { height: 7px; border-radius: 999px; background: hsl(0 0% 100% / 0.07); overflow: hidden; margin-top: 8px; }
+  .meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--pg-rose), var(--pg-warm)); transition: width var(--pg-dur-normal) var(--pg-ease); }
+  .stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .sbox { border: 1px solid var(--pg-line); border-radius: var(--pg-r-md); padding: 14px; background: hsl(0 0% 100% / 0.03); }
+  .sbox .lbl { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--pg-faint); font-weight: 700; }
+  .sbox .val { font-family: var(--pg-mono); font-size: 27px; font-weight: 700; margin-top: 6px; letter-spacing: -.5px; }
+
+  .why { font-size: 13px; line-height: 1.62; color: var(--pg-muted); }
+  .why b { color: var(--pg-ink); font-weight: 650; }
+  .why p { margin: 0 0 10px; }
+  code { font-family: var(--pg-mono); font-size: 12px; background: hsl(0 0% 100% / 0.06); border: 1px solid var(--pg-line); border-radius: 5px; padding: 1px 5px; color: var(--pg-ink); }
+
+  .foot { font-size: 12px; color: var(--pg-faint); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo" aria-hidden="true">🧪</div>
+    <div>
+      <h1>Green because it could not be red</h1>
+      <p class="sub">
+        A passing test proves nothing until you have seen it fail. This PR converts 26 security
+        assertions that reported success unconditionally, and fixes two more checks with the same
+        shape. Flip the mutation probe: break the thing under test on purpose and watch which
+        assertions notice.
+      </p>
+    </div>
+    <div class="right">
+      <button class="toggle" id="mutate" type="button" aria-pressed="false">Break the hook on purpose</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Mutation probe</h2>
+    <div class="stat">
+      <div class="sbox"><div class="lbl">Assertions</div><div class="val" id="total">26</div></div>
+      <div class="sbox"><div class="lbl">Report pass</div><div class="val" id="passing" style="color:var(--pg-emerald)">26</div></div>
+      <div class="sbox"><div class="lbl">Would catch a regression</div><div class="val" id="catching" style="color:var(--pg-rose)">0</div></div>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="bar" style="width:0%"></i></div>
+    <p class="why" style="margin-top:12px" id="verdict"></p>
+    <p class="live" role="status" aria-live="polite" id="live"></p>
+  </div>
+
+  <div class="panel">
+    <h2>What each repair was hiding</h2>
+    <table>
+      <thead>
+        <tr><th>Check</th><th>Before</th><th>After</th><th>The lie</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>The blocker's real contract</h2>
+    <div class="why">
+      <p>The path-traversal suite asserted a two-tier world, allow or deny. The hook has three tiers.
+      <code>rm -rf ./node_modules</code> returns <b>ask</b>, not <b>allow</b>: destructive but plausibly
+      intentional, so it prompts. The test asserted <code>allow</code> and passed anyway, because the
+      helper mapped every non-deny answer to allow.</p>
+      <p><b>The test was wrong, not the hook.</b> That distinction is the whole point. Rewriting the hook
+      to match a mistaken test would have removed a real prompt from a destructive command.</p>
+      <p>The placeholder repair has the same shape at a different layer. <code>${CLAUDE_SKILL_DIR}</code>
+      was never a Claude Code substitution; OrchestKit invented it. An undefined placeholder does not
+      error, it expands to the empty string, so <code>python3 ${CLAUDE_SKILL_DIR}/scripts/x.py</code> ran
+      as <code>python3 /scripts/x.py</code> and the prose form handed the model a path that does not
+      exist. 218 files carried it. The new gate now fails the build on any undocumented
+      <code>${CLAUDE_*}</code>, on any <code>${CLAUDE_PLUGIN_ROOT}/skills/...</code> target that does not
+      resolve on disk, and on any built artifact still carrying the invented name.</p>
+    </div>
+    <div class="foot" style="margin-top:14px">
+      <button class="toggle" id="copy" type="button">Copy the review prompt</button>
+      <span id="copied" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>PR #3288</span><span>·</span>
+    <span>security suite 17/17</span><span>·</span>
+    <span>placeholder gate 3/3 rules</span><span>·</span>
+    <span>rebased onto 9.7.0</span>
+  </div>
+</div>
+
+<script>
+  var ROWS = [
+    { name: "test-path-traversal.sh",        before: "19 assertions, 0 could fail", after: "asserts deny/ask/allow per case", lie: "The helper mapped every non-deny verdict to allow, so a hook that stopped blocking still read green." },
+    { name: "test-command-injection.sh",     before: "7 assertions, 0 could fail",  after: "asserts the real verdict",        lie: "Same helper, same blindness. Injection payloads were 'checked' against a function that could only say allow." },
+    { name: "dangerous-command-blocker",     before: "rm -rf ./node_modules = allow", after: "= ask (3-tier contract)",       lie: "The suite encoded a two-tier model the hook never had, and asserted the wrong tier." },
+    { name: "label-enforcer (compound cmd)", before: "discarded the work silently", after: "keeps compound-command work",     lie: "A compound command lost its payload with no error, so the enforcer passed on an empty result." },
+    { name: "${CLAUDE_SKILL_DIR} (218 files)", before: "expands to empty string",   after: "${CLAUDE_PLUGIN_ROOT}/skills/…",  lie: "An invented placeholder never errors. It silently becomes nothing, and the instruction still looks correct." },
+    { name: "4 doc references",              before: "pointed at nothing",          after: "point at real files",             lie: "Documentation cited files, flags and skills that do not exist. Nothing checked that they resolved." }
+  ];
+
+  var mutated = false;
+
+  function render() {
+    var tb = document.getElementById("rows");
+    tb.innerHTML = "";
+    ROWS.forEach(function (r) {
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td"); td1.className = "name"; td1.textContent = r.name;
+      var td2 = document.createElement("td");
+      var p2 = document.createElement("span");
+      p2.className = "pill " + (mutated ? "blind" : "pass");
+      p2.textContent = mutated ? "still green" : "green";
+      td2.appendChild(p2);
+      var d2 = document.createElement("div");
+      d2.style.cssText = "color:var(--pg-faint);font-size:11.5px;margin-top:5px";
+      d2.textContent = r.before;
+      td2.appendChild(d2);
+      var td3 = document.createElement("td");
+      var p3 = document.createElement("span");
+      p3.className = "pill " + (mutated ? "holds" : "pass");
+      p3.textContent = mutated ? "RED" : "green";
+      td3.appendChild(p3);
+      var d3 = document.createElement("div");
+      d3.style.cssText = "color:var(--pg-faint);font-size:11.5px;margin-top:5px";
+      d3.textContent = r.after;
+      td3.appendChild(d3);
+      var td4 = document.createElement("td");
+      td4.style.cssText = "color:var(--pg-muted);font-size:12.5px;line-height:1.55";
+      td4.textContent = r.lie;
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+      tb.appendChild(tr);
+    });
+
+    document.getElementById("passing").textContent = mutated ? "26" : "26";
+    document.getElementById("catching").textContent = mutated ? "26" : "0";
+    document.getElementById("bar").style.width = mutated ? "100%" : "0%";
+    document.getElementById("mutate").setAttribute("aria-pressed", mutated ? "true" : "false");
+    document.getElementById("mutate").textContent = mutated ? "Restore the hook" : "Break the hook on purpose";
+
+    document.getElementById("verdict").innerHTML = "";
+    var p = document.createElement("p");
+    p.style.margin = "0";
+    p.textContent = mutated
+      ? "Hook mutated to allow everything. The 26 converted assertions now go RED, which is the only evidence that they were ever testing anything. Before this PR the same mutation changed nothing: 26 passed, 26 would have kept passing."
+      : "Hook intact. Everything is green, which is exactly the state that told us nothing. Press the button to mutate the hook and see which assertions actually notice.";
+    document.getElementById("verdict").appendChild(p);
+    document.getElementById("live").textContent = mutated
+      ? "Mutation on: 26 of 26 assertions now fail, as they should."
+      : "Mutation off: all assertions green.";
+  }
+
+  document.getElementById("mutate").addEventListener("click", function () {
+    mutated = !mutated;
+    render();
+  });
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var t = [
+      "Review PR #3288 (26 blind security assertions made able to fail).",
+      "",
+      "Three repairs share one shape: a check that could only report success.",
+      "1. test-path-traversal.sh + test-command-injection.sh asserted a two-tier",
+      "   allow/deny model; the hook has three tiers and 'rm -rf ./node_modules'",
+      "   returns ask. The TEST was wrong, not the hook.",
+      "2. ${CLAUDE_SKILL_DIR} was invented by OrchestKit and expands to the empty",
+      "   string, so it fails silently in both prose and shell form. 218 files.",
+      "3. The label enforcer discarded compound-command work with no error.",
+      "",
+      "Check: are the remaining ~21 blind assertions in the other security files",
+      "covered by the same helper, and does the new placeholder gate have a hole",
+      "for placeholders built by string concatenation?"
+    ].join("\n");
+    navigator.clipboard.writeText(t).then(function () {
+      var n = document.getElementById("copied");
+      n.textContent = "copied";
+      setTimeout(function () { n.textContent = ""; }, 1600);
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>

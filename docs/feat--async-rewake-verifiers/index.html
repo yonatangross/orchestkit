@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>The verdict that arrived after the turn ended: asyncRewake on ork's background verifiers</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+.tl{display:grid;grid-template-columns:110px 1fr;gap:6px 14px;font:13px ui-monospace,Menlo,monospace}
+.tl .t{color:var(--mut)}.hit{color:var(--a)}.miss{color:var(--r)}.wait{color:var(--b)}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin:0 8px 8px 0}
+button.on{border-color:var(--a)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+.note{color:var(--mut);font-size:13px}
+</style></head><body><main>
+<h1>The verdict that arrived after the turn ended</h1>
+<p class="lead">An async hook cannot block and its output waits for the next turn. Three ork verifiers run async and still compute a real block verdict, which is the #3779 class: a finding established after the moment it could act. CC's <code>asyncRewake</code> lets a background hook that exits 2 wake Claude at once. Pick a mode and read the timeline of a measured run.</p>
+
+<h2>1. Where the finding lands</h2>
+<div class="card">
+ <p><button id="bR" class="on">asyncRewake: true</button><button id="bP">async: true (before)</button></p>
+ <div class="tl" id="tl"></div>
+ <p class="note" id="why"></p>
+</div>
+<p>Measured on CC 2.1.251 and again on 2.1.248 with a PostToolUse hook that sleeps 300 ms, prints a nonce to stderr and exits 2, driving a real <code>claude -p</code> against a scripted loopback Messages API (two Reads, then text; zero model spend). Under <code>asyncRewake</code> the nonce is in request 3 as <code>&lt;system-reminder&gt; Stop hook blocking error from command "PostToolUse:Read": &lt;nonce&gt; ...</code>. Under plain <code>async</code> the same hook ran (marker file written twice) and the nonce never reached any request in the session.</p>
+
+<h2>2. What changed in ork</h2>
+<table><thead><tr><th>piece</th><th>change</th><th>proof</th></tr></thead><tbody>
+<tr><td><code>bin/run-hook.mjs</code></td><td><code>--rewake</code> flag: after the usual JSON, a <code>continue: false</code> result is repeated on stderr as <code>[&lt;hook&gt;] &lt;reason&gt;</code> and the process exits 2; everything else exits 0 as before</td><td><code>run-hook-rewake.test.ts</code>: blocks exit 2 with the reason, non-blocks exit 0, and without the flag a block still exits 0</td></tr>
+<tr><td><code>hooks.json</code></td><td><code>"asyncRewake": true</code> + <code>--rewake</code> on <code>posttool/write/stale-import-detector</code>, <code>skill/coverage-threshold-gate</code>, <code>skill/cross-instance-test-validator</code>: the three async entries whose code path returns a block</td><td>structure, schema and count gates green; 175 entries unchanged</td></tr>
+<tr><td>floor</td><td>none needed</td><td>the field is honored on 2.1.248 (below today's floor) and <code>plugin validate</code> passes it on 2.1.248, 2.1.250, 2.1.251; validate also passes a made-up field name, so only the run counts</td></tr>
+</tbody></table>
+
+<h2>3. The one that did not fire, and why that is its own finding</h2>
+<p>A second run drove the built plugin through the same stub with a project where three files import <code>./util/b</code> and CC rewrote <code>src/util/b.ts</code>. <code>stale-import-detector</code> ran (hook-timing: 2 ms, ok) and returned silent success, so nothing was there to rewake. Called directly on the same fixture it also returns <code>{"continue":true,"suppressOutput":true}</code>. The wiring is correct; the detector's own grep path appears not to find what is in front of it. That is reported separately rather than folded into this change, because a rewake cannot deliver a verdict the verifier never establishes.</p>
+<script>
+const R=[['t=0','tool Read runs; hook spawned in background'],['t+0.3 s','hook exits 2, stderr: nonce'],['request 3','<span class="hit">system-reminder carries the nonce: Claude reacts now</span>'],['request 4','still present in context']];
+const P=[['t=0','tool Read runs; hook spawned in background'],['t+0.3 s','hook exits 2, stderr: nonce'],['request 3','<span class="miss">no nonce</span>'],['end of turn','<span class="wait">output queued for a next turn that a -p session never has</span>']];
+function set(m){const d=m?R:P;bR.classList.toggle('on',m);bP.classList.toggle('on',!m);tl.innerHTML=d.map(([t,x])=>`<div class="t">${t}</div><div>${x}</div>`).join('');why.textContent=m?'CC enforces timeout on rewake hooks (it does not on plain async), so the three entries\' existing timeouts are live budgets now.':'Async hooks cannot block by design: decision, permissionDecision and continue are ignored because the action already ran.';}
+bR.onclick=()=>set(true);bP.onclick=()=>set(false);set(true);
+</script>
+</main></body></html>

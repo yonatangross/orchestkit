@@ -1,0 +1,330 @@
+<!doctype html>
+<!--
+  USER-STORY PLAYER · Homepage install + library motion
+  Archetype: user-story-player. Persona: cool-glass.
+  Conforms to shared/rules/playground-visual-standard.md
+  21st.dev radio cards (10156) + social selector (25137) + animated tabs (24930).
+-->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pick a host, the command rewrites</title>
+<meta name="description" content="Play the homepage install picker. Host cards keep ?host= links. The command panel blurs to the new payload. Library tabs slide. Hooks group by lifecycle, not a 32-button grid. Reduced-motion keeps every control usable.">
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(222 12% 64%);
+    --pg-faint: hsl(222 10% 46%);
+    --pg-line: hsl(0 0% 100% / 0.10);
+    --pg-glass: hsl(0 0% 100% / 0.05);
+    --pg-glass-2: hsl(0 0% 100% / 0.08);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+    --pg-accent: hsl(264 72% 62%);
+    --pg-accent-deep: hsl(264 70% 46%);
+    --pg-shadow: 0 20px 60px -22px hsl(264 60% 2% / 0.7), 0 4px 12px -6px hsl(264 60% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-instant: 100ms; --pg-dur-fast: 200ms; --pg-dur-normal: 300ms; --pg-dur-slow: 500ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: var(--pg-font); color: var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 86% -8%, hsl(264 72% 62% / 0.16), transparent 60%),
+      radial-gradient(820px 620px at 6% 110%, hsl(248 70% 58% / 0.13), transparent 58%),
+      var(--pg-bg);
+    background-attachment: fixed; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .head { display: flex; align-items: flex-start; gap: 16px; }
+  .logo { width: 48px; height: 48px; border-radius: 16px; flex: none; display: grid; place-items: center;
+    background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep));
+    box-shadow: 0 8px 24px -8px hsl(264 70% 50% / 0.7), inset 0 1px 0 hsl(0 0% 100% / 0.4); }
+  .logo svg { width: 22px; height: 22px; }
+  .head h1 { margin: 0; font-size: 20px; letter-spacing: -.3px; }
+  .head p { margin: 4px 0 0; font-size: 13px; color: var(--pg-muted); max-width: 64ch; line-height: 1.55; }
+  .head .right { margin-inline-start: auto; }
+  .toggle { cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: var(--pg-muted);
+    background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: 999px; padding: 8px 16px; }
+  .toggle:hover { color: var(--pg-ink); border-color: var(--pg-glass-edge); }
+  .toggle:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .toggle[aria-pressed="true"] { color: var(--pg-ink); border-color: hsl(264 72% 62% / 0.45); }
+  .panel { background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: var(--pg-r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--pg-shadow); }
+  .transport { display: flex; gap: 8px; align-items: center; padding: 12px 16px; flex-wrap: wrap; }
+  .btn { cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; border-radius: 12px; padding: 8px 16px;
+    border: 1px solid var(--pg-line); background: var(--pg-glass); color: var(--pg-ink);
+    transition: transform var(--pg-dur-instant), background var(--pg-dur-fast); }
+  .btn:hover { background: var(--pg-glass-2); transform: translateY(-1px); }
+  .btn:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .btn.primary { background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep)); border-color: transparent;
+    color: hsl(264 40% 96%); box-shadow: 0 10px 26px -12px hsl(264 70% 50% / 0.8); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .hint { font-size: 12px; color: var(--pg-faint); margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+  .hint b { color: var(--pg-muted); }
+  .stage { padding: 24px; display: flex; flex-direction: column; align-items: stretch; gap: 20px; }
+  .url { font-family: var(--pg-mono); font-size: 12px; color: var(--pg-muted); padding: 8px 12px;
+    border: 1px dashed var(--pg-line); border-radius: var(--pg-r-sm); }
+  .url em { color: var(--pg-accent); font-style: normal; }
+  .hosts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .host { cursor: pointer; text-align: start; font: inherit; color: inherit; background: var(--pg-glass);
+    border: 1px solid var(--pg-line); border-radius: var(--pg-r-md); padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    transition: border-color var(--pg-dur-fast), background var(--pg-dur-fast); }
+  .host-top { display: flex; align-items: center; gap: 8px; }
+  .host-ico { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--pg-line); display: grid; place-items: center; background: hsl(232 30% 9%); color: var(--pg-ink); }
+  .host-ico svg { width: 20px; height: 20px; display: block; }
+  .host:hover { border-color: var(--pg-glass-edge); }
+  .host:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .host[aria-current="true"] { border-color: hsl(264 72% 62% / 0.55); background: hsl(264 72% 62% / 0.12);
+    box-shadow: 0 0 0 2px hsl(264 72% 62% / 0.28); }
+  .host b { font-size: 13px; }
+  .host span { font-size: 11px; color: var(--pg-muted); line-height: 1.35; }
+  .cmd { font-family: var(--pg-mono); font-size: 12.5px; line-height: 1.5; padding: 12px 14px;
+    border: 1px solid var(--pg-line); border-radius: var(--pg-r-md); background: hsl(232 30% 9%);
+    transition: opacity var(--pg-dur-fast), filter var(--pg-dur-fast), transform var(--pg-dur-fast); }
+  .cmd.is-swap { opacity: 0; filter: blur(6px); transform: translateY(6px); }
+  .tabs { display: inline-flex; align-self: flex-start; width: max-content; max-width: 100%; gap: 4px; padding: 4px; border: 1px solid var(--pg-line); border-radius: 12px; position: relative; overflow: visible; }
+  .tab { cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--pg-muted);
+    background: transparent; border: 0; border-radius: 8px; padding: 8px 12px; position: relative; z-index: 1;
+    display: inline-flex; align-items: center; gap: 8px; }
+  .tab-ico { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center;
+    background: hsl(0 0% 100% / 0.06); border: 1px solid var(--pg-line); color: var(--pg-ink); }
+  .tab[aria-selected="true"] .tab-ico { background: hsl(264 72% 62% / 0.32); border-color: hsl(264 72% 62% / 0.45); color: hsl(264 80% 92%); }
+  .tab-ico svg { width: 14px; height: 14px; display: block; }
+  .tab:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .tab[aria-selected="true"] { color: var(--pg-ink); }
+  .tab-ink { position: absolute; top: 4px; bottom: 4px; left: 0; width: 80px; border-radius: 8px;
+    background: hsl(264 72% 62% / 0.22); transition: transform var(--pg-dur-normal) var(--pg-ease), width var(--pg-dur-normal) var(--pg-ease); pointer-events: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--pg-muted);
+    border: 1px solid var(--pg-line); border-radius: 999px; padding: 4px 8px; }
+  .chip svg { width: 12px; height: 12px; display: block; }
+  .panel-copy { font-size: 13px; color: var(--pg-muted); line-height: 1.5; min-height: 3.2em; }
+  .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .phase { border: 1px solid var(--pg-line); border-radius: var(--pg-r-md); padding: 10px 12px; }
+  .phase b { display: block; font-size: 12px; margin-bottom: 4px; }
+  .phase span { font-family: var(--pg-mono); font-size: 11px; color: var(--pg-muted); }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--pg-muted); }
+  .flow i { font-style: normal; padding: 4px 8px; border: 1px solid var(--pg-line); border-radius: 999px; color: var(--pg-ink); }
+  .chips[hidden], .phases[hidden], .flow[hidden] { display: none !important; }
+  .copy { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
+  .copy code { font-family: var(--pg-mono); font-size: 12px; color: var(--pg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .toast { font-size: 12px; color: var(--pg-accent); min-width: 4ch; }
+  @media (max-width: 720px) {
+    .hosts, .phases { grid-template-columns: 1fr 1fr; }
+    .hint { width: 100%; margin: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+  html.reduce *, html.reduce *::before, html.reduce *::after { transition: none !important; animation: none !important; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="head">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div>
+        <h1>Pick a host. The command rewrites.</h1>
+        <p>Context7-style cards, not a pill row that remounts the page. <code>?host=</code> stays shareable. Library tabs slide. Hooks group by when they fire.</p>
+      </div>
+      <div class="right">
+        <button class="toggle" type="button" id="reduce" aria-pressed="false">Reduced motion</button>
+      </div>
+    </header>
+
+    <section class="panel" aria-label="Playback">
+      <div class="transport">
+        <button class="btn primary" type="button" id="play">Play</button>
+        <button class="btn" type="button" id="prev">Prev</button>
+        <button class="btn" type="button" id="next">Next</button>
+        <p class="hint"><b id="beat-label">host cards</b></p>
+      </div>
+    </section>
+
+    <section class="panel stage" aria-live="polite">
+      <p class="url" id="url">orchestkit.yonyon.ai<em>/</em></p>
+      <div class="hosts" id="hosts"></div>
+      <pre class="cmd" id="cmd"></pre>
+      <div class="tabs" role="tablist" aria-label="Library primitives">
+        <span class="tab-ink" id="ink" aria-hidden="true"></span>
+        <button class="tab" type="button" role="tab" data-tab="skills" aria-selected="true">
+          <span class="tab-ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="3.5" width="8.5" height="10" rx="1.2" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 3.5V13.5M4.5 6.5h2M4.5 9h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 5.5h1.2c.7 0 1.3.6 1.3 1.3v6.2c0 .7-.6 1.3-1.3 1.3H7" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          Skills 107
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="agents" aria-selected="false">
+          <span class="tab-ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 13c.4-2.2 1.8-3.5 3.5-3.5S9.1 10.8 9.5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="11.2" cy="6.8" r="1.6" stroke="currentColor" stroke-width="1.5"/><path d="M13.8 13c-.3-1.6-1.3-2.6-2.6-2.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          Agents 36
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="hooks" aria-selected="false">
+          <span class="tab-ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9 2.5 4.5 9h3.2L7 13.5 12.5 7H9.2L9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+          Hooks 32
+        </button>
+      </div>
+      <div class="chips" id="chips">
+        <span class="chip"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 11.5 8 4.5l5 7M5.5 11.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Development</span>
+        <span class="chip"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><ellipse cx="8" cy="4.5" rx="5" ry="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 4.5v7c0 1.1 2.2 2 5 2s5-.9 5-2v-7" stroke="currentColor" stroke-width="1.5"/></svg>Backend</span>
+        <span class="chip"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 6.5h11M5 9h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Frontend</span>
+        <span class="chip"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5 13 5v3.2c0 3.1-2.1 5.2-5 6.3-2.9-1.1-5-3.2-5-6.3V5l5-2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Security</span>
+      </div>
+      <p class="panel-copy" id="lib"></p>
+      <div class="flow" id="flow" hidden>
+        <i>Session</i> → <i>Prompt</i> → <i>Tools</i> → <i>Files</i> / <i>Agents</i> / <i>Tasks</i> / <i>Model</i>
+      </div>
+      <div class="phases" id="phases" hidden></div>
+    </section>
+
+    <footer class="panel copy">
+      <button class="btn" type="button" id="copy">Copy prompt</button>
+      <code id="prompt">Build host cards that keep ?host= links, rewrite the install snippet without remounting, slide Skills/Agents/Hooks tabs, and group hooks by lifecycle.</code>
+      <span class="toast" id="toast" hidden>Copied</span>
+    </footer>
+  </div>
+<script>
+const ICO = {
+  claude: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z\"/></svg>",
+  cursor: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23\"/></svg>",
+  codex: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z\"/></svg>",
+  muse: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.652.57-1.257 1.29-1.82 2.05-.69-.875-1.335-1.547-1.958-2.056-1.182-.966-2.315-1.303-3.454-1.303zm10.16 2.053c1.147 0 2.188.758 2.992 1.999 1.132 1.748 1.647 4.195 1.647 6.4 0 1.548-.368 2.9-1.839 2.9-.58 0-1.027-.23-1.664-1.004-.496-.601-1.343-1.878-2.832-4.358l-.617-1.028a44.908 44.908 0 0 0-1.255-1.98c.07-.109.141-.224.211-.327 1.12-1.667 2.118-2.602 3.358-2.602zm-10.201.553c1.265 0 2.058.791 2.675 1.446.307.327.737.871 1.234 1.579l-1.02 1.566c-.757 1.163-1.882 3.017-2.837 4.338-1.191 1.649-1.81 1.817-2.486 1.817-.524 0-1.038-.237-1.383-.794-.263-.426-.464-1.13-.464-2.046 0-2.221.63-4.535 1.66-6.088.454-.687.964-1.226 1.533-1.533a2.264 2.264 0 0 1 1.088-.285z\"/></svg>",
+  pi: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 6.5h14\"/><path d=\"M9 6.5v11\"/><path d=\"M15 6.5v8.5a3 3 0 0 0 3 3\"/></svg>",
+  opencode: "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M7 10l3 2-3 2\"/><path d=\"M13 14h4\"/></svg>",
+};
+const HOSTS = [
+  { id: "claude", name: "Claude Code", what: "Full ork plugin.", href: "/", cmd: "claude plugin install yonatangross/orchestkit" },
+  { id: "cursor", name: "Cursor", what: "Same ork plugin. No Claude hooks.", href: "/?host=cursor", cmd: "yonatangross/orchestkit" },
+  { id: "codex", name: "Codex", what: "Portable ork-codex pack.", href: "/?host=codex", cmd: "codex plugin add ork-codex@orchestkit-codex" },
+  { id: "muse", name: "Muse Code", what: "Skills via .agents/skills.", href: "/?host=muse", cmd: "npx skills add yonatangross/orchestkit -s doctor" },
+  { id: "pi", name: "Pi", what: "Shipped pi manifest.", href: "/?host=pi", cmd: "pi install git:github.com/yonatangross/orchestkit" },
+  { id: "opencode", name: "OpenCode", what: "Agent Skills via skills.sh.", href: "/?host=opencode", cmd: "npx skills add yonatangross/orchestkit -s doctor" },
+];
+const TABS = {
+  skills: "Browse 107 skills. Category marks, no All/ork toggle. Search still ranks.",
+  agents: "36 agents. Same category marks. Search by name or role.",
+  hooks: "32 events in 7 phases. Compact flow, then the groups. Not a 32-button grid.",
+};
+const PHASES = [
+  ["Session", "start · cwd · setup · end"],
+  ["Prompt", "submit · expansion"],
+  ["Tools", "pre/post · permission"],
+  ["Files", "changed · directory · worktree"],
+  ["Agents", "subagent · teammate"],
+  ["Tasks", "created · completed"],
+  ["Model", "switch · compact · stop"],
+];
+const BEATS = [
+  { host: "claude", tab: "skills", label: "1 / 4 · host cards" },
+  { host: "cursor", tab: "skills", label: "2 / 4 · command rewrite" },
+  { host: "cursor", tab: "agents", label: "3 / 4 · library tabs" },
+  { host: "cursor", tab: "hooks", label: "4 / 4 · hooks as flow" },
+];
+
+const hostsEl = document.getElementById("hosts");
+const cmdEl = document.getElementById("cmd");
+const urlEl = document.getElementById("url");
+const libEl = document.getElementById("lib");
+const inkEl = document.getElementById("ink");
+const chipsEl = document.getElementById("chips");
+const flowEl = document.getElementById("flow");
+const phasesEl = document.getElementById("phases");
+const beatLabel = document.getElementById("beat-label");
+const reduceBtn = document.getElementById("reduce");
+let hostId = "claude";
+let tabId = "skills";
+let beat = 0;
+let timer = null;
+
+HOSTS.forEach((h) => {
+  const b = document.createElement("button");
+  b.className = "host";
+  b.type = "button";
+  b.dataset.host = h.id;
+  b.innerHTML = `<span class="host-top"><span class="host-ico">${ICO[h.id]}</span><b>${h.name}</b></span><span>${h.what}</span>`;
+  b.addEventListener("click", () => setHost(h.id));
+  hostsEl.appendChild(b);
+});
+PHASES.forEach(([name, bits]) => {
+  const d = document.createElement("div");
+  d.className = "phase";
+  d.innerHTML = `<b>${name}</b><span>${bits}</span>`;
+  phasesEl.appendChild(d);
+});
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => setTab(btn.dataset.tab));
+});
+
+function reduced() {
+  return document.documentElement.classList.contains("reduce") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function setHost(id, instant) {
+  hostId = id;
+  const spec = HOSTS.find((h) => h.id === id);
+  hostsEl.querySelectorAll(".host").forEach((el) => {
+    if (el.dataset.host === id) el.setAttribute("aria-current", "true");
+    else el.removeAttribute("aria-current");
+  });
+  urlEl.innerHTML = `orchestkit.yonyon.ai<em>${spec.href}</em>`;
+  const apply = () => { cmdEl.textContent = spec.cmd; cmdEl.classList.remove("is-swap"); };
+  if (instant || reduced()) { apply(); return; }
+  cmdEl.classList.add("is-swap");
+  setTimeout(apply, 180);
+}
+function setTab(id) {
+  tabId = id;
+  const tabs = [...document.querySelectorAll(".tab")];
+  const selected = tabs.find((el) => el.dataset.tab === id);
+  tabs.forEach((el) => {
+    el.setAttribute("aria-selected", el.dataset.tab === id ? "true" : "false");
+  });
+  if (selected) {
+    inkEl.style.width = `${selected.offsetWidth}px`;
+    inkEl.style.transform = `translateX(${selected.offsetLeft}px)`;
+  }
+  libEl.textContent = TABS[id];
+  const hooks = id === "hooks";
+  flowEl.hidden = !hooks;
+  phasesEl.hidden = !hooks;
+  chipsEl.hidden = id !== "skills";
+}
+function applyBeat(i) {
+  beat = i;
+  const b = BEATS[i];
+  beatLabel.textContent = b.label;
+  setHost(b.host, i === 0);
+  setTab(b.tab);
+  document.getElementById("prev").disabled = i === 0;
+  document.getElementById("next").disabled = i === BEATS.length - 1;
+}
+function play() {
+  if (timer) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Play"; return; }
+  applyBeat(0);
+  document.getElementById("play").textContent = "Pause";
+  timer = setInterval(() => {
+    if (beat >= BEATS.length - 1) { play(); return; }
+    applyBeat(beat + 1);
+  }, reduced() ? 900 : 1600);
+}
+
+document.getElementById("play").addEventListener("click", play);
+document.getElementById("prev").addEventListener("click", () => applyBeat(Math.max(0, beat - 1)));
+document.getElementById("next").addEventListener("click", () => applyBeat(Math.min(BEATS.length - 1, beat + 1)));
+reduceBtn.addEventListener("click", () => {
+  const on = document.documentElement.classList.toggle("reduce");
+  reduceBtn.setAttribute("aria-pressed", String(on));
+});
+document.getElementById("copy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+  const t = document.getElementById("toast");
+  t.hidden = false;
+  setTimeout(() => { t.hidden = true; }, 1600);
+});
+applyBeat(0);
+requestAnimationFrame(() => setTab(tabId));
+</script>
+</body>
+</html>

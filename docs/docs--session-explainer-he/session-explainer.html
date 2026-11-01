@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מה קרה בסשן הזה</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --fg:#e6edf3; --dim:#8b949e; --dim2:#6e7681;
+    --ok:#3fb950; --warn:#d29922; --bad:#f85149; --accent:#a371f7; --info:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:15px/1.75 -apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 6px;font-weight:700}
+  .sub{color:var(--dim);font-size:13.5px;margin-bottom:24px}
+  code,.ltr{
+    direction:ltr; unicode-bidi:isolate; display:inline-block;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:.88em;
+  }
+  code{background:#0b0f14;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:#b9c4d0}
+
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  button.f{
+    background:var(--panel);color:var(--dim);border:1px solid var(--line);
+    padding:7px 14px;border-radius:6px;cursor:pointer;font:inherit;font-size:13px;transition:.12s;
+  }
+  button.f:hover{border-color:var(--dim);color:var(--fg)}
+  button.f[aria-pressed="true"]{background:var(--accent);color:#0d1117;border-color:var(--accent);font-weight:600}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-right-width:3px;
+    border-radius:8px;padding:15px 17px;margin-bottom:12px;cursor:pointer;transition:.12s;
+  }
+  .card:hover{border-color:var(--dim);background:var(--panel2)}
+  .card[data-open="1"]{background:var(--panel2)}
+  .card.ok{border-right-color:var(--ok)}
+  .card.warn{border-right-color:var(--warn)}
+  .card.bad{border-right-color:var(--bad)}
+  .card.info{border-right-color:var(--info)}
+
+  .chd{display:flex;align-items:center;gap:10px}
+  .step{
+    font-size:12px;font-weight:700;color:var(--dim2);border:1px solid var(--line);
+    border-radius:4px;padding:1px 8px;flex:none;
+  }
+  .ttl{font-weight:600;font-size:15.5px;flex:1}
+  .badge{font-size:11.5px;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--dim);flex:none}
+  .badge.ok{color:var(--ok);border-color:#1c4429;background:#0f2417}
+  .badge.bad{color:var(--bad);border-color:#5a2321;background:#2d1513}
+  .badge.warn{color:var(--warn);border-color:#4a3a12;background:#241d0d}
+
+  .body{display:none;margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
+  .card[data-open="1"] .body{display:block}
+  .body p{margin:0 0 10px;color:#c9d1d9;font-size:14px}
+  .body p:last-child{margin-bottom:0}
+  .lbl{color:var(--dim2);font-size:11px;letter-spacing:.4px;margin:13px 0 6px;font-weight:600}
+
+  table{border-collapse:collapse;width:100%;margin:6px 0 2px;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:right}
+  th{background:#0b0f14;color:var(--dim);font-weight:600}
+  td.v{text-align:center;width:70px}
+
+  ul{margin:0;padding-right:20px;padding-left:0;font-size:14px;color:#c9d1d9}
+  li{margin-bottom:5px}
+
+  .note{
+    border:1px solid #4a3a12;background:#1a1509;border-radius:7px;
+    padding:13px 15px;font-size:13.5px;color:#e3d7b0;margin-top:22px;
+  }
+  .note b{color:#f0e2b6}
+  .foot{
+    margin-top:14px;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;padding:15px 17px;font-size:13.5px;
+  }
+  .foot h2{font-size:14.5px;margin:0 0 11px}
+  .kv{display:flex;gap:12px;margin-bottom:6px;align-items:baseline}
+  .kv .k{color:var(--dim);min-width:150px;flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>מה קרה בסשן הזה</h1>
+<div class="sub">
+  סשן של Claude Code על מאגר OrchestKit, בתאריך 3 באוגוסט 2026.
+  אפשר ללחוץ על כל כרטיס כדי לפתוח את הפרטים.
+</div>
+
+<div class="bar">
+  <button class="f" data-f="all" aria-pressed="true">הכל</button>
+  <button class="f" data-f="done">מה הושלם</button>
+  <button class="f" data-f="open">מה נשאר פתוח</button>
+  <button class="f" data-f="miss">טעויות שלי</button>
+</div>
+
+<div id="grid"></div>
+
+<div class="note">
+  <b>הערה על השפה.</b> קובץ ההנחיות של הפרויקט קובע שהתשובות תמיד באנגלית.
+  ביקשת במפורש הסבר בעברית, ולכן המסמך הזה בעברית בעוד שהתשובה בצ׳אט נשארה באנגלית.
+  העברית יושבת בתוך <code>dir="rtl"</code> תקני ולא בתוך מסגרות ASCII, כדי שהעתקה של הטקסט תישאר נקייה.
+</div>
+
+<div class="foot">
+  <h2>סיכום מספרי</h2>
+  <div class="kv"><span class="k">נמזגו</span><span><span class="ltr">#3248</span> · <span class="ltr">#3250</span> · <span class="ltr">#3264</span></span></div>
+  <div class="kv"><span class="k">נפתחו</span><span><span class="ltr">#3263</span> (באג) · <span class="ltr">#3251</span> (מעקב)</span></div>
+  <div class="kv"><span class="k">תגובות תודה</span><span>שלוש, לכל התורמים החיצוניים בהיסטוריה של המאגר</span></div>
+  <div class="kv"><span class="k">issues שתויגו</span><span>שמונה, כנקודת כניסה לתורמים חדשים</span></div>
+  <div class="kv"><span class="k">השערות שנבדקו</span><span>ארבע נפסלו, אחת שרדה</span></div>
+</div>
+
+</div>
+<script>
+const ITEMS = [
+ {
+  n:1, tag:"done", tone:"ok", badge:"נמזג", badgeTone:"ok",
+  title:"הגיע PR מאדם זר",
+  p:"פתחת את הסשן עם קישור ל-PR מספר 3248. מישהו מבחוץ, בשם latent-9, שלח תיקון של שורה אחת: קובץ מדיניות האבטחה הפנה לנתיב שלא קיים במאגר.",
+  detail:[
+    "לא הסתמכתי על תיאור ה-PR. בדקתי מול המאגר עצמו והתוצאה אישרה את הטענה במלואה.",
+    "התיקון קטן אבל המקום שלו חשוב: ההפניה השבורה ישבה בדיוק במשפט שאומר לאנשים מה לקרוא ראשון כשהם בודקים את האבטחה של הפלאגין."
+  ],
+  code:"scripts/hooks/         MISSING\nsrc/hooks/README.md    EXISTS\nstale refs remaining:  0"
+ },
+ {
+  n:2, tag:"done", tone:"warn", badge:"ממצא", badgeTone:"warn",
+  title:"הגילוי האמיתי: המאגר לא היה מזמין",
+  p:"בזמן הבדיקה ספרתי כמה תרומות חיצוניות היו למאגר אי פעם. שלוש בסך הכל. שתיים מהן מעולם לא קיבלו תשובה אנושית.",
+  detail:[
+    "התגובות היחידות בשני ה-PR הישנים היו הודעות אוטומטיות של בוט. אף אחד לא אמר תודה, לא דחה, פשוט שקט.",
+    "אחד מאותם אנשים מצא באג אמיתי: 34 מיומנויות שנפלו בשקט אצל כלי חיצוני בגלל תו אחד ב-YAML. ה-CI שלך לא חיפש את זה. הוא מצא, דיווח, תיקן, ולא שמע כלום בחזרה."
+  ],
+  code:"2026-07-13  thejesh23   silence: 3 weeks\n2026-07-29  chrstphe    silence: 4 days\n2026-08-02  latent-9    (this PR)"
+ },
+ {
+  n:3, tag:"done", tone:"ok", badge:"תוקן", badgeTone:"ok",
+  title:"התווית שנראתה מזמינה ולא הובילה לשום מקום",
+  p:"למאגר הייתה תווית בשם good first issue, כלומר משימה טובה למתחילים. אפס issues נשאו אותה. מבחוץ זה נראה כמו דלת כניסה, ובפועל לא היה מאחוריה כלום.",
+  detail:[
+    "תייגתי שמונה issues: חמישה כמתאימים למתחילים ושלושה כדורשים עזרה.",
+    "אימתתי כל אחד בנפרד ולא דרך החיפוש של GitHub. החיפוש דיווח שרק ארבעה מתוך שמונה נשמרו, וזה היה פיגור באינדקס. קריאה ישירה הראתה שכל השמונה נשמרו."
+  ]
+ },
+ {
+  n:4, tag:"done", tone:"ok", badge:"נמזג", badgeTone:"ok",
+  title:"המלכודת השקטה שכל תורם חיצוני נופל בה",
+  p:"כשמישהו מבחוץ שולח PR, כל הבדיקות נעצרות וממתינות לאישור ידני שלך. מבחינתו המסך אומר חסום, ונראה בדיוק כמו משהו שהוא שבר.",
+  detail:[
+    "כל שלושת התורמים נתקלו בזה, ושום דבר לא הסביר להם מה קורה.",
+    "הוספתי לקובץ ההנחיות לתורמים גם פסקה שמסבירה את ההמתנה הזו, וגם קטע קצר של מאיפה להתחיל. סך הכל 34 שורות."
+  ]
+ },
+ {
+  n:5, tag:"open", tone:"bad", badge:"פתוח", badgeTone:"bad",
+  title:"באג בכלי האימות של עצמך",
+  p:"הכלי /ork:verify, שתפקידו לוודא שעבודה באמת תקינה, נכשל שלוש פעמים בסשן הזה. הוא לא החזיר תשובה שגויה. הוא לא החזיר תשובה בכלל, והיה ממתין לנצח.",
+  detail:[
+    "שלוש משימות רקע, כל אחת בגודל אפס בתים, בלי שום תהליך חי. אחת מהן ישבה 36 דקות.",
+    "זו צורת הכשל היקרה ביותר, כי היא נראית כמו עבודה שמתקדמת."
+  ],
+  code:"08:41   0 bytes\n08:45   0 bytes\n08:48   0 bytes   (+36 min, still 0)"
+ },
+ {
+  n:6, tag:"open", tone:"info", badge:"נחקר", badgeTone:"warn",
+  title:"איך פסלתי ארבע השערות מתוך חמש",
+  p:"במקום לנחש ולתקן, מדדתי דבר אחד: npm תמיד מדפיס שורת פתיחה לפני שהוא מריץ משהו. מכאן, כל השערה שבה npm בכלל התחיל חייבת להשאיר לפחות בית אחד בקובץ. כל הקבצים היו ריקים.",
+  table:[
+    ["התנגשות בין סשנים מקבילים","נפסל"],
+    ["נתיב או תיקייה שגויים","נפסל"],
+    ["המתנה לאות שכבר קרה","הוסב לתוצאה, לא סיבה"],
+    ["התהליך נהרג ביציאה","נפסל"],
+    ["בקשת הרקע לא כובדה","שרד"]
+  ],
+  detail:[
+    "כדי לפסול את השערת הנתיב הרצתי בדיקה אמיתית בתוך סוכן משנה. התיקייה הייתה נכונה, npm נמצא, והוא סיים בהצלחה. זו פסילה על בסיס ראיה חיובית ולא על בסיס היסק.",
+    "מה ששרד: כשמבקשים הרצה ברקע מתוך סוכן משנה, הבקשה לא בהכרח מכובדת. הפקודה רצה באופן רגיל, הפלט חוזר פנימה, ונשאר קובץ ריק. הכלי ממתין לאות סיום של משימה שמעולם לא נוצרה.",
+    "חשוב לומר: זו ההשערה ששרדה בדרך של פסילת האחרות, וזה חלש יותר מהוכחה ישירה. לא תיקנתי כלום."
+  ]
+ },
+ {
+  n:7, tag:"open", tone:"warn", badge:"החלטה שלך", badgeTone:"warn",
+  title:"מה שנשאר על השולחן",
+  p:"שלושה דברים פתוחים, וכולם דורשים החלטה ולא עבודה.",
+  detail:[
+    "ברוכים הבאים אוטומטי לתורם חדש. זה סוגר שתי בעיות במכה אחת, כי אותה הודעה גם מסבירה את ההמתנה לאישור.",
+    "תור מיזוג לענף הראשי. זו הבעיה היקרה ביותר שאתה משלם עליה כל יום, אבל היא משנה הגדרות לכולם ומעלה עלויות CI, ולכן היא הצעה ולא PR.",
+    "אישור ה-CI לתורמים חיצוניים נשאר ידני בכל פעם. זו בחירה לגיטימית, אבל כרגע היא ברירת מחדל של GitHub ולא החלטה שקיבלת."
+  ]
+ },
+ {
+  n:8, tag:"miss", tone:"bad", badge:"טעות שלי", badgeTone:"bad",
+  title:"שלוש טעויות שעשיתי, ומה תיקנתי בעקבותיהן",
+  p:"עדיף שתדע עליהן ממני.",
+  detail:[
+    "אמרתי שה-CI ירוק לפני שהוא היה. שדה אחד ב-GitHub מדווח אפס משימות ממתינות בזמן שמשימות עדיין רצות. כתבתי את זה בתגובה לתורם חדש. זה הסתדר בסוף, אבל ההצהרה הקדימה את הראיה. תיעדתי את המלכודת.",
+    "חזרתי על כשל שהזיכרון שלי עצמו הזהיר מפניו. שער ה-playground בודק שם תיקייה לפי שם הענף, ולא רק את גוף ה-PR. הזיכרון תיאר את זה במדויק, אבל זכרתי אותו לפי שם הקובץ במקום לקרוא אותו. שיניתי את התיאור שלו כדי שזה לא יקרה שוב.",
+    "כתבתי פקודה שקראה את הפלט של עצמה בלולאה עד לפסק זמן."
+  ]
+ }
+];
+
+const grid = document.getElementById('grid');
+let filter = 'all';
+
+function render(){
+  const list = ITEMS.filter(i => filter === 'all' || i.tag === filter);
+  grid.innerHTML = list.map(i => `
+    <div class="card ${i.tone}" data-open="0">
+      <div class="chd">
+        <span class="step">${i.n}</span>
+        <span class="ttl">${i.title}</span>
+        <span class="badge ${i.badgeTone}">${i.badge}</span>
+      </div>
+      <div class="body">
+        <p>${i.p}</p>
+        ${i.code ? '<div class="lbl">ראיות</div><pre style="background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:0;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#b9c4d0">'+i.code+'</pre>' : ''}
+        ${i.table ? '<div class="lbl">השערות</div><table><tr><th>השערה</th><th class="v">תוצאה</th></tr>' +
+           i.table.map(r=>'<tr><td>'+r[0]+'</td><td class="v">'+r[1]+'</td></tr>').join('') + '</table>' : ''}
+        ${i.detail ? '<div class="lbl">פירוט</div><ul>' + i.detail.map(d=>'<li>'+d+'</li>').join('') + '</ul>' : ''}
+      </div>
+    </div>`).join('');
+
+  grid.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('click', e=>{
+      if (e.target.closest('pre') || e.target.closest('table')) return;
+      c.dataset.open = c.dataset.open === '1' ? '0' : '1';
+    });
+  });
+}
+
+document.querySelectorAll('button.f').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('button.f').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    filter = b.dataset.f;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

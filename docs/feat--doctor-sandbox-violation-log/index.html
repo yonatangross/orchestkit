@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Check 15b: Sandbox Violation Log</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --ok: #3fb950; --warn: #d29922; --fail: #f85149; --skip: #8b949e;
+    --mono: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.55 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem 4rem; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .4rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .8rem; border-bottom: 1px solid var(--border); padding-bottom: .4rem; }
+  p.lead { color: var(--muted); margin-bottom: 1.2rem; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
+  pre { background: #0a0d12; border: 1px solid var(--border); border-radius: 6px; padding: .8rem 1rem; overflow-x: auto; font-family: var(--mono); font-size: .82rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  code { font-family: var(--mono); font-size: .85em; background: #21262d; border-radius: 4px; padding: .1em .35em; }
+  pre code { background: none; padding: 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .tabs button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: .45rem 1rem; cursor: pointer; font-size: .88rem; }
+  .tabs button.active { border-color: var(--accent); color: var(--accent); }
+  .outcome { display: none; }
+  .outcome.active { display: block; }
+  .badge { display: inline-block; font-family: var(--mono); font-size: .75rem; border-radius: 4px; padding: .15em .55em; margin-right: .5rem; }
+  .b-ok   { background: rgba(63,185,80,.15);  color: var(--ok);   border: 1px solid var(--ok); }
+  .b-warn { background: rgba(210,153,34,.15); color: var(--warn); border: 1px solid var(--warn); }
+  .b-fail { background: rgba(248,81,73,.15);  color: var(--fail); border: 1px solid var(--fail); }
+  .b-skip { background: rgba(139,148,158,.15);color: var(--skip); border: 1px solid var(--skip); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-bottom: 1rem; }
+  th, td { text-align: left; padding: .5rem .7rem; border: 1px solid var(--border); }
+  th { background: var(--panel); }
+  .callout { border-left: 4px solid var(--fail); background: rgba(248,81,73,.08); padding: .8rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; }
+  .callout.info { border-left-color: var(--accent); background: rgba(88,166,255,.08); }
+  .muted { color: var(--muted); }
+  footer { margin-top: 3rem; color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Doctor Check 15b: Sandbox Violation Log</h1>
+  <p class="lead">macOS keeps a system-wide sandbox violation log in the unified log: every reporting
+  Seatbelt denial lands as a kernel message with sender <code>Sandbox</code>. Nothing in OrchestKit read
+  it before this check. Click an outcome to see the exact behavior, all four were exercised live on
+  Darwin 25.5.0 on 2026-08-21.</p>
+
+  <h2>The verified query</h2>
+  <div class="card">
+    <pre><code>/usr/bin/log show --last 15m --style compact --predicate 'sender == "Sandbox"'</code></pre>
+    <p class="muted">Bounded (window is validated as <code>N[smhd]</code>), read-only, no sudo. A real row it returned:</p>
+    <pre><code>kernel[0:2611b0f] (Sandbox) Sandbox: ecosystemd(2048) deny(1) file-read-data /Library/Preferences/com.apple.security.plist</code></pre>
+  </div>
+
+  <h2>The four outcomes</h2>
+  <div class="tabs" id="tabs">
+    <button data-t="ok" class="active">exit 0: clean</button>
+    <button data-t="viol">exit 1: violations</button>
+    <button data-t="unobs">exit 2: unobservable</button>
+    <button data-t="skip">exit 3: skipped</button>
+  </div>
+
+  <div class="outcome active" id="o-ok">
+    <div class="card">
+      <span class="badge b-ok">OK</span> Observed, zero reported deny events in the window.
+      <pre><code>Sandbox violations: OK: 0 reported deny events in the last 10m (process filter: bash|node|python|git)
+    Caveat: sandbox profiles can deny WITHOUT reporting (measured: a denied
+    write from inside CC's Bash sandbox left no unified-log row), so zero
+    reported events is not proof of zero denials.</code></pre>
+      <p class="muted">Even the clean path states the honest limit: zero reported is not zero denied.</p>
+    </div>
+  </div>
+
+  <div class="outcome" id="o-viol">
+    <div class="card">
+      <span class="badge b-warn">WARN</span> Observed, deny events found. Top offenders are grouped, never the raw firehose.
+      <pre><code>Sandbox violations: 14 reported deny event(s) in the last 10m
+    Top (count / process / operation):
+         6 ecosystemd file-read-data
+         4 ecosystemd mach-lookup
+         4 ecosystemanalyticsd mach-lookup
+    -> Inspect: /usr/bin/log show --last 10m --style compact --predicate 'sender == "Sandbox"'
+    -> System daemons (ecosystemd, analyticsd, ...) are normal background noise;
+       investigate rows naming your session's tools (bash, node, python, git).</code></pre>
+    </div>
+  </div>
+
+  <div class="outcome" id="o-unobs">
+    <div class="card">
+      <span class="badge b-fail">UNOBSERVABLE</span> The log CLI refuses sandboxed callers. Measured: exit 64,
+      <code>log: Cannot run while sandboxed</code>. The check FAILS CLOSED.
+      <pre><code>Sandbox violations: UNOBSERVABLE: the log query itself was denied (exit 64)
+    stderr: log: Cannot run while sandboxed
+    This is the expected result when doctor runs inside CC's Bash sandbox:
+    the log CLI refuses sandboxed callers. Re-run from an unsandboxed shell:
+    /usr/bin/log show --last 15m --style compact --predicate 'sender == "Sandbox"'
+    Do NOT read this as zero violations.</code></pre>
+      <div class="callout">
+        <strong>Why this branch is the whole point.</strong> A monitoring check whose instrument can be
+        silently denied must distinguish "looked and found nothing" from "could not look". Converting a
+        denied query into a zero would be the exact failure class this repo keeps re-finding: a broken
+        gate reporting safety. Exit 2, status <code>unobservable</code>, count <code>null</code>, never <code>0</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="outcome" id="o-skip">
+    <div class="card">
+      <span class="badge b-skip">SKIP</span> Non-macOS platforms get an explicit skip with a reason, never a silent pass.
+      <pre><code>Sandbox violations: SKIP: unified log is macOS-only (uname: Linux)
+    On Linux, sandbox denials surface via auditd/journald, not this check.</code></pre>
+    </div>
+  </div>
+
+  <h2>Contract</h2>
+  <table>
+    <tr><th>Exit</th><th>JSON status</th><th>count</th><th>Meaning</th></tr>
+    <tr><td>0</td><td><code>ok</code></td><td>0</td><td>Observed the log, no matching deny events</td></tr>
+    <tr><td>1</td><td><code>violations</code></td><td>N &gt; 0</td><td>Observed, deny events in window (warn)</td></tr>
+    <tr><td>2</td><td><code>unobservable</code></td><td><code>null</code></td><td>Log query denied or failed (fail closed)</td></tr>
+    <tr><td>3</td><td><code>skipped</code></td><td><code>null</code></td><td>Not macOS, explicit reason printed</td></tr>
+    <tr><td>4</td><td>n/a</td><td>n/a</td><td>Usage error (unbounded or malformed window, unknown flag)</td></tr>
+  </table>
+
+  <div class="callout info">
+    <strong>Honest limits stated in every output.</strong> (1) Reporting denials only: CC's own Bash
+    sandbox denied a probe write with EPERM and left no unified-log row, so absence of rows is not
+    proof of absence of denials. (2) System-wide log, session attribution is best-effort via
+    <code>--process</code>. (3) macOS only.
+  </div>
+
+  <h2>Where it lives</h2>
+  <div class="card">
+    <pre><code>src/skills/doctor/scripts/check-sandbox-violations.sh   # the check (shellcheck-clean)
+src/skills/doctor/references/sandbox-posture.md         # Check 15 lane, sub-check 15b section
+tests/skills/test-sandbox-violations-check.sh           # contract test, passes sandboxed AND unsandboxed</code></pre>
+  </div>
+
+  <footer>OrchestKit doctor, sandbox posture lane. Evidence gathered live 2026-08-21; every command shown was run and observed.</footer>
+</div>
+<script>
+  const tabs = document.getElementById('tabs');
+  const map = { ok: 'o-ok', viol: 'o-viol', unobs: 'o-unobs', skip: 'o-skip' };
+  tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    tabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.outcome').forEach(o => o.classList.remove('active'));
+    document.getElementById(map[btn.dataset.t]).classList.add('active');
+  });
+</script>
+</body>
+</html>

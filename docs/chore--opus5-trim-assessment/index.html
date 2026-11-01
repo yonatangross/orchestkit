@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit · Opus 5 Trim Assessment</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 84% 52%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-good: hsl(152 62% 52%);
+    --pg-bad: hsl(354 78% 62%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:48px 24px 96px;
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 92% 8%, hsl(268 80% 62% / .13), transparent 60%),
+      radial-gradient(700px 500px at 50% 105%, hsl(228 84% 60% / .10), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color:var(--pg-ink);
+    font:15px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Inter,sans-serif;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:34px;line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+  h2{font-size:21px;margin:48px 0 16px;letter-spacing:-.01em}
+  h3{font-size:15px;margin:24px 0 8px;color:var(--pg-muted);font-weight:600}
+  .sub{color:var(--pg-muted);margin:0 0 8px;font-size:15px}
+  .meta{color:var(--pg-faint);font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .card{
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-md); padding:24px;
+    backdrop-filter: blur(14px);
+    box-shadow:0 20px 60px -22px hsl(232 40% 2% / .7), 0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+  .card + .card{margin-top:16px}
+  .banner{
+    border-left:3px solid var(--pg-warm);
+    background:linear-gradient(90deg, hsl(38 95% 60% / .10), var(--pg-glass));
+  }
+  .banner.bad{border-left-color:var(--pg-bad);background:linear-gradient(90deg, hsl(354 78% 62% / .10), var(--pg-glass))}
+  .banner.good{border-left-color:var(--pg-good);background:linear-gradient(90deg, hsl(152 62% 52% / .10), var(--pg-glass))}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+  td.num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  code{background:hsl(0 0% 100% / .07);padding:1.5px 5px;border-radius:5px;font-size:12.5px}
+  pre{
+    background:hsl(232 30% 4% / .75); border:1px solid hsl(0 0% 100% / .10);
+    border-radius:var(--r-sm); padding:14px 16px; overflow-x:auto;
+    font-size:12.5px; line-height:1.55; margin:0;
+  }
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .stat{background:var(--pg-glass-2);border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:16px}
+  .stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--pg-faint)}
+  .stat .v{font-size:27px;font-weight:650;margin:6px 0 2px;font-family:ui-monospace,monospace;letter-spacing:-.02em}
+  .stat .d{font-size:12px;color:var(--pg-muted)}
+  .pill{display:inline-block;padding:2.5px 9px;border-radius:999px;font-size:11px;font-weight:650;letter-spacing:.03em}
+  .p-true{background:hsl(152 62% 52% / .18);color:hsl(152 62% 68%)}
+  .p-false{background:hsl(354 78% 62% / .18);color:hsl(354 78% 74%)}
+  .p-part{background:hsl(38 95% 60% / .18);color:hsl(38 95% 70%)}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:820px){.ba{grid-template-columns:1fr}}
+  .ba .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;font-weight:650}
+  .lab.b{color:hsl(354 78% 72%)} .lab.a{color:hsl(152 62% 64%)}
+  details{border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:14px 16px;background:var(--pg-glass);margin-top:12px}
+  details[open]{background:var(--pg-glass-2)}
+  summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--pg-accent)}
+  details[open] summary::before{content:"▾ "}
+  .mermaid{background:hsl(232 30% 4% / .55);border:1px solid hsl(0 0% 100% / .10);border-radius:var(--r-md);padding:20px;margin-top:12px;text-align:center;overflow-x:auto}
+  .mermaid svg{max-width:100%;height:auto}
+  ul{margin:8px 0;padding-left:20px} li{margin:5px 0}
+  .keep{border-left:2px solid var(--pg-good);padding-left:12px;margin:10px 0}
+  hr{border:0;border-top:1px solid hsl(0 0% 100% / .09);margin:48px 0}
+  .foot{color:var(--pg-faint);font-size:12px;margin-top:48px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="meta">ORCHESTKIT · v9.1.0 · 2026-07-26 · 15-agent adversarial audit · branch <code>chore/opus5-trim-assessment</code></p>
+  <h1>Delete your old rules?<br>Mostly no. Fix the five bugs hiding behind them.</h1>
+  <p class="sub">A verified assessment of whether OrchestKit's 114 skills, 36 agents and rule surface are Opus-5-era dead weight.</p>
+
+  <div class="card banner bad">
+    <h3 style="margin-top:0;color:hsl(354 78% 74%)">⚠️ The headline numbers I opened with were wrong. Corrected before anything else.</h3>
+    <table>
+      <tr><th>Claimed early in session</th><th>Verified reality</th><th>Error</th></tr>
+      <tr><td>121,718 B always-loaded skill frontmatter</td><td class="num">23,323 B</td><td class="num">5.2× over</td></tr>
+      <tr><td>~30,000 tokens per session index</td><td class="num">~5,830 tok</td><td class="num">5.1× over</td></tr>
+      <tr><td>116 skills</td><td class="num">114</td><td><code>shared/</code> + <code>CONTRIBUTING-SKILLS.md</code> are not skills</td></tr>
+      <tr><td>97 never invoked = dead weight</td><td class="num">9 true orphans</td><td>55 are <code>disable-model-invocation: true</code> <b>by design</b></td></tr>
+    </table>
+    <p class="sub" style="margin:14px 0 0;font-size:13.5px">I summed entire YAML blocks for all 116 directories, including the 55 skills deliberately hidden from the model index. The real index is <code>name</code> plus <code>description</code> for the 59 model-facing skills only. Re-measured independently, not taken from the audit.</p>
+  </div>
+
+  <h2>1 · The thesis, scored</h2>
+  <p class="sub">"Anthropic cut 80 percent of its own rules for Opus 5 and lost nothing. Yours are holding it back too."</p>
+
+  <div class="card">
+  <table>
+    <tr><th style="width:34%">Claim</th><th style="width:11%">Verdict</th><th>Evidence</th></tr>
+    <tr>
+      <td>The always-loaded index is a heavy tax</td>
+      <td><span class="pill p-false">FALSE</span></td>
+      <td>Real session tax is <b>9,977 tokens</b> total, of which the skill index is 5,867. That is not a problem worth a redesign.</td>
+    </tr>
+    <tr>
+      <td>97 unused skills are dead weight</td>
+      <td><span class="pill p-false">FALSE</span></td>
+      <td>55 are intentionally hidden (documented 2-tier design, <code>CONTRIBUTING-SKILLS.md:124</code>). 87 are statically wired via agent <code>skills:</code>. <b>9</b> are genuinely orphaned.</td>
+    </tr>
+    <tr>
+      <td>36 specialists lose to Explore because descriptions are vague</td>
+      <td><span class="pill p-false">FALSE</span></td>
+      <td>The repo already A/B tested description rewrites: <b>delta-0 routing gain</b> (<code>audit-activation/SKILL.md:92</code>). Descriptions sit at 249 of a hard 250 B CI cap.</td>
+    </tr>
+    <tr>
+      <td>Cut ~80 percent like Anthropic did</td>
+      <td><span class="pill p-part">20% TRUE</span></td>
+      <td>Defensible cut is <b>1,868 tok of 9,977 (19%)</b> per session and <b>529 KB of 9.99 MB (5.3%)</b> of source.</td>
+    </tr>
+    <tr>
+      <td>The scaffolding is actively harmful</td>
+      <td><span class="pill p-true">TRUE</span></td>
+      <td><b>5 shipped bugs</b> sat undetected inside 500-line ceremony files. This is the real finding.</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="card banner" style="margin-top:16px">
+    <b>The honest reframe.</b> This repo does not have a token problem. It has a <b>defect-concealment problem</b>. Nobody can read a 500-line procedure file, so five real defects lived inside them, including one that tells an Opus 5 user to downgrade. That is what "dead weight is harmful" actually means here, and it is a much better reason to cut than byte count.
+  </div>
+
+  <h2>2 · Where the tokens actually are</h2>
+  <div class="mermaid">
+flowchart LR
+  subgraph B["BEFORE &nbsp; 9,977 tok"]
+    B1["Skill index &nbsp; 59 skills<br/>5,867 tok"]
+    B2["Agent descriptions &nbsp; 36<br/>1,329 tok"]
+    B3["CLAUDE.md &nbsp; 1,156 tok"]
+    B4["MEMORY.md &nbsp; 950 tok"]
+    B5["path-less rules &nbsp; 675 tok"]
+  end
+  subgraph A["AFTER &nbsp; 8,109 tok"]
+    A1["Skill index &nbsp; 56 skills<br/>4,225 tok"]
+    A2["Agent descriptions &nbsp; 36<br/>1,329 tok"]
+    A3["CLAUDE.md &nbsp; 1,080 tok"]
+    A4["MEMORY.md &nbsp; 950 tok"]
+    A5["path-less rules &nbsp; 525 tok"]
+  end
+  B1 -->|"-1,642"| A1
+  B2 -->|"0 · refuted"| A2
+  B3 -->|"-76"| A3
+  B4 -->|"0"| A4
+  B5 -->|"-150"| A5
+  classDef cut fill:#2a1f3d,stroke:#7c6cf0,color:#e8e6f0
+  classDef same fill:#1c2333,stroke:#4a5568,color:#9aa5b8
+  class B1,B3,B5,A1,A3,A5 cut
+  class B2,B4,A2,A4 same
+  </div>
+  <p class="meta" style="margin-top:10px">Net: <b>-1,868 tokens (-19%)</b>. Agent descriptions do not move: they are 1 byte under a hard CI cap and the in-repo A/B shows rewriting them buys nothing.</p>
+
+  <h2>3 · The five shipped bugs <span class="pill p-true">ALL VERIFIED AT HEAD</span></h2>
+  <p class="sub">Each of these I confirmed myself against the files, not from the audit's report.</p>
+
+  <div class="card">
+  <table>
+    <tr><th style="width:4%">#</th><th style="width:30%">Defect</th><th style="width:26%">Location</th><th>Proof</th></tr>
+    <tr>
+      <td class="num">1</td>
+      <td><b>Tells an Opus 5 user to downgrade to Opus 4.8</b></td>
+      <td><code>doctor/SKILL.md:171,178-182</code></td>
+      <td>Ships literal text <code>Fix: Either switch to Opus 4.8 (claude --model opus-4-8) or lower effort to high</code>. This session is Opus 5 at <code>xhigh</code>. The check fires a false failure.</td>
+    </tr>
+    <tr>
+      <td class="num">2</td>
+      <td><code>--base dev</code> against a repo with no <code>dev</code> branch</td>
+      <td><code>create-pr/SKILL.md:213</code></td>
+      <td><code>git ls-remote --heads origin dev</code> returns <b>0 refs</b>. The command cannot succeed.</td>
+    </tr>
+    <tr>
+      <td class="num">3</td>
+      <td><code>/ork:help</code> greps a path installed users do not have, then silently falls back to a hardcoded 18-of-114 table</td>
+      <td><code>help/SKILL.md:55-66</code></td>
+      <td>Greps <code>src/skills</code>; marketplace installs only have <code>${CLAUDE_PLUGIN_ROOT}/skills</code>.</td>
+    </tr>
+    <tr>
+      <td class="num">4</td>
+      <td><code>cover</code> mandates a manual worktree workaround that its own cited doc marks superseded</td>
+      <td><code>cover/SKILL.md:263-290</code></td>
+      <td>Cited <code>manual-worktree-pattern.md:3</code> literally reads <code>⚠ SUPERSEDED</code>. Contradicts <code>implement:340-345</code>.</td>
+    </tr>
+    <tr>
+      <td class="num">5</td>
+      <td><b><code>TaskGet</code> instructed in 22 skills, permitted in 0</b></td>
+      <td>22 <code>SKILL.md</code> files</td>
+      <td><code>grep -rl TaskGet src/skills/*/SKILL.md</code> = <b>22</b>; <code>allowed-tools</code> containing it = <b>0</b>.</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="card banner bad" style="margin-top:16px">
+    <b>The generator of bug 5 is a missing assertion.</b> <code>tests/skills/audit-skill-permissions.sh:56</code> runs <code>grep -q "^allowed-tools:"</code>. It checks the key <i>exists</i>. It never checks the key <i>covers what the body calls</i>. That one gap also shipped a <code>commit</code> skill declaring <code>allowed-tools: [Bash]</code> while calling AskUserQuestion, Write and Read. Eleven tool names across ten skills, one missing test.
+  </div>
+
+  <h2>4 · The repo's own token gate is broken and red today</h2>
+  <div class="card">
+    <div class="grid g4">
+      <div class="stat"><div class="k">Gate counts</div><div class="v">35</div><div class="d"><code>user-invocable: true</code></div></div>
+      <div class="stat"><div class="k">Real model-facing</div><div class="v">59</div><div class="d"><code>dmi != true</code></div></div>
+      <div class="stat"><div class="k">Charged but free</div><div class="v">10</div><div class="d">slash-only, zero index cost</div></div>
+      <div class="stat"><div class="k">Costly but invisible</div><div class="v">34</div><div class="d">real index, never counted</div></div>
+    </div>
+    <p class="sub" style="margin-top:16px">
+      <code>tests/performance/test-token-overhead.sh:195</code> selects on <code>user-invocable: true</code> and multiplies by a flat <code>80</code> tokens (line 239). Both halves are wrong: wrong population, and an estimate instead of a measurement. The gate reports 6,235 against a 5,500 budget while the truth is ~9,977. <b>It is failing, and it is failing at the wrong number.</b>
+    </p>
+  </div>
+
+  <h2>5 · Before and after, verbatim</h2>
+  <p class="sub">Every BEFORE is copied from HEAD. Every AFTER preserves the non-derivable information and states what was deliberately kept.</p>
+
+  <div class="card">
+  <table>
+    <tr><th>#</th><th>Surface</th><th class="num">Before</th><th class="num">After</th><th class="num">Cut</th><th>Loaded</th></tr>
+    <tr><td class="num">1</td><td><code>CLAUDE.md:62-72</code> rule</td><td class="num">499</td><td class="num">375</td><td class="num">-24.8%</td><td>every session</td></tr>
+    <tr><td class="num">2</td><td><code>assess/SKILL.md:163-199</code></td><td class="num">1,813</td><td class="num">252</td><td class="num">-86.1%</td><td>on invoke (#1 skill)</td></tr>
+    <tr><td class="num">3</td><td><code>monitoring-engineer.md:60-87</code></td><td class="num">1,616</td><td class="num">348</td><td class="num">-78.5%</td><td>on spawn</td></tr>
+    <tr><td class="num">4</td><td><code>cover/SKILL.md:5</code> description</td><td class="num">596</td><td class="num">309</td><td class="num">-48.2%</td><td>every session</td></tr>
+    <tr><td class="num">5</td><td><code>doctor/SKILL.md:166-185</code></td><td class="num">1,112</td><td class="num">796</td><td class="num">-28.4%</td><td>on invoke</td></tr>
+  </table>
+  </div>
+
+  <details open>
+    <summary>Exhibit 1 · A ban rewritten as a judgement call <span class="meta">CLAUDE.md:62-72 · 499 → 375 chars</span></summary>
+    <div class="ba" style="margin-top:12px">
+      <div>
+        <div class="lab b">Before (verbatim)</div>
+<pre>## Critical Rules
+
+**DO**: Edit `src/`, run `npm run build`, commit to
+feature branches, use TaskCreate for 3+ step work.
+
+**DON'T**: Edit `plugins/`, commit to `main`/`dev`
+directly, skip security tests, bypass hooks with
+`--no-verify`, commit secrets.
+
+**Before committing**:
+1. `npm test` — all suites must pass
+2. `npm run test:security` — MUST pass (blocks push)
+3. `npm run typecheck` — if hooks were changed
+4. `git diff` — verify changes are real</pre>
+      </div>
+      <div>
+        <div class="lab a">After</div>
+<pre>## Before committing
+
+`npm test`, plus `npm run typecheck` if you touched
+`src/hooks/`. `main`/`dev` are protected, so work on
+a branch. `bin/git-hooks/pre-push:322` runs
+`tests/security/run-security-tests.sh` and rejects
+the push, so `--no-verify` only relocates the
+failure to CI. Nothing enforces TaskCreate any more;
+use it when the operator gains from watching
+progress.</pre>
+      </div>
+    </div>
+    <div class="keep">
+      <b>Gained information the ban never carried:</b> <i>why</i> <code>--no-verify</code> is futile, with the exact gate location. The old text asserted "MUST pass (blocks push)" without saying where the gate lives, so it was a prohibition with no content.
+    </div>
+    <p class="meta">Cut because already stated elsewhere: <code>Edit src/ / plugins/</code> is at <code>CLAUDE.md:36</code>, 26 lines earlier. <code>commit secrets</code> and <code>skip security tests</code> are enforced by gitleaks at <code>ci.yml:162</code>. <code>git diff to verify changes are real</code> is general practice with no repo-specific content.</p>
+  </details>
+
+  <details>
+    <summary>Exhibit 2 · Ceremony in the most-used skill <span class="meta">assess/SKILL.md · 64 invocations · 1,813 → 252 chars (-86%)</span></summary>
+    <div class="ba" style="margin-top:12px">
+      <div>
+        <div class="lab b">Before (verbatim, abridged)</div>
+<pre>## 🚨 Task Management (CC 2.1.16)
+
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Assess: {target}", ...)
+
+# 2. Create subtasks for each assessment phase
+TaskCreate(subject="Understand target...")  # id=2
+TaskCreate(subject="Discover scope...")     # id=3
+TaskCreate(subject="Rate quality...")       # id=4
+TaskCreate(subject="Analyze pros/cons")     # id=5
+TaskCreate(subject="Compare alternatives")  # id=6
+TaskCreate(subject="Generate suggestions")  # id=7
+TaskCreate(subject="Compile report")        # id=8
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+TaskUpdate(taskId="6", addBlockedBy=["4"])
+TaskUpdate(taskId="7", addBlockedBy=["5","6"])
+TaskUpdate(taskId="8", addBlockedBy=["7"])
+
+# 4. Verify unblocked
+task = TaskGet(taskId="2")
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")</pre>
+      </div>
+      <div>
+        <div class="lab a">After</div>
+<pre>## Task tracking
+
+Track the phases below as tasks. Phase 1 to 1.5 to 2
+is genuinely sequential (each consumes the previous
+phase's output), but Phases 3-7 all fan out from the
+Phase 2 scores, so do not chain those with
+`addBlockedBy` just to look tidy.</pre>
+      </div>
+    </div>
+    <div class="keep">
+      <b>Preserved:</b> the only non-derivable content in the block, its <b>dependency shape</b>. Tasks 5 and 6 both depend on 4, which is a fan-out, not a chain. The AFTER states that structure against the real phase headings so it cannot drift out of sync with renumbered task IDs.
+    </div>
+    <p class="meta">Note: this block also contains bug 5. It instructs <code>TaskGet</code>, which no skill is permitted to call.</p>
+  </details>
+
+  <details>
+    <summary>Exhibit 3 · An index description tightened without losing routing <span class="meta">cover/SKILL.md:5 · 596 → 309 chars (-48%)</span></summary>
+    <div class="ba" style="margin-top:12px">
+      <div>
+        <div class="lab b">Before (verbatim)</div>
+<pre>Generate tests that do not exist yet. Analyzes
+coverage gaps, then writes and runs new test files
+across three tiers (unit, integration against real
+services via testcontainers/docker-compose, and
+Playwright E2E), spawning one test-generator agent
+per tier and healing failures for up to 3
+iterations. Use when code has no tests, when raising
+coverage after implementation, or when building a
+suite from scratch. Chains naturally after
+/ork:implement. Do NOT use to grade or score tests
+that already exist (use /ork:verify), or to run a
+suite without writing anything new (use npm test
+directly).</pre>
+      </div>
+      <div>
+        <div class="lab a">After</div>
+<pre>Writes tests that do not exist yet: unit,
+integration against real services
+(testcontainers/docker-compose), and Playwright
+E2E, then runs them. Use when code has no tests or
+coverage needs raising. Do NOT use to grade tests
+that already exist (that is /ork:verify), or just to
+run a suite (that is npm test).</pre>
+      </div>
+    </div>
+    <div class="keep">
+      <b>All three boundary clauses survive.</b> <code>cover</code> and <code>verify</code> are a measured router collision (TF-IDF cosine 0.202, sharing <i>grade, unit, integration, e2e, coverage</i>). The two negative clauses are the <b>only</b> thing separating them, so they stay intact. This is the counter-intuitive result: negative clauses are ~23× the value per byte of "Use when" tails, so the trim should <b>expand</b> them and cut the positives.
+    </div>
+    <p class="meta">Cut: agent-spawn and retry internals cannot change which skill a router picks, and belong in the body that loads only on invoke. "When raising coverage after implementation" is a verb-conjugation of sentence one, adding lexical overlap without a distinguishing signal.</p>
+  </details>
+
+  <details>
+    <summary>Exhibit 4 · The downgrade bug, and why the category thesis failed <span class="meta">doctor/SKILL.md:166-185</span></summary>
+    <div style="margin-top:12px">
+      <div class="lab b">Before (verbatim)</div>
+<pre>### Category 14: Effort/Model Compatibility (CC 2.1.111+)
+
+CC 2.1.111 added `xhigh` effort (Opus 4.8; since CC 2.1.154 it defaults to `high`...).
+
+**Detection**:
+- If the active model does NOT support `xhigh` (i.e. not Opus 4.8), check whether...
+
+**Warning format**:
+WARNING: xhigh effort requires Opus 4.8.
+  Fix: Either switch to Opus 4.8 (`claude --model opus-4-8`) or lower effort to `high`.</pre>
+      <div class="lab a" style="margin-top:14px">After</div>
+<pre>### Category 14: Effort/Model Compatibility
+
+`xhigh` effort degrades to `high` on a model that does not implement it: no error,
+no log line, the skill just silently loses its extra deepening pass. That silence is
+the only reason this check has to exist.
+
+**Detection**: read `.claude/settings.json` -> `effort`, and `$ORCHESTKIT_EFFORT`.</pre>
+    </div>
+    <div class="keep">
+      <b>The fix is to test a capability, not a model name.</b> Pinning to a model generation guarantees re-rot at Opus 6. Note the audit flagged a trap here: do not route this through <code>models.vocab.json</code>, which has <b>no <code>xhigh</code> field at all</b>. That needs a schema addition first.
+    </div>
+    <div class="card banner" style="margin-top:14px">
+      <b>My own anachronism thesis was mostly wrong, and the data says so.</b> I expected pre-Opus-5 prompt-engineering residue. A tree-wide grep for <code>YOU MUST</code> returns <b>0 hits</b>. The 5 "step by step" hits are documentation <i>about</i> prompting, not instructions <i>to</i> the model. Emphasis density is 1.01 tokens per 10 KB, which is low. The real anachronism is not incantation, it is <b>model-generation pinning</b>: <b>79</b> <code>Opus 4.8</code> prose mentions, and <code>test-model-recency.sh</code> reports <b>0 superseded</b> because it only matches ID-shaped strings.
+    </div>
+  </details>
+
+  <h2>6 · Execution plan</h2>
+  <div class="mermaid">
+flowchart TD
+  W0["WAVE 0 &nbsp; Fix 5 shipped bugs<br/>~0 bytes, highest value"]
+  T1["Add the 2 missing gates<br/>tool-coverage + reachability"]
+  W1["WAVE 1 &nbsp; Zero-risk deletions<br/>9 orphans + boilerplate<br/>-322 KB"]
+  M["MEASURE<br/>re-baseline the token gate"]
+  W3["WAVE 3 &nbsp; Index rewrites<br/>-6,400 B, -1,600 tok"]
+  W2["WAVE 2 &nbsp; Merges LAST<br/>needs agent frontmatter surgery<br/>-505 KB"]
+  W4["WAVE 4 &nbsp; ban to judgement voice<br/>anytime"]
+  W0 --> T1 --> W1 --> M --> W3 --> W2
+  W4 -.-> M
+  classDef crit fill:#3d1f28,stroke:#e0475f,color:#f5e8ea
+  classDef safe fill:#1f3d2b,stroke:#3fbf7f,color:#e8f5ee
+  classDef care fill:#3d331f,stroke:#e0a23f,color:#f5f0e8
+  classDef gate fill:#2a1f3d,stroke:#7c6cf0,color:#e8e6f0
+  class W0 crit
+  class W1,W4 safe
+  class W2,W3 care
+  class T1,M gate
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <table>
+      <tr><th>Wave</th><th>Content</th><th class="num">Saving</th><th>Risk</th></tr>
+      <tr><td><b>0</b></td><td>The 5 shipped bugs</td><td class="num">~0 B</td><td><span class="pill p-true">ship first</span></td></tr>
+      <tr><td><b>1</b></td><td>9 true orphans (281 KB) · agent Task-Management tutorial, 31 of 34 byte-identical (11 KB) · CC-changelog archaeology below the 2.1.220 floor (12 KB)</td><td class="num">-322 KB</td><td>low, 2 orphans need a grep first</td></tr>
+      <tr><td><b>2</b></td><td><code>product-frameworks</code> (31 of 49 files byte-identical to its own split-outs) · 5 <code>testing-*</code> into one · <code>design-ship</code> into a flag</td><td class="num">-505 KB</td><td>medium, rewrite agent <code>skills:</code> in the same commit</td></tr>
+      <tr><td><b>3</b></td><td>8 longest index descriptions toward ~300 B · "Use when" tails across 54 skills</td><td class="num">-1,600 tok</td><td>medium, keep all 16 negative clauses</td></tr>
+      <tr><td><b>4</b></td><td>Ban-voice to judgement-voice in <code>CLAUDE.md</code></td><td class="num">-76 tok</td><td>low</td></tr>
+    </table>
+  </div>
+
+  <div class="card banner good" style="margin-top:16px">
+    <b>The repo already wrote this exact thesis, then exempted the file that loads every session.</b><br>
+    <code>CONTRIBUTING-SKILLS.md:529</code> reads: <i>"If you find yourself writing ALWAYS or NEVER in all caps, that's a yellow flag. Today's LLMs are smart… when given a clear explanation of why something matters, they go beyond rote instructions."</i> Meanwhile <code>CLAUDE.md</code> carries 5 caps-bans. Wave 4 is applying the repo's own published rule to itself.
+  </div>
+
+  <h2>7 · What must not be cut</h2>
+  <div class="card">
+    <div class="keep"><b>Agent frontmatter is enforcement, not information.</b> 33 of 36 declare agent-scoped <code>hooks:</code>, 8 declare <code>disallowedTools: [Write,Edit,MultiEdit]</code>, 29 scope <code>mcpServers</code>. <code>disallowedTools</code> on a reviewer is what makes the review honest. None of it is derivable.</div>
+    <div class="keep"><b>Agent <code>skills:</code> blocks.</b> All 36 declare them and 87 skills are reachable only through them. One audit dimension claimed "grep returns EMPTY, no agent declares any skill". <b>I verified: 36 of 36 declare it.</b> Acting on that fabricated finding would have deleted 30 wired skills.</div>
+    <div class="keep"><b>The 6 "never spawned" agents.</b> They are dispatched by name from skills. <code>design-import/SKILL.md:139</code> literally contains <code>subagent_type="ork:claude-design-orchestrator"</code>. Telemetry silence is not death.</div>
+    <div class="keep"><b>The 16 negative/redirect clauses in descriptions.</b> ~23× the value per byte of "Use when" text. These should be <b>expanded</b>, not trimmed.</div>
+    <div class="keep"><b>Quality Bar sections and <code>dream</code>/<code>quickviz</code>.</b> Written as checkable postconditions, and every guard names the incident that produced it. Use <code>dream</code>'s shape (algorithm, guard, incident) as the rewrite target for the bloated skills.</div>
+    <div class="keep"><b>Ban-voice that earns the ban.</b> <code>cc-native-first.md</code> documents a measured 60% error rate on the alternative. A ban backed by a real incident is informative: keep the ban, and make sure the incident is stated, because the incident <i>is</i> the information.</div>
+  </div>
+
+  <h2>8 · The highest-leverage work is two missing tests</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-top:0">1 · Assert <code>allowed-tools</code> covers what the body calls</h3>
+      <p class="sub" style="font-size:13.5px"><code>audit-skill-permissions.sh:56</code> checks only that the key exists. That gap shipped <code>TaskGet</code> in 22 files and a <code>commit</code> skill declaring <code>[Bash]</code> while calling three other tools. One assertion kills an 11-name, 10-file class permanently.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">2 · Add a reachability gate</h3>
+      <p class="sub" style="font-size:13.5px"><code>dmi:true + ui:false + zero inbound refs</code> = fail. This is the check that finds the 9 real orphans, and critically, the check whose <b>absence</b> let an auditor claim 39. Make <code>dmi:true + ui:false</code> legal only with a declared consumer.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">3 · Fix the token gate to measure the real index</h3>
+      <p class="sub" style="font-size:13.5px">Swap <code>user-invocable</code> for <code>dmi != true</code>, measure actual <code>name+description</code> bytes instead of <code>count × 80</code>, then re-baseline honestly. It is red today at the wrong number.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">4 · Teach <code>test-model-recency.sh</code> to read prose</h3>
+      <p class="sub" style="font-size:13.5px">It scans 1,698 files and reports <b>0 superseded</b> while 79 <code>Opus 4.8</code> prose mentions sit in the tree, including a <code>doctor</code> check that prescribes a downgrade. Without this, every Wave 3 fix re-rots at Opus 6.</p>
+    </div>
+  </div>
+
+  <div class="card banner" style="margin-top:16px">
+    <b>The unmeasured surface nobody is counting: per-turn hook output.</b> The <code>display-lint</code> hook fired on nearly every Bash call in the session that produced this document, at 200 to 434 chars each. Under the "rules that box you in" lens these are the strongest hobbling candidates in the repo: behavioural prohibitions, injected repeatedly, that <b>no static byte count sees</b>. Measure them from <code>~/.claude/analytics/hook-timing.jsonl</code> before optimising another byte of <code>CLAUDE.md</code>.
+  </div>
+
+  <h2>9 · How this was produced</h2>
+  <div class="mermaid">
+flowchart LR
+  E["Evidence pack<br/>telemetry + byte math<br/>gathered inline"]
+  subgraph AU["Audit &nbsp; 7 parallel dimensions"]
+    D1[rules]; D2[live-skills]; D3[agents]
+    D4[deadweight]; D5[index-tax]; D6[anachronism]; D7[overlap]
+  end
+  subgraph VE["Verify &nbsp; adversarial, default = auditor is wrong"]
+    V["8 refuters<br/>open the files<br/>re-check every quote"]
+  end
+  S["Synthesis<br/>drop everything refuted"]
+  H["Human re-verification<br/>of every load-bearing number"]
+  E --> AU --> VE --> S --> H
+  D4 -.->|"failed: no<br/>structured output"| S
+  classDef ok fill:#1f3d2b,stroke:#3fbf7f,color:#e8f5ee
+  classDef warn fill:#3d331f,stroke:#e0a23f,color:#f5f0e8
+  classDef gate fill:#2a1f3d,stroke:#7c6cf0,color:#e8e6f0
+  class E,S ok
+  class D4 warn
+  class VE,H gate
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="grid g4">
+      <div class="stat"><div class="k">Agents</div><div class="v">15</div><div class="d">7 audit · 8 verify</div></div>
+      <div class="stat"><div class="k">Raw findings</div><div class="v">87</div><div class="d">across 6 returned dims</div></div>
+      <div class="stat"><div class="k">Survived</div><div class="v">48</div><div class="d">55% upheld</div></div>
+      <div class="stat"><div class="k">Subagent tokens</div><div class="v">2.0M</div><div class="d">384 tool calls · 21.8 min</div></div>
+    </div>
+    <p class="sub" style="margin-top:16px">
+      <b>The adversarial pass paid for itself.</b> It killed a fabricated grep claiming 39 unreachable skills (would have deleted 30 wired ones), a recommendation to strip <code>state.json</code> pointers from 25 agents (the file exists and is schema-validated in CI), and a proposal to replace an inline 208 B protocol with a 2,238 B file read across 1,135 spawns, a 10× pessimisation sold as a saving.
+    </p>
+    <p class="sub" style="font-size:13px;color:var(--pg-faint)">
+      Known gaps, stated rather than hidden: the <code>deadweight</code> dimension failed to return structured output, so orphan classification came from the adjacent dimensions and my own greps. One byte claim in 87 findings (1.35 MB from pattern-library consolidation) could not be reproduced and is excluded from all totals above. Telemetry has a real April-to-June hole where the tracker hook was dead (#959), so "never invoked" was cross-checked against static wiring rather than trusted alone.
+    </p>
+  </div>
+
+  <p class="foot">
+    Generated 2026-07-26 · OrchestKit v9.1.0 · branch <code>chore/opus5-trim-assessment</code><br>
+    Full plan: <code>.audit/plan.md</code> · Full exhibits: <code>.audit/examples.md</code>
+  </p>
+
+</div>
+<script>
+  mermaid.initialize({startOnLoad:true, theme:'base', securityLevel:'loose',
+    flowchart:{ useMaxWidth:false, htmlLabels:true, nodeSpacing:44, rankSpacing:56, padding:16 },
+    themeVariables:{
+      fontFamily:'ui-sans-serif,-apple-system,Segoe UI,Inter,sans-serif', fontSize:'14px',
+      background:'transparent', primaryColor:'#1c2333', primaryTextColor:'#e8e6f0',
+      primaryBorderColor:'#4a5568', lineColor:'#7c6cf0', secondaryColor:'#2a1f3d',
+      tertiaryColor:'#1f3d2b', clusterBkg:'hsl(0 0% 100% / .03)', clusterBorder:'#4a5568'
+    }});
+</script>
+</body>
+</html>

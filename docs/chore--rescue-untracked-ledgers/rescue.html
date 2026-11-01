@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rescued: two untracked ledgers</title>
+<style>
+ :root{--ink:#1a1a1a;--muted:#6b6b6b;--line:#e2e2e2;--bg:#fbfbf9;--warn:#b45309}
+ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+ .wrap{max-width:760px;margin:0 auto;padding:48px 24px}
+ h1{font-size:28px;margin:0 0 6px} .lede{color:var(--muted);margin:0 0 32px}
+ h2{font-size:19px;margin:32px 0 8px}
+ table{border-collapse:collapse;width:100%;margin:12px 0}
+ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:15px}
+ th{color:var(--muted);font-weight:600}
+ .warn{border-left:3px solid var(--warn);padding:10px 14px;background:#fff8ed;margin:16px 0}
+ code{background:#f1f1ee;padding:1px 5px;border-radius:3px;font-size:14px}
+ footer{margin-top:40px;color:var(--muted);font-size:14px}
+</style></head><body><div class="wrap">
+<h1>Rescued: two untracked ledgers</h1>
+<p class="lede">Both files were untracked <em>and</em> not gitignored, which means one <code>git clean</code> would have deleted them with no warning.</p>
+<h2>What was at risk</h2>
+<table>
+<tr><th>File</th><th>Size</th><th>What it holds</th></tr>
+<tr><td><code>.claude/ORANK-EVIDENCE-2026-08-23.md</code></td><td>5.3 KB</td><td>orank report refutations probed against live prod, not inferred</td></tr>
+<tr><td><code>docs/conductor-ledger.md</code></td><td>41.6 KB</td><td>read-only repo-state triage ledger, 818 lines</td></tr>
+</table>
+<h2>Why this is a real hazard, not tidiness</h2>
+<div class="warn"><strong>Untracked and un-ignored is the worst of both.</strong> Git will not protect the file, and it will not warn you about it either. <code>git check-ignore</code> returned rc=1 for both, so neither was a deliberate exclusion. They simply were never added.</div>
+<h2>How they were checked before landing in a public repo</h2>
+<p>OrchestKit is public, so both were scanned before being committed: zero secret-shaped
+tokens, zero email addresses, zero client names. Content is engineering triage only.</p>
+<h2>The pattern worth reusing</h2>
+<p>The same hazard was fixed for two playground pages in #3703 hours earlier. Preserving a
+file needs no decision from anyone. Deleting one does. When work is unpushed or untracked,
+push or commit it first, then decide its fate with nothing at stake.</p>
+<footer>2026-08-24 · generated alongside the rescue commit</footer>
+</div></body></html>

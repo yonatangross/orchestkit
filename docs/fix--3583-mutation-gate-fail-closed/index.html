@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A security gate that measured nothing and said OK</title>
+<style>
+:root{color-scheme:dark light}
+body{margin:0;padding:2rem 1.25rem;font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+background:#0d1117;color:#c9d1d9;max-width:60rem;margin-inline:auto}
+h1{font-size:1.35rem;line-height:1.3;margin:0 0 .35rem}
+h2{font-size:1rem;margin:2rem 0 .6rem;color:#e6edf3;border-bottom:1px solid #21262d;padding-bottom:.3rem}
+.sub{color:#8b949e;margin:0 0 1.5rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0}
+th,td{border:1px solid #30363d;padding:.4rem .6rem;text-align:left}
+th{background:#161b22;color:#e6edf3}
+.bad{color:#f85149;font-weight:700}.good{color:#3fb950;font-weight:700}.warn{color:#d29922}
+code{background:#161b22;padding:.1rem .3rem;border-radius:3px}
+pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.8rem;overflow-x:auto}
+.note{border-left:3px solid #d29922;padding:.5rem .9rem;background:#161b22;margin:1rem 0}
+@media (prefers-color-scheme:light){body{background:#fff;color:#1f2328}
+th{background:#f6f8fa;color:#1f2328}pre,code,.note{background:#f6f8fa}}
+</style></head><body>
+<h1>A security gate that measured nothing and still said OK</h1>
+<p class="sub">tests/security/mutation-gate.sh, issue #3583</p>
+
+<h2>The paired probe</h2>
+<p>Same command, same tree, minutes apart. The only difference is the Claude Code
+Bash sandbox.</p>
+<table>
+<tr><th>mode</th><th>candidates</th><th>proven CAN FAIL</th><th>NOT provable</th><th>exit</th><th>verdict</th></tr>
+<tr><td>sandboxed (default)</td><td>13</td><td class="bad">0</td><td class="bad">0</td><td>0</td><td class="bad">OK</td></tr>
+<tr><td>sandbox disabled</td><td>13</td><td class="good">11</td><td>2</td><td>0</td><td class="good">OK</td></tr>
+</table>
+<p>Both print a green <code>OK</code>. The first measured nothing at all.</p>
+
+<h2>Why</h2>
+<pre>mutation-gate.sh:116   RESULT_DIR="$(mktemp -d -t ork-mutate-XXXXXX)"</pre>
+<p><code>mktemp -d -t PREFIX</code> resolves to the darwin per-user temp directory
+and ignores <code>$TMPDIR</code>. When that is denied, mkdtemp fails,
+<code>RESULT_DIR</code> becomes the empty string, every parallel worker writes its
+result to <code>/test-*.sh</code>, and the reduce loop over
+<code>ls "$RESULT_DIR"</code> reads nothing back. Zero proven and zero
+non-provable then compare clean against a baseline of 2 and the gate exits 0.</p>
+
+<div class="note"><strong>It also gives harmful advice.</strong> The vacuous run
+prints: <em>non-provable count fell to 0. Lower MUTATION_BASELINE to 0 to lock the
+gain in.</em> Following that would zero a security ratchet on the strength of a
+measurement that never happened, and the ratchet is monotonic.</div>
+
+<h2>The fix: fail closed, twice</h2>
+<table>
+<tr><th>guard</th><th>refuses when</th></tr>
+<tr><td>scratch dir</td><td>mktemp uses a TMPDIR-honouring template; refuse if the directory is missing or unwritable</td></tr>
+<tr><td>accounting</td><td>every candidate must produce exactly one result file; a missing file is an un-measured test, not a passing one</td></tr>
+</table>
+<p>Both follow the shape the script already used at line 101:
+<code>No test-*.sh files found ... refusing to report success</code>.
+<strong>MUTATION_BASELINE stays at 2.</strong> Raising it would suppress a correct
+signal, and the gate's complaint was true.</p>
+
+<h2>Evidence for this change</h2>
+<table>
+<tr><th>run</th><th>result</th><th>meaning</th></tr>
+<tr><td>patched, sandbox disabled</td><td class="good">10 proven, 2/2 baseline, exit 0</td><td>honest path unchanged, no regression</td></tr>
+<tr><td>patched, sandboxed</td><td class="warn">non-provable rose to 5, exit 1</td><td>now measures and reports honestly instead of passing blind</td></tr>
+<tr><td>patched, TMPDIR unwritable</td><td class="warn">named error, exit 1</td><td>early refusal with a diagnosis</td></tr>
+</table>
+<div class="note"><strong>An honest limit on the third row.</strong> The unpatched
+gate also exits 1 under an unwritable TMPDIR, for an unrelated reason: every test
+scores NO_ASSERTION. So that condition does not reproduce the fail-open. The real
+evidence is the sandboxed paired probe in the first table.</div>
+
+<h2>Blast radius</h2>
+<p>Same family as #3564 and the merged #3579, which gave every mktemp a template
+so it would honour TMPDIR. That sweep did not reach line 116. Until this lands,
+every green mutation-gate result obtained inside a CC sandbox is meaningless,
+including local pre-push runs.</p>
+</body></html>

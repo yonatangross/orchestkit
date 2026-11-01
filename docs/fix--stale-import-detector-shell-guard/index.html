@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>The guard that guarded the guard: a hook that never once found what it was built to find</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:940px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+.flow{display:grid;grid-template-columns:1fr;gap:6px;font:13px ui-monospace,Menlo,monospace}
+.step{border:1px solid var(--line);border-radius:6px;padding:8px 10px}.step.bad{border-color:var(--r)}.step.ok{border-color:var(--a)}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin:0 8px 8px 0}
+button.on{border-color:var(--a)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+.note{color:var(--mut);font-size:13px}.ok{color:var(--a)}.no{color:var(--r)}
+</style></head><body><main>
+<h1>The guard that guarded the guard</h1>
+<p class="lead"><code>posttool/write/stale-import-detector</code> runs after every Write and Edit and is named in this repo's own rules as the thing that catches a rename's stale importers. Measured on 2026-08-29 while wiring asyncRewake: it had never once found one. Type a pattern and watch the shell guard decide.</p>
+
+<h2>1. Why every call returned nothing</h2>
+<div class="card">
+ <label class="note">grep pattern the detector builds</label>
+ <p><input id="pat" style="width:100%;background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;font:13px ui-monospace,Menlo,monospace" value="(from|require\(|import\().*util/b"></p>
+ <div class="flow" id="flow"></div>
+ <p class="note"><code>SAFE_ARG_RE = /^[a-zA-Z0-9._/~=:@-]+$/</code> is the right guard for a path handed to a shell string. A regex is not a path: it needs <code>(</code>, <code>|</code>, <code>\</code>, <code>*</code>. The assertion threw on every call, the <code>catch</code> returned <code>[]</code>, and the hook answered <code>{"continue":true,"suppressOutput":true}</code> for every Write since the guard was added.</p>
+</div>
+
+<h2>2. Why the tests were green</h2>
+<p>The unit test mocks <code>child_process</code>, so grep never runs and the assertion in front of it is never exercised with the real pattern. The mock returns the references the test wants; the block path is proven against a shell that does not exist. A second, quieter defect hid behind the first: CC hands hooks <code>CLAUDE_PROJECT_DIR</code> as a realpath (<code>/private/var/...</code> on macOS) while <code>tool_input.file_path</code> keeps the caller's spelling (<code>/var/...</code>), so the same-subtree check compared two spellings of one directory.</p>
+
+<h2>3. The fix, and the test that would have failed on day one</h2>
+<table><thead><tr><th>piece</th><th>before</th><th>after</th></tr></thead><tbody>
+<tr><td>grep call</td><td>one shell string, regex through <code>assertSafeShellArg</code></td><td><code>execFileSync('grep', [args])</code>: an argument vector, no shell, the pattern is data</td></tr>
+<tr><td>paths</td><td>project dir from env, file from the tool input, as given</td><td>both through <code>realpathSync</code> when they exist</td></tr>
+<tr><td>tests</td><td>one file, shell mocked</td><td>plus <code>stale-import-detector.real-grep.test.ts</code>: real grep on a temp fixture with three same-subtree importers must block; one importer must stay silent</td></tr>
+<tr><td>through CC</td><td>hook fires, 2 ms, silent</td><td>with #3800's asyncRewake wiring: the block reaches the next request as a system reminder</td></tr>
+</tbody></table>
+<p class="note">Class: a fix present and never reached, and a test that measures a mock. The verdict a rewake can carry is only as good as the verifier that establishes it; this one established none.</p>
+<script>
+const RE=/^[a-zA-Z0-9._\/~=:@-]+$/;
+function u(){const p=document.getElementById('pat').value;const ok=RE.test(p);const bad=[...new Set(p.split('').filter(c=>!/[a-zA-Z0-9._\/~=:@-]/.test(c)))];
+document.getElementById('flow').innerHTML=[
+ `<div class="step">1. findStaleReferences() builds the pattern: <b>${p.replace(/</g,'&lt;')}</b></div>`,
+ `<div class="step ${ok?'ok':'bad'}">2. assertSafeShellArg(pattern): ${ok?'passes':'throws "Unsafe shell grep pattern" on '+bad.map(c=>'<code>'+c.replace(/</g,'&lt;')+'</code>').join(' ')}</div>`,
+ `<div class="step ${ok?'ok':'bad'}">3. ${ok?'grep runs':'catch {} returns [] before grep ever runs'}</div>`,
+ `<div class="step ${ok?'ok':'bad'}">4. hook answers: ${ok?'refs found, block or advisory as designed':'{"continue":true,"suppressOutput":true} (silent success)'}</div>`].join('');}
+document.getElementById('pat').oninput=u;u();
+</script>
+</main></body></html>

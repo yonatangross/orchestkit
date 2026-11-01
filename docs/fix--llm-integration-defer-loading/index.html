@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>llm-integration SKILL.md: fix the defer_loading-alone advice</title><meta name="description" content="Follow-up to ork#4495: SKILL.md:98 repeated the same defer_loading-without-search-tool mistake the checklist already fixed.">
+<style>
+:root{--bg:#faf9f6;--ink:#1d1d1b;--mut:#6b6a64;--line:#e3e1da;--panel:#fff;--add:#e6f6e6;--del:#fbe9e9;--addi:#0a6b0a;--deli:#a32020}
+@media(prefers-color-scheme:dark){:root{--bg:#161615;--ink:#ecebe6;--mut:#9a998f;--line:#33332f;--panel:#1f1f1d;--add:#12301a;--del:#3a1616;--addi:#8fe08f;--deli:#f0a0a0}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,system-ui,sans-serif;max-width:1100px;margin:0 auto;padding:24px}
+h1{font-size:24px}.lede{color:var(--mut)}
+.c{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:8px 0;padding:8px 12px}.c summary{cursor:pointer}.k{color:var(--mut);font-size:12px}
+code{font:12px ui-monospace,Menlo,monospace}.diff{font:12px/1.45 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:8px;overflow:auto;margin-top:8px}
+.diff div{white-space:pre-wrap;padding:2px 10px}.a{background:var(--add);color:var(--addi)}.d{background:var(--del);color:var(--deli)}.h{color:var(--mut)}
+.note{border:1px dashed var(--line);border-radius:10px;background:var(--panel);margin:8px 0;padding:10px 12px}
+</style></head><body>
+<h1>llm-integration SKILL.md: fix the defer_loading-alone advice</h1><p class="lede">Follows up on <a href="https://github.com/yonatangross/orchestkit/pull/4495">ork#4495</a> per reviewer-estate-11: that PR fixed the tool-checklist's defer_loading guidance, but the same skill's own SKILL.md still repeated the pre-existing mistake it contradicted, plus the "5-15 tools per request" line the checklist already dropped.</p>
+<div class="note">Verified again against <code>platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool</code>: "Never set defer_loading: true on the tool search tool itself" and "At least one tool must have defer_loading=false. All tools cannot be deferred." A defer_loading-only tool set with no search tool leaves those tools unreachable.</div>
+
+<details class="c" open><summary><code>src/skills/llm-integration/SKILL.md</code> <span class="k">Function Calling section</span></summary><div class="diff"><div class="d">- ... add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5) or `defer_loading` instead of swapping subsets (...). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Limit to 5-15 tools per request (use `defer_loading` beyond that on Claude). Validate all inputs with Pydantic/Zod, and return errors as tool results.</div><div class="a">+ ... add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5) instead of swapping subsets (...). For large tool sets, use a non-deferred tool search tool with `defer_loading: true` on the rest, never `defer_loading` alone (a request cannot have every tool deferred). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Validate all inputs with Pydantic/Zod, and return errors as tool results.</div></div></details>
+
+<p class="lede">Scope: one paragraph in <code>src/skills/llm-integration/SKILL.md</code> and its two generated mirrors (<code>plugins/ork/skills/llm-integration/SKILL.md</code>, <code>docs/site/content/docs/reference/skills/llm-integration.mdx</code>). The checklist file itself (already fixed on the still-open ork#4495) is untouched here to avoid a duplicate diff when that PR lands.</p>
+</body></html>

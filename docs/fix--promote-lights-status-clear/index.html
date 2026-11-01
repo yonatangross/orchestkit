@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>promote-lights: a failed status clear keeps the lights | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  pre { background: #272822; color: #f8f8f2; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; font-size: 14px; }
+  .bad { color: #f92672; }
+  .ok { color: #a6e22e; }
+  label { display: inline-flex; gap: 6px; margin-right: 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
+<h1>A failed status clear keeps the lights</h1>
+<p>Each tick of promote-lights stores the CI lights, then clears the status line so the state is drawn only once, in the band. In 0.0.9 that clear ran inside the tick's try block. If Claude Code rejected it, the catch stored an error over the snapshot it had just saved, and the band showed the error instead of the lights. Now the clear is best effort, like the existing startup warning: a rejected clear leaves the lights in place.</p>
+<p>
+  <label><input type="radio" name="v" value="before"> Before (0.0.9)</label>
+  <label><input type="radio" name="v" value="after" checked> After (0.0.10)</label>
+</p>
+<pre id="before" hidden><span class="bad">lights: Error: status refused</span></pre>
+<pre id="after"><span class="ok">🚦 yonatangross/orchestkit#4165  abc1234  CLEAN   12 🟢  0 🟡  0 🔴</span></pre>
+<p>A new test makes <code>$.ui.status</code> reject and checks that the last stored entry still has lights and that no error was stored. It fails on 0.0.9 and passes on 0.0.10.</p>
+<script>
+  for (const r of document.querySelectorAll('input[name=v]')) {
+    r.addEventListener('change', () => {
+      document.getElementById('before').hidden = r.value !== 'before' || !r.checked;
+      document.getElementById('after').hidden = r.value !== 'after' || !r.checked;
+    });
+  }
+</script>
+</body>
+</html>

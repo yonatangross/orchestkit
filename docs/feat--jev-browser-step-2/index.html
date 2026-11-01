@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jev act mode: the pick that drives the step</title>
+<style>
+  :root{--bg:#0f1216;--panel:#161b22;--line:#2a313b;--ink:#e6e9ee;--muted:#9aa4b2;--red:#ef5350;--yel:#f2c14e;--grn:#4caf82;--acc:#8ab4f8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 16px 64px}
+  h1{font-size:1.8rem;margin:0 0 8px}
+  .lede{color:var(--muted);max-width:66ch;margin:0 0 20px}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px}
+  .kpi div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .kpi b{display:block;font:700 1.6rem/1.1 ui-monospace,Menlo,monospace}
+  .kpi span{color:var(--muted);font-size:.85rem}
+  .beat{margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}
+  .beat h2{font-size:1.25rem;margin:0 0 6px}
+  .beat p{max-width:70ch;margin:0 0 12px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .box h3{margin:0 0 8px;font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  code{font:.9em ui-monospace,Menlo,monospace;background:#1d232c;padding:1px 5px;border-radius:4px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modeseg{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+  .modeseg button{padding:7px 16px;border-radius:999px;border:1px solid var(--line);background:#1b2129;color:var(--muted);font:.85rem ui-monospace,Menlo,monospace;cursor:pointer}
+  .modeseg button.on{background:#1f4d36;color:#8ad0a8;border-color:#1f4d36}
+  select{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#0b0e12;color:var(--ink);font:.9rem ui-monospace,Menlo,monospace}
+  .off{color:var(--muted);font:.95rem/1.5 ui-monospace,Menlo,monospace;border:1px dashed var(--line);border-radius:10px;padding:14px}
+  .pick{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#1b2129}
+  .pick b{font:700 1.05rem ui-monospace,Menlo,monospace;color:var(--acc)}
+  .pick.jev b{color:var(--yel)}
+  .pick.run{border-color:#1f4d36}
+  .pick.run b{color:var(--grn)}
+  .pick span{display:block;color:var(--muted);font-size:.8rem;margin-bottom:4px}
+  .chip{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;font:700 .85rem ui-monospace,Menlo,monospace}
+  .chip.jev{background:#1f4d36;color:#8ad0a8}
+  .chip.fb{background:#5a2320;color:#ef8a87}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 52px;gap:8px;align-items:center;font:.8rem ui-monospace,Menlo,monospace;margin:3px 0}
+  .bar-row .lab{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-row .lab.sel{color:var(--yel);font-weight:700}
+  .bar{height:10px;background:#1b2129;border-radius:5px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--acc)}
+  .bar-row.sel .bar i{background:var(--yel)}
+  .bar-row .pct{text-align:right;color:var(--muted)}
+  .wire{background:#0b0e12;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:.78rem/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#8ad0a8}
+  ul.tight{margin:8px 0;padding-left:20px;color:var(--muted)}
+  ul.tight li{margin:3px 0}
+  footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+  @media (max-width:640px){.kpi{grid-template-columns:1fr 1fr}.pair{grid-template-columns:1fr}.bar-row{grid-template-columns:110px 1fr 46px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Jev act mode: the pick that drives the step</h1>
+  <p class="lede">The Jev step judge now has three modes. Off stays off. Shadow logs a second opinion and never drives. Act lets the Jev pick drive the step, and every failure path falls back to the agent's own pick. The fallback is fail-closed: a dead Jev lane degrades to exactly today's behaviour.</p>
+
+  <div class="kpi">
+    <div><b>3</b><span>modes: off, shadow, act</span></div>
+    <div><b>7</b><span>fallback reasons to the incumbent</span></div>
+    <div><b>0.5</b><span>confidence floor, from config</span></div>
+    <div><b>1</b><span>JEV_RUN summary line per run</span></div>
+  </div>
+
+  <section class="beat">
+    <h2>Try it: three modes, one record</h2>
+    <p>Select a mode and a scenario. In act mode the green card is the action the browser actually runs: the Jev pick when the answer is healthy, the incumbent on any fallback.</p>
+    <div class="modeseg">
+      <button data-mode="off">ORK_EXPECT_JEV unset</button>
+      <button data-mode="shadow">=shadow</button>
+      <button data-mode="act" class="on">=act</button>
+      <select id="scenario">
+        <option value="disagree">scenario: Jev picks a different element</option>
+        <option value="agree">scenario: Jev agrees with the model</option>
+        <option value="lowconf">scenario: confidence below the floor</option>
+        <option value="http">scenario: endpoint returns 500</option>
+      </select>
+    </div>
+    <div id="offPanel" class="off" style="display:none">flag off -&gt; jev-shadow.sh exits before python or the network. no request, no JEV_SHADOW line, the model action is the only action.</div>
+    <div id="onPanel">
+      <div class="pair" style="margin-bottom:12px">
+        <div class="pick"><span>model pick (incumbent)</span><b>click @e3</b></div>
+        <div class="pick jev"><span>jev pick</span><b id="jevPick"></b></div>
+      </div>
+      <div id="runBox" style="display:none" class="pair">
+        <div class="pick run"><span>executed_action (what the browser runs)</span><b id="runPick"></b></div>
+        <div><span id="pathChip" class="chip"></span> <span id="conf" style="color:var(--muted);font:.85rem ui-monospace,Menlo,monospace"></span></div>
+      </div>
+      <div class="pair" style="margin-top:12px">
+        <div class="box"><h3>choice probabilities</h3><div id="probs"></div></div>
+        <div class="box"><h3>fallback reasons (all -&gt; incumbent)</h3>
+          <ul class="tight" style="margin-top:6px">
+            <li><code>fallback:no_api_key</code> missing ORK_TYPESAFE_API_KEY</li>
+            <li><code>fallback:unreachable_or_timeout</code> dead endpoint or over the 400 ms budget</li>
+            <li><code>fallback:http_500</code> any HTTP error</li>
+            <li><code>fallback:empty_answer</code> empty answers object</li>
+            <li><code>fallback:malformed_answer</code> pick outside the legal set</li>
+            <li><code>fallback:low_confidence</code> confidence under act_confidence_floor</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:14px;color:var(--muted)">Record emitted to the report stream:</p>
+      <div class="wire" id="wire"></div>
+    </div>
+  </section>
+
+  <section class="beat">
+    <h2>The run summary</h2>
+    <p>At the end of a run, report.sh prints one line and folds the same totals into the JSON report:</p>
+    <div class="wire">JEV_RUN|steps=8|picks=6|fallbacks=2|agree_rate=75.0%</div>
+  </section>
+
+  <section class="beat">
+    <h2>What leaves is unchanged</h2>
+    <p>Act mode sends the same bounded payload as shadow: the step goal, the last verify result, and up to 60 elements as ref / role / accessible-name triples, JSON-escape-decoded and secret-redacted first. No page text beyond names, no cookies, no tokens, no URLs, no full command lines.</p>
+  </section>
+
+  <footer>Modes resolve in scripts/jev-shadow.sh and jev_shadow.py: ORK_EXPECT_JEV=1|act drives, =shadow logs, unset or falsey is off; a truthy ORK_EXPECT_JEV_SHADOW still selects shadow. Covered by tests/unit/test-expect-jev-shadow.sh.</footer>
+</div>
+<script>
+const SCENARIOS = {
+  agree:    {jev:"click:@e3", conf:0.88, lat:87,  probs:{"click:@e1":0.01,"click:@e2":0.01,"fill:@e4":0.02,"fill:@e5":0.01,"click:@e6":0.01,"click:@e3":0.9,"click:@e7":0.02,"click:@e8":0.005,"done":0.01,"wait":0.003,"scroll":0.001,"press_enter":0.001}, nouls:{goal_reached:0.08,page_changed_as_expected:0.93,blocked:0.04}, err:null},
+  disagree: {jev:"click:@e7", conf:0.66, lat:93,  probs:{"click:@e1":0.01,"click:@e2":0.01,"fill:@e4":0.02,"fill:@e5":0.01,"click:@e6":0.01,"click:@e3":0.2,"click:@e7":0.7,"click:@e8":0.01,"done":0.01,"wait":0.01,"scroll":0.01,"press_enter":0.005}, nouls:{goal_reached:0.1,page_changed_as_expected:0.55,blocked:0.8}, err:null},
+  lowconf:  {jev:"click:@e3", conf:0.3,  lat:91,  probs:{"click:@e1":0.02,"click:@e2":0.02,"fill:@e4":0.05,"fill:@e5":0.05,"click:@e6":0.02,"click:@e3":0.3,"click:@e7":0.25,"click:@e8":0.02,"done":0.1,"wait":0.1,"scroll":0.05,"press_enter":0.02}, nouls:{goal_reached:0.2,page_changed_as_expected:0.6,blocked:0.3}, err:null},
+  http:     {jev:null,        conf:null, lat:412, probs:{}, nouls:{goal_reached:null,page_changed_as_expected:null,blocked:null}, err:"http 500"}
+};
+const FLOOR = 0.5, BUDGET = 400, MODEL_KEY = "click:@e3";
+const $ = id => document.getElementById(id);
+let mode = "act";
+function render() {
+  const s = SCENARIOS[$("scenario").value];
+  $("offPanel").style.display = mode === "off" ? "" : "none";
+  $("onPanel").style.display = mode === "off" ? "none" : "";
+  if (mode === "off") return;
+  const healthy = s.jev !== null;
+  const belowFloor = healthy && s.conf < FLOOR;
+  const path = !healthy ? "fallback:" + s.err.replace(" ", "_")
+              : belowFloor ? "fallback:low_confidence" : "jev";
+  const executed = mode === "act" ? (path === "jev" ? s.jev : MODEL_KEY) : null;
+  $("jevPick").textContent = healthy ? s.jev : "(no answer)";
+  $("runBox").style.display = mode === "act" ? "" : "none";
+  if (mode === "act") {
+    $("runPick").textContent = executed;
+    const chip = $("pathChip");
+    chip.textContent = path === "jev" ? "path = jev" : "path = " + path;
+    chip.className = "chip " + (path === "jev" ? "jev" : "fb");
+    $("conf").textContent = healthy
+      ? "confidence " + s.conf + " | latency " + s.lat + " ms / " + BUDGET + " ms"
+      : "error: " + s.err + " | latency " + s.lat + " ms";
+  }
+  const order = Object.keys(s.probs).sort((a,b) => s.probs[b] - s.probs[a]);
+  $("probs").innerHTML = order.length ? order.map(k => {
+    const p = s.probs[k], sel = k === s.jev;
+    return '<div class="bar-row' + (sel ? " sel" : "") + '"><span class="lab' + (sel ? " sel" : "") + '">' + k + '</span><span class="bar"><i style="width:' + Math.max(1, p*100) + '%"></i></span><span class="pct">' + p.toFixed(3) + "</span></div>";
+  }).join("") : '<span style="color:var(--muted);font:.85rem">no answer to score</span>';
+  const rec = {step_id:"step-3", model_action:"click @e3", model_action_key:MODEL_KEY, model:"jev-1.13.0", latency_budget_ms:BUDGET,
+    jev_action:s.jev, jev_confidence:s.conf, probabilities:s.probs, nouls:s.nouls,
+    agree: healthy ? MODEL_KEY === s.jev : null, latency_ms:s.lat, error:s.err};
+  if (mode === "act") { rec.mode = "act"; rec.path = path; rec.executed_action = executed; }
+  $("wire").textContent = "JEV_SHADOW|step-3|" + JSON.stringify(rec);
+}
+document.querySelectorAll(".modeseg button").forEach(b =>
+  b.addEventListener("click", () => {
+    mode = b.dataset.mode;
+    document.querySelectorAll(".modeseg button").forEach(x => x.classList.toggle("on", x === b));
+    render();
+  }));
+$("scenario").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>

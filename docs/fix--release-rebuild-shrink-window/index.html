@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Release Rebuild Stops Running the Whole Suite | OrchestKit Lab</title>
+  <meta name="description" content="The release branch's bundle rebuild spent 272s per run: 65s on a full root build the dist does not need and 204s on a pre-push suite the release PR's CI runs again. The step now builds hooks only and skips the hook on the bot's push.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    legend { font-weight: 600; }
+    .before { color: #f87171; }
+    .after { color: #4ade80; }
+    .quote { border-left: 3px solid #43566a; margin: 12px 0; padding: 4px 16px; font-size: 15px; }
+    .quote.bad { border-left-color: #f87171; }
+    .quote.good { border-left-color: #4ade80; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    button { font: inherit; color: #101822; background: #8fd8ff; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+    :focus-visible { outline: 3px solid #ffd580; outline-offset: 4px; }
+    .status-line { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre-wrap; }
+    .ok { color: #4ade80; }
+    .note { color: #b8c5d1; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · FIX-RELEASE-REBUILD-SHRINK-WINDOW</p>
+    <h1>The Release Rebuild Stops Running the Whole Suite</h1>
+    <p>The step that rebuilds hook bundles on the release branch is the one
+    place stale bundles get fixed before a release ships. Measured over the
+    46 Release runs since 2026-09-15 (issue <a href="https://github.com/yonatangross/orchestkit/issues/4183">#4183</a>),
+    its rebuild cost 219-272s per run and its push once lost an 84s race. The
+    window is what the bot's own push runs, not what the bundles need.</p>
+
+    <article aria-labelledby="where">
+      <h2 id="where" class="note">Where the 272s went</h2>
+      <p>Run 35070229993, step log timestamps, 2026-09-16:</p>
+      <div class="quote"><span class="before">npm ci (root + hooks):</span> ~2s: the root package.json has zero dependencies</div>
+      <div class="quote"><span class="before">full plugin build:</span> ~65s: assembles every plugin; the step only commits two dist dirs</div>
+      <div class="quote"><span class="before">pre-push suite in the bot's push:</span> ~204s: typecheck, build verify, 71 unit tests, security, hook vitest</div>
+      <p class="note">Phase 1 proved byte-identical: building only
+      <code>src/hooks</code> (esbuild, 169ms of it) plus the dist rsync
+      reproduces <code>src/hooks/dist</code> and <code>plugins/ork/hooks/dist</code>
+      exactly, with a real source mutation in both clones (diff -r rc=0).</p>
+    </article>
+
+    <fieldset>
+      <legend>Before and after, same step name</legend>
+      <div class="quote bad"><span class="before">before:</span> npm ci (root) + npm ci (hooks) + npm run build (root) + push that runs the pre-push suite</div>
+      <div class="quote good"><span class="after">after:</span> npm ci + esbuild in src/hooks + dist rsync + push --no-verify; the release PR's own CI runs the full suite</div>
+      <button id="timeline" type="button">Show the rebuild timeline</button>
+      <div class="status-line" id="status">run 35070229993: 272s total = 2s installs + 65s full build + 24s pre-commit + 204s pre-push suite in the bot's push</div>
+    </fieldset>
+
+    <p class="note">No new trigger, job or concurrency group: the one measured
+    race loss self-healed on the next run, so the fix only shrinks the window
+    the step itself opens. Fail-closed arms unchanged.</p>
+
+    <p><a href="https://github.com/yonatangross/orchestkit/issues/4183">Read issue 4183</a> ·
+    <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <footer>fix--release-rebuild-shrink-window · OrchestKit docs site · the window is the push, not the build.</footer>
+  </main>
+  <script>
+    (function() {
+      var status = document.getElementById("status");
+      var btn = document.getElementById("timeline");
+      btn.addEventListener("click", function() {
+        status.innerHTML =
+          "before: 272s = 2s installs + 65s full build + 24s pre-commit + 204s pre-push (run 35070229993)\n" +
+          "after:  installs 2s + esbuild ~1s + rsync, push skips the suite\n" +
+          "same committed bytes: diff -r rc=0 on both dist dirs, real source mutation";
+        btn.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>

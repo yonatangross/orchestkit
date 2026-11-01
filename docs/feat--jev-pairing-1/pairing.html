@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Jev pairing contract</title>
+<style>
+:root{color-scheme:light dark;font:18px/1.6 system-ui,sans-serif}body{max-width:900px;margin:auto;padding:30px}label{display:block;margin-top:18px}select,input,button{font:inherit;padding:8px}input[type=range]{width:100%}pre{padding:20px;background:#17212b;color:#e8f1f8;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:8px}a{color:light-dark(#14599d,#91c8ff)}:focus-visible{outline:3px solid #418ed0;outline-offset:3px}output{font-weight:700}
+</style></head><body><main><p>OrchestKit / Shadow evidence</p><h1>Keep both picks with every decision.</h1>
+<p>This interactive example shows the canonical logging fields and the exact review bucket. All inputs are synthetic. A disagreement is a candidate for review, not a correctness label.</p>
+<label for="seam">Seam</label><select id="seam"><option>route</option><option>expect</option><option>category</option></select>
+<label for="state">Comparison</label><select id="state"><option value="different">Observed picks differ</option><option value="same">Observed picks agree</option><option value="pending">Incumbent has not run</option><option value="error">Jev request failed</option></select>
+<label for="confidence">Jev confidence: <output id="cv"></output></label><input id="confidence" type="range" min="0" max="1" step="0.01" value="0.8">
+<label for="floor">Floor: <output id="fv"></output></label><input id="floor" type="range" min="0" max="1" step="0.01" value="0.8">
+<section aria-live="polite"><h2 id="bucket"></h2><pre id="row"></pre></section>
+<h2>What is persisted</h2><p>Every active expect invocation appends a row to <code>.expect/jev-shadow.jsonl</code>, even when the request or configuration fails. The same row remains in the stdout protocol and saved step report. New files use mode 0600.</p>
+<p>Route runs before the main model chooses an executor. Synchronous PreToolUse pairs the requested Skill or Agent selection using the exact prompt ID; Stop records no executor for a direct response. The report collapses pending and paired revisions so each decision counts once. Category pairs the Haiku classification with Jev after both settle.</p>
+<h2>Export the review queue</h2><pre>node scripts/jev-shadow-report.mjs --confident-wrong /path/to/sessions .expect/jev-shadow.jsonl</pre>
+<p>The export includes rows where <code>agree=false AND jev_confidence &gt;= floor</code>. Unlabeled decisions remain <code>awaiting_adjudication</code>. Transport errors and unobserved incumbents cannot enter this bucket.</p>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4271">Related audit and report foundation</a></p>
+</main><script>
+const $ = id => document.getElementById(id);
+function render() {
+ const state=$('state').value, confidence=Number($('confidence').value), floor=Number($('floor').value);
+ const row={seam:$('seam').value,jev_pick:state==='error'?null:'choice_a',jev_confidence:state==='error'?null:confidence,incumbent_pick:state==='pending'?null:state==='same'?'choice_a':'choice_b',agree:state==='pending'||state==='error'?null:state==='same',floor,decided_by:'incumbent'};
+ if(state==='pending')row.incumbent_reason='incumbent_not_run';
+ if(state==='error')row.error='request_failed';
+ $('cv').textContent=confidence.toFixed(2);$('fv').textContent=floor.toFixed(2);
+ $('row').textContent=JSON.stringify(row,null,2);
+ $('bucket').textContent=row.agree===false&&row.jev_confidence!==null&&row.jev_confidence>=row.floor?'Confident-wrong bucket: awaiting adjudication':row.agree===null?'Comparison unavailable':'Outside the confident-wrong bucket';
+}
+for(const id of ['seam','state','confidence','floor'])$(id).addEventListener('input',render);
+render();
+</script></body></html>

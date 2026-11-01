@@ -1,0 +1,203 @@
+<!-- OrchestKit playground - PR feat/4071-traffic-snapshot (#4071, #4075) - 2026-09-12 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The week that outlives the 14-day window</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --line:#2a2f3a; --fg:#e6e6e6; --dim:#9aa3b2;
+          --ok:#4cc38a; --bad:#e5484d; --accent:#6ea8fe; --warn:#e2a336; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:var(--accent); }
+  p { margin:6px 0; color:var(--dim); max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:10px; }
+  .panel h3 { margin:0 0 10px; font:600 12px ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:var(--dim); }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:var(--dim); border:1px solid var(--line); border-radius:20px;
+        padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:var(--bad); color:var(--bad); }
+  .opts button[aria-pressed="true"].week { border-color:var(--warn); color:var(--warn); }
+  .res { margin-top:10px; padding:12px 14px; border-radius:8px; border:1px solid var(--line); }
+  .res .r { font:700 15px ui-monospace,monospace; }
+  .yes { background:rgba(76,195,138,.10); border-color:rgba(76,195,138,.5); }
+  .yes .r { color:var(--ok); }
+  .no { background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.5); }
+  .no .r { color:var(--bad); }
+  .res p { color:var(--fg); margin:6px 0 0; font-size:13.5px; max-width:none; }
+  pre { margin:8px 0 0; padding:11px; background:#0b0d11; border:1px solid var(--line); border-radius:8px;
+        overflow:auto; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre-wrap; color:#cbd5e1; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:6px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); }
+  th { color:var(--dim); font:600 11px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.05em; }
+  td.k { font:12px ui-monospace,Menlo,monospace; }
+  td.n { font:12.5px ui-monospace,Menlo,monospace; color:var(--fg); }
+  small.note { display:block; margin-top:9px; color:var(--dim); font-size:12px; }
+  select { background:#0b0d11; color:var(--fg); border:1px solid var(--line); border-radius:8px;
+        padding:7px 10px; font:12.5px ui-monospace,Menlo,monospace; max-width:320px; }
+  .quote { border-left:3px solid var(--accent); padding:8px 12px; margin:8px 0; background:#0b0d11;
+        border-radius:6px; font-size:13.5px; color:var(--fg); }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font:600 10.5px ui-monospace,monospace;
+        letter-spacing:.04em; text-transform:uppercase; }
+  .draft { color:var(--warn); background:rgba(226,163,54,.12); }
+  .live { color:var(--ok); background:rgba(76,195,138,.12); }
+  .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:8px; }
+  .day { background:#0b0d11; border:1px solid var(--line); border-radius:8px; padding:8px 6px; text-align:center; }
+  .day .d { font:600 10px ui-monospace,Menlo,monospace; color:var(--dim); }
+  .day .v { font:700 14px ui-monospace,Menlo,monospace; color:var(--fg); margin-top:3px; }
+  .day .u { font:11px ui-monospace,Menlo,monospace; color:var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1>The week that outlives the 14-day window</h1>
+  <p>GitHub exposes repository traffic (views, clones, popular paths, referrers) through a rolling 14-day window, then the numbers are gone. OrchestKit #4071 adds a Monday 06:00 UTC workflow that reads the four endpoints, folds the PREVIOUS full week into ONE JSONL row, and opens a PR carrying the row to <code>docs/traffic/snapshots.jsonl</code>. The ledger is committed, so history outlives the window and every week is reviewable. This page shows the row shape, the fail-closed rules, and the two growth-docs deliverables that ship with it.</p>
+
+  <h2>One row per previous full week</h2>
+  <p>The run measures <code>[previous Monday 00:00 UTC, current Monday 00:00 UTC)</code>. The row carries daily buckets for that window and labels the two 14-day lists as what they are. This is a sample row, the same shape the test fixtures pin:</p>
+  <div class="panel">
+    <div class="opts">
+      <button id="tab-jsonl" aria-pressed="true">JSONL row</button>
+      <button id="tab-table" aria-pressed="false">as a table</button>
+    </div>
+    <pre id="rowjsonl">{"week":"2026-09-07","generated_at":"2026-09-14T06:00:00.000Z","source":"github-traffic-api","views":{"total":105,"uniques":91,"days_observed":7,"days":[{"date":"2026-09-07","count":12,"uniques":10},{"date":"2026-09-08","count":13,"uniques":11},{"date":"2026-09-09","count":14,"uniques":12},{"date":"2026-09-10","count":15,"uniques":13},{"date":"2026-09-11","count":16,"uniques":14},{"date":"2026-09-12","count":17,"uniques":15},{"date":"2026-09-13","count":18,"uniques":16}]},"clones":{"total":77,"uniques":70,"days_observed":7,"days":[...7 buckets...]},"popular_paths":{"window_days":14,"items":[...]},"referrers":{"window_days":14,"items":[{"referrer":"google.com","count":30,"uniques":22},{"referrer":"duckduckgo.com","count":6,"uniques":5}]}}</pre>
+    <div id="rowtable" style="display:none">
+      <table>
+        <thead><tr><th>metric</th><th>total</th><th>uniques</th><th>days observed</th></tr></thead>
+        <tbody>
+          <tr><td class="k">views</td><td class="n">105</td><td class="n">91</td><td class="n">7</td></tr>
+          <tr><td class="k">clones</td><td class="n">77</td><td class="n">70</td><td class="n">7</td></tr>
+        </tbody>
+      </table>
+      <h3>views, day by day</h3>
+      <div class="grid" id="daygrid"></div>
+      <small class="note">Window sums are computed from the buckets inside the week, which is why they can differ from GitHub's own 14-day top-level count. Popular paths and referrers come from the API with a fixed trailing 14-day window (no weekly variant exists), so the row says window_days: 14 instead of pretending they are weekly.</small>
+    </div>
+  </div>
+
+  <h2>Fail-closed: no row on a failed read</h2>
+  <p>A zero row written during an API outage would read as a traffic collapse that never happened. The script validates every read and refuses to write unless ALL four endpoints answer cleanly. Flip a failure on and watch the run refuse:</p>
+  <div class="panel">
+    <div class="opts">
+      <button class="fault" data-k="views" aria-pressed="false">views: HTTP 500</button>
+      <button class="fault" data-k="clones" aria-pressed="false">clones: non-JSON body</button>
+      <button class="fault" data-k="paths" aria-pressed="false">popular paths: HTTP 500</button>
+      <button class="fault" data-k="referrers" aria-pressed="false">referrers: count is a string</button>
+      <button class="fault week" data-k="week" aria-pressed="false">week window: zero buckets</button>
+    </div>
+    <div class="res yes" id="fc"><div class="r" id="fcr">row written</div><p id="fcp">All four reads succeeded and validated; 7 daily buckets inside the measured week. Exactly one row appended for week 2026-09-07.</p></div>
+    <small class="note">The row is written only after every read succeeded AND validated: non-200, unparseable body, a non-integer or negative field, or zero buckets inside the measured week each abort with nothing written. Idempotency is on top of that: a week already in the ledger makes the run exit 0 with no API calls at all, so re-dispatching cannot duplicate a row or a PR.</small>
+  </div>
+
+  <h2>The credit line policy</h2>
+  <p>External mentions carry one exact line, word for word, every time, so attribution stays clean in referrer data. The kit line:</p>
+  <div class="quote">OrchestKit is a Claude Code plugin: reusable skills, specialist agents, and lifecycle hooks, packaged as one installable plugin. https://github.com/yonatangross/orchestkit</div>
+  <p>The per-skill table has exactly one line for each of the 36 user-invocable public skills. Pick one:</p>
+  <div class="panel">
+    <div class="opts"><select id="skillpick" aria-label="pick a public skill"></select></div>
+    <pre id="skillline"></pre>
+    <small class="note">Skills not in the table are internal-only: drafts name them never and use the kit line instead. Credit lines never carry numbers; numbers age and drafts must not claim unverified figures.</small>
+  </div>
+
+  <h2>The seeding list: drafts only</h2>
+  <p>Venues where the kit is worth mentioning, with ready-to-edit drafts. Nothing is posted, sent, or submitted by anyone, person or agent; X is read-only for this workstream. Every status change is an operator decision, per venue, per instance.</p>
+  <div class="panel">
+    <table>
+      <thead><tr><th>venue</th><th>why it fits</th><th>status</th></tr></thead>
+      <tbody>
+        <tr><td class="k">awesome-claude-code and adjacent lists</td><td>durable backlink where plugin installers read</td><td><span class="badge draft">DRAFT</span></td></tr>
+        <tr><td class="k">glama.ai</td><td>registry, already listed via in-repo glama.json</td><td><span class="badge live">LIVE</span></td></tr>
+        <tr><td class="k">Smithery, PulseMCP</td><td>registries compound passively</td><td><span class="badge draft">DRAFT</span></td></tr>
+        <tr><td class="k">r/ClaudeAI, r/mcp</td><td>helpful reply in an existing thread, never a promo post</td><td><span class="badge draft">DRAFT</span></td></tr>
+        <tr><td class="k">dev.to / Medium walk-through</td><td>ranks for plugin searches, feeds referrers for months</td><td><span class="badge draft">DRAFT</span></td></tr>
+        <tr><td class="k">Show HN</td><td>one good day outdraws a month of referrers; harshest review there is</td><td><span class="badge draft">DRAFT</span></td></tr>
+        <tr><td class="k">CC community forums and chat servers</td><td>daily plugin recommendations among early adopters</td><td><span class="badge draft">DRAFT</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>How the week lands</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>step</th><th>what it does</th></tr></thead>
+      <tbody>
+        <tr><td class="k">cron 0 6 * * 1 + workflow_dispatch</td><td> Mondays 06:00 UTC, manual re-dispatch allowed, idempotent per week</td></tr>
+        <tr><td class="k">read four endpoints</td><td>gh api traffic/views, traffic/clones, traffic/popular/paths, traffic/popular/referrers</td></tr>
+        <tr><td class="k">validate + aggregate</td><td>previous full week only; sums from in-window buckets; refuse empty weeks</td></tr>
+        <tr><td class="k">append one row</td><td>docs/traffic/snapshots.jsonl, one JSONL line, seeded empty</td></tr>
+        <tr><td class="k">open a PR</td><td>branch traffic/snapshot-&lt;week&gt;, never a direct push to main; the row is the PR body</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><small class="note">Provenance: codex-ork-traffic lane for OrchestKit #4071, 2026-09-12. Playground page for PR #4075; the data lives in <code>docs/traffic/snapshots.jsonl</code>, the fail-closed arms in <code>tests/ci/test-traffic-snapshot.sh</code>.</small></p>
+</main>
+<script>
+(function(){
+  "use strict";
+  // row tabs
+  var tj=document.getElementById("tab-jsonl"), tt=document.getElementById("tab-table");
+  var pj=document.getElementById("rowjsonl"), pt=document.getElementById("rowtable");
+  function tab(showTable){
+    tt.setAttribute("aria-pressed", showTable?"true":"false");
+    tj.setAttribute("aria-pressed", showTable?"false":"true");
+    pt.style.display=showTable?"":"none";
+    pj.style.display=showTable?"none":"";
+  }
+  tj.addEventListener("click",function(){tab(false);});
+  tt.addEventListener("click",function(){tab(true);});
+  // day grid (fixture values from tests/ci/test-traffic-snapshot.sh)
+  var days=[["09-07",12,10],["09-08",13,11],["09-09",14,12],["09-10",15,13],["09-11",16,14],["09-12",17,15],["09-13",18,16]];
+  var g=document.getElementById("daygrid");
+  days.forEach(function(d){
+    var el=document.createElement("div"); el.className="day";
+    el.innerHTML='<div class="d">'+d[0]+'</div><div class="v">'+d[1]+'</div><div class="u">'+d[2]+' uniques</div>';
+    g.appendChild(el);
+  });
+  // fail-closed simulator
+  var faults={};
+  var res=document.getElementById("fc"), rr=document.getElementById("fcr"), rp=document.getElementById("fcp");
+  function verdict(){
+    var on=Object.keys(faults).filter(function(k){return faults[k];});
+    if(on.length===0){
+      res.className="res yes"; rr.textContent="row written";
+      rp.textContent="All four reads succeeded and validated; 7 daily buckets inside the measured week. Exactly one row appended for week 2026-09-07.";
+    } else {
+      res.className="res no"; rr.textContent="nothing written";
+      var why={ "views":"traffic/views returned HTTP 500: the read failed, so the run aborts with exit 1 before any write.",
+        "clones":"traffic/clones answered 200 with a body that is not valid JSON: validation fails, nothing is written.",
+        "paths":"traffic/popular/paths failed: all four reads must succeed, not most of them.",
+        "referrers":"traffic/popular/referrers returned .count as a string instead of an integer: the field validation fails, nothing is written.",
+        "week":"every daily bucket sits outside the measured week: an all-zero row is indistinguishable from a traffic collapse, so the run refuses to write."};
+      rp.textContent="Aborted, exit 1, zero bytes written. Reason: "+on.map(function(k){return why[k];}).join(" ");
+    }
+  }
+  document.querySelectorAll(".fault").forEach(function(b){
+    b.addEventListener("click",function(){
+      var k=b.getAttribute("data-k");
+      faults[k]=!faults[k];
+      b.setAttribute("aria-pressed",faults[k]?"true":"false");
+      verdict();
+    });
+  });
+  // credit line picker: the 36 user-invocable public skills, exact table order
+  var skills=["assess","audit-activation","auto","brainstorm","ci-debug","ci-sentinel","commit","component-search","cover","create-pr","design-context-extract","design-import","design-ship","design-stylecards","design-to-code","dev","doctor","dream","expect","explore","fix-issue","glyph","help","implement","memory","page-serve","prd-to-goal","release-sync","remember","review-pr","setup","swarm-migrate","telemetry-inspect","verify","visualize-plan","write-prd"];
+  var sel=document.getElementById("skillpick"), out=document.getElementById("skillline");
+  skills.forEach(function(s){
+    var o=document.createElement("option"); o.value=s; o.textContent="/ork:"+s; sel.appendChild(o);
+  });
+  function line(){
+    var s=sel.value;
+    out.textContent="`"+s+"` is one of the public skills in OrchestKit, a Claude Code plugin: https://github.com/yonatangross/orchestkit";
+  }
+  sel.addEventListener("change",line);
+  line();
+})();
+</script>
+</body>
+</html>

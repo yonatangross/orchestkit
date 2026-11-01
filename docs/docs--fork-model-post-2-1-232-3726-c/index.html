@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fork model after CC 2.1.232: explicit subagent_type fork</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(222 12% 64%);
+    --pg-faint: hsl(222 10% 46%);
+    --pg-line: hsl(0 0% 100% / 0.10);
+    --pg-glass: hsl(0 0% 100% / 0.05);
+    --pg-glass-2: hsl(0 0% 100% / 0.08);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(256 70% 46%);
+    --pg-good: hsl(160 60% 55%);
+    --pg-bad: hsl(4 70% 62%);
+    --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-fast: 200ms; --pg-dur-normal: 300ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+    --pg-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: var(--pg-font); color: var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 86% -8%, hsl(248 84% 68% / 0.16), transparent 60%),
+      radial-gradient(820px 620px at 6% 110%, hsl(262 78% 64% / 0.13), transparent 58%),
+      var(--pg-bg); }
+  main { max-width: 60rem; margin-inline: auto; padding: 2rem 1.25rem 3rem; }
+  h1 { font-size: 1.3rem; margin: 0 0 0.3rem; }
+  .sub { color: var(--pg-muted); font-size: 0.85rem; margin: 0 0 1.5rem; }
+  section { background: var(--pg-glass); border: 1px solid var(--pg-line);
+    border-radius: var(--pg-r-lg); padding: 1.2rem 1.4rem; margin-block: 1rem; }
+  h2 { font-size: 0.8rem; margin: 0 0 0.9rem; color: var(--pg-accent);
+    text-transform: uppercase; letter-spacing: 0.06em; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+  .card { border: 1px solid var(--pg-line); border-radius: var(--pg-r-md);
+    padding: 1rem; font-size: 0.83rem; line-height: 1.55; }
+  .card.old { opacity: 0.75; }
+  .card.new { border-color: hsl(248 84% 68% / 0.45); background: var(--pg-glass-2); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em;
+    text-transform: uppercase; border-radius: 999px; padding: 0.15rem 0.6rem; margin-block-end: 0.6rem; }
+  .tag.before { color: var(--pg-bad); background: hsl(4 70% 62% / 0.14); }
+  .tag.after { color: var(--pg-good); background: hsl(160 60% 55% / 0.14); }
+  pre { font-family: var(--pg-mono); font-size: 0.78rem; background: hsl(232 24% 9%);
+    border: 1px solid var(--pg-line); border-radius: 10px; padding: 0.85rem 1rem;
+    overflow-x: auto; line-height: 1.5; }
+  .pick { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-end: 0.8rem; }
+  .pick button { font: inherit; font-size: 0.8rem; padding: 0.4rem 0.7rem; border-radius: 8px;
+    cursor: pointer; background: hsl(232 24% 9%); color: var(--pg-ink); border: 1px solid var(--pg-line); }
+  .pick button[aria-pressed="true"] { border-color: var(--pg-accent); color: var(--pg-accent); }
+  .answer { font-size: 1rem; font-weight: 700; padding: 0.6rem 0.8rem; border-radius: 8px;
+    border: 1px solid var(--pg-line); background: hsl(232 24% 9%); min-height: 2.6em; }
+  .answer.ok { color: var(--pg-good); border-color: var(--pg-good); }
+  .answer.bad { color: var(--pg-bad); border-color: var(--pg-bad); }
+  .why { font-size: 0.8rem; color: var(--pg-muted); margin-block-start: 0.4rem; min-height: 2.4em; }
+  .copy { cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 600;
+    border-radius: 8px; padding: 0.45rem 0.9rem; color: var(--pg-ink);
+    background: var(--pg-glass-2); border: 1px solid var(--pg-line); }
+  .copy.done { color: var(--pg-good); border-color: var(--pg-good); }
+  .note { border-inline-start: 3px solid var(--pg-accent); padding-inline-start: 0.9rem;
+    color: var(--pg-muted); font-size: 0.82rem; margin-block-start: 1rem; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none; transition: none; scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fork model after CC 2.1.232: explicit subagent_type fork</h1>
+  <p class="sub">Issue #3726: two skill docs still stated the pre-2.1.232 implicit-only model. One read order, one quiz. 2026-09-10.</p>
+
+  <section>
+    <h2>What changed in the docs</h2>
+    <div class="cols">
+      <div class="card old">
+        <span class="tag before">Before: implicit only</span>
+        <p>Fork Pattern (CC 2.1.89): agents are fork-eligible when prompts are short, with no custom model and no worktree isolation. CC detects eligibility automatically. That was the whole story.</p>
+      </div>
+      <div class="card new">
+        <span class="tag after">After: explicit since 2.1.232</span>
+        <p>Since CC 2.1.232 forking is on by default and <code>subagent_type: "fork"</code> selects it explicitly. A fork subagent inherits the full conversation and prompt cache and always runs on the parent model; other types start fresh. The old eligibility conditions matter only for ordinary <code>Agent()</code> calls.</p>
+      </div>
+    </div>
+    <p class="note">Fixed in <code>src/skills/explore/rules/exploration-agents.md</code> and <code>src/skills/review-pr/SKILL.md</code>, matching the note <code>chain-patterns/references/fork-pattern.md</code> already carries. Mirrors under <code>plugins/</code> regenerated with <code>npm run build</code>.</p>
+    <p><button class="copy" id="copyBtn">Copy prompt: explain the fork model</button></p>
+<pre id="promptOut">Since CC 2.1.232, subagent forking is on by default and subagent_type fork is first class. A fork inherits the full conversation and prompt cache and runs on the parent model. Other types start fresh. The 2.1.89 eligibility conditions apply only to ordinary Agent() calls.</pre>
+  </section>
+
+  <section>
+    <h2>Quiz: which call forks explicitly?</h2>
+    <div class="pick" role="group" aria-label="quiz options">
+      <button data-right="false">Agent(subagent_type="Explore", model="opus")</button>
+      <button data-right="true">Agent(subagent_type="fork", prompt="...")</button>
+      <button data-right="false">Agent(subagent_type="Explore", isolation="worktree")</button>
+    </div>
+    <div class="answer" id="answer" aria-live="polite">Pick an option above.</div>
+    <p class="why" id="why"></p>
+  </section>
+</main>
+<script>
+  var buttons = Array.prototype.slice.call(document.querySelectorAll(".pick button"));
+  var answer = document.getElementById("answer");
+  var why = document.getElementById("why");
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      buttons.forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      var ok = b.getAttribute("data-right") === "true";
+      answer.textContent = ok ? "Correct: fork is the explicit route." : "Not quite: that call breaks fork eligibility.";
+      answer.className = "answer " + (ok ? "ok" : "bad");
+      why.textContent = ok
+        ? "Since 2.1.232, subagent_type fork inherits the full conversation and prompt cache on the parent model."
+        : "A per-agent model override or worktree isolation keeps an ordinary Agent() call on the cold-start path.";
+    });
+  });
+  var copyBtn = document.getElementById("copyBtn");
+  copyBtn.addEventListener("click", function () {
+    var text = document.getElementById("promptOut").textContent;
+    navigator.clipboard.writeText(text).then(function () {
+      copyBtn.textContent = "Copied";
+      copyBtn.classList.add("done");
+      setTimeout(function () {
+        copyBtn.textContent = "Copy prompt: explain the fork model";
+        copyBtn.classList.remove("done");
+      }, 1500);
+    });
+  });
+</script>
+</body>
+</html>

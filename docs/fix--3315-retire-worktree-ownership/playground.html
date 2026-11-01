@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>#3315 — ork stood in front of CC's worktree provisioning</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+--bad:#f85149;--good:#3fb950;--warn:#d29922;--info:#58a6ff;
+--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);padding:32px 20px 64px;
+font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--dim);margin:0 0 28px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--dim);
+margin:36px 0 12px;font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+padding:18px 20px;margin-bottom:14px}
+pre{font-family:var(--mono);font-size:12.5px;line-height:1.55;overflow-x:auto;margin:0;white-space:pre}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+td code{font-family:var(--mono);font-size:12px;color:var(--info)}
+.y{color:var(--good);font-family:var(--mono)}
+.n{color:var(--bad);font-family:var(--mono)}
+.dim{color:var(--dim)}.bad{color:var(--bad)}.good{color:var(--good)}.warn{color:var(--warn)}
+.note{border-left:3px solid var(--info);padding:12px 16px;margin:14px 0;
+background:rgba(88,166,255,.06);font-size:14px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center}
+.kpi b{display:block;font-size:22px;font-family:var(--mono)}
+.kpi span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:780px){.kpi{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><main>
+
+<h1>#3315 — ork stood in front of CC's worktree provisioning</h1>
+<p class="sub">Registering a <code>WorktreeCreate</code> hook does not extend provisioning. It replaces it.</p>
+
+<div class="kpi">
+  <div><b class="good">12</b><span>things CC does</span></div>
+  <div><b class="bad">2</b><span>ork reimplemented</span></div>
+  <div><b class="bad">1</b><span>real cleanup log line, all-time</span></div>
+  <div><b class="bad">0</b><span>worktree_links writers</span></div>
+</div>
+
+<h2>The gate, read off the shipped 2.1.226 binary</h2>
+<div class="panel"><pre>function UHe(){                                  <span class="dim">// hasWorktreeCreateHook</span>
+  if(Pp("hooks")) return !1;
+  let e=Due()?.WorktreeCreate;  if(e&amp;&amp;e.length&gt;0) return !0;
+  if(!$x()){ let o=Kle()?.WorktreeCreate; if(o&amp;&amp;o.length&gt;0) return !0 }
+  let t=ine()?.WorktreeCreate;  if(!t||t.length===0) return !1;
+  let r=$x(), n=r&amp;&amp;!Xc()?GCe():null;
+  return t.some((o)=&gt;!(r&amp;&amp;("pluginRoot"in o)&amp;&amp;!n?.has(o.pluginId)))   <span class="bad">// plugin hooks COUNT</span>
+}
+
+<span class="dim">single call site:</span>
+if(UHe()){ <span class="bad">hook branch</span> }  else { <span class="good">native branch: sIs + aIs</span> }
+                                    <span class="dim">never both</span></pre></div>
+
+<div class="note">
+No filter on <code>async</code>. No check that the hook returns a path. <strong>Any</strong> registered
+hook flips it, which is why even the async telemetry forwarder had to be removed: leaving it would
+keep CC out of its own path with nothing left to provision.
+</div>
+
+<h2>What ork was replacing</h2>
+<div class="panel"><table>
+<thead><tr><th>Capability</th><th>CC native</th><th>ork</th></tr></thead><tbody>
+<tr><td><code>worktree.sparsePaths</code></td><td class="y">yes</td><td class="y">duplicate</td></tr>
+<tr><td>path placement</td><td class="y">yes</td><td class="y">different path</td></tr>
+<tr><td><code>worktree.baseRef</code></td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td><code>.worktreeinclude</code></td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td><code>settings.local.json</code> propagation</td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td><code>core.hooksPath</code> to main repo</td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td><code>worktree.symlinkDirectories</code></td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td>PR worktrees (<code>pull/N/head</code>)</td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td>resume / reset to fresh base</td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td>realpath containment check</td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td><code>git worktree lock</code></td><td class="y">yes</td><td class="n">no</td></tr>
+<tr><td>branch deleted on cleanup</td><td class="y">yes</td><td class="n">no</td></tr>
+</tbody></table></div>
+
+<p class="dim">Meanwhile four ork reference docs instructed operators to set
+<code>worktree.baseRef</code>, which could not work for them the entire time.</p>
+
+<h2>Removal was broken, not merely absent</h2>
+<div class="panel"><pre>CC dispatches WorktreeRemove <span class="bad">only for hook-created worktrees</span>
+  └─ and refuses when the directory is non-empty  <span class="dim">(a real worktree always is)</span>
+       └─ the `git worktree remove` fallback lives in the <span class="good">!hookBased</span> branch
+            └─ <span class="bad">so provisioned worktrees leaked</span>
+
+measured on the author's machine, 2026-08-09
+  worktree-events.jsonl ........ 11 lines all-time
+    from a REAL worktree ....... <span class="bad">1</span>  (2026-07-18, rows_updated: 0)
+    from vitest temp dirs ...... 10  <span class="dim">writing into the live project log</span>
+  worktree-pending markers ..... <span class="bad">3 uncleaned</span>
+    2026-08-06 01:37, and two from agents that finished minutes earlier</pre></div>
+
+<h2>The cascade that never ran</h2>
+<div class="panel"><pre>exit-finalizer:  SELECT child_sid FROM worktree_links ...
+                 UPDATE worktree_links SET ...
+
+only INSERT INTO worktree_links in the entire repo:
+  <span class="bad">__tests__/worktree/exit-finalizer.test.ts:53</span>   <span class="dim">a test fixture</span>
+
+⇒ the UPDATE always matched zero rows. the one real log line says rows_updated: 0.</pre></div>
+
+<h2>Verified</h2>
+<div class="panel"><pre><span class="good">✓</span> validate-counts            219 -> 215, PASSED
+<span class="good">✓</span> build                      idempotent, second run leaves 0 files dirty
+<span class="good">✓</span> hooks suite                7489 passed
+<span class="warn">!</span> 6 remaining failures       subagent-start/context-gate.test.ts — reads LIVE machine
+                             state (asserted on "7 background agents active" from
+                             this very session). Untouched by this change; filed
+                             separately.
+<span class="good">✓</span> wiring assertions          INVERTED, not deleted — re-registering anything on
+                             WorktreeCreate now fails the suite.</pre></div>
+
+<p class="dim" style="margin-top:26px;font-size:13px">
+The schema is deliberately untouched. Editing a shipped migration does not affect databases that
+already ran it and would drift fresh installs from existing ones. <code>worktree_links</code>
+belongs to #3353, which now has no reader left to weigh.
+</p>
+
+</main></body></html>

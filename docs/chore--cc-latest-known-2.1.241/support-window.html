@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CC support window after the 2.1.241 bump</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--line:#2a3450;--ink:#e6ebf5;--muted:#8b96ad;--floor:#e2a94f;--known:#4dc98a;--up:#6ea8fe;--gap:#e0655a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,sans-serif;padding:32px 20px 60px}
+.wrap{max-width:960px;margin:0 auto}h1{font-size:24px;margin:0 0 6px}.sub{color:var(--muted);margin:0 0 18px;max-width:80ch}
+.controls{display:flex;gap:18px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}.ctl b{color:var(--ink);font-size:14px}input[type=range]{width:180px;accent-color:#6ea8fe}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}.panel h2{margin:0 0 10px;font-size:15px}
+.axis{position:relative;height:74px;margin:24px 6px 6px}.track{position:absolute;left:0;right:0;top:32px;height:10px;background:#0b101c;border-radius:5px}
+.seg{position:absolute;top:32px;height:10px;border-radius:5px}.mark{position:absolute;top:18px;width:2px;height:38px}.lbl{position:absolute;top:0;transform:translateX(-50%);font-size:11px;white-space:nowrap}.lbl.b{top:52px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.verdict{font-size:14px;margin-top:10px}.verdict b.bad{color:var(--gap)}.verdict b.ok{color:var(--known)}
+</style></head><body><div class="wrap">
+<h1>The support window, after this bump</h1>
+<p class="sub">Three numbers describe how current OrchestKit is against Claude Code. The <b>floor</b> is the oldest CC the plugin vouches for (frozen by owner override until 2026-11-20). <b>latest_known</b> is the newest CC that triage has verified. <b>upstream</b> is what npm ships. The gap between the last two is the blind spot every alpha ships with. Drag upstream forward to see when the staleness alarm (threshold 2) fires again.</p>
+<div class="controls">
+<div class="ctl"><b id="v-up">upstream 2.1.241</b>simulate future upstream releases<input id="up" type="range" min="241" max="252" value="241"></div>
+<div class="ctl"><b id="v-known">latest_known 2.1.241</b>after this PR (was 2.1.238)<input id="known" type="range" min="238" max="252" value="241"></div>
+</div>
+<div class="panel"><h2>2.1.x timeline</h2>
+<div class="axis" id="axis"></div>
+<div class="legend"><span><i style="background:var(--floor)"></i>floor 2.1.220 (frozen)</span><span><i style="background:var(--known)"></i>verified by triage</span><span><i style="background:var(--gap)"></i>unverified blind spot</span><span><i style="background:var(--up)"></i>upstream head</span></div>
+<div class="verdict" id="verdict"></div></div>
+<div class="panel"><h2>What each bump actually asserts</h2>
+<p style="margin:0;font-size:14px;color:var(--muted)">A <em>latest_known</em> bump says: every changelog bullet up to this version was checked against ork's hooks, settings, MCP config, agent frontmatter and docs, and anything that needed changing was changed or filed. It does not move the floor, so no user is dropped. A <em>floor</em> bump (the July renewals) says something stronger: ork stops vouching for older CC and can rely on newer behaviours. Both previous floor renewals were done at the head after a full sweep; this PR makes the next one possible without an open backlog.</p></div>
+</div>
+<script>
+'use strict';
+const FLOOR=220, MIN=218, MAX=254; const $=id=>document.getElementById(id);
+const x=v=>((v-MIN)/(MAX-MIN)*100)+'%';
+function render(){const up=+$('up').value, known=Math.min(+$('known').value, up); $('known').value=known;
+ $('v-up').textContent='upstream 2.1.'+up; $('v-known').textContent='latest_known 2.1.'+known;
+ const a=$('axis'); a.innerHTML='<div class="track"></div>'
+  +`<div class="seg" style="left:${x(FLOOR)};width:calc(${x(known)} - ${x(FLOOR)});background:var(--known)"></div>`
+  +(up>known?`<div class="seg" style="left:${x(known)};width:calc(${x(up)} - ${x(known)});background:var(--gap)"></div>`:'')
+  +`<div class="mark" style="left:${x(FLOOR)};background:var(--floor)"></div><div class="lbl" style="left:${x(FLOOR)}">floor 2.1.220</div>`
+  +`<div class="mark" style="left:${x(known)};background:var(--known)"></div><div class="lbl b" style="left:${x(known)}">known 2.1.${known}</div>`
+  +`<div class="mark" style="left:${x(up)};background:var(--up)"></div><div class="lbl" style="left:${x(up)}">upstream 2.1.${up}</div>`;
+ const gap=up-known; $('verdict').innerHTML= gap>2 ? `Blind spot: <b class="bad">${gap} releases</b>. The staleness alarm files an issue on the next watcher run (threshold 2). Before this PR the gap was 3 (2.1.238 vs 2.1.241).`
+  : gap>0 ? `Blind spot: <b class="bad">${gap} release${gap>1?'s':''}</b>, under the alarm threshold; triage on the next sweep.` : `<b class="ok">No blind spot</b>: every published CC release is triaged. Floor stays 2.1.220 by design.`;}
+$('up').addEventListener('input',render);$('known').addEventListener('input',render);render();
+</script></body></html>

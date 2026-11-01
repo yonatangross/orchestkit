@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two silent failures: .mjs workflows and the fail-permissive test harness</title>
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+    --text:#e6edf3; --dim:#9aa4b2; --accent:#58a6ff; --green:#3fb950;
+    --red:#f85149; --yellow:#d29922; --purple:#bc8cff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:30px 26px 80px}
+  header.top{padding:26px 0 18px;border-bottom:1px solid var(--border)}
+  header.top h1{font-size:23px;font-weight:700;letter-spacing:-.01em}
+  header.top .sub{color:var(--dim);margin-top:6px;font-size:14px}
+  .chips{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+  .chip{background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:5px 13px;font-size:12.5px}
+  .chip b{color:var(--accent)}
+  .chip.proven b{color:var(--green)} .chip.hypo b{color:var(--yellow)}
+  nav.toc{position:sticky;top:0;background:rgba(13,17,23,.93);backdrop-filter:blur(6px);z-index:5;
+    display:flex;gap:3px;padding:9px 0;border-bottom:1px solid var(--border);margin-bottom:26px;overflow-x:auto}
+  nav.toc a{color:var(--dim);text-decoration:none;font-size:12.5px;padding:5px 10px;border-radius:6px;white-space:nowrap}
+  nav.toc a:hover{color:var(--text);background:var(--panel2)}
+  section{margin-bottom:44px}
+  section>h2{font-size:18px;margin-bottom:6px;padding-top:8px}
+  section>.lead{color:var(--dim);margin-bottom:16px;max-width:880px}
+  .lead b,td b,li b{color:var(--text)}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;background:var(--panel2)}
+  tr:last-child td{border-bottom:none}
+  code,.mono{font-family:var(--mono);font-size:12.5px}
+  .path{font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+  pre{background:#0b0f14;border:1px solid var(--border);border-radius:9px;padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+  .ok{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--yellow)} .pur{color:var(--purple)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  @media(max-width:880px){.grid2{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:15px}
+  .panel h4{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px}
+  .panel.bad-b{border-left:3px solid var(--red)}
+  .panel.good-b{border-left:3px solid var(--green)}
+  .mmd{display:flex;justify-content:center;overflow-x:auto;min-height:120px}
+  .mmd svg{max-width:100%;height:auto}
+  .callout{border-left:3px solid var(--purple);background:var(--panel);border-radius:0 9px 9px 0;padding:14px 18px;margin:14px 0}
+  .callout.green{border-left-color:var(--green)}
+  .callout.yellow{border-left-color:var(--yellow)}
+  ul{margin:8px 0 8px 20px} li{margin-bottom:5px}
+  .copybar{position:fixed;bottom:16px;right:20px;z-index:9}
+  .copybar button{background:var(--accent);color:#06131f;border:none;border-radius:8px;padding:10px 17px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>🔇 Two silent failures found after a green release</h1>
+  <div class="sub">Post-release verification of v10.0.0-alpha.23 passed on every axis that had a signal. These two had no signal at all — that is what made them worth chasing.</div>
+  <div class="chips">
+    <span class="chip proven">defect 1 · <b>PROVEN + FIXED</b></span>
+    <span class="chip hypo">defect 2 · <b>HYPOTHESIS</b></span>
+    <span class="chip">root cause found in a <b>276 MB binary</b></span>
+    <span class="chip">fix size: <b>1 character class</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#tldr">TL;DR</a><a href="#d1">🧩 Defect 1: the .mjs drop</a><a href="#how">🔬 How it was found</a>
+  <a href="#invisible">🔇 Why invisible</a><a href="#d2">🧪 Defect 2: fail-permissive</a>
+  <a href="#confidence">⚖️ Confidence</a><a href="#fixes">🔧 The fixes</a>
+</nav>
+
+<section id="tldr">
+  <h2>TL;DR</h2>
+  <div class="callout">
+    <p><b>Defect 1 (proven, fixed here):</b> the three dynamic workflows OrchestKit ships through the plugin <span class="path">workflows/</span> directory were named <code>.mjs</code>. Claude Code's plugin workflow scanner accepts <b>only</b> <code>.js</code> and discards everything else by returning <code>null</code> — no warning, no log, no telemetry. The files shipped, installed, and executed fine by explicit path, but <code>Workflow({name:"ork:skill-fitness"})</code> answered <i>"not found"</i>, because as far as the registry was concerned the workflow never existed.</p>
+    <p style="margin-top:10px"><b>Defect 2 (hypothesis, fixed separately):</b> the push-gating security suite has a helper that rewrites an empty payload to <code>{}</code>. A transient <code>jq</code> failure therefore turns a <code>deny</code> assertion into a silent <code>abstain</code> — a security test that fails <i>open</i> and reports 13/14 instead of crashing.</p>
+    <p style="margin-top:10px">Both are the same shape: <b>a failure path that produces a plausible-looking success instead of an error.</b></p>
+  </div>
+</section>
+
+<section id="d1">
+  <h2>🧩 Defect 1 — the technical mechanism</h2>
+  <p class="lead">Claude Code has two loaders that scan a directory for workflow scripts. They are nearly identical. The 24-byte difference between them is the entire bug.</p>
+  <div class="grid2">
+    <div class="panel bad-b">
+      <h4>❌ PLUGIN scanner (Xvp) — reads plugins/ork/workflows/</h4>
+      <pre>if(!(l.isFile()||l.isSymbolicLink()))
+    return null;
+<span class="bad">if(!l.name.endsWith(".js"))
+    return null;        // ← silent drop</span>
+return Zvp(join(e,l.name), ...)</pre>
+      <p style="color:var(--dim);font-size:12.5px;margin-top:9px">No near-miss branch. No warning. <code>.mjs</code> ceases to exist.</p>
+    </div>
+    <div class="panel good-b">
+      <h4>✅ USER/PROJECT scanner (nEp) — the sibling</h4>
+      <pre>if(!a.name.endsWith(".js")){
+  <span class="ok">if(/\.(mjs|cjs|ts)$/.test(a.name))
+      r.nearMissExt++;  // ← counted!</span>
+  return null
+}</pre>
+      <p style="color:var(--dim);font-size:12.5px;margin-top:9px">Same mistake, <b>tracked</b> and reported as <code>near_miss_ext</code> in <code>workflow_discover</code> telemetry.</p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:15px">
+    <h4>Where our three files fell out</h4>
+    <div class="mmd" id="m-flow"></div>
+  </div>
+</section>
+
+<section id="how">
+  <h2>🔬 How the conclusion was reached (and why the byte offsets matter)</h2>
+  <p class="lead">The claim "the plugin loader filters on <code>.js</code>" is only worth anything if you can show <b>which</b> loader is which. The evidence is positional: two of the four <code>endsWith(".js")</code> sites sit 24 bytes before a near-miss regex, and two do not.</p>
+  <table>
+    <tr><th>Byte offset</th><th>What is there</th><th>Near-miss branch?</th><th>Which loader</th></tr>
+    <tr><td class="mono">264075910</td><td><code>endsWith(".js")</code></td><td class="bad">none</td><td><b>Xvp — plugin dir scanner</b></td></tr>
+    <tr><td class="mono">264077420</td><td><code>a.endsWith(".js")</code></td><td class="bad">none</td><td>plugin custom-path branch</td></tr>
+    <tr><td class="mono">264078444</td><td><code>endsWith(".js")</code></td><td class="ok">yes, at 264078468</td><td>nEp — user/project</td></tr>
+    <tr><td class="mono">264079380</td><td><code>endsWith(".js")</code></td><td class="ok">yes, at 264079404</td><td>UDb — userConfigDir</td></tr>
+  </table>
+  <p class="lead" style="margin-top:14px">Corroborating strings confirmed present in the same binary by direct probe: <code>nearMissExt</code>, <code>near_miss_ext</code>, <code>workflow_discover</code>, <code>Total plugin workflows loaded</code>.</p>
+  <div class="callout green">
+    <b>Then it was proven empirically, not left as decompilation.</b> One shipped <code>skill-fitness.mjs</code> in the installed alpha.23 cache was <i>copied</i> to <code>skill-fitness.js</code> and the plugins reloaded. The name <code>ork:skill-fitness</code> appeared in the skill registry and <code>Workflow({name:"ork:skill-fitness"})</code> executed. Sixty seconds earlier the identical call returned <i>"not found. Available: deep-research, code-review"</i>. Nothing else changed.
+  </div>
+</section>
+
+<section id="invisible">
+  <h2>🔇 Why it stayed invisible for a whole release</h2>
+  <p class="lead">Every check we ran was structurally incapable of catching it, and each one produced a green result that felt like evidence:</p>
+  <table>
+    <tr><th>What we verified</th><th>Result</th><th>Why it could not have caught this</th></tr>
+    <tr><td>Files present in the installed cache</td><td class="ok">✅ all 3</td><td>Presence is not registration. The loader reads the directory and discards.</td></tr>
+    <tr><td><code>plugin.json</code> has <code>"workflows"</code></td><td class="ok">✅ correct</td><td>Field shape was never the problem.</td></tr>
+    <tr><td>Manifest paths + <code>meta.name</code></td><td class="ok">✅ correct</td><td><code>meta</code> is parsed <i>after</i> the extension filter, so it was never reached.</td></tr>
+    <tr><td>Workflow executes from the cache</td><td class="ok">✅ ran, spawned an agent</td><td>Ran via <code>scriptPath</code> — a different loader with <b>no</b> extension filter.</td></tr>
+    <tr><td>CI: build, manifests, skills, drift</td><td class="ok">✅ green</td><td>No gate knew plugin workflows existed as a component type.</td></tr>
+  </table>
+  <div class="callout yellow">
+    <b>The lesson worth keeping:</b> absence of an error is not evidence of loading. Every green check above was true and none of them tested the claim that was actually made ("these surface as <code>/ork:&lt;name&gt;</code>"). The only test that could settle it was calling the thing by name.
+  </div>
+</section>
+
+<section id="d2">
+  <h2>🧪 Defect 2 — a security test that fails open</h2>
+  <p class="lead">The push-gating suite reported <code>19 | Passed: 18 | Failed: 1</code>, then 19/19 on an immediate rerun of the identical tree. Standalone the test passes 14/14. There is <b>no</b> inter-test race: the runner is serial and each test gets a private temp dir. The mechanism is a degradation path inside the shared helper.</p>
+  <div class="panel">
+    <div class="mmd" id="m-fail"></div>
+  </div>
+  <p class="lead" style="margin-top:14px">That chain produces <i>exactly</i> the observed signature: one <code>deny</code> assertion fails, every <code>abstain</code> assertion still passes, no crash, 13/14. Three things make it worse:</p>
+  <ul>
+    <li><b>The warning built for this is discarded.</b> <span class="path">run-hook.mjs</span> emits "stdin delivered 0 bytes… this hook measured nothing", but <span class="path">test-helpers.sh:365</span> sends stderr to <code>/dev/null</code>.</li>
+    <li><b>The failure is undiagnosable by construction.</b> <span class="path">run-security-tests.sh:59</span> prints <code>tail -20</code> of a 31-line log, cutting off exactly the section whose assertion failed.</li>
+    <li><b>A trap overwrite leaks temp state</b> every run (<span class="path">test-path-traversal.sh:96</span> replaces the helper's <code>cleanup_test_env</code> instead of chaining it).</li>
+  </ul>
+</section>
+
+<section id="confidence">
+  <h2>⚖️ Confidence — stated honestly, because they are not equal</h2>
+  <div class="grid2">
+    <div class="panel good-b">
+      <h4>Defect 1 — PROVEN</h4>
+      <ul style="margin-left:16px">
+        <li>Loader code re-extracted from the binary independently of the agent that first reported it</li>
+        <li>Byte-offset adjacency distinguishes the two scanners</li>
+        <li><b>Live reproduction:</b> rename → reload → resolves</li>
+        <li>Fixed in this PR</li>
+      </ul>
+    </div>
+    <div class="panel" style="border-left:3px solid var(--yellow)">
+      <h4>Defect 2 — UNREPRODUCED HYPOTHESIS</h4>
+      <ul style="margin-left:16px">
+        <li>250 direct hook probes (100 idle, 150 under 32-way load) → <b>0 mismatches</b></li>
+        <li>The empty-payload → <code>abstain</code> step <i>is</i> verified; the transient <code>jq</code> failure that would trigger it is <b>not</b></li>
+        <li>Cannot name which of the five assertions failed — the log was truncated</li>
+        <li>Fixed anyway; see why below</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>Why fix an unproven hypothesis?</b> Because all four changes are correct under <i>both</i> branches of the uncertainty. If the <code>jq</code> path is real, the fail-loud change eliminates the flake. If it is not, the un-silenced warning and the un-truncated log make the next occurrence diagnosable in one run instead of another multi-hour hunt. There is no version of the truth where these are the wrong edits — which is exactly what makes them safe to ship without a reproduction.
+  </div>
+</section>
+
+<section id="fixes">
+  <h2>🔧 The fixes</h2>
+  <table>
+    <tr><th>#</th><th>Change</th><th>File</th></tr>
+    <tr><td>1</td><td>Rename the three workflow scripts <code>.mjs</code> → <code>.js</code></td><td class="path">src/skills/{audit-full,bare-eval,cover}/workflows/*.js</td></tr>
+    <tr><td>2</td><td>Update the manifest's <code>workflows[]</code> paths</td><td class="path">manifests/ork.json</td></tr>
+    <tr><td>3</td><td>Document the trap: plugin workflows MUST be <code>.js</code>; absence of an error is not evidence of loading</td><td class="path">chain-patterns/references/dynamic-workflow-patterns.md</td></tr>
+    <tr><td>4</td><td><b>Teach the docs-drift gate that workflows exist</b> — it derived ground truth from skills + agents only, so documenting a real <code>/ork:skill-fitness</code> was reported as a dead reference. Names now come from each script's <code>meta.name</code>.</td><td class="path">tests/skills/structure/test-docs-site-drift.mjs</td></tr>
+    <tr><td>5</td><td><i>(separate PR)</i> Security harness: fail loudly on an empty payload, stop discarding the watchdog warning, print the failing assertion, chain the cleanup trap</td><td class="path">tests/fixtures/test-helpers.sh · tests/security/*</td></tr>
+  </table>
+  <p class="lead" style="margin-top:14px">Fix #4 was not planned — it surfaced <i>because</i> of fix #3. Writing the correct documentation broke a gate that had silently assumed a two-component world, which is its own small instance of the same theme.</p>
+</section>
+
+</div>
+<div class="copybar"><button id="copy">📋 Copy the lesson</button></div>
+
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({startOnLoad:false,theme:'dark',themeVariables:{fontFamily:'ui-monospace, Menlo, monospace',fontSize:'12.5px'}});
+const DEFS={
+'m-flow':`flowchart LR
+  A["📂 readdir(plugins/ork/workflows/)"] --> B{"isFile or symlink?"}
+  B -->|yes| C{"name.endsWith('.js')?"}
+  C -->|"✅ .js"| D["parse meta"] --> E["register as ork:NAME"] --> F["✨ Workflow({name}) resolves"]
+  C -->|"❌ .mjs — our 3 files"| G["return null<br/>SILENTLY"]
+  G -.-> H["🕳️ workflow does not exist<br/>no warning, no log, no telemetry"]
+  classDef dead fill:#2b1416,stroke:#f85149,color:#e6edf3
+  classDef good fill:#12261a,stroke:#3fb950,color:#e6edf3
+  class G,H dead
+  class E,F good
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`,
+'m-fail':`flowchart TB
+  A["jq -n builds the payload<br/>inside \\$(...)"] -->|"transient fail<br/>(fork EAGAIN, ENOMEM)"| B["substitution yields<br/>EMPTY STRING"]
+  B --> C["set -e does NOT fire<br/>(it is an argument, not a command)"]
+  C --> D["helper rewrites '' to {}<br/>test-helpers.sh:336"]
+  D --> E["fileGuard: no file_path<br/>→ outputSilentSuccess()"]
+  E --> F["scored as ABSTAIN"]
+  F --> G["a deny assertion 'fails'<br/>every abstain still passes<br/>= 13 / 14, no crash"]
+  classDef bad fill:#2b1416,stroke:#f85149,color:#e6edf3
+  class B,D,F,G bad
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`};
+for(const [id,def] of Object.entries(DEFS)){
+  try{const {svg}=await mermaid.render('r'+id.replace(/-/g,''),def);document.getElementById(id).innerHTML=svg}
+  catch(e){document.getElementById(id).innerHTML='<pre>'+def.replace(/</g,'&lt;')+'</pre>'}
+}
+document.getElementById('copy').onclick=async()=>{
+  await navigator.clipboard.writeText(
+`Plugin-shipped Claude Code workflows MUST be named .js — the plugin workflow scanner filters on name.endsWith(".js") and returns null for anything else with no warning, no log and no telemetry. A .mjs file is dropped before its meta is parsed, so Workflow({name}) answers "not found" and nothing says why. The sibling user/project loader counts the same mistake as nearMissExt in workflow_discover telemetry, so it is a known authoring trap upstream — just not on the plugin path.
+
+General lesson: absence of an error is not evidence of loading. Verify a plugin component registered by invoking it by name, not by seeing the file on disk.`);
+  const b=document.getElementById('copy');b.textContent='✅ Copied!';setTimeout(()=>b.textContent='📋 Copy the lesson',1400);
+};
+</script>
+</body>
+</html>

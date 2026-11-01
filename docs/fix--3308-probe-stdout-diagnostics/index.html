@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A diagnostic only a browser could read</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.faint{color:var(--faint)}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">follow-up to #3407 &middot; run 31400567250 &middot; 2026-08-10</div>
+<h1>A diagnostic <span>only a browser could read.</span></h1>
+<p class="lede">The contract probe shipped in #3407 and its first dispatch <b>failed exactly as
+designed</b> — a contract gate that cannot observe must never look green. Then I could not tell
+<i>which</i> failure it was, because every line it printed went somewhere a CLI cannot reach.</p>
+
+<h2>What happened</h2>
+<pre>run 31400567250 — dispatched on main immediately after merge
+
+  Install the newest published CLI ................ <span class="ok">success</span>
+  Report where the binary landed ................. <span class="ok">success</span>
+  Derive the contract ............................ <span class="bad">failure</span>
+
+$ gh run view 31400567250 --log     → only the ECHOED script lines
+$ gh api .../check-runs/…           → output.summary is EMPTY</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Two candidate exits — <code>1</code>
+drift, <code>2</code> CANNOT-OBSERVE — and no way to distinguish them without opening a browser. The
+whole reason that layout step is unconditional was to answer this, and it answered it into a channel
+the asker cannot read.</p>
+
+<div class="card"><h3>The defect, stated plainly</h3>
+<p><code>$GITHUB_STEP_SUMMARY</code> renders in the web UI. It is <b>not</b> in
+<code>gh run view --log</code>, and it is <b>not</b> in the check-run API's
+<code>output.summary</code>. Writing diagnostics only there makes them invisible to every automated
+consumer — including the agent that dispatched the run.</p>
+<p>Same shape as the thirty-four defects this milestone exists to remove: the machinery ran, reported
+honestly, and reported into a void.</p></div>
+
+<h2>Fix</h2>
+<pre>-          } >> "$GITHUB_STEP_SUMMARY"
++          } | tee -a "$GITHUB_STEP_SUMMARY"</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Both blocks now <code>tee</code>, so
+the layout listing and the verdict land in the log <i>and</i> the summary. The derive step also emits
+<code>derive-cc-output-keys exit code: N</code> explicitly, so exit 1 and exit 2 are distinguishable
+from the log alone rather than inferred from a red X.</p>
+
+<h2>A second mistake worth recording</h2>
+<pre>$ grep -c "tee -a \"$GITHUB_STEP_SUMMARY\"" file
+0        ← the shell expanded the variable to EMPTY inside double quotes,
+           so this searched for `tee -a ""` and I nearly "re-fixed" a
+           working edit
+$ grep -c 'tee -a' file
+2        ← correct</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">A verification step that cannot observe
+what it checks reports a false negative just as confidently as a false positive. Single-quote any
+grep pattern containing a <code>$</code>.</p>
+
+<p class="foot"><b>Still unanswered, deliberately.</b> Whether the runner populates
+<code>~/.local/share/claude/versions/</code> — the only path <code>findBinary()</code> searches — is
+what the next dispatch will show, now that the listing reaches the log. I am not guessing at it here:
+the install step succeeded and the derive step failed, which is consistent with both drift and
+cannot-observe, and the difference decides whether the follow-up fixes the lookup path or commits a
+regenerated snapshot.</p>
+</div></body></html>

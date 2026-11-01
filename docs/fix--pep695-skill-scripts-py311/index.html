@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PEP 695 generics vs requires-python 3.11</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:13px/1.45 ui-monospace, monospace; white-space:pre; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font:14px/1.4 ui-monospace, monospace; }
+  td, th { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:normal; }
+  .ok { color:var(--ok); }
+  .bad { color:var(--bad); }
+  .note { font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One line of Python 3.12 in a 3.11 codebase</h1>
+  <p>Release blocker on beta.58. #4265 ruff-linted the 51 skill scripts under
+  <code>target-version = "py313"</code>. The UP rules read PEP 695 generics as
+  the modern form and rewrote <code>safe_llm_call.py:210</code> into
+  <code>async def call_llm[T: BaseModel]</code>. Every pyproject declares
+  <code>requires-python &gt;=3.11</code>, so the script could no longer even
+  compile on a supported interpreter.</p>
+
+  <h2>The two spellings</h2>
+  <div class="row" role="group" aria-label="Spelling">
+    <button type="button" id="pep695" aria-pressed="true">PEP 695 (3.12+)</button>
+    <button type="button" id="typevar" aria-pressed="false">TypeVar (3.11 ok)</button>
+  </div>
+  <pre id="code"></pre>
+  <table>
+    <tr><th>gate</th><th id="g1h">python3.11 compileall</th><th id="g2h">ruff UP (py311 pin)</th></tr>
+    <tr><td>result</td><td id="g1"></td><td id="g2"></td></tr>
+  </table>
+  <p class="note">The fix is two-sided: <code>per-file-target-version</code>
+  pins <code>src/skills/**</code> to py311 so the UP046/UP047 family can never
+  suggest the rewrite again, and CI byte-compiles <code>src/skills</code> with
+  a real python3.11 whenever the runner ships one.</p>
+</main>
+<script>
+const PEP695 = 'async def call_llm[T: BaseModel](prompt: str, schema: type[T]) -> T:';
+const TYPEVAR = [
+  'T = TypeVar("T", bound=BaseModel)',
+  '',
+  'async def call_llm(prompt: str, schema: type[T]) -> T:',
+].join('\n');
+const code = document.getElementById('code');
+const g1 = document.getElementById('g1');
+const g2 = document.getElementById('g2');
+function pick(pep695) {
+  document.getElementById('pep695').setAttribute('aria-pressed', String(pep695));
+  document.getElementById('typevar').setAttribute('aria-pressed', String(!pep695));
+  code.textContent = pep695 ? PEP695 : TYPEVAR;
+  code.style.borderColor = pep695 ? 'var(--bad)' : 'var(--ok)';
+  if (pep695) {
+    g1.textContent = 'SyntaxError: type parameter lists need 3.12+';
+    g1.className = 'bad';
+    g2.textContent = 'silent: py312+ syntax is a valid lint target';
+    g2.className = 'bad';
+  } else {
+    g1.textContent = 'compiles';
+    g1.className = 'ok';
+    g2.textContent = 'clean: old-style TypeVar is correct under py311';
+    g2.className = 'ok';
+  }
+}
+document.getElementById('pep695').onclick = () => pick(true);
+document.getElementById('typevar').onclick = () => pick(false);
+pick(true);
+</script>
+</body>
+</html>

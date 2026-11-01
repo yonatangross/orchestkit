@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pre-push: one load back-off for every stage</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e6e6e6; --muted: #9aa3b2;
+    --accent: #7cc4ff; --ok: #6fd18b; --warn: #f2c14e; --bad: #f07178; --line: #2a2f3a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.4rem; margin: 0 0 6px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-top: 16px; }
+  label { display: block; font-weight: 600; margin: 8px 0 4px; }
+  input[type=range] { width: 100%; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row input[type=number] { width: 90px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+  code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 8px 0 0; white-space: pre-wrap; }
+  .note { color: var(--muted); font-size: 0.9rem; }
+  .jobs { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .jobs.bad { color: var(--bad); }
+  .jobs.ok { color: var(--ok); }
+</style>
+</head>
+<body>
+<main>
+  <h1>One load back-off, every pre-push stage</h1>
+  <p class="lead">
+    Issue #4238. Drag the 5-minute load. The same job count comes out for the unit stage, the hooks vitest stage, and the security stage.
+  </p>
+
+  <section class="panel">
+    <label for="ncpu">cores</label>
+    <div class="row">
+      <input id="ncpu" type="range" min="1" max="32" value="16">
+      <input id="ncpuN" type="number" min="1" max="128" value="16">
+    </div>
+    <label for="load">5-minute load</label>
+    <div class="row">
+      <input id="load" type="range" min="0" max="160" step="0.1" value="0">
+      <input id="loadN" type="number" min="0" max="999" step="0.1" value="0">
+    </div>
+    <p class="note">Formula: max(1, min(cores, 8, cores - round(load))). An unreadable load skips the load step.</p>
+  </section>
+
+  <section class="panel">
+    <table>
+      <thead><tr><th>stage</th><th>jobs</th><th>what it receives</th></tr></thead>
+      <tbody>
+        <tr><td>unit</td><td class="jobs" id="unitJobs">8</td><td id="unitHow"><code>xargs -P 8</code></td></tr>
+        <tr><td>vitest</td><td class="jobs" id="vitestJobs">8</td><td id="vitestHow"><code>--maxWorkers=8</code></td></tr>
+        <tr><td>security</td><td class="jobs" id="secJobs">8</td><td id="secHow">left as-is (no jobs flag)</td></tr>
+      </tbody>
+    </table>
+    <pre id="notice">(no load notice: jobs is above 1)</pre>
+  </section>
+</main>
+<script>
+(function () {
+  var ncpu = document.getElementById("ncpu");
+  var ncpuN = document.getElementById("ncpuN");
+  var load = document.getElementById("load");
+  var loadN = document.getElementById("loadN");
+
+  function resolve(n, l) {
+    if (!isFinite(n) || n < 1) n = 8;
+    n = Math.floor(n);
+    var jobs = n;
+    if (jobs > 8) jobs = 8;
+    if (isFinite(l)) {
+      var rounded = Math.floor(l + 0.5);
+      var headroom = n - rounded;
+      if (headroom < jobs) jobs = headroom;
+    }
+    if (jobs < 1) jobs = 1;
+    var idle = n > 8 ? 8 : n;
+    return { jobs: jobs, idle: idle };
+  }
+
+  function paint(id, jobs, text) {
+    var cell = document.getElementById(id);
+    cell.textContent = String(jobs);
+    cell.className = "jobs " + (jobs === 1 ? "bad" : "ok");
+    return text;
+  }
+
+  function render() {
+    var n = parseInt(ncpuN.value, 10);
+    var l = parseFloat(loadN.value);
+    var r = resolve(n, l);
+    document.getElementById("unitHow").innerHTML = "<code>xargs -P " + r.jobs + "</code>";
+    paint("unitJobs", r.jobs);
+    document.getElementById("vitestHow").innerHTML = "<code>--maxWorkers=" + r.jobs + "</code>";
+    paint("vitestJobs", r.jobs);
+    document.getElementById("secHow").textContent = r.jobs === 1
+      ? "serial walk (runner has no jobs flag)"
+      : "left as-is (runner has no jobs flag)";
+    paint("secJobs", r.jobs);
+    var notice = document.getElementById("notice");
+    if (r.jobs === 1 && r.idle > 1) {
+      notice.textContent = "pre-push: sustained load " + l + ", jobs=1";
+    } else {
+      notice.textContent = "(no load notice: jobs is above 1, or the box is already 1 core)";
+    }
+  }
+
+  function link(range, num) {
+    range.addEventListener("input", function () { num.value = range.value; render(); });
+    num.addEventListener("input", function () { range.value = num.value; render(); });
+  }
+  link(ncpu, ncpuN);
+  link(load, loadN);
+  render();
+})();
+</script>
+</body>
+</html>

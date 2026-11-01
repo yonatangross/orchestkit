@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security XS batch (#4220)</title>
+<meta name="description" content="Interactive checklist for the 2026-09-17 security XS hardening batch: AF-12 dispatcher overrides, HR/IC gates, CodeQL esc().">
+<style>
+  :root { color-scheme: dark; --bg:#10131a; --ink:#e8e6e3; --muted:#9aa3b2; --line:#2a3140; --ok:#3ddc97; --bad:#ff6b6b; --mid:#f0c14a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:920px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  p { color:var(--muted); }
+  table { width:100%; border-collapse:collapse; margin-top:16px; font:14px/1.4 ui-monospace, monospace; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:normal; }
+  button { background:#1a2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; margin:4px 4px 0 0; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  .done { color:var(--ok); }
+  .skip { color:var(--mid); }
+  .out { color:var(--muted); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:12px/1.45 ui-monospace, monospace; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Security XS hardening batch</h1>
+  <p>Issue #4220 from the 2026-09-17 audit. Toggle a finding to see the before/after contract.</p>
+  <div id="btns"></div>
+  <table>
+    <thead><tr><th>id</th><th>status</th><th>contract</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <h2 style="margin-top:28px;font-size:18px">Fail-first (AF-12 on origin/main)</h2>
+  <pre id="ff"></pre>
+</main>
+<script>
+const ITEMS = [
+  { id:'AF-12', status:'done', contract:'SECURITY_HOOKS includes Bash/Write-Edit dispatchers; overrides from HOME only' },
+  { id:'HR-3', status:'skip', contract:'NOT-REPRODUCED: already execFileSync argv arrays on main' },
+  { id:'HR-5', status:'done', contract:'network-egress-guard DENY covers curl|sh and curl|interpreter' },
+  { id:'HR-7/IC-4', status:'done', contract:'local node_modules/.bin/tsc and vitest; skip when absent' },
+  { id:'HR-11', status:'done', contract:'validateMermaidViaAPI deleted (no third-party mermaid.ink post)' },
+  { id:'AF-25', status:'done', contract:'skill/agent scripts use CLAUDE_PLUGIN_ROOT absolute paths' },
+  { id:'AF-32', status:'done', contract:'package.json private:true' },
+  { id:'IC-2', status:'done', contract:'release.yml uses env TAG, not expression-in-run' },
+  { id:'IC-3', status:'done', contract:'release-please npm ci uses env -u GH_TOKEN' },
+  { id:'IC-8', status:'done', contract:'bump-version stamps marketplace tracking refs only' },
+  { id:'L7', status:'done', contract:'SECURITY.md + README match fail-closed security hooks / fixed three' },
+  { id:'CodeQL esc', status:'done', contract:'esc() maps quotes like escapeAttr' },
+  { id:'AF-13/15', status:'out', contract:'OUT OF SCOPE: path-containment (PR #4374)' },
+  { id:'HR-10', status:'out', contract:'OUT OF SCOPE: crypto.ts (#4218 lane)' },
+  { id:'IC-1/ES-*', status:'out', contract:'OUT OF SCOPE: repository settings (operator)' },
+];
+const FF = `  ✗ AF-12: sync-bash-dispatcher still disableable (exit=0, stderr=, stdout={"continue":true,"suppressOutput":true})
+  ✗ AF-12: project-level override still applied (exit=0, stdout={"continue":true,"suppressOutput":true})
+Results: 33 passed, 2 failed, 0 skipped`;
+const rows = document.getElementById('rows');
+const btns = document.getElementById('btns');
+document.getElementById('ff').textContent = FF;
+let filter = 'all';
+function cls(s){ return s==='done'?'done':s==='skip'?'skip':'out'; }
+function render(){
+  rows.innerHTML = '';
+  ITEMS.filter(i => filter==='all' || i.status===filter).forEach(i => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+i.id+'</td><td class="'+cls(i.status)+'">'+i.status+'</td><td>'+i.contract+'</td>';
+    rows.appendChild(tr);
+  });
+}
+['all','done','skip','out'].forEach(f => {
+  const b = document.createElement('button');
+  b.textContent = f;
+  b.setAttribute('aria-pressed', String(f===filter));
+  b.onclick = () => { filter=f; [...btns.children].forEach(x => x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); render(); };
+  btns.appendChild(b);
+});
+render();
+</script>
+</body>
+</html>

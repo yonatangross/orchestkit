@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CC support floor: 2.1.251 to 2.1.277</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--line:#2a3450;--ink:#e6ebf5;--muted:#8b96ad;--floor:#e2a94f;--known:#4dc98a;--up:#6ea8fe;--gap:#e0655a;--soft:#1f2940}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,sans-serif;padding:32px 20px 64px}
+.wrap{max-width:920px;margin:0 auto}
+h1{font-size:1.55rem;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 18px;max-width:72ch}
+.meta{color:#6b7690;font:12px/1.4 ui-monospace,Menlo,monospace;margin:0 0 22px}
+.controls{display:flex;gap:18px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.ctl b{color:var(--ink);font-size:14px}
+input[type=range]{width:200px;accent-color:#6ea8fe}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.panel h2{margin:0 0 10px;font-size:15px}
+.axis{position:relative;height:78px;margin:22px 6px 8px}
+.track{position:absolute;left:0;right:0;top:34px;height:10px;background:#0b101c;border-radius:5px}
+.seg{position:absolute;top:34px;height:10px;border-radius:5px}
+.mark{position:absolute;top:20px;width:2px;height:38px}
+.lbl{position:absolute;top:0;transform:translateX(-50%);font-size:11px;white-space:nowrap}
+.lbl.b{top:56px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.verdict{font-size:14px;margin-top:12px}
+.verdict b.bad{color:var(--gap)}
+.verdict b.ok{color:var(--known)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .n{display:block;font:700 1.35rem/1.1 ui-monospace,Menlo,monospace}
+.kpi .k{display:block;color:var(--muted);font-size:12px;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font:600 11px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.06em}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#0b101c;padding:1px 5px;border-radius:4px}
+footer{margin-top:28px;color:#6b7690;font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Support floor moves from 2.1.251 to 2.1.277</h1>
+  <p class="sub">This PR raises the Claude Code version OrchestKit vouches for. Drag the floor to see what the stamp script rewrites, and why 2.1.277 is the target rather than the box version 2.1.278.</p>
+  <p class="meta">PR #4305 · branch chore/cc-floor-2.1.278 · measured 2026-09-20 · 116 stamp mutations</p>
+
+  <div class="kpis">
+    <div class="kpi"><span class="n">2.1.251</span><span class="k">previous floor</span></div>
+    <div class="kpi"><span class="n">2.1.277</span><span class="k">new floor and latest_known</span></div>
+    <div class="kpi"><span class="n">116</span><span class="k">stamp sites rewritten</span></div>
+    <div class="kpi"><span class="n">0</span><span class="k">blocking dispositions on the path</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="ctl"><b id="v-floor">floor 2.1.277</b>simulate the floor pin<input id="floor" type="range" min="251" max="278" value="277"></div>
+    <div class="ctl"><b id="v-known">latest_known 2.1.277</b>triage ceiling (fixed this PR)<input id="known" type="range" min="251" max="278" value="277" disabled></div>
+  </div>
+
+  <div class="panel">
+    <h2>2.1.x support window</h2>
+    <div class="axis" id="axis"></div>
+    <div class="legend">
+      <span><i style="background:var(--floor)"></i>floor (vouched)</span>
+      <span><i style="background:var(--known)"></i>triaged through latest_known</span>
+      <span><i style="background:var(--gap)"></i>floor above latest_known (broken)</span>
+      <span><i style="background:var(--up)"></i>box 2.1.278 (unassessed)</span>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="panel">
+    <h2>What the stamp rewrites at the chosen floor</h2>
+    <table>
+      <thead><tr><th>Surface</th><th>Count</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>shared/cc-support.json</code></td><td>1</td><td>floor, latest, latest_known, drop_after</td></tr>
+        <tr><td><code>scripts/stamp-cc-support.mjs</code> targets</td><td>116</td><td>MIN_CC_VERSION, README, doctor matrix, 107 skill headers</td></tr>
+        <tr><td>Historical <code>2.1.251</code> citations</td><td>15 left alone</td><td>introduced-at and measured-on facts stay put</td></tr>
+        <tr><td>version-compatibility history rows</td><td>7 left alone</td><td>past floors are ledger, not live pins</td></tr>
+        <tr><td>hooks <code>dist/lifecycle.mjs</code></td><td>release-owned</td><td>pre-commit refuses feature-branch dist (#3578)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>Why not 2.1.278</h2>
+    <p style="margin:0;color:var(--muted);font-size:14px">The operator box runs 2.1.278, and it was the first target. Snapshotting it found zero extracted features, so a floor there would sit above the newest version the repo has assessed. That is the floor-above-matrix-latest coherence break. 2.1.277 is snapshotted and dispositioned; the floor lands there.</p>
+  </div>
+
+  <footer>Interactive playground for raising the CC support floor. Lab URL: https://orchestkit.yonyon.ai/lab/cc-floor-2-1-277.html</footer>
+</div>
+<script>
+'use strict';
+var MIN=248, MAX=280, BOX=278, KNOWN=277;
+var $=function(id){return document.getElementById(id);};
+var x=function(v){return ((v-MIN)/(MAX-MIN)*100)+'%';};
+function render(){
+  var floor=+$('floor').value;
+  $('known').value=KNOWN;
+  $('v-floor').textContent='floor 2.1.'+floor;
+  $('v-known').textContent='latest_known 2.1.'+KNOWN;
+  var a=$('axis');
+  var html='<div class="track"></div>';
+  if(floor<=KNOWN){
+    html+='<div class="seg" style="left:'+x(floor)+';width:calc('+x(KNOWN)+' - '+x(floor)+');background:var(--known)"></div>';
+  }else{
+    html+='<div class="seg" style="left:'+x(KNOWN)+';width:calc('+x(floor)+' - '+x(KNOWN)+');background:var(--gap)"></div>';
+  }
+  html+='<div class="mark" style="left:'+x(floor)+';background:var(--floor)"></div><div class="lbl" style="left:'+x(floor)+'">floor 2.1.'+floor+'</div>';
+  html+='<div class="mark" style="left:'+x(KNOWN)+';background:var(--known)"></div><div class="lbl b" style="left:'+x(KNOWN)+'">known 2.1.'+KNOWN+'</div>';
+  html+='<div class="mark" style="left:'+x(BOX)+';background:var(--up)"></div><div class="lbl" style="left:'+x(BOX)+'">box 2.1.'+BOX+'</div>';
+  a.innerHTML=html;
+  var el=$('verdict');
+  if(floor>KNOWN){
+    el.innerHTML='Broken: <b class="bad">floor 2.1.'+floor+' is above latest_known 2.1.'+KNOWN+'</b>. The matrix has not assessed that pin yet.';
+  }else if(floor===277){
+    el.innerHTML='<b class="ok">This PR</b>: floor equals latest_known at 2.1.277. Stamp rewrites 116 live pins; historical citations stay.';
+  }else if(floor===251){
+    el.innerHTML='Previous state: floor sat at 2.1.251 while latest_known already reached 2.1.277. The gap is vouched-but-stale, not blind.';
+  }else{
+    el.innerHTML='Simulated floor 2.1.'+floor+'. Live pins would rewrite; anything above 2.1.277 is not this PR.';
+  }
+}
+$('floor').addEventListener('input',render);
+render();
+</script>
+</body>
+</html>

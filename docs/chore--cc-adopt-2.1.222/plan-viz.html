@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  LIVING PLAN template (LPP v2.1) — a plan playground that tracks its own execution.
+  Persona: cool-glass (§1). Tokens per §2 (--pg-*, HSL). Glass per §5. Motion per §6
+  (signature moment = panel cross-fade; everything else 100/200ms).
+
+  Contract (the part that makes it "living"):
+  • ONE plan = ONE file. Sessions UPDATE the STATE block below in place; never fork a
+    second file for the same plan slug. Git history is the timeline.
+  • The visual layer renders FROM state. A dumb updater that only mutates the JSON is
+    legal and sufficient; every tab, ring, and bar re-paints on reload.
+  • Every item carries `evidence`: the command/check that PROVES done. Marking an item
+    done without evidence is a contract violation, not a style choice.
+  • `changelog` is append-only. Merges never drop items; removed work moves to
+    status "dropped" with a reason. Rejected planning-time ideas live in `discards`.
+
+  Reuse: copy this file, replace STATE, keep the engine. Run the §10 self-audit before
+  shipping. Archetype family: DASHBOARD (living).
+
+  SECTION CANON v1 (part of the contract, all LPP surfaces use these labels in this order;
+  renderers may OMIT a section but never rename or reorder):
+    Execution waves · Progress matrix · Scores · Risk map · Discards · Research · Updates
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Plan — Adopt CC 2.1.221 + 2.1.222</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding:48px 24px 96px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment: fixed;
+  }
+  .wrap{max-inline-size:1120px;margin-inline:auto}
+
+  h1{font-size:1.85rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.1rem;font-weight:650;letter-spacing:-.2px;margin-block:32px 14px;
+     color:var(--pg-ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sub{color:var(--pg-muted);margin-block:8px 28px;font-size:.92rem}
+  .mono,.num,td.num,.kpi b{font-variant-numeric:tabular-nums}
+
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7),
+      0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  .hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+        padding:24px;margin-block-end:24px}
+  .ring-wrap{position:relative;inline-size:132px;block-size:132px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-c{fill:none;stroke:hsl(0 0% 100% / .08);stroke-width:10}
+  .ring-p{fill:none;stroke:url(#pg-grad);stroke-width:10;stroke-linecap:round;
+          transition:stroke-dashoffset 500ms var(--pg-ease)}
+  .ring-txt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .ring-txt b{font-size:1.5rem;font-weight:700}
+  .ring-txt span{font-size:.68rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);
+       border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.25rem;font-weight:700}
+  .kpi span{color:var(--pg-faint);font-size:.75rem}
+  .kpi .up{color:var(--pg-ok)} .kpi .mid{color:var(--pg-warm)} .kpi .acc{color:var(--pg-accent)}
+
+  .wavestrip{display:grid;gap:10px;padding:20px 24px;margin-block-end:24px}
+  .wrow{display:grid;grid-template-columns:130px 1fr 76px;gap:16px;align-items:center;font-size:.85rem}
+  .wrow .wl{color:var(--pg-muted);font-weight:600}
+  .wbar{block-size:10px;border-radius:5px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .wbar i{display:block;block-size:100%;border-radius:5px;
+          background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent),var(--pg-violet));
+          transition:inline-size 500ms var(--pg-ease)}
+  .wrow .wn{text-align:end;color:var(--pg-faint)}
+  .wrow.done .wl{color:var(--pg-ok)} .wrow.done .wbar i{background:var(--pg-ok)}
+
+  .tabs{display:flex;gap:8px;margin-block:24px 18px;flex-wrap:wrap}
+  .tab{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-muted);
+       padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;
+       transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease)}
+  .tab:hover{color:var(--pg-ink)}
+  .tab.active{background:linear-gradient(135deg,var(--pg-accent-deep),var(--pg-accent));
+              color:hsl(232 30% 8%);border-color:transparent;font-weight:650}
+
+  .panel{display:none}
+  .panel.active{display:block;animation:pg-in 300ms var(--pg-ease)}
+  @keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:inset 0 1px 0 hsl(0 0% 100% / .10), 0 4px 12px -6px hsl(232 40% 3% / .5);
+        padding:18px 22px;margin-block-end:14px;
+        transition:border-color 200ms var(--pg-ease)}
+  .card:hover{border-color:hsl(248 84% 68% / .5)}
+  .card h3{font-size:1rem;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-block-end:4px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-block:8px;align-items:center}
+  .chip{font-size:.72rem;padding:2px 10px;border-radius:999px;border:1px solid hsl(0 0% 100% / .14);color:var(--pg-faint);white-space:nowrap}
+  .impact{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--pg-muted)}
+  .impact .ib{inline-size:72px;block-size:6px;border-radius:3px;background:hsl(0 0% 100% / .08);overflow:hidden}
+  .impact .ib i{display:block;block-size:100%;background:linear-gradient(90deg,var(--pg-accent),var(--pg-violet))}
+
+  .st{font-size:.72rem;padding:2px 12px;border-radius:999px;font-weight:600}
+  .st-planned{color:var(--pg-faint);border:1px solid hsl(0 0% 100% / .16);background:hsl(0 0% 100% / .03)}
+  .st-in_progress{color:hsl(38 95% 68%);border:1px solid hsl(38 95% 60% / .45);background:hsl(38 95% 60% / .10)}
+  .st-done{color:var(--pg-ok);border:1px solid hsl(152 62% 58% / .45);background:hsl(152 62% 58% / .10)}
+  .st-dropped{color:var(--pg-risk);border:1px solid hsl(0 78% 66% / .4);background:hsl(0 78% 66% / .08);text-decoration:line-through}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:start;padding:8px 12px;border-block-end:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+        border-radius:0 12px 12px 0;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .src{font-size:.8rem;color:var(--pg-muted)}
+  .faint{color:var(--pg-faint)}
+  .strike{color:var(--pg-faint);text-decoration:line-through}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block-start:8px;font-size:.82rem}
+  .ba>div{background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .09);border-radius:12px;padding:10px 14px}
+  .ba b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);margin-block-end:3px}
+  .ba .aft b{color:var(--pg-ok)}
+  details summary{cursor:pointer;color:var(--pg-faint);font-size:.82rem;margin-block-start:8px}
+  .score-row{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;margin-block:6px;font-size:.85rem}
+  .score-row .bar{block-size:8px;border-radius:4px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .score-row .bar i{display:block;block-size:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent))}
+  .score-row .v{text-align:end;color:var(--pg-muted)}
+  .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
+  a{color:var(--pg-accent)}
+  @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="lpp-title">Living Plan</h1>
+  <p class="sub" id="lpp-sub"></p>
+
+  <div class="hero glass">
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+        <defs>
+          <linearGradient id="pg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="hsl(248 70% 54%)"/>
+            <stop offset="100%" stop-color="hsl(268 78% 70%)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-c" cx="66" cy="66" r="56"/>
+        <circle class="ring-p" id="lpp-ring" cx="66" cy="66" r="56"/>
+      </svg>
+      <div class="ring-txt"><b id="lpp-pct">0%</b><span>complete</span></div>
+    </div>
+    <div class="kpis" id="lpp-kpis"></div>
+  </div>
+
+  <div class="wavestrip glass" id="lpp-wavestrip"></div>
+
+  <div class="tabs" id="lpp-tabs"></div>
+  <div id="lpp-panels"></div>
+</div>
+
+<!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<!-- SECURITY INVARIANT: every "<" in the values below is written as <. -->
+<script type="application/json" id="lpp-state">
+{
+  "lpp": 2,
+  "slug": "cc-adopt-2.1.222",
+  "title": "Adopt Claude Code 2.1.221 + 2.1.222 in OrchestKit",
+  "created": "2026-08-05",
+  "updated": "2026-08-05T00:00:00Z",
+  "score": {
+    "dims": { "surface_coverage": 9.0, "risk_containment": 9.5, "reversibility": 9.0 },
+    "composite": 9.2, "target": 9.0
+  },
+  "waves": [
+    { "id": "W0", "title": "SoT bump + rebuild", "status": "planned" },
+    { "id": "W1", "title": "2.1.221 surface adoption", "status": "planned" },
+    { "id": "W2", "title": "2.1.222 surface adoption", "status": "planned" },
+    { "id": "W3", "title": "Verify + ship", "status": "planned" }
+  ],
+  "items": [
+    {
+      "id": "W0.1", "wave": "W0", "title": "Bump cc-support.json latest_known 2.1.220 → 2.1.222",
+      "impact": 6.0, "effort": "5min", "risk": "low", "status": "planned",
+      "before": "latest_known frozen at 2.1.220 since the 2026-07-25 floor-bump; 2.1.221/2.1.222 unadopted, doctor nudges users for two versions of lag",
+      "after": "latest_known=2.1.222; supported_floor stays 2.1.220 (manual_override untouched, expires 2026-09-20)",
+      "detail": "Edit only latest_known in shared/cc-support.json (the SoT) and append a dated paragraph to manual_override.reason recording the 2.1.221/2.1.222 triage verdict, matching the unbroken chain of dated entries already there back to 2026-06-20. Do NOT touch latest (2.1.220) or drop_after (2.1.219) — those are the fixture-coupled fields.",
+      "failure": "Someone bumps latest instead of latest_known (the two keys sit three lines apart in the JSON), desyncing tests/integration/test-cc-release-watch.sh Test 4 from tests/fixtures/cc-changelogs/synthetic.md — the recovery test re-snapshots against a RECOVERY_VERSION with no fixture entry and fails in a way that reads like a real regression.",
+      "containment": "supported_floor/latest/drop_after stay byte-identical in the diff; a reviewer can git diff shared/cc-support.json and confirm only latest_known plus the appended override-reason paragraph changed.",
+      "evidence": "jq -r '.latest_known' shared/cc-support.json prints 2.1.222; jq -r '.latest' still prints 2.1.220",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.2", "wave": "W0", "title": "Run the stamper",
+      "impact": 5.0, "effort": "2min", "risk": "low", "status": "planned",
+      "before": "src/hooks/src/lib/cc-version-matrix.ts LATEST_KNOWN_CC hardcodes 2.1.220, diverged from the new SoT",
+      "after": "node scripts/stamp-cc-support.mjs rewrites LATEST_KNOWN_CC to 2.1.222; MIN_CC_VERSION is unchanged (floor frozen); the other 4 stamped files produce a no-op diff because they only carry the floor number, which did not move",
+      "detail": "Never hand-edit cc-version-matrix.ts — tests/manifests/test-cc-version-floor.sh asserts stamper idempotency and reverts a hand-edit that diverges from the SoT (bit ork#2523 previously).",
+      "failure": "Hand-editing LATEST_KNOWN_CC directly instead of running the stamper — the floor test detects the drift and the stamper clobbers the hand-edit back to whatever cc-support.json says, silently discarding the intended change if W0.1 wasn't done first.",
+      "containment": "Always run W0.1 before W0.2; bash scripts/ci/run-tests.sh tests/manifests catches any stamper/SoT divergence before merge.",
+      "evidence": "node scripts/stamp-cc-support.mjs; git diff --stat shows exactly 1 file (cc-version-matrix.ts) with a 1-line LATEST_KNOWN_CC change; bash scripts/ci/run-tests.sh tests/manifests passes",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.3", "wave": "W0", "title": "Rebuild hooks, then root",
+      "impact": 4.0, "effort": "1min", "risk": "low", "status": "planned",
+      "before": "plugins/ork/hooks/dist/ still bundles the pre-bump LATEST_KNOWN_CC compiled JS",
+      "after": "cd src/hooks && npm run build, then npm run build from repo root — dist reflects 2.1.222",
+      "detail": "The root build does NOT recompile hooks TS→dist on its own; skipping the hooks-local build ships a stale compiled constant even though the TS source is correct.",
+      "failure": "Running only the root npm run build — the PR's source diff looks right but the compiled hook bundle still nudges 2.1.220, so /ork:doctor keeps warning about 2.1.221/222 lag post-merge, and a future session re-investigates a \"why isn't this adopted\" ghost.",
+      "containment": "grep 2.1.222 across plugins/ork/hooks/dist/*.js before committing, as a cheap manual gate.",
+      "evidence": "grep -l '2.1.222' plugins/ork/hooks/dist/*.js returns a match",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.1", "wave": "W1", "title": "Verify /fork slash-command note is out of scope",
+      "impact": 2.0, "effort": "3min", "risk": "low", "status": "planned",
+      "before": "2.1.221 changelog: \"Changed /fork to create new worktrees\" — ambiguous whether this touches chain-patterns/references/fork-pattern.md",
+      "after": "Confirmed fork-pattern.md documents CC's forked-SESSION cost-optimization pattern (Agent() cache-prefix reuse), a different feature from the /fork SLASH COMMAND (session-forking UX). No edit needed — recorded as a verified no-op, not skipped unchecked.",
+      "detail": "grep -n worktree src/skills/chain-patterns/references/fork-pattern.md confirms every worktree mention there is about isolation:\\\"worktree\\\" incompatibility with Agent()-level forking, not the /fork command.",
+      "failure": "Assuming relevance without reading the file, then either editing the wrong section or leaving a genuinely stale note unflagged next release.",
+      "containment": "The grep is cheap (3min) and the finding is recorded either way, so the cost of being wrong is bounded to this one item.",
+      "evidence": "grep -c '/fork' src/skills/chain-patterns/references/fork-pattern.md returns 0",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.2", "wave": "W1", "title": "Verify the help skill survives the terminal-builtin fix",
+      "impact": 3.0, "effort": "5min", "risk": "low", "status": "planned",
+      "before": "2.1.221 changelog: \"Fixed plugin skills named after terminal built-ins being uninvocable\" — ork ships a skill literally named help",
+      "after": "Confirmed ork's skill surfaces only as the namespaced /ork:help; the fix is a pure upside ork was never exposed to — no code change, recorded as a verified no-op.",
+      "detail": "manifests/ork.json declares a single plugin ork; all skills resolve as /ork:\u003cname\u003e, so the bare command name never collided with the CC CLI's own /help.",
+      "failure": "Assuming the fix implies a latent bug in ork and spending time \"fixing\" something that was never broken.",
+      "containment": "One verification command settles it either way.",
+      "evidence": "claude plugin details ork lists help as ork:help, not a bare :help entry",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.1", "wave": "W2", "title": "Extend the worktree-isolation version-note saga to 2.1.222",
+      "impact": 7.0, "effort": "10min", "risk": "low", "status": "planned",
+      "before": "worktree-agent-pattern.md documents two prior isolation-leak closures (2.1.154 nested-HEAD fix, 2.1.203 residual shell-command leak) but stops at 2.1.203; the 2.1.222 changelog closes a third leak variant — destructive git ops against the main checkout, now covering file edits and Bash \"in all session types\"",
+      "after": "A third version-note appended in the same format, so a reader sees the full 2.1.154 → 2.1.203 → 2.1.222 progression in one place instead of cross-referencing the raw changelog",
+      "detail": "Highest-value doc edit in the sweep — the third installment of a saga ork has already invested two prior PRs documenting.",
+      "failure": "Skipping this note because it \"sounds like the same worktree fix as before\" — a future session re-audits worktree isolation from scratch, doesn't find the 2.1.222 entry, and either re-files a duplicate matrix row or wrongly assumes the leak is still open below the new close-version.",
+      "containment": "Format-match the two existing blockquote notes exactly so grep '2.1.222' finds it the same way the other two are found.",
+      "evidence": "grep -A2 'CC 2.1.222' src/skills/chain-patterns/references/worktree-agent-pattern.md returns the new note",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.2", "wave": "W2", "title": "Remove the stale /ultraplan row",
+      "impact": 5.0, "effort": "2min", "risk": "low", "status": "planned",
+      "before": "src/skills/help/SKILL.md:186 lists \"/ultraplan | Remote-session deep planning | CC 2.1.101\" as a currently available command",
+      "after": "Row removed (or annotated removed-in-2.1.222); help/SKILL.md's command reference table no longer advertises a command that 404s",
+      "detail": "2.1.222 changelog: \"Removed ultraplan feature.\" This is the same stale-reference pattern ork already fixed once for /ultrareview → /code-review in the 2.1.202 doc note, applied to the one remaining live reference.",
+      "failure": "Leaving the row in place — a user reads /ork:help, runs /ultraplan expecting deep planning, gets an unknown-command error with no pointer to a replacement, right after ork's own docs said it exists.",
+      "containment": "Single-row table edit; historical shared/cc-snapshots/*.md references must NOT be touched — those are dated historical record, not live docs.",
+      "evidence": "grep -c ultraplan src/skills/help/SKILL.md returns 0 (or the row is annotated removed 2.1.222)",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.3", "wave": "W2", "title": "Doctor matrix rows + version-history entry",
+      "impact": 6.0, "effort": "15min", "risk": "low", "status": "planned",
+      "before": "doctor/references/version-compatibility.md's OrchestKit Version History table ends at v9.6.1 / 2.1.220; no matrix rows exist for any 2.1.221 or 2.1.222 feature",
+      "after": "One new history-table row for this adoption, plus matrix entries for the doc-worthy items: worktree-isolation-hardening (2.1.222), plugin-skill-terminal-builtin fix (2.1.221, upside), /fork-creates-worktree (2.1.221, informational)",
+      "detail": "Match the established row format exactly so the ~20-row table stays scannable; this sweep has no milestone/PR number yet, so the row is drafted with a placeholder filled in at PR time.",
+      "failure": "Free-form prose instead of the table's established terse format — breaks the pattern a reader's eye relies on to scan 20 rows fast.",
+      "containment": "Copy the nearest existing row (v9.x / 2.1.220) as a literal template and only substitute content.",
+      "evidence": "grep -c '2.1.222' src/skills/doctor/references/version-compatibility.md returns at least 1",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.1", "wave": "W3", "title": "Full suite, zero floor-pinned breakage",
+      "impact": 8.0, "effort": "10min", "risk": "low", "status": "planned",
+      "before": "Unknown whether the latest_known-only bump (no floor move) actually leaves every floor-pinned test untouched, as the plan assumes",
+      "after": "npm test and npm run typecheck both green with ZERO changes to cc-version-matrix.test.ts, cc-version-check.test.ts, or test-cc-release-watch.sh — proving this sweep is materially cheaper than a floor bump (contrast: the 2026-07-25 floor bump touched ~111 skill compatibility lines plus 3 version-pinned test files)",
+      "detail": "This is the plan's central bet, stated explicitly: because supported_floor/latest/drop_after never move, none of the version-pinned assertions in the CC-floor-bump-cascade memory apply here.",
+      "failure": "The bet is wrong — some test hardcodes latest_known (not just supported_floor) and breaks silently until CI, costing a debug round to rediscover the fixture-coupling trap from scratch.",
+      "containment": "Run bash scripts/ci/run-tests.sh tests/manifests plus tests/integration/test-cc-release-watch.sh locally BEFORE pushing, not just npm test, since the floor test only runs in the full CI target.",
+      "evidence": "npm test summary line shows 0 failed; bash scripts/ci/run-tests.sh tests/manifests exits 0",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.2", "wave": "W3", "title": "Open PR, green CI, merge",
+      "impact": 9.0, "effort": "varies", "risk": "low", "status": "planned",
+      "before": "Work lives only in .worktrees/cc-adopt-222 on chore/cc-adopt-2.1.222, unreviewed",
+      "after": "PR merged to main; latest_known=2.1.222 is the new adoption ceiling of record",
+      "detail": "This is the plan's actual point of no return — everything before it is a local worktree edit, trivially discarded with git worktree remove. Commit subject should name cc-support and both version numbers explicitly, since squash-merge uses the commit subject as the changelog entry.",
+      "failure": "Squash-merged under a generic subject like \"chore: version bump\" — CHANGELOG.md doesn't surface that 2.1.221/222 were specifically triaged, and a future session re-runs this exact research pass against origin/main not realizing it was already done.",
+      "containment": "PR title states both version numbers verbatim; this plan's memory entry is the second line of defense if the changelog entry is still too terse.",
+      "evidence": "gh pr view \u003cn\u003e --json state,mergeCommit shows state=MERGED; jq -r .latest_known shared/cc-support.json on main prints 2.1.222",
+      "owner": "agent"
+    }
+  ],
+  "discards": [
+    { "title": "Bump supported_floor to 2.1.222 in the same PR", "reason": "Scope explicitly excludes a floor move; manual_override freezing floor=latest=2.1.220 doesn't expire until 2026-09-20, and per feedback_cc_floor_bump_cascade a floor bump is a materially larger refactor (111 skill compat lines + 3 version-pinned test files) that deserves its own dedicated sweep." },
+    { "title": "Hand-edit cc-version-matrix.ts directly instead of running the stamper", "reason": "project_latest_known_cc_is_stamped: the stamper reverts hand-edits that diverge from the cc-support.json SoT; faster in the moment, guaranteed to be clobbered on the next test-manifests run." },
+    { "title": "Author plan-dashboard.template.html per the visualize-plan SKILL.md instructions", "reason": "That template does not exist in the repo (verified: only decision-board, decision-router, living-plan, release-notes-player, user-story-player are present under playground-exemplars/). This plan is multi-wave with per-item command-verifiable evidence, which fits the living-plan archetype's own routing rule anyway — used living-plan.template.html instead. The missing dashboard template is a real gap worth filing separately." }
+  ],
+  "research": [
+    { "title": "2.1.221 + 2.1.222 changelog (61 combined bullets)", "note": "2.1.222 (21 bullets) includes the worktree-isolation hardening and /ultraplan removal that drove W2.1/W2.2; 2.1.221 (40 bullets) is mostly CC-internal (Focus view, Vim yank register, Windows startup perf) with two items ork already ships past (terminal-builtin skill naming, /fork→worktree) verified as no-ops.", "source": "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md" },
+    { "title": "latest_known vs latest: two different SoT fields", "note": "latest_known (adoption ceiling, hand-edited freely per project_latest_known_cc_is_stamped) is distinct from latest (support-window head, coupled to the pinned recovery-test fixture per feedback_cc_support_latest_fixture_coupling). This sweep only moves latest_known.", "source": "" },
+    { "title": "Worktree already provisioned, untouched", "note": ".worktrees/cc-adopt-222 already existed on branch chore/cc-adopt-2.1.222, clean, at origin/main HEAD c5b2d2871 — a prior session set it up but did no work; this plan starts from a genuinely empty worktree.", "source": "" }
+  ],
+  "changelog": [
+    { "at": "2026-08-05", "note": "v1 authored — plan visualized before implementation. Worktree confirmed clean at c5b2d2871. 61-bullet upstream changelog fetched and triaged to 8 real action items across 4 waves; 3 candidates (floor bump, hand-edit matrix, dashboard-template routing) verified/discarded with reasons." }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const st = JSON.parse(document.getElementById('lpp-state').textContent);
+  const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
+  const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
+  const CLS = {planned:'planned', in_progress:'in_progress', done:'done', dropped:'dropped'};
+  const stCls = s => Object.prototype.hasOwnProperty.call(CLS, s) ? CLS[s] : 'planned';
+  const riskColor = r => Object.prototype.hasOwnProperty.call(RK, r) ? RK[r] : 'var(--pg-faint)';
+  const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
+
+  document.getElementById('lpp-title').textContent = st.title;
+  document.title = st.title;
+  document.getElementById('lpp-sub').textContent =
+    st.slug+' · created '+st.created+' · state updated '+String(st.updated).slice(0,16).replace('T',' ');
+
+  const items = st.items;
+  const active = items.filter(i=>i.status!=='dropped');
+  const doneN = active.filter(i=>i.status==='done').length;
+  const ipN = active.filter(i=>i.status==='in_progress').length;
+  const pct = active.length ? Math.round(100*doneN/active.length) : 0;
+
+  const CIRC = 2*Math.PI*56;
+  const ring = document.getElementById('lpp-ring');
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (CIRC*(1-pct/100)).toFixed(1));
+  document.getElementById('lpp-pct').textContent = pct+'%';
+
+  document.getElementById('lpp-kpis').innerHTML = [
+    {c:'acc', v:st.score.composite+' → '+st.score.target, l:'score, now → target'},
+    {c:'up',  v:doneN+'/'+active.length, l:'items proven done'},
+    {c:'mid', v:ipN, l:'in progress now'},
+    {c:'up',  v:(st.discards||[]).length, l:'ideas deliberately discarded'}
+  ].map(k=>'<div class="kpi"><b class="'+k.c+'">'+esc(k.v)+'</b><span>'+esc(k.l)+'</span></div>').join('');
+
+  document.getElementById('lpp-wavestrip').innerHTML = st.waves.map(w=>{
+    const wi = items.filter(i=>i.wave===w.id && i.status!=='dropped');
+    const wd = wi.filter(i=>i.status==='done').length;
+    const wp = wi.length ? Math.round(100*wd/wi.length) : 0;
+    return '<div class="wrow'+(wp===100?' done':'')+'">'+
+      '<span class="wl">'+esc(w.id)+' · '+esc(w.title)+'</span>'+
+      '<div class="wbar"><i style="inline-size:'+wp+'%"></i></div>'+
+      '<span class="wn num">'+wd+'/'+wi.length+(wp===100?' ✓':'')+'</span></div>';
+  }).join('');
+
+  const impactBar = i => i.impact!=null
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(Number(i.impact)*10)+'%"></i></span> <b class="num">'+Number(i.impact)+'</b></span>' : '';
+
+  const waveHtml = st.waves.map(w=>{
+    const wi=items.filter(i=>i.wave===w.id);
+    const wd=wi.filter(i=>i.status==='done').length;
+    return '<h2>'+esc(w.id)+' · '+esc(w.title)+' <span class="wavehead num">'+wd+'/'+wi.length+' done</span></h2>'+
+      wi.map(i=>{
+        let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
+        h+='<div class="meta">'+impactBar(i)+
+          (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+riskColor(i.risk)+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
+        if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
+        if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
+        if(i.evidence) h+='<p class="src" style="margin-block-start:8px"><b style="color:var(--pg-ok)">done when:</b> '+esc(i.evidence)+'</p>';
+        if(i.failure||i.containment) h+='<details><summary>risk detail</summary><p class="src"><b>failure:</b> '+esc(i.failure||'?')+'<br><b>containment:</b> '+esc(i.containment||'?')+'</p></details>';
+        return h+'</div>';
+      }).join('');
+  }).join('');
+
+  const waveIds = st.waves.map(w=>w.id);
+  const matrixHtml = '<h2>Progress matrix</h2><div class="card" style="overflow-x:auto"><table>'+
+    '<tr><th>id</th><th>item</th><th>before</th><th>now</th>'+waveIds.map(w=>'<th>after '+esc(w)+'</th>').join('')+'</tr>'+
+    items.map(i=>{
+      const now = i.status==='done' ? '<span style="color:var(--pg-ok)">✓ '+esc((i.after||'done').slice(0,60))+'</span>'
+        : i.status==='in_progress' ? '<span style="color:var(--pg-warm)">◐ in progress</span>'
+        : i.status==='dropped' ? '<span class="strike">dropped</span>'
+        : '<span class="faint">○ '+esc((i.before||'planned').slice(0,50))+'</span>';
+      const cells = waveIds.map(w=> w!==i.wave ? '<td class="faint">·</td>'
+        : '<td class="src">'+(i.status==='done'?'<span style="color:var(--pg-ok)">landed</span>':esc((i.after||'').slice(0,60)))+'</td>').join('');
+      return '<tr><td class="num faint">'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td class="src">'+esc((i.before||'').slice(0,60))+'</td><td>'+now+'</td>'+cells+'</tr>';
+    }).join('')+'</table></div>'+
+    '<div class="note">"Now" is computed from item statuses, never hand-written. A completed wave collapses into the Now column with a ✓.</div>';
+
+  const dims=st.score.dims||{};
+  const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(Number(v)*10)+'%"></i></div><span class="v num">'+Number(v).toFixed(1)+'</span></div>').join('')+
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>';
+
+  const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
+    '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
+    items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+riskColor(i.risk)+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+    ).join('')+'</table></div>';
+
+  const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+
+    '<tr><th>idea</th><th>why discarded</th></tr>'+
+    (st.discards||[]).map(d=>'<tr><td class="strike">'+esc(d.title)+'</td><td class="src">'+esc(d.reason)+'</td></tr>').join('')+
+    '</table></div><div class="note">A plan that remembers what it rejected does not re-litigate it next session.</div>';
+
+  const researchHtml = '<h2>Research that shaped the plan</h2>'+
+    (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
+      (safeUrl(r.source)?' · <a href="'+esc(safeUrl(r.source))+'">source</a>':'')+'</p></div>').join('');
+
+  const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
+    '<tr><th>when</th><th>note</th></tr>'+
+    (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
+    '</table></div>'+
+    '<div class="note">This is a LIVING artifact (lpp v'+Number(st.lpp)+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+
+  const panels=[
+    {id:'waves',label:'Execution waves',html:waveHtml},
+    {id:'matrix',label:'Progress matrix',html:matrixHtml},
+    {id:'scores',label:'Scores',html:scoreHtml},
+    {id:'risk',label:'Risk map',html:riskHtml},
+    {id:'discards',label:'Discards',html:discardsHtml}
+  ];
+  if((st.research||[]).length) panels.push({id:'research',label:'Research',html:researchHtml});
+  panels.push({id:'updates',label:'Updates',html:updatesHtml});
+
+  document.getElementById('lpp-tabs').innerHTML =
+    panels.map((p,i)=>'<button class="tab'+(i===0?' active':'')+'" data-t="'+p.id+'">'+p.label+'</button>').join('');
+  document.getElementById('lpp-panels').innerHTML =
+    panels.map((p,i)=>'<div class="panel'+(i===0?' active':'')+'" id="p-'+p.id+'">'+p.html+'</div>').join('');
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.t).classList.add('active');
+  }));
+})();
+</script>
+</body>
+</html>

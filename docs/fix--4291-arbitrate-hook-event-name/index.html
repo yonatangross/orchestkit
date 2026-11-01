@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A check that passed while one set drifted</title><style>
+:root{--bg:hsl(210 18% 8%);--ink:hsl(40 20% 94%);--muted:hsl(210 10% 62%);--faint:hsl(210 8% 44%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .16);--accent:hsl(168 55% 48%);--ok:hsl(152 55% 48%);--bad:hsl(4 72% 58%);--warn:hsl(36 90% 58%)}
+*{box-sizing:border-box}body{margin:0;background:
+radial-gradient(48rem 32rem at 12% -8%,hsl(168 40% 22% / .35),transparent 60%),
+radial-gradient(40rem 28rem at 92% 8%,hsl(210 50% 18% / .4),transparent 55%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 "IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
+.wrap{max-width:920px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px;font-family:"IBM Plex Serif",Georgia,serif}
+h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(210 22% 5% / .75);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.faint{color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06);vertical-align:top}tr:last-child td{border-bottom:none}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+button{appearance:none;border:1px solid var(--edge);background:var(--glass);color:var(--ink);font:inherit;font-size:13px;
+padding:8px 12px;border-radius:10px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.out{min-height:4.5rem;margin-top:8px}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">hooks &middot; derive-cc-output-keys &middot; #4291</div>
+<h1>The check that <span>passed on the wrong set.</span></h1>
+<p class="lede"><b>derive-cc-output-keys</b> check mode only arbitrated
+<code>EVENTS_WITH_ADDITIONAL_CONTEXT</code>. <code>EVENTS_WITH_HOOK_EVENT_NAME</code> drifted
+unchecked while the gate exited 0. A guard that cannot fail is not a guard.</p>
+
+<h2>What the binary measured (CC 2.1.278)</h2>
+<pre>strings &lt;cc&gt; | grep -oE 'hookEventName:R\("[A-Za-z]+"\)'
+→ 22 output-schema variants
+
+Missing from the generated set (envelope dropped today):
+  CwdChanged, FileChanged, Notification, Setup,
+  PostModelSwitch, UserPromptExpansion, ElicitationResult
+
+Ambiguous (kept, reviewed exception; no R("PostCompact") in the output union):
+  PostCompact</pre>
+
+<h2>Plant a drift (the acceptance bar)</h2>
+<p class="lede" style="margin-bottom:0">Toggle the fixture state. Clean must exit 0.
+Planted missing or reverse must exit non-zero and name the event plus the set.</p>
+<div class="btns" role="group" aria-label="Fixture state">
+  <button type="button" id="b-clean" aria-pressed="true">Clean set</button>
+  <button type="button" id="b-miss" aria-pressed="false">Plant missing (drop CwdChanged)</button>
+  <button type="button" id="b-rev" aria-pressed="false">Plant reverse (add FakeEvent)</button>
+</div>
+<pre class="out" id="out" aria-live="polite"></pre>
+
+<h2>Runtime change for each added event</h2>
+<table><thead><tr><th>Event</th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td><code>CwdChanged</code> / <code>FileChanged</code></td><td class="bad">whole envelope dropped</td><td class="ok">emitted; <code>watchPaths</code> UNVERIFIED (not stripped)</td></tr>
+<tr><td><code>Notification</code> / <code>Setup</code> / <code>PostModelSwitch</code> / <code>UserPromptExpansion</code></td><td class="bad">whole envelope dropped</td><td class="ok">emitted; also on additionalContext allow-list (reviewed)</td></tr>
+<tr><td><code>ElicitationResult</code></td><td class="bad">whole envelope dropped</td><td class="ok">emitted; <code>action</code> KEY_EVENTS extended</td></tr>
+</tbody></table>
+
+<div class="card"><h3>CI has no Claude Code binary</h3>
+<p>Truth for check mode is still binary strings (prose + <code>hookEventName:R</code>).
+Tests and fault-arms drive a committed fixture binary that embeds those literals,
+same pattern as <code>tests/ci/fault-arms/verify-cc-keys.sh</code>. No download.</p></div>
+
+<p class="foot">Refs: issue #4291, PR #4331, head effbfa095. Sibling pattern:
+<a href="/lab/fix--output-guard-hookeventname-invariant.html">output-guard hookEventName invariant</a>.</p>
+</div>
+<script>
+const BINARY = new Set([
+  "CwdChanged","Elicitation","ElicitationResult","FileChanged","MessageDisplay",
+  "Notification","PermissionDenied","PermissionRequest","PostModelSwitch",
+  "PostToolBatch","PostToolUse","PostToolUseFailure","PreModelSwitch","PreToolUse",
+  "SessionStart","Setup","Stop","SubagentStart","SubagentStop","UserPromptExpansion",
+  "UserPromptSubmit","WorktreeCreate"
+]);
+const REVIEWED = new Set(["PostCompact"]);
+const BASE = new Set([...BINARY, ...REVIEWED]);
+
+function arbitrate(generated) {
+  const missing = [...BINARY].filter((e) => !generated.has(e)).sort();
+  const unreviewed = [...generated].filter((e) => !BINARY.has(e) && !REVIEWED.has(e)).sort();
+  const lines = [];
+  lines.push("EVENTS_WITH_HOOK_EVENT_NAME / key=hookEventName");
+  if (missing.length) {
+    lines.push("DRIFT: binary has, generated lacks:");
+    for (const e of missing) lines.push("  " + e);
+  }
+  if (unreviewed.length) {
+    lines.push("DRIFT: generated has, binary lacks (no reviewed exception):");
+    for (const e of unreviewed) lines.push("  " + e);
+  }
+  if (!missing.length && !unreviewed.length) {
+    lines.push("OK: both directions clean");
+    return { rc: 0, text: lines.join("\n") };
+  }
+  return { rc: 1, text: lines.join("\n") };
+}
+
+const out = document.getElementById("out");
+const buttons = {
+  clean: document.getElementById("b-clean"),
+  miss: document.getElementById("b-miss"),
+  rev: document.getElementById("b-rev"),
+};
+
+function run(mode) {
+  for (const [k, el] of Object.entries(buttons)) el.setAttribute("aria-pressed", k === mode ? "true" : "false");
+  let gen = new Set(BASE);
+  if (mode === "miss") gen.delete("CwdChanged");
+  if (mode === "rev") gen.add("FakeEvent");
+  const { rc, text } = arbitrate(gen);
+  out.innerHTML = `<span class="${rc === 0 ? "ok" : "bad"}">exit ${rc}</span>\n` + text;
+}
+
+buttons.clean.addEventListener("click", () => run("clean"));
+buttons.miss.addEventListener("click", () => run("miss"));
+buttons.rev.addEventListener("click", () => run("rev"));
+run("clean");
+</script>
+</body></html>

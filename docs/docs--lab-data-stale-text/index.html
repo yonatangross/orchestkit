@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>No Conflict Left to Resolve | OrchestKit Lab</title>
+  <meta name="description" content="Two contributor docs still told people to conflict-resolve lab-data.ts. That file is generated at build, dev and test time and is not committed, so the advice pointed at a file that can no longer conflict.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    legend { font-weight: 600; }
+    .before { color: #f87171; }
+    .after { color: #4ade80; }
+    .quote { border-left: 3px solid #43566a; margin: 12px 0; padding: 4px 16px; font-size: 15px; }
+    .quote.bad { border-left-color: #f87171; }
+    .quote.good { border-left-color: #4ade80; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    button { font: inherit; color: #101822; background: #8fd8ff; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+    :focus-visible { outline: 3px solid #ffd580; outline-offset: 4px; }
+    .status-line { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre-wrap; }
+    .ok { color: #4ade80; }
+    .note { color: #b8c5d1; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · DOCS-LAB-DATA-STALE-TEXT</p>
+    <h1>No Conflict Left to Resolve</h1>
+    <p>PR 4188 made the Lab aggregate a generated file. Two contributor docs
+    kept the old advice anyway: they told people to take either side when
+    <code>lab-data.ts</code> conflicts. This change deletes that advice, because
+    the file it names can no longer be in a conflict at all.</p>
+
+    <article aria-labelledby="where">
+      <h2 id="where" class="note">The two passages</h2>
+      <p>The pull request template and the <code>create-pr</code> skill both
+      carried a version of the same sentence. The generated reference mdx and
+      the plugins copies are rebuilt from the skill source by the root build,
+      so the fix is two hand edits and one regeneration.</p>
+      <div class="quote bad"><span class="before">before:</span> On a merge conflict in the generated
+      <code>lab-data.ts</code>, take either side and rebuild; never hand-resolve it.</div>
+      <div class="quote good"><span class="after">after:</span> The <code>lab-data.ts</code> aggregate is generated at
+      build, dev and test time and is not committed, so there is no conflict to
+      resolve on it: publish a playground with one fragment under
+      <code>docs/site/lab-manifest/</code> and rebuild.</div>
+    </article>
+
+    <fieldset>
+      <legend>Why the old advice broke</legend>
+      <p>A committed file can conflict. A generated one cannot: it is not in the
+      index, so a merge never sees it. Try the merge that used to be the scary
+      case.</p>
+      <button id="merge" type="button">Merge two fragment PRs</button>
+      <div class="status-line" id="status">old world: lab-data.ts tracked, both PRs edit it &#8594; conflict expected</div>
+    </fieldset>
+
+    <p class="note">The fix touches docs only: one template, one skill source,
+    and the bytes the build derives from them. No runtime behavior changes.</p>
+
+    <p><a href="https://github.com/yonatangross/orchestkit/pull/4188">Read PR 4188</a> ·
+    <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <footer>docs-lab-data-stale-text · OrchestKit docs site · the advice follows the build.</footer>
+  </main>
+  <script>
+    (function() {
+      var status = document.getElementById("status");
+      var btn = document.getElementById("merge");
+      btn.addEventListener("click", function() {
+        status.innerHTML =
+          "<span class=\"ok\">git merge branch-b</span> &#8594; merge rc=0, unmerged paths: 0\n" +
+          "lab-data.ts not in the index: no side to take, no resolution step\n" +
+          "run the generator once &#8594; both fragments present, aggregate correct";
+        btn.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>

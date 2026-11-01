@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3542 — a "session limit" that counted five months</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:60rem;margin:0 auto}
+  h1{font-size:1.3rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.75rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  label{display:block;margin:.85rem 0 .3rem;color:var(--dim);font-size:.85rem}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{color:var(--fg);font-weight:700}
+  .row{display:flex;gap:1.5rem;flex-wrap:wrap}
+  .row>div{flex:1 1 15rem}
+  .verdicts{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.25rem}
+  .v{flex:1 1 16rem;padding:.85rem 1rem;border-radius:6px;background:#0b0f14;
+     border:1px solid var(--line);border-left-width:4px}
+  .v.bad{border-left-color:var(--bad)} .v.ok{border-left-color:var(--ok)}
+  .v h3{margin:0 0 .3rem;font-size:.82rem;color:var(--dim);font-weight:400;
+        text-transform:uppercase;letter-spacing:.04em}
+  .v .r{font-size:1.05rem;font-weight:700}
+  .v.bad .r{color:var(--bad)} .v.ok .r{color:var(--ok)}
+  .v p{margin:.4rem 0 0;font-size:.85rem;color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:400}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+  pre{margin:0;overflow-x:auto;background:#0b0f14;padding:.75rem;border-radius:6px;
+      border:1px solid var(--line);font-size:.85rem}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>A "session limit" that counted five months</h1>
+  <p class="lede">
+    The cap was named per-session but counted every line the telemetry log had
+    ever accumulated. Move the sliders: the left verdict is what shipped, the
+    right is what this PR does.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="mine">Queries <em>this</em> session: <span class="val" id="mineV">3</span></label>
+        <input id="mine" type="range" min="0" max="80" value="3">
+      </div>
+      <div>
+        <label for="others">Queries from other/older sessions in the same log: <span class="val" id="othersV">33</span></label>
+        <input id="others" type="range" min="0" max="200" value="33">
+      </div>
+    </div>
+    <label for="cap">Cap (<code>ORK_CONTEXT7_MAX_QUERIES_PER_SESSION</code>): <span class="val" id="capV">50</span></label>
+    <input id="cap" type="range" min="10" max="200" step="5" value="50">
+
+    <div class="verdicts">
+      <div class="v bad" id="oldV">
+        <h3>before — counts the whole file</h3>
+        <div class="r" id="oldR"></div>
+        <p id="oldP"></p>
+      </div>
+      <div class="v ok" id="newV">
+        <h3>after — counts this session</h3>
+        <div class="r" id="newR"></div>
+        <p id="newP"></p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why it stayed invisible for five months</h2>
+  <div class="panel">
+    <p style="margin:0 0 .6rem">
+      The file has a rotation mechanism, so a reader assumes the counter
+      self-heals. It cannot:
+    </p>
+    <table>
+      <tbody>
+        <tr><td>rotation threshold</td><td class="n"><code>MAX_LOG_SIZE</code> 102400 B</td></tr>
+        <tr><td>observed line size</td><td class="n">108 B</td></tr>
+        <tr><td>lines before rotation fires</td><td class="n">~951</td></tr>
+        <tr><td>lines before the cap denies</td><td class="n" style="color:var(--bad)">50</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--dim)">
+      Rotation is <strong>19x out of reach</strong>. It has never once fired before
+      a blackout and structurally cannot. The only thing that ever cleared this was
+      a human renaming the file by hand on 2026-08-18.
+    </p>
+  </div>
+
+  <h2>The second call site</h2>
+  <div class="panel">
+    <p style="margin:0 0 .6rem">
+      The same whole-file assumption also fed the context injected into the model
+      on every call:
+    </p>
+<pre><code>Context7: 36 queries, 4 libraries. Recent: ...</code></pre>
+    <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--dim)">
+      36 was a lifetime total presented as the current session's. Fixing only the
+      cap would have left the model being told a false number, in a string that
+      looks correct.
+    </p>
+  </div>
+
+  <div class="foot">
+    Backward compatibility is the remediation: lines written before this change
+    carry no <code>session=</code> field, so they read as belonging to no session
+    and stop counting the moment it ships. No rotation, no manual rename. Issue
+    #3542.
+  </div>
+</main>
+
+<script>
+(function(){
+  var mine=document.getElementById('mine'), others=document.getElementById('others'),
+      cap=document.getElementById('cap'),
+      mineV=document.getElementById('mineV'), othersV=document.getElementById('othersV'),
+      capV=document.getElementById('capV'),
+      oldV=document.getElementById('oldV'), oldR=document.getElementById('oldR'), oldP=document.getElementById('oldP'),
+      newV=document.getElementById('newV'), newR=document.getElementById('newR'), newP=document.getElementById('newP');
+
+  function render(){
+    var m=+mine.value, o=+others.value, c=+cap.value;
+    mineV.textContent=m; othersV.textContent=o; capV.textContent=c;
+
+    var oldCount=m+o, oldBlocked=oldCount>=c;
+    oldV.className='v '+(oldBlocked?'bad':'ok');
+    oldR.textContent=oldBlocked?('DENIED at '+oldCount+'/'+c):('allowed, '+oldCount+'/'+c);
+    oldP.textContent=oldBlocked
+      ? 'Counts '+m+' of yours plus '+o+' that are not yours. Nothing you do in this session clears it, because nothing in this session put most of it there.'
+      : 'Under the cap only because the shared log happens to be short. Every call by anyone brings this closer, permanently.';
+
+    var newBlocked=m>=c;
+    newV.className='v '+(newBlocked?'bad':'ok');
+    newR.textContent=newBlocked?('DENIED at '+m+'/'+c):('allowed, '+m+'/'+c);
+    newP.textContent=newBlocked
+      ? 'You genuinely made '+m+' calls this session. The cap now means what its name says, and ORK_CONTEXT7_MAX_QUERIES_PER_SESSION can raise it.'
+      : 'The '+o+' foreign lines are ignored. A new session always starts at zero, so a stale log can never deny you again.';
+  }
+  [mine,others,cap].forEach(function(el){ el.addEventListener('input',render); });
+  render();
+})();
+</script>
+</body>
+</html>
