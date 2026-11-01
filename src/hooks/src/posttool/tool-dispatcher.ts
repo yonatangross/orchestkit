@@ -10,10 +10,10 @@
  * process.
  *
  * OFF by default: wired only into the flag variant written by
- * scripts/unified-pretool-hooks.mjs, which keeps every PostToolUse group
- * matcher and points each at this one identical command. CC launches an
- * identical command once per event, so a call any group matches starts one
- * process, and a call no group matches starts none, exactly as today.
+ * scripts/unified-pretool-hooks.mjs, which replaces the PostToolUse groups
+ * with one entry for this command whose matcher is the union of theirs. A
+ * call any group matches starts one process, and a call no group matches
+ * starts none, exactly as today, without relying on CC deduping commands.
  *
  * Routing: POSTTOOL_GROUPS mirrors the shipped PostToolUse groups (a test
  * asserts deep equality), matched the way CC matches: empty or "*" is every

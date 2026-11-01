@@ -10,12 +10,12 @@
  *
  *   PreToolUse     every group replaced by one matcher-less group that runs
  *                  pretool/tool-dispatcher (phase 1)
- *   PostToolUse    every group KEPT with its matcher, its hooks replaced by
- *                  the one identical posttool/tool-dispatcher command. CC
- *                  launches an identical command once per event (measured
- *                  2026-10-31 with --debug-file on CC 2.1.316), so a call any
- *                  group matches starts one process and a call none matches
- *                  starts none, with matching unchanged (phase 2)
+ *   PostToolUse    every group replaced by ONE entry running
+ *                  posttool/tool-dispatcher, whose matcher is the union of
+ *                  the groups' matchers (unionMatcher): a call any group
+ *                  matches starts one process, a call none matches starts
+ *                  none. No tool matches two entries, so the count does not
+ *                  rest on CC deduping identical commands (phase 2)
  *   PostToolBatch  dropped (tool-batch-observer is a one-line telemetry
  *                  probe; operator-approved for the variant only)
  *   other events   copied unchanged
@@ -59,20 +59,42 @@ export function unifiedPretoolHooks(hooksDoc) {
 }
 
 /**
- * Return a copy of hooksDoc whose PostToolUse groups all run the one
- * dispatcher command. The handlers now run in sequence inside one process,
- * so the timeout is the longest single handler timeout plus 15 s of slack.
+ * One matcher that fires exactly when any of `matchers` would, under CC's
+ * rules: absent, "" or "*" is every tool (so the union is every tool); word
+ * characters, "-" and "|" are an exact list, kept exact by an anchored
+ * alternation; anything else is a regular expression, kept as its own
+ * alternative so it keeps whichever semantics CC gives it.
+ */
+export function unionMatcher(matchers) {
+  if (matchers.some((m) => m === undefined || m === '' || m === '*')) return undefined;
+  const names = [];
+  const patterns = [];
+  for (const m of matchers) {
+    if (/^[\w|-]+$/.test(m)) {
+      for (const n of m.split('|')) if (n && !names.includes(n)) names.push(n);
+    } else if (!patterns.includes(m)) {
+      patterns.push(m);
+    }
+  }
+  if (!patterns.length) return names.join('|');
+  const parts = names.length ? [`^(?:${names.join('|')})$`] : [];
+  for (const p of patterns) parts.push(`(?:${p})`);
+  return parts.join('|');
+}
+
+/**
+ * Return a copy of hooksDoc whose PostToolUse groups are replaced by one
+ * dispatcher entry. The handlers run in sequence inside one process, so the
+ * timeout is the longest single handler timeout plus 15 s of slack.
  */
 export function unifiedPosttoolHooks(hooksDoc) {
   const doc = structuredClone(hooksDoc);
   const groups = doc.hooks?.PostToolUse ?? [];
+  if (!groups.length) return doc;
   const timeout = Math.max(15, ...timeoutsOf(groups, { syncOnly: false })) + 15;
-  const one = command(UNIFIED_POSTTOOL_HANDLER, timeout);
-  doc.hooks.PostToolUse = groups.map((g) => {
-    const out = { hooks: [structuredClone(one)] };
-    if (g.matcher !== undefined) return { matcher: g.matcher, ...out };
-    return out;
-  });
+  const one = { hooks: [command(UNIFIED_POSTTOOL_HANDLER, timeout)] };
+  const matcher = unionMatcher(groups.map((g) => g.matcher));
+  doc.hooks.PostToolUse = [matcher === undefined ? one : { matcher, ...one }];
   return doc;
 }
 
