@@ -8,8 +8,34 @@ import { expect, test } from "@playwright/test";
  * the sticky nav let page text show through, the Codex command was 45%
  * hidden at 1440, and the Installation page broke the command mid-word.
  */
+/**
+ * The webServer is `next dev`, which compiles a route on its first request.
+ * The first /docs route in this file used to pay that compile inside a 30s
+ * test budget: run 39112334293 (job 117631083485) spent 40.0s and its
+ * page.goto ended in ERR_ABORTED when the test timed out, and run 39121361933
+ * (attempt 1) timed out on the Close Banner click after the same goto. Both
+ * retries passed in 14.8s and 4.2s once the route was warm (#4800).
+ */
+const DOCS_ROUTES = ["/docs/foundations/overview", "/docs/getting-started/installation"];
+
 test.describe("Site QA", () => {
 	test.use({ viewport: { width: 1440, height: 900 } });
+
+	test.beforeAll(async ({ playwright }, testInfo) => {
+		// Wait for each docs route to compile, in its own budget, so no test
+		// measures the compile. A 200 means the route is built; the tests
+		// still load the page themselves.
+		test.setTimeout(180_000);
+		const api = await playwright.request.newContext({ baseURL: testInfo.project.use.baseURL });
+		try {
+			for (const route of DOCS_ROUTES) {
+				const res = await api.get(route, { timeout: 170_000 });
+				expect(res.status(), `warm ${route}`).toBe(200);
+			}
+		} finally {
+			await api.dispose();
+		}
+	});
 
 	for (const path of ["/", "/changelog", "/community"]) {
 		test(`sticky nav surface is opaque mid-scroll on ${path}`, async ({ page }) => {
@@ -51,19 +77,24 @@ test.describe("Site QA", () => {
 		// The dotted banner id made fumadocs' pre-hydration hide rule an invalid
 		// selector, and the offset was measured before the banner was removed,
 		// so the docs sidebar kept a ~48px gap until the first scroll (review).
-		await page.goto("/docs/foundations/overview");
+		await page.goto(DOCS_ROUTES[0]);
 		await page.getByRole("button", { name: "Close Banner" }).click();
 		await page.reload({ waitUntil: "load" });
 		// Past hydration (fumadocs removes the dismissed banner in an effect), with
-		// no scroll, which is when the stale offset used to show.
-		await page.waitForTimeout(1500);
-		const state = await page.evaluate(() => ({
-			offset: getComputedStyle(document.documentElement).getPropertyValue("--fd-banner-height").trim(),
-			scrollY: window.scrollY,
-		}));
-		expect(state.scrollY).toBe(0);
+		// no scroll, which is when the stale offset used to show. Wait for the
+		// banner to leave, then poll the offset: the stale offset held until the
+		// first scroll, so it still fails once the poll times out.
 		await expect(page.getByRole("region", { name: "Release announcement" })).toHaveCount(0);
-		expect(["", "0px"]).toContain(state.offset);
+		await expect
+			.poll(
+				() =>
+					page.evaluate(() =>
+						getComputedStyle(document.documentElement).getPropertyValue("--fd-banner-height").trim(),
+					),
+				{ message: "--fd-banner-height after a dismissed banner" },
+			)
+			.toMatch(/^(0px)?$/);
+		expect(await page.evaluate(() => window.scrollY)).toBe(0);
 	});
 
 	test("the release banner sits in a named landmark", async ({ page }) => {
@@ -91,7 +122,7 @@ test.describe("Site QA", () => {
 	});
 
 	test("the Installation page never breaks a command mid-word", async ({ page }) => {
-		await page.goto("/docs/getting-started/installation");
+		await page.goto(DOCS_ROUTES[1]);
 		await expect(page.getByText("Click a chip")).toHaveCount(0);
 		const card = page.getByRole("button", { name: /^Copy claude plugin marketplace add/ }).first();
 		await expect(card).toBeVisible();
