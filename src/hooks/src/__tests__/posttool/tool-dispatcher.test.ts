@@ -158,14 +158,24 @@ describe('posttool/tool-dispatcher merge', () => {
 describe('flag variant (pre + post)', () => {
   const variant = unifiedToolHooks(shipped);
 
-  it('keeps every PostToolUse group matcher, each with the one identical dispatcher command', () => {
+  // One entry, never the same command in several groups: a process count that
+  // holds only because CC dedupes identical commands is untested (the Codex
+  // HOLD class on hq-ext#2731), so no tool may match two dispatcher entries.
+  it('has exactly one PostToolUse entry, running the dispatcher once', () => {
     const groups = variant.hooks.PostToolUse;
-    expect(groups.map((g: { matcher?: string }) => g.matcher)).toEqual(
-      shipped.hooks.PostToolUse.map((g: { matcher?: string }) => g.matcher),
-    );
-    const commands = new Set(groups.map((g: { hooks: unknown[] }) => JSON.stringify(g.hooks)));
-    expect(commands.size).toBe(1);
-    expect([...commands][0]).toContain(UNIFIED_POSTTOOL_HANDLER);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].hooks).toHaveLength(1);
+    expect(JSON.stringify(groups[0].hooks[0])).toContain(UNIFIED_POSTTOOL_HANDLER);
+  });
+
+  const TOOLS = [
+    'Bash', 'BashOutput', 'Read', 'ReadMcpResourceTool', 'Write', 'Edit', 'MultiEdit', 'NotebookEdit',
+    'Grep', 'Glob', 'Agent', 'Task', 'TaskUpdate', 'TaskCreate', 'TodoWrite', 'Skill', 'WebFetch',
+    'WebSearch', 'Monitor', 'mcp__memory__search_nodes', 'mcp__context7__query-docs', 'xmcp__thing',
+  ];
+  it.each(TOOLS)('the one entry fires for %s exactly when a shipped group routes it', (tool) => {
+    const routed = shipped.hooks.PostToolUse.some((g: { matcher?: string }) => ccMatcherMatches(g.matcher, tool));
+    expect(ccMatcherMatches(variant.hooks.PostToolUse[0].matcher, tool)).toBe(routed);
   });
 
   it('drops PostToolBatch (tool-batch-observer) from the variant only', () => {
