@@ -248,6 +248,15 @@ cp "$WORK/control/first-row.jsonl" "$B/d.jsonl"
 run_traffic "$B/d.out" "$B/d.err" "$B/d.gh" "$B/d.jsonl" TRAFFIC_STUB_FAIL_VIEWS=1
 if [ "$RC" -eq 0 ] && grep -q '^row=skipped$' "$B/d.gh" && cmp -s "$WORK/control/first-row.jsonl" "$B/d.jsonl"; then ok "backfill: a complete week is skipped with no API call"; else bad "backfill D: rc=$RC gh=$(cat "$B/d.gh" 2>/dev/null) err=$(cat "$B/d.err")"; fi
 
+# --- #4752: a rebuild refreshes the open PR's body from the ledger row ---------
+# The PR step built the body from the new row, then `gh pr create` failed for an
+# already-open PR and only warned, so the PR kept the first build's numbers. And
+# since #4528 the measured week's row is not always the file's last line.
+WF="$REPO_ROOT/.github/workflows/traffic-snapshot.yml"
+if grep -q 'gh pr edit "\$EXISTING" --body-file "\$BODY_FILE"' "$WF"; then ok "workflow: an open PR's body is replaced on a rebuild"; else bad "workflow: no 'gh pr edit \$EXISTING --body-file' for an already-open PR"; fi
+if grep -q 'gh pr list --head "\$BRANCH" --state open' "$WF"; then ok "workflow: the step looks up an open PR for the branch first"; else bad "workflow: no open-PR lookup for the branch"; fi
+if grep -q "select(.week == \$w)" "$WF" && ! grep -q 'tail -n 1 docs/traffic/snapshots.jsonl' "$WF"; then ok "workflow: the PR body reads the measured week's row by key"; else bad "workflow: the PR body still reads the last line, not the week's row"; fi
+
 # --- local referrers: dropped from the row, counted, never named ----------------
 # Regression arm for #4621: a referrer like board.localhost is a private host
 # name that must not land in the public ledger or the PR body. The row keeps
