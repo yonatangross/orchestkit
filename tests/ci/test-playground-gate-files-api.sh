@@ -75,7 +75,9 @@ if grep -qx 'required=false' "$OUT" && ! grep -qF 'Could not read the PR diff' "
 else
   log_fail "failed closed instead of reading the files API: $(message)"
 fi
-if grep -qF "${sep}paginate" "$CALLS" && grep -qF 'pulls/4965/files' "$CALLS" && grep -qF 'per_page=100' "$CALLS"; then
+# -e: the pattern starts with two hyphens, which grep would parse as an
+# option without it.
+if grep -qF -e "${sep}paginate" "$CALLS" && grep -qF 'pulls/4965/files' "$CALLS" && grep -qF 'per_page=100' "$CALLS"; then
   log_pass "files API read is paginated at per_page=100"
 else
   log_fail "files API not read paginated at per_page=100; calls: $(tr '\n' ' ' < "$CALLS")"
