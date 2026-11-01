@@ -680,7 +680,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Quality Rating",
-            "does": "6-dimension scoring (0-10)",
+            "does": "7-dimension scoring (0-10)",
             "out": "Scores with reasoning",
             "tag": null
           },

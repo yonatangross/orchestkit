@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 1: three skills get a routing boundary</title>
+<meta name="description" content="Round 1 of the OrchestKit quality loop. A fresh-eyes agent scored the ten most-used skills; pick one of the three lowest to see its score, the top issue it found, and what changed.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.9rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .bad{color:var(--bad)} .ok{color:var(--ok)} .dim{color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.78rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+</style>
+</head>
+<body><main>
+<h1>Skill fitness round 1: three skills get a routing boundary</h1>
+<p class="sub">Branch chore/skill-fitness-round-1, 2026-11-01. One isolated agent scored each of the ten most-used skills on freshness, clarity and structure (0 to 10 each). One sample per skill, so a gap of 1 or 2 points is noise.</p>
+
+<section><h2>Pick a skill</h2>
+<select id="skill" aria-label="skill">
+  <option value="brainstorm">brainstorm (19 of 30)</option>
+  <option value="expect">expect (19 of 30)</option>
+  <option value="assess">assess (20 of 30)</option>
+</select>
+<div class="grid">
+  <div><div class="dim">the scorer's top issue</div><div class="out bad" id="issue"></div></div>
+  <div><div class="dim">what this PR changes</div><div class="out ok" id="fix"></div></div>
+</div>
+</section>
+
+<section><h2>All ten, weakest first</h2>
+<table>
+<tr><th>skill</th><th>fresh</th><th>clarity</th><th>structure</th><th>total</th></tr>
+<tr><td>brainstorm</td><td>7</td><td>6</td><td>6</td><td>19</td></tr>
+<tr><td>expect</td><td>6</td><td>6</td><td>7</td><td>19</td></tr>
+<tr><td>assess</td><td>7</td><td>6</td><td>7</td><td>20</td></tr>
+<tr><td>review-pr</td><td>7</td><td>6</td><td>8</td><td>21</td></tr>
+<tr><td>auto</td><td>7</td><td>6</td><td>8</td><td>21</td></tr>
+<tr><td>visualize-plan</td><td>8</td><td>6</td><td>8</td><td>22</td></tr>
+<tr><td>verify</td><td>7</td><td>8</td><td>7</td><td>22</td></tr>
+<tr><td>page-serve</td><td>8</td><td>7</td><td>8</td><td>23</td></tr>
+<tr><td>glyph</td><td>8</td><td>8</td><td>8</td><td>24</td></tr>
+<tr><td>ci-debug</td><td>8</td><td>8</td><td>8</td><td>24</td></tr>
+</table>
+<p class="dim">Mean 21.5 of 30. Eight of ten descriptions have no "Not for" boundary, so a router that reads only the description cannot tell them apart from neighbours. Round 2 starts with review-pr, the most used skill.</p>
+</section>
+
+<script>
+const CASES = {
+  brainstorm: [
+    'SKILL.md was 512 lines (cap 500), mostly version-tagged notes. The description had no "Not for" clause, so it read like implement or assess.',
+    'Description gains "Not for building, fixing or committing code (use implement or fix-issue) and not for rating work that already exists (use assess)". The session notes move to references/claude-code.md; SKILL.md is 494 lines.'
+  ],
+  expect: [
+    'No "Not for" clause against cover and verify. The footer said version 1.0.0 (March 2026) while the frontmatter said 1.2.0.',
+    'Description gains "Not for writing new tests (use cover), grading an existing suite (use verify), or running unit tests". The footer now points at the frontmatter version.'
+  ],
+  assess: [
+    'No "Not for" clause against fix-issue, review-pr and verify. The text said six dimensions while the rubric file and the verdict example list seven.',
+    'Description gains "Not for fixing or building, reviewing a pull request, or running the test suites". Six becomes seven everywhere it counted dimensions, and the description lists the rubric dimensions (scalability and compliance, not simplicity).'
+  ]
+};
+function render() {
+  const [a, b] = CASES[document.getElementById('skill').value];
+  document.getElementById('issue').textContent = a;
+  document.getElementById('fix').textContent = b;
+}
+document.getElementById('skill').addEventListener('change', render);
+render();
+</script>
+</main></body>
+</html>

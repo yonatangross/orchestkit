@@ -82,6 +82,8 @@ Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP 
 
 CLI equivalent: `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit`.
 
+Channels: `ork` is the stable channel, pinned to the latest release. `ork-alpha` is the same plugin tracking `main`, in the same marketplace (`claude plugin install ork-alpha@orchestkit`); use it only if you want changes before they are released.
+
 ### Cursor
 
 Settings → Plugins / marketplaces → add `yonatangross/orchestkit` → enable **ork** → **open a new chat**. Same plugin Claude Code installs, not a five-skill fork. See [Install → Cursor](#cursor).

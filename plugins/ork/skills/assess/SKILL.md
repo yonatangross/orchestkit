@@ -2,7 +2,7 @@
 name: assess
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
+description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scalability, testability, compliance) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches. Not for fixing or building (use fix-issue or implement), reviewing a pull request (use review-pr), or running the test suites (use verify)."
 user-invocable: true
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
@@ -45,8 +45,8 @@ assess frontend/src/components/Dashboard
 | Effort | Behavior |
 |---|---|
 | `low` / `medium` | Subset of dimensions, faster turnaround |
-| `high` (default) | All six dimensions with pros/cons |
-| `xhigh` | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+| `high` (default) | All seven dimensions with pros/cons |
+| `xhigh` | All seven dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
 > `xhigh` silently falls back to `high` on a model that does not implement it: no error, no log line. `doctor` Category 14 reports this, and only when it can positively prove the active model lacks the tier.
 
@@ -175,7 +175,7 @@ TaskCreate(
 # 2. Create subtasks for each assessment phase
 TaskCreate(subject="Understand target and gather context", activeForm="Understanding target")   # id=2
 TaskCreate(subject="Discover scope and build file list", activeForm="Discovering scope")        # id=3
-TaskCreate(subject="Rate quality across 6 dimensions", activeForm="Rating quality")             # id=4
+TaskCreate(subject="Rate quality across 7 dimensions", activeForm="Rating quality")             # id=4
 TaskCreate(subject="Analyze pros and cons", activeForm="Analyzing pros/cons")                   # id=5
 TaskCreate(subject="Compare alternatives", activeForm="Comparing alternatives")                 # id=6
 TaskCreate(subject="Generate improvement suggestions", activeForm="Generating suggestions")     # id=7
@@ -202,7 +202,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 |-------|------------|--------|
 | **1. Target Understanding** | Read code/design, identify scope | Context summary |
 | **1.5. Scope Discovery** | Build bounded file list | Scoped file list |
-| **2. Quality Rating** | 6-dimension scoring (0-10) | Scores with reasoning |
+| **2. Quality Rating** | 7-dimension scoring (0-10) | Scores with reasoning |
 | **3. Pros/Cons Analysis** | Strengths and weaknesses | Balanced evaluation |
 | **4. Alternative Comparison** | Score alternatives | Comparison matrix |
 | **5. Improvement Suggestions** | Actionable recommendations | Prioritized list |
