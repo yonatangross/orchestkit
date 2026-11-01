@@ -94,6 +94,24 @@ if [ -z "$FILES" ] && [ -n "$PR_NUMBER" ]; then
     printf '::warning::PR files API read failed: %s\n' "$(head -c 300 "$api_err" | tr '\n' ' ')"
     FILES=""
   fi
+  # The files API stops at 3000 files even when paginated, and says
+  # nothing when it does. A list cut at the cap can hide a user-facing
+  # path, so a non-empty list counts only when it matches the PR's own
+  # changed_files total. Unreadable total, total past 3000, or any
+  # mismatch: fail closed.
+  if [ -n "$FILES" ]; then
+    total=""
+    if ! total=$(gh api "repos/${repo}/pulls/${PR_NUMBER}" "$jq_flag" '.changed_files' 2>"$api_err"); then
+      printf '::warning::PR changed_files read failed: %s\n' "$(head -c 300 "$api_err" | tr '\n' ' ')"
+      rm -f "$api_err"
+      finish true "Could not read the PR changed_files total; requiring a playground (fail-closed)."
+    fi
+    read_count=$(printf '%s\n' "$FILES" | awk 'NF { n++ } END { print n + 0 }')
+    if ! [[ "$total" =~ ^[0-9]+$ ]] || [ "$total" -gt 3000 ] || [ "$read_count" -ne "$total" ]; then
+      rm -f "$api_err"
+      finish true "The PR files API listed ${read_count} of ${total} changed files (GitHub lists at most 3000); requiring a playground (fail-closed)."
+    fi
+  fi
   rm -f "$api_err"
 fi
 
