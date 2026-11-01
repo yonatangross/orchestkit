@@ -235,8 +235,12 @@ export interface HookInput {
   /** NOT sent — the #1264 invented name */
   form_schema?: Record<string, unknown>;
 
-  // ElicitationResult event: fires after the user responds.
-  /** The user's response — action + submitted field values */
+  // ElicitationResult event: fires after the user responds. Captured on 2.1.310
+  // (#4884) as {mcp_server_name, mode, action}: the action is top level and
+  // there is no user_response.
+  /** The user's answer to the elicitation (verified 2.1.310) */
+  action?: 'accept' | 'decline' | 'cancel';
+  /** NOT sent by 2.1.310: the old guess at the ElicitationResult shape, kept only so old readers typecheck */
   user_response?: {
     action?: 'accept' | 'decline' | 'cancel';
     content?: Record<string, unknown>;

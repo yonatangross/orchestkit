@@ -83,7 +83,75 @@ export function writeWorktreeAdvisory(
 
 export interface PendingWorktreeAdvisories {
   content: string;
-  files: Array<{ name: string; content: string; originalContent: string }>;
+  /**
+   * `remainder` is set on a file that was only partly delivered (#4922):
+   * acknowledging it rewrites the file with the undelivered lines instead of
+   * deleting it, so the rest arrives on the next prompt.
+   */
+  files: Array<{ name: string; content: string; originalContent: string; remainder?: string }>;
+}
+
+const ADVISORY_JOIN = '\n\n---\n\n';
+
+/** Appended to a delivered part when the rest of that advisory is kept on disk. */
+export const ADVISORY_CONTINUES_NOTE = '[worktree advisory continues on the next prompt]';
+
+function lineCount(text: string): number {
+  return text.split('\n').length;
+}
+
+/**
+ * Narrow `pending` to what fits in `maxChars` and `maxLines` (#4922). Whole
+ * advisories are kept in order while they fit; the first one that does not is
+ * split at a line boundary, its undelivered lines are carried as `remainder`,
+ * and later advisories are left out (they stay on disk untouched). Returns
+ * null when not even one line fits.
+ */
+export function fitWorktreeAdvisories(
+  pending: PendingWorktreeAdvisories,
+  maxChars: number,
+  maxLines: number,
+): PendingWorktreeAdvisories | null {
+  if (pending.content.length <= maxChars && lineCount(pending.content) <= maxLines) return pending;
+
+  const files: PendingWorktreeAdvisories['files'] = [];
+  const parts: string[] = [];
+  let chars = 0;
+  let lines = 0;
+  for (const file of pending.files) {
+    const joinChars = parts.length > 0 ? ADVISORY_JOIN.length : 0;
+    const joinLines = parts.length > 0 ? lineCount(ADVISORY_JOIN) - 1 : 0;
+    const wholeLines = lineCount(file.content);
+    if (chars + joinChars + file.content.length <= maxChars && lines + joinLines + wholeLines <= maxLines) {
+      parts.push(file.content);
+      files.push(file);
+      chars += joinChars + file.content.length;
+      lines += joinLines + wholeLines;
+      continue;
+    }
+
+    // Split this advisory: keep its first lines plus the continuation note.
+    const roomChars = maxChars - chars - joinChars - ADVISORY_CONTINUES_NOTE.length - 1;
+    const roomLines = maxLines - lines - joinLines - 1;
+    const fileLines = file.content.split('\n');
+    let take = 0;
+    let takeChars = 0;
+    while (take < fileLines.length && take < roomLines) {
+      const next = takeChars + (take > 0 ? 1 : 0) + fileLines[take].length;
+      if (next > roomChars) break;
+      takeChars = next;
+      take++;
+    }
+    if (take > 0) {
+      const head = fileLines.slice(0, take).join('\n');
+      parts.push(`${head}\n${ADVISORY_CONTINUES_NOTE}`);
+      files.push({ ...file, content: head, remainder: fileLines.slice(take).join('\n') });
+    }
+    break;
+  }
+
+  if (files.length === 0) return null;
+  return { content: parts.join(ADVISORY_JOIN), files };
 }
 
 /**
@@ -139,10 +207,13 @@ export function readWorktreeAdvisories(projectDir: string, sessionId = ''): Pend
   }
 
   if (files.length === 0) return null;
-  return { content: files.map(file => file.content).join('\n\n---\n\n'), files };
+  return { content: files.map(file => file.content).join(ADVISORY_JOIN), files };
 }
 
-/** Delete only the exact advisory contents that were accepted for delivery. */
+/**
+ * Delete only the exact advisory contents that were accepted for delivery.
+ * A partly delivered file is rewritten with its remainder instead (#4922).
+ */
 export function acknowledgeWorktreeAdvisories(
   projectDir: string,
   pending: PendingWorktreeAdvisories,
@@ -152,7 +223,9 @@ export function acknowledgeWorktreeAdvisories(
   for (const file of pending.files) {
     const fullPath = join(dir, file.name);
     try {
-      if (readFileSync(fullPath, 'utf8') === file.originalContent) unlinkSync(fullPath);
+      if (readFileSync(fullPath, 'utf8') !== file.originalContent) continue;
+      if (file.remainder?.trim()) writeFileSync(fullPath, `${file.remainder.trimEnd()}\n`, 'utf8');
+      else unlinkSync(fullPath);
     } catch {
       // Preserve files that changed or could not be read/deleted for a retry.
     }

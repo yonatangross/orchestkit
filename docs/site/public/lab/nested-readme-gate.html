@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A nested README no longer needs a playground</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 48rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A nested README no longer needs a playground"><meta property="og:description" content="The PR Playground gate treats README.md and CHANGELOG.md as docs at any depth, so a registry entry in src/hooks/README.md stops requiring a playground."><meta property="og:url" content="https://orchestkit.dev/lab/nested-readme-gate.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A nested README no longer needs a playground"><meta name="twitter:description" content="The PR Playground gate treats README.md and CHANGELOG.md as docs at any depth, so a registry entry in src/hooks/README.md stops requiring a playground."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>A nested README no longer needs a playground</h1>
+  <p class="sub">PR playground for #4926: the PR Playground gate in
+    <code>scripts/ci/playground-gate-decision.sh</code> now treats <code>README.md</code> and
+    <code>CHANGELOG.md</code> as docs at any depth.</p>
+
+  <div class="card">
+    <h2>What the gate decides</h2>
+    <table>
+      <thead><tr><th>changed paths</th><th>before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td><code>src/hooks/README.md</code> and <code>plugins/ork/hooks/README.md</code></td><td class="bad">playground required</td><td class="good">no playground</td></tr>
+        <tr><td><code>src/hooks/CHANGELOG.md</code></td><td class="bad">playground required</td><td class="good">no playground</td></tr>
+        <tr><td><code>README.md</code> at the repo root</td><td class="good">no playground</td><td class="good">no playground</td></tr>
+        <tr><td><code>src/hooks/README.md</code> and a hook <code>.ts</code> file</td><td>playground required</td><td>playground required</td></tr>
+        <tr><td><code>src/hooks/NOTREADME.md</code></td><td>playground required</td><td>playground required</td></tr>
+        <tr><td><code>src/hooks/README.md.ts</code></td><td>playground required</td><td>playground required</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why it was wrong</h2>
+    <p style="margin-block-start:0">
+      The inert list anchored every entry at the repo root, so <code>README.md</code> matched only
+      the top level file. A two line registry entry in <code>src/hooks/README.md</code>, plus its
+      byte identical copy under <code>plugins/</code>, was treated as a user facing change. The
+      pattern is now <code>(.*/)?README\.md</code> and <code>(.*/)?CHANGELOG\.md</code>. Every
+      other inert entry keeps its root anchor, and a mixed diff is still decided by its non inert
+      file.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Verification</h2>
+    <table>
+      <thead><tr><th>check</th><th>result</th></tr></thead>
+      <tbody>
+        <tr><td>red commit: 5 new cases in <code>tests/ci/test-playground-gate-inertness.sh</code></td><td class="bad">nested README and nested CHANGELOG cases fail on the old pattern</td></tr>
+        <tr><td>green commit: the one line pattern change</td><td class="good">CI at the pushed head is the proof</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>CI gate fix. No change to the plugin users install.</footer>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
