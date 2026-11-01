@@ -13,7 +13,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CHECK="$ROOT/.github/scripts/check-repo-description.sh"
 FAIL=0
-SCRATCH="$(mktemp -d)"
+SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/ork-repo-description.XXXXXX")"
 trap 'rm -rf "$SCRATCH"' EXIT
 
 marker() {
