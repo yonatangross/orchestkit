@@ -23,6 +23,18 @@ if [ "${1:-}" = "api" ]; then
       cat "$GH_STUB_FILES"
       exit 0
       ;;
+    *"pulls/4965 "*".changed_files"*)
+      # GH_STUB_CHANGED_FILES is the PR's own total; GitHub's file list
+      # stops at 3000, so a test sets it above the served list to model
+      # the cap. "fail" makes the read fail. Default: the list length.
+      total="${GH_STUB_CHANGED_FILES:-$count}"
+      if [ "$total" = "fail" ]; then
+        echo "HTTP 502: Bad Gateway" >&2
+        exit 1
+      fi
+      echo "$total"
+      exit 0
+      ;;
   esac
 fi
 

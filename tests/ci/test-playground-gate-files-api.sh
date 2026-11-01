@@ -53,10 +53,11 @@ fi
 
 # Runs the real decision script with the stub gh first on PATH and an empty
 # stdin, so it must fetch the list itself (the CI shape).
-decide_live() { # files_file
+decide_live() { # files_file [changed_files_total|fail]
   : > "$CALLS"
   env -u GITHUB_OUTPUT \
     PATH="$STUB_BIN:$PATH" GH_STUB_FILES="$1" GH_STUB_LOG="$CALLS" \
+    GH_STUB_CHANGED_FILES="${2:-}" \
     GITHUB_REPOSITORY="yonatangross/orchestkit" PR_NUMBER=4965 \
     HEAD_REF="fix/playground-graveyard-4571" PR_AUTHOR="octocat" IS_FORK="false" \
     bash "$DECISION" < /dev/null > "$OUT" 2>&1
@@ -107,6 +108,43 @@ if grep -qx 'required=true' "$OUT" && grep -qF 'fail-closed' "$OUT"; then
   log_pass "empty files API answer requires a playground"
 else
   log_fail "empty files API answer did not fail closed: $(message)"
+fi
+
+section "4. Past the 3000-file cap: a short list fails closed"
+# GitHub's PR files API stops at 3000 files even when paginated. A PR
+# with 3200 changed files serves 3000 inert paths and hides the rest, so
+# a user-facing path can be among the missing 200. The gate must compare
+# the list it read with the PR's changed_files total and fail closed.
+CAPPED="$WORK_DIR/capped.txt"
+for i in $(seq 1 3000); do
+  printf 'docs/chore%sold-%s/index.html\n' "$sep" "$i"
+done > "$CAPPED"
+decide_live "$CAPPED" 3200
+if grep -qx 'required=true' "$OUT" && grep -qF 'fail-closed' "$OUT" && grep -qF '3000' "$OUT"; then
+  log_pass "3000 of 3200 files read: playground required, cap named"
+else
+  log_fail "a capped list (3000 of 3200) was treated as complete: $(message)"
+fi
+if grep -qF '.changed_files' "$CALLS"; then
+  log_pass "gate reads the PR changed_files total"
+else
+  log_fail "gate never read changed_files; calls: $(tr '\n' ' ' < "$CALLS")"
+fi
+
+section "5. Exactly 3000 of 3000 files: decided from the list"
+decide_live "$CAPPED" 3000
+if grep -qx 'required=false' "$OUT"; then
+  log_pass "a complete 3000-file list still decides: $(message)"
+else
+  log_fail "a complete 3000-file list failed closed: $(message)"
+fi
+
+section "6. The changed_files total cannot be read: fail closed"
+decide_live "$BIG_INERT" fail
+if grep -qx 'required=true' "$OUT" && grep -qF 'fail-closed' "$OUT"; then
+  log_pass "unreadable total requires a playground"
+else
+  log_fail "unreadable changed_files total did not fail closed: $(message)"
 fi
 
 echo
