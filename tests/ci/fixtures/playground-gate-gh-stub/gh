@@ -1,0 +1,42 @@
+#!/bin/bash
+# Stub gh for tests/ci/test-playground-gate-inertness.sh section 9 (#4571).
+# Answers like GitHub does: a PR diff read past 300 files fails with
+# HTTP 406, the paginated files API returns every path. Never touches the
+# network. GH_STUB_FILES names the path list, GH_STUB_LOG records each call.
+set -uo pipefail
+
+printf '%s\n' "$*" >> "$GH_STUB_LOG"
+count=$(awk 'NF{n++} END{print n+0}' "$GH_STUB_FILES")
+
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "diff" ]; then
+  if [ "$count" -gt 300 ]; then
+    echo "could not find pull request diff: HTTP 406: Sorry, the diff exceeded the maximum number of files (300)." >&2
+    exit 1
+  fi
+  cat "$GH_STUB_FILES"
+  exit 0
+fi
+
+if [ "${1:-}" = "api" ]; then
+  case "$*" in
+    *"--paginate"*"pulls/4965/files"*)
+      cat "$GH_STUB_FILES"
+      exit 0
+      ;;
+    *"pulls/4965 "*".changed_files"*)
+      # GH_STUB_CHANGED_FILES is the PR's own total; GitHub's file list
+      # stops at 3000, so a test sets it above the served list to model
+      # the cap. "fail" makes the read fail. Default: the list length.
+      total="${GH_STUB_CHANGED_FILES:-$count}"
+      if [ "$total" = "fail" ]; then
+        echo "HTTP 502: Bad Gateway" >&2
+        exit 1
+      fi
+      echo "$total"
+      exit 0
+      ;;
+  esac
+fi
+
+echo "stub gh: unexpected call: $*" >&2
+exit 1

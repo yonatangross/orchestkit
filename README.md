@@ -642,6 +642,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.0](https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0)** · 2026-11-01
+
+- **hooks:** one-process tool dispatchers behind a flagged hooks.json variant (#4962)
+- **ci:** playground gate reads the PR files API, not the diff (#4967)
+
 **[v10.4.4](https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4)** · 2026-11-01
 
 - **hooks:** disabled hook on a file stdin no longer hits a TDZ (#4885) (#4949)
@@ -689,12 +694,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **plugin:** plain description that states hook scope (#4759)
 - **tests:** docs.yml parity test compares temp files, not /dev/fd (#4933)
 - **skills:** move the json-render skills to 0.21.3 (#4929)
-
-**[v10.2.2](https://github.com/yonatangross/orchestkit/compare/v10.2.1...v10.2.2)** · 2026-10-26
-
-- **hooks:** consolidate prompt hook processes (#4909)
-- **hooks:** never spawn an unrestricted claude under --restricted (#4906)
-- **site:** close the orank sandbox, card and discoverability gaps (#4908)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
