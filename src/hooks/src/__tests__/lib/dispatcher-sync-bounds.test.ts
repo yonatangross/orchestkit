@@ -45,9 +45,7 @@ function reachable(): string[] {
 function untimedSyncCalls(file: string): string[] {
   const s = stripComments(readFileSync(file, 'utf8'));
   const out: string[] = [];
-  const re = /\b(execSync|execFileSync|spawnSync)\s*\(/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(s))) {
+  for (const m of s.matchAll(/\b(execSync|execFileSync|spawnSync)\s*\(/g)) {
     let depth = 0;
     const open = m.index + m[0].length - 1;
     let j = open;

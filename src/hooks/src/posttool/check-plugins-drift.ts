@@ -80,12 +80,20 @@ export function loadSnapshot(projectDir: string): PluginsDriftSnapshot | null {
  * Has `plugins/` been touched in any commit since `sinceIso`?
  * Returns false on git failure (treat as "no rebuild evidence").
  */
+/**
+ * Each git call stays well inside this hook's 5 s budget (two calls, plus the
+ * snapshot reads). A timeout throws like any git failure and is treated the
+ * same way ("no rebuild evidence"). Folded into the tool dispatcher, an
+ * untimed call could not be interrupted and held every guard (#4962).
+ */
+const GIT_TIMEOUT_MS = 2000;
+
 export function pluginsTouchedSince(projectDir: string, sinceIso: string): boolean {
   try {
     const out = execFileSync(
       'git',
       ['-C', projectDir, 'log', `--since=${sinceIso}`, '--name-only', '--pretty=format:', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
   } catch {
@@ -110,7 +118,7 @@ export function pluginsDirtyNow(projectDir: string): boolean {
     const out = execFileSync(
       'git',
       ['--no-optional-locks', '-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
   } catch {

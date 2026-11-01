@@ -56,7 +56,8 @@ function getLanguage(filePath: string): string | null {
 function commandExists(cmd: string): boolean {
   try {
     assertSafeCommandName(cmd);
-    execFileSync('which', [cmd], { stdio: 'ignore', windowsHide: true });
+    // Bounded: blocking work inside the tool dispatcher cannot be interrupted (#4962).
+    execFileSync('which', [cmd], { stdio: 'ignore', windowsHide: true, timeout: 1000 });
     return true;
   } catch {
     return false;
