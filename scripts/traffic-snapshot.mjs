@@ -35,7 +35,7 @@
 //   1  fail-closed abort; nothing was written
 
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { isIP } from 'node:net';
 import path from 'node:path';
 
@@ -236,12 +236,18 @@ function aggregate(buckets, win, label) {
   return { total, uniques, days_observed: days.length, days };
 }
 
-// --- idempotency -----------------------------------------------------------------
-// One JSONL row per week: if a row with this week key already exists, skip.
+// --- ledger: one JSONL row per week, refreshed while incomplete (#4528) -----------
+// The traffic API lags about 5 days, so the Monday run sees ~3 of 7 days of the
+// previous week. A recorded week with fewer than 7 days observed that still
+// overlaps the API's 14-day span is re-read and replaced when the new read has
+// more days. A complete week is never re-read, and other lines stay byte-identical.
 
-function existingWeeks(outPath) {
-  if (!existsSync(outPath)) return new Set();
-  const weeks = new Set();
+const FULL_WEEK = 7;
+const API_SPAN_DAYS = 14;
+
+function readLedger(outPath) {
+  if (!existsSync(outPath)) return [];
+  const lines = [];
   for (const line of readFileSync(outPath, 'utf8').split('\n')) {
     if (line.trim() === '') continue;
     let row;
@@ -250,11 +256,18 @@ function existingWeeks(outPath) {
     } catch {
       die(`${outPath}: existing file has a line that is not valid JSON; refusing to append to a corrupted ledger`);
     }
-    if (row !== null && typeof row === 'object' && typeof row.week === 'string') {
-      weeks.add(row.week);
-    }
+    lines.push({ text: line, row });
   }
-  return weeks;
+  return lines;
+}
+
+function daysObserved(row) {
+  return Math.min(row?.views?.days_observed ?? 0, row?.clones?.days_observed ?? 0);
+}
+
+function weekWindowOf(weekKey) {
+  const start = new Date(`${weekKey}T00:00:00Z`);
+  return { start, end: new Date(start.getTime() + 7 * DAY_MS), weekKey };
 }
 
 function emitGitHubOutput(key, value) {
@@ -274,9 +287,22 @@ if (args.now !== null) {
 }
 
 const win = weekWindow(now);
+const ledger = readLedger(args.out);
+const recorded = new Map(
+  ledger
+    .filter((l) => l.row !== null && typeof l.row === 'object' && typeof l.row.week === 'string')
+    .map((l) => [l.row.week, l.row])
+);
+const apiSpanStart = new Date(now.getTime() - API_SPAN_DAYS * DAY_MS);
+// Older recorded weeks that are short and still (partly) inside the API span.
+const refreshable = [...recorded.values()]
+  .filter((r) => r.week !== win.weekKey && daysObserved(r) < FULL_WEEK)
+  .map((r) => weekWindowOf(r.week))
+  .filter((w) => w.end > apiSpanStart && w.end <= win.start);
+const targetDone = recorded.has(win.weekKey) && daysObserved(recorded.get(win.weekKey)) >= FULL_WEEK;
 
-if (existingWeeks(args.out).has(win.weekKey)) {
-  console.log(`traffic-snapshot: week ${win.weekKey} already recorded in ${args.out}; skipping (no API calls made)`);
+if (targetDone && refreshable.length === 0) {
+  console.log(`traffic-snapshot: week ${win.weekKey} already recorded complete in ${args.out}; skipping (no API calls made)`);
   emitGitHubOutput('row', 'skipped');
   emitGitHubOutput('week', win.weekKey);
   process.exit(0);
@@ -290,19 +316,52 @@ const referrersAll = readItems(`${base}/popular/referrers`, 'traffic/popular/ref
 const referrers = referrersAll.filter((r) => !isLocalReferrer(r.referrer));
 const localDropped = referrersAll.length - referrers.length;
 
-const row = {
-  week: win.weekKey,
-  generated_at: now.toISOString(),
-  source: 'github-traffic-api',
-  views: aggregate(views.buckets, win, 'traffic/views'),
-  clones: aggregate(clones.buckets, win, 'traffic/clones'),
-  popular_paths: { window_days: 14, items: popularPaths },
-  referrers: { window_days: 14, local_dropped: localDropped, items: referrers },
-};
+function buildRow(w) {
+  return {
+    week: w.weekKey,
+    generated_at: now.toISOString(),
+    source: 'github-traffic-api',
+    views: aggregate(views.buckets, w, 'traffic/views'),
+    clones: aggregate(clones.buckets, w, 'traffic/clones'),
+    popular_paths: { window_days: 14, items: popularPaths },
+    referrers: { window_days: 14, local_dropped: localDropped, items: referrers },
+  };
+}
 
+const hasBuckets = (w) =>
+  [views, clones].every((s) => s.buckets.some((b) => b.timestamp >= w.start && b.timestamp < w.end));
+
+// The measured week fails closed on zero buckets (aggregate dies); an older
+// refreshable week with no bucket left in the span is simply kept as recorded.
+const fresh = new Map();
+for (const w of refreshable) {
+  if (!hasBuckets(w)) continue;
+  const row = buildRow(w);
+  if (daysObserved(row) > daysObserved(recorded.get(w.weekKey))) fresh.set(w.weekKey, row);
+}
+const target = buildRow(win);
+if (!recorded.has(win.weekKey) || daysObserved(target) > daysObserved(recorded.get(win.weekKey))) {
+  fresh.set(win.weekKey, target);
+}
+
+if (fresh.size === 0) {
+  console.log(`traffic-snapshot: no recorded week gained days in ${args.out}; skipping`);
+  emitGitHubOutput('row', 'skipped');
+  emitGitHubOutput('week', win.weekKey);
+  process.exit(0);
+}
+
+// Replace changed rows in place (ledger order kept), append a new measured week.
+const out = ledger.map((l) =>
+  typeof l.row?.week === 'string' && fresh.has(l.row.week) ? JSON.stringify(fresh.get(l.row.week)) : l.text
+);
+if (!recorded.has(win.weekKey)) out.push(JSON.stringify(target));
 mkdirSync(path.dirname(args.out), { recursive: true });
-appendFileSync(args.out, `${JSON.stringify(row)}\n`);
+writeFileSync(args.out, `${out.join('\n')}\n`);
 
-console.log(`traffic-snapshot: wrote row for week ${win.weekKey} (${args.out}): views ${row.views.total}/${row.views.uniques}, clones ${row.clones.total}/${row.clones.uniques}, local referrers dropped ${localDropped}`);
+const updated = [...fresh.keys()].sort();
+const row = fresh.get(win.weekKey) ?? recorded.get(win.weekKey);
+console.log(`traffic-snapshot: updated week(s) ${updated.join(', ')} (${args.out}): measured week ${win.weekKey} views ${row.views.total}/${row.views.uniques}, clones ${row.clones.total}/${row.clones.uniques}, local referrers dropped ${localDropped}`);
 emitGitHubOutput('row', 'written');
 emitGitHubOutput('week', win.weekKey);
+emitGitHubOutput('updated', updated.join(','));
