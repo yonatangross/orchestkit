@@ -65,6 +65,9 @@ export function proofRuns(logText) {
 export function judge(runs, hooksDoc, { breakId, require = [] } = {}) {
   const problems = [];
   const report = [];
+  // An empty log proves nothing: a flag-on session with no proof tokens means
+  // the dispatchers never ran (or proof mode was off), not that all is well.
+  if (!runs.length) problems.push('no dispatcher run with proof tokens in the log (flag off, or ORK_DISPATCH_PROOF unset?)');
   for (const run of runs) {
     const expected = expectedIds(hooksDoc, run.event, run.tool);
     const counts = new Map();

@@ -462,6 +462,13 @@ if (bundleLoadError) {
 // #4678: a gate that is the only check on a write must not pass when its
 // code is absent: a missing bundle or a missing handler blocks (exit 2).
 const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+// #4971: the tool dispatchers are the only tool-event entries in the flag
+// variant, so a missing or stale dispatcher bundle or handler blocks. Only
+// the bundle checks read this set: a dispatcher's input paths (an oversized
+// or empty payload, starved stdin) keep the runner's usual silent continue
+// (b10 HOLD 6560089425), and the dispatchers fail closed on their own
+// lost verdicts inside the handler.
+const FAIL_CLOSED_ON_BUNDLE = new Set([...FAIL_CLOSED_WHEN_MISSING, 'pretool/tool-dispatcher', 'posttool/tool-dispatcher']);
 
 // #4962: the tool dispatchers abandon a handler at its budget (lib/budget.ts)
 // instead of awaiting it. Its timers or I/O would keep this process alive
@@ -475,13 +482,13 @@ function failMissing(what) {
 
 // #4678: this gate runs only from its own version's bundle, never a cached
 // older or newer one that may lack its rules.
-if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && effectiveDistDir !== distDir) {
+if (FAIL_CLOSED_ON_BUNDLE.has(hookName) && effectiveDistDir !== distDir) {
   failMissing("would load another version's bundle from the plugin cache");
 }
 
 if (!hooks) {
   // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
-  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no bundle');
+  if (FAIL_CLOSED_ON_BUNDLE.has(hookName)) failMissing('has no bundle');
   silentExit();
 }
 
@@ -490,7 +497,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
-  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('has no handler in its bundle');
+  if (FAIL_CLOSED_ON_BUNDLE.has(hookName)) failMissing('has no handler in its bundle');
   silentExit();
 }
 
