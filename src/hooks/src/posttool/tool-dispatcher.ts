@@ -32,9 +32,9 @@
  * - A sync or rewake handler missing from the build blocks (fail closed); a
  *   missing plain async handler is skipped, as run-hook.mjs does today.
  * - Guards (sync, rewake) run before observers, and every handler runs
- *   within its hooks.json timeout (lib/budget.ts). A guard over budget
- *   blocks (fail closed); an observer over budget is dropped silently; the
- *   run goes on either way.
+ *   within its hooks.json timeout (lib/budget.ts). A guard over budget or
+ *   one that throws blocks (fail closed); an observer is dropped silently;
+ *   the run goes on either way.
  * - Each handler is isolated: a throw is logged and the rest still run.
  */
 
@@ -334,8 +334,15 @@ export async function posttoolDispatch(
       absorb(merged, r, member);
       proof.record(id, 'ok');
     } catch (err) {
-      ctx.log(HOOK_NAME, `${id} failed (isolated): ${err instanceof Error ? err.message : String(err)}`);
+      const msg = err instanceof Error ? err.message : String(err);
       proof.record(id, 'failed');
+      if (isGuard(member)) {
+        // A throw loses a guard's verdict as surely as time does: block.
+        ctx.log(HOOK_NAME, `${id} failed (blocks): ${msg}`);
+        merged.blockReasons.push(`[orchestkit] hook "${id}" failed (${msg}), so it blocks.`);
+      } else {
+        ctx.log(HOOK_NAME, `${id} failed (isolated): ${msg}`);
+      }
     }
   }
   const result = build(merged);

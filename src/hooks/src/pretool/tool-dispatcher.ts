@@ -28,7 +28,7 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { ProofLog, proofBreaks, proofBreakError, proofEnabled, type ProofEnv } from '../lib/dispatch-proof.js';
+import { ProofLog, proofBreaks, proofBreakError, type ProofEnv } from '../lib/dispatch-proof.js';
 import { syncBashDispatcher } from './bash/sync-bash-dispatcher.js';
 import { syncWriteEditDispatcher } from './write-edit/sync-write-edit-dispatcher.js';
 import { tldrSummary } from './read/tldr-summary.js';
@@ -117,6 +117,18 @@ export interface DispatchOptions {
 
 const defaultBudget = (id: string) => (PRETOOL_TIMEOUTS_S[id] ?? 15) * 1000;
 
+/** The fail-closed verdict when the primary's own verdict is lost (over budget or a throw). */
+function lostVerdict(id: string, why: string): HookResult {
+  return {
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: `[orchestkit] hook "${id}" ${why}, so it denies.`,
+    },
+  };
+}
+
 async function isolated(
   name: string,
   fn: Fn,
@@ -145,8 +157,8 @@ async function isolated(
 
 /**
  * `env` is injectable for tests; it only drives the dispatch proof
- * (lib/dispatch-proof.ts). With proof mode off, a throw from the primary
- * handler propagates exactly as it did from its own process.
+ * (lib/dispatch-proof.ts). A primary that throws or runs out of budget
+ * denies (fail closed); observers and the forward stay isolated.
  */
 export async function toolDispatcher(
   input: HookInput,
@@ -176,22 +188,19 @@ export async function toolDispatcher(
           // A verdict lost to time fails closed: deny, naming the hook.
           ctx.log(HOOK_NAME, `${primaryId} over its ${budget} ms budget (abandoned, denies)`);
           proof.record(primaryId, 'failed');
-          result = {
-            continue: true,
-            hookSpecificOutput: {
-              hookEventName: 'PreToolUse',
-              permissionDecision: 'deny',
-              permissionDecisionReason: `[orchestkit] hook "${primaryId}" did not finish within its ${budget} ms budget, so it denies.`,
-            },
-          };
+          result = lostVerdict(primaryId, `did not finish within its ${budget} ms budget`);
         } else {
           result = r;
           proof.record(primaryId, 'ok');
         }
       } catch (err) {
+        // A throw loses the verdict too. run-hook.mjs would turn it into a
+        // silent continue (its catch, run-hook.mjs:965 and :976), an allow;
+        // the dispatcher denies instead, naming the hook.
+        const msg = err instanceof Error ? err.message : String(err);
+        ctx.log(HOOK_NAME, `${primaryId} failed (denies): ${msg}`);
         proof.record(primaryId, 'failed');
-        if (!proofEnabled(env)) throw err;
-        ctx.log(HOOK_NAME, `${primaryId} failed (proof mode): ${err instanceof Error ? err.message : String(err)}`);
+        result = lostVerdict(primaryId, `failed (${msg})`);
       }
     }
   } finally {
