@@ -9,7 +9,10 @@
 #   HEAD_REF     head branch
 #   PR_AUTHOR    PR author login
 #   IS_FORK      true when the head repo is not this repo
-#   PR_NUMBER    when set and stdin has no paths, read the diff via gh
+#   PR_NUMBER    when set and stdin has no paths, read the changed files
+#                from the paginated PR files API via gh
+#   GITHUB_REPOSITORY  owner/repo for that API call (set by Actions;
+#                gh resolves {owner}/{repo} from the checkout when unset)
 #   GITHUB_OUTPUT  when set, append required=true|false for the workflow
 #
 # Stdout always includes:
@@ -75,8 +78,23 @@ if [ ! -t 0 ]; then
   FILES=$(cat)
 fi
 if [ -z "$FILES" ] && [ -n "$PR_NUMBER" ]; then
-  name_only="${pair}name-only"
-  FILES=$(gh pr diff "$PR_NUMBER" "$name_only" 2>/dev/null || true)
+  # The files API, not the PR diff: GitHub refuses a diff past 300 files
+  # (HTTP 406), which made every large PR fail closed here (#4571, #4965).
+  # The files API pages at 100 and lists up to 3000 files. A failed call
+  # leaves FILES empty, which fails closed below; its stderr is surfaced
+  # as a warning so the cause is in the log.
+  repo="${GITHUB_REPOSITORY:-}"
+  if [ -z "$repo" ]; then
+    repo='{owner}/{repo}'
+  fi
+  paginate="${pair}paginate"
+  jq_flag="${pair}jq"
+  api_err="$(mktemp "${TMPDIR:-/tmp}/ork-gate-api.XXXXXX")"
+  if ! FILES=$(gh api "$paginate" "repos/${repo}/pulls/${PR_NUMBER}/files?per_page=100" "$jq_flag" '.[].filename' 2>"$api_err"); then
+    printf '::warning::PR files API read failed: %s\n' "$(head -c 300 "$api_err" | tr '\n' ' ')"
+    FILES=""
+  fi
+  rm -f "$api_err"
 fi
 
 # gh name-only output ends in a newline, and a here-string adds another.
