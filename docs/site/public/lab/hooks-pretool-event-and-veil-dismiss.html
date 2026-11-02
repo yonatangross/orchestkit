@@ -78,51 +78,76 @@
 </section>
 
 <script>
-const GUARD_EVENTS = new Set(['PreToolUse','PostToolUse','SubagentStart','SubagentStop','Setup']);
 const $ = (id) => document.getElementById(id);
+
+// Every result is a list of segments: plain text, an optional colour class,
+// or a line break. Segments become DOM nodes through textContent only, and
+// the copy-as-prompt text is the same segments joined, so no markup string is
+// ever built or parsed.
+const seg = (text, cls) => ({ text, cls });
+const BR = { br: true };
+
+function show(el, parts) {
+  el.replaceChildren();
+  for (const p of parts) {
+    if (p.br) { el.append(document.createElement('br')); continue; }
+    if (p.cls) {
+      const span = document.createElement('span');
+      span.className = p.cls;
+      span.textContent = p.text;
+      el.append(span);
+    } else {
+      el.append(document.createTextNode(p.text));
+    }
+  }
+}
+
+const plain = (parts) => parts.map((p) => (p.br ? ' ' : p.text)).join('');
 
 function labelCase(ev) {
   const before = ev === 'PostToolUse'
-    ? '<span class="ok">hookEventName: PostToolUse</span><br>matches the event.'
-    : '<span class="bad">hookEventName: PostToolUse</span><br>' + (ev === 'none' ? 'a guess.' : 'the event is ' + ev + '.');
-  let after;
-  if (ev === 'none') after = '<span class="ok">no label from the helper</span><br>run-hook\'s output guard stamps the event that actually fired (its Rule 0).';
-  else after = '<span class="ok">hookEventName: ' + ev + '</span><br>read from the hook input.';
+    ? [seg('hookEventName: PostToolUse', 'ok'), BR, seg('matches the event.')]
+    : [seg('hookEventName: PostToolUse', 'bad'), BR, seg(ev === 'none' ? 'a guess.' : 'the event is ' + ev + '.')];
+  const after = ev === 'none'
+    ? [seg('no label from the helper', 'ok'), BR, seg("run-hook's output guard stamps the event that actually fired (its Rule 0).")]
+    : [seg('hookEventName: ' + ev, 'ok'), BR, seg('read from the hook input.')];
   return { before, after };
 }
 
 function veilCase(t, pick) {
   const late = t > 120;
   if (pick === 'dismiss') return {
-    before: late ? 'nothing; the offer had already ended as Keep.' : 'ask rejects; value stays covered.',
-    after: late ? 'ends quietly; value stays covered.' : 'ask rejects; value stays covered.'
+    before: [seg(late ? 'nothing; the offer had already ended as Keep.' : 'ask rejects; value stays covered.')],
+    after: [seg(late ? 'ends quietly; value stays covered.' : 'ask rejects; value stays covered.')]
   };
-  if (!late) return {
-    before: pick.startsWith('Copy') ? '<span class="ok">copied</span>; Claude still sees dots.' : 'nothing copied.',
-    after: pick.startsWith('Copy') ? '<span class="ok">copied</span>; Claude still sees dots.' : 'nothing copied.'
-  };
+  if (!late) {
+    const copied = pick.startsWith('Copy')
+      ? [seg('copied', 'ok'), seg('; Claude still sees dots.')]
+      : [seg('nothing copied.')];
+    return { before: copied, after: copied };
+  }
   return {
-    before: '<span class="bad">nothing happens and nothing says so</span>; the offer ended as Keep at 120 s, the dialog still looks live.',
-    after: 'nothing copied, and one toast: <span class="warn">"that copy question had expired; nothing was copied, the value stays covered"</span>.'
+    before: [seg('nothing happens and nothing says so', 'bad'), seg('; the offer ended as Keep at 120 s, the dialog still looks live.')],
+    after: [seg('nothing copied, and one toast: '), seg('"that copy question had expired; nothing was copied, the value stays covered"', 'warn'), seg('.')]
   };
 }
 
 function render() {
   const ev = $('event').value;
   const l = labelCase(ev);
-  $('before').innerHTML = l.before; $('after').innerHTML = l.after;
+  show($('before'), l.before); show($('after'), l.after);
   const t = Number($('t').value), pick = $('pick').value;
   $('secs').textContent = t;
   $('dot').style.left = (t / 240 * 100) + '%';
   const v = veilCase(t, pick);
-  $('vbefore').innerHTML = v.before; $('vafter').innerHTML = v.after;
+  show($('vbefore'), v.before); show($('vafter'), v.after);
   const evText = ev === 'none' ? 'an input with no event' : ev;
   $('prompt').textContent =
     'In orchestkit PR #5005, check two cases:\n' +
     '1. A hook firing on ' + evText + ' that returns outputWithContext(ctx, input): expect ' +
     (ev === 'none' ? 'no hookEventName from the helper, then the firing event stamped by sanitizeOutput.' : 'hookEventName ' + ev + '.') + '\n' +
     '2. secrets-veil copy question answered with "' + (pick === 'dismiss' ? 'Esc' : pick) + '" after ' + t + ' s (deadline 120 s): expect ' +
-    veilCase(t, pick).after.replace(/<[^>]+>/g, '') ;
+    plain(v.after);
 }
 
 ['event','t','pick'].forEach((id) => $(id).addEventListener('input', render));
