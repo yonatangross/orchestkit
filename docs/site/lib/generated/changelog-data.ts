@@ -18,6 +18,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.5.3",
+    "date": "2026-11-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**traffic:** snapshot week of 2026-10-26 ([#4988](https://github.com/yonatangross/orchestkit/issues/4988)) ([0f510ce](https://github.com/yonatangross/orchestkit/commit/0f510ce208b989ae249955d907d2e301dd1b4fc3))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.5.2",
+    "date": "2026-11-02",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** 4528 4752 4697 ([#4980](https://github.com/yonatangross/orchestkit/issues/4980)) ([7d97f77](https://github.com/yonatangross/orchestkit/commit/7d97f771a4fc10e61de65d71395a688b888f5c1b))",
+          "**ci:** fail when the repo description carries stale counts ([#4975](https://github.com/yonatangross/orchestkit/issues/4975)) ([f01f13c](https://github.com/yonatangross/orchestkit/commit/f01f13cdd860aa71b3fbc85a8bd4417f36b887d1))",
+          "**docs:** Lab render check covers pruned entries from public/lab ([#4976](https://github.com/yonatangross/orchestkit/issues/4976)) ([8e91103](https://github.com/yonatangross/orchestkit/commit/8e911030e729e0fccb90ce1e9a8601c65c2a0e08))",
+          "**hooks:** gerund after 'without ... and' stays negated ([#4715](https://github.com/yonatangross/orchestkit/issues/4715)) ([#4978](https://github.com/yonatangross/orchestkit/issues/4978)) ([595f440](https://github.com/yonatangross/orchestkit/commit/595f440ada4dd62650219782249aa20fd5e611c1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.5.1",
     "date": "2026-11-01",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1",

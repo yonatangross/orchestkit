@@ -1,0 +1,80 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CI batch: traffic weeks fill in, PR bodies refresh, the activation gate stops counting background: false</title>
+<meta name="description" content="Three CI fixes in one PR: the traffic snapshot refreshes a short week while the API still holds its days (#4528), a rebuild refreshes the open PR body (#4752), and the skill activation gate counts only background: true (#4697).">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.week{display:flex;gap:4px;margin:6px 0}.day{width:26px;height:22px;border-radius:4px;background:#e3e1da;font-size:11px;display:flex;align-items:center;justify-content:center;color:#6b6a64}
+.day.on{background:#2f6f3e;color:#fff}.day.lost{background:#e7b7b7;color:#7a1c1c}
+.ctl{margin:10px 0}.ctl button{font:inherit;padding:4px 10px;border-radius:6px;border:1px solid #c9c7bf;background:#fff;cursor:pointer;margin-right:6px}
+.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th{color:#9a998f}.verdict,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}.day{background:#33332f;color:#9a998f}.ctl button{background:#1f1f1d;color:#ecebe6;border-color:#44443f}}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="CI batch: traffic weeks fill in, PR bodies refresh, the activation gate stops counting background: false"><meta property="og:description" content="The traffic snapshot refreshes a short week while the API still holds its days (#4528), a rebuild refreshes the open PR body (#4752), and the skill activation gate counts only background: true (#4697)."><meta property="og:url" content="https://orchestkit.dev/lab/batch-ork-ci-traffic-weeks-activation-gate.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="CI batch: traffic weeks fill in, PR bodies refresh, the activation gate stops counting background: false"><meta name="twitter:description" content="The traffic snapshot refreshes a short week while the API still holds its days (#4528), a rebuild refreshes the open PR body (#4752), and the skill activation gate counts only background: true (#4697)."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body>
+
+<h1>CI batch: three gates that measured less than they said</h1>
+<p class="lede">Branch <code>fix/batch-ork-ci-4528-4752-4697</code>. One commit per issue: #4528, #4752, #4697.</p>
+
+<p class="verdict"><b>Verdict.</b> The weekly traffic ledger no longer loses about 4 days a week, a rebuilt traffic PR shows the numbers its data file holds, and the skill activation gate no longer passes a skill whose only "trigger" is the line <code>background: false</code>. Three skills that passed that way are now wired or explicitly allowlisted.</p>
+
+<h2>1. #4528: a short week is refreshed, not skipped forever</h2>
+<p>The GitHub traffic API lags about 5 days, so the Monday run sees roughly 3 of the previous week's 7 days. The script skipped any week that already had a row, so the other 4 days were never read, and they leave the API's 14-day span a week later.</p>
+<div class="ctl"><button id="run">Run the next Monday</button><button id="reset">Reset</button> <span class="mut" id="mode"></span></div>
+<div class="cols">
+  <div class="card before"><h3>Before: skip a recorded week</h3><div id="b"></div></div>
+  <div class="card after"><h3>After: refresh a short week while the API holds it</h3><div id="a"></div></div>
+</div>
+<p class="mut">A row is replaced in place only when the new read has more days; other lines stay byte-identical; a complete ledger still makes no API call; a short week already outside the 14-day span stays as recorded.</p>
+
+<h2>2. #4752: a rebuild refreshes the open PR's body</h2>
+<div class="cols">
+  <div class="card before"><h3>Before</h3><pre>gh pr create ... || echo "::warning::gh pr create failed"
+# PR #4717 kept the first build: views 366/221/6
+# while the rebuilt row said 391/244/7</pre></div>
+  <div class="card after"><h3>After</h3><pre>EXISTING=$(gh pr list --head "$BRANCH" --state open ...)
+gh pr edit "$EXISTING" --body-file "$BODY_FILE"   # else create
+ROW=$(jq -c --arg w "$WEEK" 'select(.week == $w)' ...)</pre></div>
+</div>
+<p class="mut">The body reads the measured week's row by its key, because since #4528 an older week can be refreshed in place, so the measured week is not always the last line. A failed edit is an error, not a warning.</p>
+
+<h2>3. #4697: <code>background: false</code> is not a trigger</h2>
+<table>
+<tr><th>skill</th><th>passed on</th><th>now</th></tr>
+<tr><td><code>design-stylecards</code></td><td><code>background: false</code></td><td>chained: <code>design-to-code</code> Stage 3 takes polish values from <code>/ork:design-stylecards</code></td></tr>
+<tr><td><code>setup</code></td><td><code>background: false</code></td><td>allowlisted with a dated reason; routing through <code>ork:auto</code> is #4981</td></tr>
+<tr><td><code>swarm-migrate</code></td><td><code>background: false</code></td><td>allowlisted with a dated reason; routing through <code>ork:auto</code> is #4981</td></tr>
+</table>
+
+<h2>Proof</h2>
+<table>
+<tr><th>check</th><th>result</th></tr>
+<tr><td>red first</td><td>backfill arms fail on main; 3 workflow pins fail on main; the fixed gate finds 3 islands before wiring</td></tr>
+<tr><td><code>tests/ci/test-traffic-snapshot.sh</code></td><td>48 of 48 assertions pass (fail-closed fault arms unchanged)</td></tr>
+<tr><td><code>tests/manifests/*</code></td><td>14 of 14 pass; activation gate 0 islands</td></tr>
+</table>
+
+<script>
+(function(){
+  // Days the API has served for one week, after Monday runs 0, 1, 2.
+  // Run 0 (the first Monday) sees 3 days; run 1 sees all 7; run 2: the week left the 14-day span.
+  var seen=[3,7,7];
+  var step=0;
+  function row(n,lost){var h='<div class="week">';for(var i=0;i<7;i++){var c=i<n?'day on':(lost?'day lost':'day');h+='<div class="'+c+'">'+(i+1)+'</div>';}return h+'</div>';}
+  function render(){
+    var before=3, after=Math.max.apply(null,seen.slice(0,step+1));
+    var gone=step>=2;
+    document.getElementById('b').innerHTML=row(before,gone)+'<div class="mut">'+before+' of 7 days recorded'+(gone?', 4 lost for good':'')+'</div>';
+    document.getElementById('a').innerHTML=row(after,false)+'<div class="mut">'+after+' of 7 days recorded</div>';
+    document.getElementById('mode').textContent='Monday run '+(step+1)+(gone?' (the week has left the API span)':'');
+  }
+  document.getElementById('run').onclick=function(){if(step<2){step++;render();}};
+  document.getElementById('reset').onclick=function(){step=0;render();};
+  render();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

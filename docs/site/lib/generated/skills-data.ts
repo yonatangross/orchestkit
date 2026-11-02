@@ -406,9 +406,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "assess": {
     "name": "assess",
-    "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
+    "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scalability, testability, compliance) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches. Not for fixing or building (use fix-issue or implement), reviewing a pull request (use review-pr), or running the test suites (use verify).",
     "version": "1.9.0",
-    "sha256": "87a9a42ed47d289f0e0ddd8afb00baf561def7452b042eda22b7036de64e488f",
+    "sha256": "d815fcc2c2ee0fe6d3ec2fac28444c1a30473cbc2ade30e5032a958b783b6d63",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -693,9 +693,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "brainstorm": {
     "name": "brainstorm",
-    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
+    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for scoring a finished design (use assess).",
     "version": "4.10.0",
-    "sha256": "427f1746fa6af7b3f528b0c1464a9e3f86f97b66ae56a056ac12e301f05e6f35",
+    "sha256": "2c779b29edd369041b52db5635e0b886fc7e57131129c00a240ffccecf8ec0d8",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1787,7 +1787,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "1055c4cd12be34cac1fcd89d28d71498b7469a0ffecf85bc358452caea2d145c",
+    "sha256": "1657c7824a9a0a38fa44bf583ec44da5abb27740ebeb4db0c2d4e099dc79ea97",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -2330,9 +2330,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "expect": {
     "name": "expect",
-    "description": "Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
+    "description": "Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components. Not for writing new tests (use cover), grading an existing suite (use verify), or running unit tests.",
     "version": "1.2.0",
-    "sha256": "720d82dfdc14f996493f048bd886407da4e27c553995381e1732bec99b2a3841",
+    "sha256": "c481a5b0d23f60dd4ecdb7c6044c2a20c0196d59217a986706af1f5a79c41084",
     "author": "OrchestKit",
     "tags": [
       "testing",

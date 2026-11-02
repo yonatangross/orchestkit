@@ -82,6 +82,8 @@ Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP 
 
 CLI equivalent: `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit`.
 
+Channels: `ork` is the stable channel, pinned to the latest release. `ork-alpha` is the same plugin tracking `main`, in the same marketplace (`claude plugin install ork-alpha@orchestkit`); use it only if you want changes before they are released.
+
 ### Cursor
 
 Settings → Plugins / marketplaces → add `yonatangross/orchestkit` → enable **ork** → **open a new chat**. Same plugin Claude Code installs, not a five-skill fork. See [Install → Cursor](#cursor).
@@ -642,6 +644,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.3](https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3)** · 2026-11-02
+
+- **traffic:** snapshot week of 2026-10-26 (#4988)
+
+**[v10.5.2](https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2)** · 2026-11-02
+
+- **ci:** 4528 4752 4697 (#4980)
+- **ci:** fail when the repo description carries stale counts (#4975)
+- **docs:** Lab render check covers pruned entries from public/lab (#4976)
+- **hooks:** gerund after 'without ... and' stays negated (#4715) (#4978)
+
 **[v10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1)** · 2026-11-01
 
 - **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
@@ -676,21 +689,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) (#4946)
 - **docker:** bump node from `44fce69` to `06d7adf` (#4942)
-
-**[v10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0)** · 2026-10-27
-
-- **cc:** adopt Claude Code 2.1.297 through 2.1.309 (#4882)
-- **hooks:** headless-responder answers through updatedInput.answers (#4941)
-- **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 (#4918)
-
-**[v10.3.1](https://github.com/yonatangross/orchestkit/compare/v10.3.0...v10.3.1)** · 2026-10-26
-
-- **deps-dev:** bump @biomejs/biome (#4916)
-- **deps:** bump the npm-minor-patch group (#4920)
-- **deps:** bump the npm-minor-patch group in /docs/site with 6 updates (#4917)
-- **deps:** bump the remotion group across 1 directory with 21 updates (#4919)
-- **traffic:** snapshot week of 2026-10-19 (#4927)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
