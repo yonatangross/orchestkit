@@ -455,6 +455,22 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             echo -e "    ${GREEN}Stripped devDependencies from hooks/package.json${NC}"
         fi
 
+        # Ship the one-process tool dispatchers as the default. The rsync
+        # above copied the per-handler registry (src/hooks/hooks.json, which
+        # route tables and tests keep reading); Claude Code starts one process
+        # per matching entry of THE SHIPPED FILE, so that copy is rewritten to
+        # PreToolUse + PostToolUse dispatcher entries, PostToolBatch dropped
+        # (scripts/unified-pretool-hooks.mjs, #4962/#4971). Only the shipped
+        # copy changes. Pinned by src/__tests__/shipped-dispatchers.test.ts and
+        # measured by scripts/spawn-ratchet.mjs.
+        node "$SRC_DIR/hooks/scripts/unified-pretool-hooks.mjs" \
+            --in "$SRC_DIR/hooks/hooks.json" \
+            --out "$PLUGIN_DIR/hooks/hooks.json" >/dev/null || {
+            echo -e "    ${RED}Failed to write the dispatcher hooks.json${NC}"
+            exit 1
+        }
+        echo -e "    ${GREEN}Wrote dispatcher hooks.json (unifiedToolHooks)${NC}"
+
         # stop-uncommitted-check.mjs reads plugin.json at runtime (no
         # __PLUGIN_VERSION__ stamp). Keeping src and plugins copies
         # byte-identical avoids release-PR Build drift after the file left

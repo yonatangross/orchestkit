@@ -4,9 +4,10 @@
 /**
  * spawn-ratchet.mjs: how many hook processes one tool call starts.
  *
- * Every `type: "command"` entry in hooks.json is one node process per match.
- * This gate counts, per tool (Bash, Edit, Write, Read) and per path, the
- * command entries whose matcher matches the tool, straight from hooks.json:
+ * Every `type: "command"` entry in the shipped hooks.json (plugins/ork/hooks/,
+ * what Claude Code runs) is one node process per match. This gate counts,
+ * per tool (Bash, Edit, Write, Read) and per path, the command entries whose
+ * matcher matches the tool, straight from that hooks.json:
  *
  *   success     PreToolUse + PostToolUse + PostToolBatch
  *   permission  success + PermissionRequest (the call raised a prompt)
@@ -27,13 +28,17 @@
  * a matcher of word characters and "|" is an exact list; anything else is an
  * anchored regular expression.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { unifiedToolHooks } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const HOOKS_JSON = join(__dirname, '..', 'hooks.json');
+// What Claude Code runs is the SHIPPED copy, plugins/ork/hooks/hooks.json
+// (scripts/build-plugins.sh writes it as unifiedToolHooks(src/hooks/hooks.json);
+// src/hooks/hooks.json is only the per-handler registry). From src/hooks that
+// is the repo's plugins/ copy; from the shipped tree, the hooks.json beside it.
+const SHIPPED_IN_REPO = join(__dirname, '..', '..', '..', 'plugins', 'ork', 'hooks', 'hooks.json');
+const HOOKS_JSON = existsSync(SHIPPED_IN_REPO) ? SHIPPED_IN_REPO : join(__dirname, '..', 'hooks.json');
 const BASELINE_PATH = join(__dirname, 'spawn-ratchet-baseline.json');
 
 const TOOLS = ['Bash', 'Edit', 'Write', 'Read'];
@@ -69,10 +74,9 @@ export function measure(hooksDoc) {
   return out;
 }
 
-// `flagged` is the count for the dispatcher variant (unified-pretool-hooks.mjs),
-// the hooks.json the flag ships. The target is that variant's finish line; the
-// ratchet stays on the shipped hooks.json, which the flag leaves unchanged.
-export function compare(measured, baseline, target, flagged = measured) {
+// The shipped hooks.json is the dispatcher variant (unified-pretool-hooks.mjs),
+// so the ratchet and the target read the same measurement.
+export function compare(measured, baseline, target) {
   const lines = [];
   let failed = false;
   for (const path of Object.keys(PATHS)) {
@@ -94,13 +98,13 @@ export function compare(measured, baseline, target, flagged = measured) {
     }
   }
   for (const tool of TOOLS) {
-    const got = flagged.success[tool];
+    const got = measured.success[tool];
     if (target[tool] === undefined) continue;
     if (got > target[tool]) {
       failed = true;
-      lines.push(`OVER TARGET  flag-on success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
+      lines.push(`OVER TARGET  success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
     } else {
-      lines.push(`ok    flag-on success.${tool}: ${got} (target <= ${target[tool]})`);
+      lines.push(`ok    success.${tool}: ${got} (target <= ${target[tool]})`);
     }
   }
   return { failed, lines };
@@ -116,8 +120,7 @@ function main() {
     console.log(`spawn-ratchet: baseline set to ${JSON.stringify(measured)}`);
     return 0;
   }
-  const flagged = measure(unifiedToolHooks(hooksDoc));
-  const { failed, lines } = compare(measured, doc.baseline, doc.target, flagged);
+  const { failed, lines } = compare(measured, doc.baseline, doc.target);
   console.log(lines.join('\n'));
   console.log(failed ? 'spawn-ratchet: FAIL' : 'spawn-ratchet: OK');
   return failed ? 1 : 0;

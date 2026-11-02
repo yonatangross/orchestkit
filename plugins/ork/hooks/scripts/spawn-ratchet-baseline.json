@@ -1,5 +1,5 @@
 {
-  "comment": "Hook processes started per tool call, counted from src/hooks/hooks.json by spawn-ratchet.mjs. baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line for the flag-on hooks.json from unified-pretool-hooks.mjs (yellow-refactor M1: under 3 per call); the shipped hooks.json is held by baseline.",
+  "comment": "Hook processes started per tool call, counted by spawn-ratchet.mjs from the shipped plugins/ork/hooks/hooks.json (the dispatcher copy build-plugins.sh writes from the src/hooks/hooks.json registry). baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line (yellow-refactor M1: under 3 per call).",
   "target": {
     "Bash": 2,
     "Edit": 2,
@@ -8,22 +8,22 @@
   },
   "baseline": {
     "success": {
-      "Bash": 12,
-      "Edit": 18,
-      "Write": 18,
-      "Read": 6
+      "Bash": 2,
+      "Edit": 2,
+      "Write": 2,
+      "Read": 2
     },
     "permission": {
-      "Bash": 14,
-      "Edit": 20,
-      "Write": 20,
-      "Read": 6
+      "Bash": 4,
+      "Edit": 4,
+      "Write": 4,
+      "Read": 2
     },
     "failure": {
-      "Bash": 6,
-      "Edit": 6,
-      "Write": 6,
-      "Read": 4
+      "Bash": 3,
+      "Edit": 3,
+      "Write": 3,
+      "Read": 1
     }
   }
 }
