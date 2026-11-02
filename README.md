@@ -644,6 +644,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4)** · 2026-11-02
+
+- **ci:** let claude-health finish within its tool allowlist (#4994)
+- **hooks:** verdict telemetry test uses a private project dir (#4989) (#4997)
+- harden claude-health tool scope (#4996)
+
 **[v10.5.3](https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3)** · 2026-11-02
 
 - **traffic:** snapshot week of 2026-10-26 (#4988)
@@ -684,11 +690,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** split a worktree advisory at the context cap (#4922) (#4954)
 - **skills:** design-ship links a bundle source for file and URL input (#4956)
 - **site:** legacy host redirect comment says 301, like the code (#4957)
-
-**[v10.4.1](https://github.com/yonatangross/orchestkit/compare/v10.4.0...v10.4.1)** · 2026-10-29
-
-- **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) (#4946)
-- **docker:** bump node from `44fce69` to `06d7adf` (#4942)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
