@@ -43,6 +43,29 @@ jobs:
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 
+      - name: Collect version and milestone facts
+        # Deterministic facts gathered in plain shell, so the model needs no
+        # gh api, git log or find in its allowlist (each of those can write
+        # files, run commands or call write endpoints, and the step env holds
+        # the OAuth token).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          {
+            TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo none)"
+            echo "latest_tag: ${TAG}"
+            if [ "$TAG" != "none" ]; then
+              echo "latest_tag_date: $(git log -1 --format=%cI "$TAG")"
+              echo "commits_since_tag: $(git rev-list --count "${TAG}..HEAD")"
+            fi
+            echo "milestones (title, due_on, open_issues, closed_issues):"
+            gh api "repos/${REPO}/milestones?state=open&per_page=100" \
+              --jq '.[] | [.title, (.due_on // "none"), .open_issues, .closed_issues] | @tsv'
+          } > /tmp/health-facts.txt
+          cat /tmp/health-facts.txt
+
       - name: Run health assessment
         # Auth via the Max-plan OAuth token instead of metered console credits
         # ($0 spend). `claude -p` reads CLAUDE_CODE_OAUTH_TOKEN from the env
@@ -69,14 +92,14 @@ jobs:
              Command: npm audit --json
           5. TEST COVERAGE: Count test files and estimate coverage from file structure.
           6. VERSION: Current version, last release date, commits since release.
-             Commands: git describe --tags --abbrev=0, then git log --oneline <tag>..HEAD
+             Read /tmp/health-facts.txt (tag, tag date, commit count, and the
+             milestones with due dates for section 1).
           7. SKILL/AGENT COUNTS: Verify counts match CLAUDE.md declarations.
 
           Tool rules: run ONE command per Bash call, with no ; && | or 2>
           chaining (chained commands are denied). Only the commands named above
-          plus gh api (read-only), cat, wc, ls and find are allowed; for anything
-          else use Read, Grep or Glob. If a section cannot be measured, put null
-          in it and still emit the JSON.
+          plus cat and wc are allowed; for anything else use Read, Grep or Glob.
+          If a section cannot be measured, put null in it and still emit the JSON.
 
           Output as JSON with this schema:
           {
@@ -97,7 +120,7 @@ jobs:
           --output-format json \
           --max-turns 25 \
           --model claude-sonnet-5 \
-          --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(gh api:*),Bash(git describe:*),Bash(git log:*),Bash(cat:*),Bash(wc:*),Bash(ls:*),Bash(find:*)" \
+          --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
           > /tmp/health-report.json 2> /tmp/health-stderr.log || RC=$?
 
           # Never let the report redirect swallow the failure.
