@@ -649,6 +649,36 @@ fi
 echo ""
 
 # ============================================================================
+# Test 14: routing boundary in the description for the most-used skills
+# Quality loop round 1 (skill-fitness): a router that reads only the description
+# cannot tell assess from verify or review-pr unless the description says what
+# the skill is NOT for. The anti-triggers frontmatter block is not read by the
+# router. Ratchet: add a skill here when its description gains the clause.
+# ============================================================================
+echo -e "${CYAN}Test 14: Routing boundary (\"Not for\") in descriptions of ratcheted skills${NC}"
+echo "----------------------------------------"
+
+BOUNDARY_SKILLS=(brainstorm expect assess)
+boundary_missing=()
+for skill_name in "${BOUNDARY_SKILLS[@]}"; do
+    skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
+    if [[ ! -f "$skill_file" ]]; then
+        boundary_missing+=("$skill_name")
+        fail "$skill_name: SKILL.md not found for the routing boundary check"
+    elif grep -qE '^description:.*\. Not for ' "$skill_file"; then
+        info "$skill_name: description carries a 'Not for' boundary (OK)"
+    else
+        boundary_missing+=("$skill_name")
+        fail "$skill_name: description has no 'Not for ...' routing boundary"
+    fi
+done
+
+if [[ ${#boundary_missing[@]} -eq 0 ]]; then
+    pass "Routing boundary present in all ${#BOUNDARY_SKILLS[@]} ratcheted descriptions"
+fi
+echo ""
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo "============================================================================"
