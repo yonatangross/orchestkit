@@ -22,7 +22,10 @@
  *            below it fails too, asking for the lower baseline in the same PR
  *            (`--update`), so the win is locked at merge.
  *   target   a success-path count above `target` fails. The target is the
- *            yellow-refactor finish line (under 3 processes per tool call).
+ *            yellow-refactor finish line (under 3 processes per tool call),
+ *            read from the flag variant (unifiedToolHooks, no PostToolBatch).
+ *            The shipped default keeps PostToolBatch, so its baseline is one
+ *            above the target on every path that counts it.
  *
  * Matcher semantics follow Claude Code: absent, "" or "*" matches every tool;
  * a matcher of word characters and "|" is an exact list; anything else is an
@@ -31,10 +34,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { unifiedToolHooks } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // What Claude Code runs is the SHIPPED copy, plugins/ork/hooks/hooks.json
-// (scripts/build-plugins.sh writes it as unifiedToolHooks(src/hooks/hooks.json);
+// (scripts/build-plugins.sh writes it as shippedToolHooks(src/hooks/hooks.json);
 // src/hooks/hooks.json is only the per-handler registry). From src/hooks that
 // is the repo's plugins/ copy; from the shipped tree, the hooks.json beside it.
 const SHIPPED_IN_REPO = join(__dirname, '..', '..', '..', 'plugins', 'ork', 'hooks', 'hooks.json');
@@ -74,9 +78,9 @@ export function measure(hooksDoc) {
   return out;
 }
 
-// The shipped hooks.json is the dispatcher variant (unified-pretool-hooks.mjs),
-// so the ratchet and the target read the same measurement.
-export function compare(measured, baseline, target) {
+// `measured` is the shipped hooks.json (the ratchet). `flagged` is the flag
+// variant, unifiedToolHooks of it (no PostToolBatch), which the target reads.
+export function compare(measured, baseline, target, flagged = measured) {
   const lines = [];
   let failed = false;
   for (const path of Object.keys(PATHS)) {
@@ -98,13 +102,13 @@ export function compare(measured, baseline, target) {
     }
   }
   for (const tool of TOOLS) {
-    const got = measured.success[tool];
+    const got = flagged.success[tool];
     if (target[tool] === undefined) continue;
     if (got > target[tool]) {
       failed = true;
-      lines.push(`OVER TARGET  success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
+      lines.push(`OVER TARGET  flag-on success.${tool}: ${got} spawns per call, target <= ${target[tool]}`);
     } else {
-      lines.push(`ok    success.${tool}: ${got} (target <= ${target[tool]})`);
+      lines.push(`ok    flag-on success.${tool}: ${got} (target <= ${target[tool]})`);
     }
   }
   return { failed, lines };
@@ -120,7 +124,8 @@ function main() {
     console.log(`spawn-ratchet: baseline set to ${JSON.stringify(measured)}`);
     return 0;
   }
-  const { failed, lines } = compare(measured, doc.baseline, doc.target);
+  const flagged = measure(unifiedToolHooks(hooksDoc));
+  const { failed, lines } = compare(measured, doc.baseline, doc.target, flagged);
   console.log(lines.join('\n'));
   console.log(failed ? 'spawn-ratchet: FAIL' : 'spawn-ratchet: OK');
   return failed ? 1 : 0;

@@ -6,15 +6,19 @@
  *
  * src/hooks/hooks.json stays the per-handler registry (route tables and 99
  * readers use it). scripts/build-plugins.sh writes
- * plugins/ork/hooks/hooks.json = unifiedToolHooks(src/hooks/hooks.json), and
+ * plugins/ork/hooks/hooks.json = shippedToolHooks(src/hooks/hooks.json), and
  * that copy is what Claude Code runs. This pins the two together so the
  * shipped file cannot drift from the registry or lose a dispatcher.
+ *
+ * PostToolBatch stays in the shipped file. Only the opt-in flag variant
+ * (unifiedToolHooks, the CLI default of unified-pretool-hooks.mjs) drops it.
  */
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  shippedToolHooks,
   unifiedToolHooks,
   UNIFIED_PRETOOL_HANDLER,
   UNIFIED_POSTTOOL_HANDLER,
@@ -28,12 +32,12 @@ const shippedText = readFileSync(SHIPPED_JSON, 'utf8');
 const shipped = JSON.parse(shippedText);
 
 describe('shipped plugins/ork/hooks/hooks.json', () => {
-  it('equals unifiedToolHooks(src/hooks/hooks.json)', () => {
-    expect(shipped).toEqual(unifiedToolHooks(src));
+  it('equals shippedToolHooks(src/hooks/hooks.json)', () => {
+    expect(shipped).toEqual(shippedToolHooks(src));
   });
 
   it('is byte-identical to what the build writes (2-space JSON, trailing newline)', () => {
-    expect(shippedText).toBe(`${JSON.stringify(unifiedToolHooks(src), null, 2)}\n`);
+    expect(shippedText).toBe(`${JSON.stringify(shippedToolHooks(src), null, 2)}\n`);
   });
 
   it('names both dispatchers', () => {
@@ -41,10 +45,22 @@ describe('shipped plugins/ork/hooks/hooks.json', () => {
     expect(JSON.stringify(shipped)).toContain(UNIFIED_POSTTOOL_HANDLER);
   });
 
-  it('PreToolUse and PostToolUse are one dispatcher entry each, PostToolBatch is dropped', () => {
+  it('PreToolUse and PostToolUse are one dispatcher entry each', () => {
     expect(shipped.hooks.PreToolUse).toHaveLength(1);
     expect(shipped.hooks.PostToolUse).toHaveLength(1);
-    expect(shipped.hooks.PostToolBatch).toBeUndefined();
+  });
+
+  it('still registers PostToolBatch, unchanged from the registry', () => {
+    expect(src.hooks.PostToolBatch?.length).toBeGreaterThan(0);
+    expect(shipped.hooks.PostToolBatch).toEqual(src.hooks.PostToolBatch);
+    expect(JSON.stringify(shipped.hooks.PostToolBatch)).toContain('posttool/tool-batch-observer');
+  });
+
+  it('only the flag variant (unifiedToolHooks) drops PostToolBatch', () => {
+    const variant = unifiedToolHooks(src);
+    expect(variant.hooks.PostToolBatch).toBeUndefined();
+    const { PostToolBatch: _dropped, ...rest } = shipped.hooks;
+    expect(variant.hooks).toEqual(rest);
   });
 
   it('the registry keeps the per-handler entries and names neither dispatcher', () => {
@@ -59,8 +75,14 @@ describe('spawn ratchet on the shipped copy (paired probe)', () => {
     readFileSync(join(__dirname, '..', '..', 'scripts', 'spawn-ratchet-baseline.json'), 'utf8'),
   );
 
-  it('passes on the shipped file as built', () => {
-    const { failed } = compare(measure(shipped), baseline.baseline, baseline.target);
+  it('passes on the shipped file as built, target read from the flag variant', () => {
+    const { failed, lines } = compare(
+      measure(shipped),
+      baseline.baseline,
+      baseline.target,
+      measure(unifiedToolHooks(shipped)),
+    );
+    expect(lines.join('\n')).toContain('ok    success.Bash: 3');
     expect(failed).toBe(false);
   });
 
@@ -70,8 +92,13 @@ describe('spawn ratchet on the shipped copy (paired probe)', () => {
       matcher: 'Bash',
       hooks: [{ type: 'command', command: 'node', args: ['extra'] }],
     });
-    const { failed, lines } = compare(measure(probe), baseline.baseline, baseline.target);
+    const { failed, lines } = compare(
+      measure(probe),
+      baseline.baseline,
+      baseline.target,
+      measure(unifiedToolHooks(probe)),
+    );
     expect(failed).toBe(true);
-    expect(lines.join('\n')).toContain('ROSE  success.Bash: 2 -> 3');
+    expect(lines.join('\n')).toContain('ROSE  success.Bash: 3 -> 4');
   });
 });

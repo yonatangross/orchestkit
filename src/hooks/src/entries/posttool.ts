@@ -84,7 +84,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/metrics-bridge': metricsBridge,
   'posttool/context-crossing-warn': contextCrossingWarn,
   'posttool/metrics-dispatcher': metricsDispatcher,
-  // Wired only by scripts/unified-pretool-hooks.mjs (default off)
+  // Wired into the shipped hooks.json by scripts/unified-pretool-hooks.mjs --shipped (default on, #5003)
   'posttool/tool-dispatcher': posttoolToolDispatcher,
 
   // PostTool/Write hooks (4) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector; debt-marker-tracker added
