@@ -72,7 +72,11 @@ function render(){
   else if(agree||confirmed){path='jev';exec=jev;}
   else{path='fallback:disagreement';exec='click:@e3';}
   const cls=exec==='click:@e3'?'ok':(confirmed?'':'bad');
-  $('out').innerHTML='agree: '+agree+'<br>path: '+path+'<br>executed_action: <span class="'+cls+'">'+exec+'</span>';
+  const out=$('out');out.replaceChildren();
+  const line=t=>{const d=document.createElement('div');d.textContent=t;out.appendChild(d);return d;};
+  line('agree: '+agree);line('path: '+path);
+  const ex=line('executed_action: ');const s=document.createElement('span');
+  if(cls)s.className=cls;s.textContent=exec;ex.appendChild(s);
 }
 ['jev','conf','confirm'].forEach(id=>$(id).addEventListener('input',render));render();
 </script></body></html>
