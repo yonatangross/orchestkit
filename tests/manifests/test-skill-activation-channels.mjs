@@ -47,6 +47,13 @@ const STANDALONE_ALLOWLIST = {
     'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
   freeze:
     'operator guard: invoking it registers a session-long edit fence and takes the dir as a typed argument; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
+  // #4697 (2026-11-02): these two passed only on their `background: false` line.
+  // Both stay model-invocable by description; routing them through ork:auto
+  // (with routing-benchmark cases) is a tracked follow-up, not a silent pass.
+  setup:
+    'onboarding wizard run once per project; reached by its description or /ork:setup, no parent skill chains it yet (#4697 follow-up: route via ork:auto)',
+  'swarm-migrate':
+    'cross-repo migration swarm started on purpose; reached by its description or /ork:swarm-migrate, no parent skill chains it yet (#4697 follow-up: route via ork:auto)',
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----
@@ -111,7 +118,10 @@ for (const f of readdirSync(AGENTS).filter((x) => x.endsWith('.md'))) {
 }
 
 // ---- channel: background (skill is autonomous) ----
-const BG = /autonomous|nightly|hourly|\bcron\b|background:|headless|stop hook|runs? (on a )?schedule|post-release|after (tagging|a release)|propose-don/i;
+// #4697: every forked skill carries a `background: false` frontmatter line
+// (#3093), so a bare `background:` arm counted a non-trigger as autonomous.
+// Only `background: true` is a background trigger.
+const BG = /autonomous|nightly|hourly|\bcron\b|background:\s*true\b|headless|stop hook|runs? (on a )?schedule|post-release|after (tagging|a release)|propose-don/i;
 
 // ---- evaluate ----
 console.log('');
