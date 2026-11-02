@@ -106,6 +106,33 @@ describe('readRepoSkills', () => {
     expect(readRepoSkills(project)).toEqual([{ name: 'bugfix', description: 'Fix a bug and open the PR with docs' }]);
     expect(readRepoSkills(project)).toBe(readRepoSkills(project));
   });
+
+  // #5006 review: the read runs inside the sync Bash dispatcher, so a slow
+  // disk must not stall every Bash call.
+  it('stops reading SKILL.md heads once the time budget is spent', () => {
+    for (const n of ['a', 'b', 'c', 'd']) addSkill(n, 'open a PR');
+    let t = 0;
+    // Each clock read advances 30 ms: start 0, then 30 (read a), 60 (stop).
+    const now = () => {
+      const v = t;
+      t += 30;
+      return v;
+    };
+    const got = readRepoSkills(project, { budgetMs: 50, now });
+    expect(got.map((s) => s.name)).toEqual(['a']);
+  });
+
+  it('a partial result is cached, so the next call does not rescan', () => {
+    for (const n of ['a', 'b']) addSkill(n, 'open a PR');
+    const slow = readRepoSkills(project, { budgetMs: -1 });
+    expect(slow).toEqual([]);
+    expect(readRepoSkills(project)).toBe(slow);
+  });
+
+  it('reads at most maxEntries skill folders', () => {
+    for (const n of ['a', 'b', 'c']) addSkill(n, 'open a PR');
+    expect(readRepoSkills(project, { maxEntries: 2 }).map((s) => s.name)).toEqual(['a', 'b']);
+  });
 });
 
 describe('wired into the Bash advisory dispatcher', () => {
