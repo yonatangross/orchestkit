@@ -642,6 +642,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.5.3](https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3)** · 2026-11-02
+
+- **traffic:** snapshot week of 2026-10-26 (#4988)
+
 **[v10.5.2](https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2)** · 2026-11-02
 
 - **ci:** 4528 4752 4697 (#4980)
@@ -683,12 +687,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mcp-server:** bump @hono/node-server to 2.1.5 (GHSA-rmxm-3fg6-px4f) (#4946)
 - **docker:** bump node from `44fce69` to `06d7adf` (#4942)
-
-**[v10.4.0](https://github.com/yonatangross/orchestkit/compare/v10.3.1...v10.4.0)** · 2026-10-27
-
-- **cc:** adopt Claude Code 2.1.297 through 2.1.309 (#4882)
-- **hooks:** headless-responder answers through updatedInput.answers (#4941)
-- **deps:** bump @anthropic-ai/sdk from 0.135.0 to 1.1.0 (#4918)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
