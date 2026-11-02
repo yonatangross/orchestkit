@@ -25,7 +25,7 @@ if [ ! -f "$DEPENDABOT" ]; then
   exit 1
 fi
 
-REPORT_FILE="$(mktemp)"
+REPORT_FILE="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -f "$REPORT_FILE"' EXIT
 
 # One line per entry: "<ecosystem> <directory> cooldown=<0|1> default-days=<n|none>",
