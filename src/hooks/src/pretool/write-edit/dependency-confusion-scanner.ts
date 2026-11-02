@@ -81,6 +81,6 @@ export function dependencyConfusionScanner(
     `⚠️ Dependency-confusion risk: "${finding.name}" is an unclaimed/non-existent npm package. ` +
       `Use the real package "${finding.suggestion}", or an explicit local path (./pkg) if this is ` +
       `illustrative. Leaving an unclaimed name lets an attacker publish it and run code on users who ` +
-      `copy this command. (CI guard: tests/security/test-dependency-confusion.sh)`,
+      `copy this command. (CI guard: tests/security/test-dependency-confusion.sh)`, input,
   );
 }

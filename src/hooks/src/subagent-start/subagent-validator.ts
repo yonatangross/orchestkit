@@ -394,7 +394,7 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
   if (agentTools.length > 0) {
     const permissionProfile = getPermissionProfile(agentTypeOnly, agentTools);
     ctx.log('subagent-validator', `Agent '${agentTypeOnly}' tools: ${agentTools.join(', ')}`);
-    return outputWithContext(permissionProfile);
+    return outputWithContext(permissionProfile, input);
   }
 
   return outputSilentSuccess();

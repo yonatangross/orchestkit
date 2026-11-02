@@ -130,13 +130,17 @@ else sees it depends on the other mods you run.
 With the flag set, a masked result also opens the Claude Code question dialog
 (`$.ui.ask`): "Copy the masked value to your clipboard? This mod sends it to
 the clipboard only, never to Claude; another installed mod that hooks
-clipboard events could still receive it." The answers are `Copy to clipboard`
+clipboard events could still receive it. This question expires after 2
+minutes." The answers are `Copy to clipboard`
 and `Keep hidden`. `Copy to clipboard` hands the first covered value to
 `$.ui.copy` (OSC 52 in the terminal) and nothing else: the tool result the
 model reads stays masked, and the question, the toast, the status line and
 this mod's log carry counts only. A missing dialog, a refused or timed-out
 copy, a question nobody answers within 120 s, or `Keep hidden` all leave the
-value covered. The option is off by default because a dialog on every masked
+value covered. Claude Code gives a mod no way to close a dialog it opened, so
+an expired question stays on screen; answering it after the deadline shows
+"that copy question had expired; nothing was copied" and copies nothing. The
+option is off by default because a dialog on every masked
 result would be noise.
 
 What a copy leaves behind, outside this mod:

@@ -683,6 +683,7 @@ describe('subagentValidator', () => {
       });
 
       const input = createToolInput({
+        hook_event: 'SubagentStart',
         tool_input: {
           subagent_type: 'tool-agent',
           description: 'Use tools',
@@ -692,10 +693,10 @@ describe('subagentValidator', () => {
       // Act
       const result = subagentValidator(input);
 
-      // Assert - outputWithContext shape
+      // Assert - outputWithContext shape, labelled with the firing event (#4683)
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('SubagentStart');
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
     });
 
