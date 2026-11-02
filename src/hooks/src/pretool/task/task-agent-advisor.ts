@@ -198,11 +198,14 @@ export const AFFIRMATIVE_REMINDER_PATTERN =
  * ("without making any code changes or commits" removes the commits too), a
  * bare build verb or a clause-ending conjunction (and, but, then, instead,
  * however) ends it, so "without breaking the API and fix the bug" keeps the
- * fix in verb position. "and" continues only before commit, push or edit,
- * as in the main negation arm. Exported for tests.
+ * fix in verb position. In this arm "and" continues before commit, push or
+ * edit and before any other gerund: "without fixing bugs and adding tests"
+ * forbids both, because a gerund after "and" is still the object of
+ * "without" (#4715). A bare verb after "and" still ends it. The main negation
+ * arm continues only before commit, push or edit. Exported for tests.
  */
 export const NEGATED_CLAUSE_PATTERN =
-  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|no need to)\b.*?(?=[.;:!?\n]|,(?!\s*(?:or|nor)\b)|\b(?:and(?!\s+(?:\w+ly\s+)?(?:commit(?:s|ted|ting)?|push(?:es|ed|ing)?|edit(?:s|ed|ing)?)\b)|but|then|instead|however)\b|$)|\bwithout\s+\w+ing\b(?:\s+(?:or|nor)\s+\w+|\s+and\s+(?:commit(?:s|ted|ting)?|push(?:es|ed|ing)?|edit(?:s|ed|ing)?)\b|\s+(?:the|a|an|any)\s+\w+|\s+(?!(?:and|but|then|instead|however)\b|(?:implement|commit|push|fix|patch|replac\w*|refactor\w*|rewrit\w*|apply|add|write|edit|open|create|raise)\w*\b)\w+)*/gi;
+  /\b(?:do not|don't|dont|never|must not|mustn't|should not|shouldn't|no need to)\b.*?(?=[.;:!?\n]|,(?!\s*(?:or|nor)\b)|\b(?:and(?!\s+(?:\w+ly\s+)?(?:commit(?:s|ted|ting)?|push(?:es|ed|ing)?|edit(?:s|ed|ing)?)\b)|but|then|instead|however)\b|$)|\bwithout\s+\w+ing\b(?:\s+(?:or|nor)\s+\w+|\s+and\s+(?:commit(?:s|ted|ting)?|push(?:es|ed|ing)?|edit(?:s|ed|ing)?|\w+ing)\b|\s+(?:the|a|an|any)\s+\w+|\s+(?!(?:and|but|then|instead|however)\b|(?:implement|commit|push|fix|patch|replac\w*|refactor\w*|rewrit\w*|apply|add|write|edit|open|create|raise)\w*\b)\w+)*/gi;
 
 /** True when the task text asks to build (change code or ship it). */
 export function hasBuildIntent(description: string, prompt: string): boolean {

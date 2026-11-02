@@ -523,6 +523,11 @@ describe('#4649 routing hint checks build intent against the agent tools', () =>
     // CodeRabbit 4242284355: the and-continuation must accept every commit
     // form (commit, commits, committed, committing), not just the first.
     ['Review without changing files and committing changes'],
+    // #4715: any gerund after "and" stays under "without", not only
+    // commit, push and edit.
+    ['Review without fixing bugs and adding tests'],
+    ['Review without refactoring and rewriting the module'],
+    ['Review without changing the API and implementing the cache.'],
   ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
     expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));

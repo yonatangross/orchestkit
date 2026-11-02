@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build-intent check: a gerund after "without ... and" stays negated</title>
+<meta name="description" content="Issue 4715. Pick a review-only prompt and compare how the task advisor read it before and after: a gerund after 'and' now stays under 'without', while a bare verb after 'and' still counts as a build request.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem;max-width:100%}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.9rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .bad{color:var(--bad)} .ok{color:var(--ok)} .dim{color:var(--dim)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Build-intent check: a gerund after without and stays negated"><meta property="og:description" content="Issue 4715. Pick a review-only prompt and compare how the task advisor read it before and after: a gerund after 'and' now stays under 'without', while a bare verb after 'and' still counts as a build request."><meta property="og:url" content="https://orchestkit.dev/lab/build-intent-gerund-after-and.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Build-intent check: a gerund after without and stays negated"><meta name="twitter:description" content="Issue 4715. Pick a review-only prompt and compare how the task advisor read it before and after: a gerund after 'and' now stays under 'without', while a bare verb after 'and' still counts as a build request."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Build-intent check: a gerund after "without ... and" stays negated</h1>
+<p class="sub">Branch fix/build-intent-gerund-after-and, 2026-11-01, issue 4715. The task advisor decides whether a prompt asks to build; a review that forbids writes should stay review-only.</p>
+
+<section><h2>Pick a prompt</h2>
+<select id="prompt" aria-label="prompt">
+  <option value="a">Review without fixing bugs and adding tests</option>
+  <option value="b">Review without refactoring and rewriting the module</option>
+  <option value="c">Review without changing the API and implementing the cache.</option>
+  <option value="d">Review the code without changing the API and fix the bug.</option>
+</select>
+<div class="grid">
+  <div><div class="dim">before</div><div class="out" id="before"></div></div>
+  <div><div class="dim">after</div><div class="out" id="after"></div></div>
+</div>
+</section>
+
+<section><h2>The rule</h2>
+<p class="dim">After <code>without &lt;gerund&gt;</code>, the word <code>and</code> used to continue the prohibition only before commit, push or edit. Now it continues before any gerund (<code>adding</code>, <code>rewriting</code>, <code>implementing</code>). A bare verb after <code>and</code> (<code>fix</code>, <code>implement</code>) still ends it, so that part of the prompt stays a build request.</p>
+</section>
+
+<script>
+const BUILD = 'Read as BUILD intent: a review-only prompt is treated as a request to change code.';
+const REVIEW = 'Read as REVIEW only: the without-prohibition covers the whole list.';
+const CASES = {
+  a: [BUILD, REVIEW],
+  b: [BUILD, REVIEW],
+  c: [BUILD, REVIEW],
+  d: ['Read as BUILD intent (correct: "fix the bug" is a bare verb after and).', 'Read as BUILD intent (unchanged: a bare verb after and still ends the prohibition).']
+};
+function render() {
+  const [b, a] = CASES[document.getElementById('prompt').value];
+  const be = document.getElementById('before'), af = document.getElementById('after');
+  be.textContent = b; af.textContent = a;
+  be.className = 'out ' + (b.indexOf('REVIEW') !== -1 ? 'ok' : (document.getElementById('prompt').value === 'd' ? 'ok' : 'bad'));
+  af.className = 'out ok';
+}
+document.getElementById('prompt').addEventListener('change', render);
+render();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
