@@ -145,7 +145,7 @@ PYTHON
 }
 if [[ "$(uname -s)" == Darwin && "$CHROME" == *.app/Contents/MacOS/* ]]; then
   if ! window_server_allowed; then
-    if [[ -n "${CI:-}" ]]; then
+    if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
       fail "CI sandbox cannot start Chrome"
     fi
     echo "SKIP: sandbox cannot start Chrome"
@@ -185,9 +185,10 @@ launch_failure_reason() {
 }
 
 # Case (b): the browser never started, so the suite measured nothing.
-# In CI that is a hard failure, never a skip: the CI image has a working
-# Chrome, so a launch failure there means this gate quietly stopped running.
-# Outside CI it takes the repo's script-level skip convention for unit tests
+# On a CI runner (GITHUB_ACTIONS=true, not the generic CI=1 that agent shells
+# and the pre-push hook also set) that is a hard failure, never a skip: the
+# runner image has a working Chrome, so a launch failure there means this gate
+# quietly stopped running. Anywhere else it takes the repo's script-level skip convention for unit tests
 # (tests/unit/test-graph-utils.sh, tests/skills/structure/test-python-symbols.sh):
 # a "SKIP: <reason>" line and exit 0. It never prints a tick.
 environment_unavailable() {
@@ -197,7 +198,7 @@ environment_unavailable() {
   echo "  launch failure: $reason" >&2
   echo "  captured chrome stderr (mode=$mode):" >&2
   tail -20 "$err" >&2 || true
-  if [[ -n "${CI:-}" ]]; then
+  if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
     fail "CI has a working Chrome, so a launch failure is a regression, not a skip"
   fi
   echo "SKIP: Chrome failed to launch, so no triage mutation case was judged"

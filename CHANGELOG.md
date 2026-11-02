@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4) (2026-11-02)
+
+
+### Bug Fixes
+
+* **ci:** let claude-health finish within its tool allowlist ([#4994](https://github.com/yonatangross/orchestkit/issues/4994)) ([958f99b](https://github.com/yonatangross/orchestkit/commit/958f99b62d02902a17962d4687b965744d9600f8))
+* **hooks:** verdict telemetry test uses a private project dir ([#4989](https://github.com/yonatangross/orchestkit/issues/4989)) ([#4997](https://github.com/yonatangross/orchestkit/issues/4997)) ([d7d119d](https://github.com/yonatangross/orchestkit/commit/d7d119d25f32a89c4370641ab7b436b782ded902))
+
+
+### CI/CD
+
+* harden claude-health tool scope ([#4996](https://github.com/yonatangross/orchestkit/issues/4996)) ([e589b1a](https://github.com/yonatangross/orchestkit/commit/e589b1a86f90f9aeaace16e9dd685e0bcb1ea145))
+
 ## [10.5.3](https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3) (2026-11-02)
 
 
