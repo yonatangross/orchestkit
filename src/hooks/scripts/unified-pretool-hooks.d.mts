@@ -6,6 +6,7 @@ export declare const UNIFIED_PRETOOL_HANDLER: string;
 export declare const UNIFIED_POSTTOOL_HANDLER: string;
 export declare function unifiedPretoolHooks<T extends HooksDoc>(hooksDoc: T): Variant<T>;
 export declare function unifiedPosttoolHooks<T extends HooksDoc>(hooksDoc: T): Variant<T>;
+export declare function shippedToolHooks<T extends HooksDoc>(hooksDoc: T): Variant<T>;
 export declare function unifiedToolHooks<T extends HooksDoc>(hooksDoc: T): Variant<T>;
 export declare function unionMatcher(matchers: Array<string | undefined>): string | undefined;
 export declare const PRETOOL_ENTRY_TIMEOUT_S: number;
