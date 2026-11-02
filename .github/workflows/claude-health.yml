@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          # Tags and history for the VERSION section (git describe, git log).
+          fetch-depth: 0
 
       - name: Install Claude Code
         # `--ignore-scripts` skips the package's own postinstall which
@@ -64,10 +66,17 @@ jobs:
           3. CI HEALTH: Pass rate of last 10 CI runs on main.
              Command: gh run list --branch main --limit 10 --json conclusion
           4. DEPENDENCIES: Any npm audit vulnerabilities.
-             Command: npm audit --json 2>/dev/null
+             Command: npm audit --json
           5. TEST COVERAGE: Count test files and estimate coverage from file structure.
           6. VERSION: Current version, last release date, commits since release.
+             Commands: git describe --tags --abbrev=0, then git log --oneline <tag>..HEAD
           7. SKILL/AGENT COUNTS: Verify counts match CLAUDE.md declarations.
+
+          Tool rules: run ONE command per Bash call, with no ; && | or 2>
+          chaining (chained commands are denied). Only the commands named above
+          plus gh api (read-only), cat, wc, ls and find are allowed; for anything
+          else use Read, Grep or Glob. If a section cannot be measured, put null
+          in it and still emit the JSON.
 
           Output as JSON with this schema:
           {
@@ -86,9 +95,9 @@ jobs:
           }
           " \
           --output-format json \
-          --max-turns 10 \
+          --max-turns 25 \
           --model claude-sonnet-5 \
-          --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
+          --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(gh api:*),Bash(git describe:*),Bash(git log:*),Bash(cat:*),Bash(wc:*),Bash(ls:*),Bash(find:*)" \
           > /tmp/health-report.json 2> /tmp/health-stderr.log || RC=$?
 
           # Never let the report redirect swallow the failure.
@@ -117,6 +126,11 @@ jobs:
             tail -c 2000 /tmp/health-stderr.log 2>/dev/null || true
             echo "----- stdout -----"
             head -c 2000 /tmp/health-report.json 2>/dev/null || true
+            # The 2 KB head cuts off subtype, num_turns and permission_denials,
+            # the three fields that name the cause (2026-11-02 run 41471948128).
+            echo "----- result fields -----"
+            jq -c '{subtype, num_turns, is_error, stop_reason, denied: [.permission_denials[]?.tool_input.command]}' \
+              /tmp/health-report.json 2>/dev/null || echo "(report is not JSON)"
             exit 1
           fi
 
