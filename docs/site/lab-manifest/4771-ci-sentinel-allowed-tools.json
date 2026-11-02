@@ -1,0 +1,13 @@
+{
+  "slug": "4771-ci-sentinel-allowed-tools",
+  "source": "docs/fix--ci-sentinel-allowed-tools/index.html",
+  "title": "#4771 ci-sentinel: the model runs only the gh reads it needs",
+  "description": "ci-sentinel ran claude -p with acceptEdits and no allow list while reading untrusted CI logs with a comment-writing token. It now runs with dontAsk, an allow list of four gh reads, and a deny list for every gh api write form and env read.",
+  "tags": [
+    "ci",
+    "ci-sentinel",
+    "security",
+    "4771"
+  ],
+  "date": "2026-11-02"
+}
