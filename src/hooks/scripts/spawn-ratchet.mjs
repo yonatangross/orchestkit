@@ -31,6 +31,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { invokedAsScript } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // What Claude Code runs is the SHIPPED copy, plugins/ork/hooks/hooks.json
@@ -126,6 +127,6 @@ function main() {
   return failed ? 1 : 0;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (invokedAsScript(process.argv[1], import.meta.url)) {
   process.exit(main());
 }
