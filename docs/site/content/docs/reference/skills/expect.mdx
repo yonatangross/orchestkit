@@ -1235,7 +1235,12 @@ agrees with the agent's pick, or when a disagreement clears the floor and
 the step passes `--confirm-disagreement`; every other disagreement runs
 the agent's pick and logs `path: "fallback:disagreement"` (or
 `"fallback:unknown_agreement"` when the agent's pick sits outside the
-keyspace). The
+keyspace). Agreement is on verb and ref only, so on the form path a Jev
+field decision that would rewrite the action (a different fill value,
+click turned into check or uncheck, click turned into done) runs only
+when it equals the agent's own action or the step passes
+`--confirm-disagreement`; otherwise the agreed key runs and the field
+records `rewrite_blocked`. The
 legacy `ORK_EXPECT_JEV_SHADOW` flag, truthy with `ORK_EXPECT_JEV` unset,
 still selects `shadow`.
 
