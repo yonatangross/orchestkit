@@ -68,7 +68,9 @@ function verdict(c){
   return miss.length?['deny','missing '+miss.join(' and ')]:['allow','both flags given'];
 }
 function render(){const[v,why]=verdict($('cmd').value);
-  $('out').innerHTML='<span class="'+(v==='allow'?'ok':'bad')+'">'+v+'</span>: '+why;}
+  const out=$('out');out.replaceChildren();const s=document.createElement('span');
+  s.className=v==='allow'?'ok':'bad';s.textContent=v;out.appendChild(s);
+  out.appendChild(document.createTextNode(': '+why));}
 ['git diff main...HEAD','git diff '+D+'no-ext-diff main','git diff '+D+'no-ext-diff '+D+'no-textconv main','git log -p HEAD','git log '+D+'oneline -5','git status -sb']
  .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('cmd').value=s;render();};$('chips').appendChild(b);});
 $('cmd').addEventListener('input',render);render();
