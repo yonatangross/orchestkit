@@ -138,7 +138,8 @@ describe('Task Completion Check Hook', () => {
         'WARNING: 1 orchestration tasks still in progress'
       );
       expect(mockOutputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('1 orchestration task(s) still in progress')
+        expect.stringContaining('1 orchestration task(s) still in progress'),
+        expect.anything(),
       );
     });
 
@@ -210,7 +211,8 @@ describe('Task Completion Check Hook', () => {
         'Found 1 orphaned tasks'
       );
       expect(mockOutputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Orphaned Tasks')
+        expect.stringContaining('Orphaned Tasks'),
+        expect.anything(),
       );
     });
 
