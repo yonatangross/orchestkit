@@ -30,6 +30,7 @@ The dispatcher operates in three phases:
 | Hook | Purpose |
 |------|---------|
 | `default-timeout-setter` | Adds default timeout to long-running commands |
+| `sdlc-skill-nudge` | On `gh pr create`, names the repo's own PR skill under `.claude/skills` (for example `/integrate`); silent when there is none |
 | `agent-browser-safety` | Blocks browser tools for non-browser agents |
 | `error-pattern-warner` | Warns about common error patterns in commands |
 | `issue-docs-requirement` | Reminds about documentation when working on issues |
