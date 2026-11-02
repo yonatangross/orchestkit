@@ -1,0 +1,13 @@
+{
+  "slug": "ork-dispatch-default-on",
+  "source": "docs/feat--ork-dispatch-default-on/index.html",
+  "title": "ork tool dispatchers become the shipped default",
+  "description": "The shipped ork hooks.json now runs one PreToolUse and one PostToolUse dispatcher process per tool call. Pick a tool to compare processes and the time Claude Code waits, before and after, and see the spawn ratchet that holds the new count.",
+  "tags": [
+    "hooks",
+    "performance",
+    "pretool",
+    "posttool"
+  ],
+  "date": "2026-11-02"
+}
