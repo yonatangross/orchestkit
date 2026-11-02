@@ -30,7 +30,7 @@
 </head>
 <body><main>
 <h1>ork tool dispatchers become the shipped default</h1>
-<p class="sub">Branch feat/ork-dispatch-default-on. <code>scripts/build-plugins.sh</code> now writes <code>plugins/ork/hooks/hooks.json</code> as <code>unifiedToolHooks(src/hooks/hooks.json)</code> (#4962, #4971). <code>src/hooks/hooks.json</code> stays the per-handler registry. Numbers below are a replay by <code>scripts/measure-hook-processes.mjs</code> on 2026-11-02, three runs in alternating order at load 23 to 26; they are local wall clock, not production.</p>
+<p class="sub">Branch feat/ork-dispatch-default-on. <code>scripts/build-plugins.sh</code> now writes <code>plugins/ork/hooks/hooks.json</code> as <code>shippedToolHooks(src/hooks/hooks.json)</code> (#4962, #4971): one PreToolUse and one PostToolUse dispatcher, every other event kept, PostToolBatch included. Only the opt-in flag variant (<code>unifiedToolHooks</code>) drops PostToolBatch. <code>src/hooks/hooks.json</code> stays the per-handler registry. Numbers below are a replay by <code>scripts/measure-hook-processes.mjs</code> on 2026-11-02 against the flag variant (PostToolBatch dropped), three runs in alternating order at load 23 to 26; they are local wall clock, not production. The shipped default adds one async <code>tool-batch-observer</code> process per batch on top of them, not measured here.</p>
 
 <section><h2>1. Pick a tool</h2>
 <div class="controls">
@@ -49,7 +49,7 @@
 
 <section><h2>2. The ratchet that holds it</h2>
 <table id="ratchet"><thead><tr><th>path</th><th>Bash</th><th>Edit</th><th>Write</th><th>Read</th></tr></thead><tbody></tbody></table>
-<p class="note"><strong>Paired probe.</strong> <code>spawn-ratchet.mjs</code> now counts the shipped copy. Adding one Bash command entry to it prints <code>ROSE success.Bash: 2 -> 3</code> and fails; the unchanged file prints <code>OK</code> (<code>src/__tests__/shipped-dispatchers.test.ts</code>).</p>
+<p class="note"><strong>Paired probe.</strong> <code>spawn-ratchet.mjs</code> holds the shipped copy by baseline (PostToolBatch counted once per call, so one above the variant on every path) and checks the under-3 M1 target on the flag variant (2 per call, met). Adding one Bash command entry to the shipped file prints <code>ROSE success.Bash: 3 -> 4</code> and fails; the unchanged file prints <code>OK</code> (<code>src/__tests__/shipped-dispatchers.test.ts</code>).</p>
 <div class="controls"><button id="copy" type="button">copy numbers as JSON</button><span id="copied" class="sub"></span></div>
 </section>
 
@@ -60,9 +60,9 @@ const REPLAY = {
   Read: { before: { hooks: 5, forks: 0, wait: [305, 294, 318] }, after: { hooks: 2, forks: 0, wait: [250, 219, 479] } }
 };
 const RATCHET = {
-  success:    { Bash: [12, 2], Edit: [18, 2], Write: [18, 2], Read: [6, 2] },
-  permission: { Bash: [14, 4], Edit: [20, 4], Write: [20, 4], Read: [6, 2] },
-  failure:    { Bash: [6, 3],  Edit: [6, 3],  Write: [6, 3],  Read: [4, 1] }
+  success:    { Bash: [12, 3], Edit: [18, 3], Write: [18, 3], Read: [6, 3] },
+  permission: { Bash: [14, 5], Edit: [20, 5], Write: [20, 5], Read: [6, 3] },
+  failure:    { Bash: [6, 4],  Edit: [6, 4],  Write: [6, 4],  Read: [4, 2] }
 };
 const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 function value(side, metric) {
@@ -85,7 +85,7 @@ function render() {
     r.append(a, b, c); rows.append(r);
   }
   document.getElementById('out').textContent = m === 'procs'
-    ? `${t}: ${d.before.hooks} hook processes + ${d.before.forks} forks before, ${d.after.hooks} + ${d.after.forks} after (one PreToolUse and one PostToolUse dispatcher; PostToolBatch dropped).`
+    ? `${t}: ${d.before.hooks} hook processes + ${d.before.forks} forks before, ${d.after.hooks} + ${d.after.forks} after on the flag variant (one PreToolUse and one PostToolUse dispatcher). The shipped default keeps PostToolBatch: one more async process per batch.`
     : `${t}: sync wall per run before ${d.before.wait.join(', ')} ms, after ${d.after.wait.join(', ')} ms. Noisy at this load; the medians are shown.`;
 }
 function renderRatchet() {
