@@ -1,0 +1,8 @@
+{
+  "slug": "batch-ork-ci-traffic-weeks-activation-gate",
+  "source": "docs/fix--batch-ork-ci-4528-4752-4697/index.html",
+  "title": "CI batch: traffic weeks fill in, PR bodies refresh, the activation gate stops counting background: false",
+  "description": "The traffic snapshot refreshes a short week while the API still holds its days (#4528), a rebuild refreshes the open PR body (#4752), and the skill activation gate counts only background: true (#4697).",
+  "tags": ["ci", "traffic", "workflows", "skills"],
+  "date": "2026-11-02"
+}
