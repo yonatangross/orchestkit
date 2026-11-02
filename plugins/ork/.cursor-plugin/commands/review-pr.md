@@ -39,7 +39,7 @@ bash skills/review-pr/scripts/resolve-target.sh <the arguments without the four 
 | `kind` | Comes from | Review source |
 |---|---|---|
 | `pr` | `123`, `#123`, a PR URL, `ORCHESTKIT_PR_URL`, or the current branch's open PR (no argument) | `PR_NUMBER`; the `gh pr view/diff/checks` commands below |
-| `range` | `base...head` or `base..head`, e.g. `origin/main...origin/qa` | `git diff base...head`, `git log base..head`; skip `gh pr checks` and Phase 6 submit |
+| `range` | `base...head` or `base..head`, e.g. `origin/main...origin/qa` | `git diff --no-ext-diff --no-textconv base...head`, `git log base..head`; skip `gh pr checks` and Phase 6 submit |
 | `ref` | a branch or ref that resolves | `gh pr view <ref>`: open PR, treat as `pr`; none, review `<default>...<ref>` as `range` |
 | `ask` | anything else, or no argument and no PR | **STOP** and `AskUserQuestion` for a PR number or ref range |
 
@@ -308,7 +308,7 @@ Runs when `RULES_MODE` or `STANDARDS_MODE` is true, or the user asks to check th
 REPO = Bash("git rev-parse --show-toplevel")  # run first; pass the printed path, never $(...); the gate passes --repo only when it is the cwd
 SOURCES = Bash("node skills/review-pr/scripts/collect-rules.mjs --repo <REPO>")  # project + ~/.claude CLAUDE.md and rules/*.md
 Workflow(scriptPath="skills/review-pr/workflows/rule-check.js",
-         args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff base...head)",
+         args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff --no-ext-diff --no-textconv base...head)",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
 ```
 
