@@ -17,7 +17,7 @@ import { fnv1aHash } from '../../lib/common.js';
 describe('outputWithContext (#865 injection gate)', () => {
   test('returns silent success for empty string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('');
+    const result = outputWithContext('', 'PostToolUse');
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(result.hookSpecificOutput).toBeUndefined();
@@ -25,16 +25,32 @@ describe('outputWithContext (#865 injection gate)', () => {
 
   test('returns silent success for whitespace-only string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('   \n\t  ');
+    const result = outputWithContext('   \n\t  ', 'PostToolUse');
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput).toBeUndefined();
   });
 
   test('injects additionalContext for non-empty string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('Some context');
+    const result = outputWithContext('Some context', 'PostToolUse');
     expect(result.hookSpecificOutput?.additionalContext).toBe('Some context');
     expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  });
+
+  // #4683: the label comes from the real event, never a PostToolUse default.
+  test('labels with the event carried by the hook input', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    const result = outputWithContext('ctx', { hook_event: 'PreToolUse' });
+    expect(result.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+  });
+
+  test('omits the label when the input has no usable event (guard stamps the firing event)', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    for (const input of [{}, { hook_event: 'unknown' as never }]) {
+      const result = outputWithContext('ctx', input);
+      expect(result.hookSpecificOutput?.additionalContext).toBe('ctx');
+      expect(result.hookSpecificOutput).not.toHaveProperty('hookEventName');
+    }
   });
 });
 

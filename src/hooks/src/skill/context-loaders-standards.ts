@@ -22,7 +22,7 @@ import { NOOP_CTX } from '../lib/context.js';
  * Scans package.json, pyproject.toml, tsconfig.json to build a
  * framework standards summary injected once before agent spawning.
  */
-export function implementStandardsLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+export function implementStandardsLoader(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const projectDir = hookCtx.projectDir;
   const standards: string[] = [];
 
@@ -90,7 +90,7 @@ export function implementStandardsLoader(_input: HookInput, hookCtx: HookContext
     'All agents should follow these framework conventions.',
   ].join('\n');
 
-  return outputWithContext(ctx);
+  return outputWithContext(ctx, input);
 }
 
 /**
@@ -99,7 +99,7 @@ export function implementStandardsLoader(_input: HookInput, hookCtx: HookContext
  *
  * Static content: 0-10 dimension definitions and pass/fail thresholds.
  */
-export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
+export function verifyScoringRubricLoader(input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Verification Rubric — loaded once]',
     'Grade scale: 0-10 per dimension, composite = weighted average',
@@ -114,7 +114,7 @@ export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookConte
     'Visual weight = 0.00 for API-only projects (redistribute to other 7)',
   ].join('\n');
 
-  return outputWithContext(ctx);
+  return outputWithContext(ctx, input);
 }
 
 /**
@@ -123,7 +123,7 @@ export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookConte
  *
  * Static content: divergent thinking rules and evaluation dimensions.
  */
-export function brainstormInstructionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
+export function brainstormInstructionsLoader(input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Brainstorm Rules — loaded once]',
     'Divergent phase: generate ideas without filtering; judgment waits for the evaluation phase.',
@@ -132,5 +132,5 @@ export function brainstormInstructionsLoader(_input: HookInput, _hookCtx: HookCo
     '  impact, effort, risk, alignment, testability, simplicity, innovation',
   ].join('\n');
 
-  return outputWithContext(ctx);
+  return outputWithContext(ctx, input);
 }

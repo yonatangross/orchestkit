@@ -8,7 +8,7 @@
  * tree-shakeable.
  */
 
-import type { HookResult, HookInput } from '../types.js';
+import type { HookResult, HookInput, HookEvent } from '../types.js';
 
 // -----------------------------------------------------------------------------
 // Output Builders (CC 2.1.7+ compliant)
@@ -106,23 +106,41 @@ export function outputBlock(reason: string): HookResult {
 }
 
 /**
- * Output with additionalContext - injects context before tool execution (CC 2.1.9)
- * For PostToolUse hooks (hookEventName optional)
+ * Where outputWithContext reads the event label from: the hook's own input
+ * (preferred, it carries the event CC actually fired) or a literal event for a
+ * hook that only ever runs on one event.
+ */
+export type ContextEventSource = HookEvent | Pick<HookInput, 'hook_event'>;
+
+/**
+ * Output with additionalContext (CC 2.1.9).
+ *
+ * The event label is REQUIRED and comes from the caller (#4683). It used to
+ * default to 'PostToolUse', so every PreToolUse, Setup, SubagentStart, Stop and
+ * skill-frontmatter loader that forgot the argument shipped a PostToolUse label
+ * on a different event and CC dropped its context. When the source is an input
+ * whose event is missing or 'unknown', the label is omitted: run-hook's output
+ * guard then stamps the firing event (Rule 0) instead of guessing here.
+ *
  * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
-export function outputWithContext(
-  ctx: string,
-  hookEventName: 'PostToolUse' | 'PostToolUseFailure' = 'PostToolUse',
-): HookResult {
+export function outputWithContext(ctx: string, source: ContextEventSource): HookResult {
   if (!ctx?.trim()) return outputSilentSuccess();
+  const hookEventName = resolveContextEvent(source);
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
-      hookEventName,
+      ...(hookEventName ? { hookEventName } : {}),
       additionalContext: ctx,
     },
   };
+}
+
+function resolveContextEvent(source: ContextEventSource): HookEvent | undefined {
+  if (typeof source === 'string') return source;
+  const ev: unknown = source?.hook_event;
+  return typeof ev === 'string' && ev !== '' && ev !== 'unknown' ? (ev as HookEvent) : undefined;
 }
 
 // -----------------------------------------------------------------------------

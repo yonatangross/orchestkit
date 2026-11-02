@@ -87,5 +87,5 @@ export function taskExistenceGate(input: HookInput, ctx: HookContext = NOOP_CTX)
   return outputWithContext(
     `[Task Tracking] No task registered for agent "${subagentType}". ` +
     `Consider using TaskCreate before spawning agents to enable progress tracking.`
-  );
+  , input);
 }

@@ -124,7 +124,7 @@ export function commitNudge(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
     ctx.log(HOOK_NAME, `${dirtyCount} dirty files — urgent nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files — this is a lot of unsaved work. Commit NOW to prevent loss from rate limits or session interruption. Use /ork:commit to commit.`
-    );
+    , input);
   }
 
   if (dirtyCount >= WARN_THRESHOLD && (state.last_nudge_level === 'none' || state.last_nudge_level === 'info' || state.last_nudge_level === 'time')) {
@@ -134,7 +134,7 @@ export function commitNudge(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
     ctx.log(HOOK_NAME, `${dirtyCount} dirty files — warn nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files. Consider committing intermediate progress to avoid losing work.`
-    );
+    , input);
   }
 
   if (dirtyCount >= INFO_THRESHOLD && state.last_nudge_level === 'none') {
@@ -156,7 +156,7 @@ export function commitNudge(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
     ctx.log(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
     return outputWithContext(
       `[Commit Nudge] ${mins} minutes since last commit with ${dirtyCount} uncommitted file(s). Consider committing to preserve progress. Use /ork:commit for a quick conventional commit.`
-    );
+    , input);
   }
 
   return outputSilentSuccess();
