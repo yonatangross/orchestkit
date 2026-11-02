@@ -54,7 +54,7 @@ chmod +x "$WORK/clean-null" "$WORK/no-launch" "$WORK/silent-fail"
 
 # Run the gate with a pinned browser, recording status and transcript.
 # Stderr is folded in because the verdict lines go there. Trailing args are
-# the env prelude, either `CI=true` or `-u CI`.
+# the env prelude, either `GITHUB_ACTIONS=true` or `-u CI -u GITHUB_ACTIONS`.
 run_gate() {
   local label="$1" stub="$2" script="$3"
   shift 3
@@ -77,7 +77,7 @@ echo "launch-vs-render proofs:"
 
 # 1. A clean exit with no DOM is case (a), not case (b). This is the half
 #    that must never weaken: no-escape deletes every escapeHtml call site.
-run_gate clean-null clean-null "$GATE" -u CI
+run_gate clean-null clean-null "$GATE" -u CI -u GITHUB_ACTIONS
 [[ "$(status clean-null)" != 0 ]] \
   || fail "a browser that exits 0 and writes nothing was not a failure"
 said clean-null 'produced no DOM, so no mutation case can be judged' \
@@ -95,7 +95,7 @@ ok "clean exit, no DOM: hard fail, no tick, not an environment verdict"
 grep -v '^run_case encoded pass$' "$GATE" > "$NEG"
 grep -q '^run_case no-escape fail$' "$NEG" \
   || fail "the negatives-only variant lost the no-escape case"
-run_gate negatives clean-null "$NEG" -u CI
+run_gate negatives clean-null "$NEG" -u CI -u GITHUB_ACTIONS
 [[ "$(status negatives)" != 0 ]] \
   || fail "the negative cases alone still pass against a null browser"
 unsaid negatives '✓ mode=' \
@@ -104,7 +104,7 @@ ok "negative cases alone: hard fail, the #4296 vacuous pass stays fixed"
 
 # 3. A real launch failure outside CI takes the repo's skip convention, with
 #    a loud line naming the failure. Never a tick.
-run_gate unavailable no-launch "$GATE" -u CI
+run_gate unavailable no-launch "$GATE" -u CI -u GITHUB_ACTIONS
 [[ "$(status unavailable)" == 0 ]] \
   || fail "a launch failure outside CI did not take the skip convention"
 said unavailable 'ENVIRONMENT UNAVAILABLE' \
@@ -119,7 +119,7 @@ ok "launch failure outside CI: SKIP with the captured reason, no tick"
 
 # 4. The same launch failure in CI is a regression, because the CI image has
 #    a working Chrome. Never a skip, never a pass.
-run_gate ci-hard-fail no-launch "$GATE" CI=true
+run_gate ci-hard-fail no-launch "$GATE" GITHUB_ACTIONS=true
 [[ "$(status ci-hard-fail)" != 0 ]] \
   || fail "a launch failure under CI did not hard fail"
 said ci-hard-fail 'regression, not a skip' \
@@ -127,6 +127,18 @@ said ci-hard-fail 'regression, not a skip' \
 unsaid ci-hard-fail 'SKIP:' \
   || fail "a launch failure under CI still printed a SKIP line"
 ok "launch failure in CI: hard fail, no SKIP line"
+
+# 4b. CI=1 alone is not a CI runner: agent shells and the pre-push hook set it
+#     too (HEADLESS=1 CI=1). Only GITHUB_ACTIONS marks the real runner, so a
+#     sandboxed push with CI=1 takes the skip and a runner still hard fails.
+run_gate ci-env-only no-launch "$GATE" -u GITHUB_ACTIONS CI=1
+[[ "$(status ci-env-only)" == 0 ]] \
+  || fail "CI=1 without GITHUB_ACTIONS hard failed a sandboxed launch failure"
+said ci-env-only 'SKIP:' \
+  || fail "CI=1 without GITHUB_ACTIONS did not print the SKIP line"
+unsaid ci-env-only '✓ mode=' \
+  || fail "a launch failure under CI=1 printed a tick for a mutation case"
+ok "CI=1 without GITHUB_ACTIONS: SKIP with the reason, no tick"
 
 # 5. Absence of output alone must never be enough to claim a launch failure,
 #    so the classifier needs a stderr signature, not just a non-zero exit.
@@ -141,7 +153,7 @@ ok "classification is by stderr signature, not by absent output"
 #    through to the hard no-DOM failure. If a future edit let
 #    launch_failure_reason succeed on an empty file, this stub would exit 0
 #    with a SKIP line and the identifier greps above would still pass.
-run_gate silent-fail silent-fail "$GATE" -u CI
+run_gate silent-fail silent-fail "$GATE" -u CI -u GITHUB_ACTIONS
 [[ "$(status silent-fail)" != 0 ]] \
   || fail "a silent non-zero exit did not fail"
 said silent-fail 'produced no DOM, so no mutation case can be judged' \
@@ -162,7 +174,7 @@ STUB
 printf '#!/bin/sh\necho Darwin\n' > "$WORK/bin/uname"
 chmod +x "$WORK/Fake Chrome.app/Contents/MacOS/Chrome" "$WORK/bin/uname"
 
-run_gate sandbox-skip 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" -u CI \
+run_gate sandbox-skip 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" -u CI -u GITHUB_ACTIONS \
   ORK_GLYPH_SANDBOX=1 ORK_GLYPH_EXEC_MARKER="$WORK/executed" \
   HOME="$WORK/home" PATH="$WORK/bin:$PATH"
 [[ "$(status sandbox-skip)" == 0 ]] || fail "sandbox preflight did not skip"
@@ -172,7 +184,7 @@ said sandbox-skip 'SKIP: sandbox cannot start Chrome' \
 unsaid sandbox-skip '✓ mode=' || fail "sandbox skip judged a mutation case"
 ok "sandbox outside CI: SKIP before full app execution"
 
-run_gate sandbox-ci 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" CI=true \
+run_gate sandbox-ci 'Fake Chrome.app/Contents/MacOS/Chrome' "$GATE" GITHUB_ACTIONS=true \
   ORK_GLYPH_SANDBOX=1 ORK_GLYPH_EXEC_MARKER="$WORK/executed" \
   HOME="$WORK/home" PATH="$WORK/bin:$PATH"
 [[ "$(status sandbox-ci)" != 0 ]] || fail "CI sandbox preflight did not fail"
@@ -185,7 +197,7 @@ mkdir -p "$WORK/home/.cache/puppeteer/chrome-headless-shell/mac-test/chrome-head
 SHELL_STUB="$WORK/home/.cache/puppeteer/chrome-headless-shell/mac-test/chrome-headless-shell-mac/chrome-headless-shell"
 cp "$WORK/Fake Chrome.app/Contents/MacOS/Chrome" "$SHELL_STUB"
 rc=0
-env -u CI -u ORK_GLYPH_CHROME ORK_GLYPH_SANDBOX=1 \
+env -u CI -u GITHUB_ACTIONS -u ORK_GLYPH_CHROME ORK_GLYPH_SANDBOX=1 \
   ORK_GLYPH_EXEC_MARKER="$WORK/headless-executed" \
   HOME="$WORK/home" PATH="$WORK/bin:/usr/bin:/bin" bash "$GATE" \
   > "$WORK/cached-shell.log" 2>&1 || rc=$?
