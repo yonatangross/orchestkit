@@ -106,12 +106,12 @@ jobs:
             \"version\": \"X.Y.Z\",
             \"overall_score\": 0-10,
             \"sections\": {
-              \"issues\": { \"total_open\": N, \"overdue_milestones\": [], \"score\": 0-10 },
+              \"issues\": { \"total_open\": N, \"overdue_milestones\": N, \"score\": 0-10 },
               \"pull_requests\": { \"open\": N, \"stale\": N, \"score\": 0-10 },
-              \"ci_health\": { \"pass_rate\": \"X%%\", \"last_10\": [], \"score\": 0-10 },
+              \"ci_health\": { \"pass_rate\": \"X%%\", \"runs_counted\": N, \"score\": 0-10 },
               \"dependencies\": { \"vulnerabilities\": { \"critical\": N, \"high\": N, \"moderate\": N }, \"score\": 0-10 },
-              \"tests\": { \"passed\": N, \"failed\": N, \"skipped\": N, \"score\": 0-10 },
-              \"codebase\": { \"skills\": N, \"agents\": N, \"hooks\": N, \"counts_match\": true, \"score\": 0-10 }
+              \"tests\": { \"test_files\": N, \"score\": 0-10 },
+              \"codebase\": { \"skills\": N, \"agents\": N, \"score\": 0-10 }
             },
             \"recommendations\": []
           }
