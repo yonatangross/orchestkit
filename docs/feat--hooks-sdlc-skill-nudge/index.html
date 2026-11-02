@@ -83,18 +83,23 @@ function render() {
   const cmd = $('cmd').value;
   const present = SKILLS.filter((s) => s.on);
   const pr = present.filter((s) => PR_NAMES.has(s.name) || PR_DESC.test(s.description));
+  // verdict = [coloured lead, plain rest]; rendered with textContent only.
   let verdict, text;
-  if (!GH_PR_CREATE.test(cmd)) { verdict = '<span class="dim">silent: not a gh pr create, and the skills folder is never read</span>'; text = ''; }
-  else if (present.length === 0) { verdict = '<span class="dim">silent: the repo has no .claude/skills</span>'; text = ''; }
-  else if (pr.length === 0) { verdict = '<span class="dim">silent: no skill here is about opening PRs</span>'; text = ''; }
+  if (!GH_PR_CREATE.test(cmd)) { verdict = ['silent: not a gh pr create, and the skills folder is never read', '', 'dim']; text = ''; }
+  else if (present.length === 0) { verdict = ['silent: the repo has no .claude/skills', '', 'dim']; text = ''; }
+  else if (pr.length === 0) { verdict = ['silent: no skill here is about opening PRs', '', 'dim']; text = ''; }
   else {
-    verdict = '<span class="ok">nudge</span> as PreToolUse additionalContext; the command still runs';
+    verdict = ['nudge', ' as PreToolUse additionalContext; the command still runs', 'ok'];
     const shown = pr.slice(0, 3).map((s) => '  /' + s.name + ' (.claude/skills/' + s.name + '): ' + s.description);
     if (pr.length > 3) shown.push('  and ' + (pr.length - 3) + ' more under .claude/skills');
     text = ['[skill-route] This repo ships its own skill for opening PRs:', ...shown,
       'Use it instead of a hand-rolled gh pr create unless the user asked otherwise. When a subagent opens the PR, name the skill in its prompt.'].join('\n');
   }
-  $('verdict').innerHTML = verdict; $('out').textContent = text;
+  const lead = document.createElement('span');
+  lead.className = verdict[2];
+  lead.textContent = verdict[0];
+  $('verdict').replaceChildren(lead, document.createTextNode(verdict[1]));
+  $('out').textContent = text;
 }
 $('copy').addEventListener('click', async () => {
   const on = SKILLS.filter((s) => s.on).map((s) => '/' + s.name).join(', ') || 'none';
