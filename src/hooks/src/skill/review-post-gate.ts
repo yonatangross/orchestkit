@@ -1548,7 +1548,6 @@ const FLAGS: Record<string, FlagSpec> = {
   'git log': spec('p', { n: NUM, S: TEXT, G: TEXT, U: NUM }, ['oneline', 'graph', 'stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'no-merges', 'merges', 'first-parent', 'reverse', 'all', 'patch', 'follow', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv', 'decorate', 'no-decorate'], { format: TEXT, pretty: TEXT, since: TEXT, until: TEXT, after: TEXT, before: TEXT, author: TEXT, grep: TEXT, 'max-count': NUM, skip: NUM, date: TEXT, unified: NUM, 'diff-filter': TEXT }, true),
   'git diff': spec('pwbMR', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'cached', 'staged', 'no-color', 'patch', 'merge-base', 'ignore-all-space', 'ignore-space-change', 'find-renames', 'word-diff', 'check', 'minimal', 'no-ext-diff', 'no-textconv', 'no-renames'], { unified: NUM, 'diff-filter': TEXT }),
   'git show': spec('ps', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'oneline', 'no-patch', 'patch', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv'], { format: TEXT, pretty: TEXT, unified: NUM }),
-  'git status': spec('sbu', {}, ['short', 'branch', 'porcelain', 'long', 'ignored']),
   'git rev-parse': spec('q', {}, ['abbrev-ref', 'short', 'verify', 'show-toplevel', 'git-dir', 'git-common-dir', 'is-inside-work-tree', 'quiet', 'symbolic-full-name', 'show-prefix']),
   'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email'], { date: TEXT }),
   'git ls-files': spec('cmodzs', {}, ['cached', 'modified', 'others', 'deleted', 'exclude-standard', 'error-unmatch', 'full-name', 'stage']),
@@ -1668,7 +1667,24 @@ function pathsOk(paths: Word[], ctx: AllowContext): string | null {
 
 // test's operators are its flags; test never reads a program or a file body.
 const TEST_OPS = new Set(['-b', '-c', '-d', '-e', '-f', '-g', '-h', '-k', '-L', '-n', '-p', '-r', '-s', '-S', '-t', '-u', '-w', '-x', '-z', '-O', '-G', '-N', '-eq', '-ne', '-lt', '-le', '-gt', '-ge', '-nt', '-ot', '-ef', '-a', '-o']);
-const GIT_READ = new Set(['log', 'diff', 'show', 'status', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
+// No git status: it runs core.fsmonitor from a config written before the
+// skill ran, the gate cannot pass -c, and no review-pr reader needs it (#4701).
+const GIT_READ = new Set(['log', 'diff', 'show', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
+// A config or .gitattributes written before the skill ran can name a program
+// git runs while it prints a diff: diff.external, a diff=<driver> command, or
+// a textconv driver. git diff and git show always print one; git log does
+// with a patch, a stat or a pickaxe search. Those reads must carry both
+// --no-ext-diff and --no-textconv (#4701).
+const GIT_DIFF_DRIVER_FREE = ['no-ext-diff', 'no-textconv'] as const;
+const GIT_LOG_DIFF_FLAGS = ['p', 'patch', 'U', 'unified', 'stat', 'shortstat', 'numstat', 'S', 'G'] as const;
+
+/** Why a git diff, show or log read could run a diff driver, or null when it cannot. */
+function gitDiffDriverReason(sub: string, p: ParsedArgs): string | null {
+  const prints = sub === 'diff' || sub === 'show' || (sub === 'log' && GIT_LOG_DIFF_FLAGS.some((f) => p.given.has(f)));
+  if (!prints) return null;
+  const missing = GIT_DIFF_DRIVER_FREE.filter((f) => !p.given.has(f));
+  return missing.length ? `git ${sub} without --${missing.join(' and --')} (a diff driver from git config could run)` : null;
+}
 const SKILL_SCRIPTS: Record<string, string> = {
   node: 'collect-rules.mjs',
   python3: 'verdict_writeback.py',
@@ -1859,6 +1875,8 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
     const p = parseFlags(`git ${sub}`, args.slice(1), FLAGS[`git ${sub}`]);
     if (typeof p === 'string') return p;
+    const driverWhy = gitDiffDriverReason(sub, p);
+    if (driverWhy) return driverWhy;
     // Words before -- are revisions; words after it are paths. git reads a
     // word before -- as a path when it is no revision, and git diff with a
     // path outside the repo diffs it as a plain file (--no-index), so a word
@@ -1914,4 +1932,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, rev-parse, blame, ls-files, merge-base, grep; git diff, git show and a git log patch, stat or -S/-G search need --no-ext-diff --no-textconv), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";

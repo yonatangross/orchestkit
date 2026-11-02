@@ -385,7 +385,7 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
     for (const cmd of [
       'cat src/skills/review-pr/scripts/post-review.mjs',
       "sed -n '1,40p' src/skills/review-pr/scripts/post-review.mjs",
-      'git diff main -- src/skills/review-pr/scripts/post-review.mjs',
+      'git diff --no-ext-diff --no-textconv main -- src/skills/review-pr/scripts/post-review.mjs',
       'head -20 scripts/post-review.mjs',
     ]) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
@@ -402,7 +402,7 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
     }
   });
   test('searching history or code for a write verb is not a write', () => {
-    for (const cmd of ['grep -rn "pr review" src/', "rg 'gh pr comment' docs", 'git log --grep "pr comment" --oneline', 'git show HEAD -- x | grep "issue comment"']) {
+    for (const cmd of ['grep -rn "pr review" src/', "rg 'gh pr comment' docs", 'git log --grep "pr comment" --oneline', 'git show --no-ext-diff --no-textconv HEAD -- x | grep "issue comment"']) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
     }
   });
@@ -1228,7 +1228,7 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
     }
   });
   test('control: the project\'s own .claude and reads of the plugin code pass', () => {
-    for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md']) {
+    for (const cmd of ['ls .claude', 'git diff --no-ext-diff --no-textconv -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1302,8 +1302,7 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       "gh api repos/o/r/pulls/4668/files --paginate --jq '.[].filename'",
       'gh repo view --json defaultBranchRef',
       'git log --oneline -5 | cat',
-      'git diff main...HEAD -- src/x.ts',
-      'git status',
+      'git diff --no-ext-diff --no-textconv main...HEAD -- src/x.ts',
       'git rev-parse --show-toplevel',
       'git fetch origin main',
       "jq -r '.files[].path' f.json",
@@ -1317,7 +1316,7 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
       'bash /test/plugin-root/skills/review-pr/scripts/resolve-target.sh 4668',
       'ls .claude',
-      'git diff -- .claude',
+      'git diff --no-ext-diff --no-textconv -- .claude',
     ]) {
       expect(at(cmd), cmd).toBe(false);
     }
@@ -1416,7 +1415,7 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
     for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *', 'ls **/docker-compose*.yml 2>/dev/null']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    for (const cmd of ['rg TODO ./src', 'cat src/x.ts', 'ls -- src', 'git diff -- src/x.ts']) {
+    for (const cmd of ['rg TODO ./src', 'cat src/x.ts', 'ls -- src', 'git diff --no-ext-diff --no-textconv -- src/x.ts']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1433,9 +1432,8 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
       'cut -d : -f1 f.txt',
       "jq -r --arg n x '.[] | select(.name == $n)' f.json",
       'git log --oneline -n 5 --format=%H%x09%s main..HEAD',
-      'git diff --stat --name-only main...HEAD -- src',
-      'git show --stat HEAD',
-      'git status -sb',
+      'git diff --no-ext-diff --no-textconv --stat --name-only main...HEAD -- src',
+      'git show --no-ext-diff --no-textconv --stat HEAD',
       'git blame -L 10,20 src/x.ts',
       'gh pr view 4668 --json baseRefName --jq .baseRefName',
       'gh pr diff 4668 --name-only',
@@ -1466,7 +1464,7 @@ describe('(conductor145 at 348161fb) a path is read only by a name the gate can 
   const tr = () => transcript([typed('4668')]);
   const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
   test('an unquoted glob in a path argument denies (its matches are not resolved through symlinks)', () => {
-    for (const cmd of ['cat src/*.ts', 'cat link/*/s.jsonl', 'ls ./**/docker-compose*.yml', 'rg TODO ./*', 'git diff -- *.ts', 'ls -- *.md', 'head -n 5 src/?.ts', 'test -f src/*.ts']) {
+    for (const cmd of ['cat src/*.ts', 'cat link/*/s.jsonl', 'ls ./**/docker-compose*.yml', 'rg TODO ./*', 'git diff --no-ext-diff --no-textconv -- *.ts', 'ls -- *.md', 'head -n 5 src/?.ts', 'test -f src/*.ts']) {
       expect(at(cmd), cmd).toBe(true);
     }
     for (const cmd of ["rg -g '*.ts' TODO src", 'grep -rn --include=*.ts TODO src', 'cat src/x.ts', "rg --files -g '**/docker-compose*.yml' 2>/dev/null", "cat 'src/*.ts'"]) {
@@ -1608,10 +1606,11 @@ describe('(HOLD 6088683660, codex24 6088466165) link payloads, variables that st
     }
   });
   test('should: a git read names no path outside the repo before --', () => {
-    for (const cmd of ['git diff /dev/null /opt/other/secret', 'git diff HEAD ../x', 'git diff --stat /dev/null /etc/hosts', 'git log /opt/other']) {
+    // The driver flags are given, so each row tests the path rule alone.
+    for (const cmd of ['git diff --no-ext-diff --no-textconv /dev/null /opt/other/secret', 'git diff --no-ext-diff --no-textconv HEAD ../x', 'git diff --no-ext-diff --no-textconv --stat /dev/null /etc/hosts', 'git log /opt/other']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    for (const cmd of ['git diff main..HEAD', 'git log origin/main...HEAD --oneline', 'git show HEAD:src/a.ts', 'git diff HEAD -- src/a.ts']) {
+    for (const cmd of ['git diff --no-ext-diff --no-textconv main..HEAD', 'git log origin/main...HEAD --oneline', 'git show --no-ext-diff --no-textconv HEAD:src/a.ts', 'git diff --no-ext-diff --no-textconv HEAD -- src/a.ts']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1658,10 +1657,10 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     writeFileSync(join(dir, 'cwd', 'README.md'), 'x');
     symlinkSync('/etc', join(dir, 'cwd', 'lnk'));
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, join(dir, 'cwd')), ctx));
-    for (const cmd of ['git diff lnk/hosts README.md', 'git diff --stat lnk/hosts README.md']) {
+    for (const cmd of ['git diff --no-ext-diff --no-textconv lnk/hosts README.md', 'git diff --no-ext-diff --no-textconv --stat lnk/hosts README.md']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    expect(at('git diff HEAD README.md')).toBe(false);
+    expect(at('git diff --no-ext-diff --no-textconv HEAD README.md')).toBe(false);
   });
   test('codex22 P2-1: a protected config file is caught by its own real path too', () => {
     const home = join(dir, 'home');
@@ -1684,10 +1683,61 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     }
     expect(at(join(dir, 'other.cfg'))).toBe(false);
   });
-  test('codex22 P2-2, declared limit (#4701): a file an existing [include] names is not known to the gate', () => {
-    // The gate does not parse git config; a pre-existing include target is
-    // the same class as a config written before the skill ran.
+  test('codex22 P2-2 (#4701): an existing [include] target is writable, but no read it could arm passes bare', () => {
+    // The gate does not parse git config, so a pre-existing include target
+    // stays writable, the same class as a config written before the skill
+    // ran. What such a config can run is closed on the read side instead:
+    // diff.external, a diff=<driver> command and a textconv driver run only
+    // in a diff-printing read, and those need --no-ext-diff --no-textconv;
+    // core.fsmonitor runs in git status, which is off the list.
     expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git diff HEAD', 'git show HEAD', 'git log -p -- x', 'git status']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('#4701: a diff-printing git read needs both --no-ext-diff and --no-textconv', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of [
+      // bare
+      'git diff main...HEAD -- src/x.ts',
+      'git diff --stat HEAD',
+      'git show HEAD',
+      'git show --stat HEAD',
+      'git log -p -- x',
+      'git log --patch -- x',
+      'git log -U3 -- x',
+      'git log --stat -- x',
+      'git log -S needle -- x',
+      'git log -G needle -- x',
+      // one flag only
+      'git diff --no-ext-diff HEAD',
+      'git diff --no-textconv HEAD',
+      'git show --no-ext-diff HEAD',
+      'git show --no-textconv HEAD',
+      'git log -p --no-ext-diff -- x',
+      'git log -p --no-textconv -- x',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of [
+      'git diff --no-ext-diff --no-textconv main...HEAD -- src/x.ts',
+      'git diff --no-textconv --no-ext-diff --stat HEAD',
+      'git show --no-ext-diff --no-textconv HEAD',
+      'git log -p --no-ext-diff --no-textconv -- x',
+      'git log -S needle --no-ext-diff --no-textconv -- x',
+      // git log with no diff output runs no diff driver
+      'git log --oneline -5',
+      'git log --name-only --oneline -- x',
+    ]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('#4701: git status is off the list (core.fsmonitor runs from git config)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git status', 'git status -sb', 'git status --porcelain', 'git status --short --branch']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
   });
   test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };
