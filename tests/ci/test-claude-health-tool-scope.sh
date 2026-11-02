@@ -3,7 +3,7 @@
 #
 # The model step reads repository data on a public repo. Four assertions on the
 # workflow file (WORKFLOW_FILE overrides the path, so a bad fixture can prove each arm):
-#   1. the model step grants no Read, Grep, Glob or Bash(cat) tool (they reach /proc and env)
+#   1. the model step passes --tools "" and --strict-mcp-config and no --allowedTools
 #   2. the model step sees no GH_TOKEN (data is collected in an earlier step)
 #   3. no artifact upload of the raw model report
 #   4. the data-collection step emits no free text fields (title, body, name)
@@ -22,11 +22,16 @@ bad() { echo "FAIL: $1"; fail=1; }
 
 grep -q 'claude -p' "$WF" || bad "no claude -p step found, parse proved nothing"
 
-allowed="$(grep -E -e '--allowedTools' "$WF" || true)"
-if [ -z "$allowed" ]; then
-  bad "no --allowedTools line, the model tool scope is unbounded"
-elif [[ "$allowed" =~ Read|Grep|Glob|Bash\(cat ]]; then
-  bad "model tool scope still grants Read, Grep, Glob or cat"
+# The model gets no tools at all: an empty --tools list, and no allowlist that
+# could grant Bash, Read, Grep, Glob or cat back (any --allowedTools fails).
+if ! grep -q -e '--tools ""' "$WF"; then
+  bad "model step does not pass --tools \"\" (no tools defined)"
+fi
+if grep -q -e '--allowedTools' "$WF"; then
+  bad "an --allowedTools list is present, the model must get no tools"
+fi
+if ! grep -q -e '--strict-mcp-config' "$WF"; then
+  bad "model step does not pass --strict-mcp-config"
 fi
 
 # The step that runs claude -p must not carry GH_TOKEN in its env block.
