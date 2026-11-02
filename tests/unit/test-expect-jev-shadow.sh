@@ -15,7 +15,8 @@
 #                            page text beyond names neither
 #   6. element cap        -> comes from the skill config, not a constant
 #   7. report.sh          -> JEV_SHADOW folds into the JSON report
-#   8. act mode           -> executed_action is the Jev pick, path=jev
+#   8. act mode           -> Jev pick runs on agreement or a confirmed
+#                            high-confidence disagreement; else incumbent
 #   9. act fallbacks      -> every failure path returns the incumbent pick
 #  10. shadow unchanged   -> ORK_EXPECT_JEV=shadow keeps the shadow record
 #  11. mode off           -> ORK_EXPECT_JEV unset/0 emits nothing
@@ -248,7 +249,7 @@ print('OK' if all(checks) else 'FAIL ' + repr(checks))
 [[ "$VERDICT" == "OK" ]] && ok "JSON report: per-step jev_shadow + run summary" \
   || bad "report json: $VERDICT"
 
-# ── 8: act mode -> executed_action is the Jev pick ───────────
+# ── 8: act mode -> Jev pick runs only on agreement or confirm ─
 run_jev() {  # extra args passed through to jev-shadow.sh
   ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
   ORK_EXPECT_JEV_ENDPOINT="${JEV_ENDPOINT:-$ENDPOINT}" \
@@ -258,25 +259,66 @@ run_jev() {  # extra args passed through to jev-shadow.sh
     --snapshot-file "$FIX/aria-login.txt" "$@"
 }
 
-cp "$FIX/jev-response-disagree.json" "$RESP_FILE"
-LINE="$(run_jev)"
-REC="$(printf '%s' "$LINE" | cut -d'|' -f3-)"
-VERDICT="$(python3 -c "
+# act_check LABEL WANT_PATH WANT_EXECUTED WANT_AGREE [EXTRA_PY_EXPR] ; record in $LINE
+act_check() {
+  local label="$1" want_path="$2" want_exec="$3" want_agree="$4" extra="${5:-True}"
+  local verdict
+  verdict="$(python3 -c "
 import json, sys
 r = json.loads(sys.argv[1])
+want_agree = {'True': True, 'False': False, 'None': None}[sys.argv[4]]
 checks = [
     r.get('mode') == 'act',
-    r.get('path') == 'jev',
-    r.get('executed_action') == 'click:@e7',
-    r.get('jev_action') == 'click:@e7',
-    r.get('model_action_key') == 'click:@e3',
-    r.get('agree') is False,
+    r.get('path') == sys.argv[2],
+    r.get('executed_action') == sys.argv[3],
+    r.get('agree') is want_agree,
+    bool($extra),
 ]
 print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:400])
-" "$REC")"
-[[ "$VERDICT" == "OK" ]] && ok "act: executed_action is the Jev pick (click:@e7, not the incumbent)" \
-  || bad "act pick: $VERDICT"
+" "$(printf '%s' "$LINE" | cut -d'|' -f3-)" "$want_path" "$want_exec" "$want_agree")"
+  [[ "$verdict" == "OK" ]] && ok "$label" || bad "$label: $verdict"
+}
 
+# 8a: agreement above the floor, the Jev pick runs.
+cp "$FIX/jev-response-agree.json" "$RESP_FILE"
+LINE="$(run_jev)"
+act_check "act agree: Jev pick runs (path=jev, click:@e3)" jev 'click:@e3' True
+
+# 8b: high-confidence disagreement with no confirm, the agent's pick runs and
+# the disagreement is logged (#4745: untrusted page content must not steer
+# the executed action on its own).
+cp "$FIX/jev-response-disagree.json" "$RESP_FILE"
+LINE="$(run_jev)"
+act_check "act disagree, unconfirmed: incumbent runs, disagreement logged" \
+  'fallback:disagreement' 'click:@e3' False \
+  "r.get('jev_action') == 'click:@e7' and r.get('high_confidence_disagreement') is True and r.get('decided_by') == 'incumbent' and r.get('disagreement_confirmed') is False"
+
+# 8c: the same disagreement, confirmed for this step, the Jev pick runs.
+LINE="$(run_jev --confirm-disagreement)"
+act_check "act disagree, confirmed: Jev pick runs (click:@e7)" jev 'click:@e7' False \
+  "r.get('disagreement_confirmed') is True and r.get('decided_by') == 'jev'"
+
+# 8d: a disagreement below the floor never runs, even when confirmed.
+python3 -c "
+import json, sys
+b = json.load(open(sys.argv[1]))
+b['answers']['next_action']['confidence'] = 0.3
+json.dump(b, open(sys.argv[2], 'w'))
+" "$FIX/jev-response-disagree.json" "$RESP_FILE"
+LINE="$(run_jev --confirm-disagreement)"
+act_check "act disagree below floor, confirmed: incumbent runs" \
+  'fallback:low_confidence' 'click:@e3' False "r.get('high_confidence_disagreement') is False"
+
+# 8e: an agent pick outside the keyspace has unknown agreement, raw incumbent runs.
+cp "$FIX/jev-response-disagree.json" "$RESP_FILE"
+LINE="$(ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id act-u \
+  --goal g --last-verify v --model-action 'press Tab' \
+  --snapshot-file "$FIX/aria-login.txt" --confirm-disagreement)"
+act_check "act unknown agreement: raw incumbent runs" \
+  'fallback:unknown_agreement' 'press Tab' None
+
+cp "$FIX/jev-response-agree.json" "$RESP_FILE"
 LINE="$(ORK_EXPECT_JEV=1 ORK_TYPESAFE_API_KEY=test-key \
   ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id act-2 \
   --goal g --last-verify v --model-action 'click @e3' \

@@ -4,8 +4,11 @@
   unset / falsey : off, the script exits before python or the network
   shadow         : log-only second opinion (legacy ORK_EXPECT_JEV_SHADOW
                    truthy maps here too)
-  1 | act        : the Jev pick becomes the step's chosen action, with a
-                   fail-closed fallback to the agent's own pick
+  1 | act        : the Jev pick becomes the step's chosen action only when
+                   it agrees with the agent's pick, or when a disagreement
+                   clears the floor and the step passed
+                   --confirm-disagreement; otherwise, and on any failure,
+                   it falls back to the agent's own pick
 
 Sends ONE Jev request per expect step: a Choice over the bounded set of
 legal next actions (element verbs derived from the interactive ARIA
@@ -490,6 +493,10 @@ def main():
                         help="browser session id for the decision record")
     parser.add_argument("--prompt-id", default=None,
                         help="override the prompt identifier in the record")
+    parser.add_argument("--confirm-disagreement", action="store_true",
+                        help="act mode: the operator confirmed this step, so a "
+                             "high-confidence Jev pick that disagrees with "
+                             "--model-action may run; without it the agent's pick runs")
     parser.add_argument("--log-file", default=os.environ.get("ORK_EXPECT_JEV_LOG") or ".expect/jev-shadow.jsonl")
     args = parser.parse_args()
 
@@ -627,7 +634,20 @@ def main():
     high_confidence_disagreement = None
     if below_floor is not None and agree is not None:
         high_confidence_disagreement = not below_floor and agree is False
-    take_jev = mode == "act" and below_floor is False
+    # Jev reads untrusted page content, so a crafted page can steer its pick
+    # (#4745). In act mode Jev's pick runs only when it agrees with the
+    # agent's own pick, or when a high-confidence disagreement was
+    # explicitly confirmed for this step (--confirm-disagreement). Every
+    # other disagreement falls back to the incumbent and is logged.
+    confirmed = bool(args.confirm_disagreement)
+    take_jev = mode == "act" and below_floor is False and (
+        agree is True or (high_confidence_disagreement is True and confirmed))
+    if mode == "act" and below_floor is False and not take_jev:
+        # agree is None when the agent's pick sits outside the keyspace:
+        # agreement is unknown, so Jev cannot be shown to match it.
+        fallback_path = "fallback:disagreement" if agree is False else "fallback:unknown_agreement"
+    else:
+        fallback_path = "fallback:low_confidence"
 
     # Per-field form decisions: a field is decided by Jev only when its own
     # confidence clears the floor; below it the incumbent (the agent's
@@ -711,10 +731,11 @@ def main():
         "floor": conf_floor,
         "below_floor": below_floor,
         "high_confidence_disagreement": high_confidence_disagreement,
+        "disagreement_confirmed": confirmed if agree is False else None,
         "probabilities": probabilities,
         "latency_ms": latency_ms,
         "error": None,
-    }, "jev" if take_jev else "fallback:low_confidence",
+    }, "jev" if take_jev else fallback_path,
        executed_action)
     return 0
 
