@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestkit.yonyon.ai/schemas/build-result.schema.json",
+  "title": "OrchestKit builder result",
+  "description": "Caller schema for a builder agent asked to edit, check and commit (Workflow agent({ schema }) or an Agent call with structured output). A commit either landed (status DONE, committed_sha is the full 40-hex sha) or it did not (status BLOCKED, committed_sha null, blocked_reason names what refused it). An empty or placeholder sha never validates (#4703, #4628). The status values are the ones in shared/status-protocol.md, so a caller reads them the same way it reads any other agent result.",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["DONE", "BLOCKED"],
+      "description": "DONE when the commit landed. BLOCKED when a hook, guard, permission or failing check stopped the commit."
+    },
+    "committed_sha": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full 40-hex sha of the commit (git rev-parse HEAD after the commit). null when status is BLOCKED. Never an empty string or a placeholder."
+    },
+    "blocked_reason": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "description": "Required when status is BLOCKED: the refusing hook or check and its exact message. null when status is DONE."
+    },
+    "uncommitted_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Files edited but left uncommitted (BLOCKED only), so the caller can see the partial work."
+    }
+  },
+  "required": ["status", "committed_sha", "blocked_reason"],
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "DONE" } } },
+      "then": {
+        "properties": {
+          "committed_sha": { "type": "string" },
+          "blocked_reason": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "BLOCKED" } } },
+      "then": {
+        "properties": {
+          "committed_sha": { "type": "null" },
+          "blocked_reason": { "type": "string" }
+        }
+      }
+    }
+  ]
+}
