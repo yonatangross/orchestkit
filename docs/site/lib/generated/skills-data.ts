@@ -693,9 +693,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "brainstorm": {
     "name": "brainstorm",
-    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for rating work that already exists (use assess).",
+    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for scoring a finished design (use assess).",
     "version": "4.10.0",
-    "sha256": "d848d5a67eb3fb7a09826ffc0028bd99419f8fad93fa0fbdeb2f308f06f554ca",
+    "sha256": "2c779b29edd369041b52db5635e0b886fc7e57131129c00a240ffccecf8ec0d8",
     "author": "OrchestKit",
     "tags": [
       "planning",

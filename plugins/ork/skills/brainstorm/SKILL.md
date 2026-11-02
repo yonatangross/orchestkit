@@ -2,7 +2,7 @@
 name: brainstorm
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for rating work that already exists (use assess)."
+description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for scoring a finished design (use assess)."
 argument-hint: "[topic-or-idea]"
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 user-invocable: true
