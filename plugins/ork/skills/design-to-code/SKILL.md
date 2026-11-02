@@ -249,6 +249,7 @@ Merge the extracted design context with matched/generated components:
 4. **Add TypeScript types** — Full type safety with Zod validation for any data props
 5. **Include tests** — MSW handlers for API-backed components, render tests for static
 6. **Responsive** — Mobile-first with breakpoints matching project's system
+7. **Polish from a named recipe**: when the design calls for elevation, a glass surface, a border gradient or a type scale that the project tokens do not carry, take the exact values from `/ork:design-stylecards` instead of inventing them
 
 ### Output Structure
 ```

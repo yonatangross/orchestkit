@@ -1787,7 +1787,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "1055c4cd12be34cac1fcd89d28d71498b7469a0ffecf85bc358452caea2d145c",
+    "sha256": "1657c7824a9a0a38fa44bf583ec44da5abb27740ebeb4db0c2d4e099dc79ea97",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
