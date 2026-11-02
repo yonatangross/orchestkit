@@ -237,13 +237,39 @@ jobs:
             # cost goes from ~4k to ~10k tokens per PR but the workflow actually
             # authenticates. Documented the trade-off in SKILL.md.
             #
-            # M146-7 (#1862 Bug C): `dontAsk` silently REFUSES permission-requiring
-            # tools — and /ci-debug needs Bash for `gh pr checks` / `gh api ...logs`,
-            # so every analysis came back empty. `acceptEdits` is the headless
-            # "use tools without prompting" mode for this read-only skill.
-            # `--effort` removed alongside --bare — it's a session config that
+            # M146-7 (#1862 Bug C): `dontAsk` with no allow rules refused every
+            # Bash call, so every analysis came back empty, and acceptEdits was
+            # used instead, which let the model run any command with this job's
+            # pull-requests/issues write token while it reads untrusted CI logs.
+            # #4771: dontAsk again, with the narrowest allow list for the gh
+            # reads the prompt asks for. Every other tool or command is refused.
+            # A `*` in a rule matches any text, spaces included, so the allow
+            # list cannot pin gh api to GET; the deny list (which wins over
+            # allow) refuses every method, field and input flag, graphql, and
+            # any env or $ENV read in a --jq program (the verdict is posted as a
+            # public comment, so a printed token would leak). No grep, head or
+            # jq: they can read files such as /proc/self/environ.
+            # `--effort` removed alongside --bare: it's a session config that
             # needs the full CC load to take effect and is duplicated by
             # --max-turns 4 for our use case.
+            allowed_tools=(
+              "Bash(gh pr checks *)"
+              "Bash(gh pr view *)"
+              "Bash(gh run view *)"
+              "Bash(gh api repos/*)"
+            )
+            disallowed_tools=(
+              "Bash(gh api *-X*)"
+              "Bash(gh api *--method*)"
+              "Bash(gh api *-f*)"
+              "Bash(gh api *-F*)"
+              "Bash(gh api *--field*)"
+              "Bash(gh api *--raw-field*)"
+              "Bash(gh api *--input*)"
+              "Bash(gh api *graphql*)"
+              "Bash(gh *env*)"
+              "Bash(gh *ENV*)"
+            )
             tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
             # #1862 Bugs A+B: claude -p reports auth/permission errors as JSON on
             # STDOUT (verdict.json), not stderr — so log BOTH on failure. Each cat
@@ -252,11 +278,13 @@ jobs:
             # every remaining PR in the loop.
             timeout "${ORK_SENTINEL_PER_PR_TIMEOUT_S}s" \
               claude -p \
-                --permission-mode acceptEdits \
+                "Run /ci-debug on PR ${number} in repo ${OWNER}/${REPO}. Use only the gh CLI. Output the report markdown only — no preamble." \
+                --permission-mode dontAsk \
+                --allowedTools "${allowed_tools[@]}" \
+                --disallowedTools "${disallowed_tools[@]}" \
                 --max-turns 4 \
                 --output-format json \
                 --no-session-persistence \
-                "Run /ci-debug on PR ${number} in repo ${OWNER}/${REPO}. Use only the gh CLI. Output the report markdown only — no preamble." \
               > "${tmpdir}/verdict.json" 2> "${tmpdir}/err.log" \
               || {
                 echo "::warning::claude run failed for #${number} — error output follows"

@@ -110,13 +110,15 @@ Each `claude -p` invocation locks the dispatch envelope so cost-per-PR stays pre
 
 | Flag | Value | Why |
 |---|---|---|
-| `--permission-mode` | `acceptEdits` | The headless "use tools without prompting" mode. `/ci-debug` needs Bash (`gh pr checks`, `gh api ...logs`) to read the failure. `dontAsk` was the original value but it silently REFUSES permission-requiring tools, so every analysis came back empty (M146-7, #1862 Bug C). **Never** use `bypassPermissions` here. |
+| `--permission-mode` | `dontAsk` | Refuses every tool and command that no allow rule names. `dontAsk` with no allow rules refused all Bash, so every analysis came back empty (M146-7, #1862 Bug C); the allow list below fixes that, and `acceptEdits` (which ran any command) is gone (#4771). **Never** use `bypassPermissions` here. |
+| `--allowedTools` | `Bash(gh pr checks *)`, `Bash(gh pr view *)`, `Bash(gh run view *)`, `Bash(gh api repos/*)` | The gh reads `/ci-debug` does: failing checks, PR state, run logs, job logs and commit statuses. No grep, head or jq (they can read files such as `/proc/self/environ`). |
+| `--disallowedTools` | any `gh api` with `-X`, `--method`, `-f`, `-F`, `--field`, `--raw-field`, `--input` or `graphql`; any `gh` command with `env` or `ENV` | A `*` in a rule matches any text, spaces included, so the allow list cannot pin `gh api` to GET; deny wins over allow. The env rule keeps a `--jq` program from printing a token into the public verdict comment. |
 | `--max-turns` | `4` | Cap on the conversation length. Sweep, classify, report — done. |
 | `--output-format` | `json` | Ledger needs `usage.total_tokens` for the budget circuit-breaker. |
 | `--no-session-persistence` | (flag) | Don't write session state to disk; sentinel runs are ephemeral. |
 
-> ⚠️ **`acceptEdits` is edit-capable. The permission mode is NOT what keeps the
-> sentinel propose-don't-apply.** Be precise about which control does what:
+> ⚠️ **The permission mode and tool lists are one control, not the only one.**
+> Be precise about which control does what:
 >
 > - **The real structural control is `permissions: contents: read` at the top of
 >   `ci-sentinel.yml`.** The `GITHUB_TOKEN` the job runs under simply cannot
@@ -125,12 +127,14 @@ Each `claude -p` invocation locks the dispatch envelope so cost-per-PR stays pre
 >   enforcement, not convention. It is also why local edits the model makes to
 >   the runner checkout go nowhere: not because the runner is ephemeral, but
 >   because nothing can push them.
-> - **The model CAN still write, and those writes persist.** The job sets
->   `GH_TOKEN` and grants `pull-requests: write` + `issues: write`, and the
->   prompt tells the model to use the `gh` CLI. An `acceptEdits` model can
->   therefore post, edit, or delete comments, edit PR/issue titles and bodies,
->   add labels, and close or reopen PRs and issues. None of that is undone when
->   the job ends. Treat GitHub-conversation state as writable blast radius.
+> - **The token can still write, so the tool lists matter.** The job sets
+>   `GH_TOKEN` and grants `pull-requests: write` + `issues: write` for the
+>   verdict comment. Under the old `acceptEdits` mode the model could post,
+>   edit or delete comments, edit titles and bodies, add labels, and close or
+>   reopen PRs and issues. The `dontAsk` allow and deny lists now refuse every
+>   gh write form the model could reach (#4771). They are prefix and wildcard
+>   matches, not a parser, so treat GitHub-conversation state as the remaining
+>   blast radius if a write form slips past them.
 > - **Prompt wording is a convention, not a control.** The dispatch prompt is
 >   `Run /ci-debug on PR N ... Use only the gh CLI. Output the report markdown
 >   only`, and `/ci-debug` is specified to propose and never apply. That is what
