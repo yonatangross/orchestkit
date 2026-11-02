@@ -1,0 +1,13 @@
+{
+  "slug": "4701-review-gate-no-ext-diff",
+  "source": "docs/fix--review-gate-no-ext-diff/index.html",
+  "title": "#4701 review-pr gate: a git read runs no diff driver",
+  "description": "A git config written before review-pr ran could make an allowed git diff, show or log -p run diff.external or a textconv driver, and git status run core.fsmonitor. The gate now requires --no-ext-diff and --no-textconv on every diff-printing read and drops git status.",
+  "tags": [
+    "review-pr",
+    "hooks",
+    "security",
+    "4701"
+  ],
+  "date": "2026-11-02"
+}
