@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gh pr create meets the repo's own PR skill</title>
+<meta name="description" content="A PreToolUse Bash nudge: when a session runs gh pr create in a repo that ships its own PR skill under .claude/skills, the hook names that skill. Type a command and pick the repo's skills to see when it speaks and when it stays silent.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  input[type=text],select,button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.3rem .5rem;font-family:inherit;font-size:.8rem}
+  input[type=text]{width:100%}
+  button{cursor:pointer}
+  label.chk{display:inline-flex;gap:.35rem;align-items:center}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:2.4rem}
+  .verdict{font-size:.85rem;margin:.4rem 0 .6rem}
+  .ok{color:var(--ok)} .dim{color:var(--dim)} .warn{color:var(--warn)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+</head>
+<body><main>
+<h1>gh pr create meets the repo's own PR skill</h1>
+<p class="sub">Branch feat/hooks-sdlc-skill-nudge, PR #5006, Refs #4629. A new sub-hook in the Bash advisory dispatcher. It never blocks; it adds one short context note, or nothing.</p>
+
+<section><h2>1. The command</h2>
+<div class="controls" style="display:block">
+  <input id="cmd" type="text" aria-label="Bash command" value="git push -u origin feat/x &amp;&amp; gh pr create --base development --fill">
+</div>
+<div class="controls">
+  <span class="dim">try:</span>
+  <button type="button" data-cmd="gh pr create --fill">gh pr create</button>
+  <button type="button" data-cmd="gh -R owner/repo pr create">gh -R owner/repo pr create</button>
+  <button type="button" data-cmd="gh pr view 4629">gh pr view</button>
+  <button type="button" data-cmd='echo "run gh pr create later"'>echo "gh pr create"</button>
+</div>
+</section>
+
+<section><h2>2. The repo's .claude/skills</h2>
+<div class="controls" id="skills"></div>
+</section>
+
+<section><h2>3. What the hook adds</h2>
+<div class="verdict" id="verdict"></div>
+<div class="out" id="out"></div>
+<p class="note"><strong>Cheap by design.</strong> No network, no git, no process: one readdir of <code>.claude/skills</code> plus the first 4 KB of each <code>SKILL.md</code>, cached by the folder's mtime, read through an injected <code>lib/repo-skills</code> (FH-ready policy). Not covered here: an Agent prompt that says "open a PR"; the note asks the session to name the skill in a subagent's prompt instead.</p>
+<div class="controls" style="margin-top:.9rem"><button id="copy" type="button">copy this case as a prompt</button><span id="copied" class="dim"></span></div>
+</section>
+
+<script>
+const SKILLS = [
+  { name: 'integrate', description: 'Open a PR after lint, smoke and validate-deploy', on: true },
+  { name: 'bugfix', description: 'Fix a bug, add the /doc summary, open the PR', on: false },
+  { name: 'land', description: 'Creates the pull request with the 7-section body', on: false },
+  { name: 'lint', description: 'Run the linters', on: true },
+  { name: 'deploy', description: 'Deploy to staging', on: false }
+];
+const PR_NAMES = new Set(['integrate','bugfix','pr','open-pr','create-pr','submit-pr','ship','pull-request']);
+const PR_DESC = /\b(pull requests?|gh pr create|open(?:s|ing)?\s+(?:a\s+|the\s+)?PRs?|create(?:s|ing)?\s+(?:a\s+|the\s+)?PRs?)\b/i;
+const GH_PR_CREATE = /(?:^|[;&|(]\s*|\n\s*)(?:\w+=\S+\s+)*gh\s+(?:-{1,2}[\w-]+(?:[ =](?!pr\b)\S+)?\s+)*pr\s+create\b/;
+const $ = (id) => document.getElementById(id);
+
+const box = $('skills');
+SKILLS.forEach((s, i) => {
+  const l = document.createElement('label'); l.className = 'chk';
+  const c = document.createElement('input'); c.type = 'checkbox'; c.checked = s.on;
+  c.addEventListener('change', () => { SKILLS[i].on = c.checked; render(); });
+  l.append(c, document.createTextNode('/' + s.name));
+  l.title = s.description; box.append(l);
+});
+document.querySelectorAll('[data-cmd]').forEach((b) => b.addEventListener('click', () => { $('cmd').value = b.dataset.cmd; render(); }));
+$('cmd').addEventListener('input', render);
+
+function render() {
+  const cmd = $('cmd').value;
+  const present = SKILLS.filter((s) => s.on);
+  const pr = present.filter((s) => PR_NAMES.has(s.name) || PR_DESC.test(s.description));
+  let verdict, text;
+  if (!GH_PR_CREATE.test(cmd)) { verdict = '<span class="dim">silent: not a gh pr create, and the skills folder is never read</span>'; text = ''; }
+  else if (present.length === 0) { verdict = '<span class="dim">silent: the repo has no .claude/skills</span>'; text = ''; }
+  else if (pr.length === 0) { verdict = '<span class="dim">silent: no skill here is about opening PRs</span>'; text = ''; }
+  else {
+    verdict = '<span class="ok">nudge</span> as PreToolUse additionalContext; the command still runs';
+    const shown = pr.slice(0, 3).map((s) => '  /' + s.name + ' (.claude/skills/' + s.name + '): ' + s.description);
+    if (pr.length > 3) shown.push('  and ' + (pr.length - 3) + ' more under .claude/skills');
+    text = ['[skill-route] This repo ships its own skill for opening PRs:', ...shown,
+      'Use it instead of a hand-rolled gh pr create unless the user asked otherwise. When a subagent opens the PR, name the skill in its prompt.'].join('\n');
+  }
+  $('verdict').innerHTML = verdict; $('out').textContent = text;
+}
+$('copy').addEventListener('click', async () => {
+  const on = SKILLS.filter((s) => s.on).map((s) => '/' + s.name).join(', ') || 'none';
+  const p = 'In orchestkit PR #5006, check sdlc-skill-nudge with the Bash command `' + $('cmd').value + '` in a repo whose .claude/skills has: ' + on + '. Expect: ' + ($('out').textContent ? 'a [skill-route] note naming the PR skill(s).' : 'no output.');
+  try { await navigator.clipboard.writeText(p); $('copied').textContent = 'copied'; } catch { $('copied').textContent = 'clipboard refused'; }
+});
+render();
+</script>
+</main></body>
+</html>
