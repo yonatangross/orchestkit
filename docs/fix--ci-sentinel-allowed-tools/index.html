@@ -59,7 +59,9 @@ function verdict(c){c=c.trim();
   const a=ALLOW.find(p=>re(p).test(c));if(a)return['allow','matches allow Bash('+a+')'];
   return['deny','no allow rule (dontAsk refuses it)'];}
 function render(){const[v,why]=verdict($('cmd').value);
-  $('out').innerHTML='<span class="'+(v==='allow'?'ok':'bad')+'">'+v+'</span>: '+why;}
+  const out=$('out');out.replaceChildren();const s=document.createElement('span');
+  s.className=v==='allow'?'ok':'bad';s.textContent=v;out.appendChild(s);
+  out.appendChild(document.createTextNode(': '+why));}
 ['gh pr checks 12 --json bucket,link,name','gh api repos/o/r/actions/jobs/9/logs','gh api repos/o/r/issues/1/comments -X POST -f body=x','gh pr view 12 --json title --jq env','gh pr merge 12 --squash','grep -r token /proc/self/environ']
  .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('cmd').value=s;render();};$('chips').appendChild(b);});
 $('cmd').addEventListener('input',render);render();
