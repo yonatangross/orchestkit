@@ -54,6 +54,7 @@ disagreed with the agent's own pick. Now a disagreement runs only when the step 
 <tr><td>disagree, above floor, no confirm</td><td class="bad">Jev pick runs</td><td class="ok">agent pick runs (<code>fallback:disagreement</code>)</td></tr>
 <tr><td>disagree, above floor, confirmed</td><td>Jev pick runs</td><td>Jev pick runs (<code>path: jev</code>)</td></tr>
 <tr><td>any pick below floor</td><td>agent pick runs</td><td>agent pick runs (<code>fallback:low_confidence</code>)</td></tr>
+<tr><td>agree on verb and ref, but Jev's form-field decision changes the fill value, or turns click into check or done</td><td class="bad">Jev's rewrite runs</td><td class="ok">agent's own action runs unless confirmed (<code>rewrite_blocked</code> logged)</td></tr>
 <tr><td>agent pick outside the keyspace</td><td class="bad">Jev pick runs</td><td class="ok">agent pick runs (<code>fallback:unknown_agreement</code>)</td></tr>
 </table>
 

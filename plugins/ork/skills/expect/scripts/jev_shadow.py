@@ -346,6 +346,29 @@ def normalize_model_action(raw, elements, candidates):
     return None
 
 
+def agent_full_action(raw, model_key):
+    """The agent's action in executed_action form, value and verb included.
+
+    normalize_model_action keeps verb and ref only, so a fill value the agent
+    chose is not in model_key. A Jev field rewrite is compared against this
+    full form: fill:@eN="value", check:@eN, uncheck:@eN, done, else model_key.
+    """
+    text = (raw or "").strip()
+    m = re.match(r"(?i)^fill\s+@?e(\d+)(?:\s*=\s*|\s+)(.+)$", text)
+    if m:
+        value = m.group(2).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            if value[0] == '"':
+                try:
+                    value = json.loads(value)
+                except ValueError:
+                    value = value[1:-1]
+            else:
+                value = value[1:-1]
+        return f"fill:@e{m.group(1)}={json.dumps(value, ensure_ascii=False)}"
+    return model_key
+
+
 def build_request(goal, last_verify, elements, candidates, model,
                   task_doc=None, cands=None, field_cap=0):
     questions = {
@@ -496,7 +519,9 @@ def main():
     parser.add_argument("--confirm-disagreement", action="store_true",
                         help="act mode: the operator confirmed this step, so a "
                              "high-confidence Jev pick that disagrees with "
-                             "--model-action may run; without it the agent's pick runs")
+                             "--model-action, or a Jev form-field decision that "
+                             "changes the agent's fill value or verb, may run; "
+                             "without it the agent's own action runs")
     parser.add_argument("--log-file", default=os.environ.get("ORK_EXPECT_JEV_LOG") or ".expect/jev-shadow.jsonl")
     args = parser.parse_args()
 
@@ -575,6 +600,7 @@ def main():
     cands = doc_candidates(task_doc) if task_doc else None
     model_key = normalize_model_action(args.model_action, elements, candidates)
     incumbent = model_key if model_key in candidates else args.model_action
+    agent_full = agent_full_action(args.model_action, model_key)
 
     base = {
         "step_id": args.step_id,
@@ -707,15 +733,26 @@ def main():
                 else:
                     fdec["target"] = fchoice if fchoice in ("check", "uncheck", "skip") else "skip"
         field_decisions[ref] = fdec
-        # If this field is the step's executed target, carry Jev's decision
-        # into the action the agent runs.
+        # If this field is the step's executed target, Jev's decision would
+        # rewrite the action the agent runs: a new fill value, click turned
+        # into check/uncheck, or click turned into done. Agreement above is on
+        # verb and ref only, so a rewrite is a fresh disagreement with the
+        # agent (#4745): it runs only when it equals the agent's own action
+        # (same verb, ref and fill value) or the step is confirmed. Otherwise
+        # the agreed key runs and the blocked rewrite is logged on the field.
         if take_jev and fdec["decided_by"] == "jev":
+            rewrite = None
             if jev_action == f"fill:@{ref}" and fdec.get("value") is not None:
-                executed_action = f'fill:@{ref}={json.dumps(fdec["value"], ensure_ascii=False)}'
+                rewrite = f'fill:@{ref}={json.dumps(fdec["value"], ensure_ascii=False)}'
             elif jev_action == f"click:@{ref}" and fdec.get("target") in ("check", "uncheck"):
-                executed_action = f'{fdec["target"]}:@{ref}'
+                rewrite = f'{fdec["target"]}:@{ref}'
             elif jev_action == f"click:@{ref}" and fdec.get("target") == "skip":
-                executed_action = "done"
+                rewrite = "done"
+            if rewrite is not None:
+                if confirmed or rewrite == agent_full:
+                    executed_action = rewrite
+                else:
+                    fdec["rewrite_blocked"] = rewrite
 
     finish({
         **base,

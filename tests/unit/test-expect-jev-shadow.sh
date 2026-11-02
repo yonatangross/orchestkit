@@ -318,6 +318,63 @@ LINE="$(ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
 act_check "act unknown agreement: raw incumbent runs" \
   'fallback:unknown_agreement' 'press Tab' None
 
+# 8f-8k: form fields. Agreement is on verb and ref only, so a Jev field
+# decision that rewrites the executed action (a new fill value, click turned
+# into check, click turned into done) is a fresh disagreement and runs only
+# when it equals the agent's own action or the step is confirmed (#4745, b31).
+# One line: sanitize() folds newlines, so a second line would join the first
+# candidate value. The checkbox rows take their answers from the mock.
+TASK_DOC="Email: alice@example.com"
+# form_resp NEXT_ACTION FIELDS_JSON : agree fixture with this pick and these field answers
+form_resp() {
+  python3 -c "
+import json, sys
+b = json.load(open(sys.argv[1]))
+na = b['answers']['next_action']
+na['choice'] = sys.argv[2]
+na['probabilities'][sys.argv[2]] = 0.88
+na['confidence'] = 0.88
+b['answers'].update(json.loads(sys.argv[3]))
+json.dump(b, open(sys.argv[4], 'w'))
+" "$FIX/jev-response-agree.json" "$1" "$2" "$RESP_FILE"
+}
+run_form() {  # $1 = agent action, rest passed through
+  local action="$1"; shift
+  ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" \
+  bash "$SH" --step-id act-form --goal "Fill the sign-in form" \
+    --last-verify "login form visible" --model-action "$action" \
+    --snapshot-file "$FIX/aria-login.txt" --task-doc "$TASK_DOC" "$@"
+}
+FILL_E4='{"field::e4":{"type":"choice","choice":"c0","confidence":0.9}}'
+CHECK_E6='{"list::e6":{"type":"choice","choice":"do","confidence":0.9},"field::e6":{"type":"choice","choice":"check","confidence":0.9}}'
+SKIP_E6='{"list::e6":{"type":"choice","choice":"none","confidence":0.9},"field::e6":{"type":"choice","choice":"skip","confidence":0.9}}'
+
+form_resp 'fill:@e4' "$FILL_E4"
+LINE="$(run_form 'fill @e4 "alice@example.com"')"
+act_check "act form, same fill value: Jev field value runs" jev 'fill:@e4="alice@example.com"' True \
+  "'rewrite_blocked' not in (r.get('field_decisions') or {}).get('e4', {})"
+
+LINE="$(run_form 'fill @e4 "mallory@evil.test"')"
+act_check "act form, fill value differs, unconfirmed: agreed key runs, rewrite blocked" jev 'fill:@e4' True \
+  "(r.get('field_decisions') or {}).get('e4', {}).get('rewrite_blocked') == 'fill:@e4=\"alice@example.com\"'"
+
+LINE="$(run_form 'fill @e4 "mallory@evil.test"' --confirm-disagreement)"
+act_check "act form, fill value differs, confirmed: Jev field value runs" jev 'fill:@e4="alice@example.com"' True
+
+form_resp 'click:@e6' "$CHECK_E6"
+LINE="$(run_form 'click @e6')"
+act_check "act form, click vs check, unconfirmed: click runs, check blocked" jev 'click:@e6' True \
+  "(r.get('field_decisions') or {}).get('e6', {}).get('rewrite_blocked') == 'check:@e6'"
+
+LINE="$(run_form 'click @e6' --confirm-disagreement)"
+act_check "act form, click vs check, confirmed: check runs" jev 'check:@e6' True
+
+form_resp 'click:@e6' "$SKIP_E6"
+LINE="$(run_form 'click @e6')"
+act_check "act form, click vs skip, unconfirmed: click runs, done blocked" jev 'click:@e6' True \
+  "(r.get('field_decisions') or {}).get('e6', {}).get('rewrite_blocked') == 'done'"
+
 cp "$FIX/jev-response-agree.json" "$RESP_FILE"
 LINE="$(ORK_EXPECT_JEV=1 ORK_TYPESAFE_API_KEY=test-key \
   ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id act-2 \
