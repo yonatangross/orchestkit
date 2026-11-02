@@ -210,6 +210,53 @@ if grep -q '^row=skipped$' "$WORK/control/ghout2"; then ok "idempotency: GITHUB_
 if cmp -s "$WORK/control/first-row.jsonl" "$OUT"; then ok "idempotency: file byte-identical after skip"; else bad "idempotency: file changed on skip"; fi
 if [ "$(wc -l < "$OUT")" -eq 1 ]; then ok "idempotency: still exactly one row"; else bad "idempotency: duplicate row appended"; fi
 
+# --- #4528: an incomplete week is refreshed, never left short ------------------
+# The traffic API lags about 5 days, so the Monday run sees ~3 of 7 days of the
+# previous week. A week already in the ledger with fewer than 7 days, and still
+# inside the API's 14-day span, is re-read and replaced when the new read has
+# more days; a complete ledger still makes no API call.
+short_row() { # <week> <days> : a recorded row with only <days> days observed
+  jq -cn --arg w "$1" --argjson n "$2" '{week: $w, generated_at: "2026-09-01T06:00:00.000Z", source: "github-traffic-api",
+    views: {total: 1, uniques: 1, days_observed: $n, days: []}, clones: {total: 1, uniques: 1, days_observed: $n, days: []},
+    popular_paths: {window_days: 14, items: []}, referrers: {window_days: 14, local_dropped: 0, items: []}}'
+}
+mkdir -p "$WORK/backfill"
+B="$WORK/backfill"
+
+# A: the measured week itself was recorded short (3 days) -> replaced with 7.
+short_row 2026-09-07 3 > "$B/a.jsonl"
+run_traffic "$B/a.out" "$B/a.err" "$B/a.gh" "$B/a.jsonl"
+if [ "$RC" -eq 0 ] && grep -q '^row=written$' "$B/a.gh"; then ok "backfill: a short measured week is re-read (row=written)"; else bad "backfill A: rc=$RC gh=$(cat "$B/a.gh" 2>/dev/null) err=$(cat "$B/a.err")"; fi
+if [ "$(wc -l < "$B/a.jsonl")" -eq 1 ] && jq -e '.week == "2026-09-07" and .views.days_observed == 7 and .views.total == 105' "$B/a.jsonl" > /dev/null; then ok "backfill: the short row is replaced in place, 7 days"; else bad "backfill A: ledger wrong: $(cat "$B/a.jsonl")"; fi
+
+# B: an older week inside the API span was short -> upgraded, and the measured
+# week is appended after it (ledger order kept).
+short_row 2026-08-31 2 > "$B/b.jsonl"
+run_traffic "$B/b.out" "$B/b.err" "$B/b.gh" "$B/b.jsonl"
+if [ "$RC" -eq 0 ] && [ "$(wc -l < "$B/b.jsonl")" -eq 2 ]; then ok "backfill: older short week kept plus measured week appended (2 rows)"; else bad "backfill B: rc=$RC lines=$(wc -l < "$B/b.jsonl") err=$(cat "$B/b.err")"; fi
+if [ "$(jq -sc '[.[].week]' "$B/b.jsonl")" = '["2026-08-31","2026-09-07"]' ] && jq -se '.[0].views.days_observed == 7 and .[1].views.days_observed == 7' "$B/b.jsonl" > /dev/null; then ok "backfill: the older week is upgraded to 7 days, order kept"; else bad "backfill B: rows wrong: $(jq -sc '[.[] | {week, d: .views.days_observed}]' "$B/b.jsonl")"; fi
+if grep -q '^updated=2026-08-31,2026-09-07$' "$B/b.gh"; then ok "backfill: GITHUB_OUTPUT names every week it changed"; else bad "backfill B: updated output wrong: $(cat "$B/b.gh")"; fi
+
+# C: a short week OUTSIDE the API span is left as it is (the days are gone).
+{ short_row 2026-08-10 2; } > "$B/c.jsonl"
+cp "$B/c.jsonl" "$B/c.before"
+run_traffic "$B/c.out" "$B/c.err" "$B/c.gh" "$B/c.jsonl"
+if [ "$RC" -eq 0 ] && [ "$(head -n 1 "$B/c.jsonl")" = "$(cat "$B/c.before")" ]; then ok "backfill: a short week outside the API span is untouched"; else bad "backfill C: rc=$RC first line changed: $(head -n 1 "$B/c.jsonl")"; fi
+
+# D: a complete ledger makes no API call at all (the views endpoint would fail).
+cp "$WORK/control/first-row.jsonl" "$B/d.jsonl"
+run_traffic "$B/d.out" "$B/d.err" "$B/d.gh" "$B/d.jsonl" TRAFFIC_STUB_FAIL_VIEWS=1
+if [ "$RC" -eq 0 ] && grep -q '^row=skipped$' "$B/d.gh" && cmp -s "$WORK/control/first-row.jsonl" "$B/d.jsonl"; then ok "backfill: a complete week is skipped with no API call"; else bad "backfill D: rc=$RC gh=$(cat "$B/d.gh" 2>/dev/null) err=$(cat "$B/d.err")"; fi
+
+# --- #4752: a rebuild refreshes the open PR's body from the ledger row ---------
+# The PR step built the body from the new row, then `gh pr create` failed for an
+# already-open PR and only warned, so the PR kept the first build's numbers. And
+# since #4528 the measured week's row is not always the file's last line.
+WF="$REPO_ROOT/.github/workflows/traffic-snapshot.yml"
+if grep -q 'gh pr edit "\$EXISTING" --body-file "\$BODY_FILE"' "$WF"; then ok "workflow: an open PR's body is replaced on a rebuild"; else bad "workflow: no 'gh pr edit \$EXISTING --body-file' for an already-open PR"; fi
+if grep -q 'gh pr list --head "\$BRANCH" --state open' "$WF"; then ok "workflow: the step looks up an open PR for the branch first"; else bad "workflow: no open-PR lookup for the branch"; fi
+if grep -q "select(.week == \$w)" "$WF" && ! grep -q 'tail -n 1 docs/traffic/snapshots.jsonl' "$WF"; then ok "workflow: the PR body reads the measured week's row by key"; else bad "workflow: the PR body still reads the last line, not the week's row"; fi
+
 # --- local referrers: dropped from the row, counted, never named ----------------
 # Regression arm for #4621: a referrer like board.localhost is a private host
 # name that must not land in the public ledger or the PR body. The row keeps
