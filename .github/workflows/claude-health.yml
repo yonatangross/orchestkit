@@ -121,6 +121,7 @@ jobs:
           --model claude-sonnet-5 \
           --tools "" \
           --strict-mcp-config \
+          --disallowedTools "Agent,NotebookEdit" \
           < "${RUNNER_TEMP}/health-data.json" \
           > /tmp/health-report.json 2> /tmp/health-stderr.log || RC=$?
 
