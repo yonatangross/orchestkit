@@ -2,7 +2,7 @@
 name: cover
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
+description: "Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
 argument-hint: "[scope-or-feature]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"

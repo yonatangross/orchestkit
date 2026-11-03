@@ -1,7 +1,7 @@
 ---
 name: mcp-visual-output
 compatibility: "Claude Code 2.1.277+"
-description: "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns."
+description: "Upgrades MCP tool JSON results to dashboards via @json-render/mcp (stat grids, tables, badges) in MCP clients. Use when a tool result reads better visually. Not for building the server itself."
 user-invocable: false
 disable-model-invocation: false
 context: inherit

@@ -1,7 +1,7 @@
 ---
 name: portless
 compatibility: "Claude Code 2.1.277+"
-description: "Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branch-named subdomains for git worktrees, LAN mode (--lan), and Tailscale sharing. Use when setting up a local dev environment or testing from phones and tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+description: "Named HTTPS .localhost URLs with portless (v0.15.x): no port collisions, branch subdomains for worktrees, LAN and Tailscale sharing. Use for local dev URLs. Not for production, CI or DNS hosting."
 user-invocable: false
 context: inherit
 metadata:

@@ -2,7 +2,7 @@
 name: architecture-decision-record
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: ADR templates in the Nygard format with context, decision, consequences, and alternatives. Use when writing ADRs, recording an architectural decision, or evaluating options.
+description: "Nygard-format ADRs: context, decision, consequences, alternatives. Use when writing an ADR or recording an architectural decision."
 user-invocable: false
 metadata:
   owner-agent: "backend-system-architect"

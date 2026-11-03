@@ -2,7 +2,7 @@
 name: scope-appropriate-architecture
 license: MIT
 compatibility: "Claude Code 2.1.277+"
-description: Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier.
+description: "Classifies a project into 6 tiers to right-size its architecture and prevent over-engineering. Use when choosing patterns for a project's scope."
 user-invocable: false
 context: inherit
 effort: low

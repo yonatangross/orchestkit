@@ -1,5 +1,5 @@
 ---
-description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration."
+description: "Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when building UI from a mockup or screenshot. To call Storybook MCP tools alone, use storybook-mcp-integration."
 argument-hint: "[screenshot-path | description | url]"
 model: sonnet
 effort: high

@@ -2,7 +2,7 @@
 name: errors
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues."
+description: "Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrences, suggests recovery. Use when a session hits errors or failures."
 context: inherit
 user-invocable: false
 allowed-tools: "Read Bash Grep"

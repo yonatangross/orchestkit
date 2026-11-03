@@ -2,7 +2,7 @@
 name: code-review-playbook
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.
+description: "Review process, conventional comments, language checklists and feedback templates. Use when reviewing code or standardizing review practice. To review a PR end to end, use review-pr."
 context: inherit
 user-invocable: false
 hooks:

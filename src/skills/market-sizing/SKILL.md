@@ -1,7 +1,7 @@
 ---
 name: market-sizing
 compatibility: "Claude Code 2.1.277+"
-description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation methods, cross-validation of assumptions, and divergence reconciliation. Generates investor-ready materials with growth projections and confidence intervals. Use when estimating addressable markets, validating opportunity size, or preparing pitch deck market slides."
+description: "TAM, SAM and SOM with top-down and bottom-up estimates and cross-checked assumptions. Use when sizing a market or preparing pitch market slides."
 user-invocable: false
 disable-model-invocation: false
 metadata:

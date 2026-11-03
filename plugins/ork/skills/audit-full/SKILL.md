@@ -2,7 +2,7 @@
 name: audit-full
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
+description: "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce."
 argument-hint: "[scope]"
 user-invocable: false
 allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"

@@ -1,7 +1,7 @@
 ---
 name: emulate-seed
 compatibility: "Claude Code 2.1.277+"
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, full state machines not mocks. Use when setting up test environments, CI or offline development."
 user-invocable: false
 disable-model-invocation: false
 context: inherit

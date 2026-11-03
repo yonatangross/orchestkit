@@ -1,5 +1,5 @@
 ---
-description: "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
+description: "Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to automate recurring CI triage."
 argument-hint: "[install|status|enable|disable]"
 disable-model-invocation: false
 model: sonnet

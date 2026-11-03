@@ -2,7 +2,7 @@
 name: ci-sentinel
 license: MIT
 compatibility: "Claude Code 2.1.277+ (uses --permission-mode + --no-session-persistence for headless GHA runs; --bare was tried but doesn't honor ANTHROPIC_API_KEY in CC 2.1.143 — see SKILL body for the trade-off)."
-description: "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
+description: "Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to automate recurring CI triage."
 argument-hint: "[install|status|enable|disable]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

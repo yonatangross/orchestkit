@@ -1,7 +1,7 @@
 ---
 name: dev
 compatibility: "Claude Code 2.1.277+"
-description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
+description: "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
 user-invocable: true
 disable-model-invocation: false

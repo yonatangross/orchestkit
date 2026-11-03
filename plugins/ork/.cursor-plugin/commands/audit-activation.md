@@ -1,5 +1,5 @@
 ---
-description: Audits sub-agent activation from explicit consumer telemetry roots. It separates attempted, started, completed, and unattributed events, reports coverage, and identifies observed zero starts without making an estate-wide dormancy claim. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.
+description: "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog."
 argument-hint: "[--json]"
 disable-model-invocation: false
 context: fork

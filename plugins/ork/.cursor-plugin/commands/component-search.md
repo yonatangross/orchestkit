@@ -1,5 +1,5 @@
 ---
-description: "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks."
+description: "Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI component or an alternative to one."
 argument-hint: "[component description]"
 model: sonnet
 effort: low

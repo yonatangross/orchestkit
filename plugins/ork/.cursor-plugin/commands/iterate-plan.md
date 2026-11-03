@@ -1,5 +1,5 @@
 ---
-description: "Revises a plan written by create-plan from its review comments or new instructions: rewrites the plan body, leaves each comment intact and bumps the revision. Use when a plan file got feedback or its scope changed; never to start a new plan."
+description: "Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. Use when a plan got feedback; never to start one."
 argument-hint: "<plan file> [instructions]"
 user-invocable: true
 name: iterate-plan

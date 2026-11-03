@@ -9,29 +9,29 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
-| [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scal... |
-| [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill ev... |
-| [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
-| [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when re... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
-| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
-| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
-| [Error Analysis](/docs/reference/skills/error-analysis) | Reference | high | Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxono... |
-| [Errors](/docs/reference/skills/errors) | Reference | low | Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, ... |
-| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targ... |
-| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
+| [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
+| [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading s... |
+| [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
+| [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Review process, conventional comments, language checklists and feedback templates. Use when reviewing code or standar... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when c... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
+| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, full state machines no... |
+| [Error Analysis](/docs/reference/skills/error-analysis) | Reference | high | Clusters real LLM traces (Langfuse or JSONL) into a confirmed failure taxonomy with counts, then proposes pass/fail e... |
+| [Errors](/docs/reference/skills/errors) | Reference | low | Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrenc... |
+| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention n... |
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building... |
-| [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the an... |
-| [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing c... |
+| [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuses a verdict a check did not earn: runs it with the fault present and absent and blocks when both agree; catches... |
+| [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after rep... |
 | [Rag Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
-| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analys... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comme... |
 | [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interac... |
-| [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | End-to-end testing patterns with Playwright, page objects, AI agent testing, visual regression, accessibility testing... |
-| [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract... |
-| [Testing Llm](/docs/reference/skills/testing-llm) | Reference | medium | LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agenti... |
-| [Testing Perf](/docs/reference/skills/testing-perf) | Reference | medium | Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist paral... |
-| [Testing Unit](/docs/reference/skills/testing-unit) | Reference | medium | Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.par... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
+| [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or s... |
+| [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract tests: API endpoints, databases, Pact contracts, property-based tests, Zod validation. Use w... |
+| [Testing Llm](/docs/reference/skills/testing-llm) | Reference | medium | LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use w... |
+| [Testing Perf](/docs/reference/skills/testing-perf) | Reference | medium | Load and performance tests with k6 and Locust, plus pytest speed (xdist). Use when writing load tests or speeding up ... |
+| [Testing Unit](/docs/reference/skills/testing-unit) | Reference | medium | Unit test patterns: AAA, parametrized tests, fixture scope, MSW or VCR network mocks, data factories, for Vitest, Jes... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 ... |
 
 ## Related Agents
 

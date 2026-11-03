@@ -2,7 +2,7 @@
 name: error-analysis
 license: MIT
 compatibility: "Claude Code 2.1.277+. Needs Langfuse credentials in env or an exported traces JSONL."
-description: "Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxonomy with counts, then recommends binary pass/fail evals for recurring named modes. Use to learn what to measure before writing evals. Not for CI failures."
+description: "Clusters real LLM traces (Langfuse or JSONL) into a confirmed failure taxonomy with counts, then proposes pass/fail evals. Use to learn what to measure before writing evals. Not for CI failures."
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false

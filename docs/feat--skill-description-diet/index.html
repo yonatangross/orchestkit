@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listed skill descriptions trimmed and gated per skill</title>
+<meta name="description" content="Every skill ork lists to the model now has a description of at most 260 bytes. The listing drops from 29,171 to 16,017 bytes, and a per-skill cap plus a down-only ratchet keep it there. Sort and filter all 84 skills, before and after.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:68rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.8rem}
+  .kpi{border:1px solid var(--edge);border-radius:8px;padding:.7rem .9rem}
+  .kpi .v{font-size:1.2rem}
+  .kpi .l{color:var(--dim);font-size:.75rem}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,input{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  .row{display:grid;grid-template-columns:15rem 1fr 7rem;gap:.6rem;align-items:center;font-size:.76rem;padding:.12rem 0}
+  .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .track{position:relative;height:.9rem;background:#0b0d13;border:1px solid var(--edge);border-radius:4px}
+  .bar{position:absolute;inset-block:0;inset-inline-start:0;border-radius:3px}
+  .bar.b{background:rgba(248,113,113,.35)}
+  .bar.a{background:var(--ok);height:50%;top:25%}
+  .cap{position:absolute;inset-block:-3px;width:2px;background:var(--warn)}
+  .num{text-align:end;color:var(--dim)}
+  .legend{display:flex;gap:1.2rem;font-size:.75rem;color:var(--dim);margin-bottom:.6rem}
+  .sw{display:inline-block;width:.8rem;height:.6rem;margin-inline-end:.3rem;vertical-align:middle;border-radius:2px}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+</style>
+</head>
+<body><main>
+<h1>Listed skill descriptions trimmed and gated per skill</h1>
+<p class="sub">Branch feat/skill-description-diet, orchestkit#4936 W0 and W1. Claude Code lists the description of every model-facing skill in every session and drops the least-used ones first when the listing overflows. This branch trims all 84 listed descriptions to at most 260 bytes and adds a per-skill cap and a down-only ratchet to <code>tests/performance/test-token-overhead.sh</code>.</p>
+
+<section><h2>1. The listing, before and after</h2>
+<div class="kpis" id="kpis"></div>
+</section>
+
+<section><h2>2. Every listed skill</h2>
+<div class="controls">
+  <label>Sort <select id="sort">
+    <option value="b">longest before</option>
+    <option value="a">longest after</option>
+    <option value="d">biggest cut</option>
+    <option value="n">name</option>
+  </select></label>
+  <label>Filter <input id="q" type="search" placeholder="skill name"></label>
+  <label><input id="overOnly" type="checkbox"> only skills that were over 260</label>
+</div>
+<div class="legend"><span><span class="sw" style="background:rgba(248,113,113,.35)"></span>before</span><span><span class="sw" style="background:var(--ok)"></span>after</span><span><span class="sw" style="background:var(--warn)"></span>260-byte cap</span></div>
+<div id="rows"></div>
+</section>
+
+<section><h2>3. Copy the numbers</h2>
+<button id="copy">Copy as prompt</button>
+<div class="out" id="out"></div>
+<p class="note">Routing eval: 10 cases under evals/100 to 109 (tag routing-1104) are defined but were NOT run before or after, because the runner needs ORK_EVALS_API_KEY. Run them with <code>bash scripts/run-plugin-eval.sh --tag routing-1104 --runs 1 -j 2 --max-cost-usd 6</code> on main and on this branch.</p>
+</section>
+
+<script>
+const ROWS = [{"n":"analytics","b":351,"a":178},{"n":"api-design","b":386,"a":194},{"n":"architecture-decision-record","b":173,"a":130},{"n":"architecture-patterns","b":347,"a":202},{"n":"assess","b":552,"a":247},{"n":"audit-activation","b":348,"a":181},{"n":"audit-full","b":353,"a":202},{"n":"auto","b":448,"a":227},{"n":"bare-eval","b":320,"a":180},{"n":"brainstorm","b":590,"a":254},{"n":"browser-tools","b":205,"a":130},{"n":"business-case","b":222,"a":140},{"n":"chain-patterns","b":179,"a":162},{"n":"ci-debug","b":424,"a":223},{"n":"ci-sentinel","b":380,"a":200},{"n":"code-review-playbook","b":187,"a":182},{"n":"commit","b":428,"a":223},{"n":"competitive-analysis","b":350,"a":144},{"n":"component-search","b":336,"a":152},{"n":"configure","b":167,"a":134},{"n":"cover","b":433,"a":197},{"n":"create-plan","b":379,"a":196},{"n":"create-pr","b":427,"a":193},{"n":"create-research","b":285,"a":178},{"n":"database-patterns","b":235,"a":146},{"n":"demo-producer","b":310,"a":167},{"n":"design-context-extract","b":414,"a":204},{"n":"design-import","b":326,"a":194},{"n":"design-ship","b":352,"a":185},{"n":"design-stylecards","b":402,"a":194},{"n":"design-system-tokens","b":264,"a":143},{"n":"design-to-code","b":396,"a":216},{"n":"dev","b":364,"a":202},{"n":"devops-deployment","b":206,"a":144},{"n":"doctor","b":466,"a":179},{"n":"dream","b":292,"a":191},{"n":"emulate-seed","b":344,"a":191},{"n":"error-analysis","b":270,"a":194},{"n":"errors","b":385,"a":183},{"n":"expect","b":443,"a":235},{"n":"explore","b":362,"a":177},{"n":"fix-issue","b":420,"a":175},{"n":"github-operations","b":201,"a":119},{"n":"glyph","b":417,"a":244},{"n":"help","b":152,"a":89},{"n":"implement","b":429,"a":234},{"n":"iterate-plan","b":241,"a":165},{"n":"iterate-research","b":254,"a":154},{"n":"json-render-catalog","b":436,"a":193},{"n":"market-sizing","b":331,"a":144},{"n":"mcp-visual-output","b":374,"a":192},{"n":"memory","b":389,"a":163},{"n":"multi-surface-render","b":440,"a":197},{"n":"okr-design","b":224,"a":133},{"n":"page-serve","b":422,"a":220},{"n":"paired-probe","b":451,"a":222},{"n":"performance","b":361,"a":186},{"n":"portless","b":395,"a":195},{"n":"prd-to-goal","b":211,"a":126},{"n":"prioritization","b":244,"a":114},{"n":"product-analytics","b":256,"a":138},{"n":"prompt-focus","b":200,"a":160},{"n":"python-backend","b":431,"a":207},{"n":"quality-gates","b":236,"a":139},{"n":"react-server-components-framework","b":214,"a":147},{"n":"release-sync","b":308,"a":143},{"n":"remember","b":343,"a":187},{"n":"review-artifact-comments","b":375,"a":205},{"n":"review-pr","b":361,"a":211},{"n":"scope-appropriate-architecture","b":187,"a":144},{"n":"security-patterns","b":258,"a":148},{"n":"setup","b":315,"a":178},{"n":"storybook-mcp-integration","b":404,"a":209},{"n":"swarm-migrate","b":436,"a":222},{"n":"telemetry-inspect","b":385,"a":191},{"n":"testing-e2e","b":264,"a":138},{"n":"testing-integration","b":280,"a":155},{"n":"testing-llm","b":253,"a":141},{"n":"testing-perf","b":289,"a":130},{"n":"testing-unit","b":452,"a":192},{"n":"user-research","b":222,"a":125},{"n":"verify","b":422,"a":234},{"n":"visualize-plan","b":422,"a":203},{"n":"write-prd","b":290,"a":136}];
+const CAP = 260;
+const MAXB = Math.max(...ROWS.map(r => r.b));
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function sum(k) { return ROWS.reduce((s, r) => s + r[k], 0); }
+function kpis() {
+  const box = document.getElementById("kpis");
+  const items = [
+    [sum("b").toLocaleString() + " to " + sum("a").toLocaleString(), "description bytes, 84 listed skills"],
+    ["29,171 to 16,017", "gate index bytes (name + description)"],
+    [ROWS.filter(r => r.b > CAP).length + " to " + ROWS.filter(r => r.a > CAP).length, "skills over 260 bytes"],
+    ["10,836 to 7,548", "session overhead tokens (gate, local)"],
+  ];
+  for (const [v, l] of items) {
+    const k = el("div", "kpi");
+    k.appendChild(el("div", "v", v));
+    k.appendChild(el("div", "l", l));
+    box.appendChild(k);
+  }
+}
+function render() {
+  const sort = document.getElementById("sort").value;
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const overOnly = document.getElementById("overOnly").checked;
+  let list = ROWS.filter(r => r.n.includes(q) && (!overOnly || r.b > CAP));
+  const key = { b: r => -r.b, a: r => -r.a, d: r => r.a - r.b, n: r => r.n };
+  list.sort((x, y) => { const f = key[sort]; const a = f(x), b = f(y); return a < b ? -1 : a > b ? 1 : 0; });
+  const box = document.getElementById("rows");
+  box.replaceChildren();
+  for (const r of list) {
+    const row = el("div", "row");
+    const name = el("div", "name", r.n);
+    name.title = r.n;
+    row.appendChild(name);
+    const track = el("div", "track");
+    const bb = el("div", "bar b"); bb.style.width = (100 * r.b / MAXB) + "%";
+    const ab = el("div", "bar a"); ab.style.width = (100 * r.a / MAXB) + "%";
+    const cap = el("div", "cap"); cap.style.insetInlineStart = (100 * CAP / MAXB) + "%";
+    track.append(bb, ab, cap);
+    row.appendChild(track);
+    row.appendChild(el("div", "num", r.b + " to " + r.a));
+    box.appendChild(row);
+  }
+  const top = [...ROWS].sort((x, y) => y.a - x.a).slice(0, 5).map(r => r.n + " " + r.a).join(", ");
+  document.getElementById("out").textContent =
+    "orchestkit#4936 W1: listed skill descriptions " + sum("b") + " to " + sum("a") +
+    " bytes across 84 skills; gate index 29171 to 16017; ratchet ceiling 16017; longest after: " + top +
+    ". Next: run the routing-1104 eval on main and on the branch and compare the with-arm pass rate.";
+}
+document.getElementById("copy").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("out").textContent);
+});
+for (const id of ["sort", "q", "overOnly"]) document.getElementById(id).addEventListener("input", render);
+kpis();
+render();
+</script>
+</main></body>
+</html>

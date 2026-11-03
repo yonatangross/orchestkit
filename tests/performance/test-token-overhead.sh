@@ -87,7 +87,7 @@ HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 # the `name` + `description` frontmatter fields.
 # Measured 2026-07-27 on this branch: 59 model-facing skills, 23275 bytes
 # (~5819t). Budget set at 24500 bytes, about 5% headroom over measured.
-SKILL_INDEX_MAX_BYTES=29300  # RAISED 27200->29300 (L6 artifact pairs, operator-approved 2026-10-24): create-plan, iterate-plan, create-research, iterate-research and review-artifact-comments stay model-invocable so a mid-turn typed command and the L2 auto-advance can call them; their name+description add ~1957 B, measured 29061. A deliberate purchase, not a red-run-made-green. ratcheted 27300->27200 (#3235 train, 2026-08-02): trimmed the 8 fattest model-facing descriptions (-1093 B); measured 25923, ~5% slack. Prior history: RAISED 22500->27300 (#3194, operator-approved 2026-08-02): the 10 user-invocable skills that carried `disable-model-invocation: true` were flipped to false, because that flag ALSO blocked USER-typed mid-turn invocations (the model must call the Skill tool for a slash command in a steering message; the flag denied it). Flipping moves their name+description into the always-loaded index: measured 22466 -> 27016 bytes. This is a deliberate purchase, NOT a red-run-made-green: the cost buys "a user-typed command is never refused". Ratchet DOWN again as description trimming lands
+SKILL_INDEX_MAX_BYTES=16800  # ratcheted 29300->16800 (orchestkit#4936 W1, 2026-11-04): every listed description trimmed to <= 260 bytes, measured 16017, ~5% slack; Test 4b's skill-listing-ratchet.txt now holds the exact down-only ceiling. Before that: RAISED 27200->29300 (L6 artifact pairs, operator-approved 2026-10-24): create-plan, iterate-plan, create-research, iterate-research and review-artifact-comments stay model-invocable so a mid-turn typed command and the L2 auto-advance can call them; their name+description add ~1957 B, measured 29061. A deliberate purchase, not a red-run-made-green. ratcheted 27300->27200 (#3235 train, 2026-08-02): trimmed the 8 fattest model-facing descriptions (-1093 B); measured 25923, ~5% slack. Prior history: RAISED 22500->27300 (#3194, operator-approved 2026-08-02): the 10 user-invocable skills that carried `disable-model-invocation: true` were flipped to false, because that flag ALSO blocked USER-typed mid-turn invocations (the model must call the Skill tool for a slash command in a steering message; the flag denied it). Flipping moves their name+description into the always-loaded index: measured 22466 -> 27016 bytes. This is a deliberate purchase, NOT a red-run-made-green: the cost buys "a user-typed command is never refused". Ratchet DOWN again as description trimming lands
 
 # Combined session overhead budget.
 # Re-baselined 2026-07-27. The old value (5500) was arithmetic on a wrong
@@ -105,7 +105,7 @@ SKILL_INDEX_MAX_BYTES=29300  # RAISED 27200->29300 (L6 artifact pairs, operator-
 # headroom. In CI MEMORY.md is absent, so CI measures ~8304t against the same
 # ceiling. Ratchet this DOWN as description trimming lands. Do not raise it to
 # make a red run green.
-TOTAL_SESSION_MAX_TOKENS=10900  # RAISED 10400->10900 with the L6 index purchase above (measured 10809 incl. local MEMORY.md, operator-approved 2026-10-24). Before that: held at 10400 after the #3235 trim: measured dropped 10216->9943 (4.6% slack incl. local MEMORY.md; CI measures ~1k lower). Prior history: RAISED 9300->10400 (#3194, operator-approved 2026-08-02): consequence of the SKILL_INDEX raise above (+1137t of newly model-facing descriptions); measured 10216 locally, ~9266 in CI where MEMORY.md is absent. Same standing rule applies: ratchet DOWN as trimming lands, never raise to clear a regression
+TOTAL_SESSION_MAX_TOKENS=7900  # ratcheted 10900->7900 with the W1 description diet (orchestkit#4936, 2026-11-04): measured 7545 incl. local MEMORY.md (979t); a MEMORY.md at its own 5000-byte cap still fits. Before that: RAISED 10400->10900 with the L6 index purchase above (measured 10809 incl. local MEMORY.md, operator-approved 2026-10-24). Before that: held at 10400 after the #3235 trim: measured dropped 10216->9943 (4.6% slack incl. local MEMORY.md; CI measures ~1k lower). Prior history: RAISED 9300->10400 (#3194, operator-approved 2026-08-02): consequence of the SKILL_INDEX raise above (+1137t of newly model-facing descriptions); measured 10216 locally, ~9266 in CI where MEMORY.md is absent. Same standing rule applies: ratchet DOWN as trimming lands, never raise to clear a regression
 
 echo "  Budgets:"
 echo "  ├─ CLAUDE.md:           < ${CLAUDE_MD_MAX_BYTES} bytes (~$(estimate_tokens $CLAUDE_MD_MAX_BYTES)t)"
@@ -295,7 +295,7 @@ echo "────────────────────────�
 SKILL_DESC_MAX_BYTES=260
 RATCHET_SLACK_BYTES=256
 RATCHET_FILE="$SCRIPT_DIR/skill-listing-ratchet.txt"
-listing_report_file="$(mktemp)"
+listing_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing.XXXXXX")"
 trap 'rm -f "$listing_report_file"' EXIT
 
 LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '

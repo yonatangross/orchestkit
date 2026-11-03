@@ -2,7 +2,7 @@
 name: assess
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scalability, testability, compliance) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches. Not for fixing or building (use fix-issue or implement), reviewing a pull request (use review-pr), or running the test suites (use verify)."
+description: "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify)."
 user-invocable: true
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]

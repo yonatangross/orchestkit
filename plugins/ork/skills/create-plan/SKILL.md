@@ -1,6 +1,6 @@
 ---
 name: create-plan
-description: "Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. Use when a task has its research done and needs a reviewable plan before code; pair with iterate-plan for revisions and review-artifact-comments for feedback."
+description: "Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. Use when research is done and a reviewable plan is needed before code."
 argument-hint: "<task> [slug]"
 user-invocable: true
 allowed-tools: "Bash Read Write Grep Glob"
