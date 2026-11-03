@@ -2,7 +2,7 @@
 name: cover
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
-description: "Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
+description: "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
 argument-hint: "[scope-or-feature]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"

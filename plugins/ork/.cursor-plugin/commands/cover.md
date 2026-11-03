@@ -1,5 +1,5 @@
 ---
-description: "Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
+description: "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
 argument-hint: "[scope-or-feature]"
 model: sonnet
 effort: high

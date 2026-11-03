@@ -693,9 +693,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "brainstorm": {
     "name": "brainstorm",
-    "description": "Design exploration with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
+    "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "83f29fce389db9feb51110a85e61dddf967dd43641c96762817fe83437592272",
+    "sha256": "6f5b493e427dd1fc243b59f7a5a5089ba3bf856049f2dfc6008f6ff6d0f5a239",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1225,9 +1225,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "cover": {
     "name": "cover",
-    "description": "Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite.",
+    "description": "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite.",
     "version": "1.3.0",
-    "sha256": "9f9aa25004ff47e4c9a6d5da01b4ac34e4535c2cae52369e5637e6a4c55337bd",
+    "sha256": "c510aae4bbe0ee5fefbc0ed321d4c402123ccfb794fe06fc950b060eb25c6d4e",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2012,9 +2012,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit health check: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and fixes. Use when diagnosing plugin health or before a release.",
+    "description": "Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. Use to run doctor checks, diagnose issues or check project health before a release.",
     "version": "3.3.0",
-    "sha256": "77f7dc49e9666677577d6f6c53a03d0368872100c3acc9c15b3d28f5223c638c",
+    "sha256": "2c583aa33af3513e932e9a26ce367ea5384850a033a6476d73786dc73065f3d7",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2194,9 +2194,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, full state machines not mocks. Use when setting up test environments, CI or offline development.",
+    "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when setting up test environments, CI or offline development.",
     "version": "1.3.0",
-    "sha256": "987a8e37e8138dd8e0620a7147b6b9b9c6c7221416ba4160cfa5d11b6e21725f",
+    "sha256": "2b3f791bf9ce344870d4f9e6051c37d937641917b0d187a63c106d0fbf9da1f4",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -3046,9 +3046,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "iterate-research": {
     "name": "iterate-research",
-    "description": "Re-checks a create-research file when a claim is challenged or the question widens, with fresh file:line citations. Use after review comments on research.",
+    "description": "Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use after review comments on research.",
     "version": "1.0.0",
-    "sha256": "91c6ab85290c744183d5c944df0f758bab284c7814d80f9d53aaec1e7ad0e846",
+    "sha256": "dd38ffcd3e054b81a2bafe6dba60e64c8ae0d437a514d18816d6cebbbfe5dc1c",
     "author": "OrchestKit",
     "tags": [
       "research",
@@ -3082,9 +3082,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "json-render-catalog": {
     "name": "json-render-catalog",
-    "description": "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs or building AI-generated UIs.",
+    "description": "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs for AI-generated UIs.",
     "version": "1.3.1",
-    "sha256": "e13383b2b906c73345f984199127f883e98825e6859a122c4eeae9db82fb7054",
+    "sha256": "e5af673a11b53fe55908f53f31965df2ef166ca2cc24a9777e63a3a2fc6a7db9",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3512,9 +3512,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multi-surface-render": {
     "name": "multi-surface-render",
-    "description": "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms or to PDF, email or video.",
+    "description": "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms.",
     "version": "1.1.0",
-    "sha256": "b2bbfcba6aca1e8d69dea515fded012b2cd1664385f26416b583c09b14e8f91e",
+    "sha256": "a3d45a888ff5e4eea215956e98bc51851b2a9dd205fadac21ffe6fd43fbfc897",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -5283,9 +5283,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "verify": {
     "name": "verify",
-    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing tests (use cover).",
+    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover.",
     "version": "4.7.0",
-    "sha256": "3fdbcee91787a9e573aeea449eb1dfb09681a5cb9a0a558e8afe5cbee863a7c0",
+    "sha256": "c386da8f7f28c34bfb839975cf9f3b07948a0d9f7f60e25692e54948c09c91b0",
     "author": "OrchestKit",
     "tags": [
       "verification",

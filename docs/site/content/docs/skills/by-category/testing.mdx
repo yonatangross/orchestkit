@@ -13,9 +13,9 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading s... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Review process, conventional comments, language checklists and feedback templates. Use when reviewing code or standar... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when c... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
-| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, full state machines no... |
+| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when se... |
 | [Error Analysis](/docs/reference/skills/error-analysis) | Reference | high | Clusters real LLM traces (Langfuse or JSONL) into a confirmed failure taxonomy with counts, then proposes pass/fail e... |
 | [Errors](/docs/reference/skills/errors) | Reference | low | Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrenc... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |

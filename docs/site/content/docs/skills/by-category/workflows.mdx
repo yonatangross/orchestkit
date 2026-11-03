@@ -12,14 +12,14 @@ description: "User-invocable commands for common development workflows."
 | [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents... |
 | [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use... |
-| [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use whe... |
+| [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when b... |
 | [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict commen... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-... |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI ... |
 | [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, presets. Use when customizing... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when c... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
 | [Create Plan](/docs/reference/skills/create-plan) | Command | medium | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success c... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
 | [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how the code works today for a task's questions in a research file with file:line citations. Use before pla... |
@@ -29,7 +29,7 @@ description: "User-invocable commands for common development workflows."
 | [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. Use for polish... |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when buildin... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to t... |
-| [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit health check: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and... |
+| [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. U... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII dia... |
@@ -40,7 +40,7 @@ description: "User-invocable commands for common development workflows."
 | [Implement](/docs/reference/skills/implement) | Command | medium | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when ... |
 | [Issue Progress Tracking](/docs/reference/skills/issue-progress-tracking) | Reference | low | GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-descript... |
 | [Iterate Plan](/docs/reference/skills/iterate-plan) | Command | medium | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. U... |
-| [Iterate Research](/docs/reference/skills/iterate-research) | Command | medium | Re-checks a create-research file when a claim is challenged or the question widens, with fresh file:line citations. U... |
+| [Iterate Research](/docs/reference/skills/iterate-research) | Command | medium | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use afte... |
 | [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error h... |
 | [Memory](/docs/reference/skills/memory) | Command | low | Read-side memory: search past decisions, load context, timelines and graph views. Use when finding what memory holds.... |
 | [Page Serve](/docs/reference/skills/page-serve) | Command | low | Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears ... |

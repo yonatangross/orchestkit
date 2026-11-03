@@ -2,7 +2,7 @@
 name: doctor
 license: MIT
 compatibility: "Claude Code 2.1.277+ for xhigh effort warning (Category 14); earlier versions skip that check."
-description: "OrchestKit health check: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and fixes. Use when diagnosing plugin health or before a release."
+description: "Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. Use to run doctor checks, diagnose issues or check project health before a release."
 argument-hint: "[--verbose]"
 context: inherit
 user-invocable: true

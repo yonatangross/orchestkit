@@ -17,12 +17,12 @@ set Claude Code lists to the model. Bytes are UTF-8 bytes.
 | Listed (model-facing) | 84 | 84 |
 | Hidden (`disable-model-invocation: true`) | 31 | 31 |
 | Listed and user-invocable | 41 | 41 |
-| Listed description bytes (description + when_to_use) | 28,096 | 14,942 (-47 %) |
-| Skill index bytes, gate metric (name + description) | 29,171 | 16,017 (-45 %) |
-| Skill index gate limit | 29,300 (129 B slack) | 16,800, plus ratchet 16,017 |
-| Listed skills over 260 bytes | 61 | 0 (longest: brainstorm 254) |
+| Listed description bytes (description + when_to_use) | 28,096 | 14,933 (-47 %) |
+| Skill index bytes, gate metric (name + description) | 29,171 | 16,008 (-45 %) |
+| Skill index gate limit | 29,300 (129 B slack) | 16,800, plus ratchet 16,008 |
+| Listed skills over 260 bytes | 61 | 0 (longest: brainstorm 251) |
 | Skills using `when_to_use` | 0 | 0 |
-| Total session overhead, gate (local, with MEMORY.md) | 10,836 t of 10,900 | 7,548 t of 7,900 |
+| Total session overhead, gate (local, with MEMORY.md) | 10,836 t of 10,900 | 7,545 t of 7,900 |
 | Hook entries, `src/hooks/hooks.json` | 151 (32 events) | 151 |
 | Hook entries, shipped `plugins/ork/hooks/hooks.json` | 104 (32 events) | 104 |
 

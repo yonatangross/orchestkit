@@ -813,7 +813,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/brainstorm",
     "title": "Brainstorm",
-    "description": "Design exploration with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess)."
+    "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess)."
   },
   {
     "url": "/docs/reference/skills/brainstorm/references",
@@ -913,7 +913,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/cover",
     "title": "Cover",
-    "description": "Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
+    "description": "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
   },
   {
     "url": "/docs/reference/skills/create-plan",
@@ -988,7 +988,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor",
     "title": "Doctor",
-    "description": "OrchestKit health check: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and fixes. Use when diagnosing plugin health or before a release."
+    "description": "Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. Use to run doctor checks, diagnose issues or check project health before a release."
   },
   {
     "url": "/docs/reference/skills/doctor/references/agent-memory-dir",
@@ -1108,7 +1108,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/emulate-seed",
     "title": "Emulate Seed",
-    "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, full state machines not mocks. Use when setting up test environments, CI or offline development."
+    "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when setting up test environments, CI or offline development."
   },
   {
     "url": "/docs/reference/skills/error-analysis",
@@ -1213,12 +1213,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/iterate-research",
     "title": "Iterate Research",
-    "description": "Re-checks a create-research file when a claim is challenged or the question widens, with fresh file:line citations. Use after review comments on research."
+    "description": "Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use after review comments on research."
   },
   {
     "url": "/docs/reference/skills/json-render-catalog",
     "title": "Json Render Catalog",
-    "description": "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs or building AI-generated UIs."
+    "description": "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs for AI-generated UIs."
   },
   {
     "url": "/docs/reference/skills/langgraph",
@@ -1263,7 +1263,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/multi-surface-render",
     "title": "Multi Surface Render",
-    "description": "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms or to PDF, email or video."
+    "description": "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms."
   },
   {
     "url": "/docs/reference/skills/multimodal-llm",
@@ -1453,7 +1453,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/verify",
     "title": "Verify",
-    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing tests (use cover)."
+    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover."
   },
   {
     "url": "/docs/reference/skills/verify/references",

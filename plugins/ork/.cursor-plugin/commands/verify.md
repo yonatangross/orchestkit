@@ -1,5 +1,5 @@
 ---
-description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing tests (use cover)."
+description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover."
 argument-hint: "[feature-or-scope]"
 model: sonnet
 effort: high

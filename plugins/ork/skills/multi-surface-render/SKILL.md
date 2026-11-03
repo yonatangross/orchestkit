@@ -1,7 +1,7 @@
 ---
 name: multi-surface-render
 compatibility: "Claude Code 2.1.277+"
-description: "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms or to PDF, email or video."
+description: "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms."
 user-invocable: false
 disable-model-invocation: false
 context: inherit

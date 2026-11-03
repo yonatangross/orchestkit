@@ -2,7 +2,7 @@
 name: verify
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing tests (use cover)."
+description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover."
 argument-hint: "[feature-or-scope]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"

@@ -27,7 +27,7 @@ Plan, build, and fix features, from a plain-English goal to working code.
 | [`/ork:implement`](/docs/reference/skills/implement) | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. | medium | `/ork:implement [feature-description]` |
 | [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. | medium | `/ork:fix-issue [issue-number]` |
 | [`/ork:explore`](/docs/reference/skills/explore) | Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. | high | `/ork:explore [topic-or-feature] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high]` |
-| [`/ork:brainstorm`](/docs/reference/skills/brainstorm) | Design exploration with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. | medium | `/ork:brainstorm [topic-or-idea]` |
+| [`/ork:brainstorm`](/docs/reference/skills/brainstorm) | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. | medium | `/ork:brainstorm [topic-or-idea]` |
 | [`/ork:assess`](/docs/reference/skills/assess) | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. | high | `/ork:assess [code-path-or-topic] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high\|xhigh]` |
 | [`/ork:write-prd`](/docs/reference/skills/write-prd) | Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. | medium | `/ork:write-prd product name or feature` |
 | [`/ork:prd-to-goal`](/docs/reference/skills/prd-to-goal) | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. | low | `/ork:prd-to-goal [prd-text \| issue#N \| path/to/spec.md]` |
@@ -41,7 +41,7 @@ Write missing tests, run the suites, and check changes in a real browser.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:cover`](/docs/reference/skills/cover) | Writes tests that do not exist yet across unit, integration and E2E tiers, healing failures up to 3 times. | high | `/ork:cover [scope-or-feature]` |
+| [`/ork:cover`](/docs/reference/skills/cover) | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. | high | `/ork:cover [scope-or-feature]` |
 | [`/ork:verify`](/docs/reference/skills/verify) | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. | high | `/ork:verify [feature-or-scope]` |
 | [`/ork:expect`](/docs/reference/skills/expect) | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. | high | `/ork:expect [-m <instruction>] [--target unstaged\|branch\|commit] [--flow <slug>] [-y]` |
 
@@ -109,7 +109,7 @@ Set up, diagnose, and inspect OrchestKit itself.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:setup`](/docs/reference/skills/setup) | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. | medium | `/ork:setup [--rescan] [--score-only] [--plan-only] [--channel] [--configure]` |
-| [`/ork:doctor`](/docs/reference/skills/doctor) | OrchestKit health check: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and fixes. | low | `/ork:doctor [--verbose]` |
+| [`/ork:doctor`](/docs/reference/skills/doctor) | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. | low | `/ork:doctor [--verbose]` |
 | [`/ork:help`](/docs/reference/skills/help) | OrchestKit skill directory by category. | low | `/ork:help [category]` |
 | [`/ork:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. | medium | `/ork:audit-activation [--json]` |
 | [`/ork:telemetry-inspect`](/docs/reference/skills/telemetry-inspect) | Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. | low | `/ork:telemetry-inspect [--session <id>] [--json]` |
@@ -127,7 +127,7 @@ Commands not yet filed under a task above.
 | [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how the code works today for a task's questions in a research file with file:line citations. | medium | `/ork:create-research <task> <question or questions file>` |
 | [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
 | [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
-| [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks a create-research file when a claim is challenged or the question widens, with fresh file:line citations. | medium | `/ork:iterate-research <research file> [follow-up]` |
+| [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. | medium | `/ork:iterate-research <research file> [follow-up]` |
 | [`/ork:review-artifact-comments`](/docs/reference/skills/review-artifact-comments) | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate-research, approves when none are open. | low | `/ork:review-artifact-comments [artifact file]` |
 
 ---

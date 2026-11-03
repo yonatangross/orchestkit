@@ -1,7 +1,7 @@
-16017
+16008
 # Ceiling, in bytes, for the skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) in src/skills.
 # Read by tests/performance/test-token-overhead.sh (Test 4b). The number only moves
 # DOWN: lower it to the measured total when a trim lands; the test fails when the
 # total falls more than 256 bytes under it. Never raise it to make a red run green.
-# History: 2026-11-04 orchestkit#4936 W1, 29171 on main before the diet, 16017 after it.
+# History: 2026-11-04 orchestkit#4936 W1, 29171 on main before the diet, 16008 after it.
