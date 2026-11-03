@@ -44,8 +44,11 @@ can name a program git runs while it prints a diff: <code>diff.external</code>, 
 <tr><td><code>git diff</code>, <code>git show</code></td><td class="ok">always</td></tr>
 <tr><td><code>git log</code> printing a patch, a stat, or a <code>-S</code>/<code>-G</code> search</td><td class="ok">yes</td></tr>
 <tr><td><code>git log</code> with only names or one-line output</td><td>no (no diff driver runs)</td></tr>
-<tr><td><code>git status</code></td><td class="bad">off the list</td></tr>
+<tr><td><code>git blame</code></td><td class="ok"><code>&#45;&#45;no-textconv</code> (blame runs textconv by default)</td></tr>
+<tr><td><code>git status</code>, <code>git fetch</code></td><td class="bad">off the list</td></tr>
+<tr><td>any git read while local git config sets <code>core.fsmonitor</code>, <code>core.hooksPath</code>, <code>diff.external</code> or a diff driver program</td><td class="bad">refused (the gate reads the config, which runs nothing)</td></tr>
 </table>
+<p class="lede">Declared limit: a program set in git config under a key the gate does not check, or in global or system config, is not covered. A follow-up runs review-pr's git reads with a sanitized config.</p>
 
 <div class="foot">The skill's own diff commands (SKILL.md range row, rule-check diffCommand, review-fanout
 reader prompt) pass both flags, so the gate never blocks the skill. This page simulates the flag rule only;
@@ -61,7 +64,8 @@ function verdict(c){
   const w=c.trim().split(/\s+/);
   if(w[0]!=='git')return['?','not a git command'];
   const sub=w[1]||'';
-  if(sub==='status')return['deny','git status is off the list (core.fsmonitor)'];
+  if(sub==='status'||sub==='fetch')return['deny','git '+sub+' is off the list'];
+  if(sub==='blame')return w.includes(NEED[1])?['allow','blame with '+NEED[1]]:['deny','blame needs '+NEED[1]];
   const p=sub==='diff'||sub==='show'||(sub==='log'&&prints(w));
   if(!p)return['allow','no diff output, no diff driver runs'];
   const miss=NEED.filter(f=>!w.includes(f));

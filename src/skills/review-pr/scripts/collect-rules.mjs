@@ -3,7 +3,11 @@
 // against, and print them as one JSON object for workflows/rule-check.js.
 //
 // Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user]
-//        [--standards (--default-branch NAME [--pr-base NAME] | --base-ref REF)]
+//        [--standards (--default-branch NAME [--pr-base NAME] [--github-repo OWNER/REPO] | --base-ref REF)]
+//
+//   --github-repo OWNER/REPO  with --default-branch: read the standards file
+//                with one `gh api` contents GET at that branch instead of a
+//                local git ref, so the skill never runs git fetch (#4701)
 //
 //   --repo DIR   project root (default: the current directory)
 //   --home DIR   home directory (default: $HOME); tests point it at a fixture
@@ -152,6 +156,28 @@ if (STANDARDS) {
     if (!BRANCH.test(def) || def.includes('..')) done({ skip: `standards pass skipped: --default-branch ${def} is not a branch name` });
     ref = `refs/remotes/origin/${def}`;
     if (prBase !== null && prBase !== def) notes.push(`standards read from the default branch ${def}, not the PR base ${prBase}`);
+  }
+  // --github-repo OWNER/REPO: read the file with one GitHub contents GET at
+  // the default branch (#4701). No git fetch, so no git transport, ssh
+  // command or credential helper runs, and the local ref cannot be stale.
+  const slug = opt('--github-repo');
+  if (slug !== null) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(slug) || slug.includes('..')) done({ skip: `standards pass skipped: --github-repo ${slug} is not owner/repo` });
+    if (def === null) done({ skip: 'standards pass skipped: --github-repo needs --default-branch' });
+    const at = `${slug}@${def}`;
+    let meta = null;
+    try {
+      meta = JSON.parse(execFileSync('gh', ['api', `repos/${slug}/contents/${STANDARDS_FILE}?ref=${encodeURIComponent(def)}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }));
+    } catch {
+      missing.push(`${STANDARDS_FILE}@${at}`);
+      done({ skip: `standards pass skipped: gh api found no ${STANDARDS_FILE} at ${at}`, notes });
+    }
+    if (!meta || Array.isArray(meta) || meta.type !== 'file' || typeof meta.content !== 'string' || meta.encoding !== 'base64') {
+      skipped.push({ file: `${STANDARDS_FILE}@${at}`, reason: meta && meta.type === 'symlink' ? 'symlink' : 'not-file' });
+      done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${at} is not a plain file`, notes });
+    }
+    sources.push({ path: STANDARDS_FILE, ref: at, sha: String(meta.sha ?? ''), text: Buffer.from(meta.content, 'base64').toString('utf8') });
+    done(notes.length ? { notes } : {});
   }
   // Only a remote-tracking ref or a full commit SHA: no HEAD, @, ~ or ^ forms.
   if (ref && /^origin\/[A-Za-z0-9._][A-Za-z0-9._/-]*$/.test(ref)) ref = `refs/remotes/${ref}`;

@@ -69,6 +69,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { tmpdir } from 'node:os';
 import { posix } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { hasLink, realPath, linkCount } from '../lib/real-path.js';
 import { inGitRepo } from '../lib/repo-root.js';
 
@@ -805,6 +806,62 @@ export interface ReviewPostGateDeps {
   linkCount?: (p: string) => number;
   /** The config subset of configEnv (no PATH lists): never read, in the repo either. */
   secretEnv?: () => string[];
+  /** The repo's local git config keys that name a program a git read can run (gitConfigPrograms); null when unreadable. */
+  gitConfigPrograms?: (cwd: string) => string[] | null;
+}
+
+// Local git config keys that make a git read run a program (#4701): the
+// fsmonitor hook on any index refresh, a hooks dir, and the external diff
+// and textconv drivers. Names are matched as git prints them (section and
+// key lowercased).
+const GIT_PROGRAM_KEYS = /^(core\.fsmonitor|core\.hookspath|diff\.external|diff\..+\.(textconv|command))$/;
+const GIT_FALSE = /^(false|no|off|0)$/i;
+
+/**
+ * The program-naming keys set in the repo's local git config (with its
+ * includes), read with `git config`, which runs no program. [] when the cwd
+ * is no repo (then no local config exists); null when the config cannot be
+ * read, so the caller fails closed. core.fsmonitor=false counts as unset.
+ */
+/** A thunk that runs its function once and returns the same value after. */
+function memoOnce<T>(fn: () => T): () => T {
+  let done = false;
+  let value: T;
+  return () => {
+    if (!done) {
+      value = fn();
+      done = true;
+    }
+    return value;
+  };
+}
+
+export function gitConfigPrograms(cwd: string): string[] | null {
+  let out = '';
+  try {
+    out = execFileSync('git', ['-C', cwd || '.', 'config', '--local', '--includes', '--get-regexp', '^(core|diff)\\.'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 3000,
+    });
+  } catch (err) {
+    const e = err as { status?: number | null; stderr?: string | Buffer };
+    if (e.status === 1) return [];
+    const msg = String(e.stderr ?? '');
+    // No repo at the cwd: there is no local config to name a program.
+    if (e.status === 128 && /not a git repository|cannot change to|can only be used inside a git repository/i.test(msg)) return [];
+    return null;
+  }
+  const keys: string[] = [];
+  for (const line of out.split('\n')) {
+    const at = line.indexOf(' ');
+    const key = (at < 0 ? line : line.slice(0, at)).trim();
+    const value = at < 0 ? '' : line.slice(at + 1).trim();
+    if (!key || !GIT_PROGRAM_KEYS.test(key)) continue;
+    if (key === 'core.fsmonitor' && GIT_FALSE.test(value)) continue;
+    keys.push(key);
+  }
+  return keys;
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -819,6 +876,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   linkCount,
   secretEnv: () => envConfigDirs(process.env, false),
   realpath: realPath,
+  gitConfigPrograms,
 };
 
 /**
@@ -1227,7 +1285,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv) };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv), gitPrograms: memoOnce(() => (deps.gitConfigPrograms ?? gitConfigPrograms)(input.cwd ?? '')) };
   // The job dir must pass the Write rule; unset, "$CLAUDE_JOB_DIR" is empty and
   // verdict_writeback.py would write into the cwd (HOLD 6098152787 should).
   allowCtx.jobOk = jobRootOk(deps, allowCtx.realpath, allowCtx.home ?? '', allowCtx.tempDirs ?? []) !== '';
@@ -1549,7 +1607,7 @@ const FLAGS: Record<string, FlagSpec> = {
   'git diff': spec('pwbMR', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'cached', 'staged', 'no-color', 'patch', 'merge-base', 'ignore-all-space', 'ignore-space-change', 'find-renames', 'word-diff', 'check', 'minimal', 'no-ext-diff', 'no-textconv', 'no-renames'], { unified: NUM, 'diff-filter': TEXT }),
   'git show': spec('ps', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'oneline', 'no-patch', 'patch', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv'], { format: TEXT, pretty: TEXT, unified: NUM }),
   'git rev-parse': spec('q', {}, ['abbrev-ref', 'short', 'verify', 'show-toplevel', 'git-dir', 'git-common-dir', 'is-inside-work-tree', 'quiet', 'symbolic-full-name', 'show-prefix']),
-  'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email'], { date: TEXT }),
+  'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email', 'no-textconv'], { date: TEXT }),
   'git ls-files': spec('cmodzs', {}, ['cached', 'modified', 'others', 'deleted', 'exclude-standard', 'error-unmatch', 'full-name', 'stage']),
   'git merge-base': spec('a', {}, ['is-ancestor', 'fork-point', 'all', 'octopus']),
   'git grep': spec('nilLcwvEFPhHIz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, ['cached', 'untracked', 'name-only', 'count', 'or', 'and', 'not', 'all-match', 'line-number', 'ignore-case', 'files-with-matches', 'word-regexp', 'invert-match', 'extended-regexp', 'fixed-strings', 'perl-regexp'], { 'max-depth': NUM, 'max-count': NUM, context: NUM }, true),
@@ -1678,8 +1736,10 @@ const GIT_READ = new Set(['log', 'diff', 'show', 'rev-parse', 'blame', 'ls-files
 const GIT_DIFF_DRIVER_FREE = ['no-ext-diff', 'no-textconv'] as const;
 const GIT_LOG_DIFF_FLAGS = ['p', 'patch', 'U', 'unified', 'stat', 'shortstat', 'numstat', 'S', 'G'] as const;
 
-/** Why a git diff, show or log read could run a diff driver, or null when it cannot. */
+/** Why a git diff, show, log or blame read could run a diff driver, or null when it cannot. */
 function gitDiffDriverReason(sub: string, p: ParsedArgs): string | null {
+  // git blame runs a textconv driver by default (it has no external diff).
+  if (sub === 'blame') return p.given.has('no-textconv') ? null : 'git blame without --no-textconv (a textconv driver from git config could run)';
   const prints = sub === 'diff' || sub === 'show' || (sub === 'log' && GIT_LOG_DIFF_FLAGS.some((f) => p.given.has(f)));
   if (!prints) return null;
   const missing = GIT_DIFF_DRIVER_FREE.filter((f) => !p.given.has(f));
@@ -1708,6 +1768,8 @@ export interface AllowContext {
   secret?: string[] | null;
   /** Whether "$CLAUDE_JOB_DIR" is a dir Write may use (jobRootOk); the gate sets it, unset here counts as yes. */
   jobOk?: boolean;
+  /** The local git config keys that name a program (gitConfigPrograms), read once per call; null fails closed. Unset reads as none. */
+  gitPrograms?: () => string[] | null;
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1800,6 +1862,11 @@ function collectRulesArgs(rest: Word[], ctx: AllowContext): string | null {
       i += 1;
       continue;
     }
+    if (t === '--github-repo') {
+      if (!v || v.variable || !/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(v.text) || v.text.includes('..')) return 'collect-rules.mjs --github-repo needs owner/repo';
+      i += 1;
+      continue;
+    }
     return `collect-rules.mjs ${t} is not on its flag list`;
   }
   return null;
@@ -1868,11 +1935,18 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   }
   if (cmd === 'git') {
     const sub = args[0]?.text ?? '';
-    if (sub === 'fetch') {
-      const rest = args.slice(1).map((a) => a.text);
-      return rest.length === 2 && rest[0] === 'origin' && /^[A-Za-z0-9._/-]+$/.test(rest[1]) && !rest[1].startsWith('-') ? null : 'git fetch other than git fetch origin <branch>';
-    }
+    // No git fetch (#4701 b31): a transport can run a configured program
+    // (ext::, core.sshCommand, a credential helper). The --standards pass
+    // reads the default-branch rules with one gh api GET instead.
     if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
+    // A program named in the repo's git config runs during a git read
+    // (core.fsmonitor on an index refresh, core.hooksPath, diff.external,
+    // a diff driver's textconv or command). Read the config, which runs no
+    // program, and refuse while any is set (#4701 b33).
+    // null (unreadable) must fail closed, so no ?? here.
+    const programs = ctx.gitPrograms ? ctx.gitPrograms() : [];
+    if (programs === null) return 'git reads while the repo git config cannot be read';
+    if (programs.length) return `git reads while the repo git config sets ${programs.join(', ')} (a program git would run; unset it or review elsewhere)`;
     const p = parseFlags(`git ${sub}`, args.slice(1), FLAGS[`git ${sub}`]);
     if (typeof p === 'string') return p;
     const driverWhy = gitDiffDriverReason(sub, p);
@@ -1932,4 +2006,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, rev-parse, blame, ls-files, merge-base, grep; git diff, git show and a git log patch, stat or -S/-G search need --no-ext-diff --no-textconv), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, rev-parse, blame, ls-files, merge-base, grep; git diff, git show and a git log patch, stat or -S/-G search need --no-ext-diff --no-textconv, git blame needs --no-textconv; no git fetch or status, and no git read while the repo git config names a program), jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";

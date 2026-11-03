@@ -16,7 +16,8 @@ import { linkSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, wr
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs, rawWriteReason, allowlistReason } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs, rawWriteReason, allowlistReason, gitConfigPrograms } from '../../skill/review-post-gate.js';
+import { execFileSync } from 'node:child_process';
 import { createTestContext } from '../fixtures/test-context.js';
 import { linkCount, realPath } from '../../lib/real-path.js';
 
@@ -1304,7 +1305,6 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       'git log --oneline -5 | cat',
       'git diff --no-ext-diff --no-textconv main...HEAD -- src/x.ts',
       'git rev-parse --show-toplevel',
-      'git fetch origin main',
       "jq -r '.files[].path' f.json",
       'grep -rn TODO src',
       // A glob path now denies (conductor145 at 348161fb); rg -g is the read that stays.
@@ -1434,7 +1434,7 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
       'git log --oneline -n 5 --format=%H%x09%s main..HEAD',
       'git diff --no-ext-diff --no-textconv --stat --name-only main...HEAD -- src',
       'git show --no-ext-diff --no-textconv --stat HEAD',
-      'git blame -L 10,20 src/x.ts',
+      'git blame --no-textconv -L 10,20 src/x.ts',
       'gh pr view 4668 --json baseRefName --jq .baseRefName',
       'gh pr diff 4668 --name-only',
       'gh pr checks 4668 --watch 2>&1',
@@ -1683,16 +1683,18 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     }
     expect(at(join(dir, 'other.cfg'))).toBe(false);
   });
-  test('codex22 P2-2 (#4701): an existing [include] target is writable, but no read it could arm passes bare', () => {
-    // The gate does not parse git config, so a pre-existing include target
-    // stays writable, the same class as a config written before the skill
-    // ran. What such a config can run is closed on the read side instead:
-    // diff.external, a diff=<driver> command and a textconv driver run only
-    // in a diff-printing read, and those need --no-ext-diff --no-textconv;
-    // core.fsmonitor runs in git status, which is off the list.
+  test('codex22 P2-2 (#4701): an existing [include] target is writable, but the reads it could arm are closed', () => {
+    // The gate does not block writing a pre-existing include target, the
+    // same class as a config written before the skill ran. The read side
+    // closes what the gate knows of: the diff drivers need --no-ext-diff
+    // --no-textconv (blame --no-textconv), git status and git fetch are off
+    // the list, and a git read refuses while the local config (with its
+    // includes) names core.fsmonitor, core.hooksPath, diff.external or a
+    // diff driver program. A config-set program outside that list is a
+    // declared limit.
     expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
-    for (const cmd of ['git diff HEAD', 'git show HEAD', 'git log -p -- x', 'git status']) {
+    for (const cmd of ['git diff HEAD', 'git show HEAD', 'git log -p -- x', 'git blame src/x.ts', 'git status', 'git fetch origin main']) {
       expect(at(cmd), cmd).toBe(true);
     }
   });
@@ -1733,11 +1735,61 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       expect(at(cmd), cmd).toBe(false);
     }
   });
-  test('#4701: git status is off the list (core.fsmonitor runs from git config)', () => {
+  test('#4701: git status is off the list (nothing in review-pr runs it)', () => {
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
     for (const cmd of ['git status', 'git status -sb', 'git status --porcelain', 'git status --short --branch']) {
       expect(at(cmd), cmd).toBe(true);
     }
+  });
+  test('#4701 b31: git blame needs --no-textconv (it runs a textconv driver by default)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git blame src/x.ts', 'git blame -L 10,20 src/x.ts', 'git blame --porcelain src/x.ts']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['git blame --no-textconv src/x.ts', 'git blame --no-textconv -L 10,20 src/x.ts']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('#4701 b31: git fetch is off the list (a transport can run a configured program)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git fetch origin main', 'git fetch origin', 'git fetch', 'git fetch ext::sh -c x']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    // The --standards pass reads the default-branch rules with a GET instead.
+    expect(at('gh api repos/o/r/contents/.github/review-standards.md?ref=main --jq .content')).toBe(false);
+    const collect = 'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo /test/project --standards --default-branch main';
+    expect(at(`${collect} --github-repo o/r`)).toBe(false);
+    for (const bad of ['o/../r', 'o', '-x/r']) expect(at(`${collect} --github-repo ${bad}`), bad).toBe(true);
+  });
+  test('#4701 b33: a git read refuses while the local git config names a program', () => {
+    const base = { cwd: ROOT, root: '/test/plugin-root', realpath: (x: string) => x };
+    const read = 'git diff --no-ext-diff --no-textconv HEAD';
+    for (const keys of [['core.fsmonitor'], ['core.hookspath'], ['diff.external'], ['diff.lfs.textconv'], ['diff.x.command']]) {
+      const why = allowlistReason(read, { ...base, gitPrograms: () => keys });
+      expect(why, keys[0]).toContain(keys[0]);
+    }
+    expect(allowlistReason(read, { ...base, gitPrograms: () => null })).toContain('cannot be read');
+    expect(allowlistReason(read, { ...base, gitPrograms: () => [] })).toBeNull();
+    // A non-git command never reads the config.
+    expect(allowlistReason('cat src/x.ts', { ...base, gitPrograms: () => { throw new Error('read'); } })).toBeNull();
+  });
+  test('#4701 b33: core.fsmonitor in a real repo config refuses, unset or false allows', () => {
+    const repo = join(dir, 'fsm');
+    mkdirSync(repo, { recursive: true });
+    execFileSync('git', ['-C', repo, 'init', '-q']);
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const at = () => denied(reviewPostGate(bash('git log --oneline -1', tr(), TOOL, repo), ctx, deps));
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    expect(at()).toBe(false);
+    execFileSync('git', ['-C', repo, 'config', 'core.fsmonitor', '/tmp/evil-fsmonitor.sh']);
+    expect(gitConfigPrograms(repo)).toEqual(['core.fsmonitor']);
+    expect(at()).toBe(true);
+    execFileSync('git', ['-C', repo, 'config', 'core.fsmonitor', 'false']);
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    expect(at()).toBe(false);
+    execFileSync('git', ['-C', repo, 'config', 'diff.evil.textconv', 'cat']);
+    expect(gitConfigPrograms(repo)).toEqual(['diff.evil.textconv']);
+    expect(at()).toBe(true);
   });
   test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };
