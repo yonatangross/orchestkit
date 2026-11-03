@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude defaults move to the 5.5 family</title>
+<meta name="description" content="Every Claude model id that orchestkit ships as a default now names the 5.5 family: Opus 5.5, Sonnet 5.5 and Haiku 5.5. Filter the ten changed defaults by file or family, and see why Haiku 5.5 joins the no-sampling prefix list.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:68rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  table{border-collapse:collapse;font-size:.78rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.35rem .5rem;text-align:start;vertical-align:top}
+  th{color:var(--dim);font-weight:normal}
+  .old{color:var(--bad);text-decoration:line-through}
+  .new{color:var(--ok)}
+  .file{color:var(--accent);word-break:break-all}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+  .chips{display:flex;gap:.5rem;flex-wrap:wrap}
+  .chip{border:1px solid var(--edge);border-radius:6px;padding:.2rem .55rem;font-size:.78rem}
+  .chip.on{border-color:var(--ok);color:var(--ok)}
+  .chip.off{color:var(--dim)}
+</style>
+</head>
+<body><main>
+<h1>Claude defaults move to the 5.5 family</h1>
+<p class="sub">Branch chore/claude-5-5-models-2026-11-03 (#5020). Every Claude model id orchestkit ships as a default now names a 5.5 model: <code>claude-opus-5-5</code>, <code>claude-sonnet-5-5</code> and <code>claude-haiku-5-5</code>. Four skill scripts change in <code>src/skills/</code> and are mirrored to <code>plugins/ork/skills/</code> by the build, plus one coordination schema default and two workflow defaults. The workflow triage model is still overridable through <code>CLAUDE_TRIAGE_MODEL</code>.</p>
+
+<section><h2>1. Every changed default</h2>
+<div class="controls">
+  <select id="family" aria-label="family">
+    <option value="all">all families</option>
+    <option value="opus">Opus</option>
+    <option value="sonnet">Sonnet</option>
+    <option value="haiku">Haiku</option>
+  </select>
+  <select id="area" aria-label="area">
+    <option value="all">all areas</option>
+    <option value="skill">skill scripts</option>
+    <option value="workflow">GitHub workflows</option>
+    <option value="schema">coordination schema</option>
+  </select>
+</div>
+<table id="changes"><thead><tr><th>file</th><th>where</th><th>old id</th><th>new id</th><th>why</th></tr></thead><tbody></tbody></table>
+<div class="out" id="count"></div>
+</section>
+
+<section><h2>2. Who skips sampling params</h2>
+<p class="sub">Claude 5-series models answer a non-default <code>temperature</code>, <code>top_p</code> or <code>top_k</code> with a 400. Two scripts drop those keys by model prefix. Haiku 4.5 still took them; Haiku 5.5 does not, so <code>claude-haiku-5</code> joins the list in both <code>llm-fallback-chain.py</code> and <code>ollama-provider-template.py</code>. Pick a model id to see what each script sends.</p>
+<div class="controls">
+  <select id="probe" aria-label="model id">
+    <option>claude-haiku-5-5</option>
+    <option>claude-sonnet-5-5</option>
+    <option>claude-opus-5-5</option>
+    <option>claude-haiku-4-5-20251001</option>
+    <option>gpt-5-mini</option>
+  </select>
+</div>
+<div class="chips" id="prefixes"></div>
+<div class="out" id="verdict"></div>
+<p class="note"><strong>Without this line.</strong> Before the change, a GENERAL task in <code>ollama-provider-template.py</code> moved to <code>claude-haiku-5-5</code> would not match any prefix, get <code>temperature=0.0</code>, and fail with a 400 on its first call.</p>
+</section>
+
+<section><h2>3. Pricing kept for history</h2>
+<table id="pricing"><thead><tr><th>model id in token-budget.py</th><th>input per 1M</th><th>output per 1M</th><th>status</th></tr></thead><tbody></tbody></table>
+<p class="note"><strong>Unverified prices.</strong> These are the values the script carries, with its own comment to check the Anthropic pricing page before relying on them. Older ids stay so historical usage still prices at its own rate.</p>
+<div class="controls"><button id="copy" type="button">copy changes as JSON</button><span id="copied" class="sub"></span></div>
+</section>
+
+<script>
+const CHANGES = [
+  { file: '.claude/coordination/schema.sql', where: 'instances.model DEFAULT', area: 'schema', family: 'opus', old: 'claude-opus-4-5-20251101', now: 'claude-opus-5-5', why: 'New coordination rows record the current flagship instead of a dated 4.5 snapshot.' },
+  { file: '.github/workflows/claude-health.yml', where: 'claude -p --model', area: 'workflow', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'The health check runs on the current Sonnet.' },
+  { file: '.github/workflows/claude-triage.yml', where: 'CLAUDE_TRIAGE_MODEL fallback', area: 'workflow', family: 'haiku', old: 'claude-haiku-4-5-20251001', now: 'claude-haiku-5-5', why: 'Triage is a cheap, short task; Haiku 5.5 is the current small model. The env var still overrides it.' },
+  { file: 'src/skills/distributed-systems/scripts/llm-fallback-chain.py', where: 'usage docstring, primary', area: 'skill', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'The example a reader copies names the current Sonnet.' },
+  { file: 'src/skills/distributed-systems/scripts/llm-fallback-chain.py', where: '__main__ demo primary', area: 'skill', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'The runnable demo matches the docstring.' },
+  { file: 'src/skills/distributed-systems/scripts/token-budget.py', where: 'docstrings and __main__ guard', area: 'skill', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'Examples and the demo guard use the current Sonnet.' },
+  { file: 'src/skills/distributed-systems/scripts/token-budget.py', where: 'check_budget(model=...) default', area: 'skill', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'A caller who passes no model is budgeted against the current Sonnet.' },
+  { file: 'src/skills/llm-integration/scripts/ollama-provider-template.py', where: 'TaskType.CODING', area: 'skill', family: 'sonnet', old: 'claude-sonnet-5', now: 'claude-sonnet-5-5', why: 'Coding tasks route to the current Sonnet.' },
+  { file: 'src/skills/llm-integration/scripts/ollama-provider-template.py', where: 'TaskType.GENERAL and the fallback', area: 'skill', family: 'haiku', old: 'claude-haiku-4-5-20251001', now: 'claude-haiku-5-5', why: 'General tasks and unknown task types route to the current Haiku; it now needs the no-sampling path (section 2).' },
+  { file: 'src/skills/monitoring-observability/scripts/callback-handler.py', where: 'retrieval ChatAnthropic', area: 'skill', family: 'haiku', old: 'claude-haiku-4-5-20251001', now: 'claude-haiku-5-5', why: 'Retrieval stays on the fast, cheap tier, now Haiku 5.5. No sampling params are passed there.' }
+];
+const PREFIX_BEFORE = ['claude-sonnet-5', 'claude-opus-5', 'claude-fable-5', 'claude-mythos-5'];
+const PREFIX_AFTER = PREFIX_BEFORE.concat(['claude-haiku-5']);
+const PRICING = [
+  { id: 'claude-opus-5-5', input: 4.0, output: 20.0, status: 'added' },
+  { id: 'claude-sonnet-5-5', input: 2.0, output: 10.0, status: 'kept' },
+  { id: 'claude-haiku-5-5', input: 0.10, output: 0.50, status: 'added' },
+  { id: 'claude-sonnet-5', input: 2.0, output: 10.0, status: 'kept for history' },
+  { id: 'claude-sonnet-4-6', input: 3.0, output: 15.0, status: 'kept for history' },
+  { id: 'claude-haiku-4-5-20251001', input: 1.0, output: 5.0, status: 'kept for history' }
+];
+
+function cell(text, cls) {
+  const td = document.createElement('td');
+  td.textContent = text;
+  if (cls) td.className = cls;
+  return td;
+}
+function renderChanges() {
+  const fam = document.getElementById('family').value;
+  const area = document.getElementById('area').value;
+  const body = document.querySelector('#changes tbody');
+  body.textContent = '';
+  const shown = CHANGES.filter((c) => (fam === 'all' || c.family === fam) && (area === 'all' || c.area === area));
+  for (const c of shown) {
+    const tr = document.createElement('tr');
+    tr.append(cell(c.file, 'file'), cell(c.where), cell(c.old, 'old'), cell(c.now, 'new'), cell(c.why));
+    body.append(tr);
+  }
+  const files = new Set(shown.map((c) => c.file)).size;
+  document.getElementById('count').textContent = `${shown.length} of ${CHANGES.length} defaults in ${files} source file(s). Skill scripts are also mirrored under plugins/ork/skills/ by the build, so the PR diff shows them twice.`;
+}
+function renderProbe() {
+  const id = document.getElementById('probe').value;
+  const chips = document.getElementById('prefixes');
+  chips.textContent = '';
+  for (const p of PREFIX_AFTER) {
+    const s = document.createElement('span');
+    const hit = id.startsWith(p);
+    s.className = 'chip ' + (hit ? 'on' : 'off');
+    s.textContent = (PREFIX_BEFORE.includes(p) ? '' : '+ ') + p;
+    chips.append(s);
+  }
+  const before = PREFIX_BEFORE.some((p) => id.startsWith(p));
+  const after = PREFIX_AFTER.some((p) => id.startsWith(p));
+  const say = (skip) => (skip ? 'no sampling params (default call)' : 'temperature=0.0 sent');
+  let tail = '';
+  if (before !== after) tail = '\nThis is the id the new prefix exists for: before the change it would have been sent temperature and rejected with a 400.';
+  document.getElementById('verdict').textContent = `${id}\n  before: ${say(before)}\n  after:  ${say(after)}${tail}`;
+}
+function renderPricing() {
+  const body = document.querySelector('#pricing tbody');
+  for (const p of PRICING) {
+    const tr = document.createElement('tr');
+    tr.append(cell(p.id), cell(`$${p.input.toFixed(2)}`), cell(`$${p.output.toFixed(2)}`), cell(p.status, p.status === 'added' ? 'new' : ''));
+    body.append(tr);
+  }
+}
+document.getElementById('family').addEventListener('change', renderChanges);
+document.getElementById('area').addEventListener('change', renderChanges);
+document.getElementById('probe').addEventListener('change', renderProbe);
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = JSON.stringify({ changes: CHANGES, noSamplingPrefixes: PREFIX_AFTER, pricing: PRICING }, null, 2);
+  try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+  catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+});
+renderChanges();
+renderProbe();
+renderPricing();
+</script>
+</main></body>
+</html>
