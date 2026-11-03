@@ -165,6 +165,16 @@ if (STANDARDS) {
     if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(slug) || slug.includes('..')) done({ skip: `standards pass skipped: --github-repo ${slug} is not owner/repo` });
     if (def === null) done({ skip: 'standards pass skipped: --github-repo needs --default-branch' });
     const at = `${slug}@${def}`;
+    // The slug must be the repo under review (gh resolves it from --repo's
+    // remotes), never one the caller names: a PR author's fork would supply
+    // its own standards and reopen #4671 (#5013 b35).
+    let reviewed = '';
+    try {
+      reviewed = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }).trim();
+    } catch {
+      done({ skip: `standards pass skipped: gh could not resolve the repo under review in ${REPO}`, notes });
+    }
+    if (reviewed.toLowerCase() !== slug.toLowerCase()) done({ skip: `standards pass skipped: --github-repo ${slug} is not the repo under review (${reviewed || '?'})`, notes });
     // The branch must be the repo's real default branch, read from GitHub,
     // never a name the caller (or PR text steering it) chose (#5013 b33).
     let realDefault = '';

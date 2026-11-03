@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { linkSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { linkSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
@@ -1689,7 +1689,7 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     // closes what the gate knows of: the diff drivers need --no-ext-diff
     // --no-textconv (blame --no-textconv), git status and git fetch are off
     // the list, and a git read refuses while the local config (with its
-    // includes) names core.fsmonitor, core.hooksPath, diff.external or a
+    // includes) names core.fsmonitor, a filter driver, diff.external or a
     // diff driver program. A config-set program outside that list is a
     // declared limit.
     expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
@@ -1764,7 +1764,7 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
   test('#4701 b33: a git read refuses while the local git config names a program', () => {
     const base = { cwd: ROOT, root: '/test/plugin-root', realpath: (x: string) => x };
     const read = 'git diff --no-ext-diff --no-textconv HEAD';
-    for (const keys of [['core.fsmonitor'], ['core.hookspath'], ['diff.external'], ['diff.lfs.textconv'], ['diff.x.command']]) {
+    for (const keys of [['core.fsmonitor'], ['filter.x.clean'], ['log.showsignature'], ['diff.external'], ['diff.lfs.textconv'], ['diff.x.command']]) {
       const why = allowlistReason(read, { ...base, gitPrograms: () => keys });
       expect(why, keys[0]).toContain(keys[0]);
     }
@@ -1826,6 +1826,20 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       expect(gitConfigPrograms(wt)).toEqual(['core.fsmonitor']);
       expect(at(wt)).toBe(true);
 
+      // b35 (6597215918): core.fsmonitor set with --worktree, then git ls-files -m is refused.
+      const wt2 = fresh('worktree-fsm-lsfiles');
+      execFileSync('git', ['-C', wt2, 'config', 'extensions.worktreeConfig', 'true']);
+      execFileSync('git', ['-C', wt2, 'config', '--worktree', 'core.fsmonitor', '/tmp/evil-fsm.sh']);
+      expect(denied(reviewPostGate(bash('git ls-files -m', tr(), TOOL, wt2), ctx, deps))).toBe(true);
+
+      // log.showSignature=true makes git log run the signing program; false does not count.
+      const sig = fresh('show-signature');
+      execFileSync('git', ['-C', sig, 'config', 'log.showSignature', 'true']);
+      expect(gitConfigPrograms(sig)).toEqual(['log.showsignature']);
+      expect(at(sig)).toBe(true);
+      execFileSync('git', ['-C', sig, 'config', 'log.showSignature', 'false']);
+      expect(gitConfigPrograms(sig)).toEqual([]);
+
       // A program named in GLOBAL config (git lfs install) is not refused: declared limit.
       writeFileSync(globalCfg, '[filter "lfs"]\n\tclean = git-lfs clean -- %f\n\tprocess = git-lfs filter-process\n');
       const g = fresh('global-lfs');
@@ -1835,6 +1849,60 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       if (saved === undefined) delete process.env.GIT_CONFIG_GLOBAL;
       else process.env.GIT_CONFIG_GLOBAL = saved;
     }
+  });
+  test('#5013: core.hooksPath stays allowed, because no read the gate allows runs a hook', () => {
+    // Arm core.hooksPath with every hook name git knows, each touching its own
+    // marker; run every read form the gate allows; no marker may appear. The
+    // control (git commit) must fire pre-commit, so the probe can fail.
+    const HOOKS = ['applypatch-msg', 'pre-applypatch', 'post-applypatch', 'pre-commit', 'pre-merge-commit', 'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-checkout', 'post-merge', 'pre-push', 'pre-receive', 'update', 'proc-receive', 'post-receive', 'post-update', 'reference-transaction', 'push-to-checkout', 'pre-auto-gc', 'post-rewrite', 'sendemail-validate', 'fsmonitor-watchman', 'p4-changelist', 'p4-prepare-changelist', 'p4-post-changelist', 'p4-pre-submit', 'post-index-change'];
+    const repo = join(dir, 'hooks-armed');
+    const hooks = join(dir, 'hooks-dir');
+    const marks = join(dir, 'hook-marks');
+    mkdirSync(repo, { recursive: true });
+    mkdirSync(hooks, { recursive: true });
+    mkdirSync(marks, { recursive: true });
+    const g = (...a: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.email=t@example.test', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
+    g('init', '-q');
+    writeFileSync(join(repo, 'f.txt'), 'a\nb\n');
+    g('add', '-A');
+    g('commit', '-q', '-m', 'one');
+    writeFileSync(join(repo, 'f.txt'), 'a\nB\n');
+    g('commit', '-q', '-am', 'two');
+    writeFileSync(join(repo, 'f.txt'), 'a\nB\nworktree\n');
+    for (const h of HOOKS) writeFileSync(join(hooks, h), `#!/bin/sh\ntouch "${marks}/${h}"\nexit 0\n`, { mode: 0o755 });
+    g('config', 'core.hooksPath', hooks);
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    const READS = [
+      'git diff --no-ext-diff --no-textconv',
+      'git diff --no-ext-diff --no-textconv HEAD',
+      'git diff --no-ext-diff --no-textconv --cached',
+      'git diff --no-ext-diff --no-textconv HEAD~1 HEAD',
+      'git diff --no-ext-diff --no-textconv --stat HEAD~1 HEAD',
+      'git show --no-ext-diff --no-textconv HEAD',
+      'git show --no-ext-diff --no-textconv HEAD:f.txt',
+      'git log --oneline',
+      'git log -p --no-ext-diff --no-textconv',
+      'git log -S B --no-ext-diff --no-textconv --oneline',
+      'git log --name-status --oneline',
+      'git blame --no-textconv f.txt',
+      'git grep -n a',
+      'git ls-files',
+      'git ls-files -m',
+      'git rev-parse HEAD',
+      'git merge-base HEAD HEAD~1',
+    ];
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const fired: string[] = [];
+    for (const cmd of READS) {
+      expect(denied(reviewPostGate(bash(cmd, tr(), TOOL, repo), ctx, deps)), cmd).toBe(false);
+      execFileSync('git', ['-C', repo, ...cmd.split(' ').slice(1)], { stdio: 'ignore' });
+      fired.push(...readdirSync(marks).map((m) => `${cmd}: ${m}`));
+      for (const m of readdirSync(marks)) rmSync(join(marks, m));
+    }
+    expect(fired).toEqual([]);
+    // Control: a write in the same repo does run a hook.
+    g('commit', '-q', '-am', 'three');
+    expect(readdirSync(marks)).toContain('pre-commit');
   });
   test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };
