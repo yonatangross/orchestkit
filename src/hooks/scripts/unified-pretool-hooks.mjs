@@ -32,9 +32,24 @@
  * Usage:
  *   node scripts/unified-pretool-hooks.mjs [--in hooks.json] --out <path> [--shipped | --pre-only]
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+/**
+ * True when this file is the script node was asked to run (#5004).
+ * import.meta.url is the module's REAL path, while process.argv[1] is the path
+ * as typed, so through a symlink a plain string compare is false and the
+ * script used to exit 0 having written nothing. Compare real paths.
+ */
+export function invokedAsScript(argv1 = process.argv[1], moduleUrl = import.meta.url) {
+  if (!argv1) return false;
+  try {
+    return realpathSync(argv1) === realpathSync(fileURLToPath(moduleUrl));
+  } catch {
+    return false;
+  }
+}
 
 export const UNIFIED_PRETOOL_HANDLER = 'pretool/tool-dispatcher';
 export const UNIFIED_POSTTOOL_HANDLER = 'posttool/tool-dispatcher';
@@ -122,7 +137,7 @@ function arg(name, fallback) {
   return i > -1 ? process.argv[i + 1] : fallback;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (invokedAsScript()) {
   const here = dirname(fileURLToPath(import.meta.url));
   const input = resolve(arg('--in', join(here, '..', 'hooks.json')));
   const out = arg('--out');

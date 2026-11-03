@@ -34,6 +34,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync
 import { tmpdir } from 'node:os';
 import { basename, join, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { invokedAsScript } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOKS_DIR = join(__dirname, '..');
@@ -226,6 +227,6 @@ function main() {
   return results.some((r) => r.runs.some((x) => x.error)) ? 1 : 0;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (invokedAsScript(process.argv[1], import.meta.url)) {
   process.exit(main());
 }

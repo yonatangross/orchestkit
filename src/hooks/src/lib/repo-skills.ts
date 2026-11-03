@@ -55,11 +55,36 @@ export function frontmatterDescription(head: string): string {
     .trim();
 }
 
+/** Wall-clock budget for reading SKILL.md heads in one call. */
+export const READ_BUDGET_MS = 50;
+/** At most this many skill folders are read in one call. */
+export const MAX_SKILL_ENTRIES = 40;
+
+export interface ReadRepoSkillsOptions {
+  budgetMs?: number;
+  maxEntries?: number;
+  /** Clock, injectable for tests. */
+  now?: () => number;
+}
+
 /**
  * The skills under <projectDir>/.claude/skills that have a SKILL.md, sorted by
  * name. [] when the folder is missing or unreadable.
+ *
+ * Bounded so a slow disk cannot stall every Bash call (this runs inside the
+ * sync Bash advisory dispatcher, #5006 review): at most MAX_SKILL_ENTRIES
+ * folders, and the SKILL.md reads stop once READ_BUDGET_MS has passed, the
+ * clock checked between reads. A partial result is cached like a full one, so
+ * a slow folder costs one stat per call afterwards, not a rescan.
+ *
+ * Limit: the stat and the one readdir are synchronous calls that a budget
+ * cannot preempt; a single read that hangs still blocks. The budget bounds
+ * the per-file loop, which is where the cost grows with the folder.
  */
-export function readRepoSkills(projectDir: string): RepoSkill[] {
+export function readRepoSkills(projectDir: string, options: ReadRepoSkillsOptions = {}): RepoSkill[] {
+  const budgetMs = options.budgetMs ?? READ_BUDGET_MS;
+  const maxEntries = options.maxEntries ?? MAX_SKILL_ENTRIES;
+  const now = options.now ?? Date.now;
   const dir = join(projectDir, '.claude', 'skills');
   let mtimeMs: number;
   try {
@@ -80,7 +105,9 @@ export function readRepoSkills(projectDir: string): RepoSkill[] {
     names = [];
   }
   const skills: RepoSkill[] = [];
-  for (const name of names) {
+  const started = now();
+  for (const name of names.slice(0, maxEntries)) {
+    if (now() - started > budgetMs) break;
     const head = readHead(join(dir, name, 'SKILL.md'));
     if (head) skills.push({ name, description: frontmatterDescription(head) });
   }

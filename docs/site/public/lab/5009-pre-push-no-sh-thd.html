@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-push no longer leaves sh-thd-* in the repo root</title>
+<meta name="description" content="PR for branch fix/pre-push-no-sh-thd. Every pre-push run was leaving an empty sh-thd-* file at the repository root when TMPDIR was the worktree (Cursor sandbox). The hook now keeps TMPDIR off the root, removes leftovers on EXIT, and refuses to pass if any remain.">
+<style>
+  :root{--paper:#f7f4ef;--ink:#1c1916;--dim:#6a645c;--rule:#ddd6cb;--accent:#0f5c4c;--ok:#1b6b3a;--bad:#9b1c1c}
+  @media (prefers-color-scheme:dark){:root{--paper:#141513;--ink:#ece8e1;--dim:#a39e94;--rule:#2c2d29;--accent:#6fbfa8;--ok:#7fc785;--bad:#f08b84}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--paper);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Palatino,serif;line-height:1.55}
+  main{max-width:42rem;margin-inline:auto}
+  h1{font-size:1.55rem;margin:0 0 .35rem;letter-spacing:-0.02em}
+  .sub{color:var(--dim);margin:0 0 1.6rem;font-size:.95rem}
+  section{border-top:1px solid var(--rule);padding-block:1.15rem}
+  h2{font-size:.72rem;margin:0 0 .7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-family:ui-sans-serif,system-ui,sans-serif}
+  p,li{font-size:1.02rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:3px;padding:0 4px}
+  ul{padding-inline-start:1.15rem;margin:.35rem 0}
+  li{margin:.25rem 0}
+  .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:.15rem 0 1rem}
+  button{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:.4rem .85rem;font:inherit;font-size:.88rem;cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  #panel{min-height:6.5rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  #copied{color:var(--dim);font-size:.85rem;margin-inline-start:.55rem;font-family:ui-sans-serif,system-ui,sans-serif}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Pre-push no longer leaves sh-thd-* in the repo root"><meta property="og:description" content="Bash here-strings were writing empty sh-thd-* files into the worktree when TMPDIR was the repository root. The hook now redirects TMPDIR, cleans leftovers on EXIT, and fails closed if any remain."><meta property="og:url" content="https://orchestkit.dev/lab/5009-pre-push-no-sh-thd.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Pre-push no longer leaves sh-thd-* in the repo root"><meta name="twitter:description" content="Bash here-strings were writing empty sh-thd-* files into the worktree when TMPDIR was the repository root. The hook now redirects TMPDIR, cleans leftovers on EXIT, and fails closed if any remain."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Pre-push: no <code>sh-thd-*</code> in the repo root</h1>
+<p class="sub">Branch <code>fix/pre-push-no-sh-thd</code>, closes #5009. Bash here-strings were writing empty temp files into the worktree whenever <code>TMPDIR</code> was the repository root.</p>
+
+<section>
+<h2>What changed</h2>
+<div class="controls" role="group" aria-label="Pick a view">
+  <button type="button" data-view="0" aria-pressed="true">Before</button>
+  <button type="button" data-view="1" aria-pressed="false">After</button>
+  <button type="button" data-view="2" aria-pressed="false">Proof</button>
+</div>
+<div id="panel" aria-live="polite"></div>
+</section>
+
+<section>
+<h2>Why it happened</h2>
+<ul>
+  <li>The hook <code>cd</code>s to the repository root, then uses <code>&lt;&lt;&lt;</code> here-strings.</li>
+  <li>Bash writes those as <code>sh-thd-&lt;digits&gt;</code> under <code>$TMPDIR</code>.</li>
+  <li>When the agent sandbox makes <code>/tmp</code> unusable, bash falls back to <code>DEFAULT_TMPDIR "."</code>, which is the repo root.</li>
+</ul>
+<p><button type="button" id="copy">Copy as prompt</button><span id="copied" aria-live="polite"></span></p>
+</section>
+</main>
+<script>
+const VIEWS = [
+  {
+    title: "Before",
+    body: "Every pre-push left an empty untracked sh-thd-* file at the repository root. A later git add -A would commit it. Planted leftovers stayed after the hook exited."
+  },
+  {
+    title: "After",
+    body: "ensure_pre_push_tmpdir keeps TMPDIR off the physical repo root (pwd -P, so /var vs /private/var cannot fool it). remove_repo_root_sh_thd runs on EXIT and again before the success line. If any sh-thd-* still sits in the root, the hook fails closed."
+  },
+  {
+    title: "Proof",
+    body: "tests/unit/test-pre-push-no-sh-thd.sh: planted leftover removed; TMPDIR=fixture root leaves none; ensure_pre_push_tmpdir moves TMPDIR to /tmp. Same planted file against origin/main's hook remains (fail-before)."
+  }
+];
+const panel = document.getElementById("panel");
+const buttons = document.querySelectorAll("button[data-view]");
+let current = 0;
+function render(i) {
+  current = i;
+  panel.replaceChildren();
+  const h = document.createElement("p");
+  const strong = document.createElement("strong");
+  strong.textContent = VIEWS[i].title + ". ";
+  h.appendChild(strong);
+  h.appendChild(document.createTextNode(VIEWS[i].body));
+  if (i === 0) h.className = "bad";
+  if (i === 1) h.className = "ok";
+  panel.appendChild(h);
+  buttons.forEach(b => b.setAttribute("aria-pressed", String(Number(b.dataset.view) === i)));
+}
+buttons.forEach(b => b.addEventListener("click", () => render(Number(b.dataset.view))));
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = "orchestkit #5009: " + VIEWS[current].title + " — " + VIEWS[current].body;
+  try {
+    await navigator.clipboard.writeText(text);
+    document.getElementById("copied").textContent = "Copied.";
+  } catch {
+    document.getElementById("copied").textContent = text;
+  }
+});
+render(0);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "slug": "hooks-generator-guard-and-nudge-budget",
+  "source": "docs/fix--hooks-generator-guard-and-nudge-budget/index.html",
+  "title": "hooks.json generator fails closed; SDLC nudge gets a time budget",
+  "description": "The hooks.json generator now fails the build when it writes nothing (a symlinked path used to make it exit 0 silently), and the SDLC skill nudge reads at most 40 skill folders within 50 ms. Pick how the generator is invoked and how slow the disk is to see before and after.",
+  "tags": [
+    "hooks",
+    "build",
+    "pretool",
+    "performance"
+  ],
+  "date": "2026-11-03"
+}
