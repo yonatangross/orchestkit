@@ -37,6 +37,54 @@ drop_inherited_git_locators() {
 
 drop_inherited_git_locators
 
+# (#5009) Bash here-strings (<<<) and process substitutions write temporary
+# files named sh-thd-<digits> under $TMPDIR. When the agent sandbox denies
+# /tmp, bash falls back to DEFAULT_TMPDIR "." — which after the cd above is
+# the repository root — and an empty sh-thd-* file survives in the worktree
+# (seen across multiple worktrees on 2026-11-02/03). Keep TMPDIR off the
+# repo root; prefer /tmp, else a gitignored .cache dir. Clean any root
+# leftovers on the way out so a later `git add -A` cannot commit them.
+remove_repo_root_sh_thd() {
+  local f
+  for f in "$PROJECT_ROOT"/sh-thd-*; do
+    [[ -f "$f" ]] || continue
+    rm -f "$f"
+  done
+  return 0
+}
+
+ensure_pre_push_tmpdir() {
+  local resolved="" root_phys=""
+  root_phys=$(cd "$PROJECT_ROOT" && pwd -P) || root_phys="$PROJECT_ROOT"
+  if [[ -n "${TMPDIR:-}" && -d "$TMPDIR" && -w "$TMPDIR" ]]; then
+    resolved=$(cd "$TMPDIR" && pwd -P) || resolved=""
+  fi
+  # Compare physical paths: macOS /var is a symlink to /private/var, so a
+  # string compare of $TMPDIR against $PROJECT_ROOT misses the sandbox case
+  # where both resolve to the same directory.
+  if [[ -n "$resolved" && "$resolved" != "$root_phys" ]]; then
+    TMPDIR="$resolved"
+    export TMPDIR
+    return 0
+  fi
+  if [[ -d /tmp && -w /tmp ]]; then
+    TMPDIR=/tmp
+    export TMPDIR
+    return 0
+  fi
+  mkdir -p "$PROJECT_ROOT/.cache/pre-push-tmp" || return 1
+  TMPDIR="$PROJECT_ROOT/.cache/pre-push-tmp"
+  export TMPDIR
+  return 0
+}
+
+ensure_pre_push_tmpdir || {
+  echo "FAILED: cannot establish a writable TMPDIR away from the repository root (#5009)"
+  exit 1
+}
+remove_repo_root_sh_thd
+trap 'remove_repo_root_sh_thd' EXIT
+
 capture_initial_repo_config() {
   INITIAL_REPO_USER_EMAIL_SET=0
   INITIAL_REPO_USER_EMAIL=""
@@ -762,7 +810,7 @@ export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 # This and the TOKEN_LOG trap below replace the EXIT trap that
 # acquire_test_slot installs in targeted mode, so each must release the
 # slot itself (a no-op when no slot was taken).
-trap 'rm -rf "$_PREPUSH_FAIL_DIR"; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
+trap 'rm -rf "$_PREPUSH_FAIL_DIR"; remove_repo_root_sh_thd; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
 
 # Dispatch on EXTENSION, not on hope (#4024).
 #
@@ -939,7 +987,7 @@ echo "OK"
 echo -n "  Checking token overhead budget... "
 
 TOKEN_LOG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
-trap 'rm -f "$TOKEN_LOG"; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
+trap 'rm -f "$TOKEN_LOG"; remove_repo_root_sh_thd; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
 
 if ! run_with_timeout 30 bash tests/performance/test-token-overhead.sh >"$TOKEN_LOG" 2>&1; then
   echo "FAILED"
@@ -984,6 +1032,16 @@ fi
 if declare -f release_test_slot >/dev/null 2>&1; then
   release_test_slot
 fi
+
+# (#5009) After every stage: no new untracked sh-thd-* in the repo root.
+remove_repo_root_sh_thd
+for _sh_thd in "$PROJECT_ROOT"/sh-thd-*; do
+  if [[ -f "$_sh_thd" ]]; then
+    echo "FAILED: pre-push left $_sh_thd in the repository root (#5009)"
+    exit 1
+  fi
+done
+unset _sh_thd
 
 echo ""
 echo "Pre-push validation passed"
