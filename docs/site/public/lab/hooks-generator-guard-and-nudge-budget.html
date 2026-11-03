@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hooks.json generator fails closed; SDLC nudge gets a time budget</title>
+<meta name="description" content="The hooks.json generator now fails the build when it writes nothing (a symlinked path used to make it exit 0 silently), and the SDLC skill nudge reads at most 40 skill folders within 50 ms. Pick how the generator is invoked and how slow the disk is to see before and after.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,input{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .card{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.7rem .9rem;font-size:.78rem}
+  .card h3{margin:0 0 .4rem;font-size:.78rem;color:var(--dim)}
+  .step{margin:.2rem 0}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .row{display:grid;grid-template-columns:6rem 1fr 7rem;gap:.6rem;align-items:center;font-size:.8rem;margin:.35rem 0}
+  .bar{height:.9rem;border-radius:3px;background:var(--bad)}
+  .bar.on{background:var(--ok)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+  @media (max-width:700px){.cols{grid-template-columns:1fr}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="hooks.json generator fails closed; SDLC nudge gets a time budget"><meta property="og:description" content="The hooks.json generator now fails the build when it writes nothing (a symlinked path used to make it exit 0 silently), and the SDLC skill nudge reads at most 40 skill folders within 50 ms. Pick how the generator is invoked and how slow the disk is to see before and after."><meta property="og:url" content="https://orchestkit.dev/lab/hooks-generator-guard-and-nudge-budget.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="hooks.json generator fails closed; SDLC nudge gets a time budget"><meta name="twitter:description" content="The hooks.json generator now fails the build when it writes nothing (a symlinked path used to make it exit 0 silently), and the SDLC skill nudge reads at most 40 skill folders within 50 ms. Pick how the generator is invoked and how slow the disk is to see before and after."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>hooks.json generator fails closed; SDLC nudge gets a time budget</h1>
+<p class="sub">Branch fix/hooks-generator-guard-and-nudge-budget. Fixes #5004, refs #5006. Two small hardening fixes in the hook build and the Bash advisory path. The traces below are a model of the code paths, not measured runs; the tests named in each note are the evidence.</p>
+
+<section><h2>1. How is the generator invoked?</h2>
+<div class="controls">
+  <select id="path" aria-label="invocation path">
+    <option value="real">real path (node src/hooks/scripts/unified-pretool-hooks.mjs)</option>
+    <option value="file">symlink to the script file</option>
+    <option value="dir">script reached through a symlinked directory</option>
+  </select>
+</div>
+<div class="cols">
+  <div class="card"><h3>before (main)</h3><div id="before"></div></div>
+  <div class="card"><h3>after (this PR)</h3><div id="after"></div></div>
+</div>
+<p class="note"><strong>Why it was silent.</strong> The main-module check compared <code>process.argv[1]</code> (the path as typed) with <code>import.meta.url</code> (the real path). Through a symlink they differ, so the CLI block never ran and node exited 0. <code>invokedAsScript</code> now compares real paths; the same fix lands in <code>check-dispatch-proof</code>, <code>measure-hook-processes</code> and <code>spawn-ratchet</code>. <code>build-plugins.sh</code> deletes the copied per-handler file first and fails if the generator leaves nothing. Pinned by <code>unified-pretool-hooks-symlink.test.ts</code> (4 of its 5 tests fail on main).</p>
+</section>
+
+<section><h2>2. How slow is the skills folder?</h2>
+<div class="controls">
+  <label>skill folders <input id="n" type="number" min="1" max="400" value="120" aria-label="skill folders"></label>
+  <label>ms per SKILL.md read <input id="ms" type="number" min="0" max="50" step="0.5" value="2" aria-label="ms per read"></label>
+</div>
+<div id="rows"></div>
+<p class="note"><strong>What the budget does not cover.</strong> <code>readRepoSkills</code> runs inside the sync Bash advisory dispatcher. It now reads at most 40 folders and stops reading once 50 ms have passed (the clock is checked between reads, so one read can overrun it). The stat and the one readdir stay synchronous; a single hanging read still blocks. A partial result is cached by folder mtime like a full one. Pinned by 3 tests in <code>sdlc-skill-nudge.test.ts</code> that fail on main.</p>
+<div class="controls"><button id="copy" type="button">copy settings as JSON</button><span id="copied" class="sub"></span></div>
+</section>
+
+<script>
+const TRACE = {
+  real: {
+    before: [['ok', 'argv[1] equals module path'], ['ok', 'CLI block runs, writes hooks.json'], ['ok', 'exit 0, file shipped']],
+    after: [['ok', 'realpath(argv[1]) equals realpath(module)'], ['ok', 'CLI block runs, writes hooks.json'], ['ok', 'build sees a non-empty file']]
+  },
+  file: {
+    before: [['bad', 'argv[1] is the link, module url is the target'], ['bad', 'CLI block skipped, nothing written'], ['bad', 'exit 0: build ships the stale per-handler hooks.json']],
+    after: [['ok', 'both sides resolve to the same real path'], ['ok', 'CLI block runs, writes hooks.json'], ['ok', 'build sees a non-empty file']]
+  },
+  dir: {
+    before: [['bad', 'argv[1] goes through the linked dir, module url does not'], ['bad', 'CLI block skipped, nothing written'], ['bad', 'exit 0: build ships the stale per-handler hooks.json']],
+    after: [['ok', 'both sides resolve to the same real path'], ['ok', 'CLI block runs, writes hooks.json'], ['ok', 'if it ever writes nothing again, build exits 1 (#5004)']]
+  }
+};
+const BUDGET_MS = 50;
+const MAX_ENTRIES = 40;
+function fill(id, steps) {
+  const box = document.getElementById(id);
+  box.textContent = '';
+  for (const [cls, text] of steps) {
+    const p = document.createElement('div');
+    p.className = 'step ' + cls;
+    p.textContent = (cls === 'ok' ? 'ok   ' : 'FAIL ') + text;
+    box.append(p);
+  }
+}
+function renderTrace() {
+  const t = TRACE[document.getElementById('path').value];
+  fill('before', t.before);
+  fill('after', t.after);
+}
+function afterReads(n, ms) {
+  const cap = Math.min(n, MAX_ENTRIES);
+  if (ms <= 0) return cap;
+  let reads = 0;
+  let elapsed = 0;
+  while (reads < cap && elapsed <= BUDGET_MS) { reads += 1; elapsed += ms; }
+  return reads;
+}
+function renderBudget() {
+  const n = Math.max(1, Number(document.getElementById('n').value) || 1);
+  const ms = Math.max(0, Number(document.getElementById('ms').value) || 0);
+  const before = n * ms;
+  const reads = afterReads(n, ms);
+  const after = reads * ms;
+  const max = Math.max(before, after, 1);
+  const rows = document.getElementById('rows');
+  rows.textContent = '';
+  for (const [k, v, label] of [['before', before, `${n} reads`], ['after', after, `${reads} reads`]]) {
+    const r = document.createElement('div'); r.className = 'row';
+    const a = document.createElement('span'); a.textContent = k;
+    const b = document.createElement('div'); b.className = 'bar' + (k === 'after' ? ' on' : '');
+    b.style.width = (v / max * 100) + '%';
+    const c = document.createElement('span'); c.textContent = `${v.toFixed(1)} ms, ${label}`;
+    r.append(a, b, c); rows.append(r);
+  }
+}
+document.getElementById('path').addEventListener('change', renderTrace);
+document.getElementById('n').addEventListener('input', renderBudget);
+document.getElementById('ms').addEventListener('input', renderBudget);
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = JSON.stringify({
+    invocation: document.getElementById('path').value,
+    skillFolders: Number(document.getElementById('n').value),
+    msPerRead: Number(document.getElementById('ms').value),
+    budgetMs: BUDGET_MS,
+    maxEntries: MAX_ENTRIES
+  }, null, 2);
+  try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+  catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+});
+renderTrace();
+renderBudget();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
