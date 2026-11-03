@@ -1914,6 +1914,11 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (typeof p === 'string') return p;
     const driverWhy = gitDiffDriverReason(sub, p);
     if (driverWhy) return driverWhy;
+    // A %G placeholder (%G?, %GG, %GS, %GK...) makes git verify each commit's
+    // signature, which runs the signing program from git config (#5013).
+    if ((sub === 'log' || sub === 'show') && p.values.some((v) => (v.name === 'format' || v.name === 'pretty') && v.value.includes('%G'))) {
+      return `git ${sub} with a %G format (it runs the signature program)`;
+    }
     // Words before -- are revisions; words after it are paths. git reads a
     // word before -- as a path when it is no revision, and git diff with a
     // path outside the repo diffs it as a plain file (--no-index), so a word

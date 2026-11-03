@@ -5,16 +5,19 @@
  * itself.
  */
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { isAbsolute, join } from 'node:path';
 
 // Keys that make a git read run a program: the fsmonitor hook on any index
 // refresh, the external diff and textconv drivers, the clean/smudge/process
 // filter drivers, and log.showSignature=true, which makes git log run the
-// signing program (gpg.program alone runs on no allowed read, so it is not
-// listed). core.hooksPath is not listed: no read the gate allows runs a hook
-// (a test arms every hook name and checks), and refusing it would refuse every
-// repo that sets it locally (husky, orchestkit's bin/git-hooks); it is a
-// declared limit (#5013). Names are matched as git prints them (section and
-// key lowercased, the subsection kept).
+// signing program (gpg.program runs on no allowed read once %G formats and
+// --show-signature are refused, so it is not listed). core.hooksPath is not
+// listed: the only hook an allowed read fires is post-index-change (a test
+// arms every hook name), which gitConfigPrograms checks in the effective
+// hooks dir; refusing the key would refuse every husky repo and orchestkit's
+// own bin/git-hooks (#5013). Names are matched as git prints them (section
+// and key lowercased, the subsection kept).
 const GIT_PROGRAM_KEYS =
   /^(core\.fsmonitor|diff\.external|diff\..+\.(textconv|command)|filter\..+\.(clean|smudge|process)|log\.showsignature)$/;
 const GIT_FALSE = /^(false|no|off|0)$/i;
@@ -63,6 +66,24 @@ export function gitConfigPrograms(cwd: string): string[] | null {
     if (!GIT_REPO_SCOPES.has(scope) || !GIT_PROGRAM_KEYS.test(key)) continue;
     if (BOOLEAN_KEYS.has(key) && GIT_FALSE.test(value)) continue;
     if (!keys.includes(key)) keys.push(key);
+  }
+  // A read that refreshes a stat-dirty index (git diff against the worktree)
+  // writes it and fires post-index-change, measured on #5013. Resolve the
+  // effective hooks dir (core.hooksPath, else $GIT_DIR/hooks) with rev-parse,
+  // which runs no program, and report a post-index-change hook there.
+  let hooks = '';
+  try {
+    hooks = execFileSync('git', ['-C', cwd || '.', 'rev-parse', '--git-path', 'hooks'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 3000,
+    }).trim();
+  } catch {
+    hooks = '';
+  }
+  if (hooks) {
+    const hook = join(isAbsolute(hooks) ? hooks : join(cwd || '.', hooks), 'post-index-change');
+    if (existsSync(hook)) keys.push('hooks/post-index-change');
   }
   return keys;
 }

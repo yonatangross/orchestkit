@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { linkSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { linkSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
@@ -1750,6 +1750,62 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       expect(at(cmd), cmd).toBe(false);
     }
   });
+  test('#5013: --no-optional-locks does not stop git diff firing post-index-change (why the gate checks the hooks dir)', () => {
+    // Measured as the simpler candidate first (conductor t18d): if a git
+    // release makes the flag stop the write, this test fails and the gate
+    // can require the flag instead of refusing repos with the hook.
+    const repo = join(dir, 'nol');
+    const hooks = join(dir, 'nol-hooks');
+    const marks = join(dir, 'nol-marks');
+    for (const d of [repo, hooks, marks]) mkdirSync(d, { recursive: true });
+    const g = (...a: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.email=t@example.test', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
+    g('init', '-q');
+    writeFileSync(join(repo, 'f.txt'), 'a\n');
+    writeFileSync(join(repo, 's.txt'), 'same\n');
+    g('add', '-A');
+    g('commit', '-q', '-m', 'one');
+    writeFileSync(join(hooks, 'post-index-change'), `#!/bin/sh\ntouch "${marks}/pic"\nexit 0\n`, { mode: 0o755 });
+    g('config', 'core.hooksPath', hooks);
+    const idx = join(repo, '.git', 'index');
+    let tick = Date.now() / 1000 + 100;
+    const rows: string[] = [];
+    for (const args of [
+      ['diff', '--no-ext-diff', '--no-textconv'],
+      ['diff', '--no-ext-diff', '--no-textconv', 'HEAD'],
+      ['--no-optional-locks', 'diff', '--no-ext-diff', '--no-textconv'],
+      ['--no-optional-locks', 'diff', '--no-ext-diff', '--no-textconv', 'HEAD'],
+      ['--no-optional-locks', 'ls-files', '-m'],
+      ['--no-optional-locks', 'blame', '--no-textconv', 'f.txt'],
+      ['--no-optional-locks', 'grep', '-n', 'a'],
+    ]) {
+      tick += 10;
+      utimesSync(join(repo, 's.txt'), tick, tick);
+      for (const m of readdirSync(marks)) rmSync(join(marks, m));
+      const before = statSync(idx).mtimeMs;
+      execFileSync('git', ['-C', repo, ...args], { stdio: 'ignore' });
+      const wrote = statSync(idx).mtimeMs !== before;
+      rows.push(`git ${args.join(' ')} -> index written: ${wrote}, post-index-change: ${readdirSync(marks).length > 0}`);
+    }
+    expect(rows).toEqual([
+      'git diff --no-ext-diff --no-textconv -> index written: true, post-index-change: true',
+      'git diff --no-ext-diff --no-textconv HEAD -> index written: true, post-index-change: true',
+      'git --no-optional-locks diff --no-ext-diff --no-textconv -> index written: true, post-index-change: true',
+      'git --no-optional-locks diff --no-ext-diff --no-textconv HEAD -> index written: true, post-index-change: true',
+      'git --no-optional-locks ls-files -m -> index written: false, post-index-change: false',
+      'git --no-optional-locks blame --no-textconv f.txt -> index written: false, post-index-change: false',
+      'git --no-optional-locks grep -n a -> index written: false, post-index-change: false',
+    ]);
+  });
+  test('#5013: a %G format on git log or show is refused (it runs the signature program)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    // git show carries both driver flags here, so each row tests the %G rule alone.
+    for (const cmd of ["git log --format=%G? -5", "git log --pretty=format:%GG -1", "git show --no-ext-diff --no-textconv --format=%GK --no-patch HEAD", "git log --format='%h %G?'"]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['git log --format=%H%x09%s -5', "git log --pretty=format:%h -1", 'git show --no-ext-diff --no-textconv --format=%an --no-patch HEAD']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
   test('#4701 b31: git fetch is off the list (a transport can run a configured program)', () => {
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
     for (const cmd of ['git fetch origin main', 'git fetch origin', 'git fetch', 'git fetch ext::sh -c x']) {
@@ -1857,11 +1913,14 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       else process.env.GIT_CONFIG_GLOBAL = saved;
     }
   });
-  test('#5013: core.hooksPath stays allowed, because no read the gate allows runs a hook', () => {
-    // Arm core.hooksPath with every hook name git knows, each touching its own
-    // marker; run every read form the gate allows; no marker may appear. The
-    // control (git commit) must fire pre-commit, so the probe can fail.
-    const HOOKS = ['applypatch-msg', 'pre-applypatch', 'post-applypatch', 'pre-commit', 'pre-merge-commit', 'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-checkout', 'post-merge', 'pre-push', 'pre-receive', 'update', 'proc-receive', 'post-receive', 'post-update', 'reference-transaction', 'push-to-checkout', 'pre-auto-gc', 'post-rewrite', 'sendemail-validate', 'fsmonitor-watchman', 'p4-changelist', 'p4-prepare-changelist', 'p4-post-changelist', 'p4-pre-submit', 'post-index-change'];
+  test('#5013: core.hooksPath stays allowed; the one hook a read fires (post-index-change) refuses', () => {
+    // Arm core.hooksPath with every hook name git knows except
+    // post-index-change, each touching its own marker; run every read form
+    // the gate allows after a stat-only change; no marker may appear. Then
+    // arm post-index-change: a raw git diff fires it (so the probe can
+    // fail) and the gate refuses. The control (git commit) fires pre-commit.
+    const ALL_HOOKS = ['applypatch-msg', 'pre-applypatch', 'post-applypatch', 'pre-commit', 'pre-merge-commit', 'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-checkout', 'post-merge', 'pre-push', 'pre-receive', 'update', 'proc-receive', 'post-receive', 'post-update', 'reference-transaction', 'push-to-checkout', 'pre-auto-gc', 'post-rewrite', 'sendemail-validate', 'fsmonitor-watchman', 'p4-changelist', 'p4-prepare-changelist', 'p4-post-changelist', 'p4-pre-submit', 'post-index-change'];
+    const HOOKS = ALL_HOOKS.filter((h) => h !== 'post-index-change');
     const repo = join(dir, 'hooks-armed');
     const hooks = join(dir, 'hooks-dir');
     const marks = join(dir, 'hook-marks');
@@ -1871,6 +1930,10 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     const g = (...a: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.email=t@example.test', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
     g('init', '-q');
     writeFileSync(join(repo, 'f.txt'), 'a\nb\n');
+    // s.txt never changes content; its mtime moves before every read, so
+    // each read sees a stat-dirty index entry it may refresh and write
+    // (the case that fires post-index-change, if any read does).
+    writeFileSync(join(repo, 's.txt'), 'same\n');
     g('add', '-A');
     g('commit', '-q', '-m', 'one');
     writeFileSync(join(repo, 'f.txt'), 'a\nB\n');
@@ -1900,13 +1963,35 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     ];
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
     const fired: string[] = [];
+    let tick = Date.now() / 1000 + 100;
     for (const cmd of READS) {
       expect(denied(reviewPostGate(bash(cmd, tr(), TOOL, repo), ctx, deps)), cmd).toBe(false);
+      tick += 10;
+      utimesSync(join(repo, 's.txt'), tick, tick);
       execFileSync('git', ['-C', repo, ...cmd.split(' ').slice(1)], { stdio: 'ignore' });
       fired.push(...readdirSync(marks).map((m) => `${cmd}: ${m}`));
       for (const m of readdirSync(marks)) rmSync(join(marks, m));
     }
     expect(fired).toEqual([]);
+
+    // post-index-change: a worktree git diff after a stat-only change fires it.
+    writeFileSync(join(hooks, 'post-index-change'), `#!/bin/sh\ntouch "${marks}/post-index-change"\nexit 0\n`, { mode: 0o755 });
+    tick += 10;
+    utimesSync(join(repo, 's.txt'), tick, tick);
+    execFileSync('git', ['-C', repo, 'diff', '--no-ext-diff', '--no-textconv'], { stdio: 'ignore' });
+    expect(readdirSync(marks)).toContain('post-index-change');
+    rmSync(join(marks, 'post-index-change'));
+    expect(gitConfigPrograms(repo)).toEqual(['hooks/post-index-change']);
+    for (const cmd of READS) expect(denied(reviewPostGate(bash(cmd, tr(), TOOL, repo), ctx, deps)), cmd).toBe(true);
+
+    // The default hooks dir ($GIT_DIR/hooks, no core.hooksPath) is checked too.
+    const plain = join(dir, 'default-hooks');
+    mkdirSync(plain, { recursive: true });
+    execFileSync('git', ['-C', plain, 'init', '-q']);
+    expect(gitConfigPrograms(plain)).toEqual([]);
+    writeFileSync(join(plain, '.git', 'hooks', 'post-index-change'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    expect(gitConfigPrograms(plain)).toEqual(['hooks/post-index-change']);
+
     // Control: a write in the same repo does run a hook.
     g('commit', '-q', '-am', 'three');
     expect(readdirSync(marks)).toContain('pre-commit');
