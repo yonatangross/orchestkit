@@ -1,8 +1,8 @@
 {
   "slug": "4771-ci-sentinel-allowed-tools",
   "source": "docs/fix--ci-sentinel-allowed-tools/index.html",
-  "title": "#4771 ci-sentinel: the model runs only the gh reads it needs",
-  "description": "ci-sentinel ran claude -p with acceptEdits and no allow list while reading untrusted CI logs with a comment-writing token. It now runs with dontAsk, an allow list of four gh reads, and a deny list for every gh api write form and env read.",
+  "title": "#4771 ci-sentinel: the model runs with no tools",
+  "description": "ci-sentinel ran claude -p with acceptEdits while reading untrusted CI logs with a comment-writing token. Text rules on commands did not hold (quoted flags, quote-split env reads, gojq transforms of a secret). Now the step fetches the CI data with plain gh, the model reads it with no tools in a read-only job, and a model-free job sanitises and posts the verdict.",
   "tags": [
     "ci",
     "ci-sentinel",

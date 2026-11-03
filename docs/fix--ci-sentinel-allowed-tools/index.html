@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ci-sentinel: only the gh reads it needs</title><style>
+<title>ci-sentinel: the model runs with no tools</title><style>
 :root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
 --glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
@@ -20,57 +20,53 @@ td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child t
 input[type=text]{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:hsl(232 20% 14%);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:8px 10px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .chips button{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);color:var(--ink);border:1px solid var(--edge);border-radius:999px;padding:4px 10px;cursor:pointer}
-.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:12px}
+.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:12px;white-space:pre-wrap}
 .foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
 </style></head><body><div class="wrap">
-<div class="eyebrow">CI-SENTINEL &middot; #4771</div>
-<h1>The sentinel model runs <span>only the gh reads it needs</span></h1>
-<p class="lede">ci-sentinel runs <code>claude -p</code> on every red PR. The model reads <b>untrusted</b>
-CI logs, and the job token can write PR and issue comments. It ran with
-<code>--permission-mode acceptEdits</code> and no allow list, so any command ran. Now it runs with
-<code>dontAsk</code>, an allow list of four gh reads, and a deny list for every gh write form and env read.</p>
+<div class="eyebrow">CI-SENTINEL &middot; #4771 &middot; #5014</div>
+<h1>The sentinel model runs <span>with no tools</span></h1>
+<p class="lede">ci-sentinel runs <code>claude -p</code> on every red PR, and the model reads <b>untrusted</b> CI logs
+(fork PRs included) whose verdict is posted as a public comment. Text rules on commands did not hold: a quoted flag,
+a quote-split <code>$E''NV</code> read, or a gojq <code>@base64</code> of a secret all passed them. Now the step fetches
+the checks and failed logs itself with plain <code>gh</code>, and the model only reads that text, with <b>no tools</b>.</p>
 
-<h2>Try a command</h2>
+<h2>Try a command the model might be steered into</h2>
 <div class="panel">
-<input id="cmd" type="text" value="gh api repos/o/r/issues/1/comments -X POST -f body=x" spellcheck="false">
+<input id="cmd" type="text" value="gh api repos/o/r --jq '$E''NV.CLAUDE_CODE_OAUTH_TOKEN | @base64'" spellcheck="false">
 <div class="chips" id="chips"></div>
 <div class="out" id="out"></div>
 </div>
 
-<h2>The lists</h2>
+<h2>The dispatch envelope</h2>
 <table>
-<tr><th>Allow</th><th>Deny (wins over allow)</th></tr>
-<tr><td><code>Bash(gh pr checks *)</code><br><code>Bash(gh pr view *)</code><br><code>Bash(gh run view *)</code><br><code>Bash(gh api repos/*)</code></td>
-<td><code>gh api</code> with <code>-X</code>, <code>--method</code>, <code>-f</code>, <code>-F</code>, <code>--field</code>, <code>--raw-field</code>, <code>--input</code> or <code>graphql</code>;<br>any <code>gh</code> command containing <code>env</code> or <code>ENV</code></td></tr>
+<tr><th>Flag</th><th>Effect</th></tr>
+<tr><td><code>--tools ""</code></td><td>no built-in tool at all, Bash included</td></tr>
+<tr><td><code>--disallowedTools "*" "Bash"</code></td><td>belts: every tool, and Bash by name</td></tr>
+<tr><td><code>--permission-mode dontAsk</code></td><td>refuses anything no allow rule names; there is no allow rule</td></tr>
+<tr><td><code>--strict-mcp-config</code>, <code>--safe-mode</code></td><td>no MCP server, no hooks or plugins from the checkout</td></tr>
+<tr><td><code>env -u GH_TOKEN</code></td><td>the model process holds no GitHub token</td></tr>
+<tr><td>CC at least <code>2.1.295</code></td><td>the release that made <code>--tools</code> apply to built-ins that register after launch</td></tr>
 </table>
 
-<h2>The real control: a read-only token</h2>
+<h2>Two jobs, two tokens</h2>
 <table>
 <tr><th>Job</th><th>Runs</th><th>Token</th></tr>
-<tr><td><code>sweep</code></td><td><code>claude -p</code> on untrusted CI logs, writes verdict files</td><td class="ok">read only (contents, pull-requests, issues, actions, checks, statuses)</td></tr>
-<tr><td><code>post</code></td><td>no model: validates the verdict files, posts them</td><td>pull-requests and issues write</td></tr>
+<tr><td><code>sweep</code></td><td>fetches CI data with gh, then <code>claude -p</code> with no tools; drops a verdict holding a secret value</td><td class="ok">read only</td></tr>
+<tr><td><code>post</code></td><td>no model: re-reads the failing PRs itself, refuses token shapes, strips HTML, images, links and @mentions, posts</td><td>pull-requests and issues write</td></tr>
 </table>
-<p class="lede">The deny list matches raw text, so a quoted or escaped flag passes it (try <code>gh api repos/o/r/issues/1/comments -"X" POST</code> above: the list allows it). That is why the model's job holds no write scope at all; the lists stay as a second layer.</p>
 
-<div class="foot">A <code>*</code> in a Claude Code rule matches any text, spaces included, so the allow list alone
-cannot pin <code>gh api</code> to GET; that is why the deny list exists. No grep, head or jq: they can read
-files such as <code>/proc/self/environ</code>. Test: <code>tests/ci/test-ci-sentinel-tool-scope.sh</code>.
-This page simulates the rules with simple wildcard matching.</div>
+<div class="foot">When <code>claude -p</code> fails, the public log gets a fixed line and the exit code, never the raw output.
+Test: <code>tests/ci/test-ci-sentinel-tool-scope.sh</code>. This page simulates the envelope: with no tools, every command is refused.</div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
-const ALLOW=['gh pr checks *','gh pr view *','gh run view *','gh api repos/*'];
-const DENY=['gh api *-X*','gh api *--method*','gh api *-f*','gh api *-F*','gh api *--field*','gh api *--raw-field*','gh api *--input*','gh api *graphql*','gh *env*','gh *ENV*'];
-const re=p=>new RegExp('^'+p.split('*').map(s=>s.replace(/[.+?^${}()|[\]\\]/g,'\\$&')).join('.*')+'$');
-function verdict(c){c=c.trim();
-  const d=DENY.find(p=>re(p).test(c));if(d)return['deny','matches deny Bash('+d+')'];
-  const a=ALLOW.find(p=>re(p).test(c));if(a)return['allow','matches allow Bash('+a+')'];
-  return['deny','no allow rule (dontAsk refuses it)'];}
-function render(){const[v,why]=verdict($('cmd').value);
-  const out=$('out');out.replaceChildren();const s=document.createElement('span');
-  s.className=v==='allow'?'ok':'bad';s.textContent=v;out.appendChild(s);
-  out.appendChild(document.createTextNode(': '+why));}
-['gh pr checks 12 --json bucket,link,name','gh api repos/o/r/actions/jobs/9/logs','gh api repos/o/r/issues/1/comments -X POST -f body=x','gh api repos/o/r/issues/1/comments -"X" POST','gh pr view 12 --json title --jq env','gh pr merge 12 --squash','grep -r token /proc/self/environ']
- .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('cmd').value=s;render();};$('chips').appendChild(b);});
+function render(){
+  const c=$('cmd').value.trim();const out=$('out');out.replaceChildren();
+  const s=document.createElement('span');s.className='bad';s.textContent='refused';out.appendChild(s);
+  const why=c?': the model has no tool to run "'+c.split(' ')[0]+'" in (--tools "", deny "*")':': empty command';
+  out.appendChild(document.createTextNode(why));
+}
+["gh api repos/o/r --jq '$E''NV.CLAUDE_CODE_OAUTH_TOKEN | @base64'","gh pr checks 12","gh api repos/o/r/issues/1/comments -\"X\" POST","cat /proc/self/environ","gh pr merge 12 --squash"]
+ .forEach(t=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{$('cmd').value=t;render();};$('chips').appendChild(b);});
 $('cmd').addEventListener('input',render);render();
 </script></body></html>

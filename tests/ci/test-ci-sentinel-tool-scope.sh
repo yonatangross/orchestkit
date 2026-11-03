@@ -39,8 +39,21 @@ else
   [[ "$call" == *'--tools ""'* ]] || bad "claude -p does not run with an empty tool set (--tools \"\")"
   [[ "$call" == *"--allowedTools"* || "$call" == *"--allowed-tools"* ]] && bad "claude -p still has an allow list"
   [[ "$call" == *'Bash('* ]] && bad "claude -p still names a Bash rule"
-  [[ "$call" == *'--disallowedTools "Bash"'* ]] || bad "claude -p does not deny Bash as a belt"
+  [[ "$call" == *'--disallowedTools "*" "Bash"'* ]] || bad "claude -p does not deny every tool (\"*\") and Bash as belts"
   [[ "$call" == *"--strict-mcp-config"* ]] || bad "claude -p can load MCP servers"
+  [[ "$call" == *"--safe-mode"* ]] || bad "claude -p loads customizations (hooks, plugins) from the checkout"
+  [[ "$call" == *"env -u GH_TOKEN claude -p"* ]] || bad "the model process still inherits GH_TOKEN"
+  # Flags that would hand tools, settings or directories back, and repeats
+  # (a later flag can override an earlier one).
+  for f in '--tools default' '--settings' '--mcp-config' '--add-dir' '--plugin-dir' '--dangerously'; do
+    [[ "$call" == *"$f"* ]] && bad "claude -p passes $f"
+  done
+  for f in '--tools' '--permission-mode' '--disallowedTools' '--strict-mcp-config' '--safe-mode' '--max-turns'; do
+    # Word count with awk (exit 0 on zero hits; a grep here would end the
+    # script under set -e on the first missing flag).
+    n="$(printf '%s\n' "$call" | tr -s ' \t' '\n\n' | awk -v w="$f" '$0 == w {c++} END {print c+0}')"
+    [ "$n" -eq 1 ] || bad "claude -p passes $f $n times (want exactly 1)"
+  done
   # 3. Fed from the prefetched file.
   [[ "$call" == *'< "$ctx_file"'* ]] || bad "claude -p is not fed the prefetched CI data on stdin"
 fi
@@ -75,12 +88,42 @@ else
   if [ -z "$call_at" ] || [ "$pf_at" -ge "$call_at" ]; then bad "prefetch does not run before claude -p"; fi
 fi
 
+# 2b. CC 2.1.295 fixed --tools "" not applying to built-in tools that register
+#     after launch (pilot HOLD on #5014), so the sentinel installs at least that.
+install="$(awk '/- name: Install Claude Code/{f=1} f&&/claude --version/{print; exit} f' "$WF")"
+if [ -z "$install" ]; then
+  bad "Install Claude Code step not found"
+else
+  min="$(printf '%s\n' "$install" | sed -nE 's/^ *SENTINEL_CC_MIN="([0-9.]+)".*/\1/p')"
+  if [ -z "$min" ]; then
+    bad "install step has no SENTINEL_CC_MIN"
+  else
+    lowest="$(printf '%s\n%s\n' "$min" "2.1.295" | sort -V | head -n 1)"
+    [ "$lowest" = "2.1.295" ] || bad "SENTINEL_CC_MIN $min is below 2.1.295"
+  fi
+  [[ "$install" == *'claude-code@${CC_PIN}'* ]] || bad "install does not use the pinned CC_PIN"
+  [[ "$install" == *'sort -V | tail -n 1'* ]] || bad "CC_PIN is not the higher of the floor and SENTINEL_CC_MIN"
+  # Behaviour: the pin rule picks the higher version both ways round.
+  pick() { printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1; }
+  [ "$(pick 2.1.277 2.1.295)" = "2.1.295" ] || bad "pin rule keeps a floor below the minimum"
+  [ "$(pick 2.1.310 2.1.295)" = "2.1.310" ] || bad "pin rule drops a floor above the minimum"
+fi
+
 # 4. The failure branch prints a fixed line and the exit code, never the files.
+#    Allow-list: only these line shapes may appear in it.
 fb="$(snippet failure-branch)"
 if [ -z "$fb" ]; then
   bad "no failure-branch block after claude -p"
 else
   [[ "$fb" == *continue* ]] || bad "failure branch does not skip the PR"
+  while IFS= read -r line; do
+    case "$(printf '%s' "$line" | sed -E 's/^[[:space:]]+//')" in
+      ''|'if '*|'fi'|'continue'|'rm -rf "$tmpdir"'|'echo "::warning::claude run failed for #${number} (exit ${claude_rc}); output withheld from the public log"') ;;
+      *) bad "failure branch has a line outside the allow-list: $line" ;;
+    esac
+  done <<EOF
+$fb
+EOF
 fi
 # Nowhere in the file is the model's raw output or stderr printed.
 if grep -vE '^[[:space:]]*#' "$WF" | grep -qE '(cat|head|tail|less|more)[^|>]*(verdict\.json|err\.log)'; then
@@ -196,6 +239,31 @@ fi
 if [ -n "$post" ]; then
   [[ "$post" == *"queue.json"* ]] && bad "post still trusts queue.json written by $claude_job"
   [[ "$post" == *"gh pr list"* ]] || bad "post does not rebuild the PR and SHA list with its own read"
+  # One failed comment must not stop the loop under set -e.
+  [[ "$post" == *'if ! gh pr comment'* ]] || bad "a failed gh pr comment stops the post loop"
+fi
+
+# 7. post sanitises the verdict before posting (pilot should-fix on #5014):
+#    run the real snippet on a hostile verdict and check the body.
+san="$(snippet verdict-sanitise)"
+if [ -z "$san" ]; then
+  bad "post has no verdict-sanitise block"
+else
+  sd="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
+  hostile='ok</details><img src=x> ![p](https://e.x/p.png) [docs](https://e.x/d) ping @someone'
+  jq -n --arg v "$hostile$(printf 'A%.0s' $(seq 1 100))" '{pr: 7, sha: "abcdef1", verdict: $v}' > "$sd/7.json"
+  f="$sd/7.json" body_file="$sd/body.md" sha=abcdef1 MARKER_PREFIX="<!-- ork:ci-sentinel" MAX_VERDICT_CHARS=120 SAN="$san" \
+    bash -c 'set -euo pipefail; eval "$SAN"'
+  body="$(cat "$sd/body.md")"
+  inner="${body#*</summary>}"; inner="${inner%</details>*}"
+  [[ "$inner" == *'</details>'* || "$inner" == *'<img'* ]] && bad "sanitised verdict still carries HTML"
+  [[ "$inner" == *'e.x/p.png'* ]] && bad "sanitised verdict still carries an image"
+  [[ "$inner" == *'https://e.x/d'* ]] && bad "sanitised verdict still carries a link target"
+  [[ "$inner" == *docs* ]] || bad "sanitised verdict lost the link text"
+  [[ "$inner" == *'@someone'* ]] && bad "sanitised verdict can still @mention"
+  a_only="${inner//[^A]/}"
+  [ "${#a_only}" -lt 100 ] || bad "sanitised verdict is not capped"
+  rm -rf "$sd"
 fi
 
 if [ "$fail" -ne 0 ]; then exit 1; fi
