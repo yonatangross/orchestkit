@@ -277,6 +277,86 @@ fi
 echo ""
 
 # ============================================================================
+# Test 4b: Per-skill listing cap + down-only ratchet on the listing total
+# ============================================================================
+# Claude Code lists every model-facing skill's description (+ when_to_use) in
+# every session and drops the least-invoked descriptions first when the
+# listing budget overflows. So one long description costs every session and
+# can push a used skill out. Two gates:
+#   1. each model-facing skill: description + when_to_use <= SKILL_DESC_MAX_BYTES
+#   2. the listing total (name + description + when_to_use of every
+#      model-facing skill) <= the ceiling in skill-listing-ratchet.txt. The
+#      ceiling only moves down: when the total falls more than
+#      RATCHET_SLACK_BYTES under it, the test fails until the file is lowered.
+# Bytes are counted with LC_ALL=C so awk length() is bytes, not characters.
+echo "▶ Test 4b: Per-skill Listing Cap + Ratchet"
+echo "────────────────────────────────────────"
+
+SKILL_DESC_MAX_BYTES=260
+RATCHET_SLACK_BYTES=256
+RATCHET_FILE="$SCRIPT_DIR/skill-listing-ratchet.txt"
+listing_report_file="$(mktemp)"
+trap 'rm -f "$listing_report_file"' EXIT
+
+LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '
+    function emit() {
+      if (!seen || dmi) return
+      d = length(ds) + length(wt)
+      total += length(nm) + d
+      if (d > cap) { over++; printf "OVER %d %s\n", d, nm }
+    }
+    function unq(s) { sub(/^[[:space:]]+/, "", s); gsub(/^"|"$/, "", s); return s }
+    FNR==1 { emit(); seen=1; infm=0; closed=0; dmi=0; nm=""; ds=""; wt=""; cur="" }
+    closed { next }
+    /^---[[:space:]]*$/ { if (infm) closed=1; else infm=1; cur=""; next }
+    !infm { next }
+    {
+      key=$0
+      sub(/[[:space:]]*#.*$/, "", key)
+      sub(/[[:space:]]+$/, "", key)
+    }
+    key ~ /^disable-model-invocation:[[:space:]]*true$/ { dmi=1; cur=""; next }
+    /^name:/        { s=key; sub(/^name:/, "", s);        nm=unq(s); cur=""; next }
+    /^description:/ { s=$0;  sub(/^description:/, "", s); ds=unq(s); cur="d"; next }
+    /^when_to_use:/ { s=$0;  sub(/^when_to_use:/, "", s); wt=unq(s); cur="w"; next }
+    cur!="" && /^[[:space:]]+[^[:space:]]/ {
+      s=$0; sub(/^[[:space:]]+/, "", s)
+      if (cur=="d") ds = ds " " s; else wt = wt " " s
+      next
+    }
+    { cur="" }
+    END { emit(); printf "TOTAL %d %d\n", total, over }
+  ' "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"
+
+listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+
+if [[ "$listing_over" -eq 0 ]]; then
+    pass "Every model-facing skill: description + when_to_use ≤ ${SKILL_DESC_MAX_BYTES} bytes"
+else
+    fail "${listing_over} model-facing skill(s) over the ${SKILL_DESC_MAX_BYTES}-byte description + when_to_use cap"
+    awk '$1=="OVER"{print $2, $3}' "$listing_report_file" | sort -k1,1nr | head -10 | while read -r b n; do
+        info "  ${n}: ${b} bytes"
+    done
+fi
+
+if [[ ! -f "$RATCHET_FILE" ]]; then
+    fail "Ratchet file missing: ${RATCHET_FILE}"
+else
+    ratchet_ceiling=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE")
+    if [[ -z "$ratchet_ceiling" ]]; then
+        fail "Ratchet file has no ceiling number on its first line"
+    elif [[ "$listing_total" -gt "$ratchet_ceiling" ]]; then
+        fail "Skill listing total: ${listing_total} bytes exceeds ratchet ceiling ${ratchet_ceiling} (ceiling only moves down)"
+    elif [[ $((ratchet_ceiling - listing_total)) -gt "$RATCHET_SLACK_BYTES" ]]; then
+        fail "Skill listing total: ${listing_total} bytes is more than ${RATCHET_SLACK_BYTES} under the ratchet ceiling ${ratchet_ceiling}: lower ${RATCHET_FILE##*/} to ${listing_total}"
+    else
+        pass "Skill listing total: ${listing_total} bytes ≤ ratchet ceiling ${ratchet_ceiling}"
+    fi
+fi
+echo ""
+
+# ============================================================================
 # Test 5: Hook Dispatcher Budget Constant
 # ============================================================================
 echo "▶ Test 5: Hook Dispatcher Budget Cap"
