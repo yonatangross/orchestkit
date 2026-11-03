@@ -14,6 +14,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { safeExec, readPackageJson, findFirstConfig } from './context-loader-utils.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { resolveRunningCC } from '../lifecycle/cc-version-check.js';
 
 /**
  * Repo Structure Indexer — builds lightweight repo map.
@@ -120,7 +121,8 @@ export function doctorEnvSnapshot(input: HookInput, hookCtx: HookContext = NOOP_
   const projectDir = hookCtx.projectDir;
   const nodeVersion = safeExec('node --version', projectDir);
   const npmVersion = safeExec('npm --version', projectDir);
-  const ccVersion = process.env.CLAUDE_CODE_VERSION || 'unknown';
+  // Same authority order as cc-version-check (#5031): transcript / install / env.
+  const ccVersion = resolveRunningCC(input)?.version || 'unknown';
 
   const ctx = [
     '[Environment Snapshot — loaded once]',
