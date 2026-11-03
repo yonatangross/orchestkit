@@ -67,14 +67,14 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 
 ## setup → /ork:setup
 - **Signals:** set up OrchestKit (or ork) for this project, onboard this repo, which skills or MCP servers fit this stack, rescan after a big change.
-- **Extract:** the repo (current directory unless named), `--rescan` when the goal says the project already ran setup.
-- **Invoke:** `/ork:setup`
+- **Extract:** `--rescan` when the goal says the project already ran setup. Setup takes flags only and scans the current directory, so when the goal names a different repo ("set up OrchestKit for ../project-b"), ask the user to start the session in that repo instead of routing.
+- **Invoke:** `/ork:setup [--rescan]`
 - **Edges:** the object must be OrchestKit or the project's ork configuration. "Set up CI for this repo" or "set up a postgres container" is `build`. Tuning one ork setting ("turn on the hook X") is `/ork:configure`, not setup, and stays a direct skill call.
 
 ## migrate → /ork:swarm-migrate
 - **Signals:** the same change in many repos: across all repos, every consumer, org-wide, roll out to N repos, bump X in each repo that uses it.
-- **Extract:** the transformation (bump, codemod, workflow change), the target repo list or the selector that yields it.
-- **Invoke:** `/ork:swarm-migrate {transformation}`
+- **Extract:** the transformation (bump, codemod, workflow change) and the target repo list or the selector that yields it, then the spec file that holds them. Swarm-migrate takes a YAML spec (`swarm-specs/<name>.yaml`), not free text: use an existing spec that matches, or write one from the extracted transformation and repo list and show it to the user before invoking.
+- **Invoke:** `/ork:swarm-migrate swarm-specs/{name}.yaml`
 - **Edges:** one repo is `build` (`/ork:implement`), even when the change is a migration ("migrate this repo to vitest"). A database or schema migration is `build`, never `migrate`. "Which repos still pin X" with no change asked is a question: answer it, do not start a swarm.
 
 ## Model weight (second, orthogonal dimension)
