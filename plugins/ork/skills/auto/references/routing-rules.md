@@ -65,6 +65,18 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 - **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
 - **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent** — a SKILL.md, a named skill, an agent prompt — it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
 
+## setup → /ork:setup
+- **Signals:** set up OrchestKit (or ork) for this project, onboard this repo, which skills or MCP servers fit this stack, rescan after a big change.
+- **Extract:** `--rescan` when the goal says the project already ran setup. Setup takes flags only and scans the current directory, so when the goal names a different repo ("set up OrchestKit for ../project-b"), ask the user to start the session in that repo instead of routing.
+- **Invoke:** `/ork:setup [--rescan]`
+- **Edges:** the object must be OrchestKit or the project's ork configuration. "Set up CI for this repo" or "set up a postgres container" is `build`. Tuning one ork setting ("turn on the hook X") is `/ork:configure`, not setup, and stays a direct skill call.
+
+## migrate → /ork:swarm-migrate
+- **Signals:** the same change in many repos: across all repos, every consumer, org-wide, roll out to N repos, bump X in each repo that uses it.
+- **Extract:** the transformation (bump, codemod, workflow change) and the target repo list or the selector that yields it, then the spec file that holds them. Swarm-migrate takes a YAML spec (`swarm-specs/<name>.yaml`), not free text: use an existing spec that matches, or write one from the extracted transformation and repo list and show it to the user before invoking.
+- **Invoke:** `/ork:swarm-migrate swarm-specs/{name}.yaml`
+- **Edges:** one repo is `build` (`/ork:implement`), even when the change is a migration ("migrate this repo to vitest"). A database or schema migration is `build`, never `migrate`. "Which repos still pin X" with no change asked is a question: answer it, do not start a swarm.
+
 ## Model weight (second, orthogonal dimension)
 
 Intent answers **who does the work**. Weight answers **how expensive that worker should be**. Both are decided in the same Classify pass. Weight never changes the intent, and intent never fixes the weight: a route is `{intent} @ {weight}`.
@@ -119,6 +131,8 @@ Defaults, not verdicts. The rubric overrides any row here when the goal carries 
 | review | Standard | security, auth, crypto, or safety in scope | style or formatting only |
 | verify | Standard | verifying a security-critical claim | running the existing checks and reporting the result |
 | improve-skill | Standard | rewriting the evaluation contract itself | executing an existing benchmark (`eval-runner`, haiku) |
+| setup | Standard | never (setup reads and recommends; writes stay behind its own gates) | a rescan of a project that already ran setup |
+| migrate | Standard | the change touches auth, CI gates, deploy, or a public API in each repo | a patch-level bump in a repo list the goal names |
 
 ### Premium spend needs explicit consent
 
@@ -159,4 +173,5 @@ Everything else is a documented hint carried into the handoff. Per the no-bypass
 4. Question form → `design` ("how should") or `diagnose` ("why") — and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
 5. PR/MR/`#N` → `review`.
 6. Ticket reference → `build`.
+6b. Many repos named or implied ("every repo", "all consumers", "org-wide") with a change to make → `migrate`; one repo → `build`. OrchestKit itself as the object of "set up" or "onboard" → `setup`; any other object of "set up" → `build`.
 7. Truly ambiguous → ask ONE question naming the two candidate routes. **Do not guess when two DIFFERENT skills are plausible and the goal names no artifact, metric, or number.** Canonical fallbacks: "fix performance on the dashboard" (fix vs optimize), "review my code" with no PR/branch named (review vs verify), "test the new feature" (cover vs verify vs build), "the queries are slow and maybe vulnerable to injection" (optimize vs review).

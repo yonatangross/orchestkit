@@ -66,6 +66,8 @@ so there is no "too obvious for auto".
 | **review** | review, PR, MR, pull request, #N | `review-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
+| **setup** | set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack | `/ork:setup` |
+| **migrate** | across all repos, every repo, org-wide, roll out to N repos, bump in each consumer | `/ork:swarm-migrate` |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
@@ -196,5 +198,5 @@ Done means all of these hold:
 
 - `help` — static categorized directory (browse, don't route)
 - `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `verify`: the route targets
+- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `verify` · `setup` · `swarm-migrate`: the route targets
 - `assess` — champion/challenger holdout gate (the `improve-skill` route)

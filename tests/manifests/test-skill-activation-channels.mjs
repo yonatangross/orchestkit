@@ -47,13 +47,9 @@ const STANDALONE_ALLOWLIST = {
     'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
   freeze:
     'operator guard: invoking it registers a session-long edit fence and takes the dir as a typed argument; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
-  // #4697 (2026-11-02): these two passed only on their `background: false` line.
-  // Both stay model-invocable by description; routing them through ork:auto
-  // (with routing-benchmark cases) is a tracked follow-up, not a silent pass.
-  setup:
-    'onboarding wizard run once per project; reached by its description or /ork:setup, no parent skill chains it yet (#4697 follow-up: route via ork:auto)',
-  'swarm-migrate':
-    'cross-repo migration swarm started on purpose; reached by its description or /ork:swarm-migrate, no parent skill chains it yet (#4697 follow-up: route via ork:auto)',
+  // setup and swarm-migrate left this list in #4981: ork:auto now routes to both
+  // (SKILL.md table + routing-benchmark setup-* and mig-* cases), so they pass on
+  // the chain channel instead of an allowlist entry.
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----

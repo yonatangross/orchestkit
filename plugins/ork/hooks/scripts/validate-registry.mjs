@@ -20,10 +20,10 @@
  *                 `run-hook.mjs" <id>` (#4683: a context: fork skill never
  *                 runs frontmatter hooks, so it runs its loaders in the body).
  *                 Reachable, but not counted as hooks: nothing registers them.
- *   flagVariant = ids a flag-gated hooks.json variant dispatches (today
- *                 pretool/tool-dispatcher and posttool/tool-dispatcher, written
- *                 by unified-pretool-hooks.mjs, default off). Reachable when the
- *                 flag is on; not counted.
+ *   flagVariant = ids the generated hooks.json dispatches but the registry
+ *                 does not name (today pretool/tool-dispatcher and
+ *                 posttool/tool-dispatcher, written by unified-pretool-hooks.mjs;
+ *                 the shipped default since #5003). Reachable; not counted.
  *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody ∪ flagVariant
  *
  * FAIL conditions:

@@ -80,6 +80,17 @@
     { "id": "e2e-16", "goal": "write a workaround for the broken e2e tests", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a workaround" },
     { "id": "e2e-17", "goal": "create a ticket: the e2e tests fail on CI", "category": "fix", "route": "/ork:fix-issue", "note": "the verb's object is a ticket; the tests fail" },
     { "id": "e2e-18", "goal": "write an e2e test for the login error page", "category": "cover", "route": "/ork:cover", "note": "CodeRabbit 4210572472: a singular test with an article is still a creation" },
-    { "id": "e2e-19", "goal": "add a playwright test for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "singular test, article a" }
+    { "id": "e2e-19", "goal": "add a playwright test for the payment failure flow", "category": "cover", "route": "/ork:cover", "note": "singular test, article a" },
+
+    { "id": "setup-01", "goal": "set up orchestkit for this repo", "category": "setup", "route": "/ork:setup" },
+    { "id": "setup-02", "goal": "which ork skills and MCP servers fit this project", "category": "setup", "route": "/ork:setup", "note": "a recommendation for this stack is setup's scan, not a help listing" },
+    { "id": "setup-03", "goal": "we moved to a monorepo, rescan the stack and update the ork config", "category": "setup", "route": "/ork:setup", "note": "rescan after a major change" },
+    { "id": "setup-04", "goal": "set up CI for this repo", "category": "build", "route": "/ork:implement", "note": "set up X where X is not OrchestKit is build (#4981)" },
+
+    { "id": "mig-01", "goal": "bump zod to v4 in every repo that uses it", "category": "migrate", "route": "/ork:swarm-migrate" },
+    { "id": "mig-02", "goal": "roll out the new lint workflow to all 12 repos and open a PR in each", "category": "migrate", "route": "/ork:swarm-migrate" },
+    { "id": "mig-03", "goal": "apply the vitest codemod org-wide", "category": "migrate", "route": "/ork:swarm-migrate" },
+    { "id": "mig-04", "goal": "migrate this repo from jest to vitest", "category": "build", "route": "/ork:implement", "note": "one repo is build, even when the verb is migrate (#4981)" },
+    { "id": "mig-05", "goal": "write the alembic migration for the orders table", "category": "build", "route": "/ork:implement", "note": "a schema migration is build, never the cross-repo swarm" }
   ]
 }

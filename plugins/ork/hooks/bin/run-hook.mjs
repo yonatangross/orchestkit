@@ -239,6 +239,12 @@ const SECURITY_HOOKS = new Set([
   // #4678: /ork:review-pr posts only through this gate, so an unloadable skill
   // bundle must block (exit 2), not fail open (exit 1).
   'skill/review-post-gate',
+  // The shipped hooks.json runs every PreToolUse and PostToolUse guard
+  // (including the two dispatchers above and skill/redact-secrets) inside
+  // these two entries, so they inherit the same rules: an unloadable bundle
+  // blocks (exit 2) and a user override cannot disable them.
+  'pretool/tool-dispatcher',
+  'posttool/tool-dispatcher',
 ]);
 
 /**
