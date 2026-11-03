@@ -470,7 +470,7 @@ def format_subdir_sections(skill_dir: Path) -> list[str]:
 # part page. Opt-in per skill for now: the split changes where the bottom of a
 # page lives, so widen SPLIT_SKILLS deliberately rather than by size alone.
 SPLIT_OVER_BYTES = 90_000
-SPLIT_SKILLS = {"configure", "doctor", "implement", "verify", "brainstorm"}
+SPLIT_SKILLS = {"configure", "doctor", "implement", "verify", "brainstorm", "review-pr"}
 
 # The part-page wrapper (frontmatter, part-of note) and the `### <title>`
 # heading add bytes on top of the measured content. Every split decision
