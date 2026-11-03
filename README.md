@@ -644,6 +644,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1)** · 2026-11-03
+
+- **models:** move Claude defaults to the 5.5 family (#5020)
+
 **[v10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0)** · 2026-11-03
 
 - **hooks:** ship the tool dispatchers as the default hooks.json (#5003)
@@ -684,11 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** one-process tool dispatchers behind a flagged hooks.json variant (#4962)
 - **ci:** playground gate reads the PR files API, not the diff (#4967)
-
-**[v10.4.4](https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4)** · 2026-11-01
-
-- **hooks:** disabled hook on a file stdin no longer hits a TDZ (#4885) (#4949)
-- **skills:** add Bifrost as a gateway option (re-land of [#4940](https://github.com/yonatangross/orchestkit/issues/4940)) (#4966)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

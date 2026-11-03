@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.7.1",
+    "date": "2026-11-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**models:** move Claude defaults to the 5.5 family ([#5020](https://github.com/yonatangross/orchestkit/issues/5020)) ([d06b02d](https://github.com/yonatangross/orchestkit/commit/d06b02d2bec99a8d9c11c80d696b3f9679e83fbd))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.7.0",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0",
