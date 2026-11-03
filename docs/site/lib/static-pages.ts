@@ -20,6 +20,7 @@ export const STATIC_PAGES = [
   "/contact",
   "/developers",
   "/mcp-server",
+  "/open",
   "/openapi",
   "/pricing",
   "/sdk",

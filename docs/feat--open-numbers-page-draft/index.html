@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/open draft: every public number, and what shows when one is missing</title>
+<style>
+  :root { --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --accent:#0a7cff; --warn:#b25000; --bg:#fbfbfd; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width:760px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  .lead { color:var(--muted); margin:0 0 24px; }
+  .controls { display:flex; flex-wrap:wrap; gap:16px; padding:14px 16px; border:1px solid var(--line); border-radius:10px; background:#fff; margin-bottom:20px; }
+  .controls label { display:flex; align-items:center; gap:8px; cursor:pointer; }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  td.value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  tr.unknown td.value { color:var(--warn); }
+  tr.placeholder td.value { color:var(--muted); font-style:italic; }
+  .legend { margin-top:16px; color:var(--muted); font-size:13px; }
+  .tally { margin-top:20px; padding:12px 16px; border-left:3px solid var(--accent); background:#fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>/open draft: public numbers only</h1>
+  <p class="lead">The draft page shows every OrchestKit number that has a public source. Flip the switches to see what a visitor sees when a live GitHub read fails. Build-time counts never fail; placeholders stay until Yonatan supplies a real figure.</p>
+
+  <div class="controls" id="controls"></div>
+  <table>
+    <thead><tr><th>Number</th><th>Value</th><th>Source</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="legend">"?" = the live read failed this hour. "[PLACEHOLDER]" = no public number yet. Values below are illustrative, not the live ones.</p>
+  <div class="tally" id="tally"></div>
+</main>
+<script>
+  "use strict";
+  // Illustrative sample values; the real page reads them live or at build.
+  var ROWS = [
+    { label: "GitHub stars", kind: "live", key: "stars", sample: 1234, source: "GitHub API, hourly" },
+    { label: "Merged pull requests", kind: "live", key: "prs", sample: 4321, source: "GitHub search API, hourly" },
+    { label: "Skills", kind: "build", sample: 107, source: "plugin manifest, at build" },
+    { label: "Agents", kind: "build", sample: 36, source: "plugin manifest, at build" },
+    { label: "Hooks", kind: "build", sample: 171, source: "plugin manifest, at build" },
+    { label: "Installs", kind: "placeholder", source: "no public source yet" },
+    { label: "Cost to run per month", kind: "placeholder", source: "needs Yonatan's figure" }
+  ];
+  var failed = { stars: false, prs: false };
+
+  function fmt(n) { return new Intl.NumberFormat("en-US").format(n); }
+
+  function cell(tag, text, cls) {
+    var el = document.createElement(tag);
+    el.textContent = text;
+    if (cls) el.className = cls;
+    return el;
+  }
+
+  function render() {
+    var body = document.getElementById("rows");
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var shown = 0, unknown = 0, held = 0;
+    ROWS.forEach(function (r) {
+      var tr = document.createElement("tr");
+      var value;
+      if (r.kind === "placeholder") { value = "[PLACEHOLDER]"; tr.className = "placeholder"; held++; }
+      else if (r.kind === "live" && failed[r.key]) { value = "?"; tr.className = "unknown"; unknown++; }
+      else { value = fmt(r.sample); shown++; }
+      tr.appendChild(cell("td", r.label));
+      tr.appendChild(cell("td", value, "value"));
+      tr.appendChild(cell("td", r.source));
+      body.appendChild(tr);
+    });
+    document.getElementById("tally").textContent =
+      shown + " real numbers shown, " + unknown + " unknown this hour, " + held + " held as placeholders. Nothing is ever estimated.";
+  }
+
+  function toggle(key, text) {
+    var label = document.createElement("label");
+    var box = document.createElement("input");
+    box.type = "checkbox";
+    box.addEventListener("change", function () { failed[key] = box.checked; render(); });
+    label.appendChild(box);
+    label.appendChild(document.createTextNode(text));
+    document.getElementById("controls").appendChild(label);
+  }
+
+  toggle("stars", "Stars read fails");
+  toggle("prs", "Merged-PR read fails (search API rate limit)");
+  render();
+</script>
+</body>
+</html>
