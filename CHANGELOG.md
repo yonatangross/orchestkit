@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0) (2026-11-03)
+
+
+### Features
+
+* **hooks:** ship the tool dispatchers as the default hooks.json ([#5003](https://github.com/yonatangross/orchestkit/issues/5003)) ([fd31da9](https://github.com/yonatangross/orchestkit/commit/fd31da938f91f58872f50a2a52a0b433365bdde7))
+
+
+### Bug Fixes
+
+* **ci:** sign skill-autoheal commits by creating them through the API ([#5016](https://github.com/yonatangross/orchestkit/issues/5016)) ([b0664ac](https://github.com/yonatangross/orchestkit/commit/b0664ac21b0a29e5a74b332bad14dc93d75c388f))
+
 ## [10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0) (2026-11-03)
 
 
