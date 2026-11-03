@@ -129,38 +129,9 @@ check("pi example still passes the pi template validator", () => {
 	]);
 });
 
-// ---- Codex profile (src is the source, plugins is the shipped copy) ----
-const CODEX_SRC = "src/codex/ork-codex/mcp.json";
-const CODEX_OUT = "plugins/ork-codex/mcp.json";
-
-check("codex: portless and emulate as stdio", () => {
-	const servers = json(CODEX_SRC).mcpServers;
-	for (const name of ["portless", "emulate"]) {
-		assert.equal(servers[name].command, `${BIN}/${name}`);
-		assert.deepEqual(servers[name].args, ["mcp"]);
-	}
-});
-
-check("codex: agent-browser core profile with the CLI-path settings", () => {
-	agentBrowserSettings(json(CODEX_SRC).mcpServers["agent-browser"], "ork-mcp-codex", "abmcp-ork-codex");
-});
-
-check("codex: vercel present, disabled, no bearer", () => {
-	const spec = json(CODEX_SRC).mcpServers.vercel;
-	assert.equal(spec.url, "https://mcp.vercel.com");
-	assert.equal(spec.enabled, false);
-	assert.ok(!("bearer_token_env_var" in spec) && !("bearer_token" in spec));
-});
-
-check("codex: context7 entry is unchanged", () => {
-	const spec = json(CODEX_SRC).mcpServers.context7;
-	assert.equal(spec.bearer_token_env_var, "CONTEXT7_API_KEY_CODEX");
-	assert.deepEqual(spec.enabled_tools, ["resolve-library-id", "query-docs"]);
-});
-
-check("codex: the shipped plugins copy is byte-identical to src", () => {
-	assert.equal(read(CODEX_OUT), read(CODEX_SRC));
-});
+// The Codex profile (src/codex/ork-codex/mcp.json) is deliberately NOT wired:
+// it is a public manifest, absolute /opt/homebrew/bin paths would break every
+// other user, and tests/plugins/test-codex-plugin.sh pins it to context7 only.
 
 // ---- README (the configure skill's MCP reference; src is the source) ----
 for (const rel of [
