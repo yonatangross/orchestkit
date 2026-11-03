@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.7.0",
+    "date": "2026-11-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** ship the tool dispatchers as the default hooks.json ([#5003](https://github.com/yonatangross/orchestkit/issues/5003)) ([fd31da9](https://github.com/yonatangross/orchestkit/commit/fd31da938f91f58872f50a2a52a0b433365bdde7))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** sign skill-autoheal commits by creating them through the API ([#5016](https://github.com/yonatangross/orchestkit/issues/5016)) ([b0664ac](https://github.com/yonatangross/orchestkit/commit/b0664ac21b0a29e5a74b332bad14dc93d75c388f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.6.0",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0",
