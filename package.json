@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "10.7.0",
+  "version": "10.7.1",
   "private": true,
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "workspaces": [
