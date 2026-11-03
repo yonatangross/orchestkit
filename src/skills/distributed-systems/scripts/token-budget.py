@@ -9,7 +9,7 @@ Manages LLM context window limits with:
 
 Usage:
     guard = TokenBudgetGuard(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         context_limit=200000,
     )
 
@@ -194,7 +194,7 @@ class TokenBudgetGuard:
 
     Example:
         guard = TokenBudgetGuard(
-            model="claude-sonnet-5",
+            model="claude-sonnet-5-5",
             context_limit=200000,
         )
 
@@ -407,7 +407,10 @@ class TokenBudgetGuard:
         """Estimate cost based on model pricing."""
         # Pricing per 1M tokens: verify at https://platform.claude.com/docs/en/about-claude/pricing before relying on these
         PRICING = {
+            "claude-opus-5-5": {"input": 4.0, "output": 20.0},
             "claude-sonnet-5-5": {"input": 2.0, "output": 10.0},
+            "claude-haiku-5-5": {"input": 0.10, "output": 0.50},
+            # Older ids kept so historical usage still prices at its own rate.
             "claude-sonnet-5": {"input": 2.0, "output": 10.0},
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
             "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
@@ -441,7 +444,7 @@ class TokenBudgetGuard:
 # Utility function for quick budget check
 def check_budget(
     content: str,
-    model: str = "claude-sonnet-5",
+    model: str = "claude-sonnet-5-5",
     context_limit: int = 200000,
 ) -> dict:
     """Quick check if content fits in context."""
@@ -461,7 +464,7 @@ def check_budget(
 if __name__ == "__main__":
     # Create budget guard
     guard = TokenBudgetGuard(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         context_limit=200000,
         allocation=BudgetAllocation(
             system_prompt=2000,

@@ -118,7 +118,7 @@ jobs:
           " \
           --output-format json \
           --max-turns 25 \
-          --model claude-sonnet-5 \
+          --model claude-sonnet-5-5 \
           --tools "" \
           --strict-mcp-config \
           --disallowedTools "Agent,NotebookEdit" \
