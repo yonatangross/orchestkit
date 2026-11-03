@@ -117,3 +117,5 @@ bash tests/unit/test-ascii-i18n.sh         # CJK/Devanagari alignment
 
 All four (when shipped in C3) wired into `tests/run-all-tests.sh` under
 the unit-test block.
+
+<!-- autoheal signing proof for #5012, not for merge -->
