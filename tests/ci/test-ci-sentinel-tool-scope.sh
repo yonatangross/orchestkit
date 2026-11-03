@@ -98,5 +98,84 @@ while IFS= read -r use; do
   [[ "$use" =~ @[0-9a-f]{40}([[:space:]]|$) ]] || bad "action not pinned by SHA: $use"
 done < <(grep -E '^[[:space:]]*(- )?uses:' "$WF" | sed -E 's/^[[:space:]]*(- )?uses:[[:space:]]*//')
 
+# 6. Secret values never reach the public comment (#5014, review b45). gh's
+#    --jq reads the environment and a quote-split spelling ($E''NV.X) passes
+#    the text deny, so the guard checks the verdict CONTENT, not the command.
+#    (a) the job that runs claude -p drops a verdict holding the exact value of
+#        CLAUDE_CODE_OAUTH_TOKEN or GH_TOKEN, before it writes the artifact;
+#    (b) post (no secret to compare) refuses known token shapes;
+#    (c) both snippets, run for real on fake values, drop the bad verdict and
+#        keep a clean one, and an empty secret does not drop everything;
+#    (d) post checks PR and SHA against its own read, not sweep's queue.json.
+snippet() { awk -v b="# BEGIN $1" -v e="# END $1" 'index($0,b){f=1;next} index($0,e){exit} f' "$WF"; }
+sg="$(snippet secret-value-guard)"
+belt="$(snippet token-shape-belt)"
+if [ -z "$sg" ]; then
+  bad "sweep has no secret-value-guard block"
+else
+  [[ "$sg" == *'grep -qF'* ]] || bad "secret-value guard is not a fixed-string grep"
+  [[ "$sg" == *CLAUDE_CODE_OAUTH_TOKEN* && "$sg" == *GH_TOKEN* ]] || bad "secret-value guard misses a secret"
+  [[ "$sg" == *RUNNER_TEMP* ]] || bad "secret-value guard temp file is not under RUNNER_TEMP"
+  [[ "$sg" == *".sentinel"* ]] && bad "secret-value guard writes inside the artifact path"
+  [[ "$sg" == *'rm -f'* ]] || bad "secret-value guard does not remove its temp file"
+  if [ -n "$claude_job" ]; then
+    guard_at="$(printf '%s\n' "$cj" | grep -n '# BEGIN secret-value-guard' | head -1 | cut -d: -f1)"
+    write_at="$(printf '%s\n' "$cj" | grep -n 'sentinel/out/\${number}\.json' | head -1 | cut -d: -f1)"
+    if [ -z "$guard_at" ] || [ -z "$write_at" ]; then
+      bad "secret-value guard or artifact write is not in job $claude_job"
+    elif [ "$guard_at" -ge "$write_at" ]; then
+      bad "secret-value guard runs after the artifact write"
+    fi
+  fi
+  # Behaviour: run the real snippet inside a one-pass loop (it uses continue).
+  rt="$(mktemp -d)"
+  run_guard() {
+    RUNNER_TEMP="$rt" CLAUDE_CODE_OAUTH_TOKEN="$1" GH_TOKEN="$2" verdict_md="$3" number=7 SG="$sg" \
+      bash -c 'set -uo pipefail; for _ in 1; do eval "$SG"; echo KEPT; done' 2>&1
+  }
+  fake_oauth="fake-oauth-value-b45-$$"
+  fake_gh="fake-gh-value-b45-$$"
+  out="$(run_guard "$fake_oauth" "$fake_gh" "report ... $fake_oauth ... end")"
+  [[ "$out" == *KEPT* ]] && bad "secret-value guard kept a verdict holding the OAuth value"
+  [[ "$out" == *"$fake_oauth"* ]] && bad "secret-value guard printed the secret"
+  out="$(run_guard "$fake_oauth" "$fake_gh" "report $fake_gh")"
+  [[ "$out" == *KEPT* ]] && bad "secret-value guard kept a verdict holding the GH_TOKEN value"
+  out="$(run_guard "$fake_oauth" "$fake_gh" "clean report")"
+  [[ "$out" == *KEPT* ]] || bad "secret-value guard dropped a clean verdict"
+  out="$(run_guard "" "" "clean report")"
+  [[ "$out" == *KEPT* ]] || bad "secret-value guard with empty secrets dropped a clean verdict"
+  [ -z "$(ls -A "$rt")" ] || bad "secret-value guard left a temp file behind"
+  rm -rf "$rt"
+fi
+if [ -z "$belt" ]; then
+  bad "post has no token-shape-belt block"
+else
+  [[ "$post" == *'# BEGIN token-shape-belt'* ]] || bad "token-shape belt is not in the post job"
+  run_belt() {
+    local d; d="$(mktemp -d)"
+    jq -n --arg v "$1" '{pr: 7, sha: "abcdef1", verdict: $v}' > "$d/7.json"
+    f="$d/7.json" BELT="$belt" bash -c 'set -euo pipefail; for _ in 1; do eval "$BELT"; echo KEPT; done' 2>&1
+    rm -rf "$d"
+  }
+  # Fake shapes are joined at runtime so no token-shaped literal sits in the repo.
+  filler="$(printf 'A%.0s' $(seq 1 24))"
+  shapes=(
+    "sk""-ant-""oat01-${filler}"
+    "gh""s_${filler}" "gh""p_${filler}" "gh""o_${filler}" "gh""u_${filler}"
+    "github""_pat_${filler}"
+  )
+  for shape in "${shapes[@]}"; do
+    out="$(run_belt "leak: $shape")"
+    [[ "$out" == *KEPT* ]] && bad "token-shape belt kept a verdict holding ${shape:0:4}..."
+    [[ "$out" == *"$shape"* ]] && bad "token-shape belt printed the match"
+  done
+  out="$(run_belt "clean report about a failing lint step")"
+  [[ "$out" == *KEPT* ]] || bad "token-shape belt dropped a clean verdict"
+fi
+if [ -n "$post" ]; then
+  [[ "$post" == *"queue.json"* ]] && bad "post still trusts queue.json written by $claude_job"
+  [[ "$post" == *"gh pr list"* ]] || bad "post does not rebuild the PR and SHA list with its own read"
+fi
+
 if [ "$fail" -ne 0 ]; then exit 1; fi
 echo "PASS: ci-sentinel tool scope"

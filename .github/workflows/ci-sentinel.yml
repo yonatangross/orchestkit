@@ -322,6 +322,32 @@ jobs:
               continue
             fi
 
+            # #5014 review b45: gh's --jq reads the environment, and a quote-split
+            # spelling passes the text deny rules, so the model can put a secret
+            # into its verdict, which `post` publishes on a public repo. Drop any
+            # verdict holding the exact value of either secret this job holds.
+            # This checks content, not command text. An empty -e pattern matches
+            # everything, so a pattern is added only for a non-empty value. The
+            # verdict goes through a temp file under RUNNER_TEMP (outside the
+            # uploaded artifact path), never a pipe, and the match is never printed.
+            # BEGIN secret-value-guard
+            secret_args=()
+            if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then secret_args+=(-e "$CLAUDE_CODE_OAUTH_TOKEN"); fi
+            if [ -n "${GH_TOKEN:-}" ]; then secret_args+=(-e "$GH_TOKEN"); fi
+            if [ "${#secret_args[@]}" -gt 0 ]; then
+              verdict_tmp="$(mktemp "${RUNNER_TEMP:?}/sentinel-verdict.XXXXXX")"
+              printf '%s' "$verdict_md" > "$verdict_tmp"
+              # grep exits 0 on a match, 1 on none, 2 on an error: only 1 keeps it.
+              grep -qF "${secret_args[@]}" "$verdict_tmp"
+              grep_rc=$?
+              rm -f "$verdict_tmp"
+              if [ "$grep_rc" -ne 1 ]; then
+                echo "::warning::verdict for #${number} contains a secret value; dropped"
+                continue
+              fi
+            fi
+            # END secret-value-guard
+
             # This job's token is read-only: the verdict leaves as data for the
             # `post` job, which validates it and posts it (#5014).
             jq -n --argjson pr "$number" --arg sha "$sha" --arg verdict "$verdict_md" \
@@ -338,7 +364,6 @@ jobs:
               >> .sentinel/ledger.jsonl
 
           done < <(jq -c '.[]' .sentinel/queue.json)
-          cp .sentinel/queue.json .sentinel/out/queue.json
           echo "verdicts=$(find .sentinel/out -name '[0-9]*.json' | wc -l | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
       - name: Upload verdicts for the post job
@@ -386,6 +411,9 @@ jobs:
     permissions:
       pull-requests: write # gh pr comment
       issues: write        # PR comments are issue comments
+      contents: read       # own read of open PRs and their checks
+      checks: read
+      statuses: read
     steps:
       - name: Download verdicts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
@@ -401,9 +429,21 @@ jobs:
           set -euo pipefail
           MARKER_PREFIX="<!-- ork:ci-sentinel"
           MAX_BYTES=65536
-          # The queue (PR numbers and SHAs) also came from `sweep`: a verdict is
-          # posted only for a PR and SHA on that list.
-          jq -e 'type == "array"' verdicts/queue.json > /dev/null
+          # Targets come from this job's own read, never from a file `sweep`
+          # wrote: the model in `sweep` could rewrite such a file and aim a
+          # verdict at another PR (#5014 review b45, non-blocking 1). A verdict
+          # is posted only for an open PR with a failing check whose head SHA
+          # still matches. Fails closed: if this read fails, nothing is posted.
+          live_prs="$(mktemp "${RUNNER_TEMP:-/tmp}/sentinel-prs.XXXXXX")"
+          gh pr list \
+            --repo "$REPO_SLUG" \
+            --state open \
+            --limit 50 \
+            --json number,headRefOid,statusCheckRollup \
+            --jq '[ .[]
+                    | select(.statusCheckRollup | map(.conclusion // "") | any(. == "FAILURE"))
+                    | { number, sha: .headRefOid[0:9] } ]' > "$live_prs"
+          jq -e 'type == "array"' "$live_prs" > /dev/null
           for f in verdicts/[0-9]*.json; do
             [ -f "$f" ] || continue
             size=$(wc -c < "$f")
@@ -417,10 +457,20 @@ jobs:
             fi
             pr=$(jq -r '.pr' "$f")
             sha=$(jq -r '.sha' "$f")
-            if [ "$(basename "$f" .json)" != "$pr" ] || ! jq -e --argjson pr "$pr" --arg sha "$sha" 'any(.[]; .number == $pr and .sha == $sha)' verdicts/queue.json > /dev/null; then
-              echo "::warning::${f} names a PR or SHA that is not in the queue; skipped"
+            if [ "$(basename "$f" .json)" != "$pr" ] || ! jq -e --argjson pr "$pr" --arg sha "$sha" 'any(.[]; .number == $pr and .sha == $sha)' "$live_prs" > /dev/null; then
+              echo "::warning::${f} names a PR or SHA that is not an open failing PR at its current head; skipped"
               continue
             fi
+            # Belt for the secret-value guard in `sweep` (this job holds no
+            # secret to compare against): refuse a verdict shaped like an
+            # Anthropic or GitHub token. Fails closed (a jq error also skips),
+            # and the match is never printed.
+            # BEGIN token-shape-belt
+            if ! jq -e '.verdict | test("sk-ant-|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}") | not' "$f" > /dev/null; then
+              echo "::warning::${f} matches a token shape; skipped"
+              continue
+            fi
+            # END token-shape-belt
             # Wrap in the marker so the next run can detect duplicates.
             body_file="$(mktemp "${RUNNER_TEMP:-/tmp}/sentinel-body.XXXXXX")"
             {
