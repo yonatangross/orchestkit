@@ -109,22 +109,24 @@ function versionFromInstallPath(): string | null {
 /**
  * Resolve the running CC version, most authoritative source first.
  *
- * `CLAUDE_CODE_VERSION` stays the primary because it is the cheapest and the
- * documented contract, but it is NOT set in the hook environment on 2.1.250:
- * measured across every row of the local sessions.db, session-registrar recorded
- * cc_version NULL 3542 times out of 3542. This hook read the same var and returned
- * outputSilentSuccess(), so the floor warning and the adoption nudge have never
- * fired for anyone. Which is why the source list exists rather than one lookup.
+ * Order: transcript (what THIS session is running), then the install path the
+ * launcher resolves to now, then `CLAUDE_CODE_VERSION`. Env is cheapest and the
+ * documented contract, but cloud images can leave it stale (e.g. 2.1.42 while
+ * the CLI is 2.1.317; #5031). Preferring it first made every cloud SessionStart
+ * warn below-floor on the wrong witness. Locally the var is almost never set
+ * (session-registrar: 3542/3542 NULL), so the bug does not show on a workstation.
+ * When env disagrees with a higher-authority source, that source wins; do not
+ * warn on the env value.
  */
 export function resolveRunningCC(input: HookInput): { version: string; source: string } | null {
-  const env = process.env.CLAUDE_CODE_VERSION;
-  if (env && SEMVER_RE.test(env)) return { version: env, source: 'env' };
-
   const fromTranscript = versionFromTranscript(input.transcript_path);
   if (fromTranscript) return { version: fromTranscript, source: 'transcript' };
 
   const fromInstall = versionFromInstallPath();
   if (fromInstall) return { version: fromInstall, source: 'install-path' };
+
+  const env = process.env.CLAUDE_CODE_VERSION;
+  if (env && SEMVER_RE.test(env)) return { version: env, source: 'env' };
 
   return null;
 }
