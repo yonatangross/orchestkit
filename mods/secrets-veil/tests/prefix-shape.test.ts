@@ -108,6 +108,27 @@ describe("service-account prefix matches only a real token shape", () => {
     expect(out.text).toBe(toolNames[0] + " " + "•".repeat(8) + " " + toolNames[1]);
   });
 
+  // HOLD 6603957379: in escaped text the character before a token is a
+  // letter ("\n", "\t", "%3D"); a left-context lookbehind leaked these.
+  it("masks the token right after a literal \\n, \\t or %3D (HOLD 6603957379)", () => {
+    const cases = [
+      '"line one' + "\\" + "n" + saToken + "\\" + 'n"',
+      "col" + "\\" + "t" + saToken,
+      "token%3" + "D" + saToken,
+    ];
+    for (const text of cases) {
+      const out = mask(text, shapesOnly);
+      expect(out.text).not.toContain(saToken.slice(0, 12));
+      expect(out.spans).toHaveLength(1);
+      expect(wouldMask(saToken, shapesOnly)).toBe(true);
+    }
+  });
+
+  it("leaves an identifier that starts with the prefix unmasked", () => {
+    const ident = SA + "status_summary_for_dashboard";
+    expect(mask("see " + ident + " here", table).spans).toHaveLength(0);
+  });
+
   it("does not mask the prefix with a short body", () => {
     const short = SA + body(0x5a2, B64URL, 12);
     expect(mask("see " + short + " here", shapesOnly).spans).toHaveLength(0);
@@ -120,6 +141,13 @@ describe("Stripe live prefix matches only a real key shape", () => {
     expect(mask(key, shapesOnly).spans).toHaveLength(1);
     const out = mask("STRIPE_KEY=" + key + " ok", shapesOnly);
     expect(out.text).toBe("STRIPE_KEY=" + "•".repeat(8) + " ok");
+  });
+
+  it("masks a live key right after a literal \\n (HOLD 6603957379)", () => {
+    const key = STRIPE + body(0x5a4, ALNUM, 30);
+    const out = mask('"first' + "\\" + "n" + key + '"', shapesOnly);
+    expect(out.text).not.toContain(key.slice(0, 14));
+    expect(out.spans).toHaveLength(1);
   });
 
   it("leaves identifiers that contain the prefix unmasked", () => {

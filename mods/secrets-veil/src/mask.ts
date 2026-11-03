@@ -230,17 +230,20 @@ export const DEFAULT_PATTERNS: readonly PatternSpec[] = [
   "sk-ant-",
   // 1Password service-account token. The bare prefix sits inside every
   // hq-ops MCP tool name (mcp__hq-ops__...) and identifiers like
-  // hq_ops_tasks, so it must stand alone (no identifier character before
-  // it, no second underscore after it) and carry a long base64url body.
-  // Shape from hq-ext scripts/hooks/secret_shapes.py.
-  { prefix: "ops_", shape: /(?<![A-Za-z0-9_-])ops_(?!_)[A-Za-z0-9+/=_-]{20,}/y },
+  // hq_ops_tasks, so the shape is anchored on the token BODY: a real token
+  // is base64 JSON, so it always continues "eyJ" ('{"') and a long
+  // base64url run. No lookbehind: the left context of a token in escaped
+  // text is a letter too ("\nops_...", "\tops_...", "%3Dops_..."), and a
+  // lookbehind there leaked real tokens (HOLD 6603957379).
+  { prefix: "ops_", shape: /ops_eyJ[A-Za-z0-9+/=_-]{20,}/y },
   "ghp_",
   "github_pat_",
   "xoxb-",
   // Stripe live secret key: the bare prefix sits inside identifiers such as
-  // a risk_live_status column or disk_live_backup, so it must stand alone
-  // and carry the 24+ alnum body of a real key.
-  { prefix: "sk_live_", shape: /(?<![A-Za-z0-9_-])sk_live_[0-9A-Za-z]{24,}/y },
+  // a risk_live_status column or disk_live_backup, so it must carry the
+  // 24+ alnum body of a real key. Body only, no lookbehind, for the same
+  // escaped-text reason as above (HOLD 6603957379).
+  { prefix: "sk_live_", shape: /sk_live_[0-9A-Za-z]{24,}/y },
   "rk_live_",
   "AKIA",
   "Bearer ",
