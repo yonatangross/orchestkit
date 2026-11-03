@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signed skill-autoheal commits</title>
+<meta name="description" content="Skill Build Autoheal now writes its heal commit through the GitHub API, so GitHub signs it, instead of pushing an unsigned commit from the runner.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:20px; }
+  .card { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .card h3 { margin:0 0 8px; font-size:1rem; }
+  .bad { color:var(--bad); font-weight:600; }
+  .ok { color:var(--accent); font-weight:600; }
+  ol li, ul li { margin:4px 0; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Signed skill-autoheal commits</h1>
+  <p class="lead">Skill Build Autoheal regenerates committed build output on a PR that only edited <code>src/</code>. It used to
+  build the commit on the runner and push it, which left an unsigned commit on the PR branch (#5012). It now creates the
+  commit through the GitHub API, which GitHub signs.</p>
+
+  <div class="cols">
+    <div class="card">
+      <h3>Before</h3>
+      <ul>
+        <li>Runner runs <code>git commit</code> as github-actions[bot]</li>
+        <li>Pushes it with the App token</li>
+        <li class="bad">Commit signature: none (unverified)</li>
+        <li>Security review legs flag it; removing it needs a force-push</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>After</h3>
+      <ul>
+        <li>Runner stages the gated paths and reads the staged diff</li>
+        <li><code>scripts/ci/api-commit.mjs</code> uploads blobs, builds the tree, creates the commit with no author set</li>
+        <li class="ok">GitHub signs it: verification.verified = true</li>
+        <li>Branch moves fast-forward only, and only if the commit came back verified</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Guards in the new path</h2>
+  <table>
+    <tr><th>Check</th><th>If it fails</th></tr>
+    <tr><td>Each blob id GitHub returns equals the local git blob id</td><td>Stop, nothing committed</td></tr>
+    <tr><td>Tree id GitHub returns equals local <code>git write-tree</code></td><td>Stop before creating the commit</td></tr>
+    <tr><td>New commit reports <code>verification.verified</code> true</td><td>Branch left untouched, check fails with the regenerate command</td></tr>
+    <tr><td>Ref update uses <code>force: false</code></td><td>A branch that moved meanwhile is a 422, never an overwrite</td></tr>
+  </table>
+
+  <h2>Narrower credentials</h2>
+  <ul>
+    <li>The App token is minted after <code>npm ci</code> and the build, so the PR code those steps run never sees it.</li>
+    <li>Checkout uses <code>persist-credentials: false</code>; no token is left in <code>.git/config</code>.</li>
+    <li>GITHUB_TOKEN stays <code>contents: read</code>; the App token keeps <code>contents: write</code> only, as before.</li>
+  </ul>
+
+  <h2>Tests</h2>
+  <p><code>tests/ci/test-skill-autobuild-api-commit.mjs</code> runs the script against a fake GitHub API: drift with an edit,
+  a new file, a deletion and an exec-bit change; an unverified commit; a tree mismatch; and no drift. It also fails if the
+  workflow runs a push or commit on the runner again.</p>
+
+  <footer>orchestkit #5012</footer>
+</main>
+</body>
+</html>

@@ -8,8 +8,9 @@
 # stale, so the "Build drift detected" gate fails — a correct source edit is
 # rejected purely because the build artifacts weren't regenerated locally.
 #
-# Fix: on a PR that touches src/**, rebuild and push the regenerated artifacts
-# back to the PR branch, so the drift gate self-heals instead of failing.
+# Fix: on a PR that touches src/**, rebuild and commit the regenerated
+# artifacts back to the PR branch, so the drift gate self-heals instead of
+# failing.
 #
 # SECURITY MODEL (read before changing the triggers):
 #   - Trigger is `pull_request`, NOT `pull_request_target` — the workflow
@@ -21,17 +22,26 @@
 #     maintainer/bot branches (incl. web / `gh api` edits on this repo — the
 #     actual #2528 pain). Fork contributors still build locally.
 #
-# CI RE-TRIGGER (#2528-A): the heal commit is pushed with a GitHub App token
+# CI RE-TRIGGER (#2528-A): the heal commit is written with a GitHub App token
 # (RELEASE_BOT), NOT the default GITHUB_TOKEN. GitHub's recursion guard means a
-# GITHUB_TOKEN push does NOT re-trigger required checks — so a bot heal-commit
-# on the pre-heal SHA would leave the PR stuck "Expected — waiting for status"
-# on the new HEAD (#2528-A). Pushing as the App (a distinct actor) re-fires the
-# `pull_request` required checks against the healed commit, so the Build drift
-# gate re-runs and passes. Same established pattern as channel-sync / release.
+# GITHUB_TOKEN write does NOT re-trigger required checks, so a bot heal-commit
+# would leave the PR stuck "Expected, waiting for status" on the new HEAD.
+# Writing as the App (a distinct actor) re-fires the `pull_request` required
+# checks against the healed commit, so the Build drift gate re-runs and passes.
 #
-#   - No loop: the heal commit touches plugins/ + dist + docs, never src/** or
+# SIGNED COMMITS (#5012): the heal commit is created through the Git Data API
+# (scripts/ci/api-commit.mjs: blobs, tree, commit, fast-forward ref update),
+# never by pushing from the runner. A commit the App creates through the API
+# with no author or committer set is signed by GitHub (verification.verified
+# true); the old runner-built commit was unsigned and got flagged by security
+# review. The script refuses to move the branch if GitHub reports the new
+# commit as unverified, and the ref update is fast-forward only (force=false).
+# The App token is minted AFTER `npm ci` + build, so PR code run by those steps
+# never sees it, and checkout no longer persists any credential.
+#
+#   - No loop: the heal commit touches plugins/ + docs, never src/** or
 #     manifests/**, so THIS workflow's `paths:` filter does not re-fire even
-#     though the App-token push is re-trigger-capable. It re-fires only the
+#     though the App-token write is re-trigger-capable. It re-fires only the
 #     drift-gated checks (ci.yml Build, Docs Site Build), which is the point.
 
 name: Skill Build Autoheal
@@ -42,7 +52,7 @@ on:
       - 'src/**'
       - 'manifests/**'
 
-# Default-deny; the single job elevates to contents: write.
+# Default-deny; the job's only write path is the App token below.
 permissions:
   contents: read
 
@@ -72,28 +82,17 @@ jobs:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository
       && github.event.pull_request.user.login != 'dependabot[bot]'
-    # GITHUB_TOKEN stays read-only; the heal commit is pushed with the App token
-    # (#2528-A) so required checks re-trigger on the healed SHA.
+    # GITHUB_TOKEN stays read-only; the heal commit is written with the App
+    # token (#2528-A) so required checks re-trigger on the healed SHA.
     permissions:
       contents: read
     steps:
-      - name: Mint Release Bot token
-        id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
-        with:
-          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: orchestkit
-          permission-contents: write
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3  # zizmor: ignore[artipacked] git push in this job uses the persisted App token (re-triggers required checks per #2528-A; fork PRs are skipped above)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-          # Persist the App token so `git push` runs as the App (a distinct
-          # actor), which re-triggers the drift-gated required checks (#2528-A).
-          token: ${{ steps.app-token.outputs.token }}
+          # Nothing is pushed from the runner (#5012), so no credential stays
+          # in .git/config for the PR code that npm ci + build execute.
+          persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
@@ -105,9 +104,21 @@ jobs:
       - name: Build (regenerate plugins/ + dist + docs mirrors)
         run: npm run build
 
-      - name: Commit + push regenerated artifacts if drift
+      # Minted only now, after the PR's own code (npm ci + build) has run.
+      - name: Mint Release Bot token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          permission-contents: write
+
+      - name: Commit regenerated artifacts through the API if drift (signed)
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
           # Gated paths only (mirrors the Build + Docs Site drift gates); the
@@ -115,17 +126,12 @@ jobs:
           # Hook bundles (src/hooks/dist, plugins/ork/hooks/dist) are excluded
           # since #3578: they are release-owned and a heal commit carrying them
           # would fail ci.yml's "release-owned" gate on the very PR it healed.
-          GATED=(plugins/ ':!plugins/ork/hooks/dist' docs/site/content/docs/reference docs/site/content/docs/skills/by-category)
-          if git diff --quiet -- "${GATED[@]}"; then
-            echo "::notice::No build drift — source and committed artifacts already in sync."
-            exit 0
-          fi
-          echo "::notice::Build drift detected — committing regenerated artifacts to ${HEAD_REF}."
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- "${GATED[@]}"
-          git commit -m "chore(build): regenerate skill artifacts [skill-autoheal]
-
-          Auto-regenerated by .github/workflows/skill-autobuild.yml after a
-          src-only edit left the committed build output stale (#2528)."
-          git push origin "HEAD:${HEAD_REF}"
+          MSG_FILE="${RUNNER_TEMP}/skill-autoheal-msg.txt"
+          {
+            echo "chore(build): regenerate skill artifacts [skill-autoheal]"
+            echo
+            echo "Auto-regenerated by .github/workflows/skill-autobuild.yml after a"
+            echo "src-only edit left the committed build output stale (#2528)."
+          } > "$MSG_FILE"
+          node scripts/ci/api-commit.mjs --branch "$HEAD_REF" --message-file "$MSG_FILE" -- \
+            plugins/ ':!plugins/ork/hooks/dist' docs/site/content/docs/reference docs/site/content/docs/skills/by-category
