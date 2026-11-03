@@ -644,6 +644,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0)** · 2026-11-03
+
+- **hooks:** ship the tool dispatchers as the default hooks.json (#5003)
+- **ci:** sign skill-autoheal commits by creating them through the API (#5016)
+
 **[v10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0)** · 2026-11-03
 
 - **hooks:** nudge to the repo's own PR skill on gh pr create (#5006)
@@ -684,13 +689,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** disabled hook on a file stdin no longer hits a TDZ (#4885) (#4949)
 - **skills:** add Bifrost as a gateway option (re-land of [#4940](https://github.com/yonatangross/orchestkit/issues/4940)) (#4966)
-
-**[v10.4.3](https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3)** · 2026-11-01
-
-- **ci:** docs install-deps waits for the dpkg lock before its retry (#4948)
-- **ci:** docs parity test reports a diff error, never false drift (#4902)
-- **hooks:** auto-lint runs only formatters the repo configures (#4945) (#4950)
-- **demo-production:** Quick Start uses the demo config in place (#4959)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
