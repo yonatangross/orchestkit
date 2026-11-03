@@ -62,6 +62,39 @@
       "env": { "TAVILY_API_KEY": "${TAVILY_API_KEY}" },
       "includeTools": ["tavily_search", "tavily_extract", "tavily_map"],
       "$reason": "Optional. Every tavily tool is a read, but they egress and bill credits, so the allowlist is about cost, not mutation. Withheld: tavily_crawl and tavily_research, the two that fan out over many pages per call. Remove the whole entry if TAVILY_API_KEY is not set."
+    },
+
+    "portless": {
+      "command": "/opt/homebrew/bin/portless",
+      "args": ["mcp"],
+      "$allowAll": true,
+      "$reason": "Named .localhost URLs for a dev server. Default (core) profile, 5 tools. Local only, no egress."
+    },
+
+    "emulate": {
+      "command": "/opt/homebrew/bin/emulate",
+      "args": ["mcp"],
+      "$allowAll": true,
+      "$reason": "Stateful local API emulation. Default profile, 4 tools. Local only, no egress."
+    },
+
+    "agent-browser": {
+      "command": "/opt/homebrew/bin/agent-browser",
+      "args": ["mcp", "--tools", "core"],
+      "env": {
+        "AGENT_BROWSER_ARGS": "--mute-audio,--use-mock-keychain,--password-store=basic",
+        "AGENT_BROWSER_SESSION": "ork-mcp-pi",
+        "AGENT_BROWSER_NAMESPACE": "abmcp-pi",
+        "AGENT_BROWSER_PIN_TAB": "1"
+      },
+      "$allowAll": true,
+      "$reason": "Browser automation, core profile (29 tools, roster not attested here, so no includeTools). It drives a real browser and can egress anywhere: enable it for an attended pi lane, set \"disabled\": true for an unattended one. No login or secret belongs in this file."
+    },
+
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "disabled": true,
+      "$reason": "Hosted Vercel MCP over OAuth. The sign-in is per client and the operator's, so it ships present and disabled."
     }
   }
 }

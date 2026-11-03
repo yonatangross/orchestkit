@@ -5,6 +5,28 @@
       "url": "https://mcp.context7.com/mcp",
       "bearer_token_env_var": "CONTEXT7_API_KEY_CODEX",
       "enabled_tools": ["resolve-library-id", "query-docs"]
+    },
+    "portless": {
+      "command": "/opt/homebrew/bin/portless",
+      "args": ["mcp"]
+    },
+    "emulate": {
+      "command": "/opt/homebrew/bin/emulate",
+      "args": ["mcp"]
+    },
+    "agent-browser": {
+      "command": "/opt/homebrew/bin/agent-browser",
+      "args": ["mcp", "--tools", "core"],
+      "env": {
+        "AGENT_BROWSER_ARGS": "--mute-audio,--use-mock-keychain,--password-store=basic",
+        "AGENT_BROWSER_SESSION": "ork-mcp-codex",
+        "AGENT_BROWSER_NAMESPACE": "abmcp-ork-codex",
+        "AGENT_BROWSER_PIN_TAB": "1"
+      }
+    },
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "enabled": false
     }
   }
 }
