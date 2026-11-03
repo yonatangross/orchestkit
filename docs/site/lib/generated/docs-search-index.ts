@@ -1371,6 +1371,16 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
   },
   {
+    "url": "/docs/reference/skills/review-pr/references",
+    "title": "Review Pr: References",
+    "description": "11 references for the Review Pr skill: Adversarial Refutation; Claude Code; Cross Model Refuter; Memory Persistence; Orchestration Mode Selection; Progressive And Partial Results; Review Report Template; Review Template; Rule Check Mode; Task Metrics Template; Ultrareview Gate"
+  },
+  {
+    "url": "/docs/reference/skills/review-pr/rules",
+    "title": "Review Pr: Rules",
+    "description": "3 rules for the Review Pr skill: Agent Prompts: Agent Teams Mode; Agent Prompts: Agent Tool Mode; Configure an AI code review agent for prompt injection and token limit checks"
+  },
+  {
     "url": "/docs/reference/skills/scope-appropriate-architecture",
     "title": "Scope Appropriate Architecture",
     "description": "Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier."
