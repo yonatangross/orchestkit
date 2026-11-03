@@ -469,8 +469,8 @@ Commands are absolute under `/opt/homebrew/bin`, because zsh's builtin `emulate`
 | Tab pin | `AGENT_BROWSER_PIN_TAB` | `1` |
 | 1Password logins | none in any file | only through `~/.claude/hooks/op-read.sh` |
 
-The hq-ext templates also pass `--cdp 9222` to attach to the operator's per-identity Chrome. These templates do not: that Chrome is operator-local, and this is a public plugin, so a pinned port would break the server for anyone without it. Add `--cdp <port>` before `mcp` in your own copy if you run such a Chrome.
+The entry is **isolated by default**: its own isolated session, no `--cdp`, no CDP port, no identity Chrome attach, no logins. A template-level attach would hand every lane that uses the template a signed-in browser, unattended and bypass lanes included. A lane attaches to an identity Chrome per task through the browser-login skill, as the agent-browser CLI does.
 
 The allowed-domains and action-policy server settings are not wired: env name unconfirmed, the search was guard-denied (deploy-guard false positive).
 
-Not verified (no live run): that `agent-browser` accepts its global flags before `mcp`, and that the `core` profile honours the env block.
+Not verified (no live run): that the `core` profile honours the env block.
