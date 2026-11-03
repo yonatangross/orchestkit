@@ -13,9 +13,11 @@
 # failing.
 #
 # SECURITY MODEL (read before changing the triggers):
-#   - Trigger is `pull_request`, NOT `pull_request_target` — the workflow
-#     definition is read from the BASE branch (main), so a PR cannot alter it.
-#   - The job additionally runs ONLY for same-repo PRs
+#   - Trigger is `pull_request`, NOT `pull_request_target`. A `pull_request`
+#     run uses the workflow file from the PR's merge commit (not main), so a
+#     PR CAN alter this file and scripts/ci/api-commit.mjs; the same-repo
+#     check below is the real boundary (only people with push access).
+#   - The job runs ONLY for same-repo PRs
 #     (`head.repo.full_name == github.repository`). Fork PRs are skipped, so
 #     untrusted PR code never executes with a write token, and forks have no
 #     access to the App secrets anyway. This deliberately scopes auto-heal to
