@@ -126,6 +126,18 @@ describe('cc-version-check', () => {
     expect(result.hookSpecificOutput?.additionalContext ?? '').not.toContain('Could not determine');
   });
 
+  // Cold-start remainder of #5031: SessionStart runs before any transcript stamp, and
+  // the cloud image does not symlink ~/.local/bin/claude into versions/<x>. Env alone
+  // is unconfirmed: never warn below-floor on it.
+  it('does not warn below floor when only an unconfirmed CLAUDE_CODE_VERSION is present', () => {
+    process.env.CLAUDE_CODE_VERSION = '2.1.42';
+    // Default mocks: existsSync false, realpathSync has no versions/ (transcript + install miss).
+    const result = ccVersionCheck(makeInput('cold-env-only'), createTestContext());
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toBeUndefined();
+    expect(result.systemMessage ?? '').not.toContain('below');
+  });
+
   it('emits SessionStart, not UserPromptSubmit, as its hookEventName', () => {
     // The nudge branch previously used outputPromptContext, which hardcodes
     // hookEventName: 'UserPromptSubmit'. On a SessionStart hook the runner strips it,
@@ -136,8 +148,23 @@ describe('cc-version-check', () => {
   });
 
   it('warns user when running CC is below floor', () => {
-    process.env.CLAUDE_CODE_VERSION = '2.1.50';
-    const result = ccVersionCheck(makeInput('below-test'), createTestContext());
+    // Confirmed via transcript; env alone must not warn (cold-start case above).
+    vi.mocked(existsSync).mockImplementation((p) => {
+      const path = String(p);
+      if (path.endsWith('.jsonl')) return true;
+      if (path.endsWith('shared/cc-support.json')) return false;
+      if (path.endsWith('.claude/state')) return true;
+      return false;
+    });
+    vi.mocked(openSync).mockReturnValue(7 as never);
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
+      const line = '{"type":"user"}\n{"type":"assistant","version":"2.1.50"}\n';
+      return buf.write(line, 0, 'utf8');
+    }) as never);
+    const result = ccVersionCheck(
+      { ...makeInput('below-test'), transcript_path: '/tmp/below.jsonl' },
+      createTestContext(),
+    );
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('2.1.50');
     expect(result.systemMessage).toContain('below');
@@ -171,7 +198,7 @@ describe('cc-version-check', () => {
   });
 
   it('rate-limits to once per session via flag file', () => {
-    process.env.CLAUDE_CODE_VERSION = '2.1.50'; // would warn on first call
+    // Confirmed below-floor via transcript so the first call still warns.
     const writtenFlags = new Set<string>();
     const efs = vi.mocked(existsSync);
     const wfs = vi.mocked(writeFileSync);
@@ -180,6 +207,7 @@ describe('cc-version-check', () => {
     // shared/cc-support.json is never written → always false.
     efs.mockImplementation((p) => {
       const path = String(p);
+      if (path.endsWith('.jsonl')) return true;
       if (path.endsWith('shared/cc-support.json')) return false;
       if (path.endsWith('.claude/state')) return true;
       return writtenFlags.has(path);
@@ -187,29 +215,43 @@ describe('cc-version-check', () => {
     wfs.mockImplementation((p) => {
       writtenFlags.add(String(p));
     });
+    vi.mocked(openSync).mockReturnValue(7 as never);
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
+      const line = '{"type":"user"}\n{"type":"assistant","version":"2.1.50"}\n';
+      return buf.write(line, 0, 'utf8');
+    }) as never);
 
-    const r1 = ccVersionCheck(makeInput('rate-session'), createTestContext());
+    const input = { ...makeInput('rate-session'), transcript_path: '/tmp/rate.jsonl' };
+    const r1 = ccVersionCheck(input, createTestContext());
     expect(r1.systemMessage).toBeTruthy();
 
-    const r2 = ccVersionCheck(makeInput('rate-session'), createTestContext());
+    const r2 = ccVersionCheck(input, createTestContext());
     expect(r2.systemMessage).toBeUndefined();
   });
 
   it('reads supported_floor from shared/cc-support.json when present', () => {
-    process.env.CLAUDE_CODE_VERSION = '2.1.110';
     const efs = vi.mocked(existsSync);
     const rfs = vi.mocked(readFileSync);
 
     efs.mockImplementation((p) => {
       const path = String(p);
+      if (path.endsWith('.jsonl')) return true;
       if (path.endsWith('shared/cc-support.json')) return true;
       if (path.endsWith('.claude/state')) return true;
       return false; // flag file absent
     });
     // readFileSync(path, 'utf8') returns string (not Buffer) — match the production signature.
     rfs.mockReturnValue(JSON.stringify({ supported_floor: '2.1.115', latest: '2.1.120' }));
+    vi.mocked(openSync).mockReturnValue(7 as never);
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
+      const line = '{"type":"user"}\n{"type":"assistant","version":"2.1.110"}\n';
+      return buf.write(line, 0, 'utf8');
+    }) as never);
 
-    const r = ccVersionCheck(makeInput('floor-test'), createTestContext());
+    const r = ccVersionCheck(
+      { ...makeInput('floor-test'), transcript_path: '/tmp/floor.jsonl' },
+      createTestContext(),
+    );
     expect(r.systemMessage).toContain('2.1.115');
     expect(r.systemMessage).toContain('2.1.110');
   });

@@ -115,8 +115,9 @@ function versionFromInstallPath(): string | null {
  * the CLI is 2.1.317; #5031). Preferring it first made every cloud SessionStart
  * warn below-floor on the wrong witness. Locally the var is almost never set
  * (session-registrar: 3542/3542 NULL), so the bug does not show on a workstation.
- * When env disagrees with a higher-authority source, that source wins; do not
- * warn on the env value.
+ * When env disagrees with a higher-authority source, that source wins. When env
+ * is the ONLY source (cold start: no transcript stamp, no versions/ symlink),
+ * callers must not warn below-floor on it (the value is unconfirmed; #5031).
  */
 export function resolveRunningCC(input: HookInput): { version: string; source: string } | null {
   const fromTranscript = versionFromTranscript(input.transcript_path);
@@ -181,6 +182,15 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const matrixLatest = LATEST_KNOWN_CC;
 
   if (compareCCVersions(running, floor) < 0) {
+    // Env alone is unconfirmed (cloud cold start leaves a stale CLAUDE_CODE_VERSION
+    // with no transcript stamp and no versions/ symlink). Do not warn on it.
+    if (resolved.source === 'env') {
+      ctx.log(
+        'cc-version-check',
+        `running=${running} (via env, unconfirmed) < floor=${floor}: silent, no corroborating source`,
+      );
+      return outputSilentSuccess();
+    }
     ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) < floor=${floor} — warning user`);
     return outputWithNotification(
       `⚠ Claude Code ${running} is below OrchestKit's supported floor (${floor}). Some hooks and skills may no-op or error. See shared/rules/cc-support-policy.md.`,
