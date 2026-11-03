@@ -296,7 +296,7 @@ describe('lib/common.ts', () => {
     const cases: Array<[string, ReturnType<typeof outputSilentAllow>]> = [
       ['outputSilentAllow', outputSilentAllow()],
       ['outputPermissionRequestAllow', outputPermissionRequestAllow()],
-      ['outputWithContext', outputWithContext('ctx')],
+      ['outputWithContext', outputWithContext('ctx', 'PreToolUse')],
       ['outputAllowWithContext', outputAllowWithContext('ctx')],
       ['outputDeny', outputDeny('reason')],
       ['outputAsk', outputAsk('reason')],

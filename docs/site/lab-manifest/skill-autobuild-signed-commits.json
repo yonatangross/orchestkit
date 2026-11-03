@@ -1,0 +1,8 @@
+{
+  "slug": "skill-autobuild-signed-commits",
+  "source": "docs/fix--skill-autobuild-signed-commits/index.html",
+  "title": "Signed skill-autoheal commits",
+  "description": "Skill Build Autoheal writes its heal commit through the GitHub API, so GitHub signs it, instead of pushing an unsigned commit from the runner.",
+  "tags": ["ci", "github-actions", "security", "signing"],
+  "date": "2026-11-03"
+}

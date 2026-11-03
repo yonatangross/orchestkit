@@ -178,12 +178,12 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
         `[PARTIAL RESULT] Agent \`${agentType}\` stopped at its ${turnLimit}-turn limit; its output is partial, not finished. ` +
         `Continue it with SendMessage to ${who} ("continue from where you stopped") — its context survives the stop. ` +
         `Do NOT re-spawn it from scratch; that pays the whole prompt again and loses its working state.`
-      );
+      , input);
     }
     return outputWithContext(
       `[PARTIAL RESULT] Agent \`${agentType}\` returned partial results (likely killed or timed out). ` +
       `Verify completeness before proceeding — do NOT auto-spawn replacement agents on partial output.`
-    );
+    , input);
   }
 
   // Load config and state
@@ -237,5 +237,5 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   // Format message for user
   const message = formatRetryDecision(decision, agentType);
 
-  return outputWithContext(message);
+  return outputWithContext(message, input);
 }

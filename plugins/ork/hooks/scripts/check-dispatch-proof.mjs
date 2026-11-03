@@ -26,6 +26,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { invokedAsScript } from './unified-pretool-hooks.mjs';
 
 const PROOF_RE = /ork-proof:([A-Za-z]+):([^:\s"\\]+):([^\s"\\]+?)@(ok|failed)/g;
 
@@ -102,7 +103,7 @@ function arg(name, fallback) {
   return i > -1 ? process.argv[i + 1] : fallback;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (invokedAsScript(process.argv[1], import.meta.url)) {
   const here = dirname(fileURLToPath(import.meta.url));
   const log = process.argv[2];
   if (!log || log.startsWith('--')) {

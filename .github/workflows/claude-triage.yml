@@ -165,7 +165,7 @@ jobs:
           } > triage-prompt.txt
           claude -p "$(cat triage-prompt.txt)" \
             --max-turns 3 \
-            --model "${CLAUDE_TRIAGE_MODEL:-claude-haiku-4-5-20251001}" \
+            --model "${CLAUDE_TRIAGE_MODEL:-claude-haiku-5-5}" \
             --allowedTools "Bash(gh label list),Bash(gh api repos/:owner/:repo/milestones)" \
             --disallowedTools "Read,Grep,Glob,LS,WebFetch,WebSearch,Write,Edit,MultiEdit,NotebookEdit,TodoWrite,Task,Agent" \
             > triage.md

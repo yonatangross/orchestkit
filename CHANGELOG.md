@@ -5,6 +5,62 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.3](https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3) (2026-11-03)
+
+
+### Bug Fixes
+
+* **ci:** scope ci-sentinel claude -p to its gh reads ([#5014](https://github.com/yonatangross/orchestkit/issues/5014)) ([8b25268](https://github.com/yonatangross/orchestkit/commit/8b25268b4d75ac1529eb6e7243b87b159933453f))
+* **secrets-veil:** stop masking hq-ops tool names (shaped SA prefix) ([#5027](https://github.com/yonatangross/orchestkit/issues/5027)) ([5fc8a5e](https://github.com/yonatangross/orchestkit/commit/5fc8a5eca45a7e984bdc90c5abc117fdcbbebe61))
+
+## [10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **agents:** require concerns[] for DONE_WITH_CONCERNS ([#5030](https://github.com/yonatangross/orchestkit/issues/5030)) ([56a34ad](https://github.com/yonatangross/orchestkit/commit/56a34adf7c6691684a034f207bff9898ebc2d604))
+* **hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge ([#5022](https://github.com/yonatangross/orchestkit/issues/5022)) ([de03936](https://github.com/yonatangross/orchestkit/commit/de03936851a53f638d355b6061eb6fbaf4bf5db0))
+
+## [10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1) (2026-11-03)
+
+
+### Miscellaneous
+
+* **models:** move Claude defaults to the 5.5 family ([#5020](https://github.com/yonatangross/orchestkit/issues/5020)) ([d06b02d](https://github.com/yonatangross/orchestkit/commit/d06b02d2bec99a8d9c11c80d696b3f9679e83fbd))
+
+## [10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0) (2026-11-03)
+
+
+### Features
+
+* **hooks:** ship the tool dispatchers as the default hooks.json ([#5003](https://github.com/yonatangross/orchestkit/issues/5003)) ([fd31da9](https://github.com/yonatangross/orchestkit/commit/fd31da938f91f58872f50a2a52a0b433365bdde7))
+
+
+### Bug Fixes
+
+* **ci:** sign skill-autoheal commits by creating them through the API ([#5016](https://github.com/yonatangross/orchestkit/issues/5016)) ([b0664ac](https://github.com/yonatangross/orchestkit/commit/b0664ac21b0a29e5a74b332bad14dc93d75c388f))
+
+## [10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0) (2026-11-03)
+
+
+### Features
+
+* **hooks:** nudge to the repo's own PR skill on gh pr create ([#5006](https://github.com/yonatangross/orchestkit/issues/5006)) ([bb41bfb](https://github.com/yonatangross/orchestkit/commit/bb41bfb7a8dad5b215383f5c385f0b567fca8009))
+* **skills:** route setup and swarm-migrate through ork:auto ([#5008](https://github.com/yonatangross/orchestkit/issues/5008)) ([9a8e764](https://github.com/yonatangross/orchestkit/commit/9a8e764aa2272cf4d71968312805bd5ba024a37d))
+
+
+### Bug Fixes
+
+* **agents:** report a blocked commit as BLOCKED, not an empty sha ([#5007](https://github.com/yonatangross/orchestkit/issues/5007)) ([e0e9757](https://github.com/yonatangross/orchestkit/commit/e0e9757660c2489f1e09d1bedcd46046588b18af))
+* **ci:** make test-claude-health-tool-scope.sh executable ([#5002](https://github.com/yonatangross/orchestkit/issues/5002)) ([60c131d](https://github.com/yonatangross/orchestkit/commit/60c131d220d224b8b0fe1da717119f67dc7df53d))
+* **hooks:** label outputWithContext with the firing event; expire the veil copy question ([#5005](https://github.com/yonatangross/orchestkit/issues/5005)) ([192add0](https://github.com/yonatangross/orchestkit/commit/192add0451db908d9834a8b251b27e4fac4485c2))
+* **tests:** glyph triage hard-fails only on a real CI runner ([#5000](https://github.com/yonatangross/orchestkit/issues/5000)) ([bb0ebf9](https://github.com/yonatangross/orchestkit/commit/bb0ebf916a53e53430d17af4295f981a1c8d3888))
+
+
+### CI/CD
+
+* claude-health schema asks only for collected metrics ([#4998](https://github.com/yonatangross/orchestkit/issues/4998)) ([502207c](https://github.com/yonatangross/orchestkit/commit/502207cc7a68bf5b8a93982c62b348ad4501b754))
+
 ## [10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4) (2026-11-02)
 
 

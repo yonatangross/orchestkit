@@ -11,8 +11,10 @@
  * matcher-less entry: it routes by tool_name to the same handlers, in the
  * same order, and forwards the event exactly once.
  *
- * OFF by default. It is wired only into the hooks.json variant written by
- * scripts/unified-pretool-hooks.mjs; the shipped hooks.json never names it.
+ * ON by default (#5003). scripts/build-plugins.sh writes the shipped
+ * plugins/ork/hooks/hooks.json with scripts/unified-pretool-hooks.mjs
+ * --shipped, whose PreToolUse is this one entry. src/hooks/hooks.json stays
+ * the per-handler registry and never names it.
  *
  * Contract:
  * - The route's primary (sync) handler result is returned unchanged, so a

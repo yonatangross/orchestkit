@@ -455,6 +455,33 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             echo -e "    ${GREEN}Stripped devDependencies from hooks/package.json${NC}"
         fi
 
+        # Ship the one-process tool dispatchers as the default. The rsync
+        # above copied the per-handler registry (src/hooks/hooks.json, which
+        # route tables and tests keep reading); Claude Code starts one process
+        # per matching entry of THE SHIPPED FILE, so that copy is rewritten to
+        # PreToolUse + PostToolUse dispatcher entries with every other event,
+        # PostToolBatch included, kept as is (--shipped; only the opt-in flag
+        # variant drops PostToolBatch). scripts/unified-pretool-hooks.mjs,
+        # #4962/#4971. Only the shipped copy changes. Pinned by
+        # src/__tests__/shipped-dispatchers.test.ts and measured by
+        # scripts/spawn-ratchet.mjs.
+        # Delete the rsync'd per-handler copy first, then require a written
+        # file: a generator that exits 0 without writing (its main-module
+        # guard missed under a symlinked path, #5004) must fail the build, not
+        # ship the stale per-handler registry.
+        rm -f "$PLUGIN_DIR/hooks/hooks.json"
+        node "$SRC_DIR/hooks/scripts/unified-pretool-hooks.mjs" --shipped \
+            --in "$SRC_DIR/hooks/hooks.json" \
+            --out "$PLUGIN_DIR/hooks/hooks.json" >/dev/null || {
+            echo -e "    ${RED}Failed to write the dispatcher hooks.json${NC}"
+            exit 1
+        }
+        if [[ ! -s "$PLUGIN_DIR/hooks/hooks.json" ]]; then
+            echo -e "    ${RED}Dispatcher hooks.json generator exited 0 but wrote nothing (#5004)${NC}"
+            exit 1
+        fi
+        echo -e "    ${GREEN}Wrote dispatcher hooks.json (shippedToolHooks, PostToolBatch kept)${NC}"
+
         # stop-uncommitted-check.mjs reads plugin.json at runtime (no
         # __PLUGIN_VERSION__ stamp). Keeping src and plugins copies
         # byte-identical avoids release-PR Build drift after the file left

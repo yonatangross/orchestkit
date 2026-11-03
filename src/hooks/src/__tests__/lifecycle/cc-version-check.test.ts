@@ -99,6 +99,33 @@ describe('cc-version-check', () => {
     expect(result.hookSpecificOutput?.additionalContext ?? '').not.toContain('Could not determine');
   });
 
+  // Regression for #5031: cloud images set a stale CLAUDE_CODE_VERSION (e.g. 2.1.42)
+  // while the running CLI is newer. Prefer the transcript over env so the floor
+  // warning does not fire on the stale env value.
+  it('prefers transcript over a stale CLAUDE_CODE_VERSION and does not warn below floor', () => {
+    process.env.CLAUDE_CODE_VERSION = '2.1.42';
+    vi.mocked(existsSync).mockImplementation((p) => {
+      const path = String(p);
+      if (path.endsWith('.jsonl')) return true;
+      if (path.endsWith('shared/cc-support.json')) return false;
+      if (path.endsWith('.claude/state')) return true;
+      return false;
+    });
+    vi.mocked(openSync).mockReturnValue(7 as never);
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
+      const line = '{"type":"user","sessionId":"x"}\n{"type":"assistant","version":"2.1.317"}\n';
+      return buf.write(line, 0, 'utf8');
+    }) as never);
+
+    const input = { ...makeInput('stale-env-cloud'), transcript_path: '/tmp/cloud.jsonl' };
+    const result = ccVersionCheck(input, createTestContext());
+
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toBeUndefined();
+    expect(result.systemMessage ?? '').not.toContain('below');
+    expect(result.hookSpecificOutput?.additionalContext ?? '').not.toContain('Could not determine');
+  });
+
   it('emits SessionStart, not UserPromptSubmit, as its hookEventName', () => {
     // The nudge branch previously used outputPromptContext, which hardcodes
     // hookEventName: 'UserPromptSubmit'. On a SessionStart hook the runner strips it,

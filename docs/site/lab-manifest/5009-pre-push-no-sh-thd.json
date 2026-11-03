@@ -1,0 +1,12 @@
+{
+  "slug": "5009-pre-push-no-sh-thd",
+  "source": "docs/fix--pre-push-no-sh-thd/index.html",
+  "title": "Pre-push no longer leaves sh-thd-* in the repo root",
+  "description": "Bash here-strings were writing empty sh-thd-* files into the worktree when TMPDIR was the repository root. The hook now redirects TMPDIR, cleans leftovers on EXIT, and fails closed if any remain.",
+  "tags": [
+    "hooks",
+    "pre-push",
+    "5009"
+  ],
+  "date": "2026-11-03"
+}

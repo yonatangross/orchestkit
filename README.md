@@ -644,6 +644,34 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.7.3](https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3)** · 2026-11-03
+
+- **ci:** scope ci-sentinel claude -p to its gh reads (#5014)
+- **secrets-veil:** stop masking hq-ops tool names (shaped SA prefix) (#5027)
+
+**[v10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2)** · 2026-11-03
+
+- **agents:** require concerns[] for DONE_WITH_CONCERNS (#5030)
+- **hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge (#5022)
+
+**[v10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1)** · 2026-11-03
+
+- **models:** move Claude defaults to the 5.5 family (#5020)
+
+**[v10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0)** · 2026-11-03
+
+- **hooks:** ship the tool dispatchers as the default hooks.json (#5003)
+- **ci:** sign skill-autoheal commits by creating them through the API (#5016)
+
+**[v10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0)** · 2026-11-03
+
+- **hooks:** nudge to the repo's own PR skill on gh pr create (#5006)
+- **skills:** route setup and swarm-migrate through ork:auto (#5008)
+- **agents:** report a blocked commit as BLOCKED, not an empty sha (#5007)
+- **ci:** make test-claude-health-tool-scope.sh executable (#5002)
+- **hooks:** label outputWithContext with the firing event; expire the veil copy question (#5005)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4)** · 2026-11-02
 
 - **ci:** let claude-health finish within its tool allowlist (#4994)
@@ -660,36 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** fail when the repo description carries stale counts (#4975)
 - **docs:** Lab render check covers pruned entries from public/lab (#4976)
 - **hooks:** gerund after 'without ... and' stays negated (#4715) (#4978)
-
-**[v10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1)** · 2026-11-01
-
-- **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
-- prune 541 archived playground dirs from main (#4965)
-
-**[v10.5.0](https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0)** · 2026-11-01
-
-- **hooks:** one-process tool dispatchers behind a flagged hooks.json variant (#4962)
-- **ci:** playground gate reads the PR files API, not the diff (#4967)
-
-**[v10.4.4](https://github.com/yonatangross/orchestkit/compare/v10.4.3...v10.4.4)** · 2026-11-01
-
-- **hooks:** disabled hook on a file stdin no longer hits a TDZ (#4885) (#4949)
-- **skills:** add Bifrost as a gateway option (re-land of [#4940](https://github.com/yonatangross/orchestkit/issues/4940)) (#4966)
-
-**[v10.4.3](https://github.com/yonatangross/orchestkit/compare/v10.4.2...v10.4.3)** · 2026-11-01
-
-- **ci:** docs install-deps waits for the dpkg lock before its retry (#4948)
-- **ci:** docs parity test reports a diff error, never false drift (#4902)
-- **hooks:** auto-lint runs only formatters the repo configures (#4945) (#4950)
-- **demo-production:** Quick Start uses the demo config in place (#4959)
-
-**[v10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2)** · 2026-10-30
-
-- **ci:** playground gate treats a nested README as docs (#4951)
-- **hooks:** elicitation logger reads mcp_server_name and action (#4884) (#4953)
-- **hooks:** split a worktree advisory at the context cap (#4922) (#4954)
-- **skills:** design-ship links a bundle source for file and URL input (#4956)
-- **site:** legacy host redirect comment says 301, like the code (#4957)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

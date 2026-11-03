@@ -16,7 +16,7 @@ import { NOOP_CTX } from '../lib/context.js';
  * Commit Convention Loader — detects commit message conventions.
  * Used by: commit skill (PreToolUse/Bash, once:true)
  */
-export function commitConventionLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+export function commitConventionLoader(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const projectDir = hookCtx.projectDir;
 
   const recentCommits = safeExec('git log --oneline -10 --format="%s"', projectDir);
@@ -39,7 +39,7 @@ export function commitConventionLoader(_input: HookInput, hookCtx: HookContext =
     lastTag ? `Last tag: ${lastTag}` : '',
   ].filter(Boolean).join('\n');
 
-  return outputWithContext(ctx);
+  return outputWithContext(ctx, input);
 }
 
 // releaseStateLoader removed: its only consumer was the release-checklist

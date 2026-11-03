@@ -9,7 +9,7 @@ Multi-model fallback implementation with:
 
 Usage:
     chain = LLMFallbackChain(
-        primary=LLMProvider("claude-sonnet-5"),
+        primary=LLMProvider("claude-sonnet-5-5"),
         fallbacks=[LLMProvider("gpt-5-mini")],
         cache=semantic_cache,
     )
@@ -27,7 +27,13 @@ from typing import Any, TypeVar
 
 # Claude 5-series models reject non-default sampling params (temperature, top_p,
 # top_k) with a 400, so they are dropped per provider call, never chain-wide.
-_NO_SAMPLING_PREFIXES = ("claude-sonnet-5", "claude-opus-5", "claude-fable-5", "claude-mythos-5")
+_NO_SAMPLING_PREFIXES = (
+    "claude-sonnet-5",
+    "claude-opus-5",
+    "claude-fable-5",
+    "claude-mythos-5",
+    "claude-haiku-5",
+)
 _SAMPLING_KEYS = ("temperature", "top_p", "top_k")
 
 
@@ -462,7 +468,7 @@ if __name__ == "__main__":
         primary = MockLLMProvider(
             LLMConfig(
                 name="primary",
-                model="claude-sonnet-5",
+                model="claude-sonnet-5-5",
                 cost_per_million_input=2.0,
                 cost_per_million_output=10.0,
             ),

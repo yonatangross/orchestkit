@@ -87,7 +87,7 @@ export async function postDesignImportAutoVerify(
   ].join('\n');
 
   ctx.log('post-design-import', `Verify nudge emitted (bundle=${bundleId ?? 'unknown'})`);
-  return outputWithContext(message);
+  return outputWithContext(message, input);
 }
 
 export default postDesignImportAutoVerify;

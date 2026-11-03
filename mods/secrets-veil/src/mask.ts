@@ -3,7 +3,7 @@
 // with one new layer added: high-entropy token masking. The layer is opt-in
 // per table via buildTable options, so existing callers keep exact behavior.
 
-import type { MaskTable, MaskTableEntry, MaskSpan, MaskResult, EntropyConfig } from "./types";
+import type { MaskTable, MaskTableEntry, MaskSpan, MaskResult, EntropyConfig, PatternSpec } from "./types";
 
 /**
  * High-entropy layer constants.
@@ -182,7 +182,7 @@ export function isHighEntropyToken(token: string): boolean {
 export function buildTable(
   envNames: readonly string[],
   envValues: Record<string, string>,
-  patterns: readonly string[],
+  patterns: readonly PatternSpec[],
   options?: { entropy?: boolean }
 ): MaskTable {
   const entries: MaskTableEntry[] = [];
@@ -200,12 +200,19 @@ export function buildTable(
     }
   }
 
-  // Add shape patterns (prefixes that indicate secrets)
-  for (const pattern of patterns) {
-    entries.push({
-      type: "pattern",
-      pattern,
-    });
+  // Add shape patterns (prefixes that indicate secrets). A shaped prefix
+  // keeps its literal prefix for the indexOf scan and gets a sticky copy of
+  // its shape, tested only where the prefix is found.
+  for (const spec of patterns) {
+    if (typeof spec === "string") {
+      entries.push({ type: "pattern", pattern: spec });
+    } else {
+      entries.push({
+        type: "pattern",
+        pattern: spec.prefix,
+        shape: new RegExp(spec.shape.source, "y"),
+      });
+    }
   }
 
   const entropy: EntropyConfig | null = options?.entropy
@@ -219,13 +226,24 @@ export function buildTable(
  * Default secret patterns (prefixes and patterns).
  * Vendor prefixes such as sk-ant-, ghp_, xoxb-, AKIA, Bearer, BEGIN PRIVATE KEY.
  */
-export const DEFAULT_PATTERNS: readonly string[] = [
+export const DEFAULT_PATTERNS: readonly PatternSpec[] = [
   "sk-ant-",
-  "ops_",
+  // 1Password service-account token. The bare prefix sits inside every
+  // hq-ops MCP tool name (mcp__hq-ops__...) and identifiers like
+  // hq_ops_tasks, so the shape is anchored on the token BODY: a real token
+  // is base64 JSON, so it always continues "eyJ" ('{"') and a long
+  // base64url run. No lookbehind: the left context of a token in escaped
+  // text is a letter too ("\nops_...", "\tops_...", "%3Dops_..."), and a
+  // lookbehind there leaked real tokens (HOLD 6603957379).
+  { prefix: "ops_", shape: /ops_eyJ[A-Za-z0-9+/=_-]{20,}/y },
   "ghp_",
   "github_pat_",
   "xoxb-",
-  "sk_live_",
+  // Stripe live secret key: the bare prefix sits inside identifiers such as
+  // a risk_live_status column or disk_live_backup, so it must carry the
+  // 24+ alnum body of a real key. Body only, no lookbehind, for the same
+  // escaped-text reason as above (HOLD 6603957379).
+  { prefix: "sk_live_", shape: /sk_live_[0-9A-Za-z]{24,}/y },
   "rk_live_",
   "AKIA",
   "Bearer ",
@@ -366,6 +384,20 @@ export function mask(text: string, table: MaskTable): MaskResult {
 
         // Determine the end of the secret
         let end = idx + entry.pattern.length;
+
+        // A shaped prefix counts only where its token shape matches: the
+        // sticky shape runs at idx (its lookbehind sees the text before
+        // idx). A miss costs at most the shape's minimum body length, so
+        // the scan stays linear.
+        if (entry.shape) {
+          entry.shape.lastIndex = idx;
+          const hit = entry.shape.exec(maskedText);
+          if (hit === null) {
+            searchPos = idx + 1;
+            continue;
+          }
+          end = idx + hit[0].length;
+        }
 
         // For Bearer, extend to end of token (non-whitespace)
         if (entry.pattern === "Bearer ") {
@@ -533,7 +565,9 @@ export function wouldMask(value: string, table: MaskTable): boolean {
       return true;
     }
     if (entry.type === "pattern" && value.startsWith(entry.pattern)) {
-      return true;
+      if (!entry.shape) return true;
+      entry.shape.lastIndex = 0;
+      if (entry.shape.test(value)) return true;
     }
   }
   // Same tokenizer rule as mask(): '+' anywhere or '=' as trailing padding

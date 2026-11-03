@@ -593,7 +593,7 @@ import {
   outputSilentSuccess,    // { continue: true, suppressOutput: true }
   outputSilentAllow,      // Silent permission allow
   outputBlock,            // Block with reason
-  outputWithContext,      // Inject context (PostToolUse)
+  outputWithContext,      // Inject context; event label from input (#4683)
   outputPromptContext,    // Inject context (UserPromptSubmit)
   outputAllowWithContext, // Allow + inject context (PreToolUse)
   outputError,            // Show error message
@@ -607,8 +607,9 @@ return outputSilentSuccess();
 // Example: Block operation
 return outputBlock('Committing to main branch is not allowed');
 
-// Example: Inject context before tool execution
-return outputWithContext('💡 Consider using cursor-based pagination for large datasets');
+// Example: Inject context. Pass the hook's input (or a literal event for a
+// single-event hook): there is no PostToolUse default (#4683).
+return outputWithContext('💡 Consider using cursor-based pagination for large datasets', input);
 ```
 
 ---
@@ -952,7 +953,7 @@ Consider creating a task:
 - Add blockedBy dependency to current task
 `;
 
-  return outputWithContext(context);
+  return outputWithContext(context, input);
 }
 ```
 
@@ -1429,6 +1430,8 @@ See the async hooks section above for detailed async hook patterns.
 (count unchanged, 2026-11-01, #4962 HOLD 6557208634): a timer cannot pre-empt synchronous work, so every execSync, execFileSync and spawnSync call reachable from either tool dispatcher carries a child-process timeout (a real kill; scan test `__tests__/lib/dispatcher-sync-bounds`), and a result that arrives after its budget is discarded. A guard verdict lost to its budget fails closed: PostToolUse blocks, PreToolUse denies, each naming the hook; an observer over budget stays silent.
 
 (count unchanged, 2026-11-01, #4962, conductor263): a guard that THROWS fails closed the same way (PostToolUse blocks, PreToolUse denies, naming the hook). `run-hook.mjs` would not: its catch (`run-hook.mjs:965`) emits a silent continue (`:976`) for every hook outside `FAIL_CLOSED_WHEN_MISSING`. Observers that throw stay silent.
+
+(count unchanged, 2026-11-02, #5003): the tool dispatchers are now the DEFAULT, and the "default off" and "NOT in hooks.json" notes in the 2026-10-31 and 2026-11-01 entries above no longer hold. `scripts/build-plugins.sh` writes the shipped `plugins/ork/hooks/hooks.json` as `shippedToolHooks(src/hooks/hooks.json)` (`unified-pretool-hooks.mjs --shipped`): one PreToolUse entry for `pretool/tool-dispatcher`, one PostToolUse entry for `posttool/tool-dispatcher`, every other event copied unchanged. PostToolBatch (`tool-batch-observer`) STAYS in the shipped file; only the opt-in flag variant (`unifiedToolHooks`, the CLI default without `--shipped`) drops it. `src/hooks/hooks.json` stays the per-handler registry. `scripts/spawn-ratchet.mjs` holds the shipped counts by baseline (success 3 per Bash, Edit, Write and Read call, PostToolBatch counted once) and checks its under-3 target against the flag variant (2). Pinned by `src/__tests__/shipped-dispatchers.test.ts`.
 
 (count unchanged, 2026-11-01, #4962 HOLD 6557806212): an `execFileSync` timeout sends SIGTERM and then waits, so a TERM-ignoring child outlasted it. Every sync child-process call reachable from either tool dispatcher now passes `killSignal: 'SIGKILL'` with its timeout (32 calls in 14 files; the scan test requires both), so the bound is a kill the child cannot ignore.
 

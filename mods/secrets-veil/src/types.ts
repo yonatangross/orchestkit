@@ -25,8 +25,21 @@ export type MaskTableEntry =
     }
   | {
       type: "pattern";
+      /** Literal prefix: the scan finds candidates with indexOf on it. */
       pattern: string;
+      /**
+       * Optional shape gate, sticky ("y"): tested at each prefix hit, which
+       * counts only when the shape matches there. Unset means the bare
+       * prefix is enough.
+       */
+      shape?: RegExp;
     };
+
+/**
+ * One default pattern: a bare prefix, or a prefix with the token shape that
+ * must match where the prefix is found.
+ */
+export type PatternSpec = string | { prefix: string; shape: RegExp };
 
 /**
  * The mask table built at session.start from named values and patterns.

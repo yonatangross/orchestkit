@@ -4,9 +4,10 @@
 /**
  * spawn-ratchet.mjs: how many hook processes one tool call starts.
  *
- * Every `type: "command"` entry in hooks.json is one node process per match.
- * This gate counts, per tool (Bash, Edit, Write, Read) and per path, the
- * command entries whose matcher matches the tool, straight from hooks.json:
+ * Every `type: "command"` entry in the shipped hooks.json (plugins/ork/hooks/,
+ * what Claude Code runs) is one node process per match. This gate counts,
+ * per tool (Bash, Edit, Write, Read) and per path, the command entries whose
+ * matcher matches the tool, straight from that hooks.json:
  *
  *   success     PreToolUse + PostToolUse + PostToolBatch
  *   permission  success + PermissionRequest (the call raised a prompt)
@@ -21,19 +22,27 @@
  *            below it fails too, asking for the lower baseline in the same PR
  *            (`--update`), so the win is locked at merge.
  *   target   a success-path count above `target` fails. The target is the
- *            yellow-refactor finish line (under 3 processes per tool call).
+ *            yellow-refactor finish line (under 3 processes per tool call),
+ *            read from the flag variant (unifiedToolHooks, no PostToolBatch).
+ *            The shipped default keeps PostToolBatch, so its baseline is one
+ *            above the target on every path that counts it.
  *
  * Matcher semantics follow Claude Code: absent, "" or "*" matches every tool;
  * a matcher of word characters and "|" is an exact list; anything else is an
  * anchored regular expression.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { unifiedToolHooks } from './unified-pretool-hooks.mjs';
+import { invokedAsScript, unifiedToolHooks } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const HOOKS_JSON = join(__dirname, '..', 'hooks.json');
+// What Claude Code runs is the SHIPPED copy, plugins/ork/hooks/hooks.json
+// (scripts/build-plugins.sh writes it as shippedToolHooks(src/hooks/hooks.json);
+// src/hooks/hooks.json is only the per-handler registry). From src/hooks that
+// is the repo's plugins/ copy; from the shipped tree, the hooks.json beside it.
+const SHIPPED_IN_REPO = join(__dirname, '..', '..', '..', 'plugins', 'ork', 'hooks', 'hooks.json');
+const HOOKS_JSON = existsSync(SHIPPED_IN_REPO) ? SHIPPED_IN_REPO : join(__dirname, '..', 'hooks.json');
 const BASELINE_PATH = join(__dirname, 'spawn-ratchet-baseline.json');
 
 const TOOLS = ['Bash', 'Edit', 'Write', 'Read'];
@@ -69,9 +78,8 @@ export function measure(hooksDoc) {
   return out;
 }
 
-// `flagged` is the count for the dispatcher variant (unified-pretool-hooks.mjs),
-// the hooks.json the flag ships. The target is that variant's finish line; the
-// ratchet stays on the shipped hooks.json, which the flag leaves unchanged.
+// `measured` is the shipped hooks.json (the ratchet). `flagged` is the flag
+// variant, unifiedToolHooks of it (no PostToolBatch), which the target reads.
 export function compare(measured, baseline, target, flagged = measured) {
   const lines = [];
   let failed = false;
@@ -123,6 +131,6 @@ function main() {
   return failed ? 1 : 0;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (invokedAsScript(process.argv[1], import.meta.url)) {
   process.exit(main());
 }
