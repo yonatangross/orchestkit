@@ -57,8 +57,16 @@ export const KEEP = "Keep hidden";
  */
 export function copyQuestion(values: number, tool: string): string {
   const which = values === 1 ? "the masked value" : `the first of ${values} masked values`;
-  return `secrets-veil covered a secret in ${tool}. Copy ${which} to your clipboard? This mod sends it to the clipboard only, never to Claude; another installed mod that hooks clipboard events could still receive it.`;
+  return `secrets-veil covered a secret in ${tool}. Copy ${which} to your clipboard? This mod sends it to the clipboard only, never to Claude; another installed mod that hooks clipboard events could still receive it. This question expires after 2 minutes.`;
 }
+
+/**
+ * Shown when the copy question is answered after its deadline (#4450). The
+ * engine's $.ui.ask takes no signal and returns no handle (CC 2.1.316), so a
+ * mod cannot close a dialog it opened; the late answer is marked instead, so
+ * a Copy picked after the deadline cannot look like it did something.
+ */
+export const EXPIRED_ANSWER_TOAST = "that copy question had expired; nothing was copied, the value stays covered";
 
 /** What one tool result's masking did, in counts and UTF-8 bytes. */
 export interface MaskStats {
@@ -377,10 +385,17 @@ async function offerToCopy($: DollarAPI, covered: Set<string>, tool: string): Pr
   // ask or copy throws and the catch leaves the value covered.
   if (first === undefined) return;
   let answer: unknown = KEEP;
+  // The question outlives its deadline (no dismiss on this engine), so keep a
+  // handle on it to answer a late pick once the offer has expired.
+  const asked = Promise.resolve().then(() => $.ui.ask(copyQuestion(covered.size, tool), [COPY, KEEP]));
   try {
-    // A timed-out question counts as Keep hidden.
-    answer = await withTimeout($, () => $.ui.ask(copyQuestion(covered.size, tool), [COPY, KEEP]), ASK_TIMEOUT_MS);
+    answer = await withTimeout($, () => asked, ASK_TIMEOUT_MS);
   } catch {
+    return;
+  }
+  if (answer === TIMED_OUT) {
+    // A timed-out question counts as Keep hidden. Nothing copies after this.
+    markExpired($, asked);
     return;
   }
   if (answer !== COPY) return;
@@ -404,6 +419,18 @@ async function offerToCopy($: DollarAPI, covered: Set<string>, tool: string): Pr
   } catch {
     // A refused copy leaves the value covered; masking is already done.
   }
+}
+
+/**
+ * After the deadline: a late answer, whatever it is, gets one toast saying the
+ * offer expired and nothing was copied. A dismissed question (the engine
+ * rejects ask) and a failed toast end quietly; nothing here touches the value.
+ */
+function markExpired($: DollarAPI, asked: Promise<unknown>): void {
+  asked.then(
+    () => withTimeout($, () => $.ui.toast(EXPIRED_ANSWER_TOAST), UI_TIMEOUT_MS).catch(() => undefined),
+    () => undefined
+  );
 }
 
 /**

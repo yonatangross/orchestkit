@@ -403,7 +403,7 @@ export interface PermissionRequestDecision {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact' | 'PreModelSwitch';
+  hookEventName?: HookEvent;
   /** Permission decision (PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way). NOT read on PermissionRequest; use `decision` there. */
   permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */

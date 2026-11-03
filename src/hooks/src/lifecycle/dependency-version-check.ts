@@ -271,7 +271,7 @@ export function dependencyVersionCheck(input: HookInput, ctx: HookContext = NOOP
   if (cached !== null) {
     ctx.log('dependency-version-check', 'Using cached dependency warnings');
     if (cached !== 'none') {
-      return outputWithContext(`DEPENDENCY SECURITY CHECK (cached): ${cached}`);
+      return outputWithContext(`DEPENDENCY SECURITY CHECK (cached): ${cached}`, input);
     }
     return outputSilentSuccess();
   }
@@ -310,7 +310,7 @@ export function dependencyVersionCheck(input: HookInput, ctx: HookContext = NOOP
 
     // Only show warning if there are critical or high severity issues
     if (totalCritical > 0 || totalHigh > 0) {
-      return outputWithContext(fullWarning);
+      return outputWithContext(fullWarning, input);
     }
   } else {
     saveCache(cacheFile, 'none');

@@ -42,5 +42,5 @@ export function taskCommitLinker(input: HookInput, ctx: HookContext = NOOP_CTX):
 
   return outputWithContext(
     `[Task-Commit Link] Task #${taskId} "${taskSubject}" completed. You have ${dirtyCount} uncommitted file(s). Commit now to preserve this milestone — use /ork:commit to create a conventional commit referencing this work.`
-  );
+  , input);
 }

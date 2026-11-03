@@ -147,5 +147,5 @@ function mergeQualityContext(
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
   logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
-  return outputWithContext(consolidated);
+  return outputWithContext(consolidated, input);
 }
