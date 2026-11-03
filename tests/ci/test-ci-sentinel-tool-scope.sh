@@ -65,5 +65,38 @@ else
   done
 fi
 
+# 5. The token split (#5014, reviews b34 and b35). Deny rules match raw text,
+#    so quoted or escaped flags pass them: gh api ... -"X" GET (b34),
+#    -''X PATCH, -\X PATCH, --meth""od PATCH, -'f'body=x (b35). The fix is the
+#    token: the job that runs claude -p may only read, and the job that
+#    posts runs no model.
+top_perms="$(awk '/^permissions:/{f=1;next} f&&/^[^ ]/{exit} f' "$WF")"
+[ -n "$top_perms" ] || bad "no workflow-level permissions block"
+[[ "$top_perms" == *write* ]] && bad "workflow-level permissions grant write: $top_perms"
+
+# Every job block: name line `  <job>:` up to the next job name line.
+claude_job="$(awk '/^jobs:/{j=1;next} j&&/^  [a-z][a-z0-9_-]*:$/{name=$1} j&&!/^[[:space:]]*#/&&/claude -p/{print name; exit}' "$WF" | tr -d ':')"
+[ -n "$claude_job" ] || bad "no job runs claude -p"
+job_block() { awk -v j="  $1:" '$0==j{f=1;next} f&&/^  [a-z][a-z0-9_-]*:$/{exit} f' "$WF"; }
+if [ -n "$claude_job" ]; then
+  cj="$(job_block "$claude_job")"
+  cj_perms="$(printf '%s\n' "$cj" | awk '/^    permissions:/{f=1;next} f&&/^    [a-z]/{exit} f')"
+  [ -n "$cj_perms" ] || bad "job $claude_job (runs claude -p) has no permissions block"
+  [[ "$cj_perms" == *write* ]] && bad "job $claude_job runs claude -p with a write permission"
+  [[ "$cj" == *"gh pr comment"* ]] && bad "job $claude_job runs claude -p and also posts"
+fi
+post="$(job_block post)"
+if [ -z "$post" ]; then
+  bad "no post job"
+else
+  [[ "$post" == *"claude"* || "$post" == *"CLAUDE_CODE_OAUTH_TOKEN"* ]] && bad "post job runs or can reach the model"
+  [[ "$post" == *"needs: $claude_job"* ]] || bad "post job does not need $claude_job"
+  [[ "$post" == *"pull-requests: write"* ]] || bad "post job cannot comment"
+fi
+# Every action in the file is pinned by a 40-hex SHA.
+while IFS= read -r use; do
+  [[ "$use" =~ @[0-9a-f]{40}([[:space:]]|$) ]] || bad "action not pinned by SHA: $use"
+done < <(grep -E '^[[:space:]]*(- )?uses:' "$WF" | sed -E 's/^[[:space:]]*(- )?uses:[[:space:]]*//')
+
 if [ "$fail" -ne 0 ]; then exit 1; fi
 echo "PASS: ci-sentinel tool scope"

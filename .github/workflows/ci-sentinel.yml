@@ -36,10 +36,12 @@ on:
         required: false
         default: false
 
+# Least privilege per job (#4771, #5014 review b34/b35): the model runs in
+# `sweep` with a read-only token, so no command it is steered into (quoted or
+# escaped flags pass any text-matching deny rule) can write. Only `post`, which
+# runs no model, holds the write scopes, and it posts verdict data it validated.
 permissions:
-  contents: read       # gh pr checks needs read on the repo
-  pull-requests: write # gh pr comment needs write
-  issues: write        # PR comments are technically issue comments
+  contents: read
 
 concurrency:
   group: ci-sentinel-${{ github.repository }}
@@ -59,6 +61,17 @@ jobs:
   sweep:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Read-only: the job that runs `claude -p` on untrusted CI logs can read
+    # PRs, checks and run logs and write nothing. Verdicts leave as an artifact.
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      actions: read
+      checks: read
+      statuses: read
+    outputs:
+      verdicts: ${{ steps.analyze.outputs.verdicts }}
     # Hoist CLAUDE_CODE_OAUTH_TOKEN to JOB-LEVEL env so every `claude -p`
     # step (auth smoke + per-PR analysis) reads it natively. Migrated off
     # ANTHROPIC_API_KEY (metered credits) → Max-plan OAuth token = $0 spend.
@@ -196,15 +209,16 @@ jobs:
           echo "Found ${count} PR(s) with failing checks"
 
       - name: Analyze each failing PR
+        id: analyze
         if: steps.prs.outputs.queue_count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Claude auth comes from the job-level CLAUDE_CODE_OAUTH_TOKEN env.
-          DRY_RUN: ${{ inputs.dry_run }}
           OWNER: ${{ steps.ctx.outputs.owner }}
           REPO: ${{ steps.ctx.outputs.repo }}
         run: |
           set -uo pipefail
+          mkdir -p .sentinel/out
 
           # Marker the sentinel uses to recognize its own comments (for
           # idempotent updating — never duplicate verdicts on the same SHA).
@@ -308,19 +322,11 @@ jobs:
               continue
             fi
 
-            # Wrap in the marker so the next run can detect duplicates.
-            body=$(printf '%s sha=%s -->\n\n<details><summary>🛰️ <b>CI Sentinel verdict</b> (sha %s)</summary>\n\n%s\n\n</details>\n' \
-              "$MARKER_PREFIX" "$sha" "$sha" "$verdict_md")
-
-            if [ "${DRY_RUN:-false}" = "true" ]; then
-              echo "  ↪ DRY_RUN — skipping comment, would post:"
-              echo "$body" | sed 's/^/    /'
-            else
-              echo "$body" | gh pr comment "$number" \
-                --repo "${OWNER}/${REPO}" \
-                --body-file -
-              echo "  ↪ comment posted"
-            fi
+            # This job's token is read-only: the verdict leaves as data for the
+            # `post` job, which validates it and posts it (#5014).
+            jq -n --argjson pr "$number" --arg sha "$sha" --arg verdict "$verdict_md" \
+              '{pr: $pr, sha: $sha, verdict: $verdict}' > ".sentinel/out/${number}.json"
+            echo "  ↪ verdict saved for the post job"
 
             # Ledger row
             jq -n \
@@ -332,6 +338,17 @@ jobs:
               >> .sentinel/ledger.jsonl
 
           done < <(jq -c '.[]' .sentinel/queue.json)
+          cp .sentinel/queue.json .sentinel/out/queue.json
+          echo "verdicts=$(find .sentinel/out -name '[0-9]*.json' | wc -l | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verdicts for the post job
+        if: steps.analyze.outputs.verdicts != '' && steps.analyze.outputs.verdicts != '0'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: ci-sentinel-verdicts
+          path: .sentinel/out/
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Surface daily ledger as job summary
         if: always()
@@ -357,3 +374,60 @@ jobs:
               echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  post:
+    # No model, no Claude token: this job only validates the verdict files the
+    # read-only `sweep` job produced and posts them. It is the only job with
+    # write scopes (#5014).
+    needs: sweep
+    if: needs.sweep.outputs.verdicts != '' && needs.sweep.outputs.verdicts != '0' && inputs.dry_run != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write # gh pr comment
+      issues: write        # PR comments are issue comments
+    steps:
+      - name: Download verdicts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: ci-sentinel-verdicts
+          path: verdicts
+
+      - name: Validate and post verdicts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          MARKER_PREFIX="<!-- ork:ci-sentinel"
+          MAX_BYTES=65536
+          # The queue (PR numbers and SHAs) also came from `sweep`: a verdict is
+          # posted only for a PR and SHA on that list.
+          jq -e 'type == "array"' verdicts/queue.json > /dev/null
+          for f in verdicts/[0-9]*.json; do
+            [ -f "$f" ] || continue
+            size=$(wc -c < "$f")
+            if [ "$size" -gt "$MAX_BYTES" ]; then
+              echo "::warning::${f} is ${size} bytes (cap ${MAX_BYTES}); skipped"
+              continue
+            fi
+            if ! jq -e '(keys == ["pr","sha","verdict"]) and (.pr | type == "number" and . > 0 and floor == .) and (.sha | type == "string" and test("^[0-9a-f]{7,40}$")) and (.verdict | type == "string" and length > 0)' "$f" > /dev/null; then
+              echo "::warning::${f} does not have the expected fields; skipped"
+              continue
+            fi
+            pr=$(jq -r '.pr' "$f")
+            sha=$(jq -r '.sha' "$f")
+            if [ "$(basename "$f" .json)" != "$pr" ] || ! jq -e --argjson pr "$pr" --arg sha "$sha" 'any(.[]; .number == $pr and .sha == $sha)' verdicts/queue.json > /dev/null; then
+              echo "::warning::${f} names a PR or SHA that is not in the queue; skipped"
+              continue
+            fi
+            # Wrap in the marker so the next run can detect duplicates.
+            body_file="$(mktemp "${RUNNER_TEMP:-/tmp}/sentinel-body.XXXXXX")"
+            {
+              printf '%s sha=%s -->\n\n<details><summary>🛰️ <b>CI Sentinel verdict</b> (sha %s)</summary>\n\n' "$MARKER_PREFIX" "$sha" "$sha"
+              jq -r '.verdict' "$f"
+              printf '\n\n</details>\n'
+            } > "$body_file"
+            gh pr comment "$pr" --repo "$REPO_SLUG" --body-file "$body_file"
+            echo "posted verdict for #${pr} (sha ${sha})"
+          done

@@ -44,6 +44,14 @@ CI logs, and the job token can write PR and issue comments. It ran with
 <td><code>gh api</code> with <code>-X</code>, <code>--method</code>, <code>-f</code>, <code>-F</code>, <code>--field</code>, <code>--raw-field</code>, <code>--input</code> or <code>graphql</code>;<br>any <code>gh</code> command containing <code>env</code> or <code>ENV</code></td></tr>
 </table>
 
+<h2>The real control: a read-only token</h2>
+<table>
+<tr><th>Job</th><th>Runs</th><th>Token</th></tr>
+<tr><td><code>sweep</code></td><td><code>claude -p</code> on untrusted CI logs, writes verdict files</td><td class="ok">read only (contents, pull-requests, issues, actions, checks, statuses)</td></tr>
+<tr><td><code>post</code></td><td>no model: validates the verdict files, posts them</td><td>pull-requests and issues write</td></tr>
+</table>
+<p class="lede">The deny list matches raw text, so a quoted or escaped flag passes it (try <code>gh api repos/o/r/issues/1/comments -"X" POST</code> above: the list allows it). That is why the model's job holds no write scope at all; the lists stay as a second layer.</p>
+
 <div class="foot">A <code>*</code> in a Claude Code rule matches any text, spaces included, so the allow list alone
 cannot pin <code>gh api</code> to GET; that is why the deny list exists. No grep, head or jq: they can read
 files such as <code>/proc/self/environ</code>. Test: <code>tests/ci/test-ci-sentinel-tool-scope.sh</code>.
@@ -62,7 +70,7 @@ function render(){const[v,why]=verdict($('cmd').value);
   const out=$('out');out.replaceChildren();const s=document.createElement('span');
   s.className=v==='allow'?'ok':'bad';s.textContent=v;out.appendChild(s);
   out.appendChild(document.createTextNode(': '+why));}
-['gh pr checks 12 --json bucket,link,name','gh api repos/o/r/actions/jobs/9/logs','gh api repos/o/r/issues/1/comments -X POST -f body=x','gh pr view 12 --json title --jq env','gh pr merge 12 --squash','grep -r token /proc/self/environ']
+['gh pr checks 12 --json bucket,link,name','gh api repos/o/r/actions/jobs/9/logs','gh api repos/o/r/issues/1/comments -X POST -f body=x','gh api repos/o/r/issues/1/comments -"X" POST','gh pr view 12 --json title --jq env','gh pr merge 12 --squash','grep -r token /proc/self/environ']
  .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('cmd').value=s;render();};$('chips').appendChild(b);});
 $('cmd').addEventListener('input',render);render();
 </script><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

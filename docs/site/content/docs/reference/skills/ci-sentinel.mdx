@@ -111,33 +111,34 @@ Each `claude -p` invocation locks the dispatch envelope so cost-per-PR stays pre
 > ⚠️ **The permission mode and tool lists are one control, not the only one.**
 > Be precise about which control does what:
 >
-> - **The real structural control is `permissions: contents: read` at the top of
->   `ci-sentinel.yml`.** The `GITHUB_TOKEN` the job runs under simply cannot
->   write repo contents, so a `git push`, a branch update, or a `gh pr merge` is
->   rejected by GitHub's API regardless of what the model tries. That is
+> - **The structural control is the token, per job.** No job in
+>   `ci-sentinel.yml` can write repo contents, so a `git push`, a branch
+>   update, or a `gh pr merge` is rejected by GitHub's API regardless of what
+>   the model tries. That is
 >   enforcement, not convention. It is also why local edits the model makes to
 >   the runner checkout go nowhere: not because the runner is ephemeral, but
 >   because nothing can push them.
-> - **The token can still write, so the tool lists matter.** The job sets
->   `GH_TOKEN` and grants `pull-requests: write` + `issues: write` for the
->   verdict comment. Under the old `acceptEdits` mode the model could post,
->   edit or delete comments, edit titles and bodies, add labels, and close or
->   reopen PRs and issues. The `dontAsk` allow and deny lists now refuse every
->   gh write form the model could reach (#4771). They are prefix and wildcard
->   matches, not a parser, so treat GitHub-conversation state as the remaining
->   blast radius if a write form slips past them.
+> - **The model's token cannot write (#5014).** The workflow has two jobs.
+>   `sweep` runs `claude -p` with a read-only token (`contents`,
+>   `pull-requests`, `issues`, `actions`, `checks`, `statuses`: all `read`)
+>   and writes each verdict to a file it uploads as an artifact. `post` runs no
+>   model and holds no Claude token: it downloads the verdicts, validates them
+>   (size cap, exact fields, PR and SHA from the sweep's queue) and posts them
+>   with `pull-requests: write`. The tool lists stay as a second layer, but
+>   they are text matches: quoted or escaped flags (`-"X" GET`, `-''X PATCH`,
+>   `--meth""od PATCH`) pass them, which is why the token, not the matcher,
+>   is the control.
 > - **Prompt wording is a convention, not a control.** The dispatch prompt is
 >   `Run /ci-debug on PR N ... Use only the gh CLI. Output the report markdown
->   only`, and `/ci-debug` is specified to propose and never apply. That is what
->   keeps the model from using its write scope destructively, but it is
->   unenforced, and CI logs and PR bodies are untrusted input.
+>   only`, and `/ci-debug` is specified to propose and never apply. It is
+>   unenforced, and CI logs and PR bodies are untrusted input, which is why the
+>   model's job has no write scope at all.
 >
-> Consequences: keep `contents: read`. Widening it to `contents: write` (or
-> adding a git write step plus the matching permission) is the change that
-> actually converts this into an auto-fix bot, and it demotes prompt wording to
-> the sole control. Narrowing `pull-requests`/`issues` to `read` would shrink the
-> remaining blast radius, at the cost of the verdict comment the sentinel exists
-> to post. **Never** use `bypassPermissions` here.
+> Consequences: keep every scope in `sweep` at `read`, and keep the model out
+> of `post`. Giving `sweep` any write scope, or running a model in `post`, puts
+> a token that can write back in reach of untrusted text. Widening either job
+> to `contents: write` is the change that would turn this into an auto-fix bot.
+> **Never** use `bypassPermissions` here.
 
 These are hardcoded in the workflow. If you need to override for a fork (e.g. you want a different `permission-mode`), edit `.github/workflows/ci-sentinel.yml` directly, intentionally not exposed as `workflow_dispatch` inputs to prevent accidental cost spikes from a one-off manual run.
 
