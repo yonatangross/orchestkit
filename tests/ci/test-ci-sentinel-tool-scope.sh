@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# Test: the ci-sentinel headless claude -p runs only the gh reads it needs (#4771).
+# Test: the ci-sentinel headless claude -p runs with no tools (#4771, #5014).
 #
-# The sentinel model reads untrusted CI logs while the job token holds
-# pull-requests: write and issues: write. Assertions on the workflow file
-# (WORKFLOW_FILE overrides the path, so a bad fixture can prove each arm):
-#   1. the claude -p call uses --permission-mode dontAsk, never acceptEdits or
-#      bypassPermissions
-#   2. it passes --allowedTools and --disallowedTools
-#   3. every allow rule is one of the gh reads (no bare Bash, no grep, head,
-#      jq, cat or a wildcard-only rule)
-#   4. the deny list covers every gh api write form and env reads
+# The sentinel model reads untrusted CI logs, and its verdict is posted as a
+# public comment. Assertions on the workflow file (WORKFLOW_FILE overrides the
+# path, so a bad fixture can prove each arm):
+#   1. the per-PR claude -p call uses --permission-mode dontAsk, never
+#      acceptEdits or bypassPermissions
+#   2. it runs with --tools "" and no allow rule at all (b47: any tool that
+#      runs a command can read the env, and gojq can @base64, reverse, slice
+#      or split a secret past any content check), with Bash denied as a belt
+#   3. the gh data is prefetched by the step BEFORE claude runs, fed on stdin
+#   4. the failure branch prints no raw model output or stderr (public log)
 # Each assertion first proves its target exists, so an empty parse cannot pass.
 
 set -euo pipefail
@@ -22,6 +23,8 @@ WF="${WORKFLOW_FILE:-$REPO_ROOT/.github/workflows/ci-sentinel.yml}"
 
 fail=0
 bad() { echo "FAIL: $1"; fail=1; }
+# Lines between `# BEGIN <name>` and `# END <name>` in the workflow.
+snippet() { awk -v b="# BEGIN $1" -v e="# END $1" 'index($0,b){f=1;next} index($0,e){exit} f' "$WF"; }
 
 # The per-PR call: from `claude -p \` with a following prompt line to the
 # redirect into verdict.json (the auth smoke call is one line and excluded).
@@ -32,37 +35,56 @@ else
   [[ "$call" == *"--permission-mode dontAsk"* ]] || bad "claude -p does not use --permission-mode dontAsk"
   [[ "$call" == *acceptEdits* ]] && bad "claude -p still uses acceptEdits"
   [[ "$call" == *bypassPermissions* ]] && bad "claude -p uses bypassPermissions"
-  [[ "$call" == *"--allowedTools"* ]] || bad "claude -p has no --allowedTools"
-  [[ "$call" == *"--disallowedTools"* ]] || bad "claude -p has no --disallowedTools"
+  # 2. No tools: an empty built-in tool set and no allow rule of any kind.
+  [[ "$call" == *'--tools ""'* ]] || bad "claude -p does not run with an empty tool set (--tools \"\")"
+  [[ "$call" == *"--allowedTools"* || "$call" == *"--allowed-tools"* ]] && bad "claude -p still has an allow list"
+  [[ "$call" == *'Bash('* ]] && bad "claude -p still names a Bash rule"
+  [[ "$call" == *'--disallowedTools "Bash"'* ]] || bad "claude -p does not deny Bash as a belt"
+  [[ "$call" == *"--strict-mcp-config"* ]] || bad "claude -p can load MCP servers"
+  # 3. Fed from the prefetched file.
+  [[ "$call" == *'< "$ctx_file"'* ]] || bad "claude -p is not fed the prefetched CI data on stdin"
+fi
+grep -qE '^ *(dis)?allowed_tools=\(' "$WF" && bad "a tool rule array is still defined"
+
+# b47's four transforms, each one allowed gh api call under the old rule
+# Bash(gh api repos/*). Every allow rule left in the workflow (an inline
+# Bash(...) after --allowedTools, or an element of an allowed_tools array) is
+# matched against each; with no allow rule, none has a tool to run in.
+mapfile -t allow_rules < <(awk '
+  /--allowedTools|--allowed-tools|^ *allowed_tools=\(/ {f=1}
+  f && /--disallowedTools|^ *\)/ {f=0}
+  f { s=$0; while (match(s, /Bash\([^)]*\)/)) { print substr(s, RSTART, RLENGTH); s=substr(s, RSTART+RLENGTH) } }
+' "$WF")
+for t in '@base64' 'explode | reverse | implode' '.[3:]' 'split("") | join(" ")'; do
+  cmd="gh api repos/O/R --jq '\$E''NV.X | $t'"
+  for rule in "${allow_rules[@]+"${allow_rules[@]}"}"; do
+    glob="${rule#Bash(}"; glob="${glob%)}"
+    # shellcheck disable=SC2053
+    [[ "$cmd" == $glob ]] && bad "transform form still fits allow rule $rule: $t"
+  done
+done
+
+pf="$(snippet prefetch)"
+if [ -z "$pf" ]; then
+  bad "no prefetch block: the step does not fetch the gh data itself"
+else
+  [[ "$pf" == *"gh pr checks"* ]] || bad "prefetch does not read the PR checks"
+  [[ "$pf" == *"--log-failed"* ]] || bad "prefetch does not read the failed logs"
+  pf_at="$(grep -n '# BEGIN prefetch' "$WF" | head -1 | cut -d: -f1)"
+  call_at="$(grep -nE 'claude -p \\$' "$WF" | head -1 | cut -d: -f1)"
+  if [ -z "$call_at" ] || [ "$pf_at" -ge "$call_at" ]; then bad "prefetch does not run before claude -p"; fi
 fi
 
-# The rule arrays the call expands, one rule per element.
-mapfile -t allowed < <(awk '/^ *allowed_tools=\(/{f=1;next} f&&/^ *\)/{exit} f' "$WF" | sed -E 's/^ *"(.*)"$/\1/')
-mapfile -t denied < <(awk '/^ *disallowed_tools=\(/{f=1;next} f&&/^ *\)/{exit} f' "$WF" | sed -E 's/^ *"(.*)"$/\1/')
-
-if [ "${#allowed[@]}" -eq 0 ]; then
-  bad "allowed_tools list not found"
+# 4. The failure branch prints a fixed line and the exit code, never the files.
+fb="$(snippet failure-branch)"
+if [ -z "$fb" ]; then
+  bad "no failure-branch block after claude -p"
 else
-  for rule in "${allowed[@]}"; do
-    case "$rule" in
-      "Bash(gh pr checks *)"|"Bash(gh pr view *)"|"Bash(gh run view *)"|"Bash(gh api repos/*)") ;;
-      *) bad "allow rule is not one of the gh reads: $rule" ;;
-    esac
-  done
+  [[ "$fb" == *continue* ]] || bad "failure branch does not skip the PR"
 fi
-
-if [ "${#denied[@]}" -eq 0 ]; then
-  bad "disallowed_tools list not found"
-else
-  for want in 'Bash(gh api *-X*)' 'Bash(gh api *--method*)' 'Bash(gh api *-f*)' 'Bash(gh api *-F*)' \
-              'Bash(gh api *--field*)' 'Bash(gh api *--raw-field*)' 'Bash(gh api *--input*)' \
-              'Bash(gh api *graphql*)' 'Bash(gh *env*)' 'Bash(gh *ENV*)'; do
-    found=0
-    for rule in "${denied[@]}"; do
-      [ "$rule" = "$want" ] && found=1
-    done
-    [ "$found" -eq 1 ] || bad "deny list misses $want"
-  done
+# Nowhere in the file is the model's raw output or stderr printed.
+if grep -vE '^[[:space:]]*#' "$WF" | grep -qE '(cat|head|tail|less|more)[^|>]*(verdict\.json|err\.log)'; then
+  bad "the workflow prints verdict.json or err.log to the log"
 fi
 
 # 5. The token split (#5014, reviews b34 and b35). Deny rules match raw text,
@@ -107,7 +129,6 @@ done < <(grep -E '^[[:space:]]*(- )?uses:' "$WF" | sed -E 's/^[[:space:]]*(- )?u
 #    (c) both snippets, run for real on fake values, drop the bad verdict and
 #        keep a clean one, and an empty secret does not drop everything;
 #    (d) post checks PR and SHA against its own read, not sweep's queue.json.
-snippet() { awk -v b="# BEGIN $1" -v e="# END $1" 'index($0,b){f=1;next} index($0,e){exit} f' "$WF"; }
 sg="$(snippet secret-value-guard)"
 belt="$(snippet token-shape-belt)"
 if [ -z "$sg" ]; then
@@ -128,7 +149,7 @@ else
     fi
   fi
   # Behaviour: run the real snippet inside a one-pass loop (it uses continue).
-  rt="$(mktemp -d)"
+  rt="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
   run_guard() {
     RUNNER_TEMP="$rt" CLAUDE_CODE_OAUTH_TOKEN="$1" GH_TOKEN="$2" verdict_md="$3" number=7 SG="$sg" \
       bash -c 'set -uo pipefail; for _ in 1; do eval "$SG"; echo KEPT; done' 2>&1
@@ -152,7 +173,7 @@ if [ -z "$belt" ]; then
 else
   [[ "$post" == *'# BEGIN token-shape-belt'* ]] || bad "token-shape belt is not in the post job"
   run_belt() {
-    local d; d="$(mktemp -d)"
+    local d; d="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
     jq -n --arg v "$1" '{pr: 7, sha: "abcdef1", verdict: $v}' > "$d/7.json"
     f="$d/7.json" BELT="$belt" bash -c 'set -euo pipefail; for _ in 1; do eval "$BELT"; echo KEPT; done' 2>&1
     rm -rf "$d"
