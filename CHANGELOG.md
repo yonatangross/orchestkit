@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0) (2026-11-03)
+
+
+### Features
+
+* **hooks:** nudge to the repo's own PR skill on gh pr create ([#5006](https://github.com/yonatangross/orchestkit/issues/5006)) ([bb41bfb](https://github.com/yonatangross/orchestkit/commit/bb41bfb7a8dad5b215383f5c385f0b567fca8009))
+* **skills:** route setup and swarm-migrate through ork:auto ([#5008](https://github.com/yonatangross/orchestkit/issues/5008)) ([9a8e764](https://github.com/yonatangross/orchestkit/commit/9a8e764aa2272cf4d71968312805bd5ba024a37d))
+
+
+### Bug Fixes
+
+* **agents:** report a blocked commit as BLOCKED, not an empty sha ([#5007](https://github.com/yonatangross/orchestkit/issues/5007)) ([e0e9757](https://github.com/yonatangross/orchestkit/commit/e0e9757660c2489f1e09d1bedcd46046588b18af))
+* **ci:** make test-claude-health-tool-scope.sh executable ([#5002](https://github.com/yonatangross/orchestkit/issues/5002)) ([60c131d](https://github.com/yonatangross/orchestkit/commit/60c131d220d224b8b0fe1da717119f67dc7df53d))
+* **hooks:** label outputWithContext with the firing event; expire the veil copy question ([#5005](https://github.com/yonatangross/orchestkit/issues/5005)) ([192add0](https://github.com/yonatangross/orchestkit/commit/192add0451db908d9834a8b251b27e4fac4485c2))
+* **tests:** glyph triage hard-fails only on a real CI runner ([#5000](https://github.com/yonatangross/orchestkit/issues/5000)) ([bb0ebf9](https://github.com/yonatangross/orchestkit/commit/bb0ebf916a53e53430d17af4295f981a1c8d3888))
+
+
+### CI/CD
+
+* claude-health schema asks only for collected metrics ([#4998](https://github.com/yonatangross/orchestkit/issues/4998)) ([502207c](https://github.com/yonatangross/orchestkit/commit/502207cc7a68bf5b8a93982c62b348ad4501b754))
+
 ## [10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4) (2026-11-02)
 
 
