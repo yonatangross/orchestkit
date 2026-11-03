@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.7.3",
+    "date": "2026-11-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** scope ci-sentinel claude -p to its gh reads ([#5014](https://github.com/yonatangross/orchestkit/issues/5014)) ([8b25268](https://github.com/yonatangross/orchestkit/commit/8b25268b4d75ac1529eb6e7243b87b159933453f))",
+          "**secrets-veil:** stop masking hq-ops tool names (shaped SA prefix) ([#5027](https://github.com/yonatangross/orchestkit/issues/5027)) ([5fc8a5e](https://github.com/yonatangross/orchestkit/commit/5fc8a5eca45a7e984bdc90c5abc117fdcbbebe61))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.7.2",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2",
