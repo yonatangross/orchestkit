@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit family: Tower on README and orchestkit.dev</title>
+<meta name="description" content="Preview of the new OrchestKit family block: one Tower entry added to the README and to the orchestkit.dev home page.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --card:#ffffff; --site-ink:#1e293b; --site-muted:#64748b; --site-border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  .frame { background:var(--card); border:1px solid var(--rule); border-radius:12px; padding:8px 0; margin-top:14px; overflow:hidden; }
+  .frame .site { border-top:1px solid var(--site-border); border-bottom:1px solid var(--site-border); }
+  .frame .site-inner { max-width:820px; margin:0 auto; padding:32px 28px; }
+  .frame h3 { font-size:1.5rem; font-weight:600; letter-spacing:-0.01em; color:var(--site-ink); margin:0; }
+  .frame p { margin:12px 0 0; line-height:1.75; color:var(--site-muted); }
+  .frame a { font-weight:600; color:var(--site-ink); text-decoration:underline; text-underline-offset:2px; }
+  .frame code, .readme code { font:0.9em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .readme { background:#f6f8fa; border:1px solid var(--rule); border-radius:12px; padding:20px 24px; margin-top:14px; font-size:0.95rem; }
+  .readme ul { margin:10px 0 0; padding-left:22px; }
+  .readme li { line-height:1.7; }
+  .readme a { color:#0969da; font-weight:600; }
+  .note { color:var(--muted); font-size:0.85rem; margin-top:10px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit family: Tower on README and orchestkit.dev"><meta property="og:description" content="The new OrchestKit family block: one Tower entry added as a README section near the end and as a section at the bottom of the orchestkit.dev home page, with a live preview of both."><meta property="og:url" content="https://orchestkit.dev/lab/orchestkit-family-tower.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit family: Tower on README and orchestkit.dev"><meta name="twitter:description" content="The new OrchestKit family block: one Tower entry added as a README section near the end and as a section at the bottom of the orchestkit.dev home page, with a live preview of both."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <h1>OrchestKit family: Tower</h1>
+    <p class="lead">A new OrchestKit family block lists Tower, the macOS menu bar app
+    for people running several AI coding subscriptions. The same entry appears in two
+    places: a section in the README near the end, and a section at the bottom of the
+    orchestkit.dev home page. Below, the site preview is built live with the same copy.</p>
+  </header>
+
+  <h2>Site section preview</h2>
+  <div class="frame" id="site-preview" aria-label="Preview of the home page family section"></div>
+  <p class="note">Rendered by this page with createElement and textContent, no innerHTML.
+  The live section sits after "Built for AI agents, too" on the home page.</p>
+
+  <h2>README section preview</h2>
+  <div class="readme" id="readme-preview" aria-label="Preview of the README family section"></div>
+
+  <footer>
+    <p class="note">Card orchestkit-family-tower-2026-11-03. Made by ork-mech-8, 2026-11-03.</p>
+  </footer>
+</main>
+<script>
+(function () {
+  var TOWER_URL = "https://github.com/yonatangross/tower";
+  var COPY = ": a macOS menu bar app for people who run several AI coding subscriptions: usage per account, room left, when to switch. Also an MCP server (";
+  var CMD = "tower mcp";
+  var TAIL = ").";
+
+  function el(tag, cls) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    return n;
+  }
+
+  function link(text) {
+    var a = el("a");
+    a.href = TOWER_URL;
+    a.textContent = text;
+    return a;
+  }
+
+  function towerParagraph() {
+    var p = el("p");
+    p.appendChild(link("Tower"));
+    p.appendChild(document.createTextNode(COPY));
+    var code = el("code");
+    code.textContent = CMD;
+    p.appendChild(code);
+    p.appendChild(document.createTextNode(TAIL));
+    return p;
+  }
+
+  var site = el("div", "site");
+  var inner = el("div", "site-inner");
+  var h3 = el("h3");
+  h3.textContent = "OrchestKit family";
+  inner.appendChild(h3);
+  inner.appendChild(towerParagraph());
+  site.appendChild(inner);
+  document.getElementById("site-preview").appendChild(site);
+
+  var readme = document.getElementById("readme-preview");
+  var rh = el("strong");
+  rh.textContent = "## OrchestKit family";
+  readme.appendChild(rh);
+  var ul = el("ul");
+  var li = el("li");
+  li.appendChild(link("Tower"));
+  li.appendChild(document.createTextNode(COPY));
+  var code = el("code");
+  code.textContent = CMD;
+  li.appendChild(code);
+  li.appendChild(document.createTextNode(TAIL));
+  ul.appendChild(li);
+  readme.appendChild(ul);
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

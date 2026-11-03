@@ -708,6 +708,12 @@ Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the
 
 ---
 
+## OrchestKit family
+
+- **[Tower](https://github.com/yonatangross/tower)**: a macOS menu bar app for people who run several AI coding subscriptions: usage per account, room left, when to switch. Also an MCP server (`tower mcp`).
+
+---
+
 ## Who builds this
 
 OrchestKit is built and maintained by **[Yonatan Gross](https://github.com/yonatangross)** — [Yonyon AI](https://yonyon.ai/en), an AI consulting practice. It is the toolkit extracted from real client work, not a side project: the patterns here are the ones that survived shipping.
