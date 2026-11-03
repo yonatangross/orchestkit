@@ -644,6 +644,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.7.3](https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3)** · 2026-11-03
+
+- **ci:** scope ci-sentinel claude -p to its gh reads (#5014)
+- **secrets-veil:** stop masking hq-ops tool names (shaped SA prefix) (#5027)
+
 **[v10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2)** · 2026-11-03
 
 - **agents:** require concerns[] for DONE_WITH_CONCERNS (#5030)
@@ -683,11 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** fail when the repo description carries stale counts (#4975)
 - **docs:** Lab render check covers pruned entries from public/lab (#4976)
 - **hooks:** gerund after 'without ... and' stays negated (#4715) (#4978)
-
-**[v10.5.1](https://github.com/yonatangross/orchestkit/compare/v10.5.0...v10.5.1)** · 2026-11-01
-
-- **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
-- prune 541 archived playground dirs from main (#4965)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
