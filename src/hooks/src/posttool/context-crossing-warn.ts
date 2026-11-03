@@ -250,7 +250,7 @@ export function contextCrossingWarn(
           `(threshold ${firedZone === 'imminent' ? zones.imminent : zones.windDown}, ` +
           `estimator said ${state.estimatedTokens})`,
       );
-      return outputWithContext(msg);
+      return outputWithContext(msg, input);
     }
 
     return outputSilentSuccess();

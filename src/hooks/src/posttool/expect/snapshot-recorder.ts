@@ -119,12 +119,12 @@ export async function expectSnapshotRecorder(
       `ARIA snapshot recorded: route=${route} commit=${parent.slice(0, 8)} ` +
         `(prior: ${prior.commit.slice(0, 8)}). Run \`/ork:expect ${route} --diff\` ` +
         `to compare semantic structure.`
-    );
+    , input);
   }
   return outputWithContext(
     `ARIA snapshot recorded: route=${route} commit=${parent.slice(0, 8)}. ` +
       `First snapshot for this route — future runs will diff against it.`
-  );
+  , input);
 }
 
 export default expectSnapshotRecorder;

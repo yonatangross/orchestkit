@@ -52,7 +52,7 @@ export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP
       cwd: safeProjectDir(input.project_dir),
     });
     ctx.log('fingerprint-saver', 'Fingerprint saved after successful expect run');
-    return outputWithContext('Fingerprint saved — next /ork:expect will skip if code unchanged.');
+    return outputWithContext('Fingerprint saved — next /ork:expect will skip if code unchanged.', input);
   } catch (err) {
     // Non-fatal — don't block on fingerprint save failure
     ctx.log('fingerprint-saver', `Fingerprint save failed: ${err}`);

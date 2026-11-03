@@ -103,7 +103,7 @@ export function mcpHealthCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   if (warnings.length > 0) {
     const message = `MCP misconfiguration detected:\n${warnings.join('\n')}`;
     ctx.log('mcp-health-check', message, 'warn');
-    return outputWithContext(message);
+    return outputWithContext(message, input);
   }
 
   ctx.log('mcp-health-check', 'All enabled MCPs are properly configured');

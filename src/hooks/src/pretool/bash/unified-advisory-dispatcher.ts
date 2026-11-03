@@ -180,7 +180,7 @@ function mergeAdvisoryContext(
   if (contextParts.length > 0) {
     const consolidated = contextParts.join('\n\n---\n\n');
     logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
-    return outputWithContext(consolidated);
+    return outputWithContext(consolidated, input);
   }
 
   // Case 4: Nothing produced

@@ -100,7 +100,7 @@ export function teamQualityGate(input: HookInput, ctx: HookContext = NOOP_CTX): 
     );
     return outputWithContext(
       `Teammate "${teammateType}" (${teammateId}) went idle without completing a task. ` +
-        `Check if their work is stuck or needs reassignment.`,
+        `Check if their work is stuck or needs reassignment.`, input,
     );
   }
 

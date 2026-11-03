@@ -87,7 +87,7 @@ export function monorepoDetector(input: HookInput, ctx: HookContext = NOOP_CTX):
         `**Multi-directory context active** (${input.added_dirs.length} dirs)\n\n` +
         `Packages: ${packageNames.join(', ')}\n\n` +
         'Each directory may have its own CLAUDE.md with targeted instructions.'
-      );
+      , input);
     }
 
     return outputSilentSuccess();
@@ -129,5 +129,5 @@ export function monorepoDetector(input: HookInput, ctx: HookContext = NOOP_CTX):
     'CC 2.1.20 supports multi-directory context with `--add-dir`. ' +
     'Each service can have its own CLAUDE.md for targeted instructions.\n\n' +
     'Set `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` to auto-load CLAUDE.md from added directories.'
-  );
+  , input);
 }

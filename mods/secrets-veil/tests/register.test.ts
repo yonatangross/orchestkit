@@ -41,13 +41,21 @@ type RegisteredHook = (...args: unknown[]) => unknown;
  *  so masking it proves the named-value path, not the shape or entropy paths. */
 const SYNTHETIC = "veiltest-synthetic-value-42";
 
+/**
+ * The question and the clipboard are separate host steps (#4450): either can
+ * be present or missing, answer or fail, independently of the other.
+ */
 interface CopyOptions {
-  /** When set, $.ui.ask exists and answers with this label. */
+  /** When set, $.ui.ask exists and answers with this label. Unset: no ask. */
   askAnswer?: string;
-  /** What $.ui.copy reports; defaults to copied. */
-  copyResult?: { isCopied: boolean; reason?: string };
-  /** When true, $.ui.ask never answers (a human who walked away). */
+  /** When true, $.ui.ask never answers on its own (a human who walked away);
+   *  the test can still answer late through answerAsk. */
   hangAsk?: boolean;
+  /** When true, $.ui.ask rejects, as the engine does on a dismissed dialog. */
+  rejectAsk?: boolean;
+  /** $.ui.copy: "absent" removes it, "throw" makes it reject, an object is its
+   *  report. Defaults to present and copied. */
+  copy?: "absent" | "throw" | { isCopied: boolean; reason?: string };
 }
 
 /** A timer armed through the fake $.clock.after. */
@@ -67,7 +75,10 @@ function makeFake$(env: Record<string, string> = {}, copyOptions: CopyOptions = 
   asks: string[];
   copies: string[];
   timers: FakeTimer[];
+  /** Answers a hanging question after the fact (hangAsk). */
+  answerAsk: (label: string) => void;
 } {
+  let answerAsk: (label: string) => void = () => undefined;
   const logTargets: Array<string | undefined> = [];
   const timers: FakeTimer[] = [];
   const asks: string[] = [];
@@ -110,17 +121,39 @@ function makeFake$(env: Record<string, string> = {}, copyOptions: CopyOptions = 
         : {
             ask: (question: string): Promise<string> => {
               asks.push(question);
-              if (copyOptions.hangAsk) return new Promise<string>(() => undefined);
+              if (copyOptions.rejectAsk) return Promise.reject(new Error("dismissed"));
+              if (copyOptions.hangAsk) {
+                return new Promise<string>((resolve) => {
+                  answerAsk = resolve;
+                });
+              }
               return Promise.resolve(copyOptions.askAnswer as string);
             },
+          }),
+      ...(copyOptions.copy === "absent"
+        ? {}
+        : {
             copy: async (spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }> => {
               copies.push(spec.text);
-              return copyOptions.copyResult ?? { isCopied: true };
+              const report = copyOptions.copy;
+              if (report === "throw") throw new Error("clipboard refused");
+              return typeof report === "object" ? report : { isCopied: true };
             },
           }),
     },
   };
-  return { $, notices, toasts, statuses, logs, logTargets, asks, copies, timers };
+  return {
+    $,
+    notices,
+    toasts,
+    statuses,
+    logs,
+    logTargets,
+    asks,
+    copies,
+    timers,
+    answerAsk: (label: string): void => answerAsk(label),
+  };
 }
 
 /** .catch handlers the module registered, by event. */
@@ -540,13 +573,35 @@ describe("opt-in copy offer: the value goes to the clipboard, never to the model
     const hooks = captureHooks();
     const { $, copies, toasts } = makeFake$(
       { SECRETS_VEIL_OFFER_COPY: "1" },
-      { askAnswer: "Copy to clipboard", copyResult: { isCopied: false, reason: "no-clipboard" } }
+      { askAnswer: "Copy to clipboard", copy: { isCopied: false, reason: "no-clipboard" } }
     );
     await startSession(hooks, $);
     const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
     expect(copies).toEqual([FAKE_GH]);
     expect(toasts).toContain("nothing copied (no-clipboard); the value stays covered");
     expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+  });
+
+  // #4450: the question and the clipboard are separate host steps, so each
+  // mixed case is its own test. In every one the model reads dots and no
+  // visible line carries the value.
+  const mixed: Array<[string, Parameters<typeof makeFake$>[1], number]> = [
+    ["the question exists but the clipboard is missing", { askAnswer: "Copy to clipboard", copy: "absent" }, 0],
+    ["the question exists but the clipboard throws", { askAnswer: "Copy to clipboard", copy: "throw" }, 1],
+    ["the clipboard exists but the question is missing", {}, 0],
+    ["the question is dismissed (ask rejects)", { askAnswer: "Copy to clipboard", rejectAsk: true }, 0],
+  ];
+  test.each(mixed)("%s: the value stays covered", async (_name, options, copyAttempts) => {
+    const hooks = captureHooks();
+    const fake = makeFake$({ SECRETS_VEIL_OFFER_COPY: "1" }, options);
+    await startSession(hooks, fake.$);
+    const out = await hooks.get("tool.call")!(fake.$, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(fake.copies).toHaveLength(copyAttempts);
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(JSON.stringify(out)).toContain("•".repeat(8));
+    for (const line of [...fake.asks, ...fake.toasts, ...fake.statuses, ...fake.logs]) {
+      expect(line).not.toContain(FAKE_GH);
+    }
   });
 });
 
@@ -578,6 +633,34 @@ describe("deadlines on awaited UI calls", () => {
     expect(copies).toEqual([]);
     expect(JSON.stringify(out)).not.toContain(FAKE_GH);
     expect(JSON.stringify(out)).toContain("\u2022".repeat(8));
+  });
+
+  test("a Copy picked after the deadline copies nothing and says the question expired (#4450)", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies, toasts, timers, answerAsk } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard", hangAsk: true }
+    );
+    await startSession(hooks, $);
+    const pending = hooks.get("tool.call")!(
+      $,
+      { tool: "Bash", args: {} },
+      asNext({ result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } })
+    ) as Promise<unknown>;
+    for (let i = 0; i < 20 && asks.length === 0; i++) await Promise.resolve();
+    expect(asks[0]).toContain("expires after 2 minutes");
+    timers.find((t) => t.ms === 120_000 && !t.cancelled)!.fire();
+    await pending;
+
+    const before = toasts.length;
+    answerAsk("Copy to clipboard");
+    for (let i = 0; i < 20 && toasts.length === before; i++) await Promise.resolve();
+
+    expect(copies).toEqual([]);
+    expect(toasts.slice(before)).toEqual([
+      "that copy question had expired; nothing was copied, the value stays covered",
+    ]);
+    for (const line of toasts) expect(line).not.toContain(FAKE_GH);
   });
 
   test("every settled call cancels its deadline", async () => {

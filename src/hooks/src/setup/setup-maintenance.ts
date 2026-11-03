@@ -445,7 +445,7 @@ export function setupMaintenance(input: HookInput, ctx: HookContext = NOOP_CTX):
       return outputSilentSuccess();
     }
 
-    return outputWithContext(`Maintenance: ${summary}`);
+    return outputWithContext(`Maintenance: ${summary}`, input);
   }
 
   logHook('setup-maintenance', 'No maintenance tasks needed');
