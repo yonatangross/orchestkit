@@ -62,19 +62,25 @@
     <tr><td>Tree id GitHub returns equals local <code>git write-tree</code></td><td>Stop before creating the commit</td></tr>
     <tr><td>New commit reports <code>verification.verified</code> true</td><td>Branch left untouched, check fails with the regenerate command</td></tr>
     <tr><td>Ref update uses <code>force: false</code></td><td>A branch that moved meanwhile is a 422, never an overwrite</td></tr>
+    <tr><td>Branch goes into the URL one <code>encodeURIComponent</code> segment at a time</td><td>A <code>#</code> or <code>?</code> in a branch name can no longer point the update at another branch</td></tr>
+    <tr><td>The API names exactly <code>refs/heads/&lt;branch&gt;</code>, still at the built commit, before any write</td><td>Stop, nothing written</td></tr>
+    <tr><td>The ref update answer names the same ref and the new commit</td><td>Check fails</td></tr>
   </table>
 
-  <h2>Narrower credentials</h2>
+  <h2>Two jobs, one token</h2>
   <ul>
-    <li>The App token is minted after <code>npm ci</code> and the build, so the PR code those steps run never sees it.</li>
-    <li>Checkout uses <code>persist-credentials: false</code>; no token is left in <code>.git/config</code>.</li>
-    <li>GITHUB_TOKEN stays <code>contents: read</code>; the App token keeps <code>contents: write</code> only, as before.</li>
+    <li><code>build</code> runs the PR's <code>npm ci</code> and build with no secret, and uploads only a patch of the gated paths.</li>
+    <li><code>autoheal</code> mints the App token and runs no PR code: it checks the PR head out as data, applies the patch, and runs <code>api-commit.mjs</code> from the base commit with <code>--strict</code> (any change outside the gated paths stops it).</li>
+    <li>A build step can no longer reach the token through <code>GITHUB_ENV</code>, <code>NODE_OPTIONS</code> or a background process: those do not cross a job boundary.</li>
+    <li>No checkout persists a credential. GITHUB_TOKEN stays <code>contents: read</code>; the App token keeps <code>contents: write</code> only, as before.</li>
   </ul>
 
   <h2>Tests</h2>
   <p><code>tests/ci/test-skill-autobuild-api-commit.mjs</code> runs the script against a fake GitHub API: drift with an edit,
-  a new file, a deletion and an exec-bit change; an unverified commit; a tree mismatch; and no drift. It also fails if the
-  workflow runs a push or commit on the runner again.</p>
+  a new file, a deletion and an exec-bit change; an unverified commit; a tree mismatch; no drift; branch names with
+  <code>#</code>, <code>?</code>, <code>%</code> and a nested <code>a/b</code>; a misrouted GET or PATCH answer; a branch that
+  moved since the build; and <code>--strict</code>. It also fails if the workflow pushes from the runner or puts the token in
+  the job that runs PR code.</p>
 
   <footer>orchestkit #5012</footer>
 </main>

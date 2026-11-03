@@ -17,7 +17,17 @@
 // overwrite). The tree id GitHub returns must equal `git write-tree`, and the
 // commit must come back verified, or the ref is never touched.
 //
-// Usage: node scripts/ci/api-commit.mjs --branch <ref> --message-file <f> -- <pathspec>...
+// Ref safety (b35 HOLD on #5016): the branch goes into the URL one
+// encodeURIComponent'd segment at a time (a '#' or '?' in a branch name can
+// never cut the path short), the branch must resolve to exactly
+// refs/heads/<branch> at HEAD before anything is written, and the PATCH
+// answer must name that same ref and the new commit.
+//
+// --strict: refuse if anything outside the pathspecs is changed after
+// staging (the commit job applies a patch from the build job, which must
+// only carry gated paths).
+//
+// Usage: node api-commit.mjs [--strict] --branch <name> --message-file <f> -- <pathspec>...
 // Env:   GH_TOKEN (App installation token), GITHUB_REPOSITORY (owner/name),
 //        GITHUB_API_URL (default https://api.github.com).
 // Exit:  0 committed or nothing to commit, 1 refused or failed (ref untouched
@@ -31,14 +41,15 @@ const REGEN_HINT =
   'Regenerate and commit the build output yourself (signed): npm ci && npm run build && git add -A plugins docs/site/content/docs && git commit';
 
 function parseArgs(argv) {
-  const out = { branch: '', messageFile: '', paths: [] };
+  const out = { branch: '', messageFile: '', paths: [], strict: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--') {
       out.paths = argv.slice(i + 1);
       break;
     }
-    if (a === '--branch') out.branch = argv[++i] ?? '';
+    if (a === '--strict') out.strict = true;
+    else if (a === '--branch') out.branch = argv[++i] ?? '';
     else if (a === '--message-file') out.messageFile = argv[++i] ?? '';
     else throw new Error(`unknown argument: ${a}`);
   }
@@ -49,6 +60,43 @@ function parseArgs(argv) {
 }
 
 const git = (args, opts = {}) => execFileSync('git', args, { maxBuffer: 256 * 1024 * 1024, ...opts });
+
+// URL path for refs/heads/<branch>. Each segment goes through
+// encodeURIComponent and the '/' between segments stays literal. encodeURI
+// is NOT enough: it keeps '#' and '?', and git allows both in branch names,
+// so a PR branch named 'X#y' would turn into a request for refs/heads/X
+// (the rest becomes a URL fragment) and move a different branch.
+export function refRoute(branch) {
+  if (typeof branch !== 'string' || branch === '') throw new Error('branch name is empty');
+  const segments = branch.split('/');
+  if (segments.some((s) => s === '' || s === '.' || s === '..')) {
+    throw new Error(`refusing branch name with an empty or dot segment: ${JSON.stringify(branch)}`);
+  }
+  return `refs/heads/${segments.map(encodeURIComponent).join('/')}`;
+}
+
+// The API names the ref it acted on; anything but the exact branch we asked
+// for means the request went somewhere else, so stop.
+function assertRef(what, got, branch) {
+  const want = `refs/heads/${branch}`;
+  if (got !== want) throw new Error(`${what} answered for ref ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`);
+}
+
+// With --strict, nothing may be left changed outside the pathspecs after
+// staging them: the input is a patch from the build job, so a path outside
+// the gated set means the patch is not what this script expects.
+function assertNothingOutside() {
+  const entries = git(['status', '--porcelain=v1', '-z', '--untracked-files=all']).toString('utf8').split('\0');
+  const stray = [];
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    if (!e) continue;
+    const xy = e.slice(0, 2);
+    if (xy[0] === 'R' || xy[0] === 'C') i++; // rename/copy carries a second path
+    if (xy === '??' || xy[1] !== ' ') stray.push(e.slice(3));
+  }
+  if (stray.length) throw new Error(`changes outside the gated paths: ${stray.slice(0, 10).join(', ')}`);
+}
 
 // Parse `git diff --cached --raw -z --no-renames` output:
 // ":<srcmode> <dstmode> <srcsha> <dstsha> <status>\0<path>\0" repeated.
@@ -86,13 +134,15 @@ async function api(method, route, body) {
 }
 
 async function main() {
-  const { branch, messageFile, paths } = parseArgs(process.argv.slice(2));
+  const { branch, messageFile, paths, strict } = parseArgs(process.argv.slice(2));
   if (!process.env.GH_TOKEN) throw new Error('GH_TOKEN is not set');
   if (!process.env.GITHUB_REPOSITORY) throw new Error('GITHUB_REPOSITORY is not set');
   const message = readFileSync(messageFile, 'utf8');
+  const route = refRoute(branch);
 
   // Stage exactly the gated paths (adds, edits, deletes, untracked files).
   git(['add', '-A', '--', ...paths]);
+  if (strict) assertNothingOutside();
   const changes = parseRawDiff(git(['diff', '--cached', '--raw', '--no-abbrev', '-z', '--no-renames', '--', ...paths]));
   if (changes.length === 0) {
     console.log('::notice::No build drift, source and committed artifacts already in sync.');
@@ -102,6 +152,15 @@ async function main() {
   const parent = git(['rev-parse', 'HEAD']).toString().trim();
   const baseTree = git(['rev-parse', 'HEAD^{tree}']).toString().trim();
   const expectedTree = git(['write-tree']).toString().trim();
+
+  // Before writing anything: the API must resolve exactly this branch, and
+  // it must still point at the commit we built on (exact-match endpoint).
+  const current = await api('GET', `/git/ref/${route.slice('refs/'.length)}`);
+  assertRef('GET ref', current.ref, branch);
+  const remoteSha = current.object?.sha;
+  if (remoteSha !== parent) {
+    throw new Error(`branch ${branch} is at ${remoteSha}, not the built commit ${parent}; a newer push will re-run this`);
+  }
 
   const entries = [];
   for (const c of changes) {
@@ -129,7 +188,11 @@ async function main() {
     throw new Error(`GitHub did not sign ${commit.sha} (reason=${verification.reason}); branch left untouched`);
   }
 
-  await api('PATCH', `/git/refs/heads/${encodeURI(branch)}`, { sha: commit.sha, force: false });
+  const moved = await api('PATCH', `/git/${route}`, { sha: commit.sha, force: false });
+  assertRef('PATCH ref', moved.ref, branch);
+  if (moved.object?.sha !== commit.sha) {
+    throw new Error(`PATCH ref left ${branch} at ${moved.object?.sha}, expected ${commit.sha}`);
+  }
   console.log(`::notice::Pushed signed heal commit ${commit.sha} to ${branch} (${changes.length} files).`);
   return 0;
 }
