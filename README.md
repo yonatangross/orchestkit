@@ -644,6 +644,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0)** · 2026-11-03
+
+- **hooks:** nudge to the repo's own PR skill on gh pr create (#5006)
+- **skills:** route setup and swarm-migrate through ork:auto (#5008)
+- **agents:** report a blocked commit as BLOCKED, not an empty sha (#5007)
+- **ci:** make test-claude-health-tool-scope.sh executable (#5002)
+- **hooks:** label outputWithContext with the firing event; expire the veil copy question (#5005)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.5.4](https://github.com/yonatangross/orchestkit/compare/v10.5.3...v10.5.4)** · 2026-11-02
 
 - **ci:** let claude-health finish within its tool allowlist (#4994)
@@ -682,14 +691,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** docs parity test reports a diff error, never false drift (#4902)
 - **hooks:** auto-lint runs only formatters the repo configures (#4945) (#4950)
 - **demo-production:** Quick Start uses the demo config in place (#4959)
-
-**[v10.4.2](https://github.com/yonatangross/orchestkit/compare/v10.4.1...v10.4.2)** · 2026-10-30
-
-- **ci:** playground gate treats a nested README as docs (#4951)
-- **hooks:** elicitation logger reads mcp_server_name and action (#4884) (#4953)
-- **hooks:** split a worktree advisory at the context cap (#4922) (#4954)
-- **skills:** design-ship links a bundle source for file and URL input (#4956)
-- **site:** legacy host redirect comment says 301, like the code (#4957)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
