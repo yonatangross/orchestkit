@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.7.2",
+    "date": "2026-11-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**agents:** require concerns[] for DONE_WITH_CONCERNS ([#5030](https://github.com/yonatangross/orchestkit/issues/5030)) ([56a34ad](https://github.com/yonatangross/orchestkit/commit/56a34adf7c6691684a034f207bff9898ebc2d604))",
+          "**hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge ([#5022](https://github.com/yonatangross/orchestkit/issues/5022)) ([de03936](https://github.com/yonatangross/orchestkit/commit/de03936851a53f638d355b6061eb6fbaf4bf5db0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.7.1",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1",
