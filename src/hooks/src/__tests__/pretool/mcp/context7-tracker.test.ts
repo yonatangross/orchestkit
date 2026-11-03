@@ -214,7 +214,7 @@ describe('context7-tracker', () => {
       const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
-      expect(outputWithContext).toHaveBeenCalledWith(expect.stringContaining('Context7'));
+      expect(outputWithContext).toHaveBeenCalledWith(expect.stringContaining('Context7'), expect.anything());
       expect(result.continue).toBe(true);
     });
 

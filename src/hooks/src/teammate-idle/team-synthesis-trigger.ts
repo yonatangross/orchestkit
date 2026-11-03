@@ -86,7 +86,7 @@ export function teamSynthesisTrigger(input: HookInput, ctx: HookContext = NOOP_C
   if (idleMembers.size >= members.length) {
     return outputWithContext(
       `All ${members.length} teammates in team "${teamName}" are idle. ` +
-      `Consider synthesizing results and shutting down the team.`,
+      `Consider synthesizing results and shutting down the team.`, input,
     );
   }
 

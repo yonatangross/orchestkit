@@ -97,6 +97,6 @@ export function agentTaskAutoRegister(input: HookInput, ctx: HookContext = NOOP_
   return outputWithContext(
     `[Auto-Task] Agent "${agentLabel}" launched without a TaskCreate. ` +
     `Suggested: TaskCreate(subject="${instruction.subject}", ` +
-    `activeForm="${instruction.activeForm}")`,
+    `activeForm="${instruction.activeForm}")`, input,
   );
 }

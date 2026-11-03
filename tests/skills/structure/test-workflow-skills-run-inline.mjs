@@ -33,6 +33,15 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const SKILLS = path.join(ROOT, 'src', 'skills');
 const FIXED = ['assess', 'audit-full', 'brainstorm', 'cover', 'review-pr', 'verify'];
+// Workflow callers whose fan-out is not the skill's default path, so a single
+// pass is not the #4672 failure. Each entry needs a reason. Any caller in
+// neither list fails the test, so a new Workflow skill cannot ship without
+// deciding (#4672 acceptance: the fan-out guard covers every caller, not a
+// hand-kept subset).
+const EXEMPT = {
+  'bare-eval':
+    'workflows/skill-fitness.js is an opt-in template the operator runs on a named batch; the skill itself runs claude -p --bare calls, no default fan-out',
+};
 
 const frontmatter = (text) => {
   const m = /^---\n([\s\S]*?)\n---\n/.exec(text);
@@ -80,6 +89,16 @@ for (const name of FIXED) {
   }
 }
 
+for (const name of callers.keys()) {
+  if (!FIXED.includes(name) && !(name in EXEMPT)) {
+    failures.push(`src/skills/${name}/SKILL.md: calls Workflow( or ships workflows/*.js but is in neither FIXED (needs a **Fan-out rule:** line ending a skipped fan-out as BLOCKED) nor EXEMPT (needs a reason)`);
+  }
+}
+for (const name of Object.keys(EXEMPT)) {
+  if (!callers.has(name)) failures.push(`EXEMPT lists ${name}, which no longer calls Workflow(; remove it`);
+  if (FIXED.includes(name)) failures.push(`${name} is in both FIXED and EXEMPT`);
+}
+
 for (const f of failures) console.log(`FAIL: ${f}`);
 if (failures.length) process.exit(1);
-console.log(`PASS: ${callers.size} skills call Workflow(, none sets context: fork, and ${FIXED.length} carry the fan-out rule`);
+console.log(`PASS: ${callers.size} skills call Workflow(, none sets context: fork, ${FIXED.length} carry the fan-out rule, ${Object.keys(EXEMPT).length} exempt with a reason`);

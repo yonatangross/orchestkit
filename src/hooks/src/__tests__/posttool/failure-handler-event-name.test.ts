@@ -101,10 +101,11 @@ describe('failureHandler event-name stamp', () => {
     }
   });
 
-  it('leaves PostToolUse as the default for every other outputWithContext caller', () => {
-    // The shared helper has ~40 non-test callers on the PostToolUse event.
-    // Widening it must not change what they emit.
-    expect(outputWithContext('ctx').hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  it('has no PostToolUse default: every caller names its event (#4683)', () => {
+    // The old default mislabelled ~40 callers on other events (PreToolUse,
+    // Setup, skill loaders). The event is now required.
+    expect(outputWithContext('ctx', 'PostToolUse').hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+    expect(outputWithContext('ctx', { hook_event: 'PreToolUse' }).hookSpecificOutput?.hookEventName).toBe('PreToolUse');
   });
 
   it('silent exits carry no event name at all, which is why it looked intermittent', () => {

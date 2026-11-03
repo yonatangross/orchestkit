@@ -593,7 +593,7 @@ import {
   outputSilentSuccess,    // { continue: true, suppressOutput: true }
   outputSilentAllow,      // Silent permission allow
   outputBlock,            // Block with reason
-  outputWithContext,      // Inject context (PostToolUse)
+  outputWithContext,      // Inject context; event label from input (#4683)
   outputPromptContext,    // Inject context (UserPromptSubmit)
   outputAllowWithContext, // Allow + inject context (PreToolUse)
   outputError,            // Show error message
@@ -607,8 +607,9 @@ return outputSilentSuccess();
 // Example: Block operation
 return outputBlock('Committing to main branch is not allowed');
 
-// Example: Inject context before tool execution
-return outputWithContext('💡 Consider using cursor-based pagination for large datasets');
+// Example: Inject context. Pass the hook's input (or a literal event for a
+// single-event hook): there is no PostToolUse default (#4683).
+return outputWithContext('💡 Consider using cursor-based pagination for large datasets', input);
 ```
 
 ---
@@ -952,7 +953,7 @@ Consider creating a task:
 - Add blockedBy dependency to current task
 `;
 
-  return outputWithContext(context);
+  return outputWithContext(context, input);
 }
 ```
 
