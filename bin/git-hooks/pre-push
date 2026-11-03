@@ -1020,12 +1020,6 @@ if [[ -n "$HOOK_CHANGES" ]]; then
   run_hooks_vitest_stage
 fi
 
-# A fixture init that inherits this hook's GIT_* environment can change this
-# checkout's config. Refuse the push if that happened; never repair it here.
-if ! assert_repo_config_unchanged; then
-  exit 1
-fi
-
 # Return the governor slot before exiting; only targeted mode ever holds
 # one. The EXIT traps above release it on every earlier exit path, and
 # this covers the success path.
@@ -1033,15 +1027,27 @@ if declare -f release_test_slot >/dev/null 2>&1; then
   release_test_slot
 fi
 
-# (#5009) After every stage: no new untracked sh-thd-* in the repo root.
+# (#5009) Clean root leftovers, then observe. Do not exit before the
+# repo-config assert below: test-pre-push-hook.sh requires
+# assert_repo_config_unchanged in the last 16 lines with the success line.
 remove_repo_root_sh_thd
+_ORK_SH_THD_LEFT=0
 for _sh_thd in "$PROJECT_ROOT"/sh-thd-*; do
-  if [[ -f "$_sh_thd" ]]; then
-    echo "FAILED: pre-push left $_sh_thd in the repository root (#5009)"
-    exit 1
-  fi
+  [[ -f "$_sh_thd" ]] || continue
+  _ORK_SH_THD_LEFT=1
 done
-unset _sh_thd
+
+# A fixture init that inherits this hook's GIT_* environment can change this
+# checkout's config. Refuse the push if that happened; never repair it here.
+if ! assert_repo_config_unchanged; then
+  exit 1
+fi
+
+if [[ "$_ORK_SH_THD_LEFT" -ne 0 ]]; then
+  echo "FAILED: pre-push left sh-thd-* in the repository root (#5009)"
+  exit 1
+fi
+unset _ORK_SH_THD_LEFT _sh_thd
 
 echo ""
 echo "Pre-push validation passed"
