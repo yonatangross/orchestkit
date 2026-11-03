@@ -7,6 +7,7 @@
  *
  * Hooks consolidated here:
  * - default-timeout-setter (input modifier — runs first)
+ * - sdlc-skill-nudge (context, #4629)
  * - error-pattern-warner (context)
  * - affected-tests-finder (context)
  *
@@ -33,6 +34,7 @@ import { errorPatternWarner } from './error-pattern-warner.js';
 // issue-docs-requirement: moved to pr-merge-gate (#915)
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
 import { affectedTestsFinder } from './affected-tests-finder.js';
+import { sdlcSkillNudge } from './sdlc-skill-nudge.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -60,6 +62,9 @@ interface AdvisoryHookConfig {
 // -----------------------------------------------------------------------------
 
 const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
+  // First: a one-line route to the repo's own PR skill (#4629) must not be
+  // squeezed out of the 800-token budget by the longer advisories.
+  { name: 'sdlc-skill-nudge', fn: sdlcSkillNudge },
   { name: 'error-pattern-warner', fn: errorPatternWarner },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
