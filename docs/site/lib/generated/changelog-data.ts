@@ -18,6 +18,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.7.4",
+    "date": "2026-11-03",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** no CC floor warning from an unconfirmed env version ([#5037](https://github.com/yonatangross/orchestkit/issues/5037)) ([7bff26c](https://github.com/yonatangross/orchestkit/commit/7bff26cd0caa8465f51104fc285815221e9574ff))",
+          "**hooks:** review-pr gate needs --no-ext-diff --no-textconv on diffs ([#5013](https://github.com/yonatangross/orchestkit/issues/5013)) ([fef4229](https://github.com/yonatangross/orchestkit/commit/fef422900ddd59e3f5ce1efb700b739bb7304bc2))",
+          "**hooks:** trust the running CC version over CLAUDE_CODE_VERSION ([#5034](https://github.com/yonatangross/orchestkit/issues/5034)) ([1158e22](https://github.com/yonatangross/orchestkit/commit/1158e226f22d223f53de6e95896bb5ee6a996e1d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.7.3",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3",

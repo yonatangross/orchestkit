@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.4](https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4) (2026-11-03)
+
+
+### Bug Fixes
+
+* **hooks:** no CC floor warning from an unconfirmed env version ([#5037](https://github.com/yonatangross/orchestkit/issues/5037)) ([7bff26c](https://github.com/yonatangross/orchestkit/commit/7bff26cd0caa8465f51104fc285815221e9574ff))
+* **hooks:** review-pr gate needs --no-ext-diff --no-textconv on diffs ([#5013](https://github.com/yonatangross/orchestkit/issues/5013)) ([fef4229](https://github.com/yonatangross/orchestkit/commit/fef422900ddd59e3f5ce1efb700b739bb7304bc2))
+* **hooks:** trust the running CC version over CLAUDE_CODE_VERSION ([#5034](https://github.com/yonatangross/orchestkit/issues/5034)) ([1158e22](https://github.com/yonatangross/orchestkit/commit/1158e226f22d223f53de6e95896bb5ee6a996e1d))
+
 ## [10.7.3](https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3) (2026-11-03)
 
 

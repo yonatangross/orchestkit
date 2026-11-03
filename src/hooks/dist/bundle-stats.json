@@ -22,8 +22,8 @@
       "exports": 160
     },
     "lifecycle": {
-      "size": 155898,
-      "sizeKB": "152.24",
+      "size": 156031,
+      "sizeKB": "152.37",
       "exports": 71
     },
     "stop": {
@@ -47,8 +47,8 @@
       "exports": 55
     },
     "skill": {
-      "size": 87013,
-      "sizeKB": "84.97",
+      "size": 90373,
+      "sizeKB": "88.25",
       "exports": 71
     },
     "agent": {
@@ -57,8 +57,8 @@
       "exports": 73
     }
   },
-  "totalSize": 865683,
-  "totalSizeKB": "845.39",
+  "totalSize": 869176,
+  "totalSizeKB": "848.80",
   "inputs": 118,
-  "avgBundleSizeKB": "76.85"
+  "avgBundleSizeKB": "77.16"
 }
