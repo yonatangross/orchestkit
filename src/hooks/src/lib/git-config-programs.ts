@@ -38,7 +38,10 @@ const BOOLEAN_KEYS = new Set(['core.fsmonitor', 'log.showsignature']);
 export function gitConfigPrograms(cwd: string): string[] | null {
   let out = '';
   try {
-    out = execFileSync('git', ['-C', cwd || '.', 'config', '--list', '--includes', '--show-scope'], {
+    // -z: each entry is `<scope>\0<key>\n<value>\0`. A subsection may hold
+    // `=` (`[filter "a=b"]` lists as filter.a=b.clean), so the key ends at
+    // the newline, never at the first `=` (security review on #5013).
+    out = execFileSync('git', ['-C', cwd || '.', 'config', '--list', '--includes', '--show-scope', '-z'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 3000,
@@ -50,14 +53,13 @@ export function gitConfigPrograms(cwd: string): string[] | null {
     return null;
   }
   const keys: string[] = [];
-  for (const line of out.split('\n')) {
-    const tab = line.indexOf('\t');
-    if (tab < 0) continue;
-    const scope = line.slice(0, tab);
-    const rest = line.slice(tab + 1);
-    const eq = rest.indexOf('=');
-    const key = (eq < 0 ? rest : rest.slice(0, eq)).trim();
-    const value = eq < 0 ? '' : rest.slice(eq + 1).trim();
+  const parts = out.split('\0');
+  for (let i = 0; i + 1 < parts.length; i += 2) {
+    const scope = parts[i];
+    const entry = parts[i + 1];
+    const nl = entry.indexOf('\n');
+    const key = nl < 0 ? entry : entry.slice(0, nl);
+    const value = nl < 0 ? '' : entry.slice(nl + 1).trim();
     if (!GIT_REPO_SCOPES.has(scope) || !GIT_PROGRAM_KEYS.test(key)) continue;
     if (BOOLEAN_KEYS.has(key) && GIT_FALSE.test(value)) continue;
     if (!keys.includes(key)) keys.push(key);

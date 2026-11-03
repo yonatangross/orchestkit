@@ -1826,6 +1826,13 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       expect(gitConfigPrograms(wt)).toEqual(['core.fsmonitor']);
       expect(at(wt)).toBe(true);
 
+      // A subsection holding '=' ([filter "a=b"] lists as filter.a=b.clean) is still read whole.
+      const eqsub = fresh('eq-subsection');
+      execFileSync('git', ['-C', eqsub, 'config', 'filter.a=b.clean', '/tmp/evil-clean.sh']);
+      execFileSync('git', ['-C', eqsub, 'config', 'diff.x=y.textconv', '/tmp/evil-tc.sh']);
+      expect(gitConfigPrograms(eqsub)).toEqual(['filter.a=b.clean', 'diff.x=y.textconv']);
+      expect(at(eqsub)).toBe(true);
+
       // b35 (6597215918): core.fsmonitor set with --worktree, then git ls-files -m is refused.
       const wt2 = fresh('worktree-fsm-lsfiles');
       execFileSync('git', ['-C', wt2, 'config', 'extensions.worktreeConfig', 'true']);
