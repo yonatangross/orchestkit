@@ -18,8 +18,14 @@ import { isAbsolute, join } from 'node:path';
 // hooks dir; refusing the key would refuse every husky repo and orchestkit's
 // own bin/git-hooks (#5013). Names are matched as git prints them (section
 // and key lowercased, the subsection kept).
+//
+// gpg.program and gpg.<format>.program are listed too: signature checks
+// can be reached through %G in a config-set format.pretty or pretty.<alias>,
+// not only a typed --format, so a repo-scope signing program is refused and
+// any check runs only the operator's own global or system signer (security
+// review on #5013).
 const GIT_PROGRAM_KEYS =
-  /^(core\.fsmonitor|diff\.external|diff\..+\.(textconv|command)|filter\..+\.(clean|smudge|process)|log\.showsignature)$/;
+  /^(core\.fsmonitor|diff\.external|diff\..+\.(textconv|command)|filter\..+\.(clean|smudge|process)|log\.showsignature|gpg\.program|gpg\..+\.program)$/;
 const GIT_FALSE = /^(false|no|off|0)$/i;
 // The scopes a reviewed repo (or the call itself) controls. A value pulled in
 // by an include is reported under the including file's scope. Global and
@@ -73,17 +79,19 @@ export function gitConfigPrograms(cwd: string): string[] | null {
   // which runs no program, and report a post-index-change hook there.
   let hooks = '';
   try {
-    hooks = execFileSync('git', ['-C', cwd || '.', 'rev-parse', '--git-path', 'hooks'], {
+    hooks = execFileSync('git', ['-C', cwd || '.', 'rev-parse', '--path-format=absolute', '--git-path', 'hooks'], {
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
+      stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 3000,
     }).trim();
-  } catch {
-    hooks = '';
+  } catch (err) {
+    const e = err as { status?: number | null; stderr?: string | Buffer };
+    // No repo here: no index for a read to refresh, so no hook to fire.
+    // Any other failure fails closed (security review on #5013).
+    if (e.status === 128 && /not a git repository/i.test(String(e.stderr ?? ''))) return keys;
+    return null;
   }
-  if (hooks) {
-    const hook = join(isAbsolute(hooks) ? hooks : join(cwd || '.', hooks), 'post-index-change');
-    if (existsSync(hook)) keys.push('hooks/post-index-change');
-  }
+  if (!hooks || !isAbsolute(hooks)) return null;
+  if (existsSync(join(hooks, 'post-index-change'))) keys.push('hooks/post-index-change');
   return keys;
 }

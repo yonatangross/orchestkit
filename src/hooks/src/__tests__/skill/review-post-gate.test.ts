@@ -1799,7 +1799,7 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
   test('#5013: a %G format on git log or show is refused (it runs the signature program)', () => {
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
     // git show carries both driver flags here, so each row tests the %G rule alone.
-    for (const cmd of ["git log --format=%G? -5", "git log --pretty=format:%GG -1", "git show --no-ext-diff --no-textconv --format=%GK --no-patch HEAD", "git log --format='%h %G?'"]) {
+    for (const cmd of ["git log --format=%G? -5", "git log --pretty=format:%GG -1", "git show --no-ext-diff --no-textconv --format=%GK --no-patch HEAD", "git log --format='%h %G?'", 'git log --format=%+G? -1', "git log --format='% GG' -1", 'git log --format=%-GS -1']) {
       expect(at(cmd), cmd).toBe(true);
     }
     for (const cmd of ['git log --format=%H%x09%s -5', "git log --pretty=format:%h -1", 'git show --no-ext-diff --no-textconv --format=%an --no-patch HEAD']) {
@@ -1903,8 +1903,18 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
       execFileSync('git', ['-C', sig, 'config', 'log.showSignature', 'false']);
       expect(gitConfigPrograms(sig)).toEqual([]);
 
+      // A repo-scope signing program is refused (a %G in a config-set format
+      // would run it); a global signer, like this machine's, is not.
+      const gp = fresh('gpg-program');
+      execFileSync('git', ['-C', gp, 'config', 'gpg.program', '/tmp/evil-gpg.sh']);
+      expect(gitConfigPrograms(gp)).toEqual(['gpg.program']);
+      const gs = fresh('gpg-ssh-program');
+      execFileSync('git', ['-C', gs, 'config', 'gpg.ssh.program', '/tmp/evil-ssh-sign.sh']);
+      expect(gitConfigPrograms(gs)).toEqual(['gpg.ssh.program']);
+      expect(at(gs)).toBe(true);
+
       // A program named in GLOBAL config (git lfs install) is not refused: declared limit.
-      writeFileSync(globalCfg, '[filter "lfs"]\n\tclean = git-lfs clean -- %f\n\tprocess = git-lfs filter-process\n');
+      writeFileSync(globalCfg, '[filter "lfs"]\n\tclean = git-lfs clean -- %f\n\tprocess = git-lfs filter-process\n[gpg "ssh"]\n\tprogram = /Applications/1Password.app/Contents/MacOS/op-ssh-sign\n');
       const g = fresh('global-lfs');
       expect(gitConfigPrograms(g)).toEqual([]);
       expect(at(g)).toBe(false);

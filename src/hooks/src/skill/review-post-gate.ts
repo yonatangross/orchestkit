@@ -1916,7 +1916,10 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
     if (driverWhy) return driverWhy;
     // A %G placeholder (%G?, %GG, %GS, %GK...) makes git verify each commit's
     // signature, which runs the signing program from git config (#5013).
-    if ((sub === 'log' || sub === 'show') && p.values.some((v) => (v.name === 'format' || v.name === 'pretty') && v.value.includes('%G'))) {
+    // Matched as a placeholder with its optional +, - or space modifier
+    // (%+G?, % GG); a config-set format.pretty or pretty.<alias> is covered by
+    // the repo-scope gpg.*program refusal in gitConfigPrograms.
+    if ((sub === 'log' || sub === 'show') && p.values.some((v) => (v.name === 'format' || v.name === 'pretty') && /%[+\- ]?G/.test(v.value))) {
       return `git ${sub} with a %G format (it runs the signature program)`;
     }
     // Words before -- are revisions; words after it are paths. git reads a
