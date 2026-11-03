@@ -110,18 +110,16 @@ describe("service-account prefix matches only a real token shape", () => {
 
   // HOLD 6603957379: in escaped text the character before a token is a
   // letter ("\n", "\t", "%3D"); a left-context lookbehind leaked these.
-  it("masks the token right after a literal \\n, \\t or %3D (HOLD 6603957379)", () => {
-    const cases = [
-      '"line one' + "\\" + "n" + saToken + "\\" + 'n"',
-      "col" + "\\" + "t" + saToken,
-      "token%3" + "D" + saToken,
-    ];
-    for (const text of cases) {
-      const out = mask(text, shapesOnly);
-      expect(out.text).not.toContain(saToken.slice(0, 12));
-      expect(out.spans).toHaveLength(1);
-      expect(wouldMask(saToken, shapesOnly)).toBe(true);
-    }
+  // One test per escape, so each leak row is pinned red on its own (a loop
+  // stops at its first failing row and hid the other two).
+  it.each([
+    ["literal \\n", '"line one' + "\\" + "n" + saToken + "\\" + 'n"'],
+    ["literal \\t", "col" + "\\" + "t" + saToken],
+    ["%3D", "token%3" + "D" + saToken],
+  ])("masks the token right after %s (HOLD 6603957379)", (_escape, text) => {
+    const out = mask(text, shapesOnly);
+    expect(out.text).not.toContain(saToken.slice(0, 12));
+    expect(out.spans).toHaveLength(1);
   });
 
   it("leaves an identifier that starts with the prefix unmasked", () => {
