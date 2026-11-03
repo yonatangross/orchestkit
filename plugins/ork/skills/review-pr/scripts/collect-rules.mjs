@@ -3,7 +3,11 @@
 // against, and print them as one JSON object for workflows/rule-check.js.
 //
 // Usage: node collect-rules.mjs [--repo DIR] [--home DIR] [--no-user]
-//        [--standards (--default-branch NAME [--pr-base NAME] | --base-ref REF)]
+//        [--standards (--default-branch NAME [--pr-base NAME] [--github-repo OWNER/REPO] | --base-ref REF)]
+//
+//   --github-repo OWNER/REPO  with --default-branch: read the standards file
+//                with one `gh api` contents GET at that branch instead of a
+//                local git ref, so the skill never runs git fetch (#4701)
 //
 //   --repo DIR   project root (default: the current directory)
 //   --home DIR   home directory (default: $HOME); tests point it at a fixture
@@ -152,6 +156,47 @@ if (STANDARDS) {
     if (!BRANCH.test(def) || def.includes('..')) done({ skip: `standards pass skipped: --default-branch ${def} is not a branch name` });
     ref = `refs/remotes/origin/${def}`;
     if (prBase !== null && prBase !== def) notes.push(`standards read from the default branch ${def}, not the PR base ${prBase}`);
+  }
+  // --github-repo OWNER/REPO: read the file with one GitHub contents GET at
+  // the default branch (#4701). No git fetch, so no git transport, ssh
+  // command or credential helper runs, and the local ref cannot be stale.
+  const slug = opt('--github-repo');
+  if (slug !== null) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(slug) || slug.includes('..')) done({ skip: `standards pass skipped: --github-repo ${slug} is not owner/repo` });
+    if (def === null) done({ skip: 'standards pass skipped: --github-repo needs --default-branch' });
+    const at = `${slug}@${def}`;
+    // The slug must be the repo under review (gh resolves it from --repo's
+    // remotes), never one the caller names: a PR author's fork would supply
+    // its own standards and reopen #4671 (#5013 b35).
+    let reviewed = '';
+    try {
+      reviewed = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }).trim();
+    } catch {
+      done({ skip: `standards pass skipped: gh could not resolve the repo under review in ${REPO}`, notes });
+    }
+    if (reviewed.toLowerCase() !== slug.toLowerCase()) done({ skip: `standards pass skipped: --github-repo ${slug} is not the repo under review (${reviewed || '?'})`, notes });
+    // The branch must be the repo's real default branch, read from GitHub,
+    // never a name the caller (or PR text steering it) chose (#5013 b33).
+    let realDefault = '';
+    try {
+      realDefault = execFileSync('gh', ['api', `repos/${slug}`, '--jq', '.default_branch'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }).trim();
+    } catch {
+      done({ skip: `standards pass skipped: gh api could not read the default branch of ${slug}`, notes });
+    }
+    if (realDefault !== def) done({ skip: `standards pass skipped: --default-branch ${def} is not the default branch of ${slug} (${realDefault || '?'})`, notes });
+    let meta = null;
+    try {
+      meta = JSON.parse(execFileSync('gh', ['api', `repos/${slug}/contents/${STANDARDS_FILE}?ref=${encodeURIComponent(def)}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }));
+    } catch {
+      missing.push(`${STANDARDS_FILE}@${at}`);
+      done({ skip: `standards pass skipped: gh api found no ${STANDARDS_FILE} at ${at}`, notes });
+    }
+    if (!meta || Array.isArray(meta) || meta.type !== 'file' || typeof meta.content !== 'string' || meta.encoding !== 'base64') {
+      skipped.push({ file: `${STANDARDS_FILE}@${at}`, reason: meta && meta.type === 'symlink' ? 'symlink' : 'not-file' });
+      done({ skip: `standards pass skipped: ${STANDARDS_FILE} at ${at} is not a plain file`, notes });
+    }
+    sources.push({ path: STANDARDS_FILE, ref: at, sha: String(meta.sha ?? ''), text: Buffer.from(meta.content, 'base64').toString('utf8') });
+    done(notes.length ? { notes } : {});
   }
   // Only a remote-tracking ref or a full commit SHA: no HEAD, @, ~ or ^ forms.
   if (ref && /^origin\/[A-Za-z0-9._][A-Za-z0-9._/-]*$/.test(ref)) ref = `refs/remotes/${ref}`;

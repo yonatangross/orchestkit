@@ -54,7 +54,8 @@ const cfg = RAW && typeof RAW === "object" && !Array.isArray(RAW) ? RAW : {};
 const reasons = [];
 
 const TARGET = String(cfg.target || "the resolved review target");
-const DIFF_CMD = String(cfg.diffCommand || "git diff");
+// The review-pr post gate denies a git diff without both flags (#4701).
+const DIFF_CMD = String(cfg.diffCommand || "git diff --no-ext-diff --no-textconv");
 const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
 // Standards mode (`/ork:review-pr --standards`): the only source is the repo's
 // .github/review-standards.md, which builders never load. Rules are numbered

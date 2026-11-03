@@ -69,6 +69,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { chainUserCommandArgs } from '../lib/review-opt-in.js';
 import { tmpdir } from 'node:os';
 import { posix } from 'node:path';
+import { gitConfigPrograms } from '../lib/git-config-programs.js';
 import { hasLink, realPath, linkCount } from '../lib/real-path.js';
 import { inGitRepo } from '../lib/repo-root.js';
 
@@ -805,6 +806,25 @@ export interface ReviewPostGateDeps {
   linkCount?: (p: string) => number;
   /** The config subset of configEnv (no PATH lists): never read, in the repo either. */
   secretEnv?: () => string[];
+  /** The repo's local git config keys that name a program a git read can run (gitConfigPrograms); null when unreadable. */
+  gitConfigPrograms?: (cwd: string) => string[] | null;
+}
+
+// The git config read (gitConfigPrograms) lives in lib/git-config-programs.ts:
+// a handler takes its I/O through a dep, never node:child_process (fh-ready).
+export { gitConfigPrograms };
+
+/** A thunk that runs its function once and returns the same value after. */
+function memoOnce<T>(fn: () => T): () => T {
+  let done = false;
+  let value: T;
+  return () => {
+    if (!done) {
+      value = fn();
+      done = true;
+    }
+    return value;
+  };
 }
 
 const DEFAULT_DEPS: ReviewPostGateDeps = {
@@ -819,6 +839,7 @@ const DEFAULT_DEPS: ReviewPostGateDeps = {
   linkCount,
   secretEnv: () => envConfigDirs(process.env, false),
   realpath: realPath,
+  gitConfigPrograms,
 };
 
 /**
@@ -1227,7 +1248,7 @@ function gate(input: HookInput, ctx: HookContext, deps: ReviewPostGateDeps): Hoo
     return deny(ctx, input, TRANSCRIPT_DENY);
   }
   const targets = pathTargets(input, deps);
-  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv) };
+  const allowCtx: AllowContext = { cwd: input.cwd ?? '', root: deps.pluginRoot(), realpath: deps.realpath ?? ((x: string) => x), home: deps.home?.() ?? '', tempDirs: tempRoots(deps.tempDirs?.() ?? DEFAULT_TEMP(), deps.realpath ?? ((x: string) => x)), named: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? ''), secret: namedRoots(deps, deps.realpath ?? ((x: string) => x), input.cwd ?? '', deps.secretEnv ?? deps.configEnv), gitPrograms: memoOnce(() => (deps.gitConfigPrograms ?? gitConfigPrograms)(input.cwd ?? '')) };
   // The job dir must pass the Write rule; unset, "$CLAUDE_JOB_DIR" is empty and
   // verdict_writeback.py would write into the cwd (HOLD 6098152787 should).
   allowCtx.jobOk = jobRootOk(deps, allowCtx.realpath, allowCtx.home ?? '', allowCtx.tempDirs ?? []) !== '';
@@ -1548,9 +1569,8 @@ const FLAGS: Record<string, FlagSpec> = {
   'git log': spec('p', { n: NUM, S: TEXT, G: TEXT, U: NUM }, ['oneline', 'graph', 'stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'no-merges', 'merges', 'first-parent', 'reverse', 'all', 'patch', 'follow', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv', 'decorate', 'no-decorate'], { format: TEXT, pretty: TEXT, since: TEXT, until: TEXT, after: TEXT, before: TEXT, author: TEXT, grep: TEXT, 'max-count': NUM, skip: NUM, date: TEXT, unified: NUM, 'diff-filter': TEXT }, true),
   'git diff': spec('pwbMR', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'cached', 'staged', 'no-color', 'patch', 'merge-base', 'ignore-all-space', 'ignore-space-change', 'find-renames', 'word-diff', 'check', 'minimal', 'no-ext-diff', 'no-textconv', 'no-renames'], { unified: NUM, 'diff-filter': TEXT }),
   'git show': spec('ps', { U: NUM }, ['stat', 'shortstat', 'numstat', 'name-only', 'name-status', 'oneline', 'no-patch', 'patch', 'no-color', 'abbrev-commit', 'no-ext-diff', 'no-textconv'], { format: TEXT, pretty: TEXT, unified: NUM }),
-  'git status': spec('sbu', {}, ['short', 'branch', 'porcelain', 'long', 'ignored']),
   'git rev-parse': spec('q', {}, ['abbrev-ref', 'short', 'verify', 'show-toplevel', 'git-dir', 'git-common-dir', 'is-inside-work-tree', 'quiet', 'symbolic-full-name', 'show-prefix']),
-  'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email'], { date: TEXT }),
+  'git blame': spec('wseMCl', { L: TEXT }, ['porcelain', 'line-porcelain', 'show-email', 'no-textconv'], { date: TEXT }),
   'git ls-files': spec('cmodzs', {}, ['cached', 'modified', 'others', 'deleted', 'exclude-standard', 'error-unmatch', 'full-name', 'stage']),
   'git merge-base': spec('a', {}, ['is-ancestor', 'fork-point', 'all', 'octopus']),
   'git grep': spec('nilLcwvEFPhHIz', { e: TEXT, A: NUM, B: NUM, C: NUM, m: NUM }, ['cached', 'untracked', 'name-only', 'count', 'or', 'and', 'not', 'all-match', 'line-number', 'ignore-case', 'files-with-matches', 'word-regexp', 'invert-match', 'extended-regexp', 'fixed-strings', 'perl-regexp'], { 'max-depth': NUM, 'max-count': NUM, context: NUM }, true),
@@ -1668,7 +1688,26 @@ function pathsOk(paths: Word[], ctx: AllowContext): string | null {
 
 // test's operators are its flags; test never reads a program or a file body.
 const TEST_OPS = new Set(['-b', '-c', '-d', '-e', '-f', '-g', '-h', '-k', '-L', '-n', '-p', '-r', '-s', '-S', '-t', '-u', '-w', '-x', '-z', '-O', '-G', '-N', '-eq', '-ne', '-lt', '-le', '-gt', '-ge', '-nt', '-ot', '-ef', '-a', '-o']);
-const GIT_READ = new Set(['log', 'diff', 'show', 'status', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
+// No git status: it runs core.fsmonitor from a config written before the
+// skill ran, the gate cannot pass -c, and no review-pr reader needs it (#4701).
+const GIT_READ = new Set(['log', 'diff', 'show', 'rev-parse', 'blame', 'ls-files', 'merge-base', 'grep']);
+// A config or .gitattributes written before the skill ran can name a program
+// git runs while it prints a diff: diff.external, a diff=<driver> command, or
+// a textconv driver. git diff and git show always print one; git log does
+// with a patch, a stat or a pickaxe search. Those reads must carry both
+// --no-ext-diff and --no-textconv (#4701).
+const GIT_DIFF_DRIVER_FREE = ['no-ext-diff', 'no-textconv'] as const;
+const GIT_LOG_DIFF_FLAGS = ['p', 'patch', 'U', 'unified', 'stat', 'shortstat', 'numstat', 'S', 'G'] as const;
+
+/** Why a git diff, show, log or blame read could run a diff driver, or null when it cannot. */
+function gitDiffDriverReason(sub: string, p: ParsedArgs): string | null {
+  // git blame runs a textconv driver by default (it has no external diff).
+  if (sub === 'blame') return p.given.has('no-textconv') ? null : 'git blame without --no-textconv (a textconv driver from git config could run)';
+  const prints = sub === 'diff' || sub === 'show' || (sub === 'log' && GIT_LOG_DIFF_FLAGS.some((f) => p.given.has(f)));
+  if (!prints) return null;
+  const missing = GIT_DIFF_DRIVER_FREE.filter((f) => !p.given.has(f));
+  return missing.length ? `git ${sub} without --${missing.join(' and --')} (a diff driver from git config could run)` : null;
+}
 const SKILL_SCRIPTS: Record<string, string> = {
   node: 'collect-rules.mjs',
   python3: 'verdict_writeback.py',
@@ -1692,6 +1731,8 @@ export interface AllowContext {
   secret?: string[] | null;
   /** Whether "$CLAUDE_JOB_DIR" is a dir Write may use (jobRootOk); the gate sets it, unset here counts as yes. */
   jobOk?: boolean;
+  /** The local git config keys that name a program (gitConfigPrograms), read once per call; null fails closed. Unset reads as none. */
+  gitPrograms?: () => string[] | null;
 }
 
 /** Why a path argument leaves the repo cwd, or null. */
@@ -1784,6 +1825,11 @@ function collectRulesArgs(rest: Word[], ctx: AllowContext): string | null {
       i += 1;
       continue;
     }
+    if (t === '--github-repo') {
+      if (!v || v.variable || !/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(v.text) || v.text.includes('..')) return 'collect-rules.mjs --github-repo needs owner/repo';
+      i += 1;
+      continue;
+    }
     return `collect-rules.mjs ${t} is not on its flag list`;
   }
   return null;
@@ -1852,13 +1898,30 @@ export function notAllowed(words: Word[], ctx: AllowContext): string | null {
   }
   if (cmd === 'git') {
     const sub = args[0]?.text ?? '';
-    if (sub === 'fetch') {
-      const rest = args.slice(1).map((a) => a.text);
-      return rest.length === 2 && rest[0] === 'origin' && /^[A-Za-z0-9._/-]+$/.test(rest[1]) && !rest[1].startsWith('-') ? null : 'git fetch other than git fetch origin <branch>';
-    }
+    // No git fetch (#4701 b31): a transport can run a configured program
+    // (ext::, core.sshCommand, a credential helper). The --standards pass
+    // reads the default-branch rules with one gh api GET instead.
     if (!GIT_READ.has(sub)) return `git ${sub || '(an option)'} is not a git read on the list`;
+    // A program named in the repo's git config runs during a git read
+    // (core.fsmonitor on an index refresh, a filter driver, log.showSignature, diff.external,
+    // a diff driver's textconv or command). Read the config, which runs no
+    // program, and refuse while any is set (#4701 b33).
+    // null (unreadable) must fail closed, so no ?? here.
+    const programs = ctx.gitPrograms ? ctx.gitPrograms() : [];
+    if (programs === null) return 'git reads while the repo git config cannot be read';
+    if (programs.length) return `git reads while the repo git config sets ${programs.join(', ')} (a program git would run; unset it or review elsewhere)`;
     const p = parseFlags(`git ${sub}`, args.slice(1), FLAGS[`git ${sub}`]);
     if (typeof p === 'string') return p;
+    const driverWhy = gitDiffDriverReason(sub, p);
+    if (driverWhy) return driverWhy;
+    // A %G placeholder (%G?, %GG, %GS, %GK...) makes git verify each commit's
+    // signature, which runs the signing program from git config (#5013).
+    // Matched as a placeholder with its optional +, - or space modifier
+    // (%+G?, % GG); a config-set format.pretty or pretty.<alias> is covered by
+    // the repo-scope gpg.*program refusal in gitConfigPrograms.
+    if ((sub === 'log' || sub === 'show') && p.values.some((v) => (v.name === 'format' || v.name === 'pretty') && /%[+\- ]?G/.test(v.value))) {
+      return `git ${sub} with a %G format (it runs the signature program)`;
+    }
     // Words before -- are revisions; words after it are paths. git reads a
     // word before -- as a path when it is no revision, and git diff with a
     // path outside the repo diffs it as a plain file (--no-index), so a word
@@ -1914,4 +1977,4 @@ export function allowlistReason(command: string, ctx: AllowContext): string | nu
 }
 
 const ALLOW_DENY =
-  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, status, rev-parse, blame, ls-files, merge-base, grep), git fetch origin <branch>, jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";
+  "review-pr runs Bash only as simple read-only commands, each with only the flags on its list: gh pr view|diff|checks|list, gh run view|list (CI is the test evidence: gh pr checks, gh run view <id> --log-failed), gh issue|repo|release|workflow view, gh api GET, a git read (log, diff, show, rev-parse, blame, ls-files, merge-base, grep; git diff, git show and a git log patch, stat or -S/-G search need --no-ext-diff --no-textconv, git blame needs --no-textconv; no git fetch or status, and no git read while the repo git config names a program), jq, ls, cat, head, tail, wc, grep, rg, sed -n 'N,Mp', test, sort, uniq, cut, tr, nl, an awk field print, on paths in the repo or the temp dir, and the skill scripts by their pinned path. No project tests or builds, cd, assignments, subshells, expansions but a quoted '$NAME' after --, a jq program with env or $ENV, a glob in a path (use rg -g), a flag that follows links (rg -L, grep -R), or redirects but 2>/dev/null and 2>&1. Print what you need another way, or stop. Not allowed here";

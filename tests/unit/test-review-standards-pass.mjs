@@ -62,6 +62,10 @@
 //      violation's file:line in unverified. Fails on 2761857d (item 6).
 //  22. A rules commit whose tree git cannot read (a shallow or partial clone)
 //      gives one skip line, not a crash. Fails on b32a3f0b (ls-tree threw).
+//  23. --github-repo OWNER/REPO with --default-branch reads the file with one
+//      `gh api` contents GET at that branch and runs no git (#4701: the post
+//      gate refuses git fetch). A symlink, a missing file or a bad slug gives
+//      one skip line. Fails if the flag is ignored or git is called.
 //   8. The repo's own .github/review-standards.md has at most 20 rules and
 //      3 KB, and every bullet is a rule. Fails if a 21st rule is added, or a
 //      bullet has no directive word (it would be skipped silently).
@@ -485,6 +489,69 @@ await test('an unreadable rules tree (shallow clone) gives one skip line, not a 
     }
     assert.deepEqual(out.sources, []);
     assert.match(String(out.skip), /cannot read the tree of refs\/remotes\/origin\/main/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// 23
+await test('--github-repo reads the standards with one gh api GET and runs no git (#4701)', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'std-gh-'));
+  try {
+    const repo = path.join(root, 'repo');
+    const home = path.join(root, 'home');
+    const bin = path.join(root, 'bin');
+    mkdirSync(repo);
+    mkdirSync(home);
+    mkdirSync(bin);
+    const log = path.join(root, 'calls.log');
+    const reply = path.join(root, 'reply.json');
+    // gh stub: log the argv; `gh api repos/o/r --jq .default_branch` prints
+    // main; the contents call prints the reply file, failing when it is absent.
+    // `gh repo view` (the repo under review) prints o/r.
+    writeFileSync(path.join(bin, 'gh'), `#!/bin/sh\necho "gh $*" >> "${log}"\nif [ "$1" = "repo" ]; then echo o/r; exit 0; fi\nif [ "$2" = "repos/o/r" ]; then echo main; exit 0; fi\n[ -f "${reply}" ] || exit 1\ncat "${reply}"\n`, { mode: 0o755 });
+    // git stub: any git call is a test failure.
+    writeFileSync(path.join(bin, 'git'), `#!/bin/sh\necho "git $*" >> "${log}"\nexit 2\n`, { mode: 0o755 });
+    const run23 = (extra) => JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home, '--standards', ...extra], {
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+    }));
+    const args = ['--default-branch', 'main', '--github-repo', 'o/r'];
+
+    writeFileSync(reply, JSON.stringify({ type: 'file', encoding: 'base64', sha: 'abc123', content: Buffer.from(STANDARDS_MD).toString('base64') }));
+    const ok = run23(args);
+    assert.deepEqual(ok.sources.map((x) => [x.path, x.ref, x.text]), [['.github/review-standards.md', 'o/r@main', STANDARDS_MD]]);
+    assert.equal(ok.skip, undefined);
+    assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), ['gh repo view --json nameWithOwner --jq .nameWithOwner', 'gh api repos/o/r --jq .default_branch', 'gh api repos/o/r/contents/.github/review-standards.md?ref=main']);
+
+    // A repo that is not the one under review (a PR author's fork) is refused, before any read of it (#5013 b35, #4671).
+    const fork = run23(['--default-branch', 'main', '--github-repo', 'author/fork']);
+    assert.deepEqual(fork.sources, []);
+    assert.match(fork.skip, /not the repo under review \(o\/r\)/);
+    assert.ok(!readFileSync(log, 'utf8').includes('repos/author/fork'), 'collect-rules read the fork');
+
+    // A branch that is not the repo's default (a PR branch steered in) is refused (#5013 b33).
+    const steered = run23(['--default-branch', 'pr-branch', '--github-repo', 'o/r']);
+    assert.deepEqual(steered.sources, []);
+    assert.match(steered.skip, /not the default branch of o\/r \(main\)/);
+
+    writeFileSync(reply, JSON.stringify({ type: 'symlink', target: '/etc/passwd' }));
+    const link = run23(args);
+    assert.deepEqual(link.sources, []);
+    assert.match(link.skip, /not a plain file/);
+    assert.equal(link.skipped[0].reason, 'symlink');
+
+    rmSync(reply);
+    const gone = run23(args);
+    assert.deepEqual(gone.sources, []);
+    assert.match(gone.skip, /found no/);
+
+    const bad = run23(['--default-branch', 'main', '--github-repo', 'o/../r']);
+    assert.match(bad.skip, /not owner\/repo/);
+    const noDef = run23(['--github-repo', 'o/r']);
+    assert.match(noDef.skip, /needs --default-branch/);
+
+    assert.ok(!readFileSync(log, 'utf8').includes('git '), 'collect-rules ran git under --github-repo');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

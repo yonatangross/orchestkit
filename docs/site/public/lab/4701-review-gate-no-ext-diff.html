@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>review-pr gate: no diff driver runs</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.panel{border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:16px 18px;margin-top:10px}
+input[type=text]{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:hsl(232 20% 14%);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:8px 10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chips button{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);color:var(--ink);border:1px solid var(--edge);border-radius:999px;padding:4px 10px;cursor:pointer}
+.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:12px}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4701 review-pr gate: a git read runs no diff driver"><meta property="og:description" content="A git config written before review-pr ran could make an allowed git diff, show or log -p run diff.external or a textconv driver, and git status run core.fsmonitor. The gate now requires --no-ext-diff and --no-textconv on every diff-printing read and drops git status."><meta property="og:url" content="https://orchestkit.dev/lab/4701-review-gate-no-ext-diff.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4701 review-pr gate: a git read runs no diff driver"><meta name="twitter:description" content="A git config written before review-pr ran could make an allowed git diff, show or log -p run diff.external or a textconv driver, and git status run core.fsmonitor. The gate now requires --no-ext-diff and --no-textconv on every diff-printing read and drops git status."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">REVIEW-PR POST GATE &middot; #4701</div>
+<h1>A git read under review-pr <span>runs no diff driver</span></h1>
+<p class="lede">A git config or <code>.gitattributes</code> written before <code>/ork:review-pr</code> ran
+can name a program git runs while it prints a diff: <code>diff.external</code>, a
+<code>diff=&lt;driver&gt;</code> command, or a <b>textconv</b> driver. <code>git status</code> runs
+<code>core.fsmonitor</code>. The gate now asks every diff-printing read for both
+<code>&#45;&#45;no-ext-diff</code> and <code>&#45;&#45;no-textconv</code>, and drops <code>git status</code>.</p>
+
+<h2>Try a command</h2>
+<div class="panel">
+<input id="cmd" type="text" value="git diff main...HEAD" spellcheck="false">
+<div class="chips" id="chips"></div>
+<div class="out" id="out"></div>
+</div>
+
+<h2>The rule</h2>
+<table>
+<tr><th>Read</th><th>Needs both flags</th></tr>
+<tr><td><code>git diff</code>, <code>git show</code></td><td class="ok">always</td></tr>
+<tr><td><code>git log</code> printing a patch, a stat, or a <code>-S</code>/<code>-G</code> search</td><td class="ok">yes</td></tr>
+<tr><td><code>git log</code> with only names or one-line output</td><td>no (no diff driver runs)</td></tr>
+<tr><td><code>git blame</code></td><td class="ok"><code>&#45;&#45;no-textconv</code> (blame runs textconv by default)</td></tr>
+<tr><td><code>git status</code>, <code>git fetch</code></td><td class="bad">off the list</td></tr>
+<tr><td>any git read while the repo's local, worktree or command-scope git config sets <code>core.fsmonitor</code>, <code>log.showSignature=true</code>,<code>diff.external</code>, a diff driver program or a filter driver (<code>clean</code>, <code>smudge</code>, <code>process</code>)</td><td class="bad">refused (one <code>git config</code> read, which runs nothing)</td></tr>
+</table>
+<p class="lede">Declared limit: a program set in git config under a key the gate does not check, or in global or system config, is not covered. <code>core.hooksPath</code> is allowed: a test arms every hook name, and the only one an allowed read fires is <code>post-index-change</code> (a worktree <code>git diff</code>), so the gate refuses git reads while that hook exists. A <code>%G</code> log format is refused (it runs the signing program). A follow-up runs review-pr's git reads with a sanitized config.</p>
+
+<div class="foot">The skill's own diff commands (SKILL.md range row, rule-check diffCommand, review-fanout
+reader prompt) pass both flags, so the gate never blocks the skill. This page simulates the flag rule only;
+the gate also checks every other flag and path.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const D='-'+'-';
+const LOG=['-p',D+'patch','-U',D+'unified',D+'stat',D+'shortstat',D+'numstat','-S','-G'];
+const NEED=[D+'no-ext-diff',D+'no-textconv'];
+function prints(w){return w.some(x=>LOG.some(f=>x===f||x.startsWith(f+'=')||(f.length===2&&!x.startsWith(D)&&x.startsWith(f))));}
+function verdict(c){
+  const w=c.trim().split(/\s+/);
+  if(w[0]!=='git')return['?','not a git command'];
+  const sub=w[1]||'';
+  if(sub==='status'||sub==='fetch')return['deny','git '+sub+' is off the list'];
+  if(sub==='blame')return w.includes(NEED[1])?['allow','blame with '+NEED[1]]:['deny','blame needs '+NEED[1]];
+  const p=sub==='diff'||sub==='show'||(sub==='log'&&prints(w));
+  if(!p)return['allow','no diff output, no diff driver runs'];
+  const miss=NEED.filter(f=>!w.includes(f));
+  return miss.length?['deny','missing '+miss.join(' and ')]:['allow','both flags given'];
+}
+function render(){const[v,why]=verdict($('cmd').value);
+  const out=$('out');out.replaceChildren();const s=document.createElement('span');
+  s.className=v==='allow'?'ok':'bad';s.textContent=v;out.appendChild(s);
+  out.appendChild(document.createTextNode(': '+why));}
+['git diff main...HEAD','git diff '+D+'no-ext-diff main','git diff '+D+'no-ext-diff '+D+'no-textconv main','git log -p HEAD','git log '+D+'oneline -5','git status -sb']
+ .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('cmd').value=s;render();};$('chips').appendChild(b);});
+$('cmd').addEventListener('input',render);render();
+</script><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

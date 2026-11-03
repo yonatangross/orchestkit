@@ -12,11 +12,12 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { linkSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { linkSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs, rawWriteReason, allowlistReason } from '../../skill/review-post-gate.js';
+import { reviewPostGate, isRawPost, readOptIn, resolveCommand, commandPaths, envConfigDirs, rawWriteReason, allowlistReason, gitConfigPrograms } from '../../skill/review-post-gate.js';
+import { execFileSync } from 'node:child_process';
 import { createTestContext } from '../fixtures/test-context.js';
 import { linkCount, realPath } from '../../lib/real-path.js';
 
@@ -385,7 +386,7 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
     for (const cmd of [
       'cat src/skills/review-pr/scripts/post-review.mjs',
       "sed -n '1,40p' src/skills/review-pr/scripts/post-review.mjs",
-      'git diff main -- src/skills/review-pr/scripts/post-review.mjs',
+      'git diff --no-ext-diff --no-textconv main -- src/skills/review-pr/scripts/post-review.mjs',
       'head -20 scripts/post-review.mjs',
     ]) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
@@ -402,7 +403,7 @@ describe('(HOLD 6064566045) MCP, Monitor, and reading the script', () => {
     }
   });
   test('searching history or code for a write verb is not a write', () => {
-    for (const cmd of ['grep -rn "pr review" src/', "rg 'gh pr comment' docs", 'git log --grep "pr comment" --oneline', 'git show HEAD -- x | grep "issue comment"']) {
+    for (const cmd of ['grep -rn "pr review" src/', "rg 'gh pr comment' docs", 'git log --grep "pr comment" --oneline', 'git show --no-ext-diff --no-textconv HEAD -- x | grep "issue comment"']) {
       expect(denied(reviewPostGate(bash(cmd, transcript([typed('4668')])), ctx))).toBe(false);
     }
   });
@@ -1228,7 +1229,7 @@ describe('(HOLD 6085261794) one path rule: separators, cwd from input.cwd and cd
     }
   });
   test('control: the project\'s own .claude and reads of the plugin code pass', () => {
-    for (const cmd of ['ls .claude', 'git diff -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md']) {
+    for (const cmd of ['ls .claude', 'git diff --no-ext-diff --no-textconv -- .claude', 'grep -rn x .claude', 'cat .claude/rules/x.md']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1302,10 +1303,8 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       "gh api repos/o/r/pulls/4668/files --paginate --jq '.[].filename'",
       'gh repo view --json defaultBranchRef',
       'git log --oneline -5 | cat',
-      'git diff main...HEAD -- src/x.ts',
-      'git status',
+      'git diff --no-ext-diff --no-textconv main...HEAD -- src/x.ts',
       'git rev-parse --show-toplevel',
-      'git fetch origin main',
       "jq -r '.files[].path' f.json",
       'grep -rn TODO src',
       // A glob path now denies (conductor145 at 348161fb); rg -g is the read that stays.
@@ -1317,7 +1316,7 @@ describe('(HOLD 6085798647) ALLOWLIST: a Bash call passes only as simple read-on
       'python3 /test/plugin-root/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"',
       'bash /test/plugin-root/skills/review-pr/scripts/resolve-target.sh 4668',
       'ls .claude',
-      'git diff -- .claude',
+      'git diff --no-ext-diff --no-textconv -- .claude',
     ]) {
       expect(at(cmd), cmd).toBe(false);
     }
@@ -1416,7 +1415,7 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
     for (const cmd of ['rg TODO *', 'rg TODO ?x', 'cat [-]*', 'ls *.md', 'sort -k1 *', 'ls **/docker-compose*.yml 2>/dev/null']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    for (const cmd of ['rg TODO ./src', 'cat src/x.ts', 'ls -- src', 'git diff -- src/x.ts']) {
+    for (const cmd of ['rg TODO ./src', 'cat src/x.ts', 'ls -- src', 'git diff --no-ext-diff --no-textconv -- src/x.ts']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1433,10 +1432,9 @@ describe('(HOLD 6086210644, 6086313182) every flag of an allowed command is on t
       'cut -d : -f1 f.txt',
       "jq -r --arg n x '.[] | select(.name == $n)' f.json",
       'git log --oneline -n 5 --format=%H%x09%s main..HEAD',
-      'git diff --stat --name-only main...HEAD -- src',
-      'git show --stat HEAD',
-      'git status -sb',
-      'git blame -L 10,20 src/x.ts',
+      'git diff --no-ext-diff --no-textconv --stat --name-only main...HEAD -- src',
+      'git show --no-ext-diff --no-textconv --stat HEAD',
+      'git blame --no-textconv -L 10,20 src/x.ts',
       'gh pr view 4668 --json baseRefName --jq .baseRefName',
       'gh pr diff 4668 --name-only',
       'gh pr checks 4668 --watch 2>&1',
@@ -1466,7 +1464,7 @@ describe('(conductor145 at 348161fb) a path is read only by a name the gate can 
   const tr = () => transcript([typed('4668')]);
   const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
   test('an unquoted glob in a path argument denies (its matches are not resolved through symlinks)', () => {
-    for (const cmd of ['cat src/*.ts', 'cat link/*/s.jsonl', 'ls ./**/docker-compose*.yml', 'rg TODO ./*', 'git diff -- *.ts', 'ls -- *.md', 'head -n 5 src/?.ts', 'test -f src/*.ts']) {
+    for (const cmd of ['cat src/*.ts', 'cat link/*/s.jsonl', 'ls ./**/docker-compose*.yml', 'rg TODO ./*', 'git diff --no-ext-diff --no-textconv -- *.ts', 'ls -- *.md', 'head -n 5 src/?.ts', 'test -f src/*.ts']) {
       expect(at(cmd), cmd).toBe(true);
     }
     for (const cmd of ["rg -g '*.ts' TODO src", 'grep -rn --include=*.ts TODO src', 'cat src/x.ts', "rg --files -g '**/docker-compose*.yml' 2>/dev/null", "cat 'src/*.ts'"]) {
@@ -1608,10 +1606,11 @@ describe('(HOLD 6088683660, codex24 6088466165) link payloads, variables that st
     }
   });
   test('should: a git read names no path outside the repo before --', () => {
-    for (const cmd of ['git diff /dev/null /opt/other/secret', 'git diff HEAD ../x', 'git diff --stat /dev/null /etc/hosts', 'git log /opt/other']) {
+    // The driver flags are given, so each row tests the path rule alone.
+    for (const cmd of ['git diff --no-ext-diff --no-textconv /dev/null /opt/other/secret', 'git diff --no-ext-diff --no-textconv HEAD ../x', 'git diff --no-ext-diff --no-textconv --stat /dev/null /etc/hosts', 'git log /opt/other']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    for (const cmd of ['git diff main..HEAD', 'git log origin/main...HEAD --oneline', 'git show HEAD:src/a.ts', 'git diff HEAD -- src/a.ts']) {
+    for (const cmd of ['git diff --no-ext-diff --no-textconv main..HEAD', 'git log origin/main...HEAD --oneline', 'git show --no-ext-diff --no-textconv HEAD:src/a.ts', 'git diff --no-ext-diff --no-textconv HEAD -- src/a.ts']) {
       expect(at(cmd), cmd).toBe(false);
     }
   });
@@ -1658,10 +1657,10 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     writeFileSync(join(dir, 'cwd', 'README.md'), 'x');
     symlinkSync('/etc', join(dir, 'cwd', 'lnk'));
     const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr(), TOOL, join(dir, 'cwd')), ctx));
-    for (const cmd of ['git diff lnk/hosts README.md', 'git diff --stat lnk/hosts README.md']) {
+    for (const cmd of ['git diff --no-ext-diff --no-textconv lnk/hosts README.md', 'git diff --no-ext-diff --no-textconv --stat lnk/hosts README.md']) {
       expect(at(cmd), cmd).toBe(true);
     }
-    expect(at('git diff HEAD README.md')).toBe(false);
+    expect(at('git diff --no-ext-diff --no-textconv HEAD README.md')).toBe(false);
   });
   test('codex22 P2-1: a protected config file is caught by its own real path too', () => {
     const home = join(dir, 'home');
@@ -1684,10 +1683,328 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     }
     expect(at(join(dir, 'other.cfg'))).toBe(false);
   });
-  test('codex22 P2-2, declared limit (#4701): a file an existing [include] names is not known to the gate', () => {
-    // The gate does not parse git config; a pre-existing include target is
-    // the same class as a config written before the skill ran.
+  test('codex22 P2-2 (#4701): an existing [include] target is writable, but the reads it could arm are closed', () => {
+    // The gate does not block writing a pre-existing include target, the
+    // same class as a config written before the skill ran. The read side
+    // closes what the gate knows of: the diff drivers need --no-ext-diff
+    // --no-textconv (blame --no-textconv), git status and git fetch are off
+    // the list, and a git read refuses while the local config (with its
+    // includes) names core.fsmonitor, a filter driver, diff.external or a
+    // diff driver program. A config-set program outside that list is a
+    // declared limit.
     expect(write('Write', join(dir, 'review-extra.cfg'))).toBe(false);
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git diff HEAD', 'git show HEAD', 'git log -p -- x', 'git blame src/x.ts', 'git status', 'git fetch origin main']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('#4701: a diff-printing git read needs both --no-ext-diff and --no-textconv', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of [
+      // bare
+      'git diff main...HEAD -- src/x.ts',
+      'git diff --stat HEAD',
+      'git show HEAD',
+      'git show --stat HEAD',
+      'git log -p -- x',
+      'git log --patch -- x',
+      'git log -U3 -- x',
+      'git log --stat -- x',
+      'git log -S needle -- x',
+      'git log -G needle -- x',
+      // one flag only
+      'git diff --no-ext-diff HEAD',
+      'git diff --no-textconv HEAD',
+      'git show --no-ext-diff HEAD',
+      'git show --no-textconv HEAD',
+      'git log -p --no-ext-diff -- x',
+      'git log -p --no-textconv -- x',
+    ]) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of [
+      'git diff --no-ext-diff --no-textconv main...HEAD -- src/x.ts',
+      'git diff --no-textconv --no-ext-diff --stat HEAD',
+      'git show --no-ext-diff --no-textconv HEAD',
+      'git log -p --no-ext-diff --no-textconv -- x',
+      'git log -S needle --no-ext-diff --no-textconv -- x',
+      // git log with no diff output runs no diff driver
+      'git log --oneline -5',
+      'git log --name-only --oneline -- x',
+    ]) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('#4701: git status is off the list (nothing in review-pr runs it)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git status', 'git status -sb', 'git status --porcelain', 'git status --short --branch']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+  });
+  test('#4701 b31: git blame needs --no-textconv (it runs a textconv driver by default)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git blame src/x.ts', 'git blame -L 10,20 src/x.ts', 'git blame --porcelain src/x.ts']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['git blame --no-textconv src/x.ts', 'git blame --no-textconv -L 10,20 src/x.ts']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('#5013: --no-optional-locks does not stop git diff firing post-index-change (why the gate checks the hooks dir)', () => {
+    // Measured as the simpler candidate first (conductor t18d): if a git
+    // release makes the flag stop the write, this test fails and the gate
+    // can require the flag instead of refusing repos with the hook.
+    const repo = join(dir, 'nol');
+    const hooks = join(dir, 'nol-hooks');
+    const marks = join(dir, 'nol-marks');
+    for (const d of [repo, hooks, marks]) mkdirSync(d, { recursive: true });
+    const g = (...a: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.email=t@example.test', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
+    g('init', '-q');
+    writeFileSync(join(repo, 'f.txt'), 'a\n');
+    writeFileSync(join(repo, 's.txt'), 'same\n');
+    g('add', '-A');
+    g('commit', '-q', '-m', 'one');
+    writeFileSync(join(hooks, 'post-index-change'), `#!/bin/sh\ntouch "${marks}/pic"\nexit 0\n`, { mode: 0o755 });
+    g('config', 'core.hooksPath', hooks);
+    const idx = join(repo, '.git', 'index');
+    let tick = Date.now() / 1000 + 100;
+    const rows: string[] = [];
+    for (const args of [
+      ['diff', '--no-ext-diff', '--no-textconv'],
+      ['diff', '--no-ext-diff', '--no-textconv', 'HEAD'],
+      ['--no-optional-locks', 'diff', '--no-ext-diff', '--no-textconv'],
+      ['--no-optional-locks', 'diff', '--no-ext-diff', '--no-textconv', 'HEAD'],
+      ['--no-optional-locks', 'ls-files', '-m'],
+      ['--no-optional-locks', 'blame', '--no-textconv', 'f.txt'],
+      ['--no-optional-locks', 'grep', '-n', 'a'],
+    ]) {
+      tick += 10;
+      utimesSync(join(repo, 's.txt'), tick, tick);
+      for (const m of readdirSync(marks)) rmSync(join(marks, m));
+      const before = statSync(idx).mtimeMs;
+      execFileSync('git', ['-C', repo, ...args], { stdio: 'ignore' });
+      const wrote = statSync(idx).mtimeMs !== before;
+      rows.push(`git ${args.join(' ')} -> index written: ${wrote}, post-index-change: ${readdirSync(marks).length > 0}`);
+    }
+    expect(rows).toEqual([
+      'git diff --no-ext-diff --no-textconv -> index written: true, post-index-change: true',
+      'git diff --no-ext-diff --no-textconv HEAD -> index written: true, post-index-change: true',
+      'git --no-optional-locks diff --no-ext-diff --no-textconv -> index written: true, post-index-change: true',
+      'git --no-optional-locks diff --no-ext-diff --no-textconv HEAD -> index written: true, post-index-change: true',
+      'git --no-optional-locks ls-files -m -> index written: false, post-index-change: false',
+      'git --no-optional-locks blame --no-textconv f.txt -> index written: false, post-index-change: false',
+      'git --no-optional-locks grep -n a -> index written: false, post-index-change: false',
+    ]);
+  });
+  test('#5013: a %G format on git log or show is refused (it runs the signature program)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    // git show carries both driver flags here, so each row tests the %G rule alone.
+    for (const cmd of ["git log --format=%G? -5", "git log --pretty=format:%GG -1", "git show --no-ext-diff --no-textconv --format=%GK --no-patch HEAD", "git log --format='%h %G?'", 'git log --format=%+G? -1', "git log --format='% GG' -1", 'git log --format=%-GS -1']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    for (const cmd of ['git log --format=%H%x09%s -5', "git log --pretty=format:%h -1", 'git show --no-ext-diff --no-textconv --format=%an --no-patch HEAD']) {
+      expect(at(cmd), cmd).toBe(false);
+    }
+  });
+  test('#4701 b31: git fetch is off the list (a transport can run a configured program)', () => {
+    const at = (cmd: string) => denied(reviewPostGate(bash(cmd, tr()), ctx));
+    for (const cmd of ['git fetch origin main', 'git fetch origin', 'git fetch', 'git fetch ext::sh -c x']) {
+      expect(at(cmd), cmd).toBe(true);
+    }
+    // The --standards pass reads the default-branch rules with a GET instead.
+    expect(at('gh api repos/o/r/contents/.github/review-standards.md?ref=main --jq .content')).toBe(false);
+    const collect = 'node /test/plugin-root/skills/review-pr/scripts/collect-rules.mjs --repo /test/project --standards --default-branch main';
+    expect(at(`${collect} --github-repo o/r`)).toBe(false);
+    for (const bad of ['o/../r', 'o', '-x/r']) expect(at(`${collect} --github-repo ${bad}`), bad).toBe(true);
+  });
+  test('#4701 b33: a git read refuses while the local git config names a program', () => {
+    const base = { cwd: ROOT, root: '/test/plugin-root', realpath: (x: string) => x };
+    const read = 'git diff --no-ext-diff --no-textconv HEAD';
+    for (const keys of [['core.fsmonitor'], ['filter.x.clean'], ['log.showsignature'], ['diff.external'], ['diff.lfs.textconv'], ['diff.x.command']]) {
+      const why = allowlistReason(read, { ...base, gitPrograms: () => keys });
+      expect(why, keys[0]).toContain(keys[0]);
+    }
+    expect(allowlistReason(read, { ...base, gitPrograms: () => null })).toContain('cannot be read');
+    expect(allowlistReason(read, { ...base, gitPrograms: () => [] })).toBeNull();
+    // A non-git command never reads the config.
+    expect(allowlistReason('cat src/x.ts', { ...base, gitPrograms: () => { throw new Error('read'); } })).toBeNull();
+  });
+  test('#4701 b33: core.fsmonitor in a real repo config refuses, unset or false allows', () => {
+    const repo = join(dir, 'fsm');
+    mkdirSync(repo, { recursive: true });
+    execFileSync('git', ['-C', repo, 'init', '-q']);
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const at = () => denied(reviewPostGate(bash('git log --oneline -1', tr(), TOOL, repo), ctx, deps));
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    expect(at()).toBe(false);
+    execFileSync('git', ['-C', repo, 'config', 'core.fsmonitor', '/tmp/evil-fsmonitor.sh']);
+    expect(gitConfigPrograms(repo)).toEqual(['core.fsmonitor']);
+    expect(at()).toBe(true);
+    execFileSync('git', ['-C', repo, 'config', 'core.fsmonitor', 'false']);
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    expect(at()).toBe(false);
+    execFileSync('git', ['-C', repo, 'config', 'diff.evil.textconv', 'cat']);
+    expect(gitConfigPrograms(repo)).toEqual(['diff.evil.textconv']);
+    expect(at()).toBe(true);
+  });
+  test('#4701 b33 (c93413bd): filter drivers and config.worktree refuse; global config is a declared limit', () => {
+    const fresh = (name: string) => {
+      const repo = join(dir, name);
+      mkdirSync(repo, { recursive: true });
+      execFileSync('git', ['-C', repo, 'init', '-q']);
+      return repo;
+    };
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const at = (repo: string) => denied(reviewPostGate(bash('git log --oneline -1', tr(), TOOL, repo), ctx, deps));
+    // An empty global config, so the machine's own ~/.gitconfig (often git-lfs) cannot decide a row.
+    const globalCfg = join(dir, 'global.gitconfig');
+    writeFileSync(globalCfg, '');
+    const saved = process.env.GIT_CONFIG_GLOBAL;
+    process.env.GIT_CONFIG_GLOBAL = globalCfg;
+    try {
+      const clean = fresh('clean');
+      expect(gitConfigPrograms(clean)).toEqual([]);
+      expect(at(clean)).toBe(false);
+
+      const fc = fresh('filter-clean');
+      execFileSync('git', ['-C', fc, 'config', 'filter.evil.clean', '/tmp/evil-clean.sh']);
+      expect(gitConfigPrograms(fc)).toEqual(['filter.evil.clean']);
+      expect(at(fc)).toBe(true);
+
+      const fp = fresh('filter-process');
+      execFileSync('git', ['-C', fp, 'config', 'filter.evil.process', '/tmp/evil-process.sh']);
+      expect(gitConfigPrograms(fp)).toEqual(['filter.evil.process']);
+      expect(at(fp)).toBe(true);
+
+      const wt = fresh('worktree-cfg');
+      execFileSync('git', ['-C', wt, 'config', 'extensions.worktreeConfig', 'true']);
+      execFileSync('git', ['-C', wt, 'config', '--worktree', 'core.fsmonitor', '/tmp/evil-fsm.sh']);
+      expect(gitConfigPrograms(wt)).toEqual(['core.fsmonitor']);
+      expect(at(wt)).toBe(true);
+
+      // A subsection holding '=' ([filter "a=b"] lists as filter.a=b.clean) is still read whole.
+      const eqsub = fresh('eq-subsection');
+      execFileSync('git', ['-C', eqsub, 'config', 'filter.a=b.clean', '/tmp/evil-clean.sh']);
+      execFileSync('git', ['-C', eqsub, 'config', 'diff.x=y.textconv', '/tmp/evil-tc.sh']);
+      expect(gitConfigPrograms(eqsub)).toEqual(['filter.a=b.clean', 'diff.x=y.textconv']);
+      expect(at(eqsub)).toBe(true);
+
+      // b35 (6597215918): core.fsmonitor set with --worktree, then git ls-files -m is refused.
+      const wt2 = fresh('worktree-fsm-lsfiles');
+      execFileSync('git', ['-C', wt2, 'config', 'extensions.worktreeConfig', 'true']);
+      execFileSync('git', ['-C', wt2, 'config', '--worktree', 'core.fsmonitor', '/tmp/evil-fsm.sh']);
+      expect(denied(reviewPostGate(bash('git ls-files -m', tr(), TOOL, wt2), ctx, deps))).toBe(true);
+
+      // log.showSignature=true makes git log run the signing program; false does not count.
+      const sig = fresh('show-signature');
+      execFileSync('git', ['-C', sig, 'config', 'log.showSignature', 'true']);
+      expect(gitConfigPrograms(sig)).toEqual(['log.showsignature']);
+      expect(at(sig)).toBe(true);
+      execFileSync('git', ['-C', sig, 'config', 'log.showSignature', 'false']);
+      expect(gitConfigPrograms(sig)).toEqual([]);
+
+      // A repo-scope signing program is refused (a %G in a config-set format
+      // would run it); a global signer, like this machine's, is not.
+      const gp = fresh('gpg-program');
+      execFileSync('git', ['-C', gp, 'config', 'gpg.program', '/tmp/evil-gpg.sh']);
+      expect(gitConfigPrograms(gp)).toEqual(['gpg.program']);
+      const gs = fresh('gpg-ssh-program');
+      execFileSync('git', ['-C', gs, 'config', 'gpg.ssh.program', '/tmp/evil-ssh-sign.sh']);
+      expect(gitConfigPrograms(gs)).toEqual(['gpg.ssh.program']);
+      expect(at(gs)).toBe(true);
+
+      // A program named in GLOBAL config (git lfs install) is not refused: declared limit.
+      writeFileSync(globalCfg, '[filter "lfs"]\n\tclean = git-lfs clean -- %f\n\tprocess = git-lfs filter-process\n[gpg "ssh"]\n\tprogram = /Applications/1Password.app/Contents/MacOS/op-ssh-sign\n');
+      const g = fresh('global-lfs');
+      expect(gitConfigPrograms(g)).toEqual([]);
+      expect(at(g)).toBe(false);
+    } finally {
+      if (saved === undefined) delete process.env.GIT_CONFIG_GLOBAL;
+      else process.env.GIT_CONFIG_GLOBAL = saved;
+    }
+  });
+  test('#5013: core.hooksPath stays allowed; the one hook a read fires (post-index-change) refuses', () => {
+    // Arm core.hooksPath with every hook name git knows except
+    // post-index-change, each touching its own marker; run every read form
+    // the gate allows after a stat-only change; no marker may appear. Then
+    // arm post-index-change: a raw git diff fires it (so the probe can
+    // fail) and the gate refuses. The control (git commit) fires pre-commit.
+    const ALL_HOOKS = ['applypatch-msg', 'pre-applypatch', 'post-applypatch', 'pre-commit', 'pre-merge-commit', 'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-checkout', 'post-merge', 'pre-push', 'pre-receive', 'update', 'proc-receive', 'post-receive', 'post-update', 'reference-transaction', 'push-to-checkout', 'pre-auto-gc', 'post-rewrite', 'sendemail-validate', 'fsmonitor-watchman', 'p4-changelist', 'p4-prepare-changelist', 'p4-post-changelist', 'p4-pre-submit', 'post-index-change'];
+    const HOOKS = ALL_HOOKS.filter((h) => h !== 'post-index-change');
+    const repo = join(dir, 'hooks-armed');
+    const hooks = join(dir, 'hooks-dir');
+    const marks = join(dir, 'hook-marks');
+    mkdirSync(repo, { recursive: true });
+    mkdirSync(hooks, { recursive: true });
+    mkdirSync(marks, { recursive: true });
+    const g = (...a: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.email=t@example.test', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
+    g('init', '-q');
+    writeFileSync(join(repo, 'f.txt'), 'a\nb\n');
+    // s.txt never changes content; its mtime moves before every read, so
+    // each read sees a stat-dirty index entry it may refresh and write
+    // (the case that fires post-index-change, if any read does).
+    writeFileSync(join(repo, 's.txt'), 'same\n');
+    g('add', '-A');
+    g('commit', '-q', '-m', 'one');
+    writeFileSync(join(repo, 'f.txt'), 'a\nB\n');
+    g('commit', '-q', '-am', 'two');
+    writeFileSync(join(repo, 'f.txt'), 'a\nB\nworktree\n');
+    for (const h of HOOKS) writeFileSync(join(hooks, h), `#!/bin/sh\ntouch "${marks}/${h}"\nexit 0\n`, { mode: 0o755 });
+    g('config', 'core.hooksPath', hooks);
+    expect(gitConfigPrograms(repo)).toEqual([]);
+    const READS = [
+      'git diff --no-ext-diff --no-textconv',
+      'git diff --no-ext-diff --no-textconv HEAD',
+      'git diff --no-ext-diff --no-textconv --cached',
+      'git diff --no-ext-diff --no-textconv HEAD~1 HEAD',
+      'git diff --no-ext-diff --no-textconv --stat HEAD~1 HEAD',
+      'git show --no-ext-diff --no-textconv HEAD',
+      'git show --no-ext-diff --no-textconv HEAD:f.txt',
+      'git log --oneline',
+      'git log -p --no-ext-diff --no-textconv',
+      'git log -S B --no-ext-diff --no-textconv --oneline',
+      'git log --name-status --oneline',
+      'git blame --no-textconv f.txt',
+      'git grep -n a',
+      'git ls-files',
+      'git ls-files -m',
+      'git rev-parse HEAD',
+      'git merge-base HEAD HEAD~1',
+    ];
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const fired: string[] = [];
+    let tick = Date.now() / 1000 + 100;
+    for (const cmd of READS) {
+      expect(denied(reviewPostGate(bash(cmd, tr(), TOOL, repo), ctx, deps)), cmd).toBe(false);
+      tick += 10;
+      utimesSync(join(repo, 's.txt'), tick, tick);
+      execFileSync('git', ['-C', repo, ...cmd.split(' ').slice(1)], { stdio: 'ignore' });
+      fired.push(...readdirSync(marks).map((m) => `${cmd}: ${m}`));
+      for (const m of readdirSync(marks)) rmSync(join(marks, m));
+    }
+    expect(fired).toEqual([]);
+
+    // post-index-change: a worktree git diff after a stat-only change fires it.
+    writeFileSync(join(hooks, 'post-index-change'), `#!/bin/sh\ntouch "${marks}/post-index-change"\nexit 0\n`, { mode: 0o755 });
+    tick += 10;
+    utimesSync(join(repo, 's.txt'), tick, tick);
+    execFileSync('git', ['-C', repo, 'diff', '--no-ext-diff', '--no-textconv'], { stdio: 'ignore' });
+    expect(readdirSync(marks)).toContain('post-index-change');
+    rmSync(join(marks, 'post-index-change'));
+    expect(gitConfigPrograms(repo)).toEqual(['hooks/post-index-change']);
+    for (const cmd of READS) expect(denied(reviewPostGate(bash(cmd, tr(), TOOL, repo), ctx, deps)), cmd).toBe(true);
+
+    // The default hooks dir ($GIT_DIR/hooks, no core.hooksPath) is checked too.
+    const plain = join(dir, 'default-hooks');
+    mkdirSync(plain, { recursive: true });
+    execFileSync('git', ['-C', plain, 'init', '-q']);
+    expect(gitConfigPrograms(plain)).toEqual([]);
+    writeFileSync(join(plain, '.git', 'hooks', 'post-index-change'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    expect(gitConfigPrograms(plain)).toEqual(['hooks/post-index-change']);
+
+    // Control: a write in the same repo does run a hook.
+    g('commit', '-q', '-am', 'three');
+    expect(readdirSync(marks)).toContain('pre-commit');
   });
   test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };

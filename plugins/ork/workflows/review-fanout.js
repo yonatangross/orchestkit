@@ -216,7 +216,7 @@ function refutePrompt(f, vote, planned) {
 		`Blind refuter ${vote + 1} of ${planned} for a pull request review. Target: ${TARGET}.`,
 		`Claim to check: a ${f.category} defect at ${loc}.`,
 		cross ? `The claim spans these files: ${f.traced.join(", ")}. If you cannot reproduce the flow across them, answer exists=true.` : "",
-		"Read the diff for that location yourself (gh pr diff or git diff for the target) and the code around it.",
+		"Read the diff for that location yourself (gh pr diff, or git diff --no-ext-diff --no-textconv for the target) and the code around it.",
 		"Form your own severity from the rubric: critical = exploitable, data loss or merge-blocking; high = likely bug or security weakness; medium = real but bounded; low = style or minor.",
 		"Answer exists=false only when code at a file:line you cite shows there is no such defect. Put that file:line in citation and the command you ran to read it in command.",
 		"If you cannot establish that, answer exists=true. Do not argue from reading the claim alone.",
