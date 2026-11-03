@@ -1791,6 +1791,51 @@ describe('(HOLD 6095191454) config that runs a command is not writable; git path
     expect(gitConfigPrograms(repo)).toEqual(['diff.evil.textconv']);
     expect(at()).toBe(true);
   });
+  test('#4701 b33 (c93413bd): filter drivers and config.worktree refuse; global config is a declared limit', () => {
+    const fresh = (name: string) => {
+      const repo = join(dir, name);
+      mkdirSync(repo, { recursive: true });
+      execFileSync('git', ['-C', repo, 'init', '-q']);
+      return repo;
+    };
+    const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', realpath: realPath };
+    const at = (repo: string) => denied(reviewPostGate(bash('git log --oneline -1', tr(), TOOL, repo), ctx, deps));
+    // An empty global config, so the machine's own ~/.gitconfig (often git-lfs) cannot decide a row.
+    const globalCfg = join(dir, 'global.gitconfig');
+    writeFileSync(globalCfg, '');
+    const saved = process.env.GIT_CONFIG_GLOBAL;
+    process.env.GIT_CONFIG_GLOBAL = globalCfg;
+    try {
+      const clean = fresh('clean');
+      expect(gitConfigPrograms(clean)).toEqual([]);
+      expect(at(clean)).toBe(false);
+
+      const fc = fresh('filter-clean');
+      execFileSync('git', ['-C', fc, 'config', 'filter.evil.clean', '/tmp/evil-clean.sh']);
+      expect(gitConfigPrograms(fc)).toEqual(['filter.evil.clean']);
+      expect(at(fc)).toBe(true);
+
+      const fp = fresh('filter-process');
+      execFileSync('git', ['-C', fp, 'config', 'filter.evil.process', '/tmp/evil-process.sh']);
+      expect(gitConfigPrograms(fp)).toEqual(['filter.evil.process']);
+      expect(at(fp)).toBe(true);
+
+      const wt = fresh('worktree-cfg');
+      execFileSync('git', ['-C', wt, 'config', 'extensions.worktreeConfig', 'true']);
+      execFileSync('git', ['-C', wt, 'config', '--worktree', 'core.fsmonitor', '/tmp/evil-fsm.sh']);
+      expect(gitConfigPrograms(wt)).toEqual(['core.fsmonitor']);
+      expect(at(wt)).toBe(true);
+
+      // A program named in GLOBAL config (git lfs install) is not refused: declared limit.
+      writeFileSync(globalCfg, '[filter "lfs"]\n\tclean = git-lfs clean -- %f\n\tprocess = git-lfs filter-process\n');
+      const g = fresh('global-lfs');
+      expect(gitConfigPrograms(g)).toEqual([]);
+      expect(at(g)).toBe(false);
+    } finally {
+      if (saved === undefined) delete process.env.GIT_CONFIG_GLOBAL;
+      else process.env.GIT_CONFIG_GLOBAL = saved;
+    }
+  });
   test('must 1 (6095687461): the git config dir follows XDG_CONFIG_HOME', () => {
     const deps = { readOptIn, pluginRoot: () => '/test/plugin-root', home: () => '/Users/me', realpath: realPath, xdgConfig: () => '/opt/xdg' };
     const input = { tool_name: 'Write', session_id: 's', cwd: ROOT, tool_input: { file_path: '/opt/xdg/git/config', content: 'x' }, transcript_path: tr(), tool_use_id: TOOL } as HookInput;

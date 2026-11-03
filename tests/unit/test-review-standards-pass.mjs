@@ -506,8 +506,9 @@ await test('--github-repo reads the standards with one gh api GET and runs no gi
     mkdirSync(bin);
     const log = path.join(root, 'calls.log');
     const reply = path.join(root, 'reply.json');
-    // gh stub: log the argv, print the reply file, fail when it is absent.
-    writeFileSync(path.join(bin, 'gh'), `#!/bin/sh\necho "gh $*" >> "${log}"\n[ -f "${reply}" ] || exit 1\ncat "${reply}"\n`, { mode: 0o755 });
+    // gh stub: log the argv; `gh api repos/o/r --jq .default_branch` prints
+    // main; the contents call prints the reply file, failing when it is absent.
+    writeFileSync(path.join(bin, 'gh'), `#!/bin/sh\necho "gh $*" >> "${log}"\nif [ "$2" = "repos/o/r" ]; then echo main; exit 0; fi\n[ -f "${reply}" ] || exit 1\ncat "${reply}"\n`, { mode: 0o755 });
     // git stub: any git call is a test failure.
     writeFileSync(path.join(bin, 'git'), `#!/bin/sh\necho "git $*" >> "${log}"\nexit 2\n`, { mode: 0o755 });
     const run23 = (extra) => JSON.parse(execFileSync('node', [COLLECT, '--repo', repo, '--home', home, '--standards', ...extra], {
@@ -520,7 +521,12 @@ await test('--github-repo reads the standards with one gh api GET and runs no gi
     const ok = run23(args);
     assert.deepEqual(ok.sources.map((x) => [x.path, x.ref, x.text]), [['.github/review-standards.md', 'o/r@main', STANDARDS_MD]]);
     assert.equal(ok.skip, undefined);
-    assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), ['gh api repos/o/r/contents/.github/review-standards.md?ref=main']);
+    assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), ['gh api repos/o/r --jq .default_branch', 'gh api repos/o/r/contents/.github/review-standards.md?ref=main']);
+
+    // A branch that is not the repo's default (a PR branch steered in) is refused (#5013 b33).
+    const steered = run23(['--default-branch', 'pr-branch', '--github-repo', 'o/r']);
+    assert.deepEqual(steered.sources, []);
+    assert.match(steered.skip, /not the default branch of o\/r \(main\)/);
 
     writeFileSync(reply, JSON.stringify({ type: 'symlink', target: '/etc/passwd' }));
     const link = run23(args);

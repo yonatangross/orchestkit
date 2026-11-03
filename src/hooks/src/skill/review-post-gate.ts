@@ -810,19 +810,19 @@ export interface ReviewPostGateDeps {
   gitConfigPrograms?: (cwd: string) => string[] | null;
 }
 
-// Local git config keys that make a git read run a program (#4701): the
-// fsmonitor hook on any index refresh, a hooks dir, and the external diff
-// and textconv drivers. Names are matched as git prints them (section and
-// key lowercased).
-const GIT_PROGRAM_KEYS = /^(core\.fsmonitor|core\.hookspath|diff\.external|diff\..+\.(textconv|command))$/;
+// Git config keys that make a git read run a program (#4701): the fsmonitor
+// hook on any index refresh, a hooks dir, the external diff and textconv
+// drivers, and the clean/smudge/process filter drivers. Names are matched as
+// git prints them (section and key lowercased, the subsection kept).
+const GIT_PROGRAM_KEYS = /^(core\.fsmonitor|core\.hookspath|diff\.external|diff\..+\.(textconv|command)|filter\..+\.(clean|smudge|process))$/;
 const GIT_FALSE = /^(false|no|off|0)$/i;
+// The scopes a reviewed repo (or the call itself) controls. A value pulled in
+// by an include is reported under the including file's scope. Global and
+// system config are the operator's (the gate already refuses writing them)
+// and stay a declared limit: refusing them would refuse every git read on a
+// machine with git-lfs installed globally (#5013 ruling).
+const GIT_REPO_SCOPES = new Set(['local', 'worktree', 'command']);
 
-/**
- * The program-naming keys set in the repo's local git config (with its
- * includes), read with `git config`, which runs no program. [] when the cwd
- * is no repo (then no local config exists); null when the config cannot be
- * read, so the caller fails closed. core.fsmonitor=false counts as unset.
- */
 /** A thunk that runs its function once and returns the same value after. */
 function memoOnce<T>(fn: () => T): () => T {
   let done = false;
@@ -836,30 +836,40 @@ function memoOnce<T>(fn: () => T): () => T {
   };
 }
 
+/**
+ * The program-naming keys the repo's own git config sets: every effective
+ * value read in one `git config --list --includes --show-scope` call (which
+ * runs no program and covers config.worktree and includes), kept when its
+ * scope is local, worktree or command. [] when the cwd does not exist; null
+ * when the config cannot be read, so the caller fails closed.
+ * core.fsmonitor=false counts as unset.
+ */
 export function gitConfigPrograms(cwd: string): string[] | null {
   let out = '';
   try {
-    out = execFileSync('git', ['-C', cwd || '.', 'config', '--local', '--includes', '--get-regexp', '^(core|diff)\\.'], {
+    out = execFileSync('git', ['-C', cwd || '.', 'config', '--list', '--includes', '--show-scope'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 3000,
     });
   } catch (err) {
     const e = err as { status?: number | null; stderr?: string | Buffer };
-    if (e.status === 1) return [];
-    const msg = String(e.stderr ?? '');
-    // No repo at the cwd: there is no local config to name a program.
-    if (e.status === 128 && /not a git repository|cannot change to|can only be used inside a git repository/i.test(msg)) return [];
+    // No directory at the cwd: there is no repo config to name a program.
+    if (e.status === 128 && /cannot change to/i.test(String(e.stderr ?? ''))) return [];
     return null;
   }
   const keys: string[] = [];
   for (const line of out.split('\n')) {
-    const at = line.indexOf(' ');
-    const key = (at < 0 ? line : line.slice(0, at)).trim();
-    const value = at < 0 ? '' : line.slice(at + 1).trim();
-    if (!key || !GIT_PROGRAM_KEYS.test(key)) continue;
+    const tab = line.indexOf('\t');
+    if (tab < 0) continue;
+    const scope = line.slice(0, tab);
+    const rest = line.slice(tab + 1);
+    const eq = rest.indexOf('=');
+    const key = (eq < 0 ? rest : rest.slice(0, eq)).trim();
+    const value = eq < 0 ? '' : rest.slice(eq + 1).trim();
+    if (!GIT_REPO_SCOPES.has(scope) || !GIT_PROGRAM_KEYS.test(key)) continue;
     if (key === 'core.fsmonitor' && GIT_FALSE.test(value)) continue;
-    keys.push(key);
+    if (!keys.includes(key)) keys.push(key);
   }
   return keys;
 }

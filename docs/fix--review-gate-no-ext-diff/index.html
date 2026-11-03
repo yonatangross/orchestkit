@@ -46,7 +46,7 @@ can name a program git runs while it prints a diff: <code>diff.external</code>, 
 <tr><td><code>git log</code> with only names or one-line output</td><td>no (no diff driver runs)</td></tr>
 <tr><td><code>git blame</code></td><td class="ok"><code>&#45;&#45;no-textconv</code> (blame runs textconv by default)</td></tr>
 <tr><td><code>git status</code>, <code>git fetch</code></td><td class="bad">off the list</td></tr>
-<tr><td>any git read while local git config sets <code>core.fsmonitor</code>, <code>core.hooksPath</code>, <code>diff.external</code> or a diff driver program</td><td class="bad">refused (the gate reads the config, which runs nothing)</td></tr>
+<tr><td>any git read while the repo's local, worktree or command-scope git config sets <code>core.fsmonitor</code>, <code>core.hooksPath</code>, <code>diff.external</code>, a diff driver program or a filter driver (<code>clean</code>, <code>smudge</code>, <code>process</code>)</td><td class="bad">refused (one <code>git config</code> read, which runs nothing)</td></tr>
 </table>
 <p class="lede">Declared limit: a program set in git config under a key the gate does not check, or in global or system config, is not covered. A follow-up runs review-pr's git reads with a sanitized config.</p>
 

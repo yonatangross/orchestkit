@@ -165,6 +165,15 @@ if (STANDARDS) {
     if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/.test(slug) || slug.includes('..')) done({ skip: `standards pass skipped: --github-repo ${slug} is not owner/repo` });
     if (def === null) done({ skip: 'standards pass skipped: --github-repo needs --default-branch' });
     const at = `${slug}@${def}`;
+    // The branch must be the repo's real default branch, read from GitHub,
+    // never a name the caller (or PR text steering it) chose (#5013 b33).
+    let realDefault = '';
+    try {
+      realDefault = execFileSync('gh', ['api', `repos/${slug}`, '--jq', '.default_branch'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }).trim();
+    } catch {
+      done({ skip: `standards pass skipped: gh api could not read the default branch of ${slug}`, notes });
+    }
+    if (realDefault !== def) done({ skip: `standards pass skipped: --default-branch ${def} is not the default branch of ${slug} (${realDefault || '?'})`, notes });
     let meta = null;
     try {
       meta = JSON.parse(execFileSync('gh', ['api', `repos/${slug}/contents/${STANDARDS_FILE}?ref=${encodeURIComponent(def)}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 }));
