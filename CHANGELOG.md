@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **agents:** require concerns[] for DONE_WITH_CONCERNS ([#5030](https://github.com/yonatangross/orchestkit/issues/5030)) ([56a34ad](https://github.com/yonatangross/orchestkit/commit/56a34adf7c6691684a034f207bff9898ebc2d604))
+* **hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge ([#5022](https://github.com/yonatangross/orchestkit/issues/5022)) ([de03936](https://github.com/yonatangross/orchestkit/commit/de03936851a53f638d355b6061eb6fbaf4bf5db0))
+
 ## [10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1) (2026-11-03)
 
 

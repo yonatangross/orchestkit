@@ -644,6 +644,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2)** · 2026-11-03
+
+- **agents:** require concerns[] for DONE_WITH_CONCERNS (#5030)
+- **hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge (#5022)
+
 **[v10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1)** · 2026-11-03
 
 - **models:** move Claude defaults to the 5.5 family (#5020)
@@ -683,11 +688,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** close three fail-open edges in the tool dispatcher follow-up (#4971)
 - prune 541 archived playground dirs from main (#4965)
-
-**[v10.5.0](https://github.com/yonatangross/orchestkit/compare/v10.4.4...v10.5.0)** · 2026-11-01
-
-- **hooks:** one-process tool dispatchers behind a flagged hooks.json variant (#4962)
-- **ci:** playground gate reads the PR files API, not the diff (#4967)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
