@@ -84,9 +84,18 @@ function validate(schema, value, path = '$') {
   return errors;
 }
 
-const SHA = 'a'.repeat(32) + '0123abcd';
+const SHA = 'a'.repeat(32) + '0123abcd'; // 40-hex (SHA-1)
+const SHA256 = 'b'.repeat(64); // 64-hex (SHA-256 object format)
+const SHA39 = 'c'.repeat(39);
 const VALID = {
   'DONE with a full sha': { status: 'DONE', committed_sha: SHA, blocked_reason: null },
+  'DONE with a 64-hex sha (#5010)': { status: 'DONE', committed_sha: SHA256, blocked_reason: null },
+  'DONE_WITH_CONCERNS with a full sha (#5010)': {
+    status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null,
+  },
+  'DONE_WITH_CONCERNS with a 64-hex sha (#5010)': {
+    status: 'DONE_WITH_CONCERNS', committed_sha: SHA256, blocked_reason: null,
+  },
   'BLOCKED with null sha and a reason': {
     status: 'BLOCKED', committed_sha: null,
     blocked_reason: 'pretool hook refused git commit on main: "commits to main are blocked"',
@@ -98,9 +107,13 @@ const INVALID = {
   'BLOCKED with empty sha': { status: 'BLOCKED', committed_sha: '', blocked_reason: 'hook refused' },
   'DONE with null sha': { status: 'DONE', committed_sha: null, blocked_reason: null },
   'DONE with short sha': { status: 'DONE', committed_sha: 'abc1234', blocked_reason: null },
+  'DONE with 39-char sha (#5010)': { status: 'DONE', committed_sha: SHA39, blocked_reason: null },
   'DONE with uppercase sha': { status: 'DONE', committed_sha: SHA.toUpperCase(), blocked_reason: null },
   'DONE with placeholder sha': { status: 'DONE', committed_sha: 'n/a', blocked_reason: null },
   'DONE carrying a blocked_reason': { status: 'DONE', committed_sha: SHA, blocked_reason: 'x' },
+  'DONE_WITH_CONCERNS with null sha': {
+    status: 'DONE_WITH_CONCERNS', committed_sha: null, blocked_reason: null,
+  },
   'BLOCKED with a real sha': { status: 'BLOCKED', committed_sha: SHA, blocked_reason: 'hook refused' },
   'BLOCKED with null reason': { status: 'BLOCKED', committed_sha: null, blocked_reason: null },
   'BLOCKED with empty reason': { status: 'BLOCKED', committed_sha: null, blocked_reason: '' },
