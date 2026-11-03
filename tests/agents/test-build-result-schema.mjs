@@ -36,7 +36,7 @@ const SCHEMA_PATHS = [
 
 const KNOWN = new Set([
   '$schema', '$id', 'title', 'description',
-  'type', 'enum', 'const', 'pattern', 'minLength',
+  'type', 'enum', 'const', 'pattern', 'minLength', 'minItems',
   'properties', 'required', 'items', 'allOf', 'if', 'then',
 ]);
 
@@ -73,8 +73,13 @@ function validate(schema, value, path = '$') {
       if (k in value) errors.push(...validate(sub, value[k], `${path}.${k}`));
     }
   }
-  if (Array.isArray(value) && schema.items) {
-    value.forEach((item, i) => errors.push(...validate(schema.items, item, `${path}[${i}]`)));
+  if (Array.isArray(value)) {
+    if (schema.minItems !== undefined && value.length < schema.minItems) {
+      errors.push(`${path}: fewer than ${schema.minItems} items`);
+    }
+    if (schema.items) {
+      value.forEach((item, i) => errors.push(...validate(schema.items, item, `${path}[${i}]`)));
+    }
   }
   for (const sub of schema.allOf || []) errors.push(...validate(sub, value, path));
   if (schema.if) {
@@ -92,9 +97,11 @@ const VALID = {
   'DONE with a 64-hex sha (#5010)': { status: 'DONE', committed_sha: SHA256, blocked_reason: null },
   'DONE_WITH_CONCERNS with a full sha (#5010)': {
     status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null,
+    concerns: ['lint warning left as-is on an unrelated file'],
   },
   'DONE_WITH_CONCERNS with a 64-hex sha (#5010)': {
     status: 'DONE_WITH_CONCERNS', committed_sha: SHA256, blocked_reason: null,
+    concerns: ['SHA-256 repo; verify downstream callers accept 64-hex'],
   },
   'BLOCKED with null sha and a reason': {
     status: 'BLOCKED', committed_sha: null,
@@ -113,6 +120,13 @@ const INVALID = {
   'DONE carrying a blocked_reason': { status: 'DONE', committed_sha: SHA, blocked_reason: 'x' },
   'DONE_WITH_CONCERNS with null sha': {
     status: 'DONE_WITH_CONCERNS', committed_sha: null, blocked_reason: null,
+    concerns: ['would land if sha were real'],
+  },
+  'DONE_WITH_CONCERNS without concerns (#5026 HOLD b54)': {
+    status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null,
+  },
+  'DONE_WITH_CONCERNS with empty concerns (#5026 HOLD b54)': {
+    status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null, concerns: [],
   },
   'BLOCKED with a real sha': { status: 'BLOCKED', committed_sha: SHA, blocked_reason: 'hook refused' },
   'BLOCKED with null reason': { status: 'BLOCKED', committed_sha: null, blocked_reason: null },

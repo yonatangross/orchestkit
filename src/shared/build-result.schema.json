@@ -20,6 +20,11 @@
       "minLength": 1,
       "description": "Required when status is BLOCKED: the refusing hook or check and its exact message. null when status is DONE or DONE_WITH_CONCERNS."
     },
+    "concerns": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Required when status is DONE_WITH_CONCERNS: each concern listed explicitly (status-protocol.md). Absent or empty never validates for that status."
+    },
     "uncommitted_files": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
@@ -40,9 +45,11 @@
     {
       "if": { "properties": { "status": { "const": "DONE_WITH_CONCERNS" } } },
       "then": {
+        "required": ["concerns"],
         "properties": {
           "committed_sha": { "type": "string" },
-          "blocked_reason": { "type": "null" }
+          "blocked_reason": { "type": "null" },
+          "concerns": { "minItems": 1 }
         }
       }
     },
