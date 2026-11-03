@@ -39,11 +39,21 @@ const JEV_USD_PER_M_INPUT = 0.042;
 // below the committed baseline before --check fails.
 const TOLERANCE = 0.02;
 
-// The full known category set (matches the routing-benchmark labels + SKILL.md table).
-const KNOWN_CATEGORIES = new Set([
-  'build', 'cover', 'design', 'diagnose', 'e2e', 'fallback',
-  'fix', 'improve-skill', 'optimize', 'review', 'verify',
-]);
+// The known category set is read from the "Intent categories" table in
+// src/skills/auto/SKILL.md (rows shaped `| **intent** | signals | target |`),
+// the one place a route is declared. A hardcoded copy here went stale when
+// setup and migrate joined the table (#4981). `fallback` is the table's
+// "(fallback)" row, which the bold-name pattern does not match.
+const SKILL_PATH = join(ROOT, 'src', 'skills', 'auto', 'SKILL.md');
+function readKnownCategories(skillText) {
+  const cats = new Set(['fallback']);
+  for (const line of skillText.split('\n')) {
+    const m = /^\|\s*\*\*([a-z0-9-]+)\*\*\s*\|/.exec(line);
+    if (m) cats.add(m[1]);
+  }
+  return cats;
+}
+const KNOWN_CATEGORIES = readKnownCategories(readFileSync(SKILL_PATH, 'utf8'));
 
 // ── Deterministic classifier ────────────────────────────────────────────────
 // First matching rule wins. The ordering encodes the disambiguation priority
@@ -56,6 +66,22 @@ const KNOWN_CATEGORIES = new Set([
 // coverage, "why", design) so they win before the broader verb buckets.
 function classify(rawGoal) {
   const g = String(rawGoal).toLowerCase();
+
+  // 0a. migrate: the same change in many repos (routing-rules.md 6b). Precedes
+  //     every other rule because a fan-out scope outranks the verb: "open a PR
+  //     in each" is part of the swarm, not a review. One repo is build (9).
+  if (/\bevery (?:repo|consumer)s?\b|\ball (?:\d+ )?(?:repos|consumers)\b|\bacross (?:all )?(?:the )?repos\b|\b\d+ repos\b|\borg[- ]wide\b|\beach (?:repo|consumer)\b/.test(g)) return 'migrate';
+
+  // 0b. setup: OrchestKit itself is the object of set up / onboard, a rescan of
+  //     the stack, or which ork skills fit this project. Precedes improve-skill
+  //     so "which ork skills fit" is setup's scan. Any other object of
+  //     "set up" is build (9).
+  if (
+    /\b(?:set ?up|onboard)\b[^.;]*\b(?:orchestkit|ork)\b/.test(g) ||
+    /\bonboard (?:this|the) (?:repo|project)\b/.test(g) ||
+    /\brescan\b/.test(g) ||
+    /\bwhich\b[^.;]*\b(?:skills|mcp servers?)\b[^.;]*\bfit\b/.test(g)
+  ) return 'setup';
 
   // 1. improve-skill — a SKILL.md / named skill is the optimization target.
   //    Must precede `optimize` ("optimize the prompt for the X skill").
@@ -132,7 +158,9 @@ function classify(rawGoal) {
   if (/\bfix\b|\brepair\b|\bresolve\b|\bbroken\b|\bregression\b|\bcrash(?:es|ing)?\b|\bfailing\b|\berrors?\b/.test(g)) return 'fix';
 
   // 9. build — a build/implement/create/add verb, or a ticket reference (PROJ-142).
-  if (/\bbuild\b|\bimplement\b|\bcreate\b|\badd\b/.test(g) || /\b[a-z]{2,}-\d+\b/i.test(rawGoal)) return 'build';
+  //    "set up X" (X not OrchestKit) and a single-repo or schema migration are
+  //    build too (routing-rules.md setup and migrate edges, #4981).
+  if (/\bbuild\b|\bimplement\b|\bcreate\b|\badd\b|\bset ?up\b|\bmigrat(?:e|es|ion|ions)\b/.test(g) || /\b[a-z]{2,}-\d+\b/i.test(rawGoal)) return 'build';
 
   // 10. review — an explicit PR/MR/#N reference, or a review verb scoped to a branch.
   //     "review my code" (no artifact named) intentionally falls through to fallback.
