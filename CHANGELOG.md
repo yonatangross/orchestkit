@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.0](https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0) (2026-11-04)
+
+
+### Features
+
+* **skills:** trim listed descriptions and gate them per skill ([#5043](https://github.com/yonatangross/orchestkit/issues/5043)) ([3036b27](https://github.com/yonatangross/orchestkit/commit/3036b270884641bab8862d7c39274789528415b9))
+
+
+### Documentation
+
+* add Tower to the OrchestKit family ([#5041](https://github.com/yonatangross/orchestkit/issues/5041)) ([e20ee47](https://github.com/yonatangross/orchestkit/commit/e20ee47253aad09db8720d6eb4b37f1ac5c77169))
+
 ## [10.7.4](https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4) (2026-11-03)
 
 
