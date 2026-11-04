@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.2](https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* **skills:** parse frontmatter in the description gate, add fixtures ([#5049](https://github.com/yonatangross/orchestkit/issues/5049)) ([df3c8ab](https://github.com/yonatangross/orchestkit/commit/df3c8abadc56c542b6037d1a189a7bc950f285ce))
+
 ## [10.8.1](https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1) (2026-11-04)
 
 
