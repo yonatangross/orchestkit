@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.2",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**skills:** parse frontmatter in the description gate, add fixtures ([#5049](https://github.com/yonatangross/orchestkit/issues/5049)) ([df3c8ab](https://github.com/yonatangross/orchestkit/commit/df3c8abadc56c542b6037d1a189a7bc950f285ce))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.1",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1",

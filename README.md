@@ -644,6 +644,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.8.2](https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2)** · 2026-11-04
+
+- **skills:** parse frontmatter in the description gate, add fixtures (#5049)
+
 **[v10.8.1](https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1)** · 2026-11-04
 
 - **expect:** gate the act-mode Jev pick on agreement or a confirm (#5011)
@@ -678,15 +682,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** ship the tool dispatchers as the default hooks.json (#5003)
 - **ci:** sign skill-autoheal commits by creating them through the API (#5016)
-
-**[v10.6.0](https://github.com/yonatangross/orchestkit/compare/v10.5.4...v10.6.0)** · 2026-11-03
-
-- **hooks:** nudge to the repo's own PR skill on gh pr create (#5006)
-- **skills:** route setup and swarm-migrate through ork:auto (#5008)
-- **agents:** report a blocked commit as BLOCKED, not an empty sha (#5007)
-- **ci:** make test-claude-health-tool-scope.sh executable (#5002)
-- **hooks:** label outputWithContext with the firing event; expire the veil copy question (#5005)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
