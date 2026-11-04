@@ -35,10 +35,13 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   ),
 }));
 
-// flushAll rotates the local JSONL telemetry log (10 MB) and prunes rotated
-// files older than 7 days. It must run with or without a webhook configured.
-vi.mock('../../lib/telemetry.js', () => ({
-  flushAll: vi.fn(() => Promise.resolve()),
+// Local JSONL retention (rotate over 10 MB, prune rotated files after 7 days)
+// is called directly by the reporter, with or without a webhook. Mocked here to
+// keep this unit test hermetic; usage-summary-retention.test.ts proves the
+// behavior on real files.
+vi.mock('../../lib/telemetry-jsonl.js', () => ({
+  rotateTelemetryIfNeeded: vi.fn(() => Promise.resolve()),
+  cleanOldTelemetryFiles: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../../lib/session-tracker.js', () => ({
@@ -81,7 +84,7 @@ vi.mock('node:fs', () => ({
 import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecycle/usage-summary-reporter.js';
 
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
-import { flushAll } from '../../lib/telemetry.js';
+import { rotateTelemetryIfNeeded, cleanOldTelemetryFiles } from '../../lib/telemetry-jsonl.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -153,12 +156,14 @@ describe('Usage Summary Reporter Hook', () => {
     it('still rotates and prunes the local telemetry log with no webhook configured', async () => {
       mockGetWebhookUrl.mockReturnValue(undefined);
       vi.stubEnv('ORCHESTKIT_HOOK_TOKEN', '');
-      vi.mocked(flushAll).mockClear();
+      vi.mocked(rotateTelemetryIfNeeded).mockClear();
+      vi.mocked(cleanOldTelemetryFiles).mockClear();
 
       await usageSummaryReporter(defaultInput, testCtx);
 
       expect(mockFetch).not.toHaveBeenCalled();
-      expect(flushAll).toHaveBeenCalledTimes(1);
+      expect(rotateTelemetryIfNeeded).toHaveBeenCalledTimes(1);
+      expect(cleanOldTelemetryFiles).toHaveBeenCalledTimes(1);
     });
   });
 
