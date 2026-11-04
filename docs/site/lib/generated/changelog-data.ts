@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.1",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**expect:** gate the act-mode Jev pick on agreement or a confirm ([#5011](https://github.com/yonatangross/orchestkit/issues/5011)) ([7a46df0](https://github.com/yonatangross/orchestkit/commit/7a46df0282e2ba158af1227f7c98785603ebef79))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**lab:** drop internal seat name from the Tower page footer ([#5047](https://github.com/yonatangross/orchestkit/issues/5047)) ([d9f0751](https://github.com/yonatangross/orchestkit/commit/d9f07510d00e48907d902a63e5000061b565f321))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.0",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0",
