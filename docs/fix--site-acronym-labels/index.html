@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acronyms stay upper case in docs labels</title>
+<meta name="description" content="The docs sidebar and category pages title-cased slugs word by word, so CI/CD read as Ci Cd and API as Api. Before and after labels for the slugs the fix changes.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  input{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.35rem .5rem;text-align:start}
+  th{color:var(--dim);font-weight:normal}
+  .old{color:var(--bad);text-decoration:line-through}
+  .new{color:var(--ok)}
+  .slug{color:var(--accent)}
+</style>
+</head>
+<body><main>
+<h1>Acronyms stay upper case in docs labels</h1>
+<p class="sub">Slug to label, before and after. One shared acronym list feeds the Python and Node doc generators and the site.</p>
+
+<section>
+  <h2>Before and after</h2>
+  <div class="controls"><label>Filter <input id="q" type="search" placeholder="slug or label"></label><span id="count"></span></div>
+  <table>
+    <thead><tr><th>Slug</th><th>Before</th><th>After</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</section>
+
+<script>
+(function () {
+  var ROWS = [
+    ["ci-cd-engineer", "Ci Cd Engineer", "CI/CD Engineer"],
+    ["ai-safety-auditor", "Ai Safety Auditor", "AI Safety Auditor"],
+    ["api-design", "Api Design", "API Design"],
+    ["mcp-visual-output", "Mcp Visual Output", "MCP Visual Output"],
+    ["llm-integrator", "Llm Integrator", "LLM Integrator"],
+    ["ui-finish-gate", "Ui Finish Gate", "UI Finish Gate"],
+    ["testing-e2e", "Testing E2e", "Testing E2E"],
+    ["json-render-catalog", "Json Render Catalog", "Json Render Catalog"],
+    ["database-engineer", "Database Engineer", "Database Engineer"]
+  ];
+  var tbody = document.getElementById("rows");
+  var q = document.getElementById("q");
+  var count = document.getElementById("count");
+
+  function cell(text, cls) {
+    var td = document.createElement("td");
+    if (cls) td.className = cls;
+    td.textContent = text;
+    return td;
+  }
+
+  function render() {
+    var needle = q.value.trim().toLowerCase();
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var shown = 0;
+    ROWS.forEach(function (r) {
+      var hay = (r[0] + " " + r[1] + " " + r[2]).toLowerCase();
+      if (needle && hay.indexOf(needle) === -1) return;
+      var tr = document.createElement("tr");
+      tr.appendChild(cell(r[0], "slug"));
+      tr.appendChild(cell(r[1], r[1] === r[2] ? "" : "old"));
+      tr.appendChild(cell(r[2], r[1] === r[2] ? "" : "new"));
+      tbody.appendChild(tr);
+      shown += 1;
+    });
+    count.textContent = shown + " of " + ROWS.length + " labels";
+  }
+
+  q.addEventListener("input", render);
+  render();
+})();
+</script>
+</main></body>
+</html>

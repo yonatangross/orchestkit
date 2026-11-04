@@ -37,6 +37,7 @@ mkdir -p "$FIXTURE"
 git -C "$REPO_ROOT" archive --format=tar HEAD -- \
   manifests \
   scripts/generate-docs-data.js scripts/lib \
+  docs/site/lib/slug-acronyms.json \
   src/skills/commit \
   src/agents/code-quality-reviewer.md \
   src/hooks/hooks.json \

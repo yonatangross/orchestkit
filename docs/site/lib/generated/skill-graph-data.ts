@@ -26,7 +26,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ai-ui-generation",
-    "label": "Ai Ui Generation",
+    "label": "AI UI Generation",
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
@@ -56,7 +56,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "api-design",
-    "label": "Api Design",
+    "label": "API Design",
     "type": "reference",
     "complexity": "medium",
     "category": "backend",
@@ -196,7 +196,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ci-debug",
-    "label": "Ci Debug",
+    "label": "CI Debug",
     "type": "command",
     "complexity": "medium",
     "category": "workflow",
@@ -206,7 +206,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ci-sentinel",
-    "label": "Ci Sentinel",
+    "label": "CI Sentinel",
     "type": "command",
     "complexity": "medium",
     "category": "workflow",
@@ -656,7 +656,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "llm-integration",
-    "label": "Llm Integration",
+    "label": "LLM Integration",
     "type": "reference",
     "complexity": "medium",
     "category": "ai-llm",
@@ -676,7 +676,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "mcp-patterns",
-    "label": "Mcp Patterns",
+    "label": "MCP Patterns",
     "type": "reference",
     "complexity": "high",
     "category": "security",
@@ -686,7 +686,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "mcp-visual-output",
-    "label": "Mcp Visual Output",
+    "label": "MCP Visual Output",
     "type": "reference",
     "complexity": "medium",
     "category": "ai-llm",
@@ -736,7 +736,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "multimodal-llm",
-    "label": "Multimodal Llm",
+    "label": "Multimodal LLM",
     "type": "reference",
     "complexity": "high",
     "category": "ai-llm",
@@ -866,7 +866,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "rag-retrieval",
-    "label": "Rag Retrieval",
+    "label": "RAG Retrieval",
     "type": "reference",
     "complexity": "high",
     "category": "ai-llm",
@@ -976,7 +976,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "storybook-mcp-integration",
-    "label": "Storybook Mcp Integration",
+    "label": "Storybook MCP Integration",
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
@@ -1026,7 +1026,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "testing-e2e",
-    "label": "Testing E2e",
+    "label": "Testing E2E",
     "type": "reference",
     "complexity": "medium",
     "category": "testing",
@@ -1046,7 +1046,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "testing-llm",
-    "label": "Testing Llm",
+    "label": "Testing LLM",
     "type": "reference",
     "complexity": "medium",
     "category": "testing",
@@ -1076,7 +1076,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ui-components",
-    "label": "Ui Components",
+    "label": "UI Components",
     "type": "reference",
     "complexity": "medium",
     "category": "other",

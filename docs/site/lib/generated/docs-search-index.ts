@@ -357,7 +357,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/agents/ai-safety-auditor",
-    "title": "Ai Safety Auditor",
+    "title": "AI Safety Auditor",
     "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance"
   },
   {
@@ -367,7 +367,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/agents/ci-cd-engineer",
-    "title": "Ci Cd Engineer",
+    "title": "CI/CD Engineer",
     "description": "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning"
   },
   {
@@ -447,7 +447,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/agents/frontend-ui-developer",
-    "title": "Frontend Ui Developer",
+    "title": "Frontend UI Developer",
     "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns"
   },
   {
@@ -472,7 +472,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/agents/llm-integrator",
-    "title": "Llm Integrator",
+    "title": "LLM Integrator",
     "description": "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization"
   },
   {
@@ -742,7 +742,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ai-ui-generation",
-    "title": "Ai Ui Generation",
+    "title": "AI UI Generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems."
   },
   {
@@ -757,7 +757,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/api-design",
-    "title": "Api Design",
+    "title": "API Design",
     "description": "API wire contracts for REST and GraphQL: resource shape, versioning and deprecation, RFC 9457 errors, OpenAPI. Use when designing an endpoint contract. Not for runtime code (use python-backend)."
   },
   {
@@ -818,7 +818,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/brainstorm/references",
     "title": "Brainstorm: References",
-    "description": "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; Mcp Probe Resume; Phase Workflow; Socratic Questions"
+    "description": "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; MCP Probe Resume; Phase Workflow; Socratic Questions"
   },
   {
     "url": "/docs/reference/skills/brainstorm/rules",
@@ -847,12 +847,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ci-debug",
-    "title": "Ci Debug",
+    "title": "CI Debug",
     "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures."
   },
   {
     "url": "/docs/reference/skills/ci-sentinel",
-    "title": "Ci Sentinel",
+    "title": "CI Sentinel",
     "description": "Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to automate recurring CI triage."
   },
   {
@@ -1183,7 +1183,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/implement/references",
     "title": "Implement: References",
-    "description": "21 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Phase 6 Pattern Check; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
+    "description": "21 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2E Verification; Effort Ladder; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Phase 6 Pattern Check; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
   },
   {
     "url": "/docs/reference/skills/implement/rules",
@@ -1227,7 +1227,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/llm-integration",
-    "title": "Llm Integration",
+    "title": "LLM Integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs."
   },
   {
@@ -1237,12 +1237,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/mcp-patterns",
-    "title": "Mcp Patterns",
+    "title": "MCP Patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations."
   },
   {
     "url": "/docs/reference/skills/mcp-visual-output",
-    "title": "Mcp Visual Output",
+    "title": "MCP Visual Output",
     "description": "Upgrades MCP tool JSON results to dashboards via @json-render/mcp (stat grids, tables, badges) in MCP clients. Use when a tool result reads better visually. Not for building the server itself."
   },
   {
@@ -1267,7 +1267,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/multimodal-llm",
-    "title": "Multimodal Llm",
+    "title": "Multimodal LLM",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines."
   },
   {
@@ -1332,7 +1332,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/rag-retrieval",
-    "title": "Rag Retrieval",
+    "title": "RAG Retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search."
   },
   {
@@ -1387,7 +1387,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/storybook-mcp-integration",
-    "title": "Storybook Mcp Integration",
+    "title": "Storybook MCP Integration",
     "description": "Reference for the Storybook MCP server (@storybook/addon-mcp): its tools, toolsets and availability. Use when calling those tools on existing components. To build a component from a mockup, use design-to-code."
   },
   {
@@ -1412,7 +1412,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/testing-e2e",
-    "title": "Testing E2e",
+    "title": "Testing E2E",
     "description": "Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or setting up Playwright."
   },
   {
@@ -1422,7 +1422,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/testing-llm",
-    "title": "Testing Llm",
+    "title": "Testing LLM",
     "description": "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features."
   },
   {
@@ -1437,7 +1437,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ui-components",
-    "title": "Ui Components",
+    "title": "UI Components",
     "description": "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations."
   },
   {

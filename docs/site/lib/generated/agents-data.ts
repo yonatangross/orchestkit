@@ -204,7 +204,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "ai-safety-auditor",
-    "name": "Ai Safety Auditor",
+    "name": "AI Safety Auditor",
     "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.",
     "category": "security",
     "model": "opus",
@@ -253,7 +253,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "ci-cd-engineer",
-    "name": "Ci Cd Engineer",
+    "name": "CI/CD Engineer",
     "description": "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning.",
     "category": "devops",
     "model": "sonnet",
@@ -630,7 +630,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "frontend-ui-developer",
-    "name": "Frontend Ui Developer",
+    "name": "Frontend UI Developer",
     "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns.",
     "category": "frontend",
     "model": "inherit",
@@ -727,7 +727,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "llm-integrator",
-    "name": "Llm Integrator",
+    "name": "LLM Integrator",
     "description": "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization.",
     "category": "ai",
     "model": "sonnet",

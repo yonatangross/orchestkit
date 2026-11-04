@@ -174,7 +174,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/getting-started/sandbox": {
-      "title": "Try OrchestKit Safely",
+      "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
       "inbound": 2
     },
     "/docs/getting-started/skills-sh": {
@@ -234,7 +234,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/hooks/overview": {
-      "title": "162 Hooks: What Fires When",
+      "title": "161 Hooks: What Fires When",
       "inbound": 3
     },
     "/docs/hooks/safety-hooks": {
@@ -298,7 +298,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/agents/ai-safety-auditor": {
-      "title": "Ai Safety Auditor",
+      "title": "AI Safety Auditor",
       "inbound": 2
     },
     "/docs/reference/agents/backend-system-architect": {
@@ -306,7 +306,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/agents/ci-cd-engineer": {
-      "title": "Ci Cd Engineer",
+      "title": "CI/CD Engineer",
       "inbound": 2
     },
     "/docs/reference/agents/claude-design-orchestrator": {
@@ -370,7 +370,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/agents/frontend-ui-developer": {
-      "title": "Frontend Ui Developer",
+      "title": "Frontend UI Developer",
       "inbound": 2
     },
     "/docs/reference/agents/genui-architect": {
@@ -386,7 +386,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/agents/llm-integrator": {
-      "title": "Llm Integrator",
+      "title": "LLM Integrator",
       "inbound": 2
     },
     "/docs/reference/agents/market-intelligence": {
@@ -602,7 +602,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/skills/ai-ui-generation": {
-      "title": "Ai Ui Generation",
+      "title": "AI UI Generation",
       "inbound": 2
     },
     "/docs/reference/skills/analytics": {
@@ -614,7 +614,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/skills/api-design": {
-      "title": "Api Design",
+      "title": "API Design",
       "inbound": 6
     },
     "/docs/reference/skills/architecture-decision-record": {
@@ -686,11 +686,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/skills/ci-debug": {
-      "title": "Ci Debug",
+      "title": "CI Debug",
       "inbound": 5
     },
     "/docs/reference/skills/ci-sentinel": {
-      "title": "Ci Sentinel",
+      "title": "CI Sentinel",
       "inbound": 4
     },
     "/docs/reference/skills/code-review-playbook": {
@@ -741,9 +741,17 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Cover",
       "inbound": 5
     },
+    "/docs/reference/skills/create-plan": {
+      "title": "Create Plan",
+      "inbound": 3
+    },
     "/docs/reference/skills/create-pr": {
       "title": "Create Pr",
       "inbound": 6
+    },
+    "/docs/reference/skills/create-research": {
+      "title": "Create Research",
+      "inbound": 3
     },
     "/docs/reference/skills/database-patterns": {
       "title": "Database Patterns",
@@ -961,6 +969,14 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Issue Progress Tracking",
       "inbound": 3
     },
+    "/docs/reference/skills/iterate-plan": {
+      "title": "Iterate Plan",
+      "inbound": 3
+    },
+    "/docs/reference/skills/iterate-research": {
+      "title": "Iterate Research",
+      "inbound": 3
+    },
     "/docs/reference/skills/json-render-catalog": {
       "title": "Json Render Catalog",
       "inbound": 3
@@ -970,7 +986,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 4
     },
     "/docs/reference/skills/llm-integration": {
-      "title": "Llm Integration",
+      "title": "LLM Integration",
       "inbound": 2
     },
     "/docs/reference/skills/market-sizing": {
@@ -978,11 +994,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 2
     },
     "/docs/reference/skills/mcp-patterns": {
-      "title": "Mcp Patterns",
+      "title": "MCP Patterns",
       "inbound": 3
     },
     "/docs/reference/skills/mcp-visual-output": {
-      "title": "Mcp Visual Output",
+      "title": "MCP Visual Output",
       "inbound": 3
     },
     "/docs/reference/skills/memory": {
@@ -1002,7 +1018,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/reference/skills/multimodal-llm": {
-      "title": "Multimodal Llm",
+      "title": "Multimodal LLM",
       "inbound": 2
     },
     "/docs/reference/skills/okr-design": {
@@ -1054,7 +1070,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/reference/skills/rag-retrieval": {
-      "title": "Rag Retrieval",
+      "title": "RAG Retrieval",
       "inbound": 3
     },
     "/docs/reference/skills/react-server-components-framework": {
@@ -1077,6 +1093,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Responsive Patterns",
       "inbound": 2
     },
+    "/docs/reference/skills/review-artifact-comments": {
+      "title": "Review Artifact Comments",
+      "inbound": 3
+    },
     "/docs/reference/skills/review-pr": {
       "title": "Review Pr",
       "inbound": 6
@@ -1094,7 +1114,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 5
     },
     "/docs/reference/skills/storybook-mcp-integration": {
-      "title": "Storybook Mcp Integration",
+      "title": "Storybook MCP Integration",
       "inbound": 6
     },
     "/docs/reference/skills/storybook-testing": {
@@ -1114,7 +1134,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 5
     },
     "/docs/reference/skills/testing-e2e": {
-      "title": "Testing E2e",
+      "title": "Testing E2E",
       "inbound": 8
     },
     "/docs/reference/skills/testing-integration": {
@@ -1122,7 +1142,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 7
     },
     "/docs/reference/skills/testing-llm": {
-      "title": "Testing Llm",
+      "title": "Testing LLM",
       "inbound": 5
     },
     "/docs/reference/skills/testing-perf": {
@@ -1134,7 +1154,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 8
     },
     "/docs/reference/skills/ui-components": {
-      "title": "Ui Components",
+      "title": "UI Components",
       "inbound": 2
     },
     "/docs/reference/skills/user-research": {
@@ -1238,7 +1258,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "38 Commands You Can Invoke",
+      "title": "43 Commands You Can Invoke",
       "inbound": 11
     },
     "/docs/skills/dependency-graph": {
@@ -1996,7 +2016,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/configure",
       "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-plan",
       "/docs/reference/skills/create-pr",
+      "/docs/reference/skills/create-research",
       "/docs/reference/skills/database-patterns",
       "/docs/reference/skills/demo-producer",
       "/docs/reference/skills/design-context-extract",
@@ -2028,6 +2050,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/implement",
       "/docs/reference/skills/interaction-patterns",
       "/docs/reference/skills/issue-progress-tracking",
+      "/docs/reference/skills/iterate-plan",
+      "/docs/reference/skills/iterate-research",
       "/docs/reference/skills/json-render-catalog",
       "/docs/reference/skills/langgraph",
       "/docs/reference/skills/llm-integration",
@@ -2057,6 +2081,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/responsive-patterns",
+      "/docs/reference/skills/review-artifact-comments",
       "/docs/reference/skills/review-pr",
       "/docs/reference/skills/scope-appropriate-architecture",
       "/docs/reference/skills/security-patterns",
@@ -2149,7 +2174,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/configure"
     ],
     "/docs/reference/skills/cover": [],
+    "/docs/reference/skills/create-plan": [],
     "/docs/reference/skills/create-pr": [],
+    "/docs/reference/skills/create-research": [],
     "/docs/reference/skills/database-patterns": [],
     "/docs/reference/skills/demo-producer": [],
     "/docs/reference/skills/design-context-extract": [],
@@ -2289,6 +2316,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/reference/skills/interaction-patterns": [],
     "/docs/reference/skills/issue-progress-tracking": [],
+    "/docs/reference/skills/iterate-plan": [],
+    "/docs/reference/skills/iterate-research": [],
     "/docs/reference/skills/json-render-catalog": [],
     "/docs/reference/skills/langgraph": [],
     "/docs/reference/skills/llm-integration": [],
@@ -2318,6 +2347,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/release-sync": [],
     "/docs/reference/skills/remember": [],
     "/docs/reference/skills/responsive-patterns": [],
+    "/docs/reference/skills/review-artifact-comments": [],
     "/docs/reference/skills/review-pr": [],
     "/docs/reference/skills/scope-appropriate-architecture": [],
     "/docs/reference/skills/security-patterns": [],
@@ -2540,7 +2570,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/configure",
       "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-plan",
       "/docs/reference/skills/create-pr",
+      "/docs/reference/skills/create-research",
       "/docs/reference/skills/design-context-extract",
       "/docs/reference/skills/design-import",
       "/docs/reference/skills/design-ship",
@@ -2557,12 +2589,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/help",
       "/docs/reference/skills/implement",
       "/docs/reference/skills/issue-progress-tracking",
+      "/docs/reference/skills/iterate-plan",
+      "/docs/reference/skills/iterate-research",
       "/docs/reference/skills/langgraph",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
+      "/docs/reference/skills/review-artifact-comments",
       "/docs/reference/skills/review-pr",
       "/docs/reference/skills/setup",
       "/docs/reference/skills/swarm-migrate",
@@ -2583,7 +2618,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/commit",
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-plan",
       "/docs/reference/skills/create-pr",
+      "/docs/reference/skills/create-research",
       "/docs/reference/skills/design-context-extract",
       "/docs/reference/skills/design-import",
       "/docs/reference/skills/design-ship",
@@ -2599,11 +2636,14 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/glyph",
       "/docs/reference/skills/help",
       "/docs/reference/skills/implement",
+      "/docs/reference/skills/iterate-plan",
+      "/docs/reference/skills/iterate-research",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
+      "/docs/reference/skills/review-artifact-comments",
       "/docs/reference/skills/review-pr",
       "/docs/reference/skills/setup",
       "/docs/reference/skills/swarm-migrate",
