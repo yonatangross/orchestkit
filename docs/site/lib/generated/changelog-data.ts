@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.0",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**skills:** trim listed descriptions and gate them per skill ([#5043](https://github.com/yonatangross/orchestkit/issues/5043)) ([3036b27](https://github.com/yonatangross/orchestkit/commit/3036b270884641bab8862d7c39274789528415b9))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "add Tower to the OrchestKit family ([#5041](https://github.com/yonatangross/orchestkit/issues/5041)) ([e20ee47](https://github.com/yonatangross/orchestkit/commit/e20ee47253aad09db8720d6eb4b37f1ac5c77169))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.7.4",
     "date": "2026-11-03",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4",
