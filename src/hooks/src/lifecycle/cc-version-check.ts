@@ -140,18 +140,30 @@ function safeSessionId(raw: string): string {
   return cleaned || 'no-session';
 }
 
-function rateLimitOk(projectDir: string, sessionId: string): boolean {
-  const dir = join(projectDir, STATE_DIR_REL);
-  const flag = join(dir, `cc-version-check-${safeSessionId(sessionId)}.flag`);
-  if (existsSync(flag)) return false;
+function flagPath(projectDir: string, sessionId: string): string {
+  return join(projectDir, STATE_DIR_REL, `cc-version-check-${safeSessionId(sessionId)}.flag`);
+}
+
+/** Read-only: has this session already had its one real check? */
+function alreadyChecked(projectDir: string, sessionId: string): boolean {
+  return existsSync(flagPath(projectDir, sessionId));
+}
+
+/**
+ * Spend the once-per-session flag. Called only once the hook made a real decision
+ * (a confirmed version, or a visible could-not-resolve message), never on a silent
+ * pass over an unconfirmed env value (#5038): a later call with a transcript stamp
+ * must still be able to warn.
+ */
+function markChecked(projectDir: string, sessionId: string): void {
   try {
+    const dir = join(projectDir, STATE_DIR_REL);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(flag, new Date().toISOString());
+    writeFileSync(flagPath(projectDir, sessionId), new Date().toISOString());
   } catch {
-    // If the flag file can't be written, fall through and let the hook fire — better
+    // If the flag file can't be written, the hook fires again next time — better
     // to nudge twice than to silently never warn at all on a transient FS issue.
   }
-  return true;
 }
 
 export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -159,10 +171,11 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
 
   const projectDir = input.project_dir || ctx.projectDir;
   const sessionId = input.session_id || 'no-session';
-  if (!rateLimitOk(projectDir, sessionId)) return outputSilentSuccess();
+  if (alreadyChecked(projectDir, sessionId)) return outputSilentSuccess();
 
   const resolved = resolveRunningCC(input);
   if (!resolved) {
+    markChecked(projectDir, sessionId);
     // Could-not-observe is its own outcome. The previous version returned
     // outputSilentSuccess() here, which is indistinguishable from "your version is
     // fine" — so a check that never once ran looked identical to a check that
@@ -176,6 +189,14 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   }
   const running = resolved.version;
 
+  // Env alone is unconfirmed (#5031). Any outcome that stays silent on it leaves the
+  // flag unset (#5038); every other outcome is a real decision and spends it.
+  const unconfirmedEnv = resolved.source === 'env';
+  const settle = (result: HookResult, silent: boolean): HookResult => {
+    if (!(unconfirmedEnv && silent)) markChecked(projectDir, sessionId);
+    return result;
+  };
+
   // Floor: prefer shared/cc-support.json (Part C SoT), fall back to MIN_CC_VERSION constant.
   const support = readSupportJson(projectDir);
   const floor = support?.supported_floor || MIN_CC_VERSION;
@@ -184,30 +205,36 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   if (compareCCVersions(running, floor) < 0) {
     // Env alone is unconfirmed (cloud cold start leaves a stale CLAUDE_CODE_VERSION
     // with no transcript stamp and no versions/ symlink). Do not warn on it.
-    if (resolved.source === 'env') {
+    if (unconfirmedEnv) {
       ctx.log(
         'cc-version-check',
         `running=${running} (via env, unconfirmed) < floor=${floor}: silent, no corroborating source`,
       );
-      return outputSilentSuccess();
+      return settle(outputSilentSuccess(), true);
     }
     ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) < floor=${floor} — warning user`);
-    return outputWithNotification(
-      `⚠ Claude Code ${running} is below OrchestKit's supported floor (${floor}). Some hooks and skills may no-op or error. See shared/rules/cc-support-policy.md.`,
-      undefined,
+    return settle(
+      outputWithNotification(
+        `⚠ Claude Code ${running} is below OrchestKit's supported floor (${floor}). Some hooks and skills may no-op or error. See shared/rules/cc-support-policy.md.`,
+        undefined,
+      ),
+      false,
     );
   }
 
   if (compareCCVersions(running, matrixLatest) > 0) {
     ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) > matrix=${matrixLatest} — adoption nudge to Claude`);
-    return outputSessionStartContext(
-      `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
-        `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
-        `read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, ` +
-        `review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+    return settle(
+      outputSessionStartContext(
+        `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
+          `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
+          `read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, ` +
+          `review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+      ),
+      false,
     );
   }
 
   ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) in [${floor}, ${matrixLatest}] — silent`);
-  return outputSilentSuccess();
+  return settle(outputSilentSuccess(), true);
 }
