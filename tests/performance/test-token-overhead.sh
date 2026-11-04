@@ -303,7 +303,8 @@ trap 'rm -f "$listing_report_file"' EXIT
 # measure_listing FILE...: prints "OVER <bytes> <name>" per skill over the cap
 # and one final "TOTAL <listing bytes> <over count>" line.
 measure_listing() {
-    python3 -I "$SCRIPT_DIR/skill-listing-measure.py" --cap "$SKILL_DESC_MAX_BYTES" "$@"
+    # No -I: CI may install PyYAML with `pip --user`, and -I hides user site-packages.
+    python3 "$SCRIPT_DIR/skill-listing-measure.py" --cap "$SKILL_DESC_MAX_BYTES" "$@"
 }
 
 if ! measure_listing "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"; then

@@ -31,6 +31,28 @@ except ImportError:
     sys.stderr.write("skill-listing-measure: PyYAML is required (pip install PyYAML==6.0.3)\n")
     sys.exit(2)
 
+import re
+
+
+class StrictBoolLoader(yaml.SafeLoader):
+    """SafeLoader where only lowercase true/false are booleans.
+
+    PyYAML follows YAML 1.1 and reads on/off/yes/no as booleans; the repo's
+    JavaScript frontmatter parser reads them as strings. Using one narrow
+    spelling keeps both parsers on the same skill-selection decision. A value
+    such as `disable-model-invocation: on` then loads as a string and is
+    rejected in main() instead of silently exempting a skill from the gate.
+    """
+
+
+StrictBoolLoader.yaml_implicit_resolvers = {
+    first: [(tag, rx) for tag, rx in rules if tag != "tag:yaml.org,2002:bool"]
+    for first, rules in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+StrictBoolLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|false)$"), list("tf")
+)
+
 
 def frontmatter(path):
     """Return the parsed frontmatter mapping of a SKILL.md."""
@@ -40,7 +62,7 @@ def frontmatter(path):
         raise ValueError("no opening --- line")
     for i in range(1, len(lines)):
         if lines[i].rstrip() == "---":
-            data = yaml.safe_load("\n".join(lines[1:i]))
+            data = yaml.load("\n".join(lines[1:i]), Loader=StrictBoolLoader)  # noqa: S506 (safe subclass)
             if not isinstance(data, dict):
                 raise ValueError("frontmatter is not a mapping")
             return data
@@ -79,7 +101,14 @@ def main():
         except (OSError, ValueError, yaml.YAMLError) as exc:
             sys.stderr.write("skill-listing-measure: %s: %s\n" % (path, exc))
             return 2
-        if data.get("disable-model-invocation") is True:
+        dmi = data.get("disable-model-invocation")
+        if dmi is not None and not isinstance(dmi, bool):
+            sys.stderr.write(
+                "skill-listing-measure: %s: disable-model-invocation must be true or false, got %r\n"
+                % (path, dmi)
+            )
+            return 2
+        if dmi is True:
             continue
         size = nbytes(desc) + nbytes(when)
         total += nbytes(name) + size
