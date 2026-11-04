@@ -1,5 +1,5 @@
 ---
-description: "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns."
+description: "Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. Use when onboarding to or mapping an unfamiliar repo."
 argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effort=low|medium|high]"
 model: sonnet
 effort: high

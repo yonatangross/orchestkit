@@ -1,5 +1,5 @@
 ---
-description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+description: "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 disable-model-invocation: false
 context: fork

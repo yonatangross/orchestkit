@@ -2,7 +2,7 @@
 name: design-system-tokens
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines.
+description: "W3C design tokens: global, alias and component tiers, OKLCH color, Style Dictionary, dark mode. Use when creating token files or theme systems."
 user-invocable: false
 targets:
   - library: "style-dictionary"

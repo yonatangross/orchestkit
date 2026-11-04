@@ -2,7 +2,7 @@
 name: design-to-code
 license: MIT
 compatibility: "Claude Code 2.1.277+. Optional: stitch (official Google Stitch), 21st-dev-magic, storybook-mcp (@storybook/addon-mcp) MCP servers."
-description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration."
+description: "Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when building UI from a mockup or screenshot. To call Storybook MCP tools alone, use storybook-mcp-integration."
 argument-hint: "[screenshot-path | description | url]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

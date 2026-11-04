@@ -33,6 +33,30 @@
       ],
       "description": "Web search, extract, crawl, and deep research (requires API key)",
       "disabled": true
+    },
+    "portless": {
+      "command": "/opt/homebrew/bin/portless",
+      "args": ["mcp"],
+      "description": "Named HTTPS .localhost URLs for dev servers",
+      "disabled": true
+    },
+    "emulate": {
+      "command": "/opt/homebrew/bin/emulate",
+      "args": ["mcp"],
+      "description": "Stateful API emulation for tests",
+      "disabled": true
+    },
+    "agent-browser": {
+      "command": "/opt/homebrew/bin/agent-browser",
+      "args": ["mcp", "--tools", "core"],
+      "env": {
+        "AGENT_BROWSER_ARGS": "--mute-audio,--use-mock-keychain,--password-store=basic",
+        "AGENT_BROWSER_SESSION": "ork-mcp-cc",
+        "AGENT_BROWSER_NAMESPACE": "abmcp-ork",
+        "AGENT_BROWSER_PIN_TAB": "1"
+      },
+      "description": "Browser automation, core profile",
+      "disabled": true
     }
   }
 }

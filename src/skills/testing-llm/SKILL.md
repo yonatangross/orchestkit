@@ -2,7 +2,7 @@
 name: testing-llm
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
+description: "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features."
 user-invocable: false
 disable-model-invocation: false
 targets:

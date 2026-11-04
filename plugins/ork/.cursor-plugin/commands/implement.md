@@ -1,5 +1,5 @@
 ---
-description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
+description: "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code."
 argument-hint: "[feature-description]"
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 model: sonnet

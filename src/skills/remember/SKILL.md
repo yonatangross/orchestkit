@@ -2,7 +2,7 @@
 name: remember
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream."
+description: "Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping was learned or decided. To search use memory; to consolidate use dream."
 argument-hint: "[decision-or-pattern]"
 context: inherit
 user-invocable: true

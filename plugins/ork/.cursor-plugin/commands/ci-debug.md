@@ -1,5 +1,5 @@
 ---
-description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures."
 argument-hint: "<PR-number | run-URL | job-URL>"
 disable-model-invocation: false
 model: sonnet

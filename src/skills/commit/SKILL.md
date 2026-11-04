@@ -2,7 +2,7 @@
 name: commit
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message. Do not invoke it for incidental git commits during other work; those stay a bare CLI call."
+description: "Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-only files. Use when asked to commit, save progress or write a commit message, not for incidental commits."
 argument-hint: "[message]"
 context: inherit
 user-invocable: true

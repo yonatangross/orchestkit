@@ -1,5 +1,5 @@
 ---
-description: "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead."
+description: "Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design URL or bundle. For a full PR with tests and browser checks, use design-ship."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 model: sonnet
 effort: high

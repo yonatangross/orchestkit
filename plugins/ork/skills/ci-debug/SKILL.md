@@ -2,7 +2,7 @@
 name: ci-debug
 license: MIT
 compatibility: "Claude Code 2.1.277+ — uses `gh` CLI for GitHub Actions log inspection. Works in interactive sessions and headless `claude -p --bare` invocations (e.g. /ork:ci-sentinel)."
-description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures."
 argument-hint: "<PR-number | run-URL | job-URL>"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

@@ -1,6 +1,6 @@
 ---
 name: review-artifact-comments
-description: "Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. Use when a reviewer has commented on an artifact file or asks to address, resolve or approve its comments."
+description: "Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate-research, approves when none are open. Use when an artifact file has reviewer comments."
 argument-hint: "[artifact file]"
 user-invocable: true
 allowed-tools: "Bash Read Grep Glob AskUserQuestion"

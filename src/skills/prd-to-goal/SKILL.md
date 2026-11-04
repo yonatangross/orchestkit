@@ -1,6 +1,6 @@
 ---
 name: prd-to-goal
-description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
+description: "Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal against a spec."
 argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 license: MIT
 compatibility: "Claude Code 2.1.277+ (uses GA `/goal` loop)."

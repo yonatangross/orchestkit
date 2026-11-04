@@ -440,3 +440,37 @@ claude
 **OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
 
 See the `agent-browser` skill for Vercel's headless browser CLI.
+
+## Vercel Labs servers (portless, emulate, agent-browser, vercel)
+
+Wired 2026-10-29 into the templates this plugin ships:
+
+| Template | portless | emulate | agent-browser | vercel |
+|:-|:-:|:-:|:-:|:-:|
+| `.claude/templates/mcp-enabled.json` | on | on | on (core) | not present |
+| `.claude/templates/mcp-disabled.json` | disabled | disabled | disabled | not present |
+| `.pi/mcp.json.example` (attended pi) | on | on | on (core) | present, `disabled` |
+| Codex profile (`src/codex/ork-codex/mcp.json`) | not wired | not wired | not wired | not present |
+| Muse, Devin, Cursor, Claude Desktop | no OrchestKit template, nothing wired | | | |
+
+Commands are absolute under `/opt/homebrew/bin`, because zsh's builtin `emulate` shadows a bare name. That is also why the public Codex profile stays context7 only: a machine path in a shipped manifest breaks every other install. portless and emulate run their default profile; agent-browser runs `core`, never `all`.
+
+**Why Muse and Devin keep the agent-browser CLI skill:** MCP tool loading not measured on Muse and Devin; ~20.6k tokens of schema if loaded up front.
+
+**vercel** is the hosted `https://mcp.vercel.com` over OAuth. The sign-in is per client and is the operator's, so it is present but natively disabled in pi, and absent from the Claude Code templates.
+
+### agent-browser settings (same as the CLI path)
+
+| Setting | Name | Value |
+|:-|:-|:-|
+| Chrome args | `AGENT_BROWSER_ARGS` | `--mute-audio,--use-mock-keychain,--password-store=basic` |
+| Browser isolation | `AGENT_BROWSER_SESSION` | `ork-mcp-cc`, `ork-mcp-pi` |
+| Socket isolation | `AGENT_BROWSER_NAMESPACE` | `abmcp-ork`, `abmcp-pi` |
+| Tab pin | `AGENT_BROWSER_PIN_TAB` | `1` |
+| 1Password logins | none in any file | only through `~/.claude/hooks/op-read.sh` |
+
+The entry is **isolated by default**: its own isolated session, no `--cdp`, no CDP port, no identity Chrome attach, no logins. A template-level attach would hand every lane that uses the template a signed-in browser, unattended and bypass lanes included. A lane attaches to an identity Chrome per task through the browser-login skill, as the agent-browser CLI does.
+
+The allowed-domains and action-policy server settings are not wired: env name unconfirmed, the search was guard-denied (deploy-guard false positive).
+
+Not verified (no live run): that the `core` profile honours the env block.

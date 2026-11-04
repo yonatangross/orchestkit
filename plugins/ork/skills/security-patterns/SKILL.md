@@ -2,7 +2,7 @@
 name: security-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.
+description: "Auth, defense in depth, input validation, OWASP Top 10, LLM prompt-injection defense and PII masking. Use when implementing auth or security layers."
 user-invocable: false
 disable-model-invocation: false
 effort: high

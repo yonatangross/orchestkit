@@ -1,5 +1,5 @@
 ---
-description: "Documents how the codebase works today for a task's research questions and saves it as a research file (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan builds on a reviewable record. Use before planning a change in unfamiliar code; describes, never proposes."
+description: "Documents how the code works today for a task's questions in a research file with file:line citations. Use before planning a change in unfamiliar code; describes, never proposes."
 argument-hint: "<task> <question or questions file>"
 user-invocable: true
 name: create-research

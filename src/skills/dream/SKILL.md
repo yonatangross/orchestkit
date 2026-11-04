@@ -2,7 +2,7 @@
 name: dream
 license: MIT
 compatibility: "Claude Code 2.1.277+"
-description: "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. Use when memory files accumulated over many sessions need cleanup. New decisions get stored by remember; searches run through memory; internals live in memory-fabric."
+description: "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. Use when memory needs cleanup. To store use remember; to search use memory."
 argument-hint: "[--dry-run]"
 user-invocable: true
 allowed-tools: "Read Write Edit Glob Grep Bash mcp__memory__search_nodes mcp__memory__open_nodes mcp__memory__read_graph"

@@ -1,5 +1,5 @@
 ---
-description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scalability, testability, compliance) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches. Not for fixing or building (use fix-issue or implement), reviewing a pull request (use review-pr), or running the test suites (use verify)."
+description: "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify)."
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 model: sonnet
 effort: high

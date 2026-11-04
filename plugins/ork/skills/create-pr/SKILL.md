@@ -2,7 +2,7 @@
 name: create-pr
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
-description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review."
+description: "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
 argument-hint: "[title]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
