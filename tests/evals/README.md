@@ -16,7 +16,7 @@ Agent routing and quality metrics are **not evaluated** without Claude CLI.
 
 ### Full evaluation (local or self-hosted runner with Claude CLI)
 Runs A/B tests comparing Claude Code performance **with** vs **without** OrchestKit's indexes:
-- **With Index**: CLAUDE.md + agent-index.md + skill-indexes loaded
+- **With Index**: agent-index.md + skill-indexes present (the old plugin-root CLAUDE.md wrapper was removed: Claude Code never loaded it)
 - **Without Index**: Baseline Claude Code with no OrchestKit indexes
 - Agent routing accuracy measured via Claude output logs
 

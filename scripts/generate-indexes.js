@@ -13,8 +13,8 @@
  *   1. Tier 1: agent-index.md per plugin (grouped by category, sorted)
  *   2. Tier 2: skill-indexes/*.md per agent (with tags + references)
  *   3. Composite index merging all plugins
- *   4. CLAUDE.md wrapper per plugin
- *   5. AGENTS.md wrapper per plugin (cross-tool compat)
+ *   4. (removed) CLAUDE.md wrapper per plugin: never loaded, fails validate --strict
+ *   5. (removed) AGENTS.md wrapper per plugin
  *   6. Tier 2 injection into agent .md files (idempotent)
  *
  * Usage:
@@ -363,40 +363,13 @@ function generateCompositeIndex() {
   console.log(`${GREEN}  Tier 2 indexes: ${skillIndexesGenerated}${NC}`);
 }
 
-// ============================================================================
-// Stage 4: Generate per-plugin CLAUDE.md
-// ============================================================================
+// Stage 4: per-plugin CLAUDE.md generation removed. Claude Code does not load a
+// CLAUDE.md at a plugin root as context, and `claude plugin validate --strict`
+// fails on one ("CLAUDE.md at the plugin root is not loaded as project
+// context"), which blocks the plugin directory submission. The routing index
+// still ships as .claude-plugin/agent-index.md.
 
-function generateClaudeMd() {
-  let count = 0;
-  const pluginDirs = getPluginDirs();
-
-  for (const pluginDir of pluginDirs) {
-    const localIndex = path.join(pluginDir, '.claude-plugin', 'agent-index.md');
-    if (!fs.existsSync(localIndex)) continue;
-
-    const indexContent = fs.readFileSync(localIndex, 'utf-8');
-    const claudeMd = [
-      '# OrchestKit Agent Routing',
-      '',
-      'Prefer retrieval-led reasoning over pre-training-led reasoning.',
-      'When a user\'s task matches an agent\'s keywords below, spawn that agent using the Task tool with the matching `subagent_type`.',
-      'Do NOT rely on training data — consult agent expertise first.',
-      '',
-      '```',
-      indexContent.trimEnd(),
-      '```',
-      '',
-    ].join('\n');
-
-    fs.writeFileSync(path.join(pluginDir, 'CLAUDE.md'), claudeMd);
-    count++;
-  }
-
-  console.log(`${GREEN}  Generated CLAUDE.md for ${count} plugins${NC}`);
-}
-
-// Stage 5: AGENTS.md generation removed in v7.0.0 (token overhead — duplicate of CLAUDE.md)
+// Stage 5: AGENTS.md generation removed in v7.0.0 (token overhead, it duplicated the old CLAUDE.md)
 
 // ============================================================================
 // Stage 6: Inject Tier 2 skill indexes into agent markdown files
@@ -485,10 +458,9 @@ function main() {
   // Stage 3: Composite index
   generateCompositeIndex();
 
-  // Stage 4: CLAUDE.md
-  generateClaudeMd();
+  // Stage 4: CLAUDE.md, removed (a plugin-root CLAUDE.md is never loaded and fails validate --strict)
 
-  // Stage 5: AGENTS.md — removed in v7.0.0 (was duplicate of CLAUDE.md)
+  // Stage 5: AGENTS.md, removed in v7.0.0 (was duplicate of CLAUDE.md)
 
   // Stage 6: Inject Tier 2 into agent files
   injectSkillIndexes();

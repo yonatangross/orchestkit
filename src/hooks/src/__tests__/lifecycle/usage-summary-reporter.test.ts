@@ -35,6 +35,15 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   ),
 }));
 
+// Local JSONL retention (rotate over 10 MB, prune rotated files after 7 days)
+// is called directly by the reporter, with or without a webhook. Mocked here to
+// keep this unit test hermetic; usage-summary-retention.test.ts proves the
+// behavior on real files.
+vi.mock('../../lib/telemetry-jsonl.js', () => ({
+  rotateTelemetryIfNeeded: vi.fn(() => Promise.resolve()),
+  cleanOldTelemetryFiles: vi.fn(() => Promise.resolve()),
+}));
+
 vi.mock('../../lib/session-tracker.js', () => ({
   generateSessionSummary: vi.fn(() => ({
     session_id: 'test-session-001',
@@ -75,6 +84,7 @@ vi.mock('node:fs', () => ({
 import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecycle/usage-summary-reporter.js';
 
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
+import { rotateTelemetryIfNeeded, cleanOldTelemetryFiles } from '../../lib/telemetry-jsonl.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -141,6 +151,19 @@ describe('Usage Summary Reporter Hook', () => {
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('still rotates and prunes the local telemetry log with no webhook configured', async () => {
+      mockGetWebhookUrl.mockReturnValue(undefined);
+      vi.stubEnv('ORCHESTKIT_HOOK_TOKEN', '');
+      vi.mocked(rotateTelemetryIfNeeded).mockClear();
+      vi.mocked(cleanOldTelemetryFiles).mockClear();
+
+      await usageSummaryReporter(defaultInput, testCtx);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(rotateTelemetryIfNeeded).toHaveBeenCalledTimes(1);
+      expect(cleanOldTelemetryFiles).toHaveBeenCalledTimes(1);
     });
   });
 
