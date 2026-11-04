@@ -644,6 +644,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.8.3](https://github.com/yonatangross/orchestkit/compare/v10.8.2...v10.8.3)** · 2026-11-04
+
+- **site:** keep acronyms upper case in sidebar and category labels (#5053)
+
 **[v10.8.2](https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2)** · 2026-11-04
 
 - **skills:** parse frontmatter in the description gate, add fixtures (#5049)
@@ -677,11 +681,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.7.1](https://github.com/yonatangross/orchestkit/compare/v10.7.0...v10.7.1)** · 2026-11-03
 
 - **models:** move Claude defaults to the 5.5 family (#5020)
-
-**[v10.7.0](https://github.com/yonatangross/orchestkit/compare/v10.6.0...v10.7.0)** · 2026-11-03
-
-- **hooks:** ship the tool dispatchers as the default hooks.json (#5003)
-- **ci:** sign skill-autoheal commits by creating them through the API (#5016)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

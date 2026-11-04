@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.3",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.2...v10.8.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** keep acronyms upper case in sidebar and category labels ([#5053](https://github.com/yonatangross/orchestkit/issues/5053)) ([0b122b5](https://github.com/yonatangross/orchestkit/commit/0b122b5e5a8db6078ef783ca795069c88ac04250))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.2",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2",
