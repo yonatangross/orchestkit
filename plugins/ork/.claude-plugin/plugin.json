@@ -19,6 +19,9 @@
     "python",
     "multi-agent"
   ],
+  "documentationUrl": "https://orchestkit.dev",
+  "supportUrl": "https://github.com/yonatangross/orchestkit/issues",
+  "icon": "./.claude-plugin/icon.png",
   "skills": "./skills/",
   "userConfig": {
     "webhookUrl": {
