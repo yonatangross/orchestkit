@@ -229,6 +229,41 @@ describe('cc-version-check', () => {
     expect(r2.systemMessage).toBeUndefined();
   });
 
+  // #5038: a silent pass on an unconfirmed env value must not spend the once-per-session
+  // flag, or a later call (after compact) that carries a confirmed version can never warn.
+  it('keeps the flag unset after a silent env-only pass, so a later confirmed version still warns', () => {
+    const writtenFlags = new Set<string>();
+    let transcriptHasVersion = false;
+    vi.mocked(existsSync).mockImplementation((p) => {
+      const path = String(p);
+      if (path.endsWith('.jsonl')) return transcriptHasVersion;
+      if (path.endsWith('shared/cc-support.json')) return false;
+      if (path.endsWith('.claude/state')) return true;
+      return writtenFlags.has(path);
+    });
+    vi.mocked(writeFileSync).mockImplementation((p) => {
+      writtenFlags.add(String(p));
+    });
+    vi.mocked(openSync).mockReturnValue(7 as never);
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
+      const line = '{"type":"assistant","version":"2.1.50"}\n';
+      return buf.write(line, 0, 'utf8');
+    }) as never);
+
+    process.env.CLAUDE_CODE_VERSION = '2.1.42';
+    const input = { ...makeInput('flag-after-env'), transcript_path: '/tmp/late.jsonl' };
+
+    const cold = ccVersionCheck(input, createTestContext());
+    expect(cold.systemMessage).toBeUndefined();
+    expect(writtenFlags.size).toBe(0);
+
+    transcriptHasVersion = true;
+    const later = ccVersionCheck(input, createTestContext());
+    expect(later.systemMessage).toContain('2.1.50');
+    expect(later.systemMessage).toContain('below');
+    expect(writtenFlags.size).toBe(1);
+  });
+
   it('reads supported_floor from shared/cc-support.json when present', () => {
     const efs = vi.mocked(existsSync);
     const rfs = vi.mocked(readFileSync);
