@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haiku 5.5 cost table names its 100K tier</title>
+<meta name="description" content="The Haiku 5.5 cost row now says its rate applies through 100K prompt tokens and shows the higher tier above it. Pick a prompt size to see which row bills.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:52rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .controls{display:flex;gap:1rem;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  input[type=range]{flex:1}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.35rem .5rem;text-align:start}
+  th{color:var(--dim);font-weight:normal}
+  tr.on td{color:var(--ok)}
+  .note{color:var(--dim);font-size:.78rem;margin-top:.8rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Haiku 5.5 cost table names its 100K tier"><meta property="og:description" content="The Haiku 5.5 cost row now says its rate applies through 100K prompt tokens and shows the higher tier above it. Pick a prompt size to see which row bills."><meta property="og:url" content="https://orchestkit.dev/lab/haiku-cost-docs-4716.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Haiku 5.5 cost table names its 100K tier"><meta name="twitter:description" content="The Haiku 5.5 cost row now says its rate applies through 100K prompt tokens and shows the higher tier above it. Pick a prompt size to see which row bills."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Haiku 5.5 cost table names its 100K tier</h1>
+<p class="sub">Prices in USD per million tokens. A question mark means the figure is not published here, never an invented number.</p>
+
+<section>
+  <h2>Which row bills</h2>
+  <div class="controls">
+    <label for="size">Prompt size</label>
+    <input id="size" type="range" min="1" max="300" value="80">
+    <span id="label"></span>
+  </div>
+  <table>
+    <thead><tr><th>Row</th><th>Input</th><th>Output</th><th>Cache read</th><th>Cache write</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="note">Before the fix the table had one Haiku 5.5 row at $0.10 / $0.50 with no stated limit.</p>
+</section>
+
+<script>
+(function () {
+  var ROWS = [
+    { name: "claude-haiku-5-5 (prompts through 100K tokens)", cells: ["$0.10", "$0.50", "$0.01", "$0.125"], max: 100 },
+    { name: "claude-haiku-5-5 (prompts over 100K tokens)", cells: ["$0.50", "$2.50", "?", "?"], max: Infinity }
+  ];
+  var slider = document.getElementById("size");
+  var label = document.getElementById("label");
+  var tbody = document.getElementById("rows");
+
+  function cell(text) {
+    var td = document.createElement("td");
+    td.textContent = text;
+    return td;
+  }
+
+  function render() {
+    var k = Number(slider.value);
+    label.textContent = k + "K prompt tokens";
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var active = k <= 100 ? 0 : 1;
+    ROWS.forEach(function (r, i) {
+      var tr = document.createElement("tr");
+      if (i === active) tr.className = "on";
+      tr.appendChild(cell(r.name));
+      r.cells.forEach(function (c) { tr.appendChild(cell(c)); });
+      tbody.appendChild(tr);
+    });
+  }
+
+  slider.addEventListener("input", render);
+  render();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
