@@ -1,6 +1,6 @@
 {
   "slug": "haiku-cost-docs-4716",
-  "source": "docs/fix--haiku-cost-docs-4716/index.html",
+  "source": "docs/fix--haiku-cost-docs-4716-b/index.html",
   "title": "Haiku 5.5 cost table names its 100K tier",
   "description": "The Haiku 5.5 cost row now says its rate applies through 100K prompt tokens and shows the higher tier above it. Pick a prompt size to see which row bills.",
   "tags": [
