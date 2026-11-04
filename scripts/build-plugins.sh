@@ -506,6 +506,17 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         cp "$PROJECT_ROOT/shared/cc-support.json" "$PLUGIN_DIR/shared/"
     fi
 
+    # Listing icon for the Claude plugin directory: a square PNG, 512 to 2048 px,
+    # under 2 MB, inside the plugin folder and named by `icon` in plugin.json.
+    # The directory takes it as the listing icon only the first time the plugin
+    # is saved or submitted in the portal, so it ships before that first save.
+    PLUGIN_ICON_SRC="$PROJECT_ROOT/design/plugin-icon/icon-512.png"
+    HAS_ICON=false
+    if [[ -f "$PLUGIN_ICON_SRC" ]]; then
+        cp "$PLUGIN_ICON_SRC" "$PLUGIN_DIR/.claude-plugin/icon.png"
+        HAS_ICON=true
+    fi
+
     # Generate plugin.json using jq for consistent formatting.
     # release-please updates the version field in this file via extra-files,
     # so the output format must match jq's default (2-space indent) to avoid
@@ -516,6 +527,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
+        --argjson has_icon "$HAS_ICON" \
         --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
         --argjson ucfg "$(jq -c '.userConfig // null' "$manifest")" \
         '{
@@ -530,8 +542,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           homepage: "https://github.com/yonatangross/orchestkit",
           repository: "https://github.com/yonatangross/orchestkit",
           license: "MIT",
-          keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
+          keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"],
+          documentationUrl: "https://orchestkit.dev",
+          supportUrl: "https://github.com/yonatangross/orchestkit/issues",
+          privacyPolicyUrl: "https://orchestkit.dev/privacy"
         }
+        + if $has_icon then {icon: "./.claude-plugin/icon.png"} else {} end
         + if $has_skills then {skills: "./skills/"} else {} end
         # #3326: CC owns `dependencies` (plugin names, or {name, version}); pass
         # it through verbatim. CC installs them transitively at enable time and
@@ -562,7 +578,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
        --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies, .userConfig) + (if $has_agents then {agents: "./agents/"} else {} end)
+      'del(.workflows, .dependencies, .userConfig, .icon, .documentationUrl, .supportUrl, .privacyPolicyUrl) + (if $has_agents then {agents: "./agents/"} else {} end)
                        + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
                        + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \

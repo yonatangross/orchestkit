@@ -6,7 +6,11 @@
  * problems, solutions.
  *
  * Fire-and-forget: always returns silent success regardless of POST outcome.
- * No-op when webhook URL or hook token are missing (userConfig or env).
+ * The POST is a no-op when webhook URL or hook token are missing (userConfig
+ * or env). Local JSONL retention (rotation at 10 MB, pruning rotated files
+ * after 7 days) runs either way, called directly: it used to go through the
+ * sink registry's flushAll(), which has no sinks in this process, so the local
+ * telemetry log was never rotated or pruned.
  *
  * Depends on files written during the session (JSONL events, token state,
  * orchestration config). These must survive session-cleanup — currently safe
@@ -23,8 +27,24 @@ import { getTokenState } from '../lib/token-tracker.js';
 import { getWebhookUrl, getHookToken } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
 import { signPayload as signPayloadFn } from '../lib/crypto.js';
-import { flushAll } from '../lib/telemetry.js';
+import { rotateTelemetryIfNeeded, cleanOldTelemetryFiles } from '../lib/telemetry-jsonl.js';
 import { NOOP_CTX } from '../lib/context.js';
+
+/**
+ * Local retention for the JSONL telemetry log: rotate the active file once it
+ * is over 10 MB, delete rotated files older than 7 days. Local files only, no
+ * network. Called directly rather than through the sink registry's flushAll():
+ * this hook runs as its own SessionEnd process where no sink is registered, so
+ * flushAll() looped over nothing and retention never ran.
+ */
+async function applyLocalRetention(): Promise<void> {
+  try {
+    await rotateTelemetryIfNeeded();
+    await cleanOldTelemetryFiles();
+  } catch {
+    // Both helpers already swallow per-file errors; this guards the hook.
+  }
+}
 
 // Re-export for backwards compatibility — canonical source is lib/crypto.ts
 export { signPayload } from '../lib/crypto.js';
@@ -57,6 +77,8 @@ export async function usageSummaryReporter(input: HookInput, ctx: HookContext = 
 
   if (!hookUrl || !hookToken) {
     ctx.log(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
+    // Local retention still applies with no remote configured.
+    await applyLocalRetention();
     return outputSilentSuccess();
   }
 
@@ -108,8 +130,8 @@ export async function usageSummaryReporter(input: HookInput, ctx: HookContext = 
     ctx.log(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
   }
 
-  // Flush all telemetry sinks (JSONL rotation + cleanup)
-  await flushAll().catch(() => {});
+  // Local JSONL rotation + cleanup (see applyLocalRetention).
+  await applyLocalRetention();
 
   return outputSilentSuccess();
 }

@@ -155,9 +155,10 @@ stamp_ork_manifest_description() {
   if [[ ! -f "$file" ]]; then return; fi
   local desc
   desc=$(jq -r '.description' "$file")
-  # "N skills, M agents, K hooks" (no "and") — the marketplace/plugin phrasing
+  # "N skills, M agents, K hooks" or "N skills, M agents and K hooks" (the
+  # directory listing line); the separator before the hook count is kept as is.
   local new
-  new=$(printf '%s' "$desc" | sed -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g")
+  new=$(printf '%s' "$desc" | sed -E "s/[0-9]+ skills, [0-9]+ agents(,? and |, )[0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents\\1${HOOKS} hooks/g")
   if [[ "$new" != "$desc" ]]; then
     jq --arg d "$new" '.description = $d' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
   fi
