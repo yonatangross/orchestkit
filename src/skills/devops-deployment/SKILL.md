@@ -2,7 +2,7 @@
 name: devops-deployment
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.
+description: "CI/CD, containers and infrastructure as code: GitHub Actions, Docker, Kubernetes, Helm, Terraform. Use when setting up pipelines or deployments."
 user-invocable: false
 disable-model-invocation: false
 metadata:

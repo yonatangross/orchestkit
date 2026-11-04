@@ -1,6 +1,6 @@
 ---
 name: paired-probe
-description: Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as "clean" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or "nothing found" result, and whenever a check surprises you by passing.
+description: "Refuses a verdict a check did not earn: runs it with the fault present and absent and blocks when both agree; catches zero-sample sweeps and swallowed errors. Use before reporting any status, audit or nothing-found result."
 user-invocable: false
 disable-model-invocation: false
 compatibility: "Claude Code 2.1.277+."

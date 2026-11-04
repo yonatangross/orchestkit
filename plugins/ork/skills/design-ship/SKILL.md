@@ -2,7 +2,7 @@
 name: design-ship
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires: design-import skill, claude-design-orchestrator agent. Composes: cover, expect, create-pr."
-description: "One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. Use when a design link should come back as a PR with no intermediate steps; if all you need is the components written to disk, run /ork:design-import instead."
+description: "Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design should come back as a PR. For files on disk only, use design-import."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

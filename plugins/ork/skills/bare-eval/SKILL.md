@@ -1,7 +1,7 @@
 ---
 name: bare-eval
 compatibility: "Claude Code 2.1.277+"
-description: "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation."
+description: "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy."
 user-invocable: false
 context: inherit
 effort: low

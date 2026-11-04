@@ -2,7 +2,7 @@
 name: demo-producer
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings."
+description: "Demo videos for skills, plugins, CLIs and code walkthroughs: scripts, storyboards, VHS terminal recordings, Remotion. Use when producing a showcase or marketing video."
 argument-hint: "[topic-or-feature]"
 user-invocable: false
 allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate PushNotification"

@@ -1,5 +1,5 @@
 ---
-description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
+description: "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 name: review-pr

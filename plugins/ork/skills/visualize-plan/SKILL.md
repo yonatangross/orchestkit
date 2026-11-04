@@ -2,7 +2,7 @@
 name: visualize-plan
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
+description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. Use when reviewing a plan or comparing approaches."
 argument-hint: "[plan-or-issue]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

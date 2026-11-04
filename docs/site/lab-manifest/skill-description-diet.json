@@ -1,0 +1,12 @@
+{
+  "slug": "skill-description-diet",
+  "source": "docs/feat--skill-description-diet/index.html",
+  "title": "Listed skill descriptions trimmed and gated per skill",
+  "description": "Every skill ork lists to the model now has a description of at most 260 bytes. The listing drops from 29,171 to 16,008 bytes, and a per-skill cap plus a down-only ratchet keep it there. Sort and filter all 84 skills, before and after.",
+  "tags": [
+    "skills",
+    "tokens",
+    "ci"
+  ],
+  "date": "2026-11-04"
+}

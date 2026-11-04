@@ -1,5 +1,5 @@
 ---
-description: "Re-checks the code behind a research file from create-research when a reviewer challenges a claim or the question widens, then revises its findings with fresh file:line citations, comments intact. Use after review comments on research; stays descriptive."
+description: "Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use after review comments on research."
 argument-hint: "<research file> [follow-up]"
 user-invocable: true
 name: iterate-research

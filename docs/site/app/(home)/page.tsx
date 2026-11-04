@@ -315,6 +315,24 @@ export default async function HomePage() {
 
       <AgentReadinessSection />
 
+      <section aria-labelledby="family-heading" className="border-b border-fd-border">
+        <div className="mx-auto max-w-[820px] px-7 py-14">
+          <h2 id="family-heading" className="text-2xl font-semibold tracking-tight text-fd-foreground">
+            OrchestKit family
+          </h2>
+          <p className="mt-3 leading-7 text-fd-muted-foreground">
+            <a
+              href="https://github.com/yonatangross/tower"
+              className="font-semibold text-fd-foreground underline underline-offset-2"
+            >
+              Tower
+            </a>
+            : a macOS menu bar app for people who run several AI coding subscriptions: usage
+            per account, room left, when to switch. Also an MCP server (<code>tower mcp</code>).
+          </p>
+        </div>
+      </section>
+
     </main>
   );
 }

@@ -5,7 +5,18 @@ One Jev judgment per expect step, in one of three modes selected by
 or the network); `shadow` logs a second opinion beside the agent's pick
 and never drives the browser; `1` or `act` lets the Jev pick drive the
 step, failing closed to the agent's own pick on any error, timeout, empty
-or malformed answer, or a confidence below `act_confidence_floor`. The
+or malformed answer, or a confidence below `act_confidence_floor`. Jev
+reads untrusted page content, so in act mode its pick runs only when it
+agrees with the agent's pick, or when a disagreement clears the floor and
+the step passes `--confirm-disagreement`; every other disagreement runs
+the agent's pick and logs `path: "fallback:disagreement"` (or
+`"fallback:unknown_agreement"` when the agent's pick sits outside the
+keyspace). Agreement is on verb and ref only, so on the form path a Jev
+field decision that would rewrite the action (a different fill value,
+click turned into check or uncheck, click turned into done) runs only
+when it equals the agent's own action or the step passes
+`--confirm-disagreement`; otherwise the agreed key runs and the field
+records `rewrite_blocked`. The
 legacy `ORK_EXPECT_JEV_SHADOW` flag, truthy with `ORK_EXPECT_JEV` unset,
 still selects `shadow`.
 
@@ -135,7 +146,9 @@ In act mode every record additionally carries `mode: "act"`, `path`, and
 `executed_action`. `path` is `"jev"` when the Jev pick ran and
 `"fallback:<reason>"` when the agent's own pick ran instead
 (`fallback:low_confidence` still logs the full Jev answer; the floor
-rejected it, not the network). `executed_action` is the canonical
+rejected it, not the network; `fallback:disagreement` likewise logs the
+full answer plus `high_confidence_disagreement` and
+`disagreement_confirmed`). `executed_action` is the canonical
 candidate key (`verb:@eN` or a meta verb) the agent translates back to an
 agent-browser command; on fallback it is the agent's normalized pick, or
 its raw action text when the pick sits outside the keyspace.

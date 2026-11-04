@@ -1,5 +1,5 @@
 ---
-description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives. Not for building, fixing or committing code (use implement or fix-issue) and not for scoring a finished design (use assess)."
+description: "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess)."
 argument-hint: "[topic-or-idea]"
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 model: sonnet

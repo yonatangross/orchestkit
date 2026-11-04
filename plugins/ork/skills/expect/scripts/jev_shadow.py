@@ -4,8 +4,11 @@
   unset / falsey : off, the script exits before python or the network
   shadow         : log-only second opinion (legacy ORK_EXPECT_JEV_SHADOW
                    truthy maps here too)
-  1 | act        : the Jev pick becomes the step's chosen action, with a
-                   fail-closed fallback to the agent's own pick
+  1 | act        : the Jev pick becomes the step's chosen action only when
+                   it agrees with the agent's pick, or when a disagreement
+                   clears the floor and the step passed
+                   --confirm-disagreement; otherwise, and on any failure,
+                   it falls back to the agent's own pick
 
 Sends ONE Jev request per expect step: a Choice over the bounded set of
 legal next actions (element verbs derived from the interactive ARIA
@@ -343,6 +346,29 @@ def normalize_model_action(raw, elements, candidates):
     return None
 
 
+def agent_full_action(raw, model_key):
+    """The agent's action in executed_action form, value and verb included.
+
+    normalize_model_action keeps verb and ref only, so a fill value the agent
+    chose is not in model_key. A Jev field rewrite is compared against this
+    full form: fill:@eN="value", check:@eN, uncheck:@eN, done, else model_key.
+    """
+    text = (raw or "").strip()
+    m = re.match(r"(?i)^fill\s+@?e(\d+)(?:\s*=\s*|\s+)(.+)$", text)
+    if m:
+        value = m.group(2).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            if value[0] == '"':
+                try:
+                    value = json.loads(value)
+                except ValueError:
+                    value = value[1:-1]
+            else:
+                value = value[1:-1]
+        return f"fill:@e{m.group(1)}={json.dumps(value, ensure_ascii=False)}"
+    return model_key
+
+
 def build_request(goal, last_verify, elements, candidates, model,
                   task_doc=None, cands=None, field_cap=0):
     questions = {
@@ -490,6 +516,12 @@ def main():
                         help="browser session id for the decision record")
     parser.add_argument("--prompt-id", default=None,
                         help="override the prompt identifier in the record")
+    parser.add_argument("--confirm-disagreement", action="store_true",
+                        help="act mode: the operator confirmed this step, so a "
+                             "high-confidence Jev pick that disagrees with "
+                             "--model-action, or a Jev form-field decision that "
+                             "changes the agent's fill value or verb, may run; "
+                             "without it the agent's own action runs")
     parser.add_argument("--log-file", default=os.environ.get("ORK_EXPECT_JEV_LOG") or ".expect/jev-shadow.jsonl")
     args = parser.parse_args()
 
@@ -568,6 +600,7 @@ def main():
     cands = doc_candidates(task_doc) if task_doc else None
     model_key = normalize_model_action(args.model_action, elements, candidates)
     incumbent = model_key if model_key in candidates else args.model_action
+    agent_full = agent_full_action(args.model_action, model_key)
 
     base = {
         "step_id": args.step_id,
@@ -627,7 +660,20 @@ def main():
     high_confidence_disagreement = None
     if below_floor is not None and agree is not None:
         high_confidence_disagreement = not below_floor and agree is False
-    take_jev = mode == "act" and below_floor is False
+    # Jev reads untrusted page content, so a crafted page can steer its pick
+    # (#4745). In act mode Jev's pick runs only when it agrees with the
+    # agent's own pick, or when a high-confidence disagreement was
+    # explicitly confirmed for this step (--confirm-disagreement). Every
+    # other disagreement falls back to the incumbent and is logged.
+    confirmed = bool(args.confirm_disagreement)
+    take_jev = mode == "act" and below_floor is False and (
+        agree is True or (high_confidence_disagreement is True and confirmed))
+    if mode == "act" and below_floor is False and not take_jev:
+        # agree is None when the agent's pick sits outside the keyspace:
+        # agreement is unknown, so Jev cannot be shown to match it.
+        fallback_path = "fallback:disagreement" if agree is False else "fallback:unknown_agreement"
+    else:
+        fallback_path = "fallback:low_confidence"
 
     # Per-field form decisions: a field is decided by Jev only when its own
     # confidence clears the floor; below it the incumbent (the agent's
@@ -687,15 +733,26 @@ def main():
                 else:
                     fdec["target"] = fchoice if fchoice in ("check", "uncheck", "skip") else "skip"
         field_decisions[ref] = fdec
-        # If this field is the step's executed target, carry Jev's decision
-        # into the action the agent runs.
+        # If this field is the step's executed target, Jev's decision would
+        # rewrite the action the agent runs: a new fill value, click turned
+        # into check/uncheck, or click turned into done. Agreement above is on
+        # verb and ref only, so a rewrite is a fresh disagreement with the
+        # agent (#4745): it runs only when it equals the agent's own action
+        # (same verb, ref and fill value) or the step is confirmed. Otherwise
+        # the agreed key runs and the blocked rewrite is logged on the field.
         if take_jev and fdec["decided_by"] == "jev":
+            rewrite = None
             if jev_action == f"fill:@{ref}" and fdec.get("value") is not None:
-                executed_action = f'fill:@{ref}={json.dumps(fdec["value"], ensure_ascii=False)}'
+                rewrite = f'fill:@{ref}={json.dumps(fdec["value"], ensure_ascii=False)}'
             elif jev_action == f"click:@{ref}" and fdec.get("target") in ("check", "uncheck"):
-                executed_action = f'{fdec["target"]}:@{ref}'
+                rewrite = f'{fdec["target"]}:@{ref}'
             elif jev_action == f"click:@{ref}" and fdec.get("target") == "skip":
-                executed_action = "done"
+                rewrite = "done"
+            if rewrite is not None:
+                if confirmed or rewrite == agent_full:
+                    executed_action = rewrite
+                else:
+                    fdec["rewrite_blocked"] = rewrite
 
     finish({
         **base,
@@ -711,10 +768,11 @@ def main():
         "floor": conf_floor,
         "below_floor": below_floor,
         "high_confidence_disagreement": high_confidence_disagreement,
+        "disagreement_confirmed": confirmed if agree is False else None,
         "probabilities": probabilities,
         "latency_ms": latency_ms,
         "error": None,
-    }, "jev" if take_jev else "fallback:low_confidence",
+    }, "jev" if take_jev else fallback_path,
        executed_action)
     return 0
 

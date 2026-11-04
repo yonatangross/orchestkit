@@ -23,15 +23,15 @@ Plan, build, and fix features, from a plain-English goal to working code.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:auto`](/docs/reference/skills/auto) | Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. | medium | `/ork:auto [plain-english goal]` |
-| [`/ork:implement`](/docs/reference/skills/implement) | Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. | medium | `/ork:implement [feature-description]` |
-| [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. | medium | `/ork:fix-issue [issue-number]` |
-| [`/ork:explore`](/docs/reference/skills/explore) | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. | high | `/ork:explore [topic-or-feature] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high]` |
-| [`/ork:brainstorm`](/docs/reference/skills/brainstorm) | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. | medium | `/ork:brainstorm [topic-or-idea]` |
-| [`/ork:assess`](/docs/reference/skills/assess) | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, performance, security, scalability, testability, compliance) with pros/cons analysis. | high | `/ork:assess [code-path-or-topic] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high\|xhigh]` |
-| [`/ork:write-prd`](/docs/reference/skills/write-prd) | Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. | medium | `/ork:write-prd product name or feature` |
-| [`/ork:prd-to-goal`](/docs/reference/skills/prd-to-goal) | Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. | low | `/ork:prd-to-goal [prd-text \| issue#N \| path/to/spec.md]` |
-| [`/ork:swarm-migrate`](/docs/reference/skills/swarm-migrate) | Cross-repo migration swarm, one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. | high | `/ork:swarm-migrate <spec-file.yaml> [--dry-run] [--max-parallel=N]` |
+| [`/ork:auto`](/docs/reference/skills/auto) | Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. | medium | `/ork:auto [plain-english goal]` |
+| [`/ork:implement`](/docs/reference/skills/implement) | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. | medium | `/ork:implement [feature-description]` |
+| [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. | medium | `/ork:fix-issue [issue-number]` |
+| [`/ork:explore`](/docs/reference/skills/explore) | Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. | high | `/ork:explore [topic-or-feature] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high]` |
+| [`/ork:brainstorm`](/docs/reference/skills/brainstorm) | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. | medium | `/ork:brainstorm [topic-or-idea]` |
+| [`/ork:assess`](/docs/reference/skills/assess) | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. | high | `/ork:assess [code-path-or-topic] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high\|xhigh]` |
+| [`/ork:write-prd`](/docs/reference/skills/write-prd) | Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. | medium | `/ork:write-prd product name or feature` |
+| [`/ork:prd-to-goal`](/docs/reference/skills/prd-to-goal) | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. | low | `/ork:prd-to-goal [prd-text \| issue#N \| path/to/spec.md]` |
+| [`/ork:swarm-migrate`](/docs/reference/skills/swarm-migrate) | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. | high | `/ork:swarm-migrate <spec-file.yaml> [--dry-run] [--max-parallel=N]` |
 
 ---
 
@@ -41,9 +41,9 @@ Write missing tests, run the suites, and check changes in a real browser.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:cover`](/docs/reference/skills/cover) | Generate tests that do not exist yet. | high | `/ork:cover [scope-or-feature]` |
-| [`/ork:verify`](/docs/reference/skills/verify) | Grade work that already exists and decide whether it can merge. | high | `/ork:verify [feature-or-scope]` |
-| [`/ork:expect`](/docs/reference/skills/expect) | Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. | high | `/ork:expect [-m <instruction>] [--target unstaged\|branch\|commit] [--flow <slug>] [-y]` |
+| [`/ork:cover`](/docs/reference/skills/cover) | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. | high | `/ork:cover [scope-or-feature]` |
+| [`/ork:verify`](/docs/reference/skills/verify) | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. | high | `/ork:verify [feature-or-scope]` |
+| [`/ork:expect`](/docs/reference/skills/expect) | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. | high | `/ork:expect [-m <instruction>] [--target unstaged\|branch\|commit] [--flow <slug>] [-y]` |
 
 ---
 
@@ -53,11 +53,11 @@ Commits, pull requests, reviews, and failing CI runs.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:commit`](/docs/reference/skills/commit) | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. | low | `/ork:commit [message]` |
-| [`/ork:create-pr`](/docs/reference/skills/create-pr) | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. | medium | `/ork:create-pr [title]` |
-| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
-| [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnose a failing CI run against an 11-pattern playbook. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
-| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Daily autonomous classifier for failing PRs across your repos. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
+| [`/ork:commit`](/docs/reference/skills/commit) | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-only files. | low | `/ork:commit [message]` |
+| [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. | medium | `/ork:create-pr [title]` |
+| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
+| [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
+| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
 
 ---
 
@@ -67,12 +67,12 @@ Turn mockups, screenshots, and design handoffs into components.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
-| [`/ork:design-ship`](/docs/reference/skills/design-ship) | One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. | complex | `/ork:design-ship <handoff-url \| path-to-bundle.json>` |
-| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
-| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
-| [`/ork:design-stylecards`](/docs/reference/skills/design-stylecards) | Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. | low | `/ork:design-stylecards [list \| <recipe-name> \| apply <recipe> to <file>]` |
-| [`/ork:component-search`](/docs/reference/skills/component-search) | Search 21st.dev component registry for production-ready React components. | simple | `/ork:component-search [component description]` |
+| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a Claude Design bundle and stops at files on disk. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
+| [`/ork:design-ship`](/docs/reference/skills/design-ship) | Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. | complex | `/ork:design-ship <handoff-url \| path-to-bundle.json>` |
+| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
+| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
+| [`/ork:design-stylecards`](/docs/reference/skills/design-stylecards) | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. | low | `/ork:design-stylecards [list \| <recipe-name> \| apply <recipe> to <file>]` |
+| [`/ork:component-search`](/docs/reference/skills/component-search) | Searches the 21st.dev registry for production React components, ranked with install steps. | simple | `/ork:component-search [component description]` |
 
 ---
 
@@ -82,10 +82,10 @@ Store and recall decisions, patterns, and release knowledge across sessions.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:remember`](/docs/reference/skills/remember) | Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. | low | `/ork:remember [decision-or-pattern]` |
-| [`/ork:memory`](/docs/reference/skills/memory) | Read-side memory operations on the knowledge graph: search past decisions and patterns, load session context, view decision timelines, render Mermaid graph visualizations. | low | `/ork:memory [subcommand] [query]` |
-| [`/ork:dream`](/docs/reference/skills/dream) | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. | medium | `/ork:dream [--dry-run]` |
-| [`/ork:release-sync`](/docs/reference/skills/release-sync) | Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. | low | `/ork:release-sync [version]` |
+| [`/ork:remember`](/docs/reference/skills/remember) | Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. | low | `/ork:remember [decision-or-pattern]` |
+| [`/ork:memory`](/docs/reference/skills/memory) | Read-side memory: search past decisions, load context, timelines and graph views. | low | `/ork:memory [subcommand] [query]` |
+| [`/ork:dream`](/docs/reference/skills/dream) | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. | medium | `/ork:dream [--dry-run]` |
+| [`/ork:release-sync`](/docs/reference/skills/release-sync) | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. | low | `/ork:release-sync [version]` |
 
 ---
 
@@ -95,10 +95,10 @@ Local dev URLs, served pages, and visual answers in chat.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:dev`](/docs/reference/skills/dev) | One-command dev loop boot. | medium | `/ork:dev [start\|stop\|status] [--share\|--funnel\|--live H]` |
-| [`/ork:page-serve`](/docs/reference/skills/page-serve) | Hand a human a rendered HTML page at a stable HTTPS URL. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
-| [`/ork:glyph`](/docs/reference/skills/glyph) | Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. | low | `/ork:glyph [--chat\|--ask\|--page] [--eli5] [--decide] [--signoff] [topic-to-render]` |
-| [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics, in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). | medium | `/ork:visualize-plan [plan-or-issue]` |
+| [`/ork:dev`](/docs/reference/skills/dev) | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. | medium | `/ork:dev [start\|stop\|status] [--share\|--funnel\|--live H]` |
+| [`/ork:page-serve`](/docs/reference/skills/page-serve) | Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
+| [`/ork:glyph`](/docs/reference/skills/glyph) | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. | low | `/ork:glyph [--chat\|--ask\|--page] [--eli5] [--decide] [--signoff] [topic-to-render]` |
+| [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. | medium | `/ork:visualize-plan [plan-or-issue]` |
 
 ---
 
@@ -108,11 +108,11 @@ Set up, diagnose, and inspect OrchestKit itself.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:setup`](/docs/reference/skills/setup) | Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. | medium | `/ork:setup [--rescan] [--score-only] [--plan-only] [--channel] [--configure]` |
-| [`/ork:doctor`](/docs/reference/skills/doctor) | OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. | low | `/ork:doctor [--verbose]` |
-| [`/ork:help`](/docs/reference/skills/help) | OrchestKit help directory with categorized skill listings. | low | `/ork:help [category]` |
-| [`/ork:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from explicit consumer telemetry roots. | medium | `/ork:audit-activation [--json]` |
-| [`/ork:telemetry-inspect`](/docs/reference/skills/telemetry-inspect) | Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. | low | `/ork:telemetry-inspect [--session <id>] [--json]` |
+| [`/ork:setup`](/docs/reference/skills/setup) | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. | medium | `/ork:setup [--rescan] [--score-only] [--plan-only] [--channel] [--configure]` |
+| [`/ork:doctor`](/docs/reference/skills/doctor) | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. | low | `/ork:doctor [--verbose]` |
+| [`/ork:help`](/docs/reference/skills/help) | OrchestKit skill directory by category. | low | `/ork:help [category]` |
+| [`/ork:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. | medium | `/ork:audit-activation [--json]` |
+| [`/ork:telemetry-inspect`](/docs/reference/skills/telemetry-inspect) | Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. | low | `/ork:telemetry-inspect [--session <id>] [--json]` |
 
 ---
 
@@ -123,12 +123,12 @@ Commands not yet filed under a task above.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork:careful` |
-| [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan as a file artifact in the task directory (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, exact file changes and runnable success criteria, so reviewers comment on the file instead of in chat. | medium | `/ork:create-plan <task> [slug]` |
-| [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how the codebase works today for a task's research questions and saves it as a research file (.ork/tasks/TASK/NN-research-SLUG.md) with file:line citations, so the plan builds on a reviewable record. | medium | `/ork:create-research <task> <question or questions file>` |
+| [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. | medium | `/ork:create-plan <task> [slug]` |
+| [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how the code works today for a task's questions in a research file with file:line citations. | medium | `/ork:create-research <task> <question or questions file>` |
 | [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
-| [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a plan written by create-plan from its review comments or new instructions: rewrites the plan body, leaves each comment intact and bumps the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
-| [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks the code behind a research file from create-research when a reviewer challenges a claim or the question widens, then revises its findings with fresh file:line citations, comments intact. | medium | `/ork:iterate-research <research file> [follow-up]` |
-| [`/ork:review-artifact-comments`](/docs/reference/skills/review-artifact-comments) | Works through the review comments written into a task artifact (plan or research under .ork/tasks/TASK/): lists the open ones, asks how to proceed, then replies, resolves or hands off to iterate-plan or iterate-research, and approves the artifact once nothing is open. | low | `/ork:review-artifact-comments [artifact file]` |
+| [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
+| [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. | medium | `/ork:iterate-research <research file> [follow-up]` |
+| [`/ork:review-artifact-comments`](/docs/reference/skills/review-artifact-comments) | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate-research, approves when none are open. | low | `/ork:review-artifact-comments [artifact file]` |
 
 ---
 

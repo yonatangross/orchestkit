@@ -644,6 +644,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.8.0](https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0)** · 2026-11-04
+
+- **skills:** trim listed descriptions and gate them per skill (#5043)
+- add Tower to the OrchestKit family (#5041)
+
+**[v10.7.4](https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4)** · 2026-11-03
+
+- **hooks:** no CC floor warning from an unconfirmed env version (#5037)
+- **hooks:** review-pr gate needs --no-ext-diff --no-textconv on diffs (#5013)
+- **hooks:** trust the running CC version over CLAUDE_CODE_VERSION (#5034)
+
 **[v10.7.3](https://github.com/yonatangross/orchestkit/compare/v10.7.2...v10.7.3)** · 2026-11-03
 
 - **ci:** scope ci-sentinel claude -p to its gh reads (#5014)
@@ -678,17 +689,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** verdict telemetry test uses a private project dir (#4989) (#4997)
 - harden claude-health tool scope (#4996)
 
-**[v10.5.3](https://github.com/yonatangross/orchestkit/compare/v10.5.2...v10.5.3)** · 2026-11-02
-
-- **traffic:** snapshot week of 2026-10-26 (#4988)
-
-**[v10.5.2](https://github.com/yonatangross/orchestkit/compare/v10.5.1...v10.5.2)** · 2026-11-02
-
-- **ci:** 4528 4752 4697 (#4980)
-- **ci:** fail when the repo description carries stale counts (#4975)
-- **docs:** Lab render check covers pruned entries from public/lab (#4976)
-- **hooks:** gerund after 'without ... and' stays negated (#4715) (#4978)
-
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
 
@@ -706,6 +706,12 @@ Join the **Building with AI** community for AI dev tips, OrchestKit support, and
 | **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business?utm_campaign=readme) |
 
 Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Every link resolves through `yonyon.ai/go/*`, so a rotated invite never needs a README change and no raw invite is published here.
+
+---
+
+## OrchestKit family
+
+- **[Tower](https://github.com/yonatangross/tower)**: a macOS menu bar app for people who run several AI coding subscriptions: usage per account, room left, when to switch. Also an MCP server (`tower mcp`).
 
 ---
 
