@@ -610,8 +610,9 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/getting-started/sandbox",
-    "title": "Try OrchestKit Safely",
+    "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
     "headings": [
+      "Test mode for agents",
       "1. Read-only hosted tools (no install)",
       "2. Plan an install without running it",
       "3. Exercise the plugin in a throwaway project",
@@ -810,7 +811,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "162 Hooks: What Fires When",
+    "title": "161 Hooks: What Fires When",
     "headings": [
       "What Is a Hook?",
       "By the Numbers",
@@ -1116,7 +1117,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/agents/ai-safety-auditor",
-    "title": "Ai Safety Auditor",
+    "title": "AI Safety Auditor",
     "headings": [
       "Tools Available",
       "Skills Used",
@@ -1174,7 +1175,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/agents/ci-cd-engineer",
-    "title": "Ci Cd Engineer",
+    "title": "CI/CD Engineer",
     "headings": [
       "Tools Available",
       "Skills Used",
@@ -1593,7 +1594,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/agents/frontend-ui-developer",
-    "title": "Frontend Ui Developer",
+    "title": "Frontend UI Developer",
     "headings": [
       "Tools Available",
       "Skills Used",
@@ -1716,7 +1717,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/agents/llm-integrator",
-    "title": "Llm Integrator",
+    "title": "LLM Integrator",
     "headings": [
       "Tools Available",
       "Skills Used",
@@ -2449,7 +2450,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Enforce the house cognitive-load ceilings, not just WCAG normative text",
       "Build overlays as React Aria hooks inside FocusScope, animated with the shared motion presets",
       "Reach for scripts/focus-trap-template.tsx before re-deriving trap or restoration logic",
-      "Ux Thresholds Quick",
+      "UX Thresholds Quick",
       "Contrast & Color",
       "Touch & Targets",
       "Cognitive Load",
@@ -2604,7 +2605,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ai-ui-generation",
-    "title": "Ai Ui Generation",
+    "title": "AI UI Generation",
     "headings": [
       "Quick Reference",
       "Decision Table: json-render vs v0.app vs Stitch vs Bolt Cloud vs Cursor",
@@ -2746,6 +2747,9 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "From 2.1.126 (M128 adoption)",
       "From 2.1.202 (workflow-run correlation)",
       "From 2.1.214 (message/tool provenance)",
+      "From 2.1.300 (cache write split, GenAI span attributes)",
+      "From 2.1.301 and 2.1.302 (auto mode decisions)",
+      "From 2.1.307 (claudecode.safetyevent)",
       "Data location",
       "Dashboard panels",
       "Panel 1: Top invoked slash commands (user-typed vs model-delegated)",
@@ -2869,7 +2873,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/api-design",
-    "title": "Api Design",
+    "title": "API Design",
     "headings": [
       "Quick Reference",
       "API Framework",
@@ -2942,7 +2946,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Implement URL path versioning for public APIs without routing conflicts or code duplication: HIGH",
       "URL Path Versioning",
       "References (7)",
-      "Graphql Api",
+      "Graphql API",
       "Schema Design Principles",
       "Nullable by Default",
       "Use Connections for Lists",
@@ -2998,7 +3002,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "4. Use OpenAPI Documentation",
       "5. Handle Edge Cases",
       "Related Files",
-      "Telegram Bot Api",
+      "Telegram Bot API",
       "Bot Creation",
       "Webhook Setup",
       "Webhook Verification",
@@ -3035,7 +3039,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Usage in Routes",
       "OpenAPI Documentation",
       "Testing",
-      "Orchestkit Api Design",
+      "Orchestkit API Design",
       "Project Context",
       "API Structure",
       "URI Versioning",
@@ -3844,6 +3848,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "review → /ork:review-pr",
       "verify → /ork:verify",
       "improve-skill → holdout-promotion gate",
+      "setup → /ork:setup",
+      "migrate → /ork:swarm-migrate",
       "Model weight (second, orthogonal dimension)",
       "The rubric (one pass, decidable)",
       "Weight is per leg, not per route",
@@ -4030,6 +4036,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "References (12)",
       "Claude Code",
+      "Session notes moved from SKILL.md (quality loop round 1)",
       "Common Pitfalls",
       "Pitfall 1: Information Overload",
       "Pitfall 2: Single Approach",
@@ -4101,7 +4108,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "1. Ask for metric definition",
       "2. Establish baseline",
       "3. Optimization loop",
-      "Mcp Probe Resume",
+      "MCP Probe Resume",
       "Probe MCP servers",
       "Store capabilities",
       "Resume from prior crash",
@@ -4440,13 +4447,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Naming Convention",
       "Cleanup",
       "Size Limits",
-      "Mcp Detection",
+      "MCP Detection",
       "Skip the probe when alwaysLoad is set (CC 2.1.121+)",
       "Probe Pattern (CC &lt; 2.1.121, or non-alwaysLoad servers)",
       "Usage in Skill Phases",
       "3-Tier Model",
       "Important Notes",
-      "Mcp Tool Hooks",
+      "MCP Tool Hooks",
       "Why This Replaces Old Patterns",
       "The New Type",
       "Pattern 1: Inject Memory Context Before Edit",
@@ -4512,7 +4519,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ci-debug",
-    "title": "Ci Debug",
+    "title": "CI Debug",
     "headings": [
       "Input",
       "Execution",
@@ -4530,7 +4537,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ci-sentinel",
-    "title": "Ci Sentinel",
+    "title": "CI Sentinel",
     "headings": [
       "What it does",
       "What it does NOT do (v1)",
@@ -4919,7 +4926,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "onFailure: \"block\" for command and HTTP hooks (2.1.295)",
       "CLAUDECODEWORKFLOWSUBAGENTMODEL, one model for workflow agents (2.1.296)",
       "autoCompactWindow in subagent frontmatter (2.1.296)",
-      "Read allowlarge (2.1.296)"
+      "Read allowlarge (2.1.296)",
+      "CC 2.1.299 to 2.1.309 Settings",
+      "Idle compaction, idleCompaction and CLAUDECODEIDLECOMPACTMINTOKENS (2.1.299, 2.1.302)",
+      "Retry watchdog usage-limit caps (2.1.301, 2.1.305)",
+      "CLAUDECODEAUTOMODEMODEL, client-side classifier model (2.1.302)",
+      "sandbox.allowNestedUserNamespaces (2.1.305, Linux)",
+      "CLAUDECODEDISABLEFILEMENTIONS (2.1.299)"
     ]
   },
   {
@@ -4973,7 +4986,9 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "/mcp shows needs auth instead of failed for unauthorized claude.ai connectors",
       "Headless -p retries tools/list once then surfaces connected · tools fetch failed",
       "CC 2.1.133 changes",
-      "MCP OAuth flow now respects HTTP(S)PROXY / NOPROXY / mTLS"
+      "MCP OAuth flow now respects HTTP(S)PROXY / NOPROXY / mTLS",
+      "Vercel Labs servers (portless, emulate, agent-browser, vercel)",
+      "agent-browser settings (same as the CLI path)"
     ]
   },
   {
@@ -5088,6 +5103,25 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/create-plan",
+    "title": "Create Plan",
+    "headings": [
+      "Steps",
+      "Rules",
+      "Related",
+      "References (2)",
+      "Artifact Layout",
+      "Path",
+      "Front matter",
+      "Body",
+      "Comments",
+      "Status and the \"phase done\" signal",
+      "Exit codes",
+      "Provenance",
+      "Plan Template"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
     "headings": [
@@ -5138,7 +5172,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Session Resume Hints (CC 2.1.31+)",
       "Post-Creation Verification",
       "Issue Auto-Close",
-      "Coderabbit Cli Prereview",
+      "Coderabbit CLI Prereview",
       "Why the PR review allowance is the scarce resource",
       "The command",
       "--use-credits and what actually controls spend",
@@ -5178,6 +5212,17 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "After the parent is squash-merged",
       "Traps, all four measured on a real 3 layer stack",
       "Landing"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/create-research",
+    "title": "Create Research",
+    "headings": [
+      "Steps",
+      "Rules",
+      "Related",
+      "References (1)",
+      "Research Template"
     ]
   },
   {
@@ -6379,7 +6424,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Webhook Setup",
       "Webhook Receiver Pattern",
       "References (7)",
-      "Api Coverage",
+      "API Coverage",
       "GitHub API (:4001)",
       "Repositories",
       "Pull Requests",
@@ -6406,7 +6451,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "SQS",
       "IAM & STS",
       "Stateful Behaviors",
-      "Cli Reference",
+      "CLI Reference",
       "Commands",
       "emulate (default)",
       "emulate init",
@@ -6648,7 +6693,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Capturing Snapshots",
       "Diffing Algorithm",
       "Diff Output",
-      "Ci Integration",
+      "CI Integration",
       "GitHub Actions Workflow",
       "Pre-Push Hook",
       "Exit Code Mapping",
@@ -7063,7 +7108,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Session Summary Format",
       "Key Rules",
       "References (7)",
-      "Cli Vs Api Identifiers",
+      "CLI Vs API Identifiers",
       "Quick Reference",
       "The Milestone Footgun",
       "Look Up a Milestone Number",
@@ -7072,7 +7117,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Safe Patterns",
       "Always resolve milestone names to numbers before REST API calls",
       "Use --json to capture the created resource's identifier",
-      "Graphql Api",
+      "Graphql API",
       "Basic GraphQL Query",
       "Variables in Queries",
       "Common Queries",
@@ -7095,7 +7140,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Issue Management",
       "Upstream",
       "Our delta",
-      "Milestone Api",
+      "Milestone API",
       "Upstream",
       "Our delta",
       "Ork Delta",
@@ -7585,7 +7630,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Session Resume Hints (CC 2.1.31)",
       "Claude Code",
       "Session recovery",
-      "E2e Verification",
+      "E2E Verification",
       "Browser Testing (UI features)",
       "API Testing (Backend features)",
       "Full-Stack Verification",
@@ -7852,11 +7897,29 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/iterate-plan",
+    "title": "Iterate Plan",
+    "headings": [
+      "Steps",
+      "Rules",
+      "Related"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/iterate-research",
+    "title": "Iterate Research",
+    "headings": [
+      "Steps",
+      "Rules",
+      "Related"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/json-render-catalog",
     "title": "Json Render Catalog",
     "headings": [
       "Storybook → catalog import (#1529, 2026-04)",
-      "New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)",
+      "New in 2026-04 → 2026-10 (json-render 0.14 → 0.21)",
       "Directives: @json-render/directives (0.19)",
       "Registration",
       "The seven prebuilt directives",
@@ -8052,7 +8115,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/llm-integration",
-    "title": "Llm Integration",
+    "title": "LLM Integration",
     "headings": [
       "Quick Reference",
       "Quick Start",
@@ -8255,7 +8318,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/mcp-patterns",
-    "title": "Mcp Patterns",
+    "title": "MCP Patterns",
     "headings": [
       "Decision Tree: Which Rule to Read",
       "Quick Reference",
@@ -8298,7 +8361,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Integrate WebMCP browser mediation correctly to avoid confusing it with standard MCP: LOW",
       "WebMCP Browser Integration",
       "References (2)",
-      "Mcp Audit Runbook",
+      "MCP Audit Runbook",
       "Transport check (run this before the version check)",
       "When to run",
       "Re-run script",
@@ -8308,7 +8371,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Escape hatch: pin a specific version",
       "CC 2.1.128: MCP Reconnect Tool Summarization",
       "Related",
-      "Mcp Version Matrix",
+      "MCP Version Matrix",
       "Audit Method",
       "Matrix",
       "User-level MCPs (referenced but not in project .mcp.json)",
@@ -8322,7 +8385,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "How to Re-run This Audit",
       "References",
       "Checklists (1)",
-      "Mcp Server Checklist",
+      "MCP Server Checklist",
       "Server Setup",
       "Security Hardening",
       "Resource Management",
@@ -8331,13 +8394,14 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/mcp-visual-output",
-    "title": "Mcp Visual Output",
+    "title": "MCP Visual Output",
     "headings": [
       "Decision Tree: Which File to Read",
       "Quick Reference",
       "How It Works",
       "Quick Start: New MCP Server",
       "Quick Start: Enhance Existing Server with Visual Output",
+      "Smallest Proof: One Tool, UI Resource Plus Text Fallback",
       "Client-Side Iframe App",
       "Catalog Definition",
       "Example: Eval Results Dashboard",
@@ -8368,7 +8432,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Recipe 4: Dependency Graph Summary",
       "Sample Spec",
       "Guidelines for New Recipes",
-      "Mcp Integration",
+      "MCP Integration",
       "Server-Side API",
       "createMcpApp(config)",
       "registerJsonRenderTool(server, config)",
@@ -8382,7 +8446,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Cursor",
       "Streamable HTTP (Remote)",
       "Spec Format",
-      "Upstream Mcp",
+      "Upstream MCP",
       "Quick Start",
       "Server (Node.js)",
       "Client (React, inside iframe)",
@@ -8578,7 +8642,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Best Practices",
       "Integration with OrchestKit Quality Gate",
       "References",
-      "Experiments Api",
+      "Experiments API",
       "Overview",
       "Experiment Runner SDK (v3)",
       "Creating Datasets",
@@ -8769,7 +8833,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/multimodal-llm",
-    "title": "Multimodal Llm",
+    "title": "Multimodal LLM",
     "headings": [
       "Quick Reference",
       "Vision: Image Analysis",
@@ -9167,7 +9231,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Cookie Domain",
       "Proxy 508 Loop",
       "Mixed Port References",
-      "Upstream Oauth",
+      "Upstream OAuth",
       "The Problem",
       "The Fix",
       "Use a domain you own",
@@ -10033,7 +10097,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/rag-retrieval",
-    "title": "Rag Retrieval",
+    "title": "RAG Retrieval",
     "headings": [
       "Quick Reference",
       "Core RAG",
@@ -10133,7 +10197,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Use LLM reranking for domain-adaptive scoring without deploying a dedicated model: MEDIUM",
       "LLM Reranking",
       "Checklists (2)",
-      "Rag Quality",
+      "RAG Quality",
       "Retrieval Quality",
       "Document Grading",
       "Query Transformation",
@@ -10476,6 +10540,15 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
+    "url": "/docs/reference/skills/review-artifact-comments",
+    "title": "Review Artifact Comments",
+    "headings": [
+      "Steps",
+      "Adding a comment as a reviewer",
+      "Rules"
+    ]
+  },
+  {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
     "headings": [
@@ -10797,7 +10870,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "OrchestKit Integration",
       "Common Mistakes",
       "Testing Guardrails",
-      "Post Llm Attribution",
+      "Post LLM Attribution",
       "The Principle",
       "Implementation",
       "1. Attribution Data Structure",
@@ -10808,7 +10881,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Artifact Retrieval",
       "Common Mistakes",
       "Testing Attribution",
-      "Pre Llm Filtering",
+      "Pre LLM Filtering",
       "Purpose",
       "Implementation",
       "1. Tenant-Scoped Retrieval",
@@ -10873,7 +10946,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Layer 7: Attribution & Storage",
       "Layer 8: Observability",
       "Quick Verification Commands",
-      "Pre Llm Call",
+      "Pre LLM Call",
       "Before ANY LLM Call in OrchestKit",
       "Phase 1: Context Available",
       "Phase 2: Data Isolation",
@@ -11016,7 +11089,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/storybook-mcp-integration",
-    "title": "Storybook Mcp Integration",
+    "title": "Storybook MCP Integration",
     "headings": [
       "When to Use",
       "Quick Reference: 6 Tools, 3 Toolsets",
@@ -11091,7 +11164,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Recommended .storybook/main.ts Configuration",
       "Deprecated / Removed",
       "Version Compatibility",
-      "Storybook Ci Strategy",
+      "Storybook CI Strategy",
       "Overview",
       "Pipeline Architecture",
       "GitHub Actions Workflow",
@@ -11271,7 +11344,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/testing-e2e",
-    "title": "Testing E2e",
+    "title": "Testing E2E",
     "headings": [
       "Quick Reference",
       "Upstream coverage (do not restate)",
@@ -11367,7 +11440,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Low Contrast Text",
       "Keyboard Trap",
       "Missing Focus Indicator",
-      "E2e Checklist",
+      "E2E Checklist",
       "Test Selection Checklist",
       "Locator Strategy Checklist",
       "Test Implementation Checklist",
@@ -11378,7 +11451,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Accessibility Checklist",
       "Review Checklist",
       "Anti-Patterns to Avoid",
-      "E2e Testing Checklist",
+      "E2E Testing Checklist",
       "Pre-Implementation",
       "Test Planning",
       "Environment Setup",
@@ -11426,7 +11499,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Performance Testing",
       "Success Metrics",
       "Examples (1)",
-      "Orchestkit E2e Tests",
+      "Orchestkit E2E Tests",
       "Test Configuration",
       "playwright.config.ts",
       "Page Objects",
@@ -11592,7 +11665,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/testing-llm",
-    "title": "Testing Llm",
+    "title": "Testing LLM",
     "headings": [
       "Quick Reference",
       "Upstream coverage (do not restate)",
@@ -11645,7 +11718,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Gate an agent step at qualityscore 0.85 pass, 0.5 retry with a reason",
       "Test the truncation boundary at 100,000 characters",
       "Checklists (1)",
-      "Llm Test Checklist",
+      "LLM Test Checklist",
       "Test Environment Setup",
       "Test Coverage Checklist",
       "Unit Tests",
@@ -11812,7 +11885,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Implementation",
       "Usage Patterns",
       "Checklist",
-      "Msw 2x Api",
+      "Msw 2x API",
       "Core Imports",
       "HTTP Handlers",
       "Basic Methods",
@@ -11870,7 +11943,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/reference/skills/ui-components",
-    "title": "Ui Components",
+    "title": "UI Components",
     "headings": [
       "Quick Reference",
       "Quick Start",
@@ -12504,7 +12577,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Cost Awareness",
       "Graceful Degradation",
       "References (1)",
-      "Tavily Api",
+      "Tavily API",
       "Search (Semantic Web Search)",
       "Extract (Batch URL Content)",
       "Map (Site Discovery)",
@@ -12751,7 +12824,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "38 Commands You Can Invoke",
+    "title": "43 Commands You Can Invoke",
     "headings": [
       "What Are Command Skills?",
       "Build and Explore",
@@ -12801,7 +12874,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "What Are Reference Skills?",
       "Accessibility",
-      "Ai Safety Auditor",
+      "AI Safety Auditor",
       "Backend & Distributed Systems",
       "CI/CD",
       "Code Quality",

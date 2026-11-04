@@ -11,7 +11,7 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 |-------|------|------------|-------------|
 | [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading s... |
-| [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
+| [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Review process, conventional comments, language checklists and feedback templates. Use when reviewing code or standar... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
@@ -23,12 +23,12 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building... |
 | [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuses a verdict a check did not earn: runs it with the fault present and absent and blocks when both agree; catches... |
 | [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after rep... |
-| [Rag Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
+| [RAG Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comme... |
 | [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interac... |
-| [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or s... |
+| [Testing E2E](/docs/reference/skills/testing-e2e) | Reference | medium | Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or s... |
 | [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract tests: API endpoints, databases, Pact contracts, property-based tests, Zod validation. Use w... |
-| [Testing Llm](/docs/reference/skills/testing-llm) | Reference | medium | LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use w... |
+| [Testing LLM](/docs/reference/skills/testing-llm) | Reference | medium | LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use w... |
 | [Testing Perf](/docs/reference/skills/testing-perf) | Reference | medium | Load and performance tests with k6 and Locust, plus pytest speed (xdist). Use when writing load tests or speeding up ... |
 | [Testing Unit](/docs/reference/skills/testing-unit) | Reference | medium | Unit test patterns: AAA, parametrized tests, fixture scope, MSW or VCR network mocks, data factories, for Vitest, Jes... |
 | [Verify](/docs/reference/skills/verify) | Command | high | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 ... |
