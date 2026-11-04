@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.4",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.3...v10.8.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** cc-version-check keeps its flag unset on an env-only pass ([#5061](https://github.com/yonatangross/orchestkit/issues/5061)) ([fbd21d8](https://github.com/yonatangross/orchestkit/commit/fbd21d8ec920bef80715bf4fb88d05b5a4881527))",
+          "**release:** retry the CHANGELOG refresh push and fail loudly ([#5059](https://github.com/yonatangross/orchestkit/issues/5059)) ([6d29997](https://github.com/yonatangross/orchestkit/commit/6d29997ca7a7091dae7266b2204813114676b61a)), closes [#5054](https://github.com/yonatangross/orchestkit/issues/5054)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.3",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.2...v10.8.3",
