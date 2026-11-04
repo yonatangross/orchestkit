@@ -19,6 +19,7 @@ const path = require('path');
 const modelShortNames = require('../src/hooks/src/lib/models.vocab.json').shortNames;
 const crypto = require('crypto');
 const { parseYamlFrontmatter } = require('./lib/parse-frontmatter');
+const { slugLabel } = require('./lib/slug-label');
 
 // Paths
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -954,7 +955,7 @@ function generateSplitModules(data) {
   for (const [key, skill] of Object.entries(skillsDetailed)) {
     graphNodes.push({
       id: key,
-      label: key.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      label: slugLabel(key),
       type: skill.userInvocable ? 'command' : 'reference',
       complexity: skill.complexity || 'low',
       category: detectCategory(skill),
@@ -1002,7 +1003,7 @@ function generateSplitModules(data) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([id, agent]) => ({
       id,
-      name: id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      name: slugLabel(id),
       description: agent.description,
       category: categoryMapping[agent.category] || 'other',
       model: agent.model,

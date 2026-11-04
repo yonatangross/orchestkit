@@ -48,6 +48,7 @@ git -C "$REPO_ROOT" archive --format=tar HEAD -- \
   src/hooks/hooks.json src/hooks/src/lib/models.vocab.json \
   src/hooks/src/lib/cc-version-matrix.ts \
   docs/site/content/docs/foundations/overview.mdx \
+  docs/site/lib/slug-acronyms.json \
   | tar -xf - -C "$FIXTURE"
 git -C "$FIXTURE" init --quiet
 git -C "$FIXTURE" config commit.gpgsign false

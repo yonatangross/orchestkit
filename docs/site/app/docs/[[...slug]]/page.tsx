@@ -31,6 +31,7 @@ import { TrackedCodeBlock } from "@/components/tracked-code-block";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { RelatedPages } from "@/components/related-pages";
 import { getRelatedPages } from "@/lib/related-pages";
+import { slugLabel } from "@/lib/slug-label";
 import { TocPopoverRole } from "@/components/toc-popover-role";
 
 /**
@@ -60,10 +61,7 @@ export default async function Page(props: {
   const skillSlug = skillSlugOf(page.slugs);
   // Section identity row above the title: glyph chip + section label.
   const SectionGlyph = getSectionGlyph(page.slugs[0] ?? "");
-  const sectionLabel = (page.slugs[0] ?? "")
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  const sectionLabel = slugLabel(page.slugs[0] ?? "");
   const lastModified =
     page.data.lastModified instanceof Date
       ? page.data.lastModified

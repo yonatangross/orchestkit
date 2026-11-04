@@ -138,9 +138,35 @@ def _lift_house_keys(meta: dict) -> None:
         meta[key] = [t.strip() for t in val.split(sep) if t.strip()] if sep else val
 
 
+_ACRONYMS = json.loads(
+    (
+        Path(__file__).resolve().parent.parent / "docs" / "site" / "lib" / "slug-acronyms.json"
+    ).read_text()
+)
+
+
 def title_case(slug: str) -> str:
-    """Convert kebab-case to Title Case."""
-    return " ".join(word.capitalize() for word in slug.split("-"))
+    """Convert kebab-case to Title Case, keeping acronyms upper case.
+
+    "ci-cd-engineer" -> "CI/CD Engineer". The acronym list is shared with the
+    site (docs/site/lib/slug-label.ts) and generate-docs-data.js.
+    """
+    words, phrases = _ACRONYMS["words"], _ACRONYMS["phrases"]
+    max_len = max([len(k.split("-")) for k in phrases] + [1])
+    tokens = slug.split("-")
+    out: list[str] = []
+    i = 0
+    while i < len(tokens):
+        for n in range(min(max_len, len(tokens) - i), 1, -1):
+            phrase = phrases.get("-".join(tokens[i : i + n]))
+            if phrase:
+                out.append(phrase)
+                i += n
+                break
+        else:
+            out.append(words.get(tokens[i]) or tokens[i].capitalize())
+            i += 1
+    return " ".join(out)
 
 
 # Languages not in Shiki's default bundle — replace with 'text'
@@ -2101,8 +2127,7 @@ def generate_reference_skills(skills_src: str, out_file: str, agents_src: str = 
             "",
             "## Cross-Cutting Skills",
             "",
-            "No agent preloads these skills; the core system or a command skill "
-            "loads them.",
+            "No agent preloads these skills; the core system or a command skill loads them.",
             "",
         ]
         lines += emit_table(cross_cutting)
@@ -2357,7 +2382,9 @@ def main():
     # Reference-skills narrative page, generated from frontmatter (#2120)
     refskills_out = os.environ.get("REFSKILLS_OUT", "")
     if refskills_out:
-        ref_count = generate_reference_skills(skills_src, refskills_out, os.environ.get("AGENTS_SRC", ""))
+        ref_count = generate_reference_skills(
+            skills_src, refskills_out, os.environ.get("AGENTS_SRC", "")
+        )
         # Its sibling, from the same frontmatter, so the two pages always
         # split the skill total the same way.
         generate_command_skills(
