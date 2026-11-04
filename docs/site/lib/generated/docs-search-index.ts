@@ -928,7 +928,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/create-research",
     "title": "Create Research",
-    "description": "Documents how the code works today for a task's questions in a research file with file:line citations. Use before planning a change in unfamiliar code; describes, never proposes."
+    "description": "Documents how code works today for a task's questions, with file:line citations. Use before planning a change; describes, never proposes. NOT for mapping a repo (use explore)."
   },
   {
     "url": "/docs/reference/skills/database-patterns",
@@ -1128,7 +1128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/explore",
     "title": "Explore",
-    "description": "Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. Use when onboarding to or mapping an unfamiliar repo."
+    "description": "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research)."
   },
   {
     "url": "/docs/reference/skills/figma-design-handoff",

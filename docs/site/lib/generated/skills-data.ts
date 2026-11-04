@@ -1394,9 +1394,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-research": {
     "name": "create-research",
-    "description": "Documents how the code works today for a task's questions in a research file with file:line citations. Use before planning a change in unfamiliar code; describes, never proposes.",
+    "description": "Documents how code works today for a task's questions, with file:line citations. Use before planning a change; describes, never proposes. NOT for mapping a repo (use explore).",
     "version": "1.0.0",
-    "sha256": "76dd617ad45dc831bffbcf1990d9d637010f7b615f6c3e868f120ef15ea9f1b7",
+    "sha256": "32c89be0c102bb95f71c538868a1cf84747a22d2f78f39bb22836d1f7e8664df",
     "author": "OrchestKit",
     "tags": [
       "research",
@@ -2409,9 +2409,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "explore": {
     "name": "explore",
-    "description": "Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. Use when onboarding to or mapping an unfamiliar repo.",
+    "description": "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research).",
     "version": "2.6.0",
-    "sha256": "15b83a2019ef62e2f377e9de8fa4e34d7125b48c3bf8b9acfbf92cbac3fb3151",
+    "sha256": "bdd63a7b8f04c358dc1d304566b27f3b83973a1e9179af3f6334d755c9415ec7",
     "author": "OrchestKit",
     "tags": [
       "exploration",

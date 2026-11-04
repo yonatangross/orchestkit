@@ -384,6 +384,59 @@ fi
 echo ""
 
 # ============================================================================
+# Test 4d: The ratchet ceiling can only go down versus the base branch
+# ============================================================================
+# Test 4b stops the listing from growing past the ceiling, but nothing else
+# stopped a PR from simply raising the ceiling in skill-listing-ratchet.txt.
+# On a PR the base is origin/$GITHUB_BASE_REF (CI fetches it); locally it is
+# origin/main, or RATCHET_BASE_REF if set. A missing base ref fails closed on a
+# CI pull_request run and is skipped locally.
+echo "▶ Test 4d: Ratchet Down-Only Versus Base"
+echo "────────────────────────────────────────"
+
+RATCHET_REL="tests/performance/skill-listing-ratchet.txt"
+
+# ratchet_raised CURRENT BASE: succeeds when CURRENT is higher than BASE.
+ratchet_raised() { [[ "$1" -gt "$2" ]]; }
+
+if ratchet_raised 16009 16008 && ! ratchet_raised 16008 16008 && ! ratchet_raised 16000 16008; then
+    pass "Ratchet comparison self-test: a raise is caught, equal and lower pass"
+else
+    fail "Ratchet comparison self-test failed: ratchet_raised does not separate raise / equal / lower"
+fi
+
+if [[ -n "${RATCHET_BASE_REF:-}" ]]; then
+    ratchet_base_ref="$RATCHET_BASE_REF"
+elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    ratchet_base_ref="origin/${GITHUB_BASE_REF}"
+else
+    ratchet_base_ref="origin/main"
+fi
+
+ratchet_now=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE")
+
+if ! git -C "$PROJECT_ROOT" rev-parse --verify --quiet "${ratchet_base_ref}^{commit}" >/dev/null; then
+    if [[ "${GITHUB_ACTIONS:-}" == "true" && "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+        fail "Ratchet base ref ${ratchet_base_ref} is not available in this PR checkout: the down-only check cannot run (fetch the base branch)"
+    else
+        info "Base ref ${ratchet_base_ref} not found: down-only ratchet check skipped (runs on PRs in CI)"
+        pass "Ratchet down-only check: skipped (no base ref)"
+    fi
+elif ! git -C "$PROJECT_ROOT" cat-file -e "${ratchet_base_ref}:${RATCHET_REL}"; then
+    pass "Ratchet down-only check: ${RATCHET_REL} is new versus ${ratchet_base_ref}"
+else
+    ratchet_base=$(git -C "$PROJECT_ROOT" show "${ratchet_base_ref}:${RATCHET_REL}" | awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}')
+    if [[ -z "$ratchet_base" || -z "$ratchet_now" ]]; then
+        fail "Could not read the ratchet ceiling (base: '${ratchet_base:-}', this branch: '${ratchet_now:-}')"
+    elif ratchet_raised "$ratchet_now" "$ratchet_base"; then
+        fail "Ratchet RAISED: ${RATCHET_REL} went ${ratchet_base} -> ${ratchet_now} versus ${ratchet_base_ref}. The ceiling only moves down; trim descriptions instead of raising it."
+    else
+        pass "Ratchet ${ratchet_now} ≤ ${ratchet_base} on ${ratchet_base_ref} (down-only holds)"
+    fi
+fi
+echo ""
+
+# ============================================================================
 # Test 5: Hook Dispatcher Budget Constant
 # ============================================================================
 echo "▶ Test 5: Hook Dispatcher Budget Cap"
