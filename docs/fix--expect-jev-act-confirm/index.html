@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jev act mode: agree, or ask first</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.panel{border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:16px 18px;margin-top:10px}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:8px 0}
+label{font-size:13px;color:var(--muted)}select,input[type=range]{accent-color:var(--accent)}
+select{background:hsl(232 20% 14%);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:4px 8px}
+.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:12px;line-height:1.9}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">EXPECT ACT MODE &middot; #4745</div>
+<h1>Jev may drive the step only when it <span>agrees, or you confirm</span></h1>
+<p class="lede">In <code>/ork:expect</code> act mode, Jev picks the next browser action from the
+page's ARIA snapshot. Page content is <b>untrusted</b>, so a crafted page could steer that pick.
+Before this fix, any Jev pick above <code>act_confidence_floor</code> ran, even when it
+disagreed with the agent's own pick. Now a disagreement runs only when the step passes
+<code>--confirm-disagreement</code>; otherwise the agent's pick runs and the disagreement is logged.</p>
+
+<h2>Try it</h2>
+<div class="panel">
+<div class="row">
+<label>Agent picks <code>click:@e3</code> (Sign in). Jev picks
+<select id="jev"><option value="click:@e3">click:@e3 (same)</option><option value="click:@e7" selected>click:@e7 (different)</option></select></label>
+</div>
+<div class="row">
+<label>Jev confidence <input id="conf" type="range" min="0" max="100" value="66"> <span id="confv">0.66</span></label>
+<label>(floor 0.50)</label>
+</div>
+<div class="row">
+<label><input id="confirm" type="checkbox"> step passes <code>--confirm-disagreement</code></label>
+</div>
+<div class="out" id="out"></div>
+</div>
+
+<h2>The rule</h2>
+<table>
+<tr><th>Case</th><th>Before</th><th>After</th></tr>
+<tr><td>agree, above floor</td><td>Jev pick runs</td><td class="ok">Jev pick runs (<code>path: jev</code>)</td></tr>
+<tr><td>disagree, above floor, no confirm</td><td class="bad">Jev pick runs</td><td class="ok">agent pick runs (<code>fallback:disagreement</code>)</td></tr>
+<tr><td>disagree, above floor, confirmed</td><td>Jev pick runs</td><td>Jev pick runs (<code>path: jev</code>)</td></tr>
+<tr><td>any pick below floor</td><td>agent pick runs</td><td>agent pick runs (<code>fallback:low_confidence</code>)</td></tr>
+<tr><td>agree on verb and ref, but Jev's form-field decision changes the fill value, or turns click into check or done</td><td class="bad">Jev's rewrite runs</td><td class="ok">agent's own action runs unless confirmed (<code>rewrite_blocked</code> logged)</td></tr>
+<tr><td>agent pick outside the keyspace</td><td class="bad">Jev pick runs</td><td class="ok">agent pick runs (<code>fallback:unknown_agreement</code>)</td></tr>
+</table>
+
+<div class="foot">Tests: <code>tests/unit/test-expect-jev-shadow.sh</code> rows 8a to 8e cover each line of the table.
+Shadow mode is unchanged.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function render(){
+  const jev=$('jev').value, conf=$('conf').value/100, confirmed=$('confirm').checked;
+  $('confv').textContent=conf.toFixed(2);
+  const agree=jev==='click:@e3', below=conf<0.5;
+  let path, exec;
+  if(below){path='fallback:low_confidence';exec='click:@e3';}
+  else if(agree||confirmed){path='jev';exec=jev;}
+  else{path='fallback:disagreement';exec='click:@e3';}
+  const cls=exec==='click:@e3'?'ok':(confirmed?'':'bad');
+  const out=$('out');out.replaceChildren();
+  const line=t=>{const d=document.createElement('div');d.textContent=t;out.appendChild(d);return d;};
+  line('agree: '+agree);line('path: '+path);
+  const ex=line('executed_action: ');const s=document.createElement('span');
+  if(cls)s.className=cls;s.textContent=exec;ex.appendChild(s);
+}
+['jev','conf','confirm'].forEach(id=>$(id).addEventListener('input',render));render();
+</script></body></html>

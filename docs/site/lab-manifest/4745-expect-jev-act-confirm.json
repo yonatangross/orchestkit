@@ -1,0 +1,13 @@
+{
+  "slug": "4745-expect-jev-act-confirm",
+  "source": "docs/fix--expect-jev-act-confirm/index.html",
+  "title": "#4745 Jev act mode: agree, or ask first",
+  "description": "In /ork:expect act mode a Jev pick that disagreed with the agent ran whenever it cleared the confidence floor, so untrusted page content could steer the action. Now a disagreement runs only with --confirm-disagreement; otherwise the agent's pick runs and the disagreement is logged.",
+  "tags": [
+    "expect",
+    "jev",
+    "security",
+    "4745"
+  ],
+  "date": "2026-11-02"
+}
