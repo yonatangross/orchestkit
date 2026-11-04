@@ -1,5 +1,5 @@
 ---
-description: "Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII diagrams. Use when onboarding to or mapping an unfamiliar repo."
+description: "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research)."
 argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effort=low|medium|high]"
 model: sonnet
 effort: high

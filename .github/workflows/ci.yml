@@ -778,6 +778,19 @@ jobs:
         with:
           build-plugins: 'false'
 
+      # The skill-listing gate parses SKILL.md frontmatter with PyYAML and
+      # fails closed (exit 2) without it (orchestkit#5044).
+      - name: Install PyYAML for the skill-listing gate
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
+
+      # Test 4d compares skill-listing-ratchet.txt with the base branch and
+      # fails closed on a pull_request run when the base ref is missing.
+      - name: Fetch the base branch for the ratchet check
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
       - name: Run performance tests
         shell: bash
         run: |

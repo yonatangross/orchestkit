@@ -1,5 +1,5 @@
 ---
-description: "Documents how the code works today for a task's questions in a research file with file:line citations. Use before planning a change in unfamiliar code; describes, never proposes."
+description: "Documents how code works today for a task's questions, with file:line citations. Use before planning a change; describes, never proposes. NOT for mapping a repo (use explore)."
 argument-hint: "<task> <question or questions file>"
 user-invocable: true
 name: create-research

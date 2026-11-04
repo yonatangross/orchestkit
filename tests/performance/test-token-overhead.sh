@@ -288,7 +288,9 @@ echo ""
 #      model-facing skill) <= the ceiling in skill-listing-ratchet.txt. The
 #      ceiling only moves down: when the total falls more than
 #      RATCHET_SLACK_BYTES under it, the test fails until the file is lowered.
-# Bytes are counted with LC_ALL=C so awk length() is bytes, not characters.
+# Frontmatter is parsed with PyYAML (skill-listing-measure.py), not matched as
+# text, so quoted or spaced keys, aliases, block scalars and single quotes are
+# all measured (orchestkit#5044). Bytes are UTF-8 bytes of the parsed value.
 echo "▶ Test 4b: Per-skill Listing Cap + Ratchet"
 echo "────────────────────────────────────────"
 
@@ -298,35 +300,18 @@ RATCHET_FILE="$SCRIPT_DIR/skill-listing-ratchet.txt"
 listing_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing.XXXXXX")"
 trap 'rm -f "$listing_report_file"' EXIT
 
-LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '
-    function emit() {
-      if (!seen || dmi) return
-      d = length(ds) + length(wt)
-      total += length(nm) + d
-      if (d > cap) { over++; printf "OVER %d %s\n", d, nm }
-    }
-    function unq(s) { sub(/^[[:space:]]+/, "", s); gsub(/^"|"$/, "", s); return s }
-    FNR==1 { emit(); seen=1; infm=0; closed=0; dmi=0; nm=""; ds=""; wt=""; cur="" }
-    closed { next }
-    /^---[[:space:]]*$/ { if (infm) closed=1; else infm=1; cur=""; next }
-    !infm { next }
-    {
-      key=$0
-      sub(/[[:space:]]*#.*$/, "", key)
-      sub(/[[:space:]]+$/, "", key)
-    }
-    key ~ /^disable-model-invocation:[[:space:]]*true$/ { dmi=1; cur=""; next }
-    /^name:/        { s=key; sub(/^name:/, "", s);        nm=unq(s); cur=""; next }
-    /^description:/ { s=$0;  sub(/^description:/, "", s); ds=unq(s); cur="d"; next }
-    /^when_to_use:/ { s=$0;  sub(/^when_to_use:/, "", s); wt=unq(s); cur="w"; next }
-    cur!="" && /^[[:space:]]+[^[:space:]]/ {
-      s=$0; sub(/^[[:space:]]+/, "", s)
-      if (cur=="d") ds = ds " " s; else wt = wt " " s
-      next
-    }
-    { cur="" }
-    END { emit(); printf "TOTAL %d %d\n", total, over }
-  ' "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"
+# measure_listing FILE...: prints "OVER <bytes> <name>" per skill over the cap
+# and one final "TOTAL <listing bytes> <over count>" line.
+measure_listing() {
+    # No -I: CI may install PyYAML with `pip --user`, and -I hides user site-packages.
+    python3 "$SCRIPT_DIR/skill-listing-measure.py" --cap "$SKILL_DESC_MAX_BYTES" "$@"
+}
+
+if ! measure_listing "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"; then
+    fail "Could not measure the skill listing (PyYAML missing or a SKILL.md frontmatter failed to parse, see stderr above)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
 
 listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
 listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
@@ -352,6 +337,102 @@ else
         fail "Skill listing total: ${listing_total} bytes is more than ${RATCHET_SLACK_BYTES} under the ratchet ceiling ${ratchet_ceiling}: lower ${RATCHET_FILE##*/} to ${listing_total}"
     else
         pass "Skill listing total: ${listing_total} bytes ≤ ratchet ceiling ${ratchet_ceiling}"
+    fi
+fi
+echo ""
+
+# ============================================================================
+# Test 4c: Planted fixtures (the gate must not go vacuously green)
+# ============================================================================
+# Every file under fixtures/skill-gate/fail MUST be reported over the cap and
+# every file under fixtures/skill-gate/pass MUST NOT. If a must-fail fixture
+# passes, the measurement is blind to that spelling and this test fails.
+echo "▶ Test 4c: Planted Fixtures"
+echo "────────────────────────────────────────"
+
+FIXTURE_DIR="$SCRIPT_DIR/fixtures/skill-gate"
+fixture_fail_n=0
+fixture_pass_n=0
+
+for fx in "$FIXTURE_DIR"/fail/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_fail_n=$((fixture_fail_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    if [[ "${fx_over:-0}" -ge 1 ]]; then
+        pass "must-fail fixture caught: ${fx##*/}"
+    else
+        fail "must-fail fixture PASSED the gate (gate is blind to it): ${fx##*/}"
+    fi
+done
+
+for fx in "$FIXTURE_DIR"/pass/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_pass_n=$((fixture_pass_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    fx_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+    if [[ "${fx_over:-1}" -eq 0 && "${fx_total:-0}" -gt 0 ]]; then
+        pass "must-pass fixture accepted: ${fx##*/}"
+    else
+        fail "must-pass fixture was REJECTED or measured as empty: ${fx##*/} (total ${fx_total:-?}, over ${fx_over:-?})"
+    fi
+done
+
+if [[ "$fixture_fail_n" -lt 9 || "$fixture_pass_n" -lt 4 ]]; then
+    fail "Fixture set incomplete: ${fixture_fail_n} must-fail (need >= 9), ${fixture_pass_n} must-pass (need >= 4)"
+fi
+echo ""
+
+# ============================================================================
+# Test 4d: The ratchet ceiling can only go down versus the base branch
+# ============================================================================
+# Test 4b stops the listing from growing past the ceiling, but nothing else
+# stopped a PR from simply raising the ceiling in skill-listing-ratchet.txt.
+# On a PR the base is origin/$GITHUB_BASE_REF (CI fetches it); locally it is
+# origin/main, or RATCHET_BASE_REF if set. A missing base ref fails closed on a
+# CI pull_request run and is skipped locally.
+echo "▶ Test 4d: Ratchet Down-Only Versus Base"
+echo "────────────────────────────────────────"
+
+RATCHET_REL="tests/performance/skill-listing-ratchet.txt"
+
+# ratchet_raised CURRENT BASE: succeeds when CURRENT is higher than BASE.
+ratchet_raised() { [[ "$1" -gt "$2" ]]; }
+
+if ratchet_raised 16009 16008 && ! ratchet_raised 16008 16008 && ! ratchet_raised 16000 16008; then
+    pass "Ratchet comparison self-test: a raise is caught, equal and lower pass"
+else
+    fail "Ratchet comparison self-test failed: ratchet_raised does not separate raise / equal / lower"
+fi
+
+if [[ -n "${RATCHET_BASE_REF:-}" ]]; then
+    ratchet_base_ref="$RATCHET_BASE_REF"
+elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    ratchet_base_ref="origin/${GITHUB_BASE_REF}"
+else
+    ratchet_base_ref="origin/main"
+fi
+
+ratchet_now=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE")
+
+if ! git -C "$PROJECT_ROOT" rev-parse --verify --quiet "${ratchet_base_ref}^{commit}" >/dev/null; then
+    if [[ "${GITHUB_ACTIONS:-}" == "true" && "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+        fail "Ratchet base ref ${ratchet_base_ref} is not available in this PR checkout: the down-only check cannot run (fetch the base branch)"
+    else
+        info "Base ref ${ratchet_base_ref} not found: down-only ratchet check skipped (runs on PRs in CI)"
+        pass "Ratchet down-only check: skipped (no base ref)"
+    fi
+elif ! git -C "$PROJECT_ROOT" cat-file -e "${ratchet_base_ref}:${RATCHET_REL}"; then
+    pass "Ratchet down-only check: ${RATCHET_REL} is new versus ${ratchet_base_ref}"
+else
+    ratchet_base=$(git -C "$PROJECT_ROOT" show "${ratchet_base_ref}:${RATCHET_REL}" | awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}')
+    if [[ -z "$ratchet_base" || -z "$ratchet_now" ]]; then
+        fail "Could not read the ratchet ceiling (base: '${ratchet_base:-}', this branch: '${ratchet_now:-}')"
+    elif ratchet_raised "$ratchet_now" "$ratchet_base"; then
+        fail "Ratchet RAISED: ${RATCHET_REL} went ${ratchet_base} -> ${ratchet_now} versus ${ratchet_base_ref}. The ceiling only moves down; trim descriptions instead of raising it."
+    else
+        pass "Ratchet ${ratchet_now} ≤ ${ratchet_base} on ${ratchet_base_ref} (down-only holds)"
     fi
 fi
 echo ""

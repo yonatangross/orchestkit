@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The description gate now parses YAML and proves itself with fixtures</title>
+<meta name="description" content="The 260-byte skill description gate used to match frontmatter as text, so a quoted key, a spaced key or a YAML alias read as empty. It now parses the YAML, ships 13 planted fixtures that must fail or pass, and a ratchet that can only go down versus the base branch.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:68rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  table{width:100%;border-collapse:collapse;font-size:.76rem}
+  th,td{text-align:start;padding:.3rem .5rem;border-bottom:1px solid var(--edge)}
+  th{color:var(--dim);font-weight:normal}
+  td.num{text-align:end}
+  .ok{color:var(--ok)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,input,textarea{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  textarea{width:100%;min-height:5rem}
+  button{cursor:pointer}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;margin-top:.6rem}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+</style>
+</head>
+<body><main>
+<h1>The description gate now parses YAML and proves itself with fixtures</h1>
+<p class="sub">Branch fix/skill-gate-yaml, orchestkit#5044. Claude Code lists the description of every model-facing skill each session. The per-skill cap is 260 bytes of <code>description</code> plus <code>when_to_use</code>. The cap used to be measured by matching text, which three valid YAML spellings dodged.</p>
+
+<section><h2>1. Every planted fixture, its bytes and its verdict</h2>
+<div class="controls">
+  <label>Show <select id="filter"><option value="all">all 13</option><option value="fail">must-fail only</option><option value="pass">must-pass only</option><option value="blind">old matcher got it wrong</option></select></label>
+  <span id="tally"></span>
+</div>
+<table id="fixtures"><thead><tr><th>fixture</th><th>spelling</th><th class="num">bytes (parsed)</th><th>expected</th><th>new parser</th><th>old text matcher</th></tr></thead><tbody></tbody></table>
+<p class="note">Bytes are UTF-8 bytes of the parsed value, so the Hebrew fixture (131 letters) is 262 bytes and the emoji fixture (66 characters) is 264. A character counter would let both through. The old matcher column is the measured result of the same fixtures against the text matcher on main (red run, 3 must-fail fixtures passed it and 1 legal one was rejected).</p>
+</section>
+
+<section><h2>2. Try a description</h2>
+<textarea id="try" aria-label="description text">Parallel codebase exploration: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research).</textarea>
+<div class="out" id="tryout"></div>
+</section>
+
+<section><h2>3. The ratchet only goes down</h2>
+<div class="controls">
+  <label>base branch <input id="base" type="number" value="16008" min="0"></label>
+  <label>this PR <input id="cur" type="number" value="16009" min="0"></label>
+</div>
+<div class="out" id="ratout"></div>
+</section>
+
+<section><h2>4. Copy as prompt</h2>
+<button id="copy" type="button">Copy the current result</button>
+<div class="out" id="copyout"></div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+  var CAP = 260;
+  // bytes = parsed description + when_to_use in UTF-8 (measured by skill-listing-measure.py)
+  // old = verdict of the old text matcher: ok (right answer), blind (passed a must-fail), wrong (rejected a must-pass)
+  var FIXTURES = [
+    { n: "fail/01-ascii-261", s: "plain, 261 ASCII bytes", b: 261, want: "fail", old: "ok" },
+    { n: "fail/02-hebrew-262-bytes", s: "131 Hebrew letters", b: 262, want: "fail", old: "ok" },
+    { n: "fail/03-emoji-264-bytes", s: "66 emoji", b: 264, want: "fail", old: "ok" },
+    { n: "fail/04-block-scalar-folded-270", s: "description: > folded block", b: 272, want: "fail", old: "ok" },
+    { n: "fail/05-single-quotes-261", s: "description: '...'", b: 261, want: "fail", old: "ok" },
+    { n: "fail/06-quoted-key-300", s: "\"description\": quoted key", b: 300, want: "fail", old: "blind" },
+    { n: "fail/07-spaced-key-300", s: "description : spaced key", b: 300, want: "fail", old: "blind" },
+    { n: "fail/08-alias-300", s: "description: *d alias", b: 300, want: "fail", old: "blind" },
+    { n: "fail/09-when-to-use-261", s: "200 + 61 with when_to_use", b: 261, want: "fail", old: "ok" },
+    { n: "pass/01-ascii-exactly-260", s: "plain, 260 ASCII bytes", b: 260, want: "pass", old: "ok" },
+    { n: "pass/02-single-quotes-exactly-260", s: "description: '...' at 260", b: 260, want: "pass", old: "wrong" },
+    { n: "pass/03-hebrew-exactly-260-bytes", s: "130 Hebrew letters", b: 260, want: "pass", old: "ok" },
+    { n: "pass/04-when-to-use-exactly-260", s: "200 + 60 with when_to_use", b: 260, want: "pass", old: "ok" }
+  ];
+
+  function el(tag, text, cls) {
+    var e = document.createElement(tag);
+    if (text !== undefined) { e.textContent = text; }
+    if (cls) { e.className = cls; }
+    return e;
+  }
+  function verdict(bytes) { return bytes > CAP ? "fail" : "pass"; }
+
+  var tbody = document.querySelector("#fixtures tbody");
+  var tally = document.getElementById("tally");
+  var filter = document.getElementById("filter");
+
+  function renderFixtures() {
+    var mode = filter.value;
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    var shown = 0, right = 0;
+    FIXTURES.forEach(function (f) {
+      var got = verdict(f.b);
+      var good = got === f.want;
+      if (good) { right += 1; }
+      if (mode === "fail" && f.want !== "fail") { return; }
+      if (mode === "pass" && f.want !== "pass") { return; }
+      if (mode === "blind" && f.old === "ok") { return; }
+      shown += 1;
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td", f.n));
+      tr.appendChild(el("td", f.s));
+      tr.appendChild(el("td", String(f.b), "num"));
+      tr.appendChild(el("td", "must " + f.want));
+      tr.appendChild(el("td", good ? "correct" : "WRONG", good ? "ok" : "bad"));
+      var oldText = f.old === "ok" ? "correct" : (f.old === "blind" ? "BLIND, passed" : "WRONG, rejected");
+      tr.appendChild(el("td", oldText, f.old === "ok" ? "ok" : "bad"));
+      tbody.appendChild(tr);
+    });
+    tally.textContent = "showing " + shown + " of " + FIXTURES.length + " | new parser right on " + right + " of " + FIXTURES.length;
+  }
+  filter.addEventListener("change", renderFixtures);
+  renderFixtures();
+
+  var tryBox = document.getElementById("try");
+  var tryOut = document.getElementById("tryout");
+  function renderTry() {
+    var bytes = new TextEncoder().encode(tryBox.value).length;
+    var chars = Array.from(tryBox.value).length;
+    var ok = bytes <= CAP;
+    tryOut.textContent = bytes + " bytes (" + chars + " characters) against a cap of " + CAP + ": " + (ok ? "PASS, " + (CAP - bytes) + " bytes of room" : "FAIL, " + (bytes - CAP) + " bytes over");
+    tryOut.className = "out " + (ok ? "ok" : "bad");
+  }
+  tryBox.addEventListener("input", renderTry);
+  renderTry();
+
+  var base = document.getElementById("base");
+  var cur = document.getElementById("cur");
+  var ratOut = document.getElementById("ratout");
+  function ratchetMessage() {
+    var b = Number(base.value), c = Number(cur.value);
+    if (c > b) { return "FAIL: Ratchet RAISED " + b + " -> " + c + " versus the base branch. The ceiling only moves down."; }
+    if (c === b) { return "PASS: ratchet unchanged at " + c + "."; }
+    return "PASS: ratchet lowered " + b + " -> " + c + ".";
+  }
+  function renderRatchet() {
+    var msg = ratchetMessage();
+    ratOut.textContent = msg;
+    ratOut.className = "out " + (msg.indexOf("FAIL") === 0 ? "bad" : "ok");
+  }
+  base.addEventListener("input", renderRatchet);
+  cur.addEventListener("input", renderRatchet);
+  renderRatchet();
+
+  var copyOut = document.getElementById("copyout");
+  document.getElementById("copy").addEventListener("click", function () {
+    var text = "Skill description gate check (orchestkit#5044)\n" + tryOut.textContent + "\n" + ratchetMessage();
+    copyOut.textContent = text;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    }
+  });
+})();
+</script>
+</main></body>
+</html>

@@ -22,7 +22,7 @@ description: "User-invocable commands for common development workflows."
 | [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
 | [Create Plan](/docs/reference/skills/create-plan) | Command | medium | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success c... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
-| [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how the code works today for a task's questions in a research file with file:line citations. Use before pla... |
+| [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how code works today for a task's questions, with file:line citations. Use before planning a change; descri... |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or T... |
 | [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design... |
 | [Design Ship](/docs/reference/skills/design-ship) | Command | complex | Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design ... |
@@ -32,7 +32,7 @@ description: "User-invocable commands for common development workflows."
 | [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. U... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
-| [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration with 3-5 parallel agents: structure, data flow, architecture, health, with ASCII dia... |
+| [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfami... |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention n... |
 | [Freeze](/docs/reference/skills/freeze) | Command | low | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path w... |
 | [Glyph](/docs/reference/skills/glyph) | Command | low | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, ... |
