@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.5",
+    "date": "2026-11-04",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**plugin:** pass validate --strict, add icon, disclose outbound calls ([#5057](https://github.com/yonatangross/orchestkit/issues/5057)) ([8a12271](https://github.com/yonatangross/orchestkit/commit/8a12271ff0e508108ef8d1fdc781f57d3e396469))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.4",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.3...v10.8.4",

@@ -664,6 +664,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.8.5](https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5)** · 2026-11-04
+
+- **plugin:** pass validate --strict, add icon, disclose outbound calls (#5057)
+
 **[v10.8.4](https://github.com/yonatangross/orchestkit/compare/v10.8.3...v10.8.4)** · 2026-11-04
 
 - **hooks:** cc-version-check keeps its flag unset on an env-only pass (#5061)
@@ -697,11 +701,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **ci:** scope ci-sentinel claude -p to its gh reads (#5014)
 - **secrets-veil:** stop masking hq-ops tool names (shaped SA prefix) (#5027)
-
-**[v10.7.2](https://github.com/yonatangross/orchestkit/compare/v10.7.1...v10.7.2)** · 2026-11-03
-
-- **agents:** require concerns[] for DONE_WITH_CONCERNS (#5030)
-- **hooks:** fail the hooks.json generator when it writes nothing; time-box the SDLC nudge (#5022)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
