@@ -148,12 +148,16 @@ jobs:
       # release PR adds the new CHANGELOG entry but cannot run a script, so the
       # derived block would otherwise ship a release behind. plugin-validation's
       # freshness --check is skipped on release-please branches, so this is the
-      # sole mechanism that keeps the block current at merge time. The block
-      # self-heals on the next build if this ever fails, so it must never block
-      # a release.
+      # sole mechanism that keeps the block current at merge time.
+      #
+      # A push that cannot land after retries fails the step (#5054). It used
+      # to be continue-on-error with a ::warning::, so a 5xx from GitHub left
+      # the release PR without the refresh commit and red on "Build drift
+      # detected" with a green release run (10.8.2, run 41809233158). The
+      # hook bundle rebuild below runs under !cancelled() so a failed refresh
+      # never skips it. Skipped refreshes that are benign (no PR, non-bot
+      # author, files already current) still exit 0 with a notice or warning.
       - name: Refresh CHANGELOG-derived files on the release PR
-        # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3095
-        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -241,14 +245,35 @@ jobs:
           git config user.email "orchestkit-release-bot[bot]@users.noreply.github.com"
           git add -- "${DERIVED[@]}"
           git commit --quiet -m "docs: refresh CHANGELOG-derived files for the release"
-          # Authenticate this one push explicitly; credentials are not persisted.
-          if git push --quiet \
-               "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
-               "HEAD:${BRANCH}"; then
-            echo "::notice::Refreshed CHANGELOG-derived files on ${BRANCH}."
-          else
-            echo "::warning::Could not push CHANGELOG-derived refresh to ${BRANCH}."
-          fi
+          # The sha this run built the refresh on. A failed push whose remote
+          # head differs means another run won the race and owns the refresh.
+          CHECKED_SHA="$(git rev-parse HEAD~1)"
+          # Authenticate each push explicitly; credentials are not persisted.
+          # Retry with backoff (#5054): a transient 5xx from GitHub used to end
+          # the step with a warning and no refresh commit.
+          BACKOFFS=(10 30)
+          ATTEMPT=1
+          while :; do
+            if git push --quiet \
+                 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+                 "HEAD:${BRANCH}"; then
+              echo "::notice::Refreshed CHANGELOG-derived files on ${BRANCH} (attempt ${ATTEMPT})."
+              break
+            fi
+            REMOTE_SHA="$(git ls-remote origin "refs/heads/${BRANCH}" | cut -f1)"
+            if [ -n "$REMOTE_SHA" ] && [ "$REMOTE_SHA" != "$CHECKED_SHA" ]; then
+              echo "::notice::Push of the CHANGELOG-derived refresh to ${BRANCH} failed, but the branch head moved from ${CHECKED_SHA} to ${REMOTE_SHA}; the run for the new head owns the refresh."
+              exit 0
+            fi
+            if [ "$ATTEMPT" -gt "${#BACKOFFS[@]}" ]; then
+              echo "::error::Could not push the CHANGELOG-derived refresh to ${BRANCH} after ${ATTEMPT} attempts (checked out ${CHECKED_SHA}; remote head ${REMOTE_SHA:-unreadable}). The release PR will fail Build drift until it is refreshed."
+              exit 1
+            fi
+            DELAY="${BACKOFFS[$((ATTEMPT - 1))]}"
+            echo "::warning::Push of the CHANGELOG-derived refresh to ${BRANCH} failed (attempt ${ATTEMPT}); retrying in ${DELAY}s."
+            sleep "$DELAY"
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
       # Rebuild the hook bundles on the release branch (#3578). Feature PRs no
       # longer commit src/hooks/dist or plugins/ork/hooks/dist (ci.yml "Check
@@ -266,6 +291,7 @@ jobs:
       # any other path refuses the build. The App token is stripped from the
       # build's environment.
       - name: Setup Node.js for the bundle rebuild
+        if: ${{ !cancelled() }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -275,6 +301,10 @@ jobs:
           package-manager-cache: false
 
       - name: Rebuild hook bundles on the release PR
+        # Runs even when the CHANGELOG refresh above failed (#5054): the two
+        # steps own different files, and a failed refresh must not also skip
+        # the bundle rebuild.
+        if: ${{ !cancelled() }}
         # This step fails closed (#4174): a rebuild that did not happen must
         # not report success. Every hard failure below is an ::error:: + exit 1;
         # only the benign outcomes (no open PR, non-bot author, bundles already
