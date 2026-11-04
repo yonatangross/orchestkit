@@ -99,12 +99,14 @@ else
   fail "plugins/ork/agents has no .md files"
 fi
 
-# 8. Plugin paths are absolute (CLAUDE.md references use absolute paths)
-CLAUDE_MD="$PLUGINS_DIR/ork/CLAUDE.md"
-if [ -f "$CLAUDE_MD" ]; then
-  pass "plugins/ork/CLAUDE.md exists"
+# 8. The agent routing index ships with the plugin. It used to be wrapped in a
+#    plugin-root CLAUDE.md, which Claude Code never loads and which fails
+#    `claude plugin validate --strict`; the build no longer writes it (#5057).
+AGENT_INDEX="$PLUGINS_DIR/ork/.claude-plugin/agent-index.md"
+if [ -f "$AGENT_INDEX" ]; then
+  pass "plugins/ork/.claude-plugin/agent-index.md exists"
 else
-  fail "plugins/ork/CLAUDE.md missing"
+  fail "plugins/ork/.claude-plugin/agent-index.md missing"
 fi
 
 # =============================================================================
