@@ -298,6 +298,9 @@ RATCHET_FILE="$SCRIPT_DIR/skill-listing-ratchet.txt"
 listing_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing.XXXXXX")"
 trap 'rm -f "$listing_report_file"' EXIT
 
+# measure_listing FILE...: prints "OVER <bytes> <name>" per skill over the cap
+# and one final "TOTAL <listing bytes> <over count>" line.
+measure_listing() {
 LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '
     function emit() {
       if (!seen || dmi) return
@@ -326,7 +329,10 @@ LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '
     }
     { cur="" }
     END { emit(); printf "TOTAL %d %d\n", total, over }
-  ' "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"
+  ' "$@"
+}
+
+measure_listing "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"
 
 listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
 listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
@@ -353,6 +359,49 @@ else
     else
         pass "Skill listing total: ${listing_total} bytes ≤ ratchet ceiling ${ratchet_ceiling}"
     fi
+fi
+echo ""
+
+# ============================================================================
+# Test 4c: Planted fixtures (the gate must not go vacuously green)
+# ============================================================================
+# Every file under fixtures/skill-gate/fail MUST be reported over the cap and
+# every file under fixtures/skill-gate/pass MUST NOT. If a must-fail fixture
+# passes, the measurement is blind to that spelling and this test fails.
+echo "▶ Test 4c: Planted Fixtures"
+echo "────────────────────────────────────────"
+
+FIXTURE_DIR="$SCRIPT_DIR/fixtures/skill-gate"
+fixture_fail_n=0
+fixture_pass_n=0
+
+for fx in "$FIXTURE_DIR"/fail/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_fail_n=$((fixture_fail_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    if [[ "${fx_over:-0}" -ge 1 ]]; then
+        pass "must-fail fixture caught: ${fx##*/}"
+    else
+        fail "must-fail fixture PASSED the gate (gate is blind to it): ${fx##*/}"
+    fi
+done
+
+for fx in "$FIXTURE_DIR"/pass/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_pass_n=$((fixture_pass_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    fx_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+    if [[ "${fx_over:-1}" -eq 0 && "${fx_total:-0}" -gt 0 ]]; then
+        pass "must-pass fixture accepted: ${fx##*/}"
+    else
+        fail "must-pass fixture was REJECTED or measured as empty: ${fx##*/} (total ${fx_total:-?}, over ${fx_over:-?})"
+    fi
+done
+
+if [[ "$fixture_fail_n" -lt 9 || "$fixture_pass_n" -lt 4 ]]; then
+    fail "Fixture set incomplete: ${fixture_fail_n} must-fail (need >= 9), ${fixture_pass_n} must-pass (need >= 4)"
 fi
 echo ""
 
