@@ -31,6 +31,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/contact",
 	"/developers",
 	"/mcp-server",
+	"/open",
 	"/openapi",
 	"/pricing",
 	"/sdk",

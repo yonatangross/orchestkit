@@ -1,6 +1,6 @@
 {
   "slug": "open-numbers-page-draft",
-  "source": "docs/feat--open-numbers-page-draft/index.html",
+  "source": "docs/feat--open-numbers-page-draft-2/index.html",
   "title": "/open draft: public numbers only",
   "description": "A draft public numbers page for OrchestKit: stars and merged PRs read live, skills, agents and hooks from the manifest, placeholders where no public number exists. Flip a switch to see what shows when a live read fails.",
   "tags": [
