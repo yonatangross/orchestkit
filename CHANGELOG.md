@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.1](https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **expect:** gate the act-mode Jev pick on agreement or a confirm ([#5011](https://github.com/yonatangross/orchestkit/issues/5011)) ([7a46df0](https://github.com/yonatangross/orchestkit/commit/7a46df0282e2ba158af1227f7c98785603ebef79))
+
+
+### Documentation
+
+* **lab:** drop internal seat name from the Tower page footer ([#5047](https://github.com/yonatangross/orchestkit/issues/5047)) ([d9f0751](https://github.com/yonatangross/orchestkit/commit/d9f07510d00e48907d902a63e5000061b565f321))
+
 ## [10.8.0](https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0) (2026-11-04)
 
 
