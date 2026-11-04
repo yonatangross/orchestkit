@@ -544,7 +544,8 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           license: "MIT",
           keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"],
           documentationUrl: "https://orchestkit.dev",
-          supportUrl: "https://github.com/yonatangross/orchestkit/issues"
+          supportUrl: "https://github.com/yonatangross/orchestkit/issues",
+          privacyPolicyUrl: "https://orchestkit.dev/privacy"
         }
         + if $has_icon then {icon: "./.claude-plugin/icon.png"} else {} end
         + if $has_skills then {skills: "./skills/"} else {} end
@@ -577,7 +578,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
        --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies, .userConfig, .icon, .documentationUrl, .supportUrl) + (if $has_agents then {agents: "./agents/"} else {} end)
+      'del(.workflows, .dependencies, .userConfig, .icon, .documentationUrl, .supportUrl, .privacyPolicyUrl) + (if $has_agents then {agents: "./agents/"} else {} end)
                        + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
                        + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \

@@ -6,7 +6,10 @@
  * problems, solutions.
  *
  * Fire-and-forget: always returns silent success regardless of POST outcome.
- * No-op when webhook URL or hook token are missing (userConfig or env).
+ * The POST is a no-op when webhook URL or hook token are missing (userConfig
+ * or env). The local sink flush (JSONL rotation at 10 MB, pruning rotated
+ * files after 7 days) runs either way: it used to sit after the early return,
+ * so a default install never rotated or pruned its local telemetry log.
  *
  * Depends on files written during the session (JSONL events, token state,
  * orchestration config). These must survive session-cleanup — currently safe
@@ -57,6 +60,8 @@ export async function usageSummaryReporter(input: HookInput, ctx: HookContext = 
 
   if (!hookUrl || !hookToken) {
     ctx.log(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
+    // Local retention still applies with no remote configured.
+    await flushAll().catch(() => {});
     return outputSilentSuccess();
   }
 

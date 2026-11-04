@@ -35,6 +35,12 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   ),
 }));
 
+// flushAll rotates the local JSONL telemetry log (10 MB) and prunes rotated
+// files older than 7 days. It must run with or without a webhook configured.
+vi.mock('../../lib/telemetry.js', () => ({
+  flushAll: vi.fn(() => Promise.resolve()),
+}));
+
 vi.mock('../../lib/session-tracker.js', () => ({
   generateSessionSummary: vi.fn(() => ({
     session_id: 'test-session-001',
@@ -75,6 +81,7 @@ vi.mock('node:fs', () => ({
 import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecycle/usage-summary-reporter.js';
 
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
+import { flushAll } from '../../lib/telemetry.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -141,6 +148,17 @@ describe('Usage Summary Reporter Hook', () => {
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('still rotates and prunes the local telemetry log with no webhook configured', async () => {
+      mockGetWebhookUrl.mockReturnValue(undefined);
+      vi.stubEnv('ORCHESTKIT_HOOK_TOKEN', '');
+      vi.mocked(flushAll).mockClear();
+
+      await usageSummaryReporter(defaultInput, testCtx);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(flushAll).toHaveBeenCalledTimes(1);
     });
   });
 
