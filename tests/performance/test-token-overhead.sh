@@ -288,7 +288,9 @@ echo ""
 #      model-facing skill) <= the ceiling in skill-listing-ratchet.txt. The
 #      ceiling only moves down: when the total falls more than
 #      RATCHET_SLACK_BYTES under it, the test fails until the file is lowered.
-# Bytes are counted with LC_ALL=C so awk length() is bytes, not characters.
+# Frontmatter is parsed with PyYAML (skill-listing-measure.py), not matched as
+# text, so quoted or spaced keys, aliases, block scalars and single quotes are
+# all measured (orchestkit#5044). Bytes are UTF-8 bytes of the parsed value.
 echo "▶ Test 4b: Per-skill Listing Cap + Ratchet"
 echo "────────────────────────────────────────"
 
@@ -301,38 +303,14 @@ trap 'rm -f "$listing_report_file"' EXIT
 # measure_listing FILE...: prints "OVER <bytes> <name>" per skill over the cap
 # and one final "TOTAL <listing bytes> <over count>" line.
 measure_listing() {
-LC_ALL=C awk -v cap="$SKILL_DESC_MAX_BYTES" '
-    function emit() {
-      if (!seen || dmi) return
-      d = length(ds) + length(wt)
-      total += length(nm) + d
-      if (d > cap) { over++; printf "OVER %d %s\n", d, nm }
-    }
-    function unq(s) { sub(/^[[:space:]]+/, "", s); gsub(/^"|"$/, "", s); return s }
-    FNR==1 { emit(); seen=1; infm=0; closed=0; dmi=0; nm=""; ds=""; wt=""; cur="" }
-    closed { next }
-    /^---[[:space:]]*$/ { if (infm) closed=1; else infm=1; cur=""; next }
-    !infm { next }
-    {
-      key=$0
-      sub(/[[:space:]]*#.*$/, "", key)
-      sub(/[[:space:]]+$/, "", key)
-    }
-    key ~ /^disable-model-invocation:[[:space:]]*true$/ { dmi=1; cur=""; next }
-    /^name:/        { s=key; sub(/^name:/, "", s);        nm=unq(s); cur=""; next }
-    /^description:/ { s=$0;  sub(/^description:/, "", s); ds=unq(s); cur="d"; next }
-    /^when_to_use:/ { s=$0;  sub(/^when_to_use:/, "", s); wt=unq(s); cur="w"; next }
-    cur!="" && /^[[:space:]]+[^[:space:]]/ {
-      s=$0; sub(/^[[:space:]]+/, "", s)
-      if (cur=="d") ds = ds " " s; else wt = wt " " s
-      next
-    }
-    { cur="" }
-    END { emit(); printf "TOTAL %d %d\n", total, over }
-  ' "$@"
+    python3 -I "$SCRIPT_DIR/skill-listing-measure.py" --cap "$SKILL_DESC_MAX_BYTES" "$@"
 }
 
-measure_listing "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"
+if ! measure_listing "$SKILLS_DIR"/*/SKILL.md > "$listing_report_file"; then
+    fail "Could not measure the skill listing (PyYAML missing or a SKILL.md frontmatter failed to parse, see stderr above)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
 
 listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
 listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")

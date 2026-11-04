@@ -778,6 +778,11 @@ jobs:
         with:
           build-plugins: 'false'
 
+      # The skill-listing gate parses SKILL.md frontmatter with PyYAML and
+      # fails closed (exit 2) without it (orchestkit#5044).
+      - name: Install PyYAML for the skill-listing gate
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
+
       - name: Run performance tests
         shell: bash
         run: |
