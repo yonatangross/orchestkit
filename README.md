@@ -664,6 +664,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.9.0](https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0)** · 2026-11-05
+
+- **release:** sync plugins/ork to the orchestkit-plugin dist repo (#5070)
+
 **[v10.8.6](https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6)** · 2026-11-05
 
 - **skills:** Haiku 5.5 100K cost tiers and the AWS provider line (#5064)
@@ -694,12 +698,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **skills:** trim listed descriptions and gate them per skill (#5043)
 - add Tower to the OrchestKit family (#5041)
-
-**[v10.7.4](https://github.com/yonatangross/orchestkit/compare/v10.7.3...v10.7.4)** · 2026-11-03
-
-- **hooks:** no CC floor warning from an unconfirmed env version (#5037)
-- **hooks:** review-pr gate needs --no-ext-diff --no-textconv on diffs (#5013)
-- **hooks:** trust the running CC version over CLAUDE_CODE_VERSION (#5034)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

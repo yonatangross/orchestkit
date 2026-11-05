@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.9.0",
+    "date": "2026-11-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**release:** sync plugins/ork to the orchestkit-plugin dist repo ([#5070](https://github.com/yonatangross/orchestkit/issues/5070)) ([a9536bd](https://github.com/yonatangross/orchestkit/commit/a9536bd9c327666bfab06caff13b46f573808dbf))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.6",
     "date": "2026-11-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6",
