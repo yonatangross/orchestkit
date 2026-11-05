@@ -13,9 +13,10 @@
  * - a result that arrives after its budget is discarded (lib/budget.ts),
  *   so late work never decides.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { dirname, join, resolve, relative } from 'node:path';
 import { TIMED_OUT, withBudget } from '../../lib/budget.js';
 
@@ -86,38 +87,61 @@ describe('tool dispatchers: blocking work is bounded', () => {
 });
 
 describe('an enforceable bound on a TERM-ignoring child', () => {
-  // The child traps SIGTERM and sleeps 3 s. With the default SIGTERM the
-  // timeout waits it out; with SIGKILL it returns at the timeout.
+  // Check the timeout's actual signal. Startup can outlast the timeout on a
+  // loaded machine, so elapsed time cannot prove the handler was installed.
   const IGNORE_TERM = "process.on('SIGTERM', () => {}); setTimeout(() => {}, 3000);";
 
-  it('killSignal SIGKILL returns at the timeout', () => {
-    const started = Date.now();
+  it('the sync timeout terminates the child with SIGKILL', () => {
     expect(() =>
       execFileSync(process.execPath, ['-e', IGNORE_TERM], { stdio: 'ignore', timeout: 300, killSignal: 'SIGKILL' }),
-    ).toThrow();
-    expect(Date.now() - started).toBeLessThan(2000);
+    ).toThrowError(expect.objectContaining({ code: 'ETIMEDOUT', signal: 'SIGKILL' }));
   });
 
-  it('the default SIGTERM does not (negative control: the probe can disagree)', () => {
-    const started = Date.now();
-    expect(() => execFileSync(process.execPath, ['-e', IGNORE_TERM], { stdio: 'ignore', timeout: 300 })).toThrow();
-    expect(Date.now() - started).toBeGreaterThanOrEqual(2000);
-  });
+  it.skipIf(process.platform === 'win32')('a ready child survives SIGTERM (negative control)', async () => {
+    // Windows terminates a process for SIGTERM rather than delivering a
+    // catchable POSIX signal. On POSIX, wait for the handler before sending it.
+    const child = spawn(process.execPath, ['-e', `
+      process.on('SIGTERM', () => process.send('ignored'));
+      process.on('message', () => process.disconnect());
+      process.send('ready');
+    `], { stdio: ['ignore', 'ignore', 'pipe', 'ipc'] });
+    const signal = AbortSignal.timeout(5000);
+    const exited = once(child, 'exit', { signal });
+    try {
+      const [ready] = await once(child, 'message', { signal });
+      expect(ready).toBe('ready');
+      const ignored = once(child, 'message', { signal });
+      expect(child.kill('SIGTERM')).toBe(true);
+      expect((await ignored)[0]).toBe('ignored');
+      child.send('finish');
+      expect(await exited).toEqual([0, null]);
+    } finally {
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+      await exited.catch(() => {});
+    }
+  }, 10_000);
 });
 
 describe('lib/budget', () => {
   it('discards a result that arrives after its budget, even from synchronous work', async () => {
-    const r = await withBudget(() => {
-      const until = Date.now() + 120;
-      while (Date.now() < until) {
-        /* busy: the timer cannot fire */
-      }
-      return 'late verdict';
-    }, 20);
-    expect(r).toBe(TIMED_OUT);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(0);
+    try {
+      const r = await withBudget(() => {
+        now.mockReturnValue(21);
+        return 'late verdict';
+      }, 20);
+      expect(r).toBe(TIMED_OUT);
+    } finally {
+      now.mockRestore();
+    }
   });
 
   it('keeps a result that arrives in time', async () => {
-    expect(await withBudget(() => 'on time', 200)).toBe('on time');
+    const now = vi.spyOn(Date, 'now').mockReturnValue(0);
+    try {
+      expect(await withBudget(() => 'on time', 200)).toBe('on time');
+    } finally {
+      now.mockRestore();
+    }
   });
 });
