@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.8.6",
+    "date": "2026-11-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**skills:** Haiku 5.5 100K cost tiers and the AWS provider line ([#5064](https://github.com/yonatangross/orchestkit/issues/5064)) ([1051da7](https://github.com/yonatangross/orchestkit/commit/1051da71c7d48321d30ccb04da818c602d1dbf13))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.8.5",
     "date": "2026-11-04",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5",
