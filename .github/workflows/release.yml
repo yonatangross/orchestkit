@@ -371,9 +371,11 @@ jobs:
           node scripts/ci/dist-sync.mjs "${ARGS[@]}"
 
   # Manual dry run of the dist-repo access the sync needs. Mints the token
-  # exactly as sync-dist does, then makes two GETs and nothing else: the
-  # installation's repositories must include orchestkit-plugin, and the repo
-  # must report permissions.push true. No checkout, no write, the token is
+  # exactly as sync-dist does (repositories: orchestkit-plugin, contents
+  # write; a successful mint is the write proof), then makes two GETs and
+  # nothing else: the installation's repositories must include
+  # orchestkit-plugin, and the repo's permissions.push is printed as info.
+  # No checkout, no write, the token is
   # never printed. A real sync only ever runs from a tag push (sync-dist), so
   # dry_run=false is refused here rather than given a second write path.
   dist-dry-run:
@@ -418,13 +420,13 @@ jobs:
             echo "::error::$DIST is not in the installation's repositories. Install the OrchestKit Release Bot on it."
             exit 1
           fi
+          # Info only. The write proof is the mint above: GitHub refuses to mint
+          # a token for a repo the app is not installed on, or with
+          # permission-contents: write the app does not hold. An installation
+          # token's repo answer may not carry .permissions at all.
           push="$(gh api "/repos/$DIST" --jq '.permissions.push // "absent"')"
-          echo "permissions.push on $DIST: $push"
-          if [ "$push" != "true" ]; then
-            echo "::error::permissions.push on $DIST is $push, not true. Grant the OrchestKit Release Bot contents write on it."
-            exit 1
-          fi
-          echo "::notice::Dry run passed: the bot can reach $DIST with push access. The next GA release will sync it."
+          echo "permissions.push on $DIST (info only): $push"
+          echo "::notice::Dry run passed: the token minted with contents write on $DIST and the installation lists it. The next GA release will sync it."
 
   # Build + push the stdio Docs MCP image to GHCR on every release. The image
   # is the OCI package surface advertised in server.json (packages[0]), so it

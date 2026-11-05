@@ -490,7 +490,9 @@ await check('release.yml dist-dry-run job: token as the real job, two GETs, no w
   assert.match(job, /gh api \/installation\/repositories/);
   assert.match(job, /gh api "\/repos\/\$DIST" --jq '\.permissions\.push/);
   assert.match(job, /grep -qxF "\$DIST"[\s\S]*?::error::[\s\S]*?exit 1/);
-  assert.match(job, /if \[ "\$push" != "true" \]; then\n[\s\S]*?::error::[\s\S]*?exit 1/);
+  assert.match(job, /repositories: orchestkit-plugin\n {10}permission-contents: write\n/, 'the mint is the write proof');
+  assert.match(job, /echo "permissions\.push on \$DIST \(info only\): \$push"/);
+  assert.doesNotMatch(job, /\$push"? *!?= *"?true/, 'never fails on permissions.push');
   assert.doesNotMatch(job, /actions\/checkout|dist-sync\.mjs|git push|--method|\s-X\s|\s-[fF]\s|\bcurl\b/, 'read-only');
   assert.doesNotMatch(job, /(echo|printf)[^\n]*(GH_TOKEN|steps\.dist-token\.outputs\.token)/, 'token never printed');
   assert.equal((job.match(/gh api /g) || []).length, 2, 'exactly two API calls');
