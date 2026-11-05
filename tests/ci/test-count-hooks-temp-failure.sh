@@ -4,7 +4,7 @@
 #
 # Why this exists (#3564):
 #
-# count_run_hook_lines() redirected grep's stderr into a file from a bare
+# count_handler_lines() redirected grep's stderr into a file from a bare
 # `mktemp`. When the system temp dir denied the write, `errfile` came back empty,
 # `2>""` failed as a redirect, grep never ran, and rc came back 1 -- which this
 # function is REQUIRED to read as "no match" -> 0, because zero agent-scoped
