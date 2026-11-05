@@ -263,6 +263,102 @@ jobs:
           # tests/unit/test-workflows-open-prs-unarmed.sh fails if any
           # workflow arms its own PR again.
 
+  # Publish plugins/ork to the dist repo yonatangross/orchestkit-plugin on
+  # every GA tag cut from main. The Anthropic plugin directory validates a
+  # whole repo archive under a 50 MiB compressed cap; this repo is about
+  # 77 MiB, plugins/ork alone about 3.8 MiB. The dist repo holds only the
+  # plugin, at its root, plus its own LICENSE and a generated README.
+  #
+  # scripts/ci/dist-sync.mjs does the work through the Git Data API: one
+  # commit signed by GitHub (no author set, the #5016 pattern), main moved
+  # fast-forward only, then the same vX.Y.Z tag on that commit. It retries
+  # once and then fails loudly (the #5059 rule); a re-run for a tag that
+  # already holds the same tree is a no-op. Tests:
+  # tests/ci/test-release-dist-sync.mjs.
+  #
+  # The token is minted for orchestkit-plugin ONLY. If the repo does not exist
+  # or the bot is not installed on it, minting fails the job and the next step
+  # names the missing setup step; it never skips silently.
+  sync-dist:
+    needs: create-release
+    if: github.repository == 'yonatangross/orchestkit'
+    permissions:
+      contents: read
+    name: Dist Repo Sync (orchestkit-plugin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: release-sync-dist
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # GA only, and only from main. Same rule as :latest in publish-docker:
+      # an older tag re-run gets its commit and tag but never moves main back.
+      - name: Classify the tag
+        id: tag
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if ! printf '%s\n' "$VERSION" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "::notice::$TAG is not a GA tag; the dist repo only takes stable releases."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$TAG ($GITHUB_SHA) is not on main. The dist repo only takes releases cut from main."
+            exit 1
+          fi
+          . scripts/lib/semver.sh
+          HIGHEST=""
+          for t in $(git tag -l 'v*' | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'); do
+            if [ -z "$HIGHEST" ]; then HIGHEST="$t"; else HIGHEST="$(semver_max "$HIGHEST" "$t")"; fi
+          done
+          if [ "$VERSION" = "$HIGHEST" ]; then MOVE=true; else MOVE=false; fi
+          echo "move_main=$MOVE" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Mint Release Bot token (orchestkit-plugin only)
+        id: dist-token
+        if: steps.tag.outputs.skip == 'false'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit-plugin
+          permission-contents: write
+
+      # The job is already red when this runs; it only says what to do.
+      - name: Name the missing setup step
+        if: failure() && steps.dist-token.outcome == 'failure'
+        run: |
+          echo "::error::Could not mint a Release Bot token for ${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin: the repo does not exist or the OrchestKit Release Bot app is not installed on it. Setup: create the public repo, initialised with a README so main exists, install the app on it, then re-run this job. No new tag is needed."
+          exit 1
+
+      - name: Setup Node.js
+        if: steps.tag.outputs.skip == 'false'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.0.0  # zizmor: ignore[cache-poisoning] no dependencies installed, no cache restored
+        with:
+          node-version-file: .nvmrc
+
+      - name: Sync plugins/ork to the dist repo
+        if: steps.tag.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
+          VERSION: ${{ steps.tag.outputs.version }}
+          MOVE_MAIN: ${{ steps.tag.outputs.move_main }}
+        run: |
+          set -euo pipefail
+          ARGS=(--version "$VERSION" --repo "${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin" --source-ref "$GITHUB_SHA")
+          if [ "$MOVE_MAIN" != "true" ]; then ARGS+=(--no-move-main); fi
+          node scripts/ci/dist-sync.mjs "${ARGS[@]}"
+
   # Build + push the stdio Docs MCP image to GHCR on every release. The image
   # is the OCI package surface advertised in server.json (packages[0]), so it
   # MUST exist at the version tag before publish-mcp-registry runs — the MCP
