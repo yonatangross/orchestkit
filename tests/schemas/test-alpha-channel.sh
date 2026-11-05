@@ -299,6 +299,15 @@ else
     bad "no tag-triggered workflow calls scripts/bump-stable-pin.sh — the writer is never reached"
 fi
 
+# The stable entry is excluded from stamp-counts.sh on purpose, so a count in its
+# description can only go stale (#5045: it said 105 skills and 218 hooks at 10.7.4).
+stable_desc=$(jq -r '.plugins[] | select(.name == "ork") | .description' "$MARKETPLACE")
+if [[ "$stable_desc" =~ [0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks) ]]; then
+    bad "stable ork description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
+else
+    ok "stable ork description carries no component counts"
+fi
+
 echo ""
 echo "=========================================="
 echo "  Results: ${PASS} passed, ${FAIL} failed"
