@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sync plugins/ork to the orchestkit-plugin dist repo</title>
+<meta name="description" content="On every GA release, the release workflow publishes plugins/ork to yonatangross/orchestkit-plugin as one GitHub-signed commit and tag, so the plugin directory can validate a small repo.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:20px; }
+  .card { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .card h3 { margin:0 0 8px; font-size:1rem; }
+  .bad { color:var(--bad); font-weight:600; }
+  .ok { color:var(--accent); font-weight:600; }
+  ol li, ul li { margin:4px 0; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .bar { height:14px; border-radius:4px; background:var(--accent); }
+  .bar.bad { background:var(--bad); }
+  .meter { display:grid; grid-template-columns:150px 1fr 90px; gap:10px; align-items:center; margin:8px 0; font-size:.92rem; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sync plugins/ork to the orchestkit-plugin dist repo</h1>
+  <p class="lead">The Anthropic plugin directory validates a whole repo archive, capped at 50 MiB compressed. This repo is
+  about 77 MiB. A new <code>sync-dist</code> job in <code>release.yml</code> publishes only <code>plugins/ork</code>, at the
+  root of <code>yonatangross/orchestkit-plugin</code>, on every GA release.</p>
+
+  <h2>Size against the cap</h2>
+  <div id="meters"></div>
+
+  <div class="cols">
+    <div class="card">
+      <h3>Before</h3>
+      <ul>
+        <li>The directory would read the orchestkit repo itself</li>
+        <li class="bad">About 77 MiB compressed, over the 50 MiB cap</li>
+        <li>The plugin sits under <code>plugins/ork</code>, not at the root</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>After</h3>
+      <ul>
+        <li>On a GA tag from main, <code>scripts/ci/dist-sync.mjs</code> builds the dist tree from the tagged <code>plugins/ork</code></li>
+        <li>One commit created through the API, signed by GitHub, <code>main</code> fast-forwarded, same <code>vX.Y.Z</code> tag</li>
+        <li class="ok">About 3.8 MiB compressed, <code>.claude-plugin/plugin.json</code> at the root</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Guards</h2>
+  <table>
+    <tr><th>Case</th><th>What happens</th></tr>
+    <tr><td>Prerelease tag (<code>10.0.0-alpha.1</code>)</td><td>Notice, skipped</td></tr>
+    <tr><td>Tag not on main</td><td>Job fails</td></tr>
+    <tr><td>Repo missing or bot not installed</td><td>Token mint fails; the next step names the setup step</td></tr>
+    <tr><td>Repo empty (no <code>main</code>)</td><td>Fails at once, asks for a README init</td></tr>
+    <tr><td>API tree id differs from the local one</td><td>No commit made</td></tr>
+    <tr><td>Commit not verified</td><td>No ref touched</td></tr>
+    <tr><td>Push fails</td><td>One retry, then <code>::error::</code> and a red job</td></tr>
+    <tr><td>Re-run, tag already holds the same tree</td><td>No-op success, zero writes</td></tr>
+    <tr><td>Tag exists with a different tree</td><td>Fails; a published tag is never moved</td></tr>
+    <tr><td>Older GA tag re-run</td><td>Commit and tag only; <code>main</code> never moves backwards</td></tr>
+  </table>
+
+  <h2>Still to do by hand</h2>
+  <ol>
+    <li>Create the public repo <code>yonatangross/orchestkit-plugin</code>, initialised with a README.</li>
+    <li>Install the OrchestKit Release Bot app on it.</li>
+  </ol>
+
+  <footer>Tests: <code>tests/ci/test-release-dist-sync.mjs</code>. Rollback: delete the <code>sync-dist</code> job; the dist repo stays.</footer>
+</main>
+<script>
+  const rows = [
+    { label: 'orchestkit repo', mib: 77, bad: true },
+    { label: 'plugins/ork only', mib: 3.8, bad: false },
+    { label: 'directory cap', mib: 50, bad: false, cap: true },
+  ];
+  const max = 80;
+  const host = document.getElementById('meters');
+  for (const r of rows) {
+    const row = document.createElement('div');
+    row.className = 'meter';
+    const name = document.createElement('span');
+    name.textContent = r.label;
+    const track = document.createElement('div');
+    const bar = document.createElement('div');
+    bar.className = 'bar' + (r.bad ? ' bad' : '');
+    if (r.cap) bar.style.background = 'var(--muted)';
+    bar.style.width = (r.mib / max * 100) + '%';
+    track.appendChild(bar);
+    const val = document.createElement('span');
+    val.textContent = r.mib + ' MiB';
+    row.append(name, track, val);
+    host.appendChild(row);
+  }
+</script>
+</body>
+</html>
