@@ -213,10 +213,8 @@ class CircuitBreaker:
                 if self._success_count >= self.config.success_threshold:
                     self._transition_to(CircuitState.CLOSED)
 
-            elif self._state == CircuitState.CLOSED:
-                # Check slow call rate
-                if self._check_slow_call_rate():
-                    self._transition_to(CircuitState.OPEN)
+            elif self._state == CircuitState.CLOSED and self._check_slow_call_rate():
+                self._transition_to(CircuitState.OPEN)
 
     async def _on_call_failure(self, error: Exception, duration: float) -> None:
         """Handle failed call."""

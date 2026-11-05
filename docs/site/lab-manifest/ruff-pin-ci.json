@@ -1,0 +1,12 @@
+{
+  "slug": "ruff-pin-ci",
+  "source": "docs/fix--ruff-pin-ci/index.html",
+  "title": "Why one ruff release turned a required check red",
+  "description": "CI installed ruff with a floating floor, so a new release flagged an unchanged file on every PR. Pick the pin and the code state to see what Static Analysis answers.",
+  "tags": [
+    "ci",
+    "ruff",
+    "supply-chain"
+  ],
+  "date": "2026-11-05"
+}
