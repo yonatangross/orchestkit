@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What counts as a hook: 161 or 163</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid #2e7d32; font-weight: 600; }
+code { font-size: .95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>What counts as a hook: 161 or 163</h1>
+<p>The counter read <code>hooks.json</code> by handler type but skill frontmatter by the string <code>run-hook</code>. Two skills ship handlers that run their own script, so they were left out. No hook was added: only the rule changed. Pick a rule, then tick the handlers to compare.</p>
+
+<fieldset>
+<legend>Rule for skill frontmatter</legend>
+<label><input type="radio" name="rule" value="string"> The string <code>run-hook</code> (before)</label>
+<label><input type="radio" name="rule" value="type" checked> <code>type: command</code> or <code>type: http</code> (after, same as hooks.json)</label>
+</fieldset>
+
+<fieldset>
+<legend>Handlers that run their own script</legend>
+<label><input type="checkbox" class="own" checked> <code>freeze</code>: freeze-guard.mjs</label>
+<label><input type="checkbox" class="own" checked> <code>careful</code>: careful-guard.mjs</label>
+</fieldset>
+
+<output id="result" aria-live="polite"></output>
+</main>
+<script>
+const GLOBAL = 151;
+const WRAPPED = 10;
+const result = document.getElementById("result");
+function render() {
+  const rule = document.querySelector('input[name="rule"]:checked').value;
+  const own = document.querySelectorAll(".own:checked").length;
+  const skill = WRAPPED + (rule === "type" ? own : 0);
+  result.textContent = `${GLOBAL} in hooks.json + ${skill} in skill frontmatter = ${GLOBAL + skill} hooks`;
+}
+document.querySelectorAll("input").forEach((i) => i.addEventListener("change", render));
+render();
+</script>
+</body>
+</html>
