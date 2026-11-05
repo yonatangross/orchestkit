@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.6](https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6) (2026-11-05)
+
+
+### Documentation
+
+* **skills:** Haiku 5.5 100K cost tiers and the AWS provider line ([#5064](https://github.com/yonatangross/orchestkit/issues/5064)) ([1051da7](https://github.com/yonatangross/orchestkit/commit/1051da71c7d48321d30ccb04da818c602d1dbf13))
+
 ## [10.8.5](https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5) (2026-11-04)
 
 
