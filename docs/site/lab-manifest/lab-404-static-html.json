@@ -1,0 +1,12 @@
+{
+  "slug": "lab-404-static-html",
+  "source": "docs/posthog-self-driving--fixdocs-site-stop-chunk-2632-load-216986/index.html",
+  "title": "A missing Lab page serves static HTML, not the app",
+  "description": "A Lab link opened before its PR deploys used to get the full Next.js not-found page, which loads the client bundle and failed on chunk 2632. Pick a /lab request to see what the server answers now.",
+  "tags": [
+    "docs-site",
+    "lab",
+    "error-tracking"
+  ],
+  "date": "2026-11-05"
+}
