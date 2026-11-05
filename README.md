@@ -550,7 +550,7 @@ reaches the same 76 skills plus the plugin's 36 custom subagents, which neither
 path surfaces through `devin plugins info`. That subpath is what this repo's own
 `.claude-plugin/marketplace.json` already points Claude Code at.
 
-OrchestKit's plugin hooks work under Claude Code only today; none of the 171
+OrchestKit's plugin hooks work under Claude Code only today; none of the <!--ork:hooks-->161<!--/ork-->
 fire under Devin. Two reasons. Location: OrchestKit ships hooks at
 `plugins/ork/hooks/hooks.json`, while Devin's own plugin format reads a bare
 `hooks.json` at the plugin root instead. Shape and tool names: OrchestKit's
@@ -598,7 +598,7 @@ as the workspace and needs no flag.
 
 Two honest gaps. `npx skills add -g` lands in `~/.agents/skills`, which agy
 does not read; user scope lives at `~/.gemini/config/skills` (or
-`~/.gemini/skills`). And none of ork's 171 hooks port: agy's `hooks.json` uses
+`~/.gemini/skills`). And none of ork's <!--ork:hooks-->161<!--/ork--> hooks port: agy's `hooks.json` uses
 its own event names and payload shape, and `agy plugin validate plugins/ork`
 reports hooks skipped because ork keeps them at `hooks/hooks.json`, not the
 plugin-root `hooks.json` agy looks for.
