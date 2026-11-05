@@ -125,6 +125,48 @@ else
     FAILED=1
 fi
 
+# --- 4. a frontmatter handler counts whatever command it runs -----------------
+# hooks.json entries count by type, so skill frontmatter must too (#5078). Matching
+# the run-hook wrapper left out handlers that run their own script, as freeze and
+# careful do. A fixture tree, because the counter resolves paths from its own location.
+echo ""
+echo "--- 4: a skill handler that does not use run-hook still counts ---"
+rm -f "$SHIM_DIR/grep"
+FIXTURE="$SHIM_DIR/fixture"
+mkdir -p "$FIXTURE/bin" "$FIXTURE/src/hooks" "$FIXTURE/src/agents" "$FIXTURE/src/skills/own" "$FIXTURE/src/skills/wrapped"
+cp "$COUNTER" "$FIXTURE/bin/count-hooks.sh"
+printf '{}\n' > "$FIXTURE/src/hooks/hooks.json"
+cat > "$FIXTURE/src/skills/own/SKILL.md" <<'SKILL'
+---
+name: own
+hooks:
+  PreToolUse:
+    - matcher: "Edit"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/own/scripts/guard.mjs"'
+---
+SKILL
+cat > "$FIXTURE/src/skills/wrapped/SKILL.md" <<'SKILL'
+---
+name: wrapped
+hooks:
+  PreToolUse:
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/wrapped"
+---
+SKILL
+
+FIXTURE_OUT="$(bash "$FIXTURE/bin/count-hooks.sh")"
+echo "  $FIXTURE_OUT"
+if [ "$FIXTURE_OUT" = "GLOBAL=0 AGENT=0 SKILL=2 TOTAL=2" ]; then
+    echo "  PASS: both handlers counted"
+else
+    echo "  FAIL: expected SKILL=2 for one wrapped and one own-script handler"
+    FAILED=1
+fi
+
 echo ""
 echo "=== Summary ==="
 echo "  healthy TOTAL : ${HEALTHY_TOTAL:-unknown}"
