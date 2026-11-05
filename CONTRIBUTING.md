@@ -203,6 +203,8 @@ manifests/                # Plugin definition
 └── ork.json              # Single plugin (<!--ork:skills-->115<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->161<!--/ork--> hooks)
 ```
 
+The hook count comes from `bin/count-hooks.sh`: <!--ork:hooks-global-->151<!--/ork--> entries in `src/hooks/hooks.json` plus <!--ork:hooks-skill-->10<!--/ork--> `run-hook` commands in skill frontmatter, <!--ork:hooks-->161<!--/ork--> in total. Write any count in docs as a marker, so `scripts/stamp-counts.sh` keeps it current.
+
 ### Generated Files (Do Not Edit, But Do Commit)
 
 These are build output. Never edit them by hand: `npm run build` overwrites
