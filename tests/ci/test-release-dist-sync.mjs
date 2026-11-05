@@ -457,18 +457,51 @@ await check('isGaVersion', async () => {
 
 // ---------------------------------------------------------------- workflow
 
+const wfCode = readFileSync(workflowPath, 'utf8')
+  .split('\n')
+  .filter((l) => !l.trim().startsWith('#'))
+  .join('\n');
+function jobs() {
+  const at = wfCode.indexOf('\njobs:\n');
+  assert.ok(at > 0, 'jobs: block');
+  const out = {};
+  for (const m of wfCode.slice(at).matchAll(/\n {2}([a-z][\w-]*):\n([\s\S]*?)(?=\n {2}[a-z][\w-]*:\n|$)/g)) out[m[1]] = m[2];
+  return out;
+}
+
+await check('release.yml: a manual dispatch runs only the dry run, every release job is tag-push only', () => {
+  assert.match(wfCode, /^on:\n {2}push:\n {4}tags:\n {6}- 'v\*'\n {2}workflow_dispatch:\n {4}inputs:\n {6}dry_run:\n[\s\S]*?type: boolean\n {8}default: true\n/m);
+  assert.doesNotMatch(wfCode, /pull_request/);
+  const all = jobs();
+  assert.ok(all['dist-dry-run'], 'dist-dry-run job exists');
+  for (const [name, body] of Object.entries(all)) {
+    if (name === 'dist-dry-run') continue;
+    assert.match(body, /^ {4}if: github\.event_name == 'push'/m, `${name} must be gated to tag pushes`);
+  }
+});
+
+await check('release.yml dist-dry-run job: token as the real job, two GETs, no write, no token printed', () => {
+  const job = jobs()['dist-dry-run'];
+  assert.match(job, /if: github\.event_name == 'workflow_dispatch' && github\.repository == 'yonatangross\/orchestkit'/);
+  assert.match(job, /permissions: \{\}/);
+  assert.match(job, /if: \$\{\{ !inputs\.dry_run \}\}\n[\s\S]*?::error::[\s\S]*?exit 1/, 'dry_run=false refused');
+  const mint = (body) => body.match(/uses: actions\/create-github-app-token@[\s\S]*?permission-contents: write\n/)[0];
+  assert.equal(mint(job), mint(jobs()['sync-dist']), 'token minted exactly as sync-dist does');
+  assert.match(job, /gh api \/installation\/repositories/);
+  assert.match(job, /gh api "\/repos\/\$DIST" --jq '\.permissions\.push/);
+  assert.match(job, /grep -qxF "\$DIST"[\s\S]*?::error::[\s\S]*?exit 1/);
+  assert.match(job, /if \[ "\$push" != "true" \]; then\n[\s\S]*?::error::[\s\S]*?exit 1/);
+  assert.doesNotMatch(job, /actions\/checkout|dist-sync\.mjs|git push|--method|\s-X\s|\s-[fF]\s|\bcurl\b/, 'read-only');
+  assert.doesNotMatch(job, /(echo|printf)[^\n]*(GH_TOKEN|steps\.dist-token\.outputs\.token)/, 'token never printed');
+  assert.equal((job.match(/gh api /g) || []).length, 2, 'exactly two API calls');
+  for (const m of job.matchAll(/uses:\s*(\S+)/g)) assert.match(m[1], /@[0-9a-f]{40}$/, `unpinned: ${m[1]}`);
+});
+
 await check('release.yml sync-dist job: trigger, scope, pins, loud failure', () => {
-  const wf = readFileSync(workflowPath, 'utf8');
-  const code = wf.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
-  assert.match(code, /^on:\n {2}push:\n {4}tags:\n {6}- 'v\*'/m, 'tag push trigger, no pull_request');
-  assert.doesNotMatch(code, /pull_request/);
-  const at = code.indexOf('\n  sync-dist:\n');
-  assert.ok(at > 0, 'sync-dist job exists');
-  const rest = code.slice(at + 1);
-  const next = rest.slice(1).search(/\n {2}[a-z][\w-]*:\n/);
-  const job = next < 0 ? rest : rest.slice(0, next + 1);
+  const job = jobs()['sync-dist'];
+  assert.ok(job, 'sync-dist job exists');
   assert.match(job, /needs: create-release/);
-  assert.match(job, /if: github\.repository == 'yonatangross\/orchestkit'/, 'never on forks');
+  assert.match(job, /if: github\.event_name == 'push' && github\.repository == 'yonatangross\/orchestkit'/, 'tag push only, never on forks');
   assert.match(job, /permissions:\n {6}contents: read/);
   assert.match(job, /repositories: orchestkit-plugin\n/, 'token scoped to the dist repo only');
   assert.doesNotMatch(job, /repositories: orchestkit\n/);

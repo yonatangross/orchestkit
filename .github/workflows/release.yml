@@ -15,11 +15,21 @@ on:
   push:
     tags:
       - 'v*'
+  # Manual runs only do the dist-repo dry run below (dist-dry-run). Every
+  # release job is gated on github.event_name == 'push', so a dispatch never
+  # creates a release, moves a pin, pushes an image or writes to the dist repo.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dist repo dry run: mint the bot token and check access, no writes'
+        type: boolean
+        default: true
 
 permissions: {}
 
 jobs:
   create-release:
+    if: github.event_name == 'push'
     # contents stays `read` on GITHUB_TOKEN — all release writes go through a
     # short-lived OrchestKit Release Bot installation token (see app-token step).
     # id-token + attestations must stay on GITHUB_TOKEN: the attest-build-
@@ -165,6 +175,7 @@ jobs:
   # the fields this writes.
   bump-stable-pin:
     needs: create-release
+    if: github.event_name == 'push'
     permissions:
       contents: read
     name: Stable Channel Pin
@@ -281,7 +292,7 @@ jobs:
   # names the missing setup step; it never skips silently.
   sync-dist:
     needs: create-release
-    if: github.repository == 'yonatangross/orchestkit'
+    if: github.event_name == 'push' && github.repository == 'yonatangross/orchestkit'
     permissions:
       contents: read
     name: Dist Repo Sync (orchestkit-plugin)
@@ -359,6 +370,62 @@ jobs:
           if [ "$MOVE_MAIN" != "true" ]; then ARGS+=(--no-move-main); fi
           node scripts/ci/dist-sync.mjs "${ARGS[@]}"
 
+  # Manual dry run of the dist-repo access the sync needs. Mints the token
+  # exactly as sync-dist does, then makes two GETs and nothing else: the
+  # installation's repositories must include orchestkit-plugin, and the repo
+  # must report permissions.push true. No checkout, no write, the token is
+  # never printed. A real sync only ever runs from a tag push (sync-dist), so
+  # dry_run=false is refused here rather than given a second write path.
+  dist-dry-run:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'yonatangross/orchestkit'
+    permissions: {}
+    name: Dist Repo Dry Run (orchestkit-plugin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse a non-dry manual run
+        if: ${{ !inputs.dry_run }}
+        run: |
+          echo "::error::A manual run only does the dry run. The real dist sync runs from a GA tag push (job sync-dist); re-run that job on the release run instead."
+          exit 1
+
+      - name: Mint Release Bot token (orchestkit-plugin only)
+        id: dist-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit-plugin
+          permission-contents: write
+
+      - name: Name the missing setup step
+        if: failure() && steps.dist-token.outcome == 'failure'
+        run: |
+          echo "::error::Could not mint a Release Bot token for ${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin: the repo does not exist or the OrchestKit Release Bot app is not installed on it with contents write."
+          exit 1
+
+      - name: Check installation repositories and push access
+        env:
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          DIST="${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin"
+          names="$(gh api /installation/repositories --paginate --jq '.repositories[].full_name')"
+          echo "Installation repositories visible to this token:"
+          printf '  %s\n' $names
+          if ! printf '%s\n' "$names" | grep -qxF "$DIST"; then
+            echo "::error::$DIST is not in the installation's repositories. Install the OrchestKit Release Bot on it."
+            exit 1
+          fi
+          push="$(gh api "/repos/$DIST" --jq '.permissions.push // "absent"')"
+          echo "permissions.push on $DIST: $push"
+          if [ "$push" != "true" ]; then
+            echo "::error::permissions.push on $DIST is $push, not true. Grant the OrchestKit Release Bot contents write on it."
+            exit 1
+          fi
+          echo "::notice::Dry run passed: the bot can reach $DIST with push access. The next GA release will sync it."
+
   # Build + push the stdio Docs MCP image to GHCR on every release. The image
   # is the OCI package surface advertised in server.json (packages[0]), so it
   # MUST exist at the version tag before publish-mcp-registry runs — the MCP
@@ -366,6 +433,7 @@ jobs:
   # label at publish time. Plain docker CLI on purpose: no third-party actions
   # to pin, GITHUB_TOKEN scoped to packages:write.
   publish-docker:
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -421,6 +489,7 @@ jobs:
   # GHCR at publish time, so the image tag must exist first.
   publish-mcp-registry:
     needs: publish-docker
+    if: github.event_name == 'push'
     permissions:
       contents: read
       id-token: write
