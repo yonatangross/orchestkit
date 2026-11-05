@@ -707,6 +707,12 @@ _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 
 ---
 
+## Also from the same bench
+
+**[Tower](https://github.com/yonatangross/tower)** is a macOS menu bar app for people who run several AI coding subscriptions. It shows where each account stands and which one to switch to, and `tower mcp` lets your agents ask for themselves. [Thread on X](https://x.com/yonyoniz/status/2118025745083621424).
+
+---
+
 ## Community
 
 Join the **Building with AI** community for AI dev tips, OrchestKit support, and connecting with other builders:
