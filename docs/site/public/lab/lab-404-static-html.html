@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A missing Lab page serves static HTML, not the app</title>
+<meta name="description" content="A Lab link opened before its PR deploys used to get the full Next.js not-found page, which loads the client bundle and failed on chunk 2632. Pick a /lab request to see what the server answers now.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.35rem .5rem;text-align:start;vertical-align:top}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A missing Lab page serves static HTML, not the app"><meta property="og:description" content="A Lab link opened before its PR deploys used to get the full Next.js not-found page, which loads the client bundle and failed on chunk 2632. Pick a /lab request to see what the server answers now."><meta property="og:url" content="https://orchestkit.dev/lab/lab-404-static-html.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A missing Lab page serves static HTML, not the app"><meta name="twitter:description" content="A Lab link opened before its PR deploys used to get the full Next.js not-found page, which loads the client bundle and failed on chunk 2632. Pick a /lab request to see what the server answers now."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>A missing Lab page serves static HTML, not the app</h1>
+<p class="sub">Branch posthog-self-driving/fixdocs-site-stop-chunk-2632-load-216986. A PR body links its playground at <code>https://orchestkit.dev/lab/&lt;slug&gt;.html</code>, and CI requires that link. The URL is live only after the PR merges and deploys. Before that, Next.js served its full not-found page under the <code>/lab</code> CSP. That page hydrates the client bundle and loads the search client (chunk 2632), and PostHog recorded <code>Loading chunk 2632 failed</code> on those visits. New: <code>app/lab/[...slug]/route.ts</code> answers any <code>/lab/*</code> path with no file behind it with a static, script-free 404.</p>
+
+<section><h2>1. Pick a /lab request</h2>
+<p><select id="req" aria-label="request">
+  <option value="published">/lab/advisor-negated-asks.html (published)</option>
+  <option value="pending" selected>/lab/my-new-playground.html (PR not merged yet)</option>
+  <option value="nested">/lab/some/nested/path</option>
+  <option value="bare">/lab</option>
+</select></p>
+<table><thead><tr><th></th><th>before</th><th>after</th></tr></thead><tbody id="rows"></tbody></table>
+<p class="note"><strong>Why public files still win.</strong> Next.js checks the filesystem (<code>public/</code>) before dynamic routes, so a published playground never reaches the new handler. The local production build confirmed it: a published page answered 200 with its own HTML, a missing one answered the new 404.</p>
+</section>
+
+<section><h2>2. How the fix was checked</h2>
+<table><thead><tr><th>check</th><th>result</th></tr></thead><tbody>
+<tr><td>Browser load of a missing /lab URL, production build</td><td>before: chunk 2632 requested right after hydration. After: no script requests.</td></tr>
+<tr><td>Response headers on the new 404</td><td>/lab CSP, <code>X-Robots-Tag: noindex</code>, <code>max-age=0, must-revalidate</code></td></tr>
+<tr><td><code>__tests__/lab-not-found.test.ts</code></td><td>404 status, no &lt;script&gt;, escaped path, shared recovery links</td></tr>
+</tbody></table>
+</section>
+</main>
+<script>
+const DATA = {
+  published: { before: ["200", "the playground HTML", "none from the app", "no"], after: ["200", "the playground HTML", "none from the app", "no"] },
+  pending: { before: ["404", "Next.js not-found page (full app shell)", "app bundle + PostHog", "yes, can fail"], after: ["404", "static 'Lab page not found' page", "none", "no"] },
+  nested: { before: ["404", "Next.js not-found page (full app shell)", "app bundle + PostHog", "yes, can fail"], after: ["404", "static 'Lab page not found' page", "none", "no"] },
+  bare: { before: ["307 to /docs/showcase/lab", "redirect", "none", "no"], after: ["307 to /docs/showcase/lab", "redirect", "none", "no"] },
+};
+const LABELS = ["status", "body", "scripts loaded", "chunk 2632 requested"];
+const sel = document.getElementById("req");
+const rows = document.getElementById("rows");
+function render() {
+  const d = DATA[sel.value];
+  rows.replaceChildren(...LABELS.map((label, i) => {
+    const tr = document.createElement("tr");
+    const changed = d.before[i] !== d.after[i];
+    for (const [text, cls] of [[label, ""], [d.before[i], changed ? "bad" : ""], [d.after[i], changed ? "ok" : ""]]) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (cls) td.className = cls;
+      tr.append(td);
+    }
+    return tr;
+  }));
+}
+sel.addEventListener("change", render);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
