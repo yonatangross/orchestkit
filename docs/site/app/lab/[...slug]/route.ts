@@ -3,21 +3,16 @@
 
 import { reportServerEvent } from "@/lib/analytics-server";
 import { uaFamily } from "@/lib/agent-surface";
-import { labNotFoundHtml } from "@/lib/lab-not-found";
+import { labNotFoundHtml } from "@/lib/not-found-body";
 
 // Not-found answer for /lab/* paths with no public/lab file behind them. Next
 // serves public files before dynamic routes, so a published playground never
-// reaches this handler.
-//
-// Why not the app's not-found page: a playground link in an open PR body points
-// at production before the PR merges, so readers land on a missing /lab URL.
-// The app not-found page hydrates the full client bundle there, under the
-// stricter /lab CSP, and PostHog recorded "Loading chunk 2632 failed" (the
-// search client chunk) on those visits. A playground URL now serves only
-// static HTML, published or not.
+// reaches this handler. A PR body links its playground here before the PR
+// deploys; the app not-found page hydrated the full client bundle on those
+// visits, under the /lab CSP, and its chunk loads failed.
 export const dynamic = "force-dynamic";
 
-function notFound(req: Request): Response {
+export function GET(req: Request): Response {
 	const { pathname } = new URL(req.url);
 	reportServerEvent(req.headers, "lab:not-found", pathname, {
 		ua_family: uaFamily(req.headers.get("user-agent")),
@@ -30,5 +25,3 @@ function notFound(req: Request): Response {
 		},
 	});
 }
-
-export const GET = notFound;

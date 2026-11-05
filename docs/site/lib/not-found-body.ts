@@ -101,3 +101,42 @@ export function notFoundExtensions(origin: string) {
 		markdown: RECOVERY_LINKS.map((l) => `- [${l.title}](${l.href}): ${l.desc}`).join("\n"),
 	};
 }
+
+const escapeHtml = (s: string) =>
+	s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/**
+ * Script-free HTML 404 for a /lab/* path with no playground behind it
+ * (app/lab/[...slug]/route.ts). A playground URL never loads the app bundle.
+ */
+export function labNotFoundHtml(pathname: string): string {
+	const links = [
+		{ href: "/docs/showcase/lab", title: "Lab gallery" },
+		...RECOVERY_LINKS,
+	]
+		.map((l) => `<li><a href="${escapeHtml(l.href)}">${escapeHtml(l.title)}</a></li>`)
+		.join("");
+	return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lab page not found</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 40rem; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.5; }
+code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+<h1>404: Lab page not found</h1>
+<p>No playground is published at <code>${escapeHtml(pathname)}</code>.</p>
+<p>A playground goes live when its pull request merges and the site deploys. A link from an open pull request answers 404 until then.</p>
+<ul>${links}</ul>
+</main>
+</body>
+</html>
+`;
+}
