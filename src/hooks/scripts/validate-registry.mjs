@@ -182,11 +182,18 @@ function parseEntryFiles() {
   return registered;
 }
 
-/** run-hook.mjs references in agent/skill markdown frontmatter → Set of ids */
+/**
+ * run-hook.mjs references in agent/skill markdown frontmatter → Set of ids, plus
+ * handlerCount: every `type: command|http` handler, the rule bin/count-hooks.sh
+ * uses. A handler that runs its own script (freeze, careful) has no registry id
+ * but is still a hook, so the drift check reads handlerCount (#5078).
+ */
 function parseMarkdownHookRefs(files) {
   const ids = new Set();
   let refCount = 0;
+  let handlerCount = 0;
   const re = /run-hook\.mjs\s+([\w/.-]+)/g;
+  const handlerRe = /^[ \t]*(?:- )?type: ["']?(?:command|http)["']?[ \t]*$/gm;
   for (const f of files) {
     const content = readFileSync(f, 'utf-8');
     let m;
@@ -194,8 +201,9 @@ function parseMarkdownHookRefs(files) {
       ids.add(m[1]);
       refCount++;
     }
+    handlerCount += (content.match(handlerRe) ?? []).length;
   }
-  return { ids, refCount };
+  return { ids, refCount, handlerCount };
 }
 
 /** `run-hook.mjs" <id>` steps in skill bodies (the quote is the marker) → Set of ids */
@@ -320,7 +328,7 @@ function main() {
   const countMatch = description.match(/(\d+)\s+global\s*\+\s*(\d+)\s+agent-scoped\s*\+\s*(\d+)\s+skill-scoped\s*=\s*(\d+)\s+total/);
   if (countMatch) {
     const [declGlobal, declAgent, declSkill, declTotal] = countMatch.slice(1).map(Number);
-    const actual = { global: commandCount, agent: agents.refCount, skill: skills.refCount };
+    const actual = { global: commandCount, agent: agents.handlerCount, skill: skills.handlerCount };
     const actualTotal = actual.global + actual.agent + actual.skill;
     const drift = [];
     if (declGlobal !== actual.global) drift.push(`global ${declGlobal}→${actual.global}`);
