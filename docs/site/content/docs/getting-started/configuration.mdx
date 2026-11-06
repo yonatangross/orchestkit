@@ -78,7 +78,7 @@ OrchestKit has 3 memory tiers. All work automatically with zero configuration:
 | Tier | Storage | Config Needed | What It Does |
 |---|---|---|---|
 | **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Knowledge graph: entities + relations |
-| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence, queue sync |
+| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence |
 | **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Injected into system prompt |
 
 Decisions written to CC Native persist even without OrchestKit installed. Nothing promotes them there automatically: Claude writes them, or you do.
