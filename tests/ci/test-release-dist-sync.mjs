@@ -342,6 +342,23 @@ await check('the default entry cap stays well under the 10 second limit', () => 
   assert.ok(Number(match[1]) <= 500, `default ${match[1]} entries`);
 });
 
+// NaN never reaches the cap in `open.length >= TREE_ENTRIES`, so a typo in this
+// variable would send every entry in one request, the failure the cap exists for.
+for (const bad of ['oops', '0', '-1', '2.5', '']) {
+  await check(`an entry cap of ${JSON.stringify(bad)} stops the sync before any write`, async () => {
+    const src = makeSource();
+    const gh = await fakeGitHub();
+    try {
+      const res = await runScript(src.dir, gh.apiUrl, ['--version', '1.2.3'], { DIST_SYNC_TREE_ENTRIES: bad });
+      assert.equal(res.status, 1, res.out);
+      assert.match(res.out, /DIST_SYNC_TREE_ENTRIES/);
+      assert.equal(gh.calls.filter((x) => x.method !== 'GET').length, 0, 'no write reached the API');
+    } finally {
+      await gh.close();
+    }
+  });
+}
+
 await check('a file removed from plugins/ork disappears from the dist tree', async () => {
   const src = makeSource();
   const gh = await fakeGitHub();
