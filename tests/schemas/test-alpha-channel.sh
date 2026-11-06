@@ -308,6 +308,15 @@ else
     ok "stable ork description carries no component counts"
 fi
 
+# stamp-counts.sh never names the Devin manifest either: it said 110 skills and
+# 171 hooks at 10.9.0. Only its version is written by release-please.
+devin_desc=$(jq -r '.description' "$ROOT_DIR/.devin-plugin/plugin.json")
+if [[ "$devin_desc" =~ [0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks) ]]; then
+    bad "Devin description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
+else
+    ok "Devin description carries no component counts"
+fi
+
 echo ""
 echo "=========================================="
 echo "  Results: ${PASS} passed, ${FAIL} failed"
