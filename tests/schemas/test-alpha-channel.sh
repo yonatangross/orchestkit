@@ -34,7 +34,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 MARKETPLACE="$ROOT_DIR/.claude-plugin/marketplace.json"
 # A component count in a description. Shared by the pin parity check and the no-count checks.
-COMPONENT_COUNT_RE='[0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks)'
+# Matched on lowercased text: 115 skills, 115 Skills, 115+ skills, 115 skill, 1,000 hooks,
+# 36 sub-agents, 36 specialized agents, 218 quality-gate lifecycle hooks, 115-skill.
+COMPONENT_COUNT_RE='[0-9][0-9,]*[[:space:]]*[+]?[[:space:]-]*([a-z-]+[[:space:]]+){0,2}(sub-?)?(skills?|agents?|commands?|hooks?)'
+has_component_count() {
+    local lowered
+    lowered=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+    [[ "$lowered" =~ $COMPONENT_COUNT_RE ]]
+}
 RP_CONFIG="$ROOT_DIR/.release-please-config.json"
 BUMP_SCRIPT="$ROOT_DIR/scripts/bump-stable-pin.sh"
 RELEASE_WF="$ROOT_DIR/.github/workflows/release.yml"
@@ -134,7 +141,7 @@ if [[ "$stable_idx" != "none" ]]; then
                         bad "marketplace description empty at $stable_ref"
                     elif [[ "$stable_desc" == "$tag_desc" ]]; then
                         ok "'ork' description matches $stable_ref (not live beta counts)"
-                    elif [[ ! "$stable_desc" =~ $COMPONENT_COUNT_RE ]]; then
+                    elif ! has_component_count "$stable_desc"; then
                         # This check keeps live beta counts off the stable channel. A
                         # description with no counts cannot carry them, and requiring
                         # equality here would freeze the text at every tag for good.
@@ -306,10 +313,48 @@ else
     bad "no tag-triggered workflow calls scripts/bump-stable-pin.sh — the writer is never reached"
 fi
 
+# Every shape the count check must catch, and text it must leave alone.
+while IFS= read -r shape; do
+    if has_component_count "$shape"; then
+        ok "count check catches: $shape"
+    else
+        bad "count check misses: $shape"
+    fi
+done <<'SHAPES'
+with 115 skills covering
+115 Skills
+115 SKILLS
+115+ skills
+115 + skills
+115 skill
+1 hook
+1,000 hooks
+36 agents
+36 sub-agents
+36 subagents
+36 specialized agents
+35 commands
+218 lifecycle hooks
+218 quality-gate lifecycle hooks
+115-skill toolkit
+SHAPES
+
+while IFS= read -r shape; do
+    if has_component_count "$shape"; then
+        bad "count check flags count-free text: $shape"
+    else
+        ok "count check leaves alone: $shape"
+    fi
+done <<'SHAPES'
+Complete AI development toolkit covering patterns, with specialized agents, commands, and lifecycle hooks.
+The Complete AI Development Toolkit: skills, agents and hooks for full-stack development.
+Requires Claude Code 2.1.277 or later
+SHAPES
+
 # The stable entry is excluded from stamp-counts.sh on purpose, so a count in its
 # description can only go stale (#5045: it said 105 skills and 218 hooks at 10.7.4).
 stable_desc=$(jq -r '.plugins[] | select(.name == "ork") | .description' "$MARKETPLACE")
-if [[ "$stable_desc" =~ $COMPONENT_COUNT_RE ]]; then
+if has_component_count "$stable_desc"; then
     bad "stable ork description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
 else
     ok "stable ork description carries no component counts"
@@ -318,7 +363,7 @@ fi
 # stamp-counts.sh never names the Devin manifest either: it said 110 skills and
 # 171 hooks at 10.9.0. Only its version is written by release-please.
 devin_desc=$(jq -r '.description' "$ROOT_DIR/.devin-plugin/plugin.json")
-if [[ "$devin_desc" =~ $COMPONENT_COUNT_RE ]]; then
+if has_component_count "$devin_desc"; then
     bad "Devin description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
 else
     ok "Devin description carries no component counts"
