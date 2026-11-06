@@ -60,7 +60,7 @@ Note that `subagent-start` and `subagent-stop` share the `subagent.mjs` bundle. 
 |--------|------|------------|--------|--------------|
 | `permission.mjs` | 8 KB | 3 | PermissionRequest | auto-approve-safe-bash, auto-approve-project-writes, learning-tracker |
 | `pretool.mjs` | 48 KB | 33 | PreToolUse | dangerous-command-blocker, file-guard, 3 unified dispatchers, git-validator |
-| `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger, memory-bridge |
+| `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger |
 | `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector |
 | `lifecycle.mjs` | 31 KB | 17 | SessionStart, SessionEnd, PreCompact, TeammateIdle, TaskCompleted | context-loader, metrics-summary, progress-reporter |
 | `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 7 hooks internally) |

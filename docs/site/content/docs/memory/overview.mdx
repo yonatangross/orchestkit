@@ -28,19 +28,11 @@ When you store a decision with `/ork:remember`, Claude writes it through the gra
 |---|---|---|
 | **1. Graph Memory** | `mcp__memory__create_entities` + `create_relations` | Entities: `cursor-pagination` (Pattern), `list-endpoints` (Component). Relation: `project -> CHOSE -> cursor-pagination` |
 | **2. Local Persistence** | `.claude/memory/decisions.jsonl` | Optional decision record, when a skill or script writes one |
-| **3. CC Native** (confidence >= 0.7) | `~/.claude/projects/<project>/memory/MEMORY.md` | Claude auto-injects this into every future system prompt |
+| **3. CC Native** | `~/.claude/projects/<project>/memory/MEMORY.md` | Claude auto-injects this into every future system prompt |
 
-### The Confidence Threshold
+### No Automatic Scoring
 
-Not every decision reaches Tier 3. Only decisions with a **confidence score of 0.7 or higher** are promoted to CC Native MEMORY.md. This keeps Claude's system prompt concise and focused on high-signal decisions. The confidence score is calculated from:
-
-- Explicit user statements ("we decided...", "always use...") score higher
-- Decisions with rationale ("because...") score higher than bare facts
-- Preferences stated directly by the user score higher than inferred patterns
-
-Lower-confidence observations still persist in Tier 1 (Graph) and Tier 2 (Local), where they are available through explicit search.
-
-
+Nothing in OrchestKit scores decisions or promotes them between tiers. A decision reaches a tier when Claude or a skill writes it there.
 
 ## The Read Path
 
@@ -74,14 +66,13 @@ Decisions enter the system through multiple channels.
 /ork:remember --global "Always validate input at API boundaries"
 ```
 
-### Automatic Capture
+### Suggested Capture
 
-OrchestKit captures decisions automatically through hooks:
+One hook suggests what to store. It writes nothing itself:
 
 | Hook | Lifecycle | What It Captures |
 |------|-----------|-----------------|
 | `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for high-activity sessions (20+ tool calls) |
-| `memory-bridge` | `posttool` | Entities created via graph MCP calls (confirms primary storage) |
 
 ### Entity and Relation Extraction
 
@@ -148,17 +139,17 @@ The system is designed to function at every level of configuration:
 
 | Configuration | Available Tiers | Behavior |
 |---|---|---|
-| OrchestKit installed (default) | 1, 2, 3 | Full local memory, graph storage, CC Native auto-sync |
-| OrchestKit removed | 3 only | CC Native MEMORY.md still injected by Claude. High-confidence decisions survive. |
+| OrchestKit installed (default) | 1, 2, 3 | Full local memory, graph storage, CC Native MEMORY.md |
+| OrchestKit removed | 3 only | CC Native MEMORY.md still injected by Claude. Decisions kept there survive. |
 | Fresh machine, no plugins | None | Start fresh. Install OrchestKit to begin building memory. |
 
 <Callout type="info">
-The most important design decision in the memory architecture: high-confidence decisions are written to CC Native MEMORY.md (Tier 3), which is a plain Markdown file managed by Claude Code itself. This means your critical decisions persist even if you uninstall OrchestKit, switch machines, or change plugin versions.
+The most important design decision in the memory architecture: CC Native MEMORY.md (Tier 3) is a plain Markdown file managed by Claude Code itself. This means the decisions you keep there persist even if you uninstall OrchestKit, switch machines, or change plugin versions.
 </Callout>
 
 ## Next Steps
 
 - [Graph Memory](/docs/memory/graph-memory): how the primary knowledge graph works
 - [Local Persistence](/docs/memory/local-memory): JSONL queues and session backup
-- [CC Native Memory](/docs/memory/native-cc-memory): auto-promotion to MEMORY.md
+- [CC Native Memory](/docs/memory/native-cc-memory): how MEMORY.md works beside OrchestKit
 - [Set Up Cross-Session Memory](/docs/cookbook/setup-memory): hands-on cookbook

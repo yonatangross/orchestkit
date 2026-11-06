@@ -157,7 +157,6 @@ No hook reads the graph on its own. Reads happen when Claude calls the graph MCP
 
 | Hook | Lifecycle | What It Does |
 |---|---|---|
-| `memory-bridge` | `posttool` | Confirms graph writes after `mcp__memory__create_entities` calls |
 | `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for sessions with 20+ tool calls |
 
 ## Agent Domain Mapping

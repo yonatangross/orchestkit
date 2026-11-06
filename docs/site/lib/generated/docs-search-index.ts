@@ -342,8 +342,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/memory/native-cc-memory",
-    "title": "Auto-Sync to MEMORY.md",
-    "description": "How OrchestKit auto-promotes high-confidence decisions to Claude Code's native MEMORY.md, ensuring they survive plugin removal."
+    "title": "CC Native MEMORY.md",
+    "description": "How Claude Code's native MEMORY.md works beside OrchestKit, and why decisions kept there survive plugin removal."
   },
   {
     "url": "/docs/memory/overview",
