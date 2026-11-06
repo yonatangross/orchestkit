@@ -120,11 +120,11 @@ Yes. Edit `src/hooks/hooks.json` and set `"enabled": false` on the hook entry. T
 
 ### How does memory work without any configuration?
 
-All 3 tiers work out of the box with zero configuration. Decisions are stored in the MCP knowledge graph (Tier 1), backed up to `.claude/memory/*.jsonl` files (Tier 2), and high-confidence decisions are promoted to CC Native MEMORY.md (Tier 3).
+All 3 tiers work out of the box with zero configuration. Decisions go to the MCP knowledge graph (Tier 1), optional `.claude/memory/*.jsonl` files can hold a record (Tier 2), and CC Native MEMORY.md (Tier 3) holds what Claude or you write there.
 
 ### What gets stored automatically?
 
-Nothing in the graph is written behind your back: the `session-summary` hook suggests what to capture at the end of a busy session, and you control what gets stored with `/ork:remember`. Nothing is stored without your action or the automatic hook's confidence threshold (0.7 or above).
+Nothing in the graph is written behind your back: the `session-summary` hook suggests what to capture at the end of a busy session, and you control what gets stored with `/ork:remember`. Nothing is stored without your action.
 
 ### Can I delete memories?
 

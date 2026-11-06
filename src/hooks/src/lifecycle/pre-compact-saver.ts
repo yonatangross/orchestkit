@@ -4,7 +4,6 @@
  *
  * Opus 4.6 Upgrade (Issue #332):
  * - Saves session state, decision logs, and memory tier data
- * - Writes high-confidence decisions to CC native MEMORY.md
  * - Preserves active task context for post-compaction recovery
  * - Tracks compaction frequency for budget optimization
  *

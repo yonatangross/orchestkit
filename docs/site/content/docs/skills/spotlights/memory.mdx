@@ -123,7 +123,7 @@ OrchestKit uses a 3-tier memory architecture:
 | 2. Local | `.claude/memory/*.jsonl` | Yes | Backup, session persistence |
 | 3. CC Native | `~/.claude/projects/*/memory/MEMORY.md` | Yes | Auto-injected into system prompt |
 
-High-confidence decisions (score 0.7 or above) are automatically written to CC Native memory (Tier 3), ensuring they persist even without OrchestKit installed.
+Decisions written to CC Native memory (Tier 3) persist even without OrchestKit installed. Nothing writes them there automatically.
 
 ## Common Patterns
 

@@ -34,7 +34,7 @@ Before diving into commands, understand what each tier does and when it activate
 | **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Loaded by Claude Code at session start. Survives plugin removal. Written by skills/agents, not by a dedicated OrchestKit writer hook. |
 
 <Callout type="info">
-Graph and MCP memory require zero configuration once the memory MCP server is available. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). There is no OrchestKit hook that auto-promotes decisions into MEMORY.md.
+Graph and MCP memory require zero configuration once the memory MCP server is available. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). No OrchestKit hook writes decisions into MEMORY.md.
 </Callout>
 
 ## Step-by-Step
