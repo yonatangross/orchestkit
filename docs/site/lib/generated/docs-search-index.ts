@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 161-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 163-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -287,7 +287,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "161 Hooks: What Fires When",
+    "title": "163 Hooks: What Fires When",
     "description": "Every Claude Code lifecycle event in order, and the OrchestKit hooks that fire on it: unsafe command blocks, context injection, memory sync and quality gates."
   },
   {

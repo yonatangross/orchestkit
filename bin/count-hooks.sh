@@ -4,8 +4,11 @@
 # =============================================================================
 # Counts hooks from:
 #   1. hooks.json entries (global) — "type": "command" and "type": "http" entries
-#   2. Agent frontmatter — command:.*run-hook lines between --- markers
-#   3. Skill frontmatter — command:.*run-hook lines between --- markers
+#   2. Agent frontmatter — `type: command` and `type: http` handlers
+#   3. Skill frontmatter — `type: command` and `type: http` handlers
+#
+# Same rule in all three: a handler is a hook whatever it runs, so one that runs
+# its own script (freeze, careful) counts like one that uses run-hook.mjs.
 #
 # Output format (eval-friendly):
 #   GLOBAL=93 AGENT=22 SKILL=6 TOTAL=121
@@ -27,7 +30,12 @@ GLOBAL_HTTP=$(grep -c '"type": "http"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/d
 GLOBAL_HTTP=${GLOBAL_HTTP:-0}
 GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 
-# Count `command:.*run-hook` lines under a directory.
+# One hook handler line in YAML, quoted or not. The test files read the whole
+# markdown file, not only its frontmatter, so a body example with this exact line
+# would count. None exists today.
+HANDLER_RE='^[[:space:]]*(- )?type: ["'"'"']?(command|http)["'"'"']?[[:space:]]*$'
+
+# Count hook handler lines under a directory.
 #
 # grep's exit codes are three-valued: 0 found, 1 no-match, >=2 real error. Under
 # this script's `set -euo pipefail`, piping a no-match grep into awk propagated
@@ -52,7 +60,7 @@ GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 # So: ask for the temp file, verify we can actually write it, and when we cannot,
 # drop the stderr capture and keep counting. Losing a quoted error message is a
 # cosmetic loss. Losing the count is a correctness one.
-count_run_hook_lines() {
+count_handler_lines() {
   local dir="$1"; shift
   local out rc errfile
 
@@ -63,12 +71,12 @@ count_run_hook_lines() {
 
   set +e
   if [ -n "$errfile" ]; then
-    out="$(grep -rch 'command:.*run-hook' "$dir" "$@" 2>"$errfile")"
+    out="$(grep -rchE "$HANDLER_RE" "$dir" "$@" 2>"$errfile")"
     rc=$?
   else
     # No writable scratch file: let grep's stderr reach the terminal rather than
     # redirecting it into a path that does not exist.
-    out="$(grep -rch 'command:.*run-hook' "$dir" "$@")"
+    out="$(grep -rchE "$HANDLER_RE" "$dir" "$@")"
     rc=$?
   fi
   set -e
@@ -92,14 +100,14 @@ count_run_hook_lines() {
   printf '%s\n' "$out" | awk '{s+=$1} END{print s+0}'
 }
 
-# Agent-scoped hooks: command:.*run-hook in YAML frontmatter
+# Agent-scoped hooks.
 # NOTE: Scans entire file, not just frontmatter. Safe because no agent/skill
-# markdown body contains 'command:.*run-hook' patterns. CI test-count-components.sh
-# will catch any drift if this assumption is violated.
-AGENT=$(count_run_hook_lines "$PROJECT_ROOT/src/agents/")
+# markdown body contains a handler line. CI test-count-components.sh will catch
+# any drift if this assumption is violated.
+AGENT=$(count_handler_lines "$PROJECT_ROOT/src/agents/")
 
-# Skill-scoped hooks: command:.*run-hook in YAML frontmatter (same assumption as above)
-SKILL=$(count_run_hook_lines "$PROJECT_ROOT/src/skills/" --include='SKILL.md')
+# Skill-scoped hooks (same assumption as above).
+SKILL=$(count_handler_lines "$PROJECT_ROOT/src/skills/" --include='SKILL.md')
 
 TOTAL=$((GLOBAL + AGENT + SKILL))
 

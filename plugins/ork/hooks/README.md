@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->161<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->163<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->12<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1409,13 +1409,15 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->161<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->10<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->163<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->12<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count 161 to 163, skill-scoped 10 to 12, no hook added, 2026-11-05, #5078): `bin/count-hooks.sh` now counts frontmatter handlers by `type`, as it counts `hooks.json`, not by the string `run-hook`. `freeze` and `careful` run their own script, so they were left out.
 
 (count unchanged, 2026-10-31, yellow-refactor M1 phase 1): new `pretool/tool-dispatcher`, in the pretool entries map only, NOT in hooks.json (default off). It runs every ork PreToolUse handler for the tool in one process and forwards the event once (shipped hooks.json forwards it twice per Bash/Write/Edit/Read call). `scripts/unified-pretool-hooks.mjs --out <path>` writes the flag-on hooks.json variant; `validate-registry.mjs` counts the variant as a reachable, uncounted dispatch path. Correction, same day: a fresh `claude -p --debug-file` session showed CC launches an identical command once per event, so the forwarder never ran twice and phase 1 alone saves 1 process per call.
 

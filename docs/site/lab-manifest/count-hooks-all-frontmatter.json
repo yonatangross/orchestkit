@@ -1,0 +1,12 @@
+{
+  "slug": "count-hooks-all-frontmatter",
+  "source": "docs/fix--count-hooks-all-frontmatter/index.html",
+  "title": "What counts as a hook: 161 or 163",
+  "description": "The hook counter read skill frontmatter by a string, so two shipped handlers were left out. Pick a rule and tick the handlers to see the count change.",
+  "tags": [
+    "hooks",
+    "docs",
+    "ci"
+  ],
+  "date": "2026-11-05"
+}
