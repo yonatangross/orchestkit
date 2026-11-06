@@ -372,7 +372,7 @@ jobs:
       - name: Python skill scripts (compileall + ruff)
         run: |
           python -m compileall -q src/skills
-          python -m pip install --quiet "ruff>=0.8.0"
+          python -m pip install --quiet "ruff==0.17.4"
           ruff check src/skills
 
   # ============================================================================
