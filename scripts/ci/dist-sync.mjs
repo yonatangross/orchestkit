@@ -45,7 +45,8 @@
 //                           [--no-move-main]
 // Env:   GH_TOKEN (App installation token for the dist repo only),
 //        GITHUB_API_URL (default https://api.github.com),
-//        DIST_SYNC_RETRY_DELAY_MS (default 15000; tests set 0).
+//        DIST_SYNC_RETRY_DELAY_MS (default 15000; tests set 0),
+//        DIST_SYNC_TREE_ENTRIES (default 300; tests set 2).
 // Exit:  0 synced or already in sync, 1 failed, 3 not a GA version (skipped).
 
 import { execFileSync } from 'node:child_process';
@@ -56,6 +57,10 @@ import { fileURLToPath } from 'node:url';
 
 export const HOME_URL = 'https://github.com/yonatangross/orchestkit';
 const CHUNK_BYTES = 1024 * 1024; // inline content per tree request
+// Entries per tree request, sha-only ones included. A file the dist repo already
+// has costs no bytes, so without this nearly all 1,879 entries land in one request
+// and it dies at GitHub's 10 second limit with a 502 (v10.9.1, v10.10.0).
+const TREE_ENTRIES = Number(process.env.DIST_SYNC_TREE_ENTRIES ?? 300);
 const SETUP_HINT =
   'Setup steps: create the public repo, initialised with a README so main exists, then install the OrchestKit Release Bot app on it. Re-run this job after; no new tag is needed.';
 
@@ -260,7 +265,7 @@ export async function syncOnce({ repo, version, sourceRef, pluginPath, moveMain,
 }
 
 // Chunked tree build. Each request carries at most CHUNK_BYTES of inline
-// content and chains base_tree to the previous result, so the final tree is
+// content and TREE_ENTRIES entries, and chains base_tree to the previous result, so the final tree is
 // the union. The first request has no base_tree, so nothing from the old
 // dist tree survives except what `entries` lists.
 async function createTree(api, entries, remoteBlobs) {
@@ -282,7 +287,8 @@ async function createTree(api, entries, remoteBlobs) {
       }
     }
     const cost = item.content ? Buffer.byteLength(item.content) : 0;
-    if (cost && size + cost > CHUNK_BYTES && chunks.at(-1).length) {
+    const open = chunks.at(-1);
+    if (open.length && ((cost && size + cost > CHUNK_BYTES) || open.length >= TREE_ENTRIES)) {
       chunks.push([]);
       size = 0;
     }

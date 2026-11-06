@@ -196,11 +196,11 @@ async function fakeGitHub({ exists = true, empty = false, verified = true, patch
   };
 }
 
-function runScript(cwd, apiUrl, args) {
+function runScript(cwd, apiUrl, args, extraEnv = {}) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [script, '--repo', 'o/dist', ...args], {
       cwd,
-      env: { ...env, GH_TOKEN: 'test-token', GITHUB_API_URL: apiUrl, DIST_SYNC_RETRY_DELAY_MS: '0' },
+      env: { ...env, GH_TOKEN: 'test-token', GITHUB_API_URL: apiUrl, DIST_SYNC_RETRY_DELAY_MS: '0', ...extraEnv },
     });
     let out = '';
     child.stdout.on('data', (d) => (out += d));
@@ -307,6 +307,39 @@ await check('next release: one more commit on top, unchanged blobs go by sha', a
   } finally {
     await gh.close();
   }
+});
+
+// v10.9.1 and v10.10.0 failed four times on POST /git/trees, HTTP 502 at about
+// 10.8 seconds, GitHub's request limit. Files the dist repo already has go by sha
+// and cost no bytes, so nearly all 1,879 entries landed in one request.
+await check('a release caps entries per tree request, including sha-only ones', async () => {
+  const src = makeSource();
+  const gh = await fakeGitHub();
+  try {
+    assert.equal((await runScript(src.dir, gh.apiUrl, ['--version', '1.2.3'])).status, 0);
+    const whole = gh.flatAt(gh.refs.get('refs/heads/main'));
+    assert.ok(Object.keys(whole).length > 2, 'fixture needs more entries than the cap');
+    src.put('plugins/ork/skills/a/SKILL.md', 'skill a v2\n');
+    src.git('commit', '-qam', 'v1.2.4');
+    const before = gh.calls.length;
+    const res = await runScript(src.dir, gh.apiUrl, ['--version', '1.2.4'], { DIST_SYNC_TREE_ENTRIES: '2' });
+    assert.equal(res.status, 0, res.out);
+    const treeCalls = gh.calls.slice(before).filter((x) => x.path === '/git/trees' && x.method === 'POST');
+    assert.ok(treeCalls.length > 1, 'entries span more than one request');
+    for (const call of treeCalls) assert.ok(call.body.tree.length <= 2, `${call.body.tree.length} entries in one request`);
+    assert.equal(treeCalls[0].body.base_tree, undefined, 'the first request starts clean, so removals stay removed');
+    const flat = gh.flatAt(gh.refs.get('refs/heads/main'));
+    assert.deepEqual(Object.keys(flat).sort(), Object.keys(whole).sort(), 'the chain yields the whole tree');
+  } finally {
+    await gh.close();
+  }
+});
+
+await check('the default entry cap stays well under the 10 second limit', () => {
+  const source = readFileSync(script, 'utf8');
+  const match = source.match(/DIST_SYNC_TREE_ENTRIES \?\? (\d+)/);
+  assert.ok(match, 'dist-sync.mjs reads DIST_SYNC_TREE_ENTRIES with a default');
+  assert.ok(Number(match[1]) <= 500, `default ${match[1]} entries`);
 });
 
 await check('a file removed from plugins/ork disappears from the dist tree', async () => {
