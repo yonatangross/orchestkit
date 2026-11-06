@@ -173,7 +173,6 @@ Execute AFTER a tool completes, used for logging and tracking.
 **Examples:**
 - `posttool/audit-logger` - Log all tool executions
 - `posttool/unified-error-handler` - Track and categorize errors
-- `posttool/memory-bridge` - Sync important info to knowledge graph
 
 ### Prompt Hooks (UserPromptSubmit)
 Enhance user prompts with additional context before processing.
@@ -681,7 +680,7 @@ Unified dispatcher runs cleanup hooks in parallel
 
 **Core Session (5):** auto-save-context, session-patterns, issue-work-summary, session-profile-aggregator, session-end-tracking
 
-**Memory Sync (2):** graph-queue-sync, workflow-preference-learner
+**Memory Sync (1):** workflow-preference-learner
 
 **Instance Management (3):** multi-instance-cleanup, cleanup-instance, task-completion-check
 
