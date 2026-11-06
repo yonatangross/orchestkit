@@ -12,6 +12,8 @@ const REMOVED = [
 	"memory-context",
 	"memory-writer",
 	"auto-remember-continuity",
+	"memory-bridge",
+	"graph-queue-sync",
 ] as const;
 
 const ROOT = path.join(process.cwd(), "content/docs");
@@ -49,6 +51,17 @@ describe("hand-written docs do not describe removed memory hooks", () => {
 				.flatMap((line, i) =>
 					line.includes(name) ? [`${file}:${i + 1}`] : [],
 				),
+		);
+		expect(hits).toEqual([]);
+	});
+
+	// No code holds a 0.7 threshold and no hook writes MEMORY.md. These pages
+	// described a scored promotion step that does not exist.
+	it("does not describe a scored promotion to MEMORY.md", () => {
+		const hits = handWritten.filter((file) =>
+			/auto-?promot|confidence >= 0\.7|score 0\.7|0\.7 confidence|high-confidence decisions/i.test(
+				readFileSync(path.join(ROOT, file), "utf8"),
+			),
 		);
 		expect(hits).toEqual([]);
 	});
