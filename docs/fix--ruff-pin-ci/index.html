@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why one ruff release turned a required check red</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Why one ruff release turned a required check red</h1>
+<p>CI installed <code>ruff&gt;=0.8.0</code>, so it took whatever ruff was newest that minute. Ruff 0.17.4 reached PyPI at 18:51:36Z on 2026-11-05 and flagged a file nobody had changed. <code>Static Analysis</code> is required, so every open PR went red. Pick a state to see the result.</p>
+
+<fieldset>
+<legend>The CI install line</legend>
+<label><input type="radio" name="pin" value="float" checked> <code>ruff&gt;=0.8.0</code> (floating, before)</label>
+<label><input type="radio" name="pin" value="pin"> <code>ruff==0.17.4</code> (pinned, after)</label>
+</fieldset>
+
+<fieldset>
+<legend>The nested <code>if</code> in circuit-breaker.py</legend>
+<label><input type="radio" name="code" value="nested" checked> Nested (SIM102 fires on 0.17.4)</label>
+<label><input type="radio" name="code" value="merged"> Merged into one condition (same behaviour)</label>
+</fieldset>
+
+<fieldset>
+<legend>A later ruff release adds a new rule</legend>
+<label><input type="checkbox" id="next"> Ruff publishes a release that flags something else</label>
+</fieldset>
+
+<output id="result" aria-live="polite"></output>
+</main>
+<script>
+const result = document.getElementById("result");
+function render() {
+  const pin = document.querySelector('input[name="pin"]:checked').value;
+  const code = document.querySelector('input[name="code"]:checked').value;
+  const next = document.getElementById("next").checked;
+  let red = false;
+  let text = "Static Analysis passes. A ruff bump is a reviewed change.";
+  if (code === "nested") {
+    red = true;
+    text = "Static Analysis fails on SIM102, on every PR.";
+  } else if (pin === "float" && next) {
+    red = true;
+    text = "Static Analysis fails again, on every PR, with no change in the repo.";
+  } else if (pin === "float") {
+    text = "Static Analysis passes today, until the next ruff release.";
+  }
+  result.dataset.state = red ? "red" : "green";
+  result.textContent = text;
+}
+document.querySelectorAll("input").forEach((i) => i.addEventListener("change", render));
+render();
+</script>
+</body>
+</html>
