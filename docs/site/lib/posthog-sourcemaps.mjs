@@ -19,6 +19,41 @@ export function sourceMapUploadKey(raw) {
 	return raw?.startsWith("phx_") ? raw : undefined;
 }
 
+/**
+ * Wraps the Next config for upload, or returns it untouched. The wrapper is an
+ * optional dependency: its CLI downloads from releases.posthog.com at install
+ * time, and when that fails npm drops the package. A missing package must cost
+ * the upload, never the install or the deploy.
+ */
+export async function withSourceMapUpload(
+	site,
+	env,
+	// @vite-ignore: Vite resolves literal imports, and this one may be absent.
+	load = () => import(/* @vite-ignore */ "@posthog/nextjs-config"),
+) {
+	const key = sourceMapUploadKey(env.POSTHOG_API_KEY);
+	if (!key) {
+		if (env.POSTHOG_API_KEY) {
+			console.warn(
+				"[posthog] POSTHOG_API_KEY is set but has no phx_ prefix; skipping source map upload.",
+			);
+		}
+		return site;
+	}
+	try {
+		const { withPostHogConfig } = await load();
+		return withPostHogConfig(
+			site,
+			sourceMapUploadConfig(key, env.VERCEL_GIT_COMMIT_SHA),
+		);
+	} catch (error) {
+		console.warn(
+			`[posthog] @posthog/nextjs-config is not available; skipping source map upload: ${error}`,
+		);
+		return site;
+	}
+}
+
 /** Options for withPostHogConfig. Pure so a test can pin them without a build. */
 export function sourceMapUploadConfig(personalApiKey, commitSha) {
 	return {

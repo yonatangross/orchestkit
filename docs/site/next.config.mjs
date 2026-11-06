@@ -1,8 +1,5 @@
 import { createMDX } from "fumadocs-mdx/next";
-import {
-	sourceMapUploadConfig,
-	sourceMapUploadKey,
-} from "./lib/posthog-sourcemaps.mjs";
+import { withSourceMapUpload } from "./lib/posthog-sourcemaps.mjs";
 import { siteRedirects } from "./lib/site-redirects.mjs";
 
 const withMDX = createMDX();
@@ -310,16 +307,4 @@ const site = withMDX(config);
 // keeps serving none. Loaded only when a personal API key is set, so preview,
 // local and CI builds skip the wrapper and its CLI entirely. It stays the
 // outermost wrapper: PostHog's build hooks are dropped otherwise.
-const uploadKey = sourceMapUploadKey(process.env.POSTHOG_API_KEY);
-if (process.env.POSTHOG_API_KEY && !uploadKey) {
-	console.warn(
-		"[posthog] POSTHOG_API_KEY is set but has no phx_ prefix; skipping source map upload.",
-	);
-}
-
-export default uploadKey
-	? (await import("@posthog/nextjs-config")).withPostHogConfig(
-			site,
-			sourceMapUploadConfig(uploadKey, process.env.VERCEL_GIT_COMMIT_SHA),
-		)
-	: site;
+export default await withSourceMapUpload(site, process.env);
