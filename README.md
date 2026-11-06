@@ -664,6 +664,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.1](https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1)** · 2026-11-06
+
+- **ci:** let install-deps outlast a slow apt mirror (#5091)
+- **docs-site:** remove dead memory hooks and correct the hook count (#5085)
+- **release:** cap entries per dist tree request (#5088)
+- **release:** refuse an invalid dist entry cap
+- **memory:** remove the false scored-promotion story and dead hooks (#5089)
+
 **[v10.10.0](https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0)** · 2026-11-06
 
 - **docs-site:** upload source maps to PostHog at build time (#5082)
@@ -696,10 +704,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.8.3](https://github.com/yonatangross/orchestkit/compare/v10.8.2...v10.8.3)** · 2026-11-04
 
 - **site:** keep acronyms upper case in sidebar and category labels (#5053)
-
-**[v10.8.2](https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2)** · 2026-11-04
-
-- **skills:** parse frontmatter in the description gate, add fixtures (#5049)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

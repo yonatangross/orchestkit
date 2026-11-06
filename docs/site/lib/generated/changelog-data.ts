@@ -18,6 +18,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.1",
+    "date": "2026-11-06",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** let install-deps outlast a slow apt mirror ([#5091](https://github.com/yonatangross/orchestkit/issues/5091)) ([575cbca](https://github.com/yonatangross/orchestkit/commit/575cbca1841be86981a0c472485977289a8fd676))",
+          "**docs-site:** remove dead memory hooks and correct the hook count ([#5085](https://github.com/yonatangross/orchestkit/issues/5085)) ([bfdf2cf](https://github.com/yonatangross/orchestkit/commit/bfdf2cf823cfad4b486bc87c720e5b10e05a0b79))",
+          "**release:** cap entries per dist tree request ([#5088](https://github.com/yonatangross/orchestkit/issues/5088)) ([9bae46f](https://github.com/yonatangross/orchestkit/commit/9bae46f2b696d05d9df6fcafee2a9ab643ca26ba))",
+          "**release:** refuse an invalid dist entry cap ([494015d](https://github.com/yonatangross/orchestkit/commit/494015d24c32ecba5ddec29c725d1bd0cf65c86f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**memory:** remove the false scored-promotion story and dead hooks ([#5089](https://github.com/yonatangross/orchestkit/issues/5089)) ([c712b67](https://github.com/yonatangross/orchestkit/commit/c712b6727838fbcbc0f8ecee43319c55b4a724aa))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.0",
     "date": "2026-11-06",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0",

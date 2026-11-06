@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.10.1](https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **ci:** let install-deps outlast a slow apt mirror ([#5091](https://github.com/yonatangross/orchestkit/issues/5091)) ([575cbca](https://github.com/yonatangross/orchestkit/commit/575cbca1841be86981a0c472485977289a8fd676))
+* **docs-site:** remove dead memory hooks and correct the hook count ([#5085](https://github.com/yonatangross/orchestkit/issues/5085)) ([bfdf2cf](https://github.com/yonatangross/orchestkit/commit/bfdf2cf823cfad4b486bc87c720e5b10e05a0b79))
+* **release:** cap entries per dist tree request ([#5088](https://github.com/yonatangross/orchestkit/issues/5088)) ([9bae46f](https://github.com/yonatangross/orchestkit/commit/9bae46f2b696d05d9df6fcafee2a9ab643ca26ba))
+* **release:** refuse an invalid dist entry cap ([494015d](https://github.com/yonatangross/orchestkit/commit/494015d24c32ecba5ddec29c725d1bd0cf65c86f))
+
+
+### Documentation
+
+* **memory:** remove the false scored-promotion story and dead hooks ([#5089](https://github.com/yonatangross/orchestkit/issues/5089)) ([c712b67](https://github.com/yonatangross/orchestkit/commit/c712b6727838fbcbc0f8ecee43319c55b4a724aa))
+
 ## [10.10.0](https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0) (2026-11-06)
 
 
