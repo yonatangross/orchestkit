@@ -31,7 +31,8 @@
 // Router navigation into one. Leaving the reference tree stops it before the
 // next page renders. A URL trigger in the PostHog project applies ON TOP of
 // this gate: it can only narrow recording, and one that names a host we do not
-// serve stops all of it, silently. It must match https://orchestkit.dev.
+// serve stops all of it, silently. Set it to the full reference URL pattern:
+// ^https://orchestkit\.dev/docs/reference/.*$
 // Limits, stated plainly:
 //   - Nothing records until session replay is enabled in the PostHog project
 //     settings. The SDK requires that server side flag as well as this gate.

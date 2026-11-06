@@ -11,8 +11,8 @@
 //
 // The SDK is initialised with replay disabled and only this gate turns it on,
 // so nothing outside /docs/reference/* can record. The PostHog project's URL
-// trigger still applies on top: it must match the serving host, orchestkit.dev,
-// or the SDK buffers forever and no recording is ever sent.
+// trigger still applies on top: ^https://orchestkit\.dev/docs/reference/.*$ is
+// the pattern to set. One naming another host buffers forever and sends nothing.
 
 import type { CapturedNetworkRequest } from "posthog-js";
 
