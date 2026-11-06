@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.9.1",
+    "date": "2026-11-05",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** pin ruff, and clear SIM102 in circuit-breaker ([#5080](https://github.com/yonatangross/orchestkit/issues/5080)) ([b1a6e6c](https://github.com/yonatangross/orchestkit/commit/b1a6e6c9752e8c91ed9140d672d7e285c08d2269))",
+          "**docs-site:** serve missing /lab pages as static HTML, not the app shell ([#5075](https://github.com/yonatangross/orchestkit/issues/5075)) ([eb779f9](https://github.com/yonatangross/orchestkit/commit/eb779f9916ac5391231eaaf192af1f9ad0176882))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "stamp the README hook counts from one source ([#5076](https://github.com/yonatangross/orchestkit/issues/5076)) ([4f71296](https://github.com/yonatangross/orchestkit/commit/4f71296c2527f2025a403d7a35d94e5e529e02f7)), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.9.0",
     "date": "2026-11-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0",

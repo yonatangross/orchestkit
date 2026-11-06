@@ -664,6 +664,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.9.1](https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1)** · 2026-11-05
+
+- **ci:** pin ruff, and clear SIM102 in circuit-breaker (#5080)
+- **docs-site:** serve missing /lab pages as static HTML, not the app shell (#5075)
+- stamp the README hook counts from one source (#5076), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)
+
 **[v10.9.0](https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0)** · 2026-11-05
 
 - **release:** sync plugins/ork to the orchestkit-plugin dist repo (#5070)
@@ -693,11 +699,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **expect:** gate the act-mode Jev pick on agreement or a confirm (#5011)
 - **lab:** drop internal seat name from the Tower page footer (#5047)
-
-**[v10.8.0](https://github.com/yonatangross/orchestkit/compare/v10.7.4...v10.8.0)** · 2026-11-04
-
-- **skills:** trim listed descriptions and gate them per skill (#5043)
-- add Tower to the OrchestKit family (#5041)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
