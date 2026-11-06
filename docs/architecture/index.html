@@ -1,0 +1,374 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>orchestkit · architecture</title><style>:root{--bg:#0b0d12;--bg2:#11141b;--card:#151922;--line:#232938;--fg:#e8ebf2;--dim:#98a2b3;--faint:#6b7486;
+--edge:#fb923c;--app:#2dd4bf;--data:#60a5fa;--workers:#4ade80;--external:#a78bfa;--beam:#22d3ee;--ok:#4ade80;--warn:#fbbf24;
+--r:14px;--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#16213a 0,transparent 60%),var(--bg);color:var(--fg);
+font:15px/1.6 Inter,-apple-system,system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);max-width:1440px;margin:0 auto}
+.rail{position:sticky;top:0;height:100vh;padding:var(--s6) var(--s4);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.rail .brand{display:flex;align-items:center;gap:var(--s2);font-weight:700;margin-bottom:var(--s5)}
+.rail a{color:var(--dim);text-decoration:none;font-size:13.5px;padding:7px 10px;border-radius:8px;border-left:2px solid transparent}
+.rail a:hover{color:var(--fg);background:var(--bg2)}.rail a.on{color:var(--fg);background:var(--bg2);border-left-color:var(--beam)}
+.railnote{margin-top:auto;font-size:11.5px;color:var(--faint)}
+main{padding:var(--s7) var(--s7) var(--s8);min-width:0}
+section{padding-top:var(--s7);scroll-margin-top:var(--s4)}
+h1{font-size:44px;line-height:1.1;letter-spacing:-.02em;margin:var(--s2) 0 var(--s4)}
+h2{font-size:24px;letter-spacing:-.01em;margin:0 0 var(--s5);display:flex;gap:var(--s3);align-items:baseline}
+h2 span{font:600 12px/1 ui-monospace,Menlo,monospace;color:var(--beam);border:1px solid var(--line);padding:4px 7px;border-radius:6px}
+.eyebrow{color:var(--beam);font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
+.lede{font-size:18px;color:#c8cfdc;max-width:780px}
+.fine{font-size:12.5px;color:var(--faint)}
+code{font:12px/1.4 ui-monospace,Menlo,monospace;background:#1b2130;color:#cbd5e1;padding:2px 6px;border-radius:5px;word-break:break-word}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);margin:var(--s6) 0 var(--s3)}
+.stat{background:linear-gradient(180deg,#171c27,#121620);border:1px solid var(--line);border-radius:var(--r);padding:var(--s5)}
+.stat b{display:block;font-size:40px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat span{color:var(--dim);font-size:13px}
+.ico{display:inline-grid;place-items:center}.ico svg{width:100%;height:100%;display:block}
+.ico.sm{width:20px;height:20px}.ico.md{width:30px;height:30px}
+.toggle{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:3px;margin-bottom:var(--s4)}
+.toggle button{background:none;border:0;color:var(--dim);font:600 13px Inter,system-ui;padding:7px 16px;border-radius:999px;cursor:pointer}
+.toggle button.on{background:#1f2738;color:var(--fg)}
+.mapwrap{display:grid;grid-template-columns:1fr;gap:var(--s4)}
+.beammap{width:100%;height:auto;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r)}
+.beammap .edge{fill:none;stroke:#2a3244;stroke-width:2}
+.beammap .beam{fill:none;stroke:var(--beam);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:14 220;opacity:.0;animation:flow 2.4s linear infinite}
+.beammap.idle .beam{opacity:.35}
+.beammap .beam.lit{opacity:1;stroke-width:3.5;filter:drop-shadow(0 0 6px var(--beam))}
+.beammap .edge.lit{stroke:#3b4a66}
+@keyframes flow{from{stroke-dashoffset:234}to{stroke-dashoffset:0}}
+.beammap .node rect{fill:#f8fafc;stroke:#2a3244;stroke-width:1.5;transition:stroke .2s}
+.beammap .node text{fill:#c3cad8;font:600 14px Inter,system-ui}
+.beammap .node.lit rect{stroke:var(--beam);stroke-width:3}.beammap .node.lit text{fill:var(--fg)}
+.beammap .node.dim{opacity:.35}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;font-size:13.5px}
+.steps li b{grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#1f2738;color:var(--beam);font-size:12px}
+.steps li code{grid-column:2;font-size:11px;background:none;padding:0;color:var(--faint)}
+.steps li.on,.steps li:hover,.steps li:focus{border-color:var(--beam);outline:none;background:#152030}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s4)}
+.layer{grid-column:span 2;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s5);position:relative;overflow:hidden}
+.layer::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--acc)}
+.layer.l-edge{--acc:var(--edge);grid-column:span 3}.layer.l-app{--acc:var(--app);grid-column:span 3}
+.layer.l-data{--acc:var(--data)}.layer.l-workers{--acc:var(--workers)}.layer.l-external{--acc:var(--external)}
+.layer header{display:flex;align-items:center;gap:var(--s3)}.layer h3{margin:0;font-size:17px;color:var(--acc)}
+.layer .logos{display:flex;gap:6px}.layer .logos .ico{background:#f8fafc;border-radius:6px;padding:3px;width:28px;height:28px}
+.layer .what{color:var(--fg);font-weight:600;margin:var(--s3) 0 var(--s2)}
+.layer .why{color:#c3cad8;font-size:13.5px;margin:4px 0}.layer .why b{color:var(--acc);margin-right:6px}
+.layer .ref{display:inline-block;margin-top:var(--s3);color:var(--faint);background:none;padding:0}
+.decs{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s4)}
+.dec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s4) var(--s5)}
+.dec h4{margin:0 0 var(--s2);font-size:15px;display:flex;gap:10px;align-items:baseline}
+.dec h4 b{color:var(--beam);font:600 12px ui-monospace,Menlo,monospace}
+.dec p{margin:4px 0;font-size:13.5px;color:#c3cad8}.dec .pro,.dec .con{display:inline-block;width:42px;font-size:11px;font-weight:700;text-transform:uppercase}
+.dec .pro{color:var(--ok)}.dec .con{color:var(--warn)}
+.dec a{display:inline-block;margin-top:var(--s2);font-size:12.5px;color:var(--beam)}.dec .noadr{font-size:12px;color:var(--faint)}
+.tabs{position:relative;display:flex;gap:var(--s5);border-bottom:1px solid var(--line);margin-bottom:var(--s4);overflow-x:auto}
+.tabs button{background:none;border:0;color:var(--dim);font:600 14px Inter,system-ui;padding:10px 2px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--fg)}
+.tabs .underline{position:absolute;bottom:-1px;height:2px;background:var(--beam);transition:left .25s,width .25s}
+.diagram{margin:0 0 var(--s4);background:#fbfbfd;color:#111;border-radius:var(--r);padding:var(--s5);overflow:auto;border:1px solid var(--line)}
+.diagram figcaption{font:600 12px Inter,system-ui;color:#475569;margin-bottom:var(--s3);text-transform:uppercase;letter-spacing:.05em}
+.diagram pre.mermaid{margin:0;display:flex;justify-content:center;background:none}
+.src{font-size:12px;color:var(--faint)}.src code{font-size:11px}
+.filters{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center;margin-bottom:var(--s3)}
+.search input{background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:9px 12px;width:260px;font:14px Inter,system-ui}
+.search input:focus{outline:2px solid var(--beam);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--bg2);border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 12px;font:600 12.5px Inter,system-ui;cursor:pointer}
+.chip span{color:var(--faint);margin-left:4px}.chip.on{color:var(--fg);border-color:var(--acc,var(--beam));background:#18202e}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--s3)}
+.svc{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:var(--s4);border-top:3px solid var(--brand);outline:none}
+.svc header{display:flex;gap:var(--s3);align-items:center}.svc .ico.md{background:#f8fafc;border-radius:8px;padding:4px;width:38px;height:38px}
+.svc h4{margin:0;font-size:14.5px}.svc .cat{font-size:11px;color:var(--acc);font-weight:600}
+.svc p{font-size:13px;color:var(--dim);margin:var(--s2) 0}
+.svc dl{display:flex;gap:6px;margin:0;font-size:12px}.svc dt{color:var(--faint)}.svc dd{margin:0;color:#c3cad8}
+.svc .hover{display:none;position:absolute;left:8px;right:8px;top:calc(100% - 6px);z-index:5;background:#0f141d;border:1px solid var(--beam);border-radius:10px;padding:10px 12px;box-shadow:0 12px 30px #0009;font-size:12px}
+.svc .hover b{display:block;color:var(--beam);font-size:11px;margin:4px 0 2px}.svc .hover code{display:inline-block;margin:2px 4px 2px 0}
+.svc:hover .hover,.svc:focus .hover{display:block}
+.svc.retired{opacity:.7;border-style:dashed;border-top-style:solid}.svc.retired h4::after{content:" · RETIRED";color:#f87171;font-size:11px}
+.svc[hidden]{display:none}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:var(--s3) 0}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{color:var(--dim);font-weight:600}
+.tag{font:700 10.5px Inter,system-ui;padding:2px 6px;border-radius:999px}.tag.v{background:#123323;color:var(--ok)}.tag.c{background:#3a2e10;color:var(--warn)}
+ul{padding-left:18px}li{margin:4px 0}
+@media (max-width:1100px){.steps{grid-template-columns:1fr}.bento{grid-template-columns:1fr 1fr}.layer,.layer.l-edge,.layer.l-app{grid-column:span 1}.decs{grid-template-columns:1fr}}
+@media (max-width:1000px){.shell{grid-template-columns:1fr}.rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line)}.railnote{display:none}main{padding:var(--s5)}.stats{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.beammap .beam{animation:none}html{scroll-behavior:auto}}
+.mapwrap[hidden],.tabpanel[hidden]{display:none}
+
+.bento .layer{grid-column:span 2}.bento .layer:nth-child(1),.bento .layer:nth-child(2){grid-column:span 3}
+</style></head><body><div class="shell"><nav class="rail" aria-label="Sections">
+<div class="brand"><i class="ico sm" data-icon="hq:claude"></i> orchestkit</div><a href="#overview">Overview</a><a href="#map">How it works</a><a href="#layers">Layers</a><a href="#decisions">Design decisions</a><a href="#diagrams">Diagrams</a><a href="#services">Services</a><a href="#deploy">Deploy</a><a href="#secrets">Secrets</a><a href="#risks">Risks</a><a href="#docs">Related docs</a>
+<div class="railnote">Generated from docs/ARCHITECTURE.md · read at d21e50af</div></nav><main><section id="overview" class="hero"><p class="eyebrow">yonatangross / orchestkit · docs/ARCHITECTURE.md</p><h1>OrchestKit, a Claude Code plugin library</h1><p class="lede">Skills, agents and hooks built from src/ into one installable plugin, pinned by release tags, plus a public docs site with a read-only MCP endpoint.</p><div class="stats"><div class="stat"><b data-count="115">0</b><span>skills</span></div><div class="stat"><b data-count="36">0</b><span>agents</span></div><div class="stat"><b data-count="163">0</b><span>hooks</span></div><div class="stat"><b data-count="58">0</b><span>CI workflows</span></div></div><p class="fine">Counts from the manifests and file listings at the read sha (git ls-tree, hooks.json), not from a live install. Read at d21e50af. <span id="mstat">rendering diagrams…</span></p></section><section id="map"><h2><span>02</span>How it works</h2><div class="toggle"><button class="on" data-map="hook">Hook path</button><button class="" data-map="release">Release path</button></div><div class="mapwrap" data-show="hook"><svg class="beammap" id="hook" viewBox="0 0 1080 420" role="img" aria-label="Hook path"><path class="edge" data-e="cc-runner" d="M120,210 C195.0,210 195.0,210 270,210"/><path class="beam" data-e="cc-runner" d="M120,210 C195.0,210 195.0,210 270,210"/><path class="edge" data-e="runner-bundle" d="M330,210 C405.0,210 405.0,110 480,110"/><path class="beam" data-e="runner-bundle" d="M330,210 C405.0,210 405.0,110 480,110"/><path class="edge" data-e="bundle-disp" d="M540,110 C605.0,110 605.0,110 670,110"/><path class="beam" data-e="bundle-disp" d="M540,110 C605.0,110 605.0,110 670,110"/><path class="edge" data-e="runner-db" d="M330,210 C405.0,210 405.0,330 480,330"/><path class="beam" data-e="runner-db" d="M330,210 C405.0,210 405.0,330 480,330"/><path class="edge" data-e="disp-jev" d="M730,110 C815.0,110 815.0,70 900,70"/><path class="beam" data-e="disp-jev" d="M730,110 C815.0,110 815.0,70 900,70"/><path class="edge" data-e="runner-hook" d="M330,210 C615.0,210 615.0,230 900,230"/><path class="beam" data-e="runner-hook" d="M330,210 C615.0,210 615.0,230 900,230"/><g class="node" data-n="cc" transform="translate(64,184)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:claude" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">Claude Code</text></g><g class="node" data-n="runner" transform="translate(274,184)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:nodejs" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">run-hook.mjs</text></g><g class="node" data-n="bundle" transform="translate(484,84)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:package" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">event bundle</text></g><g class="node" data-n="disp" transform="translate(674,84)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:typescript" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">dispatcher + hooks</text></g><g class="node" data-n="db" transform="translate(484,304)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:sqlite" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">sessions.db</text></g><g class="node" data-n="jev" transform="translate(904,44)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:mono-ts" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">TypeSafe Jev (opt-in)</text></g><g class="node" data-n="hook" transform="translate(904,204)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:webhook" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">user webhook (opt-in)</text></g></svg><ol class='steps' data-map='hook'><li tabindex='0' data-edges='cc-runner' data-nodes='cc runner'><b>1</b><span>A tool call or session event fires; Claude Code runs node run-hook.mjs with the hook name and JSON on stdin.</span><code>src/hooks/hooks.json:3-20</code></li><li tabindex='0' data-edges='runner-bundle' data-nodes='runner bundle'><b>2</b><span>The runner maps the hook name prefix to one split bundle and imports only that bundle.</span><code>run-hook.mjs:77,405-412</code></li><li tabindex='0' data-edges='runner-bundle' data-nodes='runner'><b>3</b><span>If a security hook&#x27;s bundle is missing or broken, the runner blocks with exit 2 instead of failing open.</span><code>run-hook.mjs:232,477,484-497</code></li><li tabindex='0' data-edges='bundle-disp disp-jev' data-nodes='bundle disp jev'><b>4</b><span>The dispatcher runs its hooks; an opt-in session category cascade may call TypeSafe Jev.</span><code>session-category-provider.ts:49,53</code></li><li tabindex='0' data-edges='runner-db' data-nodes='runner db'><b>5</b><span>Session hooks write the local SQLite registry: running, heartbeat, completed or crashed.</span><code>session-registrar.ts:198,224; heartbeat.ts:47</code></li><li tabindex='0' data-edges='cc-runner runner-hook' data-nodes='cc hook'><b>6</b><span>The runner sanitizes the result and prints JSON; an opt-in webhook can receive batched telemetry.</span><code>run-hook.mjs:927; telemetry-sync.mjs:127-144</code></li></ol></div><div class="mapwrap" data-show="release" hidden><svg class="beammap" id="release" viewBox="0 0 1080 420" role="img" aria-label="Release path"><path class="edge" data-e="src-ci" d="M120,210 C185.0,210 185.0,210 250,210"/><path class="beam" data-e="src-ci" d="M120,210 C185.0,210 185.0,210 250,210"/><path class="edge" data-e="ci-rp" d="M310,210 C370.0,210 370.0,110 430,110"/><path class="beam" data-e="ci-rp" d="M310,210 C370.0,210 370.0,110 430,110"/><path class="edge" data-e="rp-tag" d="M490,110 C550.0,110 550.0,110 610,110"/><path class="beam" data-e="rp-tag" d="M490,110 C550.0,110 550.0,110 610,110"/><path class="edge" data-e="tag-pin" d="M670,110 C740.0,110 740.0,50 810,50"/><path class="beam" data-e="tag-pin" d="M670,110 C740.0,110 740.0,50 810,50"/><path class="edge" data-e="tag-ghcr" d="M670,110 C740.0,110 740.0,170 810,170"/><path class="beam" data-e="tag-ghcr" d="M670,110 C740.0,110 740.0,170 810,170"/><path class="edge" data-e="ci-site" d="M310,210 C460.0,210 460.0,320 610,320"/><path class="beam" data-e="ci-site" d="M310,210 C460.0,210 460.0,320 610,320"/><path class="edge" data-e="pin-user" d="M870,50 C920.0,50 920.0,110 970,110"/><path class="beam" data-e="pin-user" d="M870,50 C920.0,50 920.0,110 970,110"/><g class="node" data-n="src" transform="translate(64,184)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:github" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">src/ + manifests/</text></g><g class="node" data-n="ci" transform="translate(254,184)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:github-actions" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">23 required checks</text></g><g class="node" data-n="rp" transform="translate(434,84)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:mono-rp" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">release-please</text></g><g class="node" data-n="tag" transform="translate(614,84)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:tag" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">tag vX.Y.Z</text></g><g class="node" data-n="pin" transform="translate(814,24)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:package" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">stable pin PR</text></g><g class="node" data-n="ghcr" transform="translate(814,144)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:docker" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">GHCR image</text></g><g class="node" data-n="site" transform="translate(614,294)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:vercel" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">docs site on Vercel</text></g><g class="node" data-n="user" transform="translate(974,84)"><rect width="52" height="52" rx="12"/><g class="ico" data-icon="hq:claude" transform="translate(12,12)"></g><text x="26" y="70" text-anchor="middle">users install ork</text></g></svg><ol class='steps' data-map='release'><li tabindex='0' data-edges='src-ci' data-nodes='src ci'><b>1</b><span>A PR to main runs the build and 23 required checks, including plugin validation and secret scanning.</span><code>gh api .../branches/main/protection</code></li><li tabindex='0' data-edges='ci-rp rp-tag' data-nodes='rp tag'><b>2</b><span>On main, release-please keeps a release PR open; merging it cuts the vX.Y.Z tag.</span><code>release-please.yml:27-37,77</code></li><li tabindex='0' data-edges='rp-tag' data-nodes='tag'><b>3</b><span>release.yml creates the GitHub release with build provenance and syncs plugins/ork to the dist repo.</span><code>release.yml:31,152,293</code></li><li tabindex='0' data-edges='tag-pin tag-ghcr' data-nodes='pin ghcr'><b>4</b><span>It opens the stable pin PR so the ork marketplace entry moves to the new tag, and pushes the docs MCP image.</span><code>release.yml:158-161,176,437</code></li><li tabindex='0' data-edges='pin-user' data-nodes='pin user'><b>5</b><span>Users on the stable entry get the pinned tag; ork-alpha tracks main ahead of it.</span><code>.claude-plugin/marketplace.json:14-40</code></li><li tabindex='0' data-edges='ci-site' data-nodes='site'><b>6</b><span>Separately, Vercel deploys the docs site from main only.</span><code>docs/site/vercel.json:3-7</code></li></ol></div><p class="fine">Hover or click a step to light its path. Vendors are called by the hook runner or the docs site, never by each other. WAHA and Prodigi are not wired here and are not drawn.</p></section><section id="layers"><h2><span>03</span>Layers, and why they are built this way</h2><div class="bento"><article class="layer" style="--acc:#D97757"><header><span class="logos"><i class="ico sm" data-icon="hq:claude"></i><i class="ico sm" data-icon="hq:package"></i></span><h3>Plugin content</h3></header><p class="what">115 skills, 36 agents, 8 workflow scripts</p><p class="why"><b>Why</b> Skills and agents are Markdown with frontmatter, so they ship as plain files and Claude Code loads them without a runtime.</p><p class="why">One manifest lists what ships, and count tests fail a PR that drifts from it.</p><code class="ref">CLAUDE.md:27-28; manifests/ork.json:22-34</code></article><article class="layer" style="--acc:#3C873A"><header><span class="logos"><i class="ico sm" data-icon="hq:nodejs"></i><i class="ico sm" data-icon="hq:typescript"></i></span><h3>Hook runtime</h3></header><p class="what">163 hooks over 32 events, one Node runner, split bundles</p><p class="why"><b>Why</b> Each event loads only its own bundle, which keeps cold start small on every tool call.</p><p class="why">Security hooks fail closed: a missing bundle blocks rather than lets a call through.</p><code class="ref">run-hook.mjs:8,232,477</code></article><article class="layer" style="--acc:#0F80CC"><header><span class="logos"><i class="ico sm" data-icon="hq:sqlite"></i></span><h3>Local state</h3></header><p class="what">sessions.db on node:sqlite, per user</p><p class="why"><b>Why</b> Built-in node:sqlite means no native addon to install or rebuild.</p><p class="why">One file shared by all sessions on the machine lets hooks see siblings and mark crashed ones.</p><code class="ref">session-registry.ts:15-20,112</code></article><article class="layer" style="--acc:#111827"><header><span class="logos"><i class="ico sm" data-icon="hq:nextjs"></i><i class="ico sm" data-icon="hq:vercel"></i><i class="ico sm" data-icon="hq:mcp"></i></span><h3>Docs site</h3></header><p class="what">Next.js 16 + Fumadocs on Vercel, /api/mcp, search</p><p class="why"><b>Why</b> The MCP endpoint is stateless JSON-RPC over the same search the pages use, so agents and readers see one index.</p><p class="why">A stdio image of the same server serves registries and offline clients.</p><code class="ref">docs/site/app/api/mcp/route.ts:8-13; Dockerfile:1-9</code></article><article class="layer" style="--acc:#2088FF"><header><span class="logos"><i class="ico sm" data-icon="hq:github-actions"></i><i class="ico sm" data-icon="hq:mono-rp"></i></span><h3>Release</h3></header><p class="what">release-please, tags, stable pin, dist repo, GHCR</p><p class="why"><b>Why</b> Stable users install a pinned tag, so main can move without breaking them.</p><p class="why">A slim dist repo carries only plugins/ork for directory size limits.</p><code class="ref">release.yml:156-161,277-280</code></article></div></section><section id="decisions"><h2><span>03b</span>Design decisions</h2><div class="decs"><article class="dec"><h4><b>1</b>Edit src/, ship generated plugins/</h4><p><span class="pro">Gain</span>One source of truth with a build that assembles real directories Claude Code can load.</p><p><span class="con">Cost</span>Generated files are committed and can drift; CI and count checks must guard them.</p><span class="noadr">no ADR title matches</span></article><article class="dec"><h4><b>2</b>One Node runner with per-event split bundles</h4><p><span class="pro">Gain</span>Small cold start on every hook call.</p><p><span class="con">Cost</span>A broken bundle silences every hook in it until rebuilt.</p><span class="noadr">no ADR title matches</span></article><article class="dec"><h4><b>3</b>Security hooks fail closed</h4><p><span class="pro">Gain</span>A bad install cannot quietly disable command and write guards.</p><p><span class="con">Cost</span>A broken install blocks tool calls until the user rebuilds or reinstalls.</p><span class="noadr">no ADR title matches</span></article><article class="dec"><h4><b>4</b>Local SQLite registry on built-in node:sqlite</h4><p><span class="pro">Gain</span>No native dependency; sessions on one machine share state.</p><p><span class="con">Cost</span>Needs Node 22.5 or newer; unused tables had to be dropped later.</p><span class="noadr">no ADR title matches</span></article><article class="dec"><h4><b>5</b>Stable pin plus an alpha entry that tracks main</h4><p><span class="pro">Gain</span>Stable users get tagged releases; early users opt in to main.</p><p><span class="con">Cost</span>Two marketplace entries and a pin PR on every release.</p><span class="noadr">no ADR title matches</span></article><article class="dec"><h4><b>6</b>Public docs API with optional identity</h4><p><span class="pro">Gain</span>Anonymous reads are the product; agents can still find auth metadata.</p><p><span class="con">Cost</span>More well-known endpoints to keep correct.</p><a href="https://github.com/yonatangross/orchestkit/blob/main/docs/adr/optional-agent-identity.md" target="_blank" rel="noopener">ADR: Optional agent identity</a></article></div></section><section id="diagrams"><h2><span>04</span>Diagrams</h2><div class="tabs" role="tablist"><button role="tab" data-tab="components" id="tabbtn-components">Components</button><button role="tab" data-tab="3dataflowfromsou" id="tabbtn-3dataflowfromsou">Data flow</button><button role="tab" data-tab="5keyflows" id="tabbtn-5keyflows">Key flows</button><button role="tab" data-tab="6datamodel" id="tabbtn-6datamodel">Data model</button><button role="tab" data-tab="7lifecycles" id="tabbtn-7lifecycles">Lifecycles</button><button role="tab" data-tab="deploy" id="tabbtn-deploy">Deploy</button><i class="underline"></i></div><div class="tabpanel" role="tabpanel" id="tab-components" hidden><figure class="diagram"><figcaption>Component graph</figcaption><pre class="mermaid" id="m1">architecture-beta
+  group gh(hq:github)[GitHub]
+  group dev(hq:terminal)[Developer machine]
+  group vercel(hq:vercel)[Vercel]
+  group ext(hq:cloud)[External APIs]
+
+  service repo(hq:github)[src and manifests] in gh
+  service ci(hq:github-actions)[Actions build and release] in gh
+  service rel(hq:tag)[Releases dist repo GHCR] in gh
+
+  service plugin(hq:package)[ork plugin installed] in dev
+  service cc(hq:claude)[Claude Code session] in dev
+  service runner(hq:nodejs)[run hook and bundles] in dev
+  service db(hq:sqlite)[sessions db SQLite] in dev
+
+  service site(hq:nextjs)[Docs site Nextjs] in vercel
+  service api(hq:mcp)[api mcp search ask] in vercel
+
+  junction outRunner in ext
+  junction outSite in ext
+  junction outSite2 in ext
+  service jev(hq:mono-ts)[TypeSafe Jev] in ext
+  service oai(hq:openai)[OpenAI] in ext
+  service ph(hq:posthog)[PostHog] in ext
+
+  repo:B --&gt; T:ci
+  ci:B --&gt; T:rel
+  rel:R --&gt; L:plugin
+  plugin:T --&gt; B:cc
+  cc:R --&gt; L:runner
+  runner:B --&gt; T:db
+  site:B --&gt; T:api
+
+  runner:R -- L:outRunner
+  outRunner:R --&gt; L:jev
+  api:R -- L:outSite
+  outSite:R --&gt; L:oai
+  outSite:B -- T:outSite2
+  outSite2:R --&gt; L:ph
+</pre></figure><p class="src">On GitHub: docs/architecture/orchestkit-components.svg</p></div><div class="tabpanel" role="tabpanel" id="tab-3dataflowfromsou" hidden><figure class="diagram"><figcaption>Data flow (from source to a running hook)</figcaption><pre class="mermaid" id="m2">flowchart LR
+  src[&quot;src/ skills, agents, hooks&lt;br/&gt;manifests/ork.json&quot;]:::ghc --&gt; build[&quot;npm run build&lt;br/&gt;build-plugins.sh&quot;]:::ghc
+  build --&gt; plug[&quot;plugins/ork&lt;br/&gt;(generated)&quot;]:::ghc
+  plug --&gt; tag[&quot;release tag vX.Y.Z&lt;br/&gt;marketplace pin&quot;]:::ghc
+  tag --&gt; inst[&quot;Claude Code installs ork&quot;]:::anth
+  inst --&gt; ev[&quot;hook event&lt;br/&gt;(PreToolUse, SessionStart, ...)&quot;]:::anth
+  ev --&gt; run[&quot;run-hook.mjs&lt;br/&gt;event bundle&quot;]:::nodejs
+  run --&gt; out[&quot;JSON decision&lt;br/&gt;on stdout&quot;]:::anth
+  run --&gt; db[(&quot;sessions.db&lt;br/&gt;SQLite&quot;)]:::sqlite
+  run -. &quot;opt-in&quot; .-&gt; jev[&quot;TypeSafe Jev&quot;]:::ext
+  run -. &quot;opt-in webhook&quot; .-&gt; wh[&quot;user webhook&quot;]:::ext
+  classDef ghc fill:#24292F,stroke:#0D1117,color:#FFFFFF
+  classDef anth fill:#D97757,stroke:#B4532A,color:#FFFFFF
+  classDef nodejs fill:#3C873A,stroke:#2D6A2B,color:#FFFFFF
+  classDef sqlite fill:#0F80CC,stroke:#0B5E96,color:#FFFFFF
+  classDef ext fill:#E2E8F0,stroke:#475569,color:#0F172A
+</pre></figure><p class="src">Legend: dark GitHub build side, orange Claude Code, green Node hook runner, blue SQLite, grey opt-in outside calls. Brand colors are approximate (<span class="tag c">CLAIMED</span>). Source: <code>package.json:10</code>, <code>scripts/build-plugins.sh:15-17</code>, <code>.claude-plugin/marketplace.json:14-30</code>, <code>src/hooks/hooks.json:3-20</code>, <code>src/hooks/bin/run-hook.mjs:77,405,927</code>, <code>src/hooks/src/lib/session-registry.ts:112</code>, <code>src/hooks/src/lib/session-category-provider.ts:49,53</code>, <code>src/hooks/bin/telemetry-sync.mjs:127-144</code>.</p></div><div class="tabpanel" role="tabpanel" id="tab-5keyflows" hidden><figure class="diagram"><figcaption>5.1 A PreToolUse hook on a Bash call</figcaption><pre class="mermaid" id="m3">sequenceDiagram
+  autonumber
+  box rgb(253,236,228) Claude Code
+    participant C as Claude Code
+  end
+  box rgb(220,237,220) Node on the user machine
+    participant R as run-hook.mjs
+    participant B as pretool bundle
+    participant D as sync-bash-dispatcher
+  end
+  box rgb(219,234,254) Local state
+    participant S as sessions.db and log files
+  end
+  C-&gt;&gt;R: node run-hook.mjs pretool/bash/sync-bash-dispatcher, JSON on stdin
+  R-&gt;&gt;R: getBundleName() maps the prefix to a bundle
+  R-&gt;&gt;B: import the split bundle from dist
+  alt bundle missing for a security hook
+    R--&gt;&gt;C: exit 2, block (fail closed)
+  end
+  B-&gt;&gt;D: run the dispatcher with the parsed input
+  D-&gt;&gt;S: timing and analytics rows
+  D--&gt;&gt;R: decision object
+  R-&gt;&gt;R: sanitizeOutput(result)
+  R--&gt;&gt;C: JSON on stdout (allow, ask or deny)
+</pre></figure><figure class="diagram"><figcaption>5.2 Session registration and heartbeat</figcaption><pre class="mermaid" id="m4">sequenceDiagram
+  autonumber
+  box rgb(253,236,228) Claude Code
+    participant C as Claude Code
+  end
+  box rgb(220,237,220) Hooks
+    participant G as session-registrar
+    participant H as posttool heartbeat
+    participant F as session-finalizer
+  end
+  box rgb(219,234,254) SQLite
+    participant DB as sessions.db
+  end
+  C-&gt;&gt;G: SessionStart
+  G-&gt;&gt;DB: UPDATE running rows with stale heartbeat to crashed
+  G-&gt;&gt;DB: upsert this sid as running
+  loop each tool call
+    C-&gt;&gt;H: PostToolUse
+    H-&gt;&gt;DB: UPDATE last_heartbeat
+  end
+  C-&gt;&gt;F: SessionEnd
+  F-&gt;&gt;DB: SET status completed, ended_at
+</pre></figure><figure class="diagram"><figcaption>5.3 An agent searches the docs over MCP</figcaption><pre class="mermaid" id="m5">sequenceDiagram
+  autonumber
+  box rgb(240,240,240) MCP client
+    participant A as Agent
+  end
+  box rgb(229,231,235) Vercel docs site
+    participant M as POST /api/mcp
+    participant Q as searchDocs()
+    participant K as getDocMarkdown()
+    participant T as reportServerEvents()
+  end
+  A-&gt;&gt;M: JSON-RPC initialize, tools/list
+  M--&gt;&gt;A: tools and a ui:// search results resource
+  A-&gt;&gt;M: tools/call search
+  M-&gt;&gt;Q: query against the generated search index
+  Q--&gt;&gt;M: hits
+  M-&gt;&gt;T: telemetry events
+  M--&gt;&gt;A: content plus structuredContent
+  A-&gt;&gt;M: tools/call fetch page
+  M-&gt;&gt;K: Markdown for the path
+  K--&gt;&gt;A: Markdown text
+</pre></figure><p class="src">Source: <code>src/hooks/hooks.json:3-20</code>, <code>src/hooks/bin/run-hook.mjs:77,232,405-412,477,484-497,927</code>. Source: <code>src/hooks/src/lifecycle/session-registrar.ts:10-16,198-199,224-240</code>, <code>src/hooks/src/posttool/heartbeat.ts:47</code>, <code>src/hooks/src/lifecycle/session-finalizer.ts:7,35</code>. Source: <code>docs/site/app/api/mcp/route.ts:8-13,20-33,58,87,160,213</code>, <code>docs/site/lib/doc-search.ts:21</code>.</p></div><div class="tabpanel" role="tabpanel" id="tab-6datamodel" hidden><figure class="diagram"><figcaption>Data model</figcaption><pre class="mermaid" id="m6">erDiagram
+  sessions ||--o{ sessions : &quot;parent_sid&quot;
+  sessions ||--o{ skill_invocation : records
+  sessions {
+    text sid PK
+    int pid
+    text repo_hash
+    text branch
+    text parent_sid FK
+    text status
+    int last_heartbeat
+    text messaging_socket
+  }
+  skill_invocation {
+    text session_id FK
+    text skill
+    int invoked_at
+  }
+</pre></figure><p class="src">Source: <code>src/hooks/src/lib/sqlite-migrations/001-initial.sql</code> (sessions), <code>002-skill-analytics.sql</code> (skill_invocation), <code>003-routing-edges.sql</code> (view <code>routing_edge</code> over skill_invocation, not a table), <code>004-messaging-socket.sql</code>, <code>005-drop-unused-tables.sql</code> (drops locks, settings_overrides, worktree_links). The ER uses theme colors only, so it renders on GitHub.</p></div><div class="tabpanel" role="tabpanel" id="tab-7lifecycles" hidden><figure class="diagram"><figcaption>7.1 Session row status</figcaption><pre class="mermaid" id="m7">stateDiagram-v2
+  [*] --&gt; running: SessionStart insert
+  running --&gt; completed: SessionEnd
+  running --&gt; crashed: heartbeat older than 24 h at the next SessionStart
+  completed --&gt; running: same sid resumes
+  crashed --&gt; running: same sid resumes
+  classDef live fill:#DCFCE7,stroke:#16A34A,color:#14532D
+  classDef done fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
+  classDef gone fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D
+  class running live
+  class completed done
+  class crashed gone
+</pre></figure><p class="src">Source: there is no enum; the three values are string literals in SQL. States <span class="tag v">VERIFIED</span> <code>session-registrar.ts:198-199,230,240</code>, <code>session-finalizer.ts:35</code>. Edges <span class="tag v">VERIFIED</span> from those statements: the insert is <code>ON CONFLICT(sid) DO UPDATE SET status = 'running'</code>, so a resumed sid goes back to running (<code>session-registrar.ts:233-240</code>). Legend: green live, blue ended cleanly, red crashed.</p></div><div class="tabpanel" role="tabpanel" id="tab-deploy" hidden><figure class="diagram"><figcaption>Deploy pipeline</figcaption><pre class="mermaid" id="m8">flowchart TB
+  feat@{ icon: &quot;hq:branch&quot;, form: &quot;square&quot;, label: &quot;feature branch&quot;, pos: &quot;b&quot;, h: 48 }
+  pr@{ icon: &quot;hq:github&quot;, form: &quot;square&quot;, label: &quot;PR to main&quot;, pos: &quot;b&quot;, h: 48 }
+  gmain{{&quot;main required: 23 checks&lt;br/&gt;tests, security, secret scan,&lt;br/&gt;plugin validate, docs build,&lt;br/&gt;standards gate&quot;}}
+  main@{ icon: &quot;hq:merge&quot;, form: &quot;square&quot;, label: &quot;main&quot;, pos: &quot;b&quot;, h: 48 }
+  rp@{ icon: &quot;hq:mono-rp&quot;, form: &quot;square&quot;, label: &quot;release-please PR&quot;, pos: &quot;b&quot;, h: 48 }
+  tag@{ icon: &quot;hq:tag&quot;, form: &quot;square&quot;, label: &quot;tag vX.Y.Z&quot;, pos: &quot;b&quot;, h: 48 }
+  ghrel@{ icon: &quot;hq:github-actions&quot;, form: &quot;square&quot;, label: &quot;release.yml: GitHub release, provenance&quot;, pos: &quot;b&quot;, h: 48 }
+  pin@{ icon: &quot;hq:package&quot;, form: &quot;square&quot;, label: &quot;stable pin PR (marketplace ref)&quot;, pos: &quot;b&quot;, h: 48 }
+  dist@{ icon: &quot;hq:github&quot;, form: &quot;square&quot;, label: &quot;dist repo sync&quot;, pos: &quot;b&quot;, h: 48 }
+  img@{ icon: &quot;hq:docker&quot;, form: &quot;square&quot;, label: &quot;GHCR docs MCP image&quot;, pos: &quot;b&quot;, h: 48 }
+  mreg@{ icon: &quot;hq:mono-mr&quot;, form: &quot;square&quot;, label: &quot;MCP registry publish&quot;, pos: &quot;b&quot;, h: 48 }
+  site@{ icon: &quot;hq:vercel&quot;, form: &quot;square&quot;, label: &quot;Vercel docs site (main only)&quot;, pos: &quot;b&quot;, h: 48 }
+  pkgtag@{ icon: &quot;hq:tag&quot;, form: &quot;square&quot;, label: &quot;package tags&quot;, pos: &quot;b&quot;, h: 48 }
+  npm@{ icon: &quot;hq:npm&quot;, form: &quot;square&quot;, label: &quot;npm (OIDC provenance)&quot;, pos: &quot;b&quot;, h: 48 }
+  pypi@{ icon: &quot;hq:pypi&quot;, form: &quot;square&quot;, label: &quot;TestPyPI then PyPI&quot;, pos: &quot;b&quot;, h: 48 }
+
+  feat --&gt; pr --&gt; gmain --&gt; main
+  main --&gt; rp --&gt;|merge| tag --&gt; ghrel
+  ghrel --&gt; pin
+  ghrel --&gt; dist
+  ghrel --&gt; img --&gt; mreg
+  main --&gt;|&quot;git push&quot;| site
+  main --&gt; pkgtag
+  pkgtag --&gt; npm
+  pkgtag --&gt; pypi
+
+  classDef gate fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+  class gmain gate
+</pre></figure><p class="src">On GitHub: docs/architecture/orchestkit-deploy.svg</p></div></section><section id="services"><h2><span>05</span>Services inventory</h2><div class="filters"><label class="search"><input id="q" type="search" placeholder="Search 28 services" aria-label="Search services"></label><div class="chips"><button class="chip on" data-cat="all">All <span>28</span></button><button class="chip" data-cat="AI" style="--acc:#a78bfa">AI <span>4</span></button><button class="chip" data-cat="Data" style="--acc:#60a5fa">Data <span>1</span></button><button class="chip" data-cat="Content" style="--acc:#f472b6">Content <span>2</span></button><button class="chip" data-cat="Infra" style="--acc:#fb923c">Infra <span>8</span></button><button class="chip" data-cat="Observability" style="--acc:#f87171">Observability <span>3</span></button><button class="chip" data-cat="CI" style="--acc:#22d3ee">CI <span>7</span></button><button class="chip" data-cat="Tooling" style="--acc:#94a3b8">Tooling <span>3</span></button></div></div><p class="fine">28 live, 0 retired. Hover or focus a card for where it is wired.</p><div class="grid"><article class="svc" data-cat="AI" data-q="claude code the host the plugin runs in; also claude -p in ci triage ai" style="--brand:#D97757;--acc:#a78bfa" tabindex="0"><header><i class="ico md" data-icon="hq:claude"></i><div><h4>Claude Code</h4><span class="cat">AI</span></div></header><p>The host the plugin runs in; also claude -p in CI triage</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>src/hooks/hooks.json:3-20</code><code>.github/workflows/ci-sentinel.yml:78</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="AI" data-q="anthropic api publishing skills through the skills api ai" style="--brand:#D97757;--acc:#a78bfa" tabindex="0"><header><i class="ico md" data-icon="hq:anthropic"></i><div><h4>Anthropic API</h4><span class="cat">AI</span></div></header><p>Publishing skills through the Skills API</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>scripts/publish-skills.mjs:79,233</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="AI" data-q="typesafe (jev) opt-in session category cascade in hooks; opt-in rerank on the docs site ai" style="--brand:#7C3AED;--acc:#a78bfa" tabindex="0"><header><i class="ico md" data-icon="hq:mono-ts"></i><div><h4>TypeSafe (Jev)</h4><span class="cat">AI</span></div></header><p>Opt-in session category cascade in hooks; opt-in rerank on the docs site</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>src/hooks/src/lib/session-category-provider.ts:49,53</code><code>docs/site/lib/jev-rerank.ts:67</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="AI" data-q="openai api search autocomplete on the docs site ai" style="--brand:#10A37F;--acc:#a78bfa" tabindex="0"><header><i class="ico md" data-icon="hq:openai"></i><div><h4>OpenAI API</h4><span class="cat">AI</span></div></header><p>Search autocomplete on the docs site</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/lib/search-autocomplete.ts:221,239</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Data" data-q="sqlite (node:sqlite) local session registry shared by all sessions on one machine data" style="--brand:#0F80CC;--acc:#60a5fa" tabindex="0"><header><i class="ico md" data-icon="hq:sqlite"></i><div><h4>SQLite (node:sqlite)</h4><span class="cat">Data</span></div></header><p>Local session registry shared by all sessions on one machine</p><dl><dt>Plan</dt><dd>built in to Node</dd></dl><div class="hover"><b>Wired in</b><code>src/hooks/src/lib/session-registry.ts:52,112</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Content" data-q="fumadocs + next.js the docs site, mdx content, search index content" style="--brand:#000000;--acc:#f472b6" tabindex="0"><header><i class="ico md" data-icon="hq:nextjs"></i><div><h4>Fumadocs + Next.js</h4><span class="cat">Content</span></div></header><p>The docs site, MDX content, search index</p><dl><dt>Plan</dt><dd>open source</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/package.json</code><code>docs/site/source.config.ts</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Content" data-q="indexnow daily url submission for search engines content" style="--brand:#2563EB;--acc:#f472b6" tabindex="0"><header><i class="ico md" data-icon="hq:mono-in"></i><div><h4>IndexNow</h4><span class="cat">Content</span></div></header><p>Daily URL submission for search engines</p><dl><dt>Plan</dt><dd>free</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/app/api/indexnow/route.ts:19</code><code>docs/site/vercel.json:14</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="vercel hosts the docs site, deploys main only, runs the indexnow cron infra" style="--brand:#000000;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:vercel"></i><div><h4>Vercel</h4><span class="cat">Infra</span></div></header><p>Hosts the docs site, deploys main only, runs the IndexNow cron</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/vercel.json:3-14</code><code>vercel.json:3</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="github source, releases, the marketplace pin, the dist repo mirror infra" style="--brand:#181717;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:github"></i><div><h4>GitHub</h4><span class="cat">Infra</span></div></header><p>Source, releases, the marketplace pin, the dist repo mirror</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>.claude-plugin/marketplace.json:14-30</code><code>.github/workflows/release.yml:122,293</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="ghcr docs mcp stdio image, multi-arch infra" style="--brand:#2496ED;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:docker"></i><div><h4>GHCR</h4><span class="cat">Infra</span></div></header><p>Docs MCP stdio image, multi-arch</p><dl><dt>Plan</dt><dd>included with GitHub</dd></dl><div class="hover"><b>Wired in</b><code>Dockerfile:18-31</code><code>.github/workflows/release.yml:437-457</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="npm registry @orchestkit/hook-contract with provenance infra" style="--brand:#CB3837;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:npm"></i><div><h4>npm registry</h4><span class="cat">Infra</span></div></header><p>@orchestkit/hook-contract with provenance</p><dl><dt>Plan</dt><dd>free, public</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/publish-hook-contract-npm.yml:225,270</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="pypi and testpypi orchestkit and orchestkit-hook-contract python packages infra" style="--brand:#3775A9;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:pypi"></i><div><h4>PyPI and TestPyPI</h4><span class="cat">Infra</span></div></header><p>orchestkit and orchestkit-hook-contract Python packages</p><dl><dt>Plan</dt><dd>free, public</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/publish-orchestkit-py.yml:100-135</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="mcp registry lists the docs mcp server (remote and oci) infra" style="--brand:#0F172A;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:mono-mr"></i><div><h4>MCP registry</h4><span class="cat">Infra</span></div></header><p>Lists the docs MCP server (remote and OCI)</p><dl><dt>Plan</dt><dd>free</dd></dl><div class="hover"><b>Wired in</b><code>server.json:1-27</code><code>.github/workflows/release.yml:492</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="go module proxy go client sdk module infra" style="--brand:#00ADD8;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:go"></i><div><h4>Go module proxy</h4><span class="cat">Infra</span></div></header><p>Go client SDK module</p><dl><dt>Plan</dt><dd>free</dd></dl><div class="hover"><b>Wired in</b><code>sdk/go.mod:1</code><code>.github/workflows/go-sdk.yml</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Infra" data-q="docker builds and runs the docs mcp image infra" style="--brand:#2496ED;--acc:#fb923c" tabindex="0"><header><i class="ico md" data-icon="hq:docker"></i><div><h4>Docker</h4><span class="cat">Infra</span></div></header><p>Builds and runs the docs MCP image</p><dl><dt>Plan</dt><dd>n/a</dd></dl><div class="hover"><b>Wired in</b><code>Dockerfile:18,26</code><code>.github/workflows/docker-smoke.yml</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Observability" data-q="posthog mirror of docs site product events through a same-origin proxy observability" style="--brand:#F9BD2B;--acc:#f87171" tabindex="0"><header><i class="ico md" data-icon="hq:posthog"></i><div><h4>PostHog</h4><span class="cat">Observability</span></div></header><p>Mirror of docs site product events through a same-origin proxy</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/instrumentation-client.ts:1-20</code><code>docs/site/lib/posthog-mirror.ts:21</code><code>docs/site/next.config.mjs:40-50</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Observability" data-q="first-party analytics docs site analytics, the system of record observability" style="--brand:#0F766E;--acc:#f87171" tabindex="0"><header><i class="ico md" data-icon="hq:mono-ap"></i><div><h4>First-party analytics</h4><span class="cat">Observability</span></div></header><p>Docs site analytics, the system of record</p><dl><dt>Plan</dt><dd>n/a</dd></dl><div class="hover"><b>Wired in</b><code>docs/site/app/api/analytics/route.ts:1</code><code>docs/site/app/layout.tsx:121</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Observability" data-q="user webhook opt-in hook telemetry batch upload to a url the user sets observability" style="--brand:#C73A63;--acc:#f87171" tabindex="0"><header><i class="ico md" data-icon="hq:webhook"></i><div><h4>User webhook</h4><span class="cat">Observability</span></div></header><p>Opt-in hook telemetry batch upload to a URL the user sets</p><dl><dt>Plan</dt><dd>user-owned</dd></dl><div class="hover"><b>Wired in</b><code>manifests/ork.json:36,42</code><code>src/hooks/bin/telemetry-sync.mjs:127-144</code><b>Owner</b><span>user (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="github actions 58 workflows: tests, validation, release, publish ci" style="--brand:#2088FF;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:github-actions"></i><div><h4>GitHub Actions</h4><span class="cat">CI</span></div></header><p>58 workflows: tests, validation, release, publish</p><dl><dt>Plan</dt><dd>unknown</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/ (58 files)</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="release-please release prs and version tags from conventional commits ci" style="--brand:#4285F4;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:mono-rp"></i><div><h4>release-please</h4><span class="cat">CI</span></div></header><p>Release PRs and version tags from conventional commits</p><dl><dt>Plan</dt><dd>open source</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/release-please.yml:77</code><code>.release-please-manifest.json</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="gitleaks secret scanning in ci ci" style="--brand:#E5484D;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:mono-gl"></i><div><h4>gitleaks</h4><span class="cat">CI</span></div></header><p>Secret scanning in CI</p><dl><dt>Plan</dt><dd>open source</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/ci.yml:419-421</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="codeql code scanning ci" style="--brand:#24292F;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:mono-cq"></i><div><h4>CodeQL</h4><span class="cat">CI</span></div></header><p>Code scanning</p><dl><dt>Plan</dt><dd>free for public repos</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/codeql.yml:33</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="openssf scorecard supply chain score ci" style="--brand:#1F6FEB;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:mono-sc"></i><div><h4>OpenSSF Scorecard</h4><span class="cat">CI</span></div></header><p>Supply chain score</p><dl><dt>Plan</dt><dd>free</dd></dl><div class="hover"><b>Wired in</b><code>.github/workflows/scorecard.yml:34</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="zizmor workflow security lint ci" style="--brand:#475569;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:mono-zz"></i><div><h4>zizmor</h4><span class="cat">CI</span></div></header><p>Workflow security lint</p><dl><dt>Plan</dt><dd>open source</dd></dl><div class="hover"><b>Wired in</b><code>.github/zizmor.yml</code><code>.github/workflows/validate-workflows.yml</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="CI" data-q="dependabot dependency bumps, auto-merge for safe ones ci" style="--brand:#025E8C;--acc:#22d3ee" tabindex="0"><header><i class="ico md" data-icon="hq:dependabot"></i><div><h4>Dependabot</h4><span class="cat">CI</span></div></header><p>Dependency bumps, auto-merge for safe ones</p><dl><dt>Plan</dt><dd>free</dd></dl><div class="hover"><b>Wired in</b><code>.github/dependabot.yml</code><code>.github/workflows/dependabot-automerge.yml</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Tooling" data-q="codex plugin export plugins/ork-codex built from src/codex/ork-codex tooling" style="--brand:#10A37F;--acc:#94a3b8" tabindex="0"><header><i class="ico md" data-icon="hq:openai"></i><div><h4>Codex plugin export</h4><span class="cat">Tooling</span></div></header><p>plugins/ork-codex built from src/codex/ork-codex</p><dl><dt>Plan</dt><dd>n/a</dd></dl><div class="hover"><b>Wired in</b><code>scripts/build-codex-plugin.sh:6-7</code><code>manifests/codex/ork-codex.json</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Tooling" data-q="cursor export command wrappers and rules for cursor tooling" style="--brand:#000000;--acc:#94a3b8" tabindex="0"><header><i class="ico md" data-icon="hq:cursor"></i><div><h4>Cursor export</h4><span class="cat">Tooling</span></div></header><p>Command wrappers and rules for Cursor</p><dl><dt>Plan</dt><dd>n/a</dd></dl><div class="hover"><b>Wired in</b><code>scripts/_cursor-export.py:2-4</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article><article class="svc" data-cat="Tooling" data-q="gemini skills export chosen skills zipped for the gemini app tooling" style="--brand:#4285F4;--acc:#94a3b8" tabindex="0"><header><i class="ico md" data-icon="hq:google-gemini"></i><div><h4>Gemini skills export</h4><span class="cat">Tooling</span></div></header><p>Chosen skills zipped for the Gemini app</p><dl><dt>Plan</dt><dd>n/a</dd></dl><div class="hover"><b>Wired in</b><code>scripts/export-gemini-skills.mjs:2</code><b>Owner</b><span>maintainer (CLAIMED)</span></div></article></div><p class="fine" id="svccount"></p></section><section id="deploy"><h2><span>06</span>Deploy</h2><ul><li>Required checks on <code>main</code>: 23 contexts, including Build, Security Tests, Secret Scanning, TypeScript Tests (4 shards), CC Plugin Validate, Manifests and Schemas, Docs Site Build and the standards gate. <span class="tag v">VERIFIED</span> <code>gh api repos/yonatangross/orchestkit/branches/main/protection</code> on 2026-11-06. Required approving reviews: 0.</li><li>What carries a release: release-please opens a release PR on <code>main</code>; merging it tags <code>vX.Y.Z</code>; <code>release.yml</code> creates the GitHub release with build provenance, opens the stable pin PR for the <code>ork</code> marketplace entry, syncs <code>plugins/ork</code> to the dist repo, pushes the docs MCP image to GHCR and publishes to the MCP registry. <span class="tag v">VERIFIED</span> <code>release.yml:31,152,158-161,176,277-298,437,492</code>.</li><li>The <code>ork-alpha</code> marketplace entry tracks <code>main</code> ahead of the stable pin. <span class="tag v">VERIFIED</span> <code>.claude-plugin/marketplace.json:31-40</code>.</li><li>Docs site: Vercel git deploys <code>main</code> only. <span class="tag v">VERIFIED</span> <code>docs/site/vercel.json:3-7</code>, root <code>vercel.json:3</code>.</li><li>Packages publish on their own tags (<code>hook-contract-npm/v*</code>, <code>hook-contract-py/v*</code>, <code>orchestkit-py/v*</code>). <span class="tag v">VERIFIED</span> workflow headers.</li><li>Rollback: <span class="tag c">CLAIMED</span>, not read. No rollback runbook was found; the stable pin PR is the lever a user sees, since the <code>ork</code> entry pins a tag.</li></ul><p class="fine">The pipeline diagram is in the Diagrams tabs.</p></section><section id="secrets"><h2><span>07</span>Secrets</h2><p>Names only. Values never appear here. Secrets live in GitHub Actions secrets and, for the docs site, in the Vercel project environment; a secret manager holds the source copies (<span class="tag c">CLAIMED</span>).</p><table><thead><tr><th>Variable</th><th>Reference</th><th>Used by</th><th>Tag</th></tr></thead><tbody><tr><td>RELEASE_BOT_APP_ID, RELEASE_BOT_PRIVATE_KEY</td><td>GitHub Actions secret</td><td>release, dist sync, pin PR, autobuild</td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/claude-release-watch.yml:449-450</code>, <code>release.yml:337-345</code></td></tr><tr><td>CLAUDE_CODE_OAUTH_TOKEN</td><td>GitHub Actions secret</td><td><code>claude -p</code> in CI triage and sentinel</td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/ci-sentinel.yml:78-83</code></td></tr><tr><td>ANTHROPIC_API_KEY</td><td>GitHub Actions secret, local env</td><td>ultrareview workflow, <code>publish-skills.mjs</code></td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/ultrareview.yml:74</code>, <code>scripts/publish-skills.mjs:233</code></td></tr><tr><td>ORK_EVALS_API_KEY</td><td>GitHub Actions secret</td><td>plugin eval score</td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/plugin-eval-score.yml:46</code></td></tr><tr><td>NPM_TOKEN</td><td>GitHub Actions secret</td><td>docs workflow</td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/docs.yml:232</code></td></tr><tr><td>YG_PYPI_INDEX_URL</td><td>GitHub Actions secret</td><td>memory staleness job (private package index)</td><td><span class="tag v">VERIFIED</span> <code>.github/workflows/memory-staleness.yml:61</code></td></tr><tr><td>TYPESAFE_API_KEY</td><td>Vercel env</td><td>docs site Jev rerank</td><td><span class="tag v">VERIFIED</span> <code>docs/site/lib/jev-rerank.ts:67</code></td></tr><tr><td>OPENAI_API_KEY</td><td>Vercel env</td><td>docs site autocomplete</td><td><span class="tag v">VERIFIED</span> <code>docs/site/lib/search-autocomplete.ts:239</code></td></tr><tr><td>ORK_TYPESAFE_API_KEY</td><td>user env</td><td>opt-in Jev in hooks</td><td><span class="tag v">VERIFIED</span> <code>src/hooks/src/lib/jev-key.ts:2</code></td></tr><tr><td>CLAUDE_PLUGIN_OPTION_HOOKTOKEN</td><td>plugin user config</td><td>opt-in telemetry webhook</td><td><span class="tag v">VERIFIED</span> <code>src/hooks/bin/telemetry-sync.mjs:128</code>, <code>manifests/ork.json:42</code></td></tr></tbody></table><p>npm and PyPI publishing use OIDC trusted publishing, not a stored token. <span class="tag v">VERIFIED</span> <code>publish-hook-contract-npm.yml:23,270</code>, <code>publish-orchestkit-py.yml:115,135</code>. Source of truth for the CI list: <code>git grep secrets\. .github/workflows</code> (11 names incl. GITHUB_TOKEN; HQ_API_URL and HQ_API_TOKEN appear only in a commented-out step in <code>claude-health.yml:190-200</code>).</p></section><section id="risks"><h2><span>08</span>Owners and risks</h2><ul><li>Owners in the repo: <code>* @yonatangross</code>, with <code>.github/</code>, <code>src/hooks/</code>, <code>manifests/</code> and <code>CLAUDE.md</code> called out. <span class="tag v">VERIFIED</span> <code>.github/CODEOWNERS:5-11</code>.</li><li>Owners outside the repo: the maintainer. <span class="tag c">CLAIMED</span>.</li><li>Open risks:</li><li><strong>CLAUDE.md says <code>main</code> and <code>dev</code> are protected (<code>CLAUDE.md:62</code>), but <code>dev</code> does not exist.</strong> <code>gh api .../branches/dev/protection</code> returns 404 "Branch not found" (<span class="tag v">VERIFIED</span> 2026-11-06). Workflows still list <code>dev</code> in their branch filters (<code>ci.yml:5,7</code>, <code>docs.yml:8,32</code>). Contributors may target a branch that is not there.</li><li><strong>Generated <code>plugins/</code> is committed.</strong> A source edit without <code>npm run build</code> drifts from what users install; CI guards it (<code>plugin-validation.yml</code>, <code>counts-validation</code>), and <code>hooks/dist/</code> is release-owned. <span class="tag v">VERIFIED</span> <code>CLAUDE.md:32,36</code>.</li><li><strong>A missing hook bundle blocks.</strong> Security hooks fail closed when their bundle cannot load (<code>run-hook.mjs:232,477,484-497</code>). Safe by design, but a broken install stops tool calls until rebuilt.</li><li><strong>Counts are stamped in many places.</strong> <code>manifests/ork.json:4</code> and <code>marketplace.json</code> say 36 agents and 163 hooks; <code>marketplace.json</code> description still says 43 commands. A count change needs <code>bin/validate-counts.sh</code>. <span class="tag v">VERIFIED</span> <code>CLAUDE.md:58</code>, <code>.claude-plugin/marketplace.json:5</code>.</li><li><strong><code>docs/coordination-architecture.md</code> describes tables dropped in migration 005</strong> (locks, settings_overrides, worktree_links; 4 matching lines). Read it as history for those tables.</li><li><strong>WAHA (retired): leftover only as teaching content.</strong> 73 matching lines in 21 files, all in the <code>api-design</code> skill (source and its generated copies, for example <code>src/skills/api-design/references/whatsapp-waha.md</code>, <code>src/skills/api-design/rules/messaging-integrations.md</code>) and docs site generated data. Nothing wires it. <span class="tag v">VERIFIED</span> <code>git grep -n -i -I waha d21e50af2 | wc -l</code>. Prodigi: 0 matches.</li><li>What this doc did not check: the docs site <code>/api/ask</code> model path, <code>/api/jobs</code>, the well-known routes, mods internals, the Codex runtime, the Go SDK API surface, eval workflows, whether the MCP registry entry is live, Vercel project settings, and any runtime state.</li></ul></section><section id="docs"><h2><span>09</span>Related docs</h2><table><thead><tr><th>Doc</th><th>What it covers</th><th>State</th></tr></thead><tbody><tr><td><code>CLAUDE.md</code>, <code>AGENTS.md</code></td><td>Repo map, commands, adding components</td><td>current (see risk 1)</td></tr><tr><td><code>src/hooks/README.md</code></td><td>Hook architecture and registry changelog</td><td>not re-read</td></tr><tr><td><code>docs/coordination-architecture.md</code></td><td>SQLite coordination layer (M168)</td><td>partly stale, see risk 5</td></tr><tr><td><code>docs/adr/optional-agent-identity.md</code></td><td>OAuth discovery and the 401 hint on the docs API</td><td>accepted 2026-09-14</td></tr><tr><td><code>docs/adr/caching-strategy.md</code>, <code>docs/adr/database-selection.md</code></td><td>Example ADRs, not about this repo's own system</td><td>proposed, out of scope</td></tr><tr><td><code>src/skills/CONTRIBUTING-SKILLS.md</code>, <code>CONTRIBUTING.md</code></td><td>Skill authoring standards, release cadence</td><td>not re-read</td></tr><tr><td><code>.github/workflows/README.md</code></td><td>Workflow index</td><td>not re-read</td></tr></tbody></table></section></main></div>
+<script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@12.3.0/dist/mermaid.esm.min.mjs";
+// Root cause of "diagrams broken" (2026-11-06): initialize ran AFTER an await, so on a slow cold load mermaid's
+// default startOnLoad rendered every block, including hidden tabs at 0x0, and later runs skipped them as processed.
+// Disable auto-start before any await, and keep each block's source so a tab always renders from source when shown.
+mermaid.initialize({ startOnLoad: false, theme: "default", securityLevel: "strict", flowchart: { htmlLabels: true, useMaxWidth: false } });
+document.querySelectorAll("pre.mermaid").forEach(p => { p.dataset.src = p.textContent; });
+const pack = await fetch("hq-icons.json").then(r => r.json());
+mermaid.registerIconPacks([{ name: "hq", icons: pack }]);
+
+// icons: every [data-icon] gets an inline svg from the hq pack; a miss is a console error (the check counts it)
+const missing = [];
+document.querySelectorAll("[data-icon]").forEach(el => {
+  const key = el.dataset.icon.split(":")[1];
+  const ic = pack.icons[key];
+  if (!ic) { missing.push(key); return; }
+  const vb = `${ic.left || 0} ${ic.top || 0} ${ic.width || pack.width} ${ic.height || pack.height}`;
+  const svg = `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" width="28" height="28">${ic.body}</svg>`;
+  if (el.tagName.toLowerCase() === "g") el.innerHTML = svg; else el.innerHTML = svg;
+});
+if (missing.length) console.error("missing icons", missing);
+document.body.dataset.iconsMissing = missing.length;
+
+// number ticker
+const tick = el => { const t = +el.dataset.count, t0 = performance.now(), d = 1100;
+  const step = n => { const p = Math.min(1, (n - t0) / d); el.textContent = Math.round(t * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step); };
+document.querySelectorAll("[data-count]").forEach(tick);
+
+// beam maps: idle shows all beams faint; a step lights its edges and nodes
+document.querySelectorAll(".steps").forEach(list => {
+  const svg = document.getElementById(list.dataset.map);
+  svg.classList.add("idle");
+  const light = li => {
+    list.querySelectorAll("li").forEach(x => x.classList.toggle("on", x === li));
+    svg.classList.toggle("idle", !li);
+    const es = li ? li.dataset.edges.split(" ") : [], ns = li ? li.dataset.nodes.split(" ") : [];
+    svg.querySelectorAll("[data-e]").forEach(p => p.classList.toggle("lit", es.includes(p.dataset.e)));
+    svg.querySelectorAll(".node").forEach(n => { n.classList.toggle("lit", ns.includes(n.dataset.n)); n.classList.toggle("dim", !!li && !ns.includes(n.dataset.n)); });
+  };
+  list.querySelectorAll("li").forEach(li => {
+    li.addEventListener("mouseenter", () => light(li));
+    li.addEventListener("focus", () => light(li));
+    li.addEventListener("click", () => light(li.classList.contains("on") ? null : li));
+  });
+  list.addEventListener("mouseleave", () => { if (!list.querySelector("li.on:focus")) light(null); });
+});
+document.querySelectorAll(".toggle button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".toggle button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".mapwrap").forEach(w => w.hidden = w.dataset.show !== b.dataset.map);
+}));
+
+// diagram tabs: render a tab's mermaid on first show (mermaid needs a visible box to measure)
+let ok = 0, bad = [];
+const total = document.querySelectorAll("pre.mermaid").length;
+const status = () => { document.getElementById("mstat").textContent = `${ok} of ${total} diagrams rendered` + (bad.length ? ` (failed: ${bad.join(", ")})` : "");
+  document.body.dataset.mermaidOk = ok; document.body.dataset.mermaidTotal = total; };
+const renderIn = async root => { for (const n of root.querySelectorAll("pre.mermaid:not([data-done])")) {
+  if (n.closest("[hidden]")) continue;
+  n.dataset.done = 1; n.removeAttribute("data-processed"); n.textContent = n.dataset.src;
+  try { await mermaid.run({ nodes: [n] }); ok++; } catch (e) { bad.push(n.id); console.error("mermaid", n.id, e); } } status(); };
+const btns = [...document.querySelectorAll(".tabs button")], line = document.querySelector(".tabs .underline");
+const show = async key => {
+  btns.forEach(b => b.setAttribute("aria-selected", b.dataset.tab === key));
+  document.querySelectorAll(".tabpanel").forEach(p => p.hidden = p.id !== "tab-" + key);
+  const b = btns.find(x => x.dataset.tab === key); line.style.left = b.offsetLeft + "px"; line.style.width = b.offsetWidth + "px";
+  await renderIn(document.getElementById("tab-" + key));
+};
+btns.forEach(b => b.addEventListener("click", () => { history.replaceState(null, "", "#tab-" + b.dataset.tab); show(b.dataset.tab); }));
+const start = (location.hash.match(/^#tab-(\w+)/) || [])[1] || "components";
+await show(start);
+// render the remaining tabs in the background so a full check sees every diagram
+window.renderAll = async () => { for (const b of btns) await show(b.dataset.tab); await show(start); };
+
+// services: chips + search
+const q = document.getElementById("q"), cardsEl = [...document.querySelectorAll(".svc")];
+let cat = "all";
+const filt = () => { const s = q.value.trim().toLowerCase(); let n = 0;
+  cardsEl.forEach(c => { const on = (cat === "all" || c.dataset.cat === cat) && (!s || c.dataset.q.includes(s)); c.hidden = !on; if (on) n++; });
+  document.getElementById("svccount").textContent = `${n} of ${cardsEl.length} shown`; };
+document.querySelectorAll(".chip").forEach(ch => ch.addEventListener("click", () => {
+  cat = ch.dataset.cat; document.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === ch)); filt(); }));
+q.addEventListener("input", filt); filt();
+
+// side rail: mark the current section
+const links = [...document.querySelectorAll(".rail a")];
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle("on", l.getAttribute("href") === "#" + e.target.id)); }),
+  { rootMargin: "0px 0px -70% 0px" });
+document.querySelectorAll("main section[id]").forEach(s => io.observe(s));
+document.body.dataset.ready = 1;
+</script></body></html>
