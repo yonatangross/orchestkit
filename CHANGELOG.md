@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.9.1](https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **ci:** pin ruff, and clear SIM102 in circuit-breaker ([#5080](https://github.com/yonatangross/orchestkit/issues/5080)) ([b1a6e6c](https://github.com/yonatangross/orchestkit/commit/b1a6e6c9752e8c91ed9140d672d7e285c08d2269))
+* **docs-site:** serve missing /lab pages as static HTML, not the app shell ([#5075](https://github.com/yonatangross/orchestkit/issues/5075)) ([eb779f9](https://github.com/yonatangross/orchestkit/commit/eb779f9916ac5391231eaaf192af1f9ad0176882))
+
+
+### Documentation
+
+* stamp the README hook counts from one source ([#5076](https://github.com/yonatangross/orchestkit/issues/5076)) ([4f71296](https://github.com/yonatangross/orchestkit/commit/4f71296c2527f2025a403d7a35d94e5e529e02f7)), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)
+
 ## [10.9.0](https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0) (2026-11-05)
 
 
