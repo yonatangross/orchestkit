@@ -33,6 +33,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 MARKETPLACE="$ROOT_DIR/.claude-plugin/marketplace.json"
+# A component count in a description. Shared by the pin parity check and the no-count checks.
+COMPONENT_COUNT_RE='[0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks)'
 RP_CONFIG="$ROOT_DIR/.release-please-config.json"
 BUMP_SCRIPT="$ROOT_DIR/scripts/bump-stable-pin.sh"
 RELEASE_WF="$ROOT_DIR/.github/workflows/release.yml"
@@ -132,6 +134,11 @@ if [[ "$stable_idx" != "none" ]]; then
                         bad "marketplace description empty at $stable_ref"
                     elif [[ "$stable_desc" == "$tag_desc" ]]; then
                         ok "'ork' description matches $stable_ref (not live beta counts)"
+                    elif [[ ! "$stable_desc" =~ $COMPONENT_COUNT_RE ]]; then
+                        # This check keeps live beta counts off the stable channel. A
+                        # description with no counts cannot carry them, and requiring
+                        # equality here would freeze the text at every tag for good.
+                        ok "'ork' description carries no counts, so it cannot show live beta counts"
                     else
                         bad "'ork' description disagrees with $stable_ref"
                         echo "      pinned:  $stable_desc"
@@ -302,7 +309,7 @@ fi
 # The stable entry is excluded from stamp-counts.sh on purpose, so a count in its
 # description can only go stale (#5045: it said 105 skills and 218 hooks at 10.7.4).
 stable_desc=$(jq -r '.plugins[] | select(.name == "ork") | .description' "$MARKETPLACE")
-if [[ "$stable_desc" =~ [0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks) ]]; then
+if [[ "$stable_desc" =~ $COMPONENT_COUNT_RE ]]; then
     bad "stable ork description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
 else
     ok "stable ork description carries no component counts"
@@ -311,7 +318,7 @@ fi
 # stamp-counts.sh never names the Devin manifest either: it said 110 skills and
 # 171 hooks at 10.9.0. Only its version is written by release-please.
 devin_desc=$(jq -r '.description' "$ROOT_DIR/.devin-plugin/plugin.json")
-if [[ "$devin_desc" =~ [0-9]+[[:space:]]+([a-z]+[[:space:]]+)?(skills|agents|commands|hooks) ]]; then
+if [[ "$devin_desc" =~ $COMPONENT_COUNT_RE ]]; then
     bad "Devin description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
 else
     ok "Devin description carries no component counts"
