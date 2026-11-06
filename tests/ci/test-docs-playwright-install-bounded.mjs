@@ -35,9 +35,9 @@
  *             past attempt 2's 120 s DPkg::Lock::Timeout (run 40229660456).
  *   slow-mirror: that wait outlasts a crawling mirror, so install-deps alone
  *             has up to 10 minutes. A live apt-get is still making progress,
- *             and the 240 s wait gave up 4 s before run 42214992662's orphan
- *             got past its slow file. The attempt budget stays inside the
- *             step, so the retry still runs before timeout-minutes kills it.
+ *             and the 240 s wait gave up on two orphans still fetching, runs
+ *             42214992662 and 42215416026. The attempt budget stays inside
+ *             the step, so the retry still runs before timeout-minutes kills it.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
