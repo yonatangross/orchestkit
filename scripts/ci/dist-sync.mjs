@@ -310,6 +310,10 @@ export async function run(argv, { sleep = (ms) => new Promise((r) => setTimeout(
     return 3;
   }
   if (!process.env.GH_TOKEN) throw new FatalError('GH_TOKEN is not set');
+  // NaN never reaches the cap in chunking, so a bad value would send every entry at once.
+  if (!Number.isInteger(TREE_ENTRIES) || TREE_ENTRIES < 1) {
+    throw new FatalError(`DIST_SYNC_TREE_ENTRIES must be a positive integer, got ${JSON.stringify(process.env.DIST_SYNC_TREE_ENTRIES)}`);
+  }
   const delay = Number(process.env.DIST_SYNC_RETRY_DELAY_MS ?? 15000);
   for (let attempt = 1; ; attempt++) {
     try {
