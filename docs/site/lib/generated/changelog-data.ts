@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.0",
+    "date": "2026-11-06",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**docs-site:** upload source maps to PostHog at build time ([#5082](https://github.com/yonatangross/orchestkit/issues/5082)) ([8c4fd54](https://github.com/yonatangross/orchestkit/commit/8c4fd548e248670afdba5109cfee1c16c023636a))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** count every frontmatter hook handler ([#5079](https://github.com/yonatangross/orchestkit/issues/5079)) ([2951374](https://github.com/yonatangross/orchestkit/commit/29513745b4056d0c7f9ca0f8478209a8a83c5c71))",
+          "**release:** drop stable description counts and give the scan fetch its own budget ([#5081](https://github.com/yonatangross/orchestkit/issues/5081)) ([852127b](https://github.com/yonatangross/orchestkit/commit/852127be189eb7693bc37be87df17d9018e3119e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.9.1",
     "date": "2026-11-05",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1",
