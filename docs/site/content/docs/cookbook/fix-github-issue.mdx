@@ -22,7 +22,6 @@ A user reports issue #123: "Login fails intermittently on mobile Safari." The er
 | `backend-system-architect` | Agent | Designs the fix with minimal blast radius |
 | `test-generator` | Agent | Writes regression tests for the specific failure |
 | `security-auditor` | Agent | Validates the fix does not weaken auth |
-| `memory-context-injector` | Hook | Searches memory for similar past issues |
 | `skill-suggester` | Hook | Injects relevant debugging and auth skills |
 | `issue-progress-tracking` | Hook | Posts progress updates to the GitHub issue |
 
@@ -284,7 +283,7 @@ The `/ork:fix-issue` command with "Proper fix" runs through these phases:
 |---|---|---|
 | 1 | Fetch issue metadata from GitHub | - |
 | 2 | Read issue body and all comments | - |
-| 3 | Search memory for similar past issues | `memory-context-injector` |
+| 3 | Search memory for similar past issues | graph memory MCP |
 | 4 | Analyze git blame on affected files | `debug-investigator` |
 | 5 | Trace execution path to identify root cause | `debug-investigator` |
 | 6 | Post root cause summary to issue | `issue-progress-tracking` |
@@ -301,11 +300,9 @@ Phases 3-5 run in parallel during the analysis step. Phases 7-9 run sequentially
 | Hook | When | What It Did |
 |---|---|---|
 | `skill-suggester` | Issue fetched | Detected "Safari" and "login" keywords, injected `pwa-patterns` and `auth-patterns` skills |
-| `memory-context-injector` | Analysis start | Searched graph for "Safari" + "cookie", found previous SameSite pattern |
 | `issue-progress-tracking` | Root cause found | Posted analysis summary as comment on issue #123 |
 | `dangerous-command-blocker` | During git blame | Validated the git commands were read-only |
 | `auto-lint` | After fix written | Formatted the changed Python files with `ruff format` |
-| `auto-remember-continuity` | Session end | Stored "Safari SameSite=Lax breaks cross-origin OAuth" in memory |
 
 ### Memory Made This Faster
 

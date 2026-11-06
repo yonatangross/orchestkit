@@ -22,12 +22,12 @@ All 3 tiers require zero configuration. They work the moment you install Orchest
 
 ## How Decisions Flow Across Tiers
 
-When you store a decision, whether explicitly via `/ork:remember` or implicitly through the capture hooks, the memory writer routes it to all configured backends simultaneously.
+When you store a decision with `/ork:remember`, Claude writes it through the graph MCP. Local files and MEMORY.md are written by skills or by Claude when the session calls for it, not by a background writer.
 
 | Tier | Backend | What Gets Stored |
 |---|---|---|
 | **1. Graph Memory** | `mcp__memory__create_entities` + `create_relations` | Entities: `cursor-pagination` (Pattern), `list-endpoints` (Component). Relation: `project -> CHOSE -> cursor-pagination` |
-| **2. Local Persistence** | `.claude/memory/decisions.jsonl` + `graph-queue.jsonl` | Appends decision record, queues graph operations |
+| **2. Local Persistence** | `.claude/memory/decisions.jsonl` | Optional decision record, when a skill or script writes one |
 | **3. CC Native** (confidence >= 0.7) | `~/.claude/projects/<project>/memory/MEMORY.md` | Claude auto-injects this into every future system prompt |
 
 ### The Confidence Threshold
@@ -46,27 +46,9 @@ Lower-confidence observations still persist in Tier 1 (Graph) and Tier 2 (Local)
 
 When Claude processes your prompt, multiple hooks activate to surface relevant memory.
 
-### On Every Prompt
+### On Request
 
-The **memory-context** hook (`prompt` lifecycle) fires on every prompt submission. It:
-
-1. Scans your prompt for trigger keywords (`implement`, `create`, `refactor`, `previous`, `decision`, `pattern`, etc.)
-2. Extracts meaningful search terms by removing stopwords
-3. Injects a system message telling Claude to search the knowledge graph with those terms
-4. If the prompt contains relationship keywords (`related`, `connected`, `depends on`), adds graph traversal hints
-
-This is why Claude "remembers" your past decisions without you asking. The hook silently provides relevant context before Claude generates a response.
-
-### On First Prompt of a Session
-
-The **memory-context-loader** hook (`prompt` lifecycle, `once: true`) fires exactly once per session. It:
-
-1. Reads the last 10 decisions from `.claude/memory/decisions.jsonl`
-2. Formats them as a markdown context block with type labels, rationale, and entity tags
-3. Injects them into Claude's context as "Recent Project Decisions"
-4. Caps output at 3000 characters to stay within budget
-
-This ensures Claude always starts a session with your most recent decisions loaded, even before you type a prompt related to them.
+No hook injects memory on each prompt or at session start. Reads happen when Claude calls the graph MCP, for example through `/ork:memory search`. CC Native memory is the exception: Claude Code injects MEMORY.md itself.
 
 ### On Agent Spawn
 
@@ -100,11 +82,10 @@ OrchestKit captures decisions automatically through hooks:
 |------|-----------|-----------------|
 | `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for high-activity sessions (20+ tool calls) |
 | `memory-bridge` | `posttool` | Entities created via graph MCP calls (confirms primary storage) |
-| `auto-remember-continuity` | `stop` | Session context preservation before session end |
 
 ### Entity and Relation Extraction
 
-The memory writer automatically extracts structured data from natural language:
+`/ork:remember` extracts structured data from natural language:
 
 | Input Pattern | Extracted Entity Type |
 |---|---|

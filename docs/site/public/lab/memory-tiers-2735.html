@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which memory hooks still exist</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Which memory hooks still exist"><meta property="og:description" content="One docs page said these hooks were removed while 13 others described them as live. Pick a name to see what is true now."><meta property="og:url" content="https://orchestkit.dev/lab/memory-tiers-2735.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Which memory hooks still exist"><meta name="twitter:description" content="One docs page said these hooks were removed while 13 others described them as live. Pick a name to see what is true now."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Which memory hooks still exist</h1>
+<p>One docs page said these hooks were removed, while 13 others described them as live. Pick a name to see what is true now, and where memory really comes from.</p>
+
+<fieldset>
+<legend>The hook or writer the old docs named</legend>
+<label><input type="radio" name="hook" value="context" checked> <code>memory-context</code> (every prompt)</label>
+<label><input type="radio" name="hook" value="loader"> <code>memory-context-loader</code> (session start)</label>
+<label><input type="radio" name="hook" value="continuity"> <code>auto-remember-continuity</code> (stop)</label>
+<label><input type="radio" name="hook" value="writer"> <code>memory-writer</code> (the write path)</label>
+<label><input type="radio" name="hook" value="summary"> <code>session-summary</code> (stop)</label>
+</fieldset>
+
+<output id="result" aria-live="polite"></output>
+</main>
+<script>
+const result = document.getElementById("result");
+const answers = {
+  context: [true, "Removed. Claude reads the graph when it calls the graph MCP, for example through /ork:memory search."],
+  loader: [true, "Removed. Claude Code injects MEMORY.md itself, and no hook loads recent decisions."],
+  continuity: [true, "Removed. Nothing stores decisions at session end on its own."],
+  writer: [true, "Removed. /ork:remember writes through the graph MCP."],
+  summary: [false, "Live. It suggests what to capture at the end of a busy session, and you decide."],
+};
+function render() {
+  const [gone, text] = answers[document.querySelector('input[name="hook"]:checked').value];
+  result.dataset.state = gone ? "red" : "green";
+  result.textContent = text;
+}
+document.querySelectorAll("input").forEach((input) => input.addEventListener("input", render));
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

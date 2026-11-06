@@ -508,7 +508,7 @@ function countHooks(agentsData) {
     }
   }
 
-  // Count skill-scoped hooks (command:.*run-hook in SKILL.md frontmatter)
+  // Count skill-scoped hook handlers in SKILL.md frontmatter, the rule bin/count-hooks.sh uses
   let skillScopedCount = 0;
   const skillsDir = path.join(PROJECT_ROOT, 'src', 'skills');
   if (fs.existsSync(skillsDir)) {
@@ -519,7 +519,7 @@ function countHooks(agentsData) {
         const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
         if (fmMatch) {
           const fm = fmMatch[1];
-          const hookMatches = fm.match(/command:.*run-hook/g);
+          const hookMatches = fm.match(/^[ \t]*(- )?type: ["']?(command|http)["']?[ \t]*$/gm);
           if (hookMatches) skillScopedCount += hookMatches.length;
         }
       }

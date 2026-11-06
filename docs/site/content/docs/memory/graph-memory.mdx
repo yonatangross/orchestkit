@@ -87,7 +87,7 @@ mcp__memory__search_nodes
 }
 ```
 
-Returns matching entities with their observations and connected relations. This is the call the `memory-context` hook generates automatically on every prompt.
+Returns matching entities with their observations and connected relations.
 
 ### Opening Entity Details
 
@@ -118,7 +118,7 @@ Appends new observations to an existing entity without creating duplicates. The 
 
 ## Entity Types
 
-The memory writer infers entity types from the content of your text:
+`/ork:remember` infers entity types from the content of your text:
 
 | Entity Type | Examples | When Assigned |
 |---|---|---|
@@ -151,10 +151,7 @@ The memory writer infers entity types from the content of your text:
 
 ## Hooks That Read the Graph
 
-| Hook | Lifecycle | What It Does |
-|---|---|---|
-| `memory-context` | `prompt` | Searches graph for entities matching prompt keywords; injects search hints into Claude's context |
-| `memory-context-loader` | `prompt` (once) | Loads recent decisions from local JSONL on session start |
+No hook reads the graph on its own. Reads happen when Claude calls the graph MCP, for example through `/ork:memory search`.
 
 ## Hooks That Write to the Graph
 
@@ -162,7 +159,6 @@ The memory writer infers entity types from the content of your text:
 |---|---|---|
 | `memory-bridge` | `posttool` | Confirms graph writes after `mcp__memory__create_entities` calls |
 | `session-summary` | `stop` | Suggests graph entity capture via `additionalContext` for sessions with 20+ tool calls |
-| `auto-remember-continuity` | `stop` | Prompts Claude to persist session context to graph before ending |
 
 ## Agent Domain Mapping
 
@@ -235,7 +231,6 @@ The graph MCP server stores data locally on your machine. No data is sent to ext
 
 The graph search includes a practical threshold: if the graph contains fewer than 3 entities, searches return minimal results. As you store more decisions, the graph grows richer and the surfaced context becomes more valuable.
 
-The `memory-context` hook requires prompts to be at least 20 characters long before triggering a search. Single-word prompts or very short questions are skipped to avoid low-quality matches.
 
 ## Next Steps
 
