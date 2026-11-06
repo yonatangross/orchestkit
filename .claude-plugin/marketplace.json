@@ -15,7 +15,7 @@
     {
       "name": "ork",
       "version": "10.9.1",
-      "description": "Complete AI development toolkit with 105 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 218 lifecycle hooks.",
+      "description": "Complete AI development toolkit covering AI/LLM, backend, frontend, security, and testing patterns, with specialized agents, commands, and lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
