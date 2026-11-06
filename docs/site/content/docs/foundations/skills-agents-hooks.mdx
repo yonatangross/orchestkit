@@ -134,7 +134,7 @@ Here's what happens when you say **"Add user auth to the API"**:
 <Steps>
   <Step>
     ### Prompt hooks fire
-    `context-injector`, `memory-context-loader`, and `skill-auto-suggest` enrich your prompt with project context.
+    `context-injector` and `skill-auto-suggest` enrich your prompt with project context.
   </Step>
   <Step>
     ### Agent spawns
@@ -150,7 +150,7 @@ Here's what happens when you say **"Add user auth to the API"**:
   </Step>
   <Step>
     ### Stop hooks
-    `auto-remember-continuity` and `session-profile-agg` save context for the next session.
+    `handoff-writer` saves a handoff, and `session-summary` suggests what to remember for the next session.
   </Step>
 </Steps>
 

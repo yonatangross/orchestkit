@@ -124,7 +124,7 @@ All 3 tiers work out of the box with zero configuration. Decisions are stored in
 
 ### What gets stored automatically?
 
-OrchestKit's `auto-remember-continuity` hook automatically stores high-confidence decisions at session end. Manually, you control what gets stored with `/ork:remember`. Nothing is stored without your action or the automatic hook's confidence threshold (0.7 or above).
+Nothing in the graph is written behind your back: the `session-summary` hook suggests what to capture at the end of a busy session, and you control what gets stored with `/ork:remember`. Nothing is stored without your action or the automatic hook's confidence threshold (0.7 or above).
 
 ### Can I delete memories?
 
@@ -185,7 +185,6 @@ See [Safety Hooks: Git Validator](/docs/hooks/safety-hooks#git-validator) for te
 
 OrchestKit is developed and tested on macOS and Linux. Windows support is best-effort. Known issues:
 
-- `memory-writer.test.ts` fails on Windows due to path separator differences
 - Some shell scripts assume Bash
 
 ### Does OrchestKit work with models other than Claude?

@@ -1,0 +1,12 @@
+{
+  "slug": "memory-tiers-2735",
+  "source": "docs/fix--memory-tiers-2735/index.html",
+  "title": "Which memory hooks still exist",
+  "description": "One docs page said these hooks were removed while 13 others described them as live. Pick a name to see what is true now.",
+  "tags": [
+    "docs",
+    "memory",
+    "hooks"
+  ],
+  "date": "2026-11-06"
+}

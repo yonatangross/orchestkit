@@ -265,7 +265,6 @@ The security test suite covers 7 attack categories: command injection, JQ inject
 | `file-guard` | pretool/write | Blocks any attempt to write `.env`, `*.pem`, `*credentials*`, or `*.key` files to disk. Prevents accidental exposure of secrets during testing. |
 | `security-command-audit` | posttool/bash | Logs every security scan command and its results to the session audit trail. Creates a reproducible record of what was checked. |
 | `session-env-setup` | lifecycle/start | Detects available security tools (bandit, pip-audit, npm audit, semgrep) at session start. Reports missing tools so you can install them. |
-| `auto-remember-continuity` | lifecycle/stop | Persists security findings to memory so the next session knows about unresolved vulnerabilities. |
 
 ### Skills Auto-Injected
 
@@ -333,7 +332,7 @@ If a tool is not installed, the agent skips it and notes it in the findings: "ba
 </Callout>
 
 <Callout type="info">
-**Memory compounds security knowledge.** After your first audit, OrchestKit remembers findings via the memory system. Next time you write auth code, the `memory-context-injector` hook surfaces your past security decisions: "This project uses 256-bit JWT secrets, Argon2 for password hashing, and cursor-based pagination." The agent does not repeat past mistakes.
+**Memory compounds security knowledge.** After your first audit, OrchestKit remembers findings via the memory system. Next time you write auth code, `/ork:memory search` surfaces your past security decisions: "This project uses 256-bit JWT secrets, Argon2 for password hashing, and cursor-based pagination." The agent does not repeat past mistakes.
 </Callout>
 
 <Callout type="warn">

@@ -22,7 +22,7 @@ This means anything written to MEMORY.md is visible to Claude in every conversat
 
 OrchestKit bridges its own memory system to CC Native through **auto-promotion**: high-signal decisions captured during a session get persisted into `MEMORY.md`, where Claude Code injects them into every future session.
 
-Promotion is performed by Claude itself, prompted by OrchestKit's session hooks (`session-summary`, `auto-remember-continuity`): at session end, Claude reviews what was decided and writes durable, high-confidence decisions to MEMORY.md. Low-signal material (patterns inferred from tool output, transient observations) stays in the session-local JSONL files instead. This keeps MEMORY.md focused and concise.
+Promotion is performed by Claude itself, prompted by OrchestKit's `session-summary` hook: at session end, Claude reviews what was decided and writes durable, high-confidence decisions to MEMORY.md. Low-signal material (patterns inferred from tool output, transient observations) stays in the session-local JSONL files instead. This keeps MEMORY.md focused and concise.
 
 ## What Gets Written
 
@@ -59,12 +59,7 @@ New decisions are inserted immediately after the `## Recent Project Decisions` h
 
 ## Size Limits
 
-MEMORY.md is injected into the system prompt in its entirety. To prevent it from consuming too much of Claude's context window, the memory writer enforces a soft limit of **50 entries**. When the 51st entry is added:
-
-1. The oldest entry is removed
-2. A marker is added: `_...older decisions archived..._`
-
-Archived decisions are not lost; they still exist in Tier 1 (Graph) and Tier 2 (Local JSONL). The limit only applies to what gets injected into every system prompt.
+MEMORY.md is injected into the system prompt, so keep it short. OrchestKit enforces no entry limit and archives nothing: trimming the file is up to you or to Claude. Decisions removed from it stay in Tier 1 (Graph) and Tier 2 (Local JSONL) if they were stored there.
 
 ## File Location
 
@@ -82,7 +77,6 @@ Project:  C:\Users\alice\my-app
 Path:     C:\Users\alice\.claude\projects\-C-Users-alice-my-app\memory\MEMORY.md
 ```
 
-The memory writer creates the `memory/` subdirectory if it does not exist, but only if the parent project directory already exists (indicating Claude Code has been used with this project).
 
 ## Manual Editing
 
@@ -145,9 +139,7 @@ Tier 3 is the most selective tier. It serves as a curated summary of your most i
 
 | Hook | Role |
 |---|---|
-| `memory-writer.ts` (library) | Evaluates confidence, formats decision, writes to MEMORY.md |
 | `session-summary` (stop hook) | Suggests graph entity capture via `additionalContext` at session end |
-| `auto-remember-continuity` (stop hook) | Prompts Claude to persist critical session context before exit |
 
 ## Troubleshooting
 
