@@ -33,6 +33,11 @@
  *             gives up (#4923). `timeout` stops npx but not the root apt-get
  *             it started under sudo, so attempt 1's orphan kept the dpkg lock
  *             past attempt 2's 120 s DPkg::Lock::Timeout (run 40229660456).
+ *   slow-mirror: that wait outlasts a crawling mirror, so install-deps alone
+ *             has up to 10 minutes. A live apt-get is still making progress,
+ *             and the 240 s wait gave up on two orphans still fetching, runs
+ *             42214992662 and 42215416026. The attempt budget stays inside
+ *             the step, so the retry still runs before timeout-minutes kills it.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -104,7 +109,8 @@ const installs = steps.filter((s) => /playwright install/.test(runOf(s)));
 if (installs.length === 0) fail('bounded', 'no playwright install step found');
 for (const s of installs) {
   const tm = Number(s['timeout-minutes']);
-  if (!(tm > 0 && tm <= 5)) fail('bounded', `step "${s.name}" has timeout-minutes ${s['timeout-minutes']}, want 1 to 5`);
+  const cap = /playwright install-deps/.test(runOf(s)) ? 10 : 5; // see slow-mirror
+  if (!(tm > 0 && tm <= cap)) fail('bounded', `step "${s.name}" has timeout-minutes ${s['timeout-minutes']}, want 1 to ${cap}`);
   if (!/for attempt in 1 2\b/.test(runOf(s))) fail('bounded', `step "${s.name}" does not retry once`);
   // A quoted variable is allowed: install-deps sizes attempt 2 from what the
   // step budget leaves (#4923); timeout-minutes above still caps the step.
@@ -119,6 +125,15 @@ if (depsIdx !== -1) {
   }
   if (!/fuser[^\n]*\/var\/lib\/dpkg\/lock-frontend/.test(deps)) {
     fail('lock-wait', `step "${steps[depsIdx].name}" does not name the dpkg lock holder when it gives up`);
+  }
+
+  // slow-mirror
+  const wait = Number(deps.match(/"\$SECONDS" -lt (\d+)/)?.[1]);
+  const budget = Number(deps.match(/left=\$\(\((\d+) - SECONDS\)\)/)?.[1]);
+  const stepSeconds = Number(steps[depsIdx]['timeout-minutes']) * 60;
+  if (!(wait >= 480)) fail('slow-mirror', `the wait for apt-get to exit is ${wait} s, want at least 480`);
+  if (!(budget >= wait + 60 && budget < stepSeconds)) {
+    fail('slow-mirror', `attempt budget ${budget} s must leave attempt 2 at least 60 s after the ${wait} s wait and stay under the ${stepSeconds} s step`);
   }
 }
 

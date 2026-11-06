@@ -308,14 +308,16 @@ jobs:
             | sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts >/dev/null
       - name: Install Playwright system deps
         if: steps.gate.outputs.run == 'true'
-        timeout-minutes: 5
+        timeout-minutes: 10
         working-directory: docs/site
         # `timeout` stops npx but not the root apt-get it starts under sudo,
         # so a timed-out attempt 1 left an apt-get holding the dpkg lock past
         # attempt 2's DPkg::Lock::Timeout (#4923). Before the retry, wait for
-        # apt-get and dpkg to exit. Each attempt gets at most 120 s and never
-        # more than the 300 s step budget leaves (285 keeps a margin). On
-        # give-up, name the dpkg lock holder.
+        # apt-get and dpkg to exit, up to 510 s: on a crawling mirror that
+        # apt-get is still working, and runs 42214992662 and 42215416026 gave
+        # up on it at 240 s while it fetched at about 40 to 60 KB/s. Each
+        # attempt gets at most 120 s and never more than the 600 s step budget
+        # leaves (585 keeps a margin). On give-up, name the dpkg lock holder.
         run: |
           apt_busy() { ps -o pid=,etime=,args= -C apt-get,dpkg,unattended-upgr; }
           lock_holder() {
@@ -325,7 +327,7 @@ jobs:
           for attempt in 1 2; do
             if [ "$attempt" = 2 ]; then
               apt_busy || true
-              while apt_busy >/dev/null && [ "$SECONDS" -lt 240 ]; do sleep 2; done
+              while apt_busy >/dev/null && [ "$SECONDS" -lt 510 ]; do sleep 2; done
               if apt_busy >/dev/null; then
                 echo "::error::apt-get or dpkg still running after ${SECONDS}s, no time left for attempt 2"
                 apt_busy || true
@@ -333,7 +335,7 @@ jobs:
                 exit 1
               fi
             fi
-            left=$((285 - SECONDS))
+            left=$((585 - SECONDS))
             if [ "$left" -gt 120 ]; then left=120; fi
             timeout "$left" npx playwright install-deps chromium && exit 0
             echo "::warning::playwright install-deps attempt $attempt failed or timed out"
