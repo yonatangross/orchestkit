@@ -664,6 +664,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.0](https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0)** · 2026-11-06
+
+- **docs-site:** upload source maps to PostHog at build time (#5082)
+- **hooks:** count every frontmatter hook handler (#5079)
+- **release:** drop stable description counts and give the scan fetch its own budget (#5081)
+
 **[v10.9.1](https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1)** · 2026-11-05
 
 - **ci:** pin ruff, and clear SIM102 in circuit-breaker (#5080)
@@ -694,11 +700,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.8.2](https://github.com/yonatangross/orchestkit/compare/v10.8.1...v10.8.2)** · 2026-11-04
 
 - **skills:** parse frontmatter in the description gate, add fixtures (#5049)
-
-**[v10.8.1](https://github.com/yonatangross/orchestkit/compare/v10.8.0...v10.8.1)** · 2026-11-04
-
-- **expect:** gate the act-mode Jev pick on agreement or a confirm (#5011)
-- **lab:** drop internal seat name from the Tower page footer (#5047)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
