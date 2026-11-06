@@ -9,9 +9,10 @@
 // posthog-js and of window so it can be unit-tested; instrumentation-client.ts
 // wires it to the SDK and to the App Router.
 //
-// The PostHog project's URL trigger may say the same thing, but this gate does
-// not rely on it. It is complete on its own: the SDK is initialised with replay
-// disabled, and only this gate ever turns it on.
+// The SDK is initialised with replay disabled and only this gate turns it on,
+// so nothing outside /docs/reference/* can record. The PostHog project's URL
+// trigger still applies on top: ^https://orchestkit\.dev/docs/reference/.*$ is
+// the pattern to set. One naming another host buffers forever and sends nothing.
 
 import type { CapturedNetworkRequest } from "posthog-js";
 
