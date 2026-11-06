@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->161<!--/ork--> hooks**
+**<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -123,7 +123,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|---------|
 | **<!--ork:skills-->115<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->161<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -198,7 +198,7 @@ OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
 add-on. This section states plainly what they see, where it goes, and how to turn
 each piece off.
 
-**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->161<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
+**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->163<!--/ork--> hooks across <!--ork:events-->32<!--/ork-->
 lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
 project type, because the gates they enforce (secret-write blocking, protected-file
@@ -550,7 +550,7 @@ reaches the same 76 skills plus the plugin's 36 custom subagents, which neither
 path surfaces through `devin plugins info`. That subpath is what this repo's own
 `.claude-plugin/marketplace.json` already points Claude Code at.
 
-OrchestKit's plugin hooks work under Claude Code only today; none of the <!--ork:hooks-->161<!--/ork-->
+OrchestKit's plugin hooks work under Claude Code only today; none of the <!--ork:hooks-->163<!--/ork-->
 fire under Devin. Two reasons. Location: OrchestKit ships hooks at
 `plugins/ork/hooks/hooks.json`, while Devin's own plugin format reads a bare
 `hooks.json` at the plugin root instead. Shape and tool names: OrchestKit's
@@ -598,7 +598,7 @@ as the workspace and needs no flag.
 
 Two honest gaps. `npx skills add -g` lands in `~/.agents/skills`, which agy
 does not read; user scope lives at `~/.gemini/config/skills` (or
-`~/.gemini/skills`). And none of ork's <!--ork:hooks-->161<!--/ork--> hooks port: agy's `hooks.json` uses
+`~/.gemini/skills`). And none of ork's <!--ork:hooks-->163<!--/ork--> hooks port: agy's `hooks.json` uses
 its own event names and payload shape, and `agy plugin validate plugins/ork`
 reports hooks skipped because ork keeps them at `hooks/hooks.json`, not the
 plugin-root `hooks.json` agy looks for.
