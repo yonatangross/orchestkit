@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A typo that switches off the dist entry cap</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+input { font: inherit; padding: .25rem .5rem; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; margin-bottom: 1rem; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>A typo that switches off the dist entry cap</h1>
+<p>The dist sync splits a tree into requests of at most <code>DIST_SYNC_TREE_ENTRIES</code> entries. The value goes through <code>Number()</code>, and a word becomes <code>NaN</code>. No count is ever at or above <code>NaN</code>, so the split never happens and every entry goes in one request, the failure the cap exists to stop. Type a value to compare the old behaviour with the new check. The default stays 300 when the variable is unset.</p>
+
+<fieldset>
+<legend>DIST_SYNC_TREE_ENTRIES</legend>
+<label><input type="text" id="cap" value="oops" aria-label="Value of DIST_SYNC_TREE_ENTRIES"></label>
+</fieldset>
+
+<output id="before" aria-live="polite"></output>
+<output id="after" aria-live="polite"></output>
+</main>
+<script>
+const total = 1879;
+const cap = document.getElementById("cap");
+const before = document.getElementById("before");
+const after = document.getElementById("after");
+function requests(n) {
+  // Same test as the chunk loop: a request closes once it holds n entries.
+  let open = 0;
+  let count = 1;
+  for (let i = 0; i < total; i++) {
+    if (open && open >= n) { count++; open = 0; }
+    open++;
+  }
+  return count;
+}
+function render() {
+  const n = Number(cap.value);
+  const valid = Number.isInteger(n) && n >= 1;
+  const count = requests(n);
+  before.dataset.state = valid ? "green" : "red";
+  before.textContent = "Before: " + count + (count === 1 ? " request holds all " : " requests for ") + total + " entries.";
+  after.dataset.state = valid ? "green" : "red";
+  after.textContent = valid
+    ? "After: accepted, " + count + (count === 1 ? " request." : " requests.")
+    : "After: refused before any write, and the error names the variable.";
+}
+cap.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

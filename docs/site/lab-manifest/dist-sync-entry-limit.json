@@ -1,0 +1,12 @@
+{
+  "slug": "dist-sync-entry-limit",
+  "source": "docs/fix--dist-sync-entry-limit/index.html",
+  "title": "A typo that switches off the dist entry cap",
+  "description": "A word in DIST_SYNC_TREE_ENTRIES becomes NaN, and no count ever reaches NaN, so the split never happens. Type a value to compare the old behaviour with the new check.",
+  "tags": [
+    "ci",
+    "release",
+    "github-api"
+  ],
+  "date": "2026-11-06"
+}
