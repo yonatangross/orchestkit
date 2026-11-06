@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why the dist sync died at ten seconds</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Why the dist sync died at ten seconds</h1>
+<p>The sync builds a tree in the dist repo through <code>POST /git/trees</code>. It split requests by bytes only, and a file the repo already has costs no bytes. So almost every entry went in one request, which timed out with a 502. Move the slider to see the requests a release makes. The timing here is illustrative, scaled from four measured failures at about 10.8 seconds for 1,879 entries.</p>
+
+<fieldset>
+<legend>Entries per request</legend>
+<label><input type="range" id="cap" min="100" max="1879" step="1" value="1879"> <span id="capValue"></span></label>
+</fieldset>
+
+<output id="result" aria-live="polite"></output>
+</main>
+<script>
+const total = 1879;
+const secondsPerEntry = 10.8 / total;
+const cap = document.getElementById("cap");
+const capValue = document.getElementById("capValue");
+const result = document.getElementById("result");
+function render() {
+  const n = Number(cap.value);
+  const requests = Math.ceil(total / n);
+  const seconds = n * secondsPerEntry;
+  capValue.textContent = n + " entries";
+  const slow = seconds >= 10;
+  result.dataset.state = slow ? "red" : "green";
+  const each = requests + (requests === 1 ? " request" : " requests") + ", about " + seconds.toFixed(1) + " seconds each";
+  result.textContent = each + (slow ? ": over the limit, the sync fails." : ": under the limit.");
+}
+cap.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
