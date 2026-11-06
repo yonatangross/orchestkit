@@ -17,6 +17,7 @@
 	"dependencies": {
 		"@dagrejs/dagre": "^3.1.0",
 		"@orama/orama": "^3.1.18",
+		"@posthog/nextjs-config": "1.12.1",
 		"@vercel/analytics": "^2.0.1",
 		"@vercel/speed-insights": "^2.0.0",
 		"@xyflow/react": "^12.12.0",

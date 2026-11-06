@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostHog Source Maps, Gated on the Key's Shape</title>
+<style>
+	:root { color-scheme: light dark; --ok: #1a7f4b; --skip: #9a6700; --line: #8884; }
+	body { font: 16px/1.5 system-ui, sans-serif; max-width: 44rem; margin: 2rem auto; padding: 0 1rem; }
+	h1 { font-size: 1.5rem; line-height: 1.25; }
+	label { display: block; font-weight: 600; margin-block: 1rem .25rem; }
+	select { font: inherit; padding: .4rem; width: 100%; }
+	.result { border: 1px solid var(--line); border-radius: .5rem; padding: 1rem; margin-top: 1rem; }
+	.verdict { font-weight: 700; }
+	.ok { color: var(--ok); }
+	.skip { color: var(--skip); }
+	button { font: inherit; margin-top: 1rem; padding: .4rem .8rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="PostHog Source Maps, Gated on the Key's Shape"><meta property="og:description" content="The docs site sends exceptions to PostHog but served no source maps, so minified frames stayed unreadable. The build now uploads maps to the project and deletes them, and only a personal API key turns that on. Pick what the build sees to watch a missing key, a placeholder or a PostHog outage degrade to no upload, never to no deploy."><meta property="og:url" content="https://orchestkit.dev/lab/posthog-sourcemaps-key-gate.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="PostHog Source Maps, Gated on the Key's Shape"><meta name="twitter:description" content="The docs site sends exceptions to PostHog but served no source maps, so minified frames stayed unreadable. The build now uploads maps to the project and deletes them, and only a personal API key turns that on. Pick what the build sees to watch a missing key, a placeholder or a PostHog outage degrade to no upload, never to no deploy."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<h1>PostHog source maps, gated on the key's shape</h1>
+<p>Exceptions reach PostHog from the docs site, but production served no source maps, so every minified frame stayed unreadable. The build now uploads maps to project 236036 and deletes them, and only a personal API key turns that on. Pick what the build sees.</p>
+
+<label for="key">POSTHOG_API_KEY at build time</label>
+<select id="key">
+	<option value="phx_abc">A personal API key (phx_...)</option>
+	<option value="">Unset</option>
+	<option value="[SENSITIVE]">The [SENSITIVE] placeholder</option>
+	<option value="phc_abc">A public project key (phc_...)</option>
+</select>
+
+<label for="api">PostHog API during the upload</label>
+<select id="api">
+	<option value="up">Healthy</option>
+	<option value="down">Down, or the key is revoked</option>
+</select>
+
+<div class="result" aria-live="polite">
+	<p class="verdict" id="verdict"></p>
+	<p id="detail"></p>
+</div>
+
+<button id="copy" type="button">Copy as prompt</button>
+
+<script>
+	const key = document.getElementById("key");
+	const api = document.getElementById("api");
+	const verdict = document.getElementById("verdict");
+	const detail = document.getElementById("detail");
+
+	function render() {
+		const valid = key.value.startsWith("phx_");
+		let text = "Upload skipped. The deploy ships as it does today.";
+		let note = "The wrapper is never imported, so this build matches one without the feature.";
+		let tone = "skip";
+		if (key.value && !valid) note = "The build also warns that the key has no phx_ prefix.";
+		if (valid && api.value === "down") {
+			text = "Upload failed. The deploy still ships.";
+			note = "failOnError is false, and the maps are deleted anyway, so the site still serves none.";
+		} else if (valid) {
+			text = "Maps uploaded, then deleted. The deploy ships.";
+			note = "Frames resolve in PostHog, and the site still serves no .map files.";
+			tone = "ok";
+		}
+		verdict.textContent = text;
+		verdict.className = "verdict " + tone;
+		detail.textContent = note;
+	}
+
+	key.addEventListener("change", render);
+	api.addEventListener("change", render);
+	document.getElementById("copy").addEventListener("click", () => {
+		navigator.clipboard.writeText(
+			"Check the docs site source map upload for this case: " +
+				key.options[key.selectedIndex].text + ", PostHog API " +
+				api.options[api.selectedIndex].text + ". Expected: " + verdict.textContent,
+		);
+	});
+	render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

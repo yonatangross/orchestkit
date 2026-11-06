@@ -13,3 +13,8 @@ HQ_API_URL=https://api.example.com
 # Mirror sink only; first-party /api/analytics stays authoritative.
 # Public phc_ key, but kept here so prod and local resolve the same way.
 NEXT_PUBLIC_POSTHOG_KEY=op://<vault>/<item>/NEXT_PUBLIC_POSTHOG_KEY
+# Personal API key (phx_, preset "Source map upload", scoped to project 236036).
+# Read at build time only by lib/posthog-sourcemaps.mjs, never shipped to the
+# client. Set it on Vercel, Production only. Absent or malformed, the upload is
+# skipped and the build stays green, so verify by checking Symbol sets in PostHog.
+POSTHOG_API_KEY=op://<vault>/<item>/POSTHOG_API_KEY

@@ -29,8 +29,9 @@
 // How it is gated: init keeps replay DISABLED, and lib/replay-gate.ts is the
 // only thing that turns it on, on a full load of a reference page or an App
 // Router navigation into one. Leaving the reference tree stops it before the
-// next page renders. This gate is complete on its own; a URL trigger in the
-// PostHog project can narrow it further but is not relied on.
+// next page renders. A URL trigger in the PostHog project applies ON TOP of
+// this gate: it can only narrow recording, and one that names a host we do not
+// serve stops all of it, silently. It must match https://orchestkit.dev.
 // Limits, stated plainly:
 //   - Nothing records until session replay is enabled in the PostHog project
 //     settings. The SDK requires that server side flag as well as this gate.
