@@ -50,9 +50,9 @@ function extractAgentInfo(input: HookInput): {
   name: string;
   background: boolean;
 } {
-  const subagentType = String(getField(input, 'subagent_type') || '');
-  const description = String(getField(input, 'description') || '');
-  const name = String(getField(input, 'name') || '');
+  const subagentType = String(input.tool_input?.subagent_type || getField(input, 'subagent_type') || '');
+  const description = String(input.tool_input?.description || getField(input, 'description') || '');
+  const name = String(input.tool_input?.name || getField(input, 'name') || '');
   const background = input.tool_input?.run_in_background === true ||
     input.tool_input?.run_in_background === 'true';
   return { subagentType, description, name, background };
