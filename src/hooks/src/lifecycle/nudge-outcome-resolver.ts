@@ -33,8 +33,8 @@ export function nudgeOutcomeResolver(
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
   try {
-    const projectDir = ctx.projectDir || getProjectDir();
-    const sessionId = ctx.sessionId || getSessionId();
+    const projectDir = _input.project_dir || ctx.projectDir || getProjectDir();
+    const sessionId = _input.session_id || ctx.sessionId || getSessionId();
     const markers = listForeignMarkers(projectDir, sessionId);
     if (markers.length === 0) return outputSilentSuccess();
 
