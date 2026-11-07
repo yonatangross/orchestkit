@@ -2332,7 +2332,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests.",
     "version": "1.2.0",
-    "sha256": "a69bf03f61782ef891b4c29537422b028736df77b60afbce712124785841a786",
+    "sha256": "bc11e77bd6bc8219d5db702eae8c6c454e76aaa6d57219456b447a0930bf9199",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4472,7 +4472,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "abefb8d3b9385cda64cd703930e8e524871becec01c229484e038bc78656fd21",
+    "sha256": "d8ac1a33ad96aee5b4a2e14f0ab4e10d0f2d7176c924766ffcf04dc114bbf6b2",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5285,7 +5285,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "3679b4d398967405949b6b8cec43089b20e9b151e8dc5bd5dce515e8da9de3c7",
+    "sha256": "c0657470e01543a7d7f504e8fc257698a3f439f8e5a65593b8257b88ae510c8a",
     "author": "OrchestKit",
     "tags": [
       "verification",
