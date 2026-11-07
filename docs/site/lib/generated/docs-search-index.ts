@@ -1278,7 +1278,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/page-serve",
     "title": "Page Serve",
-    "description": "Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. Use when an agent made a page a person should open: playgrounds, explainers, previews."
+    "description": "Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. Use when an agent made a page a person should open. Not for app dev servers (use dev)."
   },
   {
     "url": "/docs/reference/skills/paired-probe",

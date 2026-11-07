@@ -1,5 +1,5 @@
 ---
-description: "Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. Use when an agent made a page a person should open: playgrounds, explainers, previews."
+description: "Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. Use when an agent made a page a person should open. Not for app dev servers (use dev)."
 argument-hint: "[path] [--name slug] [--screenshot|--no-screenshot] | stop [name|--all] | status [--json]"
 disable-model-invocation: false
 context: inherit
@@ -35,13 +35,15 @@ a stop, a status, and a loud failure when the URL contract cannot be met.
 
 ## Usage
 
-```
-page-serve docs/playgrounds/roadmap-2026-09-07.html
-page-serve docs/playgrounds/ --name playgrounds
-page-serve <path> --screenshot          # agent-browser, returns the png path
-page-serve status [--json]
-page-serve stop <name>
-page-serve stop --all
+The skill is three scripts in its own folder. Run them by path:
+
+```bash
+bash "skills/page-serve/scripts/serve.sh" ./report.html
+bash "skills/page-serve/scripts/serve.sh" ./pages/ --name pages
+bash "skills/page-serve/scripts/serve.sh" <path> --screenshot   # agent-browser, returns the png path
+bash "skills/page-serve/scripts/status.sh" [--json]
+bash "skills/page-serve/scripts/stop.sh" <name>
+bash "skills/page-serve/scripts/stop.sh" --all
 ```
 
 `serve.sh` prints `url=`, `name=`, `port=`, `pid=`, `http=`, optional `screenshot=`,
@@ -88,14 +90,12 @@ rendered correctly: read the image before claiming the page looks right
 ## Retiring the old pattern (#3900)
 
 Any skill or page that tells an agent to run `python3 -m http.server` or to type
-`portless alias` by hand should say `page-serve <path>` instead. As of this
-skill's first release, `grep -rln 'http.server' src/skills` is empty; the pattern
-lived in session habits and in hq-ext, so the sweep is glyph, playground,
-visualize-plan and expect (the four that hand a human a page) plus hq-ext's glyph.
+`portless alias` by hand should use this skill instead. The skills that hand a
+human a page (glyph, visualize-plan, expect) are the ones to keep pointed here.
 
 ## Related skills
 
 - `dev`, the dev-loop sibling for framework apps (portless wrapping a dev command)
 - `portless` (the reference skill, model-invoked): service install, LAN mode, gotchas
-- `glyph`, `visualize-plan`, `playground`, the producers of pages this serves
+- `glyph`, `visualize-plan`, and the separate `playground` plugin, the producers of pages this serves
 - `expect`, browser verification against the URL this prints

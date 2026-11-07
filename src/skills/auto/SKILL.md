@@ -76,7 +76,7 @@ Full per-category parameter extraction + edge cases: `references/routing-rules.m
 
 Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `{intent} @ {weight}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
 
-Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 3 · `sonnet` 23 · `opus` 6 · `inherit` 4). No parallel taxonomy.
+Tiers are the ones already declared in each agent's `model:` frontmatter (`haiku` 3 · `sonnet` 23 · `opus` 6 · `inherit` 4). No parallel taxonomy.
 
 | weight | tier | the task is… |
 |---|---|---|
@@ -88,7 +88,7 @@ Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 3 
 
 Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `references/routing-rules.md`.
 
-> **This is the selector, not the cap.** `src/hooks/src/pretool/task/team-size-gate.ts` is an ex-post, per-session counter keyed on `ORK_TEAM_OPUS_MAX` (default 8). Its default posture is advisory (`outputWarning`); with `ORK_TEAM_SIZE_HARD=1` it escalates to `outputDeny` and refuses the spawn outright. Either way it reads the model read-only: it can refuse a premium spawn, but it cannot *choose* a cheaper one for you. Routing is what chooses. The two compose, cap as backstop and routing as selector; never duplicate the cap's counting here.
+> **This is the selector, and the only cost control.** OrchestKit ships no spawn cap: the old `team-size-gate` hook was removed in #3839. Choosing the tier here is what keeps a premium model off routine work.
 
 ## The flow
 
@@ -146,10 +146,10 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 ## Fallback + honest gaps
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.
-- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
+- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal/references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals scored against a holdout set), not a one-shot edit. It requires a benchmark + holdout set first.
 
-## Stacked invocation (CC 2.1.199+)
+## Stacked invocation
 
 `/skill-a /skill-b <goal>` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `auto brainstorm <goal>` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
 
@@ -160,8 +160,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 - **A pronoun target is yours to resolve.** Pass a concrete target, not `this` or `them`: read it back from the conversation and announce it in one line. If a routed skill returns `TARGET_UNRESOLVED: <word>`, resolve `<word>` the same way and invoke the skill again; never relay the sentinel to the user (`Read("../../shared/rules/target-resolution.md")`).
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
-- **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
-- **A gate denial is not a re-route trigger.** If `team-size-gate` denies a spawn, do NOT relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user decide.
+- **A gate denial is not a re-route trigger.** If a gate denies a spawn (a Fable spend prompt, a permission refusal), do NOT relabel a Heavy leg as Standard to get past it. Report the denial and let the user decide.
 - **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 4 `inherit` agents adopt. It never overrides a target skill's own agent selection.
 
 ## Validation
@@ -169,8 +168,8 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 78 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
 
 ```bash
-# isolated classification check via the bare-eval harness
-bare-eval   # grade router output against routing-benchmark.json
+# isolated classification check: /ork:bare-eval grades router output against routing-benchmark.json
+/ork:bare-eval
 ```
 
 Target ≥95% category accuracy; track the fallback rate as a degradation alarm as the skill library grows.
@@ -188,7 +187,7 @@ Done means all of these hold:
 - The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args — on one line.
 - Every Heavy (opus/fable) leg is surfaced for explicit approval before handoff; no premium spend is silent, and declining it runs Standard with the weakened check named.
 - Adversarial, security, safety, architecture, and cross-cutting work is never routed below opus tier; mechanical single-file IO-bound work is not routed above haiku tier.
-- The router neither counts spawns nor touches `ORK_TEAM_OPUS_MAX`, and never downgrades a Heavy leg to evade a `team-size-gate` denial.
+- The router does not count spawns, and never downgrades a Heavy leg to evade a gate denial.
 - No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
 - When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
 - `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.
