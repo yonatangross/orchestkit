@@ -299,7 +299,9 @@ document.querySelectorAll("[data-icon]").forEach(el => {
   if (!ic) { missing.push(key); return; }
   const vb = `${ic.left || 0} ${ic.top || 0} ${ic.width || pack.width} ${ic.height || pack.height}`;
   const svg = `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" width="28" height="28">${ic.body}</svg>`;
-  if (el.tagName.toLowerCase() === "g") el.innerHTML = svg; else el.innerHTML = svg;
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+  if (doc.querySelector("parsererror")) { missing.push(key); return; }
+  el.replaceChildren(document.importNode(doc.documentElement, true));
 });
 if (missing.length) console.error("missing icons", missing);
 document.body.dataset.iconsMissing = missing.length;
