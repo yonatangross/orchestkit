@@ -23,7 +23,11 @@ let detach: (() => void) | null = null;
 
 const granted = () => getAnalyticsConsent() === "accepted";
 
-async function load(key: string, options: PostHogInitOptions): Promise<void> {
+async function load(
+	key: string,
+	options: PostHogInitOptions,
+	onConsentChange?: (capturing: boolean) => void,
+): Promise<void> {
 	if (loading || client) return;
 	loading = true;
 	try {
@@ -51,6 +55,10 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
 		// Consent was re-checked just above, with nothing async in between.
 		posthog.opt_in_capturing();
 		enabled = true;
+		// After the opt-in, never inside init(): posthog-js runs the `loaded`
+		// option from inside init(), before this point, so anything that must
+		// start only with capture on (the replay gate) starts here.
+		onConsentChange?.(true);
 	} catch {
 		// The SDK chunk failed to download (network drop, or a deploy removed an
 		// old chunk). Analytics is optional: stay unloaded and quiet, never an
@@ -65,19 +73,31 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
  * Start PostHog for this page if the visitor has allowed analytics, and keep
  * following their choice: a later "accepted" loads it, a later "declined" or a
  * cleared choice stops capture. Call once, from instrumentation-client.ts.
+ *
+ * `onConsentChange` runs every time capture turns on or off: true right after
+ * the first load's opt-in and on a re-allow, false on a withdraw. Callers
+ * holding their own state, like the replay gate, resync from it.
  */
-export function startPostHog(key: string | undefined, options: PostHogInitOptions): void {
+export function startPostHog(
+	key: string | undefined,
+	options: PostHogInitOptions,
+	onConsentChange?: (capturing: boolean) => void,
+): void {
 	if (!key || typeof window === "undefined") return;
 	const apply = () => {
 		if (granted()) {
-			if (!client) void load(key, options);
+			if (!client) void load(key, options, onConsentChange);
 			else if (!enabled) {
 				client.opt_in_capturing();
 				enabled = true;
+				onConsentChange?.(true);
 			}
 		} else if (client && enabled) {
+			// Withdrawn: stop any replay in progress as well as capture.
+			client.stopSessionRecording();
 			client.opt_out_capturing();
 			enabled = false;
+			onConsentChange?.(false);
 		}
 	};
 	const onStorage = (e: StorageEvent) => {

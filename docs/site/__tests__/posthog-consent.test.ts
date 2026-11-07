@@ -197,6 +197,77 @@ describe("PostHog consent gate", () => {
 		expect(lastPh?.opt_out_capturing).toHaveBeenCalledTimes(1);
 	});
 
+	it("after a Decline, entering a reference page starts no recording (b116 follow-up)", async () => {
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		const mod = await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const ph = lastPh as unknown as { startSessionRecording: ReturnType<typeof vi.fn> };
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("declined");
+		mod.onRouterTransitionStart("/docs/reference/skills/verify");
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		await settle();
+		await settle();
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+	});
+
+	it("allow, decline, enter a reference page, allow again: replay starts on the re-allow (b118 should, #5106)", async () => {
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		const mod = await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const ph = lastPh as unknown as {
+			startSessionRecording: ReturnType<typeof vi.fn>;
+			stopSessionRecording: ReturnType<typeof vi.fn>;
+		};
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("declined");
+		// The gate is asked to start while consent is withdrawn: suppressed.
+		mod.onRouterTransitionStart("/docs/reference/skills/verify");
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		await settle();
+		await settle();
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+		// Re-allow on the same reference page: the suppressed request must not
+		// keep the gate thinking a recording is already running.
+		setAnalyticsConsent("accepted");
+		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
+		// And a second Decline stops it again: count the delta, since the
+		// re-allow's own stop() already called stopSessionRecording.
+		const stopsBefore = ph.stopSessionRecording.mock.calls.length;
+		setAnalyticsConsent("declined");
+		expect(ph.stopSessionRecording.mock.calls.length).toBeGreaterThan(stopsBefore);
+	});
+
+	it("replay still starts when posthog-js runs loaded after init returns (b119, #5106)", async () => {
+		vi.doUnmock("posthog-js");
+		let deferredLoaded: (() => void) | null = null;
+		const ph = {
+			init: vi.fn((key: string, opts: Record<string, unknown>) => {
+				initKeys.push(key);
+				const loaded = opts.loaded as ((p: unknown) => void) | undefined;
+				// Deferred: the loader's opt-in and consent callback run first.
+				deferredLoaded = () => loaded?.(ph);
+			}),
+			opt_in_capturing: vi.fn(),
+			opt_out_capturing: vi.fn(),
+			capture: vi.fn(),
+			captureException: vi.fn(),
+			identify: vi.fn(),
+			reset: vi.fn(),
+			startSessionRecording: vi.fn(),
+			stopSessionRecording: vi.fn(),
+		};
+		vi.doMock("posthog-js", () => ({ default: ph }));
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(ph.opt_in_capturing).toHaveBeenCalledTimes(1));
+		// The consent callback found no gate yet: nothing started.
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+		(deferredLoaded as (() => void) | null)?.();
+		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];

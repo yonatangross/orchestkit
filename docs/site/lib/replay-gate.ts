@@ -45,7 +45,17 @@ export interface ReplayGate {
 	stop(): void;
 }
 
-export function createReplayGate(controls: ReplayControls): ReplayGate {
+/**
+ * `canStart` (optional) is asked before every start. When it says no, the gate
+ * neither starts nor records a request, so a later sync() can start for real.
+ * The docs site passes "PostHog loaded and capture on": a start refused while
+ * consent is withdrawn, or during init() before the opt-in, leaves no stale
+ * flag behind (b119 and CodeRabbit, #5106).
+ */
+export function createReplayGate(
+	controls: ReplayControls,
+	canStart: () => boolean = () => true,
+): ReplayGate {
 	// Tracks what this gate asked for, not whether the SDK is recording yet. The
 	// SDK can still be waiting on remote config after start(), and a navigation
 	// away in that window must still stop it, so the flag, not
@@ -65,6 +75,7 @@ export function createReplayGate(controls: ReplayControls): ReplayGate {
 				return;
 			}
 			if (requested) return;
+			if (!canStart()) return;
 			requested = true;
 			// No override argument on purpose: sampling, linked flag and any URL
 			// trigger configured in the PostHog project still apply on top of

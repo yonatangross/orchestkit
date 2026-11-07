@@ -47,7 +47,7 @@
 // banner.tsx, lib/analytics-consent.ts). Before that nothing PostHog loads, not
 // even an opted-out client, which would still fetch remote config. The replay
 // gate is created in the `loaded` callback, so it exists only after consent.
-import { startPostHog } from "@/lib/posthog-loader";
+import { isPostHogLoaded, startPostHog } from "@/lib/posthog-loader";
 import {
 	createReplayGate,
 	isReplayPath,
@@ -100,12 +100,28 @@ if (KEY) {
 		// /api/analytics send; this is the mirror half.
 		capture_exceptions: true,
 
-		// Runs once, right after posthog-js initialises (after consent). The
-		// replay gate starts on whatever page the visitor is on at that moment.
+		// Runs once, from inside posthog-js init() (after consent). It only
+		// CREATES the gate: capture is not on yet at this point (the loader opts
+		// in after init returns), so nothing starts here. The first start comes
+		// from the consent callback below, which the loader calls right after
+		// the opt-in (b119 and CodeRabbit, #5106).
 		loaded: (ph: ReplayControls) => {
-			replay = createReplayGate(ph);
+			// canStart = PostHog loaded and capture on. A start refused while
+			// consent is withdrawn (or during init) records no request, so a
+			// later sync() starts for real.
+			replay = createReplayGate(ph, isPostHogLoaded);
+			// Both orders: if posthog-js ever runs `loaded` after init returns
+			// (so after the opt-in and the consent callback, which found no
+			// gate), start here. In the synchronous order canStart is still
+			// false, so this does nothing (b119, #5106).
 			replay.sync(window.location.pathname);
 		},
+	}, (capturing) => {
+		// Capture turned on (first load or a re-allow) or off (a withdraw).
+		// The loader has already stopped any recording on a withdraw; stop()
+		// clears the gate's own flag to match.
+		if (capturing) replay?.sync(window.location.pathname);
+		else replay?.stop();
 	});
 } else if (process.env.NODE_ENV === "development") {
 	// Loud in dev, silent no-op in production: a missing key must never break the
