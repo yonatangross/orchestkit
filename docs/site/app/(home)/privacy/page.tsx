@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AnalyticsConsentReset } from "@/components/analytics-consent-banner";
 import { ContentPage } from "@/components/content-page";
 import { ORG, SITE } from "@/lib/constants";
 
@@ -135,10 +136,14 @@ export default function PrivacyPage() {
 				the form <code>ph_&lt;project-key&gt;_posthog</code>) holding an
 				anonymous distinct id, a device id, the session id, and the
 				first-visit referrer and landing URL; that data stays with this
-				site's own analytics and is not shared with advertisers. The site does
-				not offer an opt-out or consent prompt for analytics; blocking or
-				clearing cookies that begin with <code>ph_</code> in your browser
-				settings is the only way to decline them.
+				site's own analytics and is not shared with advertisers. PostHog loads
+				only after you allow analytics in the banner at the bottom of the page:
+				until then neither its script nor its cookie is used. Your choice is
+				kept in your browser's local storage, and you can change it here at any
+				time.
+			</p>
+			<p>
+				<AnalyticsConsentReset />
 			</p>
 
 			<h2>Questions</h2>

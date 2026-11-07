@@ -1,0 +1,29 @@
+POSTHOG CONSENT BANNER · orchestkit.dev · mockup v1 (for approval)
+first visit ──▶ banner ──▶ Allow: load PostHog · Decline: never load it
+
+01 / BANNER (fixed, bottom of viewport, every page, until answered)
+┌──────────────────────────────────────────────────────────────────────┐
+│ Docs pages                                                           │
+│                                                                      │
+│ ┌ analytics ────────────────────────────────────────────────────────┐│
+│ │ We use PostHog for anonymous usage analytics on this site.        ││
+│ │ Nothing loads unless you allow it.    Privacy policy             ││
+│ │                                   [ Decline ]  [ Allow analytics ]││
+│ └───────────────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────────────┘
+ - role="region" aria-label="Analytics consent", focusable buttons, Esc = no answer (stays)
+ - Decline and Allow have equal visual weight (no dark pattern)
+ - answered once: stored in localStorage "cookie-consent" = granted | denied
+ - fires window event "cookie-consent-change" (same contract as @yonatan-hq/analytics)
+
+02 / PRIVACY PAGE (Cookies and tracking section)
+  text changes from "does not offer an opt-out or consent prompt" to:
+  "PostHog loads only after you allow analytics in the banner. Your choice is
+   kept in your browser's local storage."
+  [ Change analytics choice ]   resets the choice and shows the banner again
+
+03 / WHAT STAYS THE SAME
+  first-party /api/analytics (system of record, no cookies) is not gated by this
+  change; only PostHog (the ph_ cookie and the posthog-js script) is.
+
+◆ CONDUCTOR / YONATAN APPROVE THE DESIGN (or the wording) before the banner is built

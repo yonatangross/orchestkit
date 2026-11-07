@@ -14,11 +14,29 @@
 //      means the first-party name and the PostHog name cannot drift apart —
 //      callers pass one string and both sinks receive it.
 //
-// Every function is safe to call anywhere client-side. posthog-js no-ops before
-// init(), so a missing NEXT_PUBLIC_POSTHOG_KEY (dev machine, CI, a fork) costs
-// nothing and throws nothing.
+// Every function is safe to call anywhere client-side. It never imports
+// posthog-js: capturePostHog from lib/posthog-loader.ts is a no-op until
+// PostHog has loaded, and it loads only after the visitor allows analytics
+// (lib/analytics-consent.ts). A missing NEXT_PUBLIC_POSTHOG_KEY (dev machine, CI,
+// a fork) or a declined banner costs nothing and throws nothing.
 
-import posthog from "posthog-js";
+import { capturePostHog } from "@/lib/posthog-loader";
+
+type MirrorValue = string | number;
+
+// capturePostHog takes string and number values. Booleans are sent as "true" or
+// "false"; anything else (objects, null, undefined) is dropped, never sent.
+function toMirrorProps(
+	properties?: Record<string, unknown>,
+): Record<string, MirrorValue> | undefined {
+	if (!properties) return undefined;
+	const out: Record<string, MirrorValue> = {};
+	for (const [k, v] of Object.entries(properties)) {
+		if (typeof v === "string" || typeof v === "number") out[k] = v;
+		else if (typeof v === "boolean") out[k] = String(v);
+	}
+	return out;
+}
 
 /**
  * Mirror one already-sent first-party event into PostHog.
@@ -34,7 +52,7 @@ export function mirrorToPostHog(
 		// Mirrors the first-party beacons' own guard: local runs must not pollute
 		// the shared project with synthetic traffic.
 		if (process.env.NODE_ENV === "development") return;
-		posthog.capture(name, properties);
+		capturePostHog(name, toMirrorProps(properties));
 	} catch {
 		// fail-open: analytics must never break the page
 	}

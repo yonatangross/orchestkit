@@ -1,0 +1,12 @@
+{
+  "slug": "posthog-consent-gate",
+  "source": "docs/fix--docs-posthog-consent/index.html",
+  "title": "PostHog waits for consent on the docs site",
+  "description": "The OrchestKit docs site now loads PostHog only after a visitor allows analytics. Pick a stored choice and an action to see whether the banner shows and whether PostHog may load.",
+  "tags": [
+    "privacy",
+    "analytics",
+    "docs-site"
+  ],
+  "date": "2026-11-07"
+}
