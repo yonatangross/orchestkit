@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "1db5ef7638ce79f38bf20f3044b257722faa8297de6e7a95df4b1e8db7b5c18a",
+    "sha256": "d5deeb840452fc6f26f9d250d1bc327293cd5d58bc06109656a433e56cba0c93",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -940,9 +940,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures.",
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures.",
     "version": "0.2.0",
-    "sha256": "1380f1bcc55f7ab0a99dfad996726bef5c26f4a9262aed7fc80d32cf858ee2e7",
+    "sha256": "4f8120f528c769b38f318cb8e33e1c395b7c9cfe6e2465ff6fe29626177d7da9",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -5374,7 +5374,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "9c3556f96acfb1fe7c7835a50f53344cc156c3fa81944b6db7e5f65dbb76e08f",
+    "sha256": "b38b8b22bd97f5dc2aabd6bce322d94c8319da00119e0be05e0f76091b0ccfe8",
     "author": "OrchestKit",
     "tags": [
       "visualization",

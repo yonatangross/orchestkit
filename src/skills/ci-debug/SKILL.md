@@ -2,7 +2,7 @@
 name: ci-debug
 license: MIT
 compatibility: "Claude Code 2.1.277+ — uses `gh` CLI for GitHub Actions log inspection. Works in interactive sessions and headless `claude -p --bare` invocations (e.g. /ork:ci-sentinel)."
-description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures."
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures."
 argument-hint: "<PR-number | run-URL | job-URL>"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
@@ -154,7 +154,7 @@ it automatically.
 
 ## When NOT to invoke
 
-- For broad "what's failing across the org?" — use `/status` instead.
+- For every open PR with red checks at once, use `ci-sentinel`, which runs this skill across them.
 - For application-level test failures (the playbook is **CI-infra-specific**, not e.g. pytest failures).
 - Before reading the actual log — don't speculate.
 
@@ -170,6 +170,6 @@ Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. T
 
 ## Related Skills
 
-- **Composes with** — `ci-sentinel` (the autonomous hourly trigger for this skill against open red PRs).
+- **Composes with** — `ci-sentinel` (the autonomous daily trigger for this skill against open red PRs).
 - **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
 - **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.

@@ -45,7 +45,7 @@ Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 
 ## STEP 0: Project Context Discovery
 
-**Load context first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+**Load context first.** This skill declares no frontmatter hooks, so nothing loads prior decisions for you: run the loader yourself and keep its `additionalContext` in mind:
 
 ```bash
 echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/prior-decisions-loader
@@ -350,13 +350,12 @@ Skip brainstorming when:
 In Agent Teams mode, form a brainstorming team where agents debate ideas in real-time. Dynamically select teammates based on topic analysis (Phase 0):
 
 ```python
-# CC 2.1.178+: one implicit team per session — no TeamCreate.
-# Spawn teammates directly via Agent(name=...). Requires
-# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
+# One implicit team per session: no TeamCreate and no team_name.
+# Spawn teammates directly via Agent(name=...). Agent Teams needs
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in the user's environment.
 
 # Always include the system design lead
 Agent(subagent_type="ork:workflow-architect", name="system-designer",
-     team_name="brainstorm-{topic-slug}",
      prompt="""You are the system design lead for brainstorming: {topic}
      DIVERGENT MODE: Generate 3-4 architectural approaches.
      When other teammates share ideas, build on them or propose alternatives.
@@ -365,7 +364,6 @@ Agent(subagent_type="ork:workflow-architect", name="system-designer",
 
 # Domain-specific teammates (select 2-3 based on topic keywords)
 Agent(subagent_type="ork:backend-system-architect", name="backend-thinker",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm backend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 backend-specific ideas.
      When system-designer shares architectural ideas, propose concrete API designs.
@@ -373,7 +371,6 @@ Agent(subagent_type="ork:backend-system-architect", name="backend-thinker",
      Play devil's advocate on complexity vs simplicity trade-offs.""")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-thinker",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm frontend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 UI/UX ideas.
      When backend-thinker proposes APIs, suggest frontend patterns that match.
@@ -382,7 +379,6 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-thinker",
 
 # Always include: testability assessor
 Agent(subagent_type="ork:test-generator", name="testability-assessor",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Assess testability for each brainstormed approach: {topic}
      For every idea shared by teammates, evaluate:
      - Can core logic be unit tested without external services?
