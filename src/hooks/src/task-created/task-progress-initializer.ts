@@ -70,10 +70,21 @@ export function taskProgressInitializer(input: HookInput, ctx: HookContext = NOO
   const numberMatch = taskSubject.match(/^\[(\d+)\/(\d+)\]/);
   if (!numberMatch) return outputSilentSuccess();
 
+  const step = parseInt(numberMatch[1], 10);
   const total = parseInt(numberMatch[2], 10);
   if (total < 2) return outputSilentSuccess();
 
   const state = loadState(sessionId);
+
+  // Reset state if previous batch completed and a new batch starts at [1/N]
+  if (step === 1 && state.total > 0 && state.completed >= state.total) {
+    state.total = total;
+    state.completed = 0;
+    state.task_ids = [];
+    saveState(state);
+    ctx.log(HOOK_NAME, `Reset progress for new batch: 0/${total} tasks`);
+    return outputSilentSuccess();
+  }
 
   // Update total if this batch is larger
   if (total > state.total) {
