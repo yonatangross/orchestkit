@@ -1,0 +1,12 @@
+{
+  "slug": "skill-fitness-round-4",
+  "source": "docs/feat--skill-quality-r4/index.html",
+  "title": "Skill fitness round 4: fixes land, the graders move the bar",
+  "description": "Round 4 of the OrchestKit quality loop fixed review-pr, verify and expect. The scripted checklist rose; the two fresh LLM graders found new issues in skills nobody touched. Pick a score source to see both effects.",
+  "tags": [
+    "skills",
+    "quality",
+    "evals"
+  ],
+  "date": "2026-11-07"
+}

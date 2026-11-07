@@ -5,11 +5,11 @@
     "brainstorm": 10,
     "visualize-plan": 10,
     "ci-debug": 10,
-    "review-pr": 9,
+    "review-pr": 10,
     "page-serve": 8,
     "glyph": 8,
-    "expect": 8,
+    "expect": 10,
     "auto": 7,
-    "verify": 7
+    "verify": 10
   }
 }
