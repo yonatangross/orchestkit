@@ -1,0 +1,12 @@
+{
+  "slug": "living-docs-agents-count-check",
+  "source": "docs/docs--living-docs-drift-markers/agents-count-check.html",
+  "title": "stamp-counts: the CLAUDE.md agents line is now checked",
+  "description": "Enter the agents count on disk and the count written in CLAUDE.md, and see what stamp-counts did before this change (never compared the line) and after (flags it stale and stamps the true count).",
+  "tags": [
+    "docs-drift",
+    "stamp-counts",
+    "living-docs"
+  ],
+  "date": "2026-11-07"
+}
