@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 2: true counts and a routing boundary</title>
+<meta name="description" content="Round 2 of the OrchestKit quality loop. Pick one of the three lowest skills to see its score before and after, the issue a fresh scorer found, and what changed. The ten-skill mean did not move, and the table shows why.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.9rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .score{font-size:1.1rem;margin-top:.6rem}
+  .bad{color:var(--bad)} .ok{color:var(--ok)} .dim{color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.78rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body><main>
+<h1>Skill fitness round 2: true counts and a routing boundary</h1>
+<p class="sub">Branch feat/skill-quality-r1, 2026-11-07. A fresh agent scored the ten most-used skills on freshness, clarity and structure (0 to 10 each, 30 total). The three lowest were fixed, then a second fresh agent scored all ten again.</p>
+
+<section><h2>Pick a skill</h2>
+<label for="skill" class="dim">fixed this round</label>
+<select id="skill">
+  <option value="review-pr">review-pr</option>
+  <option value="verify">verify</option>
+  <option value="auto">auto</option>
+</select>
+<div class="score" id="score" aria-live="polite"></div>
+<div class="grid">
+  <div><div class="dim">the scorer's top issue</div><div class="out bad" id="issue"></div></div>
+  <div><div class="dim">what this PR changes</div><div class="out ok" id="fix"></div></div>
+</div>
+</section>
+
+<section><h2>All ten, before and after</h2>
+<table>
+<thead><tr><th>skill</th><th class="num">before</th><th class="num">after</th><th class="num">change</th><th>edited</th></tr></thead>
+<tbody>
+<tr><td>auto</td><td class="num">20</td><td class="num">25</td><td class="num ok">+5</td><td>yes</td></tr>
+<tr><td>verify</td><td class="num">19</td><td class="num">23</td><td class="num ok">+4</td><td>yes</td></tr>
+<tr><td>review-pr</td><td class="num">19</td><td class="num">21</td><td class="num ok">+2</td><td>yes</td></tr>
+<tr><td>assess</td><td class="num">21</td><td class="num">18</td><td class="num bad">-3</td><td>no</td></tr>
+<tr><td>ci-debug</td><td class="num">26</td><td class="num">23</td><td class="num bad">-3</td><td>no</td></tr>
+<tr><td>brainstorm</td><td class="num">23</td><td class="num">21</td><td class="num bad">-2</td><td>no</td></tr>
+<tr><td>page-serve</td><td class="num">24</td><td class="num">22</td><td class="num bad">-2</td><td>no</td></tr>
+<tr><td>glyph</td><td class="num">23</td><td class="num">22</td><td class="num bad">-1</td><td>no</td></tr>
+<tr><td>expect</td><td class="num">23</td><td class="num">22</td><td class="num bad">-1</td><td>no</td></tr>
+<tr><td>visualize-plan</td><td class="num">21</td><td class="num">21</td><td class="num">0</td><td>no</td></tr>
+</tbody>
+</table>
+<p class="dim">Mean 21.9 before, 21.8 after (7.3 of 10 both times). The edited skills gained 11 points; the seven unedited skills lost 12 although their files did not change. Two fresh scorers differ by 2 to 3 points per skill, so one scorer per round cannot show a round's gain. Round 3 scores with two graders plus a scripted checklist.</p>
+</section>
+
+<script>
+const CASES = {
+  'review-pr': [19, 21,
+    'The description had no "Not for" boundary, so a router could not tell it from assess. Headings were tagged CC 2.1.20 to 2.1.71, far below the 2.1.277 floor, and the memory probe comment said it was a fallback for old Claude Code.',
+    'Description gains "Not for design scores (use assess)" and stays under the 260-byte listing cap. Version tags are dropped from headings. The probe comment now says what it guards: a memory server that may be absent.'],
+  verify: [19, 23,
+    'The agent count was stated three ways: 6, 6-7 and 7. "Tests only" said it skips Phase 5 "UI/UX", but Phase 5 is improvement suggestions.',
+    'Six Phase 2 agents plus a 2.5 visual capture step, everywhere. Tests only skips Phase 2 and 2.5. Description gains "Not for writing tests (use cover)".'],
+  auto: [20, 25,
+    'The skill said its routing benchmark holds 50 labeled cases. The file holds 78.',
+    'The count reads 78, and the benchmark test now fails when a stated count drifts from the JSON. Description gains "Not for browsing skills (use help)".'],
+};
+function render() {
+  const [before, after, issue, fix] = CASES[document.getElementById('skill').value];
+  document.getElementById('score').textContent = `${before} of 30 before, ${after} of 30 after (+${after - before})`;
+  document.getElementById('issue').textContent = issue;
+  document.getElementById('fix').textContent = fix;
+}
+document.getElementById('skill').addEventListener('change', render);
+render();
+</script>
+</main></body>
+</html>
