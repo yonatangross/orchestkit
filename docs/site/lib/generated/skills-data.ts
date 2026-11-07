@@ -2196,7 +2196,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when setting up test environments, CI or offline development.",
     "version": "1.3.0",
-    "sha256": "2b3f791bf9ce344870d4f9e6051c37d937641917b0d187a63c106d0fbf9da1f4",
+    "sha256": "960e978878557d5e5995d8aa0da7b8638208389ae99549ffd6cb2fd9c3240841",
     "author": "OrchestKit",
     "tags": [
       "emulate",
