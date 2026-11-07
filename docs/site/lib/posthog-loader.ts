@@ -76,6 +76,8 @@ export function startPostHog(key: string | undefined, options: PostHogInitOption
 				enabled = true;
 			}
 		} else if (client && enabled) {
+			// Withdrawn: stop any replay in progress as well as capture.
+			client.stopSessionRecording();
 			client.opt_out_capturing();
 			enabled = false;
 		}

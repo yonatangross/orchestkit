@@ -197,6 +197,20 @@ describe("PostHog consent gate", () => {
 		expect(lastPh?.opt_out_capturing).toHaveBeenCalledTimes(1);
 	});
 
+	it("after a Decline, entering a reference page starts no recording (b116 follow-up)", async () => {
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		const mod = await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const ph = lastPh as unknown as { startSessionRecording: ReturnType<typeof vi.fn> };
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("declined");
+		mod.onRouterTransitionStart("/docs/reference/skills/verify");
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		await settle();
+		await settle();
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];
