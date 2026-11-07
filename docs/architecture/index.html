@@ -125,29 +125,29 @@ ul{padding-left:18px}li{margin:4px 0}
   service oai(hq:openai)[OpenAI] in ext
   service ph(hq:posthog)[PostHog] in ext
 
-  repo:B --&gt; T:ci
-  ci:B --&gt; T:rel
-  rel:R --&gt; L:plugin
-  plugin:T --&gt; B:cc
-  cc:R --&gt; L:runner
-  runner:B --&gt; T:db
-  site:B --&gt; T:api
+  repo:B &#45;&#45;&gt; T:ci
+  ci:B &#45;&#45;&gt; T:rel
+  rel:R &#45;&#45;&gt; L:plugin
+  plugin:T &#45;&#45;&gt; B:cc
+  cc:R &#45;&#45;&gt; L:runner
+  runner:B &#45;&#45;&gt; T:db
+  site:B &#45;&#45;&gt; T:api
 
-  runner:R -- L:outRunner
-  outRunner:R --&gt; L:jev
-  api:R -- L:outSite
-  outSite:R --&gt; L:oai
-  outSite:B -- T:outSite2
-  outSite2:R --&gt; L:ph
+  runner:R &#45;&#45; L:outRunner
+  outRunner:R &#45;&#45;&gt; L:jev
+  api:R &#45;&#45; L:outSite
+  outSite:R &#45;&#45;&gt; L:oai
+  outSite:B &#45;&#45; T:outSite2
+  outSite2:R &#45;&#45;&gt; L:ph
 </pre></figure><p class="src">On GitHub: docs/architecture/orchestkit-components.svg</p></div><div class="tabpanel" role="tabpanel" id="tab-3dataflowfromsou" hidden><figure class="diagram"><figcaption>Data flow (from source to a running hook)</figcaption><pre class="mermaid" id="m2">flowchart LR
-  src[&quot;src/ skills, agents, hooks&lt;br/&gt;manifests/ork.json&quot;]:::ghc --&gt; build[&quot;npm run build&lt;br/&gt;build-plugins.sh&quot;]:::ghc
-  build --&gt; plug[&quot;plugins/ork&lt;br/&gt;(generated)&quot;]:::ghc
-  plug --&gt; tag[&quot;release tag vX.Y.Z&lt;br/&gt;marketplace pin&quot;]:::ghc
-  tag --&gt; inst[&quot;Claude Code installs ork&quot;]:::anth
-  inst --&gt; ev[&quot;hook event&lt;br/&gt;(PreToolUse, SessionStart, ...)&quot;]:::anth
-  ev --&gt; run[&quot;run-hook.mjs&lt;br/&gt;event bundle&quot;]:::nodejs
-  run --&gt; out[&quot;JSON decision&lt;br/&gt;on stdout&quot;]:::anth
-  run --&gt; db[(&quot;sessions.db&lt;br/&gt;SQLite&quot;)]:::sqlite
+  src[&quot;src/ skills, agents, hooks&lt;br/&gt;manifests/ork.json&quot;]:::ghc &#45;&#45;&gt; build[&quot;npm run build&lt;br/&gt;build-plugins.sh&quot;]:::ghc
+  build &#45;&#45;&gt; plug[&quot;plugins/ork&lt;br/&gt;(generated)&quot;]:::ghc
+  plug &#45;&#45;&gt; tag[&quot;release tag vX.Y.Z&lt;br/&gt;marketplace pin&quot;]:::ghc
+  tag &#45;&#45;&gt; inst[&quot;Claude Code installs ork&quot;]:::anth
+  inst &#45;&#45;&gt; ev[&quot;hook event&lt;br/&gt;(PreToolUse, SessionStart, ...)&quot;]:::anth
+  ev &#45;&#45;&gt; run[&quot;run-hook.mjs&lt;br/&gt;event bundle&quot;]:::nodejs
+  run &#45;&#45;&gt; out[&quot;JSON decision&lt;br/&gt;on stdout&quot;]:::anth
+  run &#45;&#45;&gt; db[(&quot;sessions.db&lt;br/&gt;SQLite&quot;)]:::sqlite
   run -. &quot;opt-in&quot; .-&gt; jev[&quot;TypeSafe Jev&quot;]:::ext
   run -. &quot;opt-in webhook&quot; .-&gt; wh[&quot;user webhook&quot;]:::ext
   classDef ghc fill:#24292F,stroke:#0D1117,color:#FFFFFF
@@ -172,13 +172,13 @@ ul{padding-left:18px}li{margin:4px 0}
   R-&gt;&gt;R: getBundleName() maps the prefix to a bundle
   R-&gt;&gt;B: import the split bundle from dist
   alt bundle missing for a security hook
-    R--&gt;&gt;C: exit 2, block (fail closed)
+    R&#45;&#45;&gt;&gt;C: exit 2, block (fail closed)
   end
   B-&gt;&gt;D: run the dispatcher with the parsed input
   D-&gt;&gt;S: timing and analytics rows
-  D--&gt;&gt;R: decision object
+  D&#45;&#45;&gt;&gt;R: decision object
   R-&gt;&gt;R: sanitizeOutput(result)
-  R--&gt;&gt;C: JSON on stdout (allow, ask or deny)
+  R&#45;&#45;&gt;&gt;C: JSON on stdout (allow, ask or deny)
 </pre></figure><figure class="diagram"><figcaption>5.2 Session registration and heartbeat</figcaption><pre class="mermaid" id="m4">sequenceDiagram
   autonumber
   box rgb(253,236,228) Claude Code
@@ -213,18 +213,18 @@ ul{padding-left:18px}li{margin:4px 0}
     participant T as reportServerEvents()
   end
   A-&gt;&gt;M: JSON-RPC initialize, tools/list
-  M--&gt;&gt;A: tools and a ui:// search results resource
+  M&#45;&#45;&gt;&gt;A: tools and a ui:// search results resource
   A-&gt;&gt;M: tools/call search
   M-&gt;&gt;Q: query against the generated search index
-  Q--&gt;&gt;M: hits
+  Q&#45;&#45;&gt;&gt;M: hits
   M-&gt;&gt;T: telemetry events
-  M--&gt;&gt;A: content plus structuredContent
+  M&#45;&#45;&gt;&gt;A: content plus structuredContent
   A-&gt;&gt;M: tools/call fetch page
   M-&gt;&gt;K: Markdown for the path
-  K--&gt;&gt;A: Markdown text
+  K&#45;&#45;&gt;&gt;A: Markdown text
 </pre></figure><p class="src">Source: <code>src/hooks/hooks.json:3-20</code>, <code>src/hooks/bin/run-hook.mjs:77,232,405-412,477,484-497,927</code>. Source: <code>src/hooks/src/lifecycle/session-registrar.ts:10-16,198-199,224-240</code>, <code>src/hooks/src/posttool/heartbeat.ts:47</code>, <code>src/hooks/src/lifecycle/session-finalizer.ts:7,35</code>. Source: <code>docs/site/app/api/mcp/route.ts:8-13,20-33,58,87,160,213</code>, <code>docs/site/lib/doc-search.ts:21</code>.</p></div><div class="tabpanel" role="tabpanel" id="tab-6datamodel" hidden><figure class="diagram"><figcaption>Data model</figcaption><pre class="mermaid" id="m6">erDiagram
-  sessions ||--o{ sessions : &quot;parent_sid&quot;
-  sessions ||--o{ skill_invocation : records
+  sessions ||&#45;&#45;o{ sessions : &quot;parent_sid&quot;
+  sessions ||&#45;&#45;o{ skill_invocation : records
   sessions {
     text sid PK
     int pid
@@ -241,11 +241,11 @@ ul{padding-left:18px}li{margin:4px 0}
     int invoked_at
   }
 </pre></figure><p class="src">Source: <code>src/hooks/src/lib/sqlite-migrations/001-initial.sql</code> (sessions), <code>002-skill-analytics.sql</code> (skill_invocation), <code>003-routing-edges.sql</code> (view <code>routing_edge</code> over skill_invocation, not a table), <code>004-messaging-socket.sql</code>, <code>005-drop-unused-tables.sql</code> (drops locks, settings_overrides, worktree_links). The ER uses theme colors only, so it renders on GitHub.</p></div><div class="tabpanel" role="tabpanel" id="tab-7lifecycles" hidden><figure class="diagram"><figcaption>7.1 Session row status</figcaption><pre class="mermaid" id="m7">stateDiagram-v2
-  [*] --&gt; running: SessionStart insert
-  running --&gt; completed: SessionEnd
-  running --&gt; crashed: heartbeat older than 24 h at the next SessionStart
-  completed --&gt; running: same sid resumes
-  crashed --&gt; running: same sid resumes
+  [*] &#45;&#45;&gt; running: SessionStart insert
+  running &#45;&#45;&gt; completed: SessionEnd
+  running &#45;&#45;&gt; crashed: heartbeat older than 24 h at the next SessionStart
+  completed &#45;&#45;&gt; running: same sid resumes
+  crashed &#45;&#45;&gt; running: same sid resumes
   classDef live fill:#DCFCE7,stroke:#16A34A,color:#14532D
   classDef done fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
   classDef gone fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D
@@ -269,15 +269,15 @@ ul{padding-left:18px}li{margin:4px 0}
   npm@{ icon: &quot;hq:npm&quot;, form: &quot;square&quot;, label: &quot;npm (OIDC provenance)&quot;, pos: &quot;b&quot;, h: 48 }
   pypi@{ icon: &quot;hq:pypi&quot;, form: &quot;square&quot;, label: &quot;TestPyPI then PyPI&quot;, pos: &quot;b&quot;, h: 48 }
 
-  feat --&gt; pr --&gt; gmain --&gt; main
-  main --&gt; rp --&gt;|merge| tag --&gt; ghrel
-  ghrel --&gt; pin
-  ghrel --&gt; dist
-  ghrel --&gt; img --&gt; mreg
-  main --&gt;|&quot;git push&quot;| site
-  main --&gt; pkgtag
-  pkgtag --&gt; npm
-  pkgtag --&gt; pypi
+  feat &#45;&#45;&gt; pr &#45;&#45;&gt; gmain &#45;&#45;&gt; main
+  main &#45;&#45;&gt; rp &#45;&#45;&gt;|merge| tag &#45;&#45;&gt; ghrel
+  ghrel &#45;&#45;&gt; pin
+  ghrel &#45;&#45;&gt; dist
+  ghrel &#45;&#45;&gt; img &#45;&#45;&gt; mreg
+  main &#45;&#45;&gt;|&quot;git push&quot;| site
+  main &#45;&#45;&gt; pkgtag
+  pkgtag &#45;&#45;&gt; npm
+  pkgtag &#45;&#45;&gt; pypi
 
   classDef gate fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
   class gmain gate
