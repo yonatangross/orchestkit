@@ -82,6 +82,15 @@ export function startPostHog(key: string | undefined, options: PostHogInitOption
 	apply();
 }
 
+/**
+ * Stop following the consent choice (removes the window listeners). A page
+ * never needs this; tests do, because a test window outlives each module copy.
+ */
+export function stopPostHog(): void {
+	detach?.();
+	detach = null;
+}
+
 /** Send one event. A no-op until PostHog has loaded with consent. */
 export function capturePostHog(name: string, properties?: Record<string, string | number>): void {
 	if (enabled) client?.capture(name, properties);

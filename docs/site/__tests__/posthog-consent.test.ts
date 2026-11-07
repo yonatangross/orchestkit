@@ -51,7 +51,12 @@ beforeEach(() => {
 	bootMock();
 });
 
-afterEach(() => {
+afterEach(async () => {
+	// The test window outlives each fresh module copy, so a loader left
+	// listening would also react to the next test's consent event (CI saw five
+	// init calls for one Allow). Detach this test's loader before the next boot.
+	const loader = await import("@/lib/posthog-loader");
+	loader.stopPostHog();
 	vi.doUnmock("posthog-js");
 	vi.unstubAllEnvs();
 	localStorage.clear();
