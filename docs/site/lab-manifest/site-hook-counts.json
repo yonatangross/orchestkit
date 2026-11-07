@@ -1,0 +1,12 @@
+{
+  "slug": "site-hook-counts",
+  "source": "docs/docs--site-hook-counts/index.html",
+  "title": "Docs site hook counts: restamped to 151 global, 0 agent, 12 skill",
+  "description": "Before and after for the three docs pages whose hook counts were stale, with a sum check you can edit: global plus agent plus skill must equal the printed total.",
+  "tags": [
+    "docs-drift",
+    "hooks",
+    "living-docs"
+  ],
+  "date": "2026-11-07"
+}

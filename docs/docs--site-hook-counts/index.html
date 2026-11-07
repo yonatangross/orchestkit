@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs site hook counts: restamped to 151 global, 0 agent, 12 skill</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#111;line-height:1.55}
+main{max-width:820px;margin:0 auto;padding:28px 20px}
+h1{font-size:26px;margin:0 0 6px}
+.verdict{border:2px solid #111;border-radius:10px;padding:12px 16px;background:#f3f6ff;margin:14px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:15px}
+th,td{border:1px solid #bbb;padding:6px 8px;text-align:left}
+th{background:#f4f4f4}
+.ok{color:#05631f;font-weight:700}
+.stale{color:#b00020;font-weight:700}
+.card{border:2px solid #111;border-radius:10px;padding:12px 14px;margin:14px 0}
+label{display:inline-block;margin:6px 12px 6px 0}
+input[type=number]{width:80px;font-size:16px;padding:4px}
+button{background:#111;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:15px;cursor:pointer}
+textarea{width:100%;min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.small{font-size:14px;color:#333}
+code{background:#f4f4f4;padding:1px 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<main>
+<h1>Docs site hook counts: restamped</h1>
+<p class="small">Branch: docs/site-hook-counts. Three pages under <code>docs/site/content/docs/</code>, no code change.</p>
+<div class="verdict"><b>Before:</b> the hooks overview and the FAQ said 10 skill-scoped hooks, so their parts (151 + 0 + 10 = 161) did not add up to the 163 total they printed. The architecture page still showed tab counts from before #3461 (Global 42, Agent-Scoped 44, Skill-Scoped 19) and a sentence about 45 agent-scoped hooks. <b>After:</b> every page uses the live registry count: 151 global, 0 agent-scoped, 12 skill-scoped, 163 total.</div>
+
+<table>
+<thead><tr><th>Page</th><th>Stamp</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>hooks/overview.mdx</td><td>Skill-scoped row</td><td class="stale">10</td><td class="ok">12</td></tr>
+<tr><td>troubleshooting/faq.mdx</td><td>Total breakdown</td><td class="stale">151 + 0 + 10</td><td class="ok">151 + 0 + 12</td></tr>
+<tr><td>hooks/architecture.mdx</td><td>Tab labels</td><td class="stale">42 / 44 / 19</td><td class="ok">151 / 0 / 12</td></tr>
+<tr><td>hooks/architecture.mdx</td><td>Agent tab sentence</td><td class="stale">45 agent-scoped hooks</td><td class="ok">none since #3461</td></tr>
+</tbody>
+</table>
+
+<div class="card">
+<b>Check the sum yourself.</b> The counts come from the same greps <code>bin/count-hooks.sh</code> runs: <code>"type": "command"</code> entries in <code>src/hooks/hooks.json</code>, plus handler lines in agent and skill frontmatter.<br>
+<label>Global <input id="g" type="number" value="151"></label>
+<label>Agent <input id="a" type="number" value="0"></label>
+<label>Skill <input id="s" type="number" value="12"></label>
+<label>Printed total <input id="t" type="number" value="163"></label>
+<p id="out" class="ok"></p>
+</div>
+
+<div class="card">
+<button id="copy">Copy as prompt</button>
+<textarea id="prompt" readonly></textarea>
+</div>
+</main>
+<script>
+const ids=["g","a","s","t"];
+function render(){
+  const [g,a,s,t]=ids.map(i=>Number(document.getElementById(i).value)||0);
+  const sum=g+a+s, out=document.getElementById("out");
+  out.className=sum===t?"ok":"stale";
+  out.textContent=sum===t?`Parts add up: ${g} + ${a} + ${s} = ${t}.`:`Drift: ${g} + ${a} + ${s} = ${sum}, but the page prints ${t}.`;
+  document.getElementById("prompt").value=`Check the docs/site hook counts: global ${g}, agent ${a}, skill ${s}, printed total ${t} (sum ${sum}). Restamp any page whose numbers disagree with bin/count-hooks.sh.`;
+}
+ids.forEach(i=>document.getElementById(i).addEventListener("input",render));
+document.getElementById("copy").addEventListener("click",()=>navigator.clipboard.writeText(document.getElementById("prompt").value));
+render();
+</script>
+</body>
+</html>
