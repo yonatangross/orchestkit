@@ -14,6 +14,9 @@
 //   count_clashes  one noun (dimensions, phases, sections) stated
 //                  with two different numbers                       -2 each
 //   over_cap       SKILL.md longer than 500 lines                    -2
+//   unset_skill_dir  $SKILL_DIR or ${SKILL_DIR}, which nothing sets;
+//                  the skill-dir variable is ${CLAUDE_SKILL_DIR}
+//                  (CONTRIBUTING-SKILLS.md), code blocks included     -2
 //
 // Score = 10 minus deductions, never below 0.
 //
@@ -116,6 +119,10 @@ export function checkSkill(skillDir, repoRoot, floor) {
 
   // over_cap
   if (lines.length > 500) findings.push({ rule: 'over_cap', line: lines.length, detail: `${lines.length} lines`, cost: 2 });
+
+  // unset_skill_dir: scans code blocks too, since that is where the path breaks
+  const bad = lines.findIndex((l) => /\$\{?SKILL_DIR\b/.test(l));
+  if (bad >= 0) findings.push({ rule: 'unset_skill_dir', line: bad + 1, detail: lines[bad].trim().slice(0, 80), cost: 2 });
 
   const score = Math.max(0, 10 - findings.reduce((a, f) => a + f.cost, 0));
   return { skill: path.basename(skillDir), score, findings };

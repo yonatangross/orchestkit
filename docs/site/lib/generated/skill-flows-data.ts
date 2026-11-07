@@ -1186,7 +1186,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Choose Agent Teams (mesh, agents debate and challenge ideas) or Agent tool (star, all report to lead):",
+            "does": "Choose the Workflow call (star, scripted), Agent Teams (mesh, agents debate and challenge ideas) or the Agent tool (star, all report to lead):",
             "out": null,
             "tag": null
           },

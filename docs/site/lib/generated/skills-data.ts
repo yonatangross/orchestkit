@@ -408,7 +408,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify).",
     "version": "1.9.0",
-    "sha256": "e646ba97a2e190ce60593944e75c660d30644b973ba192460ac5170ab011aac8",
+    "sha256": "74d6e77371b120538b6b7be2ac2c17200de560b882d357bbda045aaaa77a485c",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "6f5b493e427dd1fc243b59f7a5a5089ba3bf856049f2dfc6008f6ff6d0f5a239",
+    "sha256": "1db5ef7638ce79f38bf20f3044b257722faa8297de6e7a95df4b1e8db7b5c18a",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -5372,9 +5372,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "visualize-plan": {
     "name": "visualize-plan",
-    "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. Use when reviewing a plan or comparing approaches.",
+    "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "9846b464f1c03f782d7e8aad8e5736e2e8a945bb0f8949e59e67eb845eaf420f",
+    "sha256": "9c3556f96acfb1fe7c7835a50f53344cc156c3fa81944b6db7e5f65dbb76e08f",
     "author": "OrchestKit",
     "tags": [
       "visualization",

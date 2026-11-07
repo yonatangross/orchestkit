@@ -14,13 +14,15 @@
 //      (it once said "floor 2.1.220, current model Opus 4.8", quality loop
 //      round 2). The workflow runs with a stubbed agent() and still ranks
 //      weakest first.
+//   3. Each of the loop's 10 skills scores at or above its floor in
+//      tests/unit/skill-checklist-floor.json (floors only move up).
 // ============================================================================
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkSkill } from '../../scripts/eval/skill-checklist.mjs';
+import { checkSkill, readFloor } from '../../scripts/eval/skill-checklist.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const failures = [];
@@ -56,6 +58,9 @@ try {
     '## Effort (CC 2.1.16)',
     'Run `scripts/missing.sh key-value` and `scripts/only-in-repo.sh`.',
     'Load Read("references/gone.md"). It scores six dimensions; later, 7 dimensions.',
+    '```bash',
+    'bash "$SKILL_DIR/scripts/x.sh"',
+    '```',
     ...Array.from({ length: 500 }, () => 'filler'),
   ].join('\n'));
 
@@ -64,7 +69,7 @@ try {
 
   const bad = checkSkill(path.join(root, 'src', 'skills', 'bad'), root, 277);
   const rules = bad.findings.map((f) => `${f.rule}:${f.detail.split(' ')[0]}`);
-  for (const want of ['missing_refs:scripts/missing.sh', 'missing_refs:scripts/only-in-repo.sh', 'missing_refs:references/gone.md', 'no_not_for:description', 'stale_cc_tags:##', 'count_clashes:dimensions:', 'over_cap:507']) {
+  for (const want of ['missing_refs:scripts/missing.sh', 'missing_refs:scripts/only-in-repo.sh', 'missing_refs:references/gone.md', 'no_not_for:description', 'stale_cc_tags:##', 'count_clashes:dimensions:', 'over_cap:510', 'unset_skill_dir:bash']) {
     expect(rules.includes(want), `bad skill should report ${want}; got ${rules.join(', ')}`);
   }
   expect(bad.score === 0, `bad skill floors at 0, got ${bad.score}`);
@@ -100,6 +105,14 @@ for (const p of prompts) {
 }
 expect(result.all[0].skill === 'beta' && result.all[1].skill === 'alpha', `weakest first, got ${result.all.map((r) => r.skill)}`);
 expect(result.mean_total === 19.5, `mean of 27 and 12 is 19.5, got ${result.mean_total}`);
+
+// ---- 3. real skills hold their checklist floors -------------------------------
+const floorFile = JSON.parse(readFileSync(path.join(REPO, 'tests', 'unit', 'skill-checklist-floor.json'), 'utf8'));
+const ccFloor = readFloor(REPO);
+for (const [skill, min] of Object.entries(floorFile.floors)) {
+  const r = checkSkill(path.join(REPO, 'src', 'skills', skill), REPO, ccFloor);
+  expect(r.score >= min, `${skill}: checklist ${r.score} is below its floor ${min}: ${r.findings.map((f) => `${f.rule} :${f.line} ${f.detail}`).join('; ')}`);
+}
 
 for (const f of failures) console.log(`FAIL: ${f}`);
 if (failures.length) process.exit(1);

@@ -196,11 +196,12 @@ Full sub-flow (metric question, baseline, loop body): `Read("references/iterativ
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
-Choose **Agent Teams** (mesh, agents debate and challenge ideas) or **Agent tool** (star, all report to lead):
+Choose the **Workflow** call (star, scripted), **Agent Teams** (mesh, agents debate and challenge ideas) or the **Agent tool** (star, all report to lead):
 
-1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 3+ agents** (real-time debate produces better ideas)
-2. Agent tool mode → **for quick ideation**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
+1. Workflow mode → `workflows/brainstorm-diverge.js` runs the Phase 2 generators at effort `low` (STEP 0c)
+2. Agent Teams mode → **recommended for 3+ agents** (real-time debate produces better ideas)
+3. Agent tool mode → **for quick ideation**
+4. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
 
 | Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
@@ -213,7 +214,7 @@ Choose **Agent Teams** (mesh, agents debate and challenge ideas) or **Agent tool
 
 ---
 
-## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
+## STEP 0c: Effort-Aware Phase Scaling
 
 Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/5 only, `high` (default) runs all 7, `xhigh` adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.
 
@@ -227,7 +228,7 @@ Full level table + detection rules: `Read("references/effort-scaling.md")`
 
 **Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
-## 🚨 CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## 🚨 CRITICAL: Task Management is MANDATORY
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -278,7 +279,7 @@ execution waves with verifiable items), emit the design as a **living plan playg
 one-shot render: waves from Phase 5 synthesis, 7-dimension scores from Phase 4, discarded ideas with
 reasons from Phase 3, one item per work unit with a "done when" evidence check. Route through
 `visualize-plan`'s living-plan path (exemplar `living-plan.template.html`, update-mode contract in its
-`references/format-dispatch.md` §Living-plan update mode). The artifact then tracks its own execution:
+`visualize-plan/references/format-dispatch.md` §Living-plan update mode). The artifact then tracks its own execution:
 later sessions flip item statuses in the embedded `lpp-state` JSON and append to its changelog — one
 plan = one file, never fork.
 
@@ -303,7 +304,7 @@ Session dir must contain `brainstorm-output.json` (with `recommended`, `composit
 
 Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler for `/hq-ext:decide`).
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output
 
 Output results **incrementally** after each phase — don't batch everything until the end:
 
@@ -439,9 +440,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up implement
 
 ## Running unattended with /goal
 
-Set a completion condition with `/goal` (CC 2.1.139+, **2.1.143+ recommended for this skill**) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
-
-> **Why 2.1.143+:** Pre-2.1.143 `/goal` evaluator could fire while background shells or delegated subagents were still running — racing the parallel agents this skill spawns in Phase 2. Fixed in CC 2.1.143 (changelog: "`/goal` evaluator firing while background shells or delegated subagents are still running").
+Set a completion condition with `/goal` and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
 
 **Example completion condition for this skill:**
 
