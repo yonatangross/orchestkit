@@ -15,12 +15,12 @@
 //      callers pass one string and both sinks receive it.
 //
 // Every function is safe to call anywhere client-side. It never imports
-// posthog-js: capturePostHog from @yonatan-hq/analytics/posthog is a no-op until
+// posthog-js: capturePostHog from lib/posthog-loader.ts is a no-op until
 // PostHog has loaded, and it loads only after the visitor allows analytics
 // (lib/analytics-consent.ts). A missing NEXT_PUBLIC_POSTHOG_KEY (dev machine, CI,
 // a fork) or a declined banner costs nothing and throws nothing.
 
-import { capturePostHog } from "@yonatan-hq/analytics/posthog";
+import { capturePostHog } from "@/lib/posthog-loader";
 
 type MirrorValue = string | number;
 

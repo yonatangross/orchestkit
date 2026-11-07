@@ -1,9 +1,9 @@
 // Analytics consent store for the docs site (PostHog only).
 //
-// The key, the values and the event name are the @yonatan-hq/analytics/posthog
-// defaults (consentKey "cookie-consent", "accepted" | "declined", consentEvent
-// "cookie-consent-change"), so initPostHog in instrumentation-client.ts reacts
-// to a choice made here without any extra wiring. A same-tab localStorage write
+// The key, the values and the event name match the @yonatan-hq/analytics/posthog
+// contract (consentKey "cookie-consent", "accepted" | "declined", consentEvent
+// "cookie-consent-change"), and lib/posthog-loader.ts follows them, so a choice
+// made here takes effect without any extra wiring. A same-tab localStorage write
 // emits no "storage" event, which is why every write also dispatches the event.
 //
 // First-party /api/analytics is not gated by this choice: it sets no cookie and
