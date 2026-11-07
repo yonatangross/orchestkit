@@ -1,0 +1,12 @@
+{
+  "slug": "skill-fitness-round-2",
+  "source": "docs/feat--skill-quality-r1/index.html",
+  "title": "Skill fitness round 2: true counts and a routing boundary",
+  "description": "Round 2 of the OrchestKit quality loop. Pick one of the three lowest skills to see its score before and after, the issue a fresh scorer found, and what changed. The ten-skill mean did not move, and the table shows why.",
+  "tags": [
+    "skills",
+    "quality",
+    "routing"
+  ],
+  "date": "2026-11-07"
+}

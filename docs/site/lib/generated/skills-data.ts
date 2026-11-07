@@ -4470,9 +4470,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when reviewing a PR before merge. Not for design scores (use assess).",
+    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "1b5ee772f21e7e704f973abf78ba3d37fe470477c142279eb03e05643b05bd9f",
+    "sha256": "abefb8d3b9385cda64cd703930e8e524871becec01c229484e038bc78656fd21",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5283,9 +5283,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "verify": {
     "name": "verify",
-    "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when a change must be ready to merge. Not for writing tests (use cover).",
+    "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "5ac610dacd40a7b36cdddf2a21e0b36b6529aff0bc5412b54f5b0c597a706cd4",
+    "sha256": "3679b4d398967405949b6b8cec43089b20e9b151e8dc5bd5dce515e8da9de3c7",
     "author": "OrchestKit",
     "tags": [
       "verification",

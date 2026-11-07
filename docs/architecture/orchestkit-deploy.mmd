@@ -1,0 +1,29 @@
+flowchart TB
+  feat@{ icon: "hq:branch", form: "square", label: "feature branch", pos: "b", h: 48 }
+  pr@{ icon: "hq:github", form: "square", label: "PR to main", pos: "b", h: 48 }
+  gmain{{"main required: 23 checks<br/>tests, security, secret scan,<br/>plugin validate, docs build,<br/>standards gate"}}
+  main@{ icon: "hq:merge", form: "square", label: "main", pos: "b", h: 48 }
+  rp@{ icon: "hq:mono-rp", form: "square", label: "release-please PR", pos: "b", h: 48 }
+  tag@{ icon: "hq:tag", form: "square", label: "tag vX.Y.Z", pos: "b", h: 48 }
+  ghrel@{ icon: "hq:github-actions", form: "square", label: "release.yml: GitHub release, provenance", pos: "b", h: 48 }
+  pin@{ icon: "hq:package", form: "square", label: "stable pin PR (marketplace ref)", pos: "b", h: 48 }
+  dist@{ icon: "hq:github", form: "square", label: "dist repo sync", pos: "b", h: 48 }
+  img@{ icon: "hq:docker", form: "square", label: "GHCR docs MCP image", pos: "b", h: 48 }
+  mreg@{ icon: "hq:mono-mr", form: "square", label: "MCP registry publish", pos: "b", h: 48 }
+  site@{ icon: "hq:vercel", form: "square", label: "Vercel docs site (main only)", pos: "b", h: 48 }
+  pkgtag@{ icon: "hq:tag", form: "square", label: "package tags", pos: "b", h: 48 }
+  npm@{ icon: "hq:npm", form: "square", label: "npm (OIDC provenance)", pos: "b", h: 48 }
+  pypi@{ icon: "hq:pypi", form: "square", label: "TestPyPI then PyPI", pos: "b", h: 48 }
+
+  feat --> pr --> gmain --> main
+  main --> rp -->|merge| tag --> ghrel
+  ghrel --> pin
+  ghrel --> dist
+  ghrel --> img --> mreg
+  main -->|"git push"| site
+  main --> pkgtag
+  pkgtag --> npm
+  pkgtag --> pypi
+
+  classDef gate fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+  class gmain gate
