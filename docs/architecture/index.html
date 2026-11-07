@@ -285,9 +285,9 @@ ul{padding-left:18px}li{margin:4px 0}
 <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@12.3.0/dist/mermaid.esm.min.mjs";
 // Root cause of "diagrams broken" (2026-11-06): initialize ran AFTER an await, so on a slow cold load mermaid's
 // default startOnLoad rendered every block, including hidden tabs at 0x0, and later runs skipped them as processed.
-// Disable auto-start before any await, and keep each block's source so a tab always renders from source when shown.
+// Disable auto-start before any await. With auto-start off, nothing touches a block until renderIn runs it once,
+// so the block's own text is its source; no copy of it is kept or written back.
 mermaid.initialize({ startOnLoad: false, theme: "default", securityLevel: "strict", flowchart: { htmlLabels: true, useMaxWidth: false } });
-document.querySelectorAll("pre.mermaid").forEach(p => { p.dataset.src = p.textContent; });
 const pack = await fetch("hq-icons.json").then(r => r.json());
 mermaid.registerIconPacks([{ name: "hq", icons: pack }]);
 
@@ -342,7 +342,7 @@ const status = () => { document.getElementById("mstat").textContent = `${ok} of 
   document.body.dataset.mermaidOk = ok; document.body.dataset.mermaidTotal = total; };
 const renderIn = async root => { for (const n of root.querySelectorAll("pre.mermaid:not([data-done])")) {
   if (n.closest("[hidden]")) continue;
-  n.dataset.done = 1; n.removeAttribute("data-processed"); n.textContent = n.dataset.src;
+  n.dataset.done = 1;
   try { await mermaid.run({ nodes: [n] }); ok++; } catch (e) { bad.push(n.id); console.error("mermaid", n.id, e); } } status(); };
 const btns = [...document.querySelectorAll(".tabs button")], line = document.querySelector(".tabs .underline");
 const show = async key => {
