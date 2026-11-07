@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **docs:** replay never starts without consent ([#5106](https://github.com/yonatangross/orchestkit/issues/5106)) ([caa5346](https://github.com/yonatangross/orchestkit/commit/caa53466305523ad17d7cc0695d28bbfc3011395))
+
 ## [10.10.2](https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2) (2026-11-07)
 
 

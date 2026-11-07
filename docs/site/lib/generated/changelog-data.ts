@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.3",
+    "date": "2026-11-07",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** replay never starts without consent ([#5106](https://github.com/yonatangross/orchestkit/issues/5106)) ([caa5346](https://github.com/yonatangross/orchestkit/commit/caa53466305523ad17d7cc0695d28bbfc3011395))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.2",
     "date": "2026-11-07",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2",
