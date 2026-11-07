@@ -30,7 +30,7 @@ invocation_hooks:
 
 Analyze git changes, generate targeted test plans, and execute them via AI-driven browser automation.
 
-> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the agent-browser install check won't run. Verify it's installed: `npx agent-browser --version`.
+> **Note:** If `disableSkillShellExecution` is enabled, the agent-browser install check won't run. Verify it's installed: `npx agent-browser --version`.
 
 ```bash
 expect                              # Auto-detect changes, test affected pages
@@ -50,7 +50,7 @@ ARGS = "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y
 
 # Parse from full argument string
 import re
-raw = ""  # Full argument string from CC
+raw = "$ARGUMENTS"  # Full argument string
 
 INSTRUCTION = None
 TARGET = "unstaged"  # Default: test unstaged changes
@@ -81,7 +81,7 @@ if '-y' in raw.split():
 ## STEP 0: MCP Probe + Prerequisite Check
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 
 # Verify agent-browser is available (Rust-native, no Playwright)
@@ -222,7 +222,7 @@ Generate a test plan with:
 
 If `--flow` specified, load saved flow from `.expect/flows/{slug}.yaml` instead of generating.
 
-If NOT `--y`, present plan to user via `AskUserQuestion` for review before executing.
+If NOT `-y`, present plan to user via `AskUserQuestion` for review before executing.
 
 Load: `Read("references/test-plan.md")`
 
@@ -231,7 +231,7 @@ Load: `Read("references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.38.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused. 0.36.0 adds experimental WebMCP tool discovery (`webmcp list/invoke/result/cancel`, brief untrusted catalog summaries on `open`). 0.37.0 makes `record` capture the active page at 30 fps and inherits session setup into new tabs. 0.38.0 adds `snapshot --delta` (full baseline, then `unchanged` or a compact structural change), `screenshot --if-changed --threshold`, persistent refs that survive same-document DOM changes, `--human` / `--input-mode` pointer realism, and `auth login --no-navigate`. Full command surface: `references/upstream.md` and `agent-browser skills get core --full`.
+> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.38.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused. 0.36.0 adds experimental WebMCP tool discovery (`webmcp list/invoke/result/cancel`, brief untrusted catalog summaries on `open`). 0.37.0 makes `record` capture the active page at 30 fps and inherits session setup into new tabs. 0.38.0 adds `snapshot --delta` (full baseline, then `unchanged` or a compact structural change), `screenshot --if-changed --threshold`, persistent refs that survive same-document DOM changes, `--human` / `--input-mode` pointer realism, and `auth login --no-navigate`. Full command surface: `../browser-tools/references/upstream.md` and `agent-browser skills get core --full`.
 
 
 | Area | Command | Notes |
@@ -267,14 +267,14 @@ expect_task = Agent(
   max_turns=50
 )
 
-# Stream agent-browser progress line-by-line instead of polling (CC 2.1.98+)
+# Stream agent-browser progress line-by-line instead of polling
 # Each stdout line from agent-browser arrives as a notification — useful for
 # catching a failing step early rather than waiting for the full plan.
 # Full pattern: Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")
 Monitor(pid=expect_task.agent_id)
 
 # For long test plans (>3 min typical), notify on completion — requires
-# Remote Control + "Push when Claude decides" config (CC 2.1.110+).
+# Remote Control + "Push when Claude decides" config.
 # Skip silently if the user doesn't have Remote Control enabled.
 if test_plan_duration_estimate > 180:
     PushNotification(
@@ -313,18 +313,21 @@ Load: `Read("references/report.md")`
 
 ## Saved Flows
 
-Reusable test sequences stored in `.expect/flows/`:
+Reusable test sequences stored as Markdown files with YAML frontmatter in `.expect/flows/`
+(full format: `references/saved-flows.md`):
 
-```yaml
-# .expect/flows/login.yaml
-name: Login Flow
+```markdown
+---
+format_version: 1
+title: "Login flow"
+slug: "login"
+target_scope: "branch"
 steps:
-  - navigate: /login
-  - fill: { selector: "#email", value: "test@example.com" }
-  - fill: { selector: "#password", value: "password123" }
-  - click: button[type="submit"]
-  - assert: { url: "/dashboard" }
-  - assert: { text: "Welcome back" }
+  - instruction: "Navigate to /login"
+    expected: "Login form visible with email and password fields"
+  - instruction: "Fill email and password, click Login"
+    expected: "Redirect to /dashboard showing 'Welcome back'"
+---
 ```
 
 Run with: `expect --flow login`

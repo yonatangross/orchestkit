@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 3: a steadier score and an unset variable</title>
+<meta name="description" content="Round 3 of the OrchestKit quality loop. Two fresh graders plus a scripted checklist score the ten most-used skills; pick a graded source to see how each skill moved, or pick a fixed skill to see what changed.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.9rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .bad{color:var(--bad)} .ok{color:var(--ok)} .dim{color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.78rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{display:inline-block;height:.6rem;background:var(--accent);border-radius:2px;vertical-align:middle}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Skill fitness round 3: a steadier score and an unset variable"><meta property="og:description" content="Round 3 of the OrchestKit quality loop. Two fresh graders plus a scripted checklist score the ten most-used skills; pick a graded source to see how each skill moved, or pick a fixed skill to see what changed."><meta property="og:url" content="https://orchestkit.dev/lab/skill-fitness-round-3.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Skill fitness round 3: a steadier score and an unset variable"><meta name="twitter:description" content="Round 3 of the OrchestKit quality loop. Two fresh graders plus a scripted checklist score the ten most-used skills; pick a graded source to see how each skill moved, or pick a fixed skill to see what changed."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Skill fitness round 3: a steadier score and an unset variable</h1>
+<p class="sub">Branch feat/skill-quality-r3, 2026-11-07. In round 2, one fresh grader per round moved unedited skills by 12 points, more than the fixes gained. Round 3 averages two fresh graders with a scripted checklist (scripts/eval/skill-checklist.mjs), all on a 0 to 10 scale.</p>
+
+<section><h2>How each skill moved</h2>
+<label for="src" class="dim">score source</label>
+<select id="src">
+  <option value="avg">average of all three</option>
+  <option value="A">grader A</option>
+  <option value="B">grader B</option>
+  <option value="C">checklist</option>
+</select>
+<table>
+<thead><tr><th>skill</th><th class="num">before</th><th class="num">after</th><th class="num">change</th><th>after</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="dim" id="mean" aria-live="polite"></p>
+</section>
+
+<section><h2>Pick a fixed skill</h2>
+<label for="skill" class="dim">fixed this round</label>
+<select id="skill">
+  <option value="assess">assess</option>
+  <option value="brainstorm">brainstorm</option>
+  <option value="visualize-plan">visualize-plan</option>
+</select>
+<div class="grid">
+  <div><div class="dim">what the graders found</div><div class="out bad" id="issue"></div></div>
+  <div><div class="dim">what this PR changes</div><div class="out ok" id="fix"></div></div>
+</div>
+</section>
+
+<script>
+const SKILLS = ['assess', 'brainstorm', 'visualize-plan', 'verify', 'expect', 'glyph', 'review-pr', 'page-serve', 'auto', 'ci-debug'];
+// Grader totals are out of 30; the checklist is out of 10.
+const BEFORE = {
+  A: { assess: 15, brainstorm: 15, 'visualize-plan': 16, verify: 19, expect: 17, glyph: 21, 'review-pr': 17, 'page-serve': 21, auto: 21, 'ci-debug': 21 },
+  B: { assess: 16, brainstorm: 17, 'visualize-plan': 19, verify: 19, expect: 19, glyph: 23, 'review-pr': 17, 'page-serve': 22, auto: 23, 'ci-debug': 22 },
+  C: { assess: 5, brainstorm: 5, 'visualize-plan': 8, verify: 7, expect: 8, glyph: 8, 'review-pr': 9, 'page-serve': 8, auto: 7, 'ci-debug': 10 },
+};
+const AFTER = {
+  A: { assess: 20, brainstorm: 20, 'visualize-plan': 19, verify: 19, expect: 18, glyph: 23, 'review-pr': 16, 'page-serve': 22, auto: 20, 'ci-debug': 20 },
+  B: { assess: 24, brainstorm: 22, 'visualize-plan': 24, verify: 22, expect: 21, glyph: 24, 'review-pr': 19, 'page-serve': 22, auto: 23, 'ci-debug': 18 },
+  C: { assess: 10, brainstorm: 10, 'visualize-plan': 10, verify: 7, expect: 8, glyph: 8, 'review-pr': 9, 'page-serve': 8, auto: 7, 'ci-debug': 10 },
+};
+const val = (set, src, s) => src === 'avg'
+  ? (set.A[s] / 3 + set.B[s] / 3 + set.C[s]) / 3
+  : src === 'C' ? set.C[s] : set[src][s] / 3;
+const CASES = {
+  assess: ['Dimensions were stated as 7 in three places and 6 in two; rubric.json holds 7. Headings and fallbacks were tagged to CC 2.1.16 to 2.1.121, below the 2.1.277 floor.',
+    'Seven dimensions everywhere, from correctness to compliance. CC version tags and the fallbacks for old Claude Code are gone.'],
+  brainstorm: ['Phase 2 requires the Workflow call (workflows/brainstorm-diverge.js), but STEP 0b only offered Agent Teams and the Agent tool. Three headings carried CC 2.1.16 and 2.1.76 tags.',
+    'STEP 0b offers the Workflow path first. format-dispatch.md is cited as visualize-plan\'s file. The CC heading tags and the pre-2.1.143 /goal note are gone.'],
+  'visualize-plan': ['Three script calls used "$SKILL_DIR", which nothing sets, so they ran /scripts/... and failed. The description had no "Not for" boundary against glyph.',
+    'The calls use ${CLAUDE_SKILL_DIR}, the variable CONTRIBUTING-SKILLS.md names. The description gains "Not for an inline chart (use glyph)" in fewer bytes (203 to 200). The checklist now flags an unset $SKILL_DIR.'],
+};
+function renderTable() {
+  const src = document.getElementById('src').value;
+  const tbody = document.getElementById('rows');
+  tbody.replaceChildren();
+  let mb = 0, ma = 0;
+  for (const s of SKILLS) {
+    const b = val(BEFORE, src, s), a = val(AFTER, src, s), d = a - b;
+    mb += b; ma += a;
+    const tr = document.createElement('tr');
+    const cells = [s, b.toFixed(1), a.toFixed(1), (d >= 0 ? '+' : '') + d.toFixed(1)];
+    cells.forEach((text, i) => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (i > 0) td.className = 'num' + (i === 3 ? (d > 0.05 ? ' ok' : d < -0.05 ? ' bad' : '') : '');
+      tr.append(td);
+    });
+    const bar = document.createElement('td');
+    const span = document.createElement('span');
+    span.className = 'bar';
+    span.style.width = `${a * 0.6}rem`;
+    span.setAttribute('aria-hidden', 'true');
+    bar.append(span);
+    tr.append(bar);
+    tbody.append(tr);
+  }
+  document.getElementById('mean').textContent = `Mean ${(mb / SKILLS.length).toFixed(2)} before, ${(ma / SKILLS.length).toFixed(2)} after.`;
+}
+function renderSkill() {
+  const [issue, fix] = CASES[document.getElementById('skill').value];
+  document.getElementById('issue').textContent = issue;
+  document.getElementById('fix').textContent = fix;
+}
+document.getElementById('src').addEventListener('change', renderTable);
+document.getElementById('skill').addEventListener('change', renderSkill);
+renderTable();
+renderSkill();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

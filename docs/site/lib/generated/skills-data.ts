@@ -408,7 +408,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify).",
     "version": "1.9.0",
-    "sha256": "e646ba97a2e190ce60593944e75c660d30644b973ba192460ac5170ab011aac8",
+    "sha256": "74d6e77371b120538b6b7be2ac2c17200de560b882d357bbda045aaaa77a485c",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "6f5b493e427dd1fc243b59f7a5a5089ba3bf856049f2dfc6008f6ff6d0f5a239",
+    "sha256": "1db5ef7638ce79f38bf20f3044b257722faa8297de6e7a95df4b1e8db7b5c18a",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -2196,7 +2196,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when setting up test environments, CI or offline development.",
     "version": "1.3.0",
-    "sha256": "2b3f791bf9ce344870d4f9e6051c37d937641917b0d187a63c106d0fbf9da1f4",
+    "sha256": "960e978878557d5e5995d8aa0da7b8638208389ae99549ffd6cb2fd9c3240841",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2332,7 +2332,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests.",
     "version": "1.2.0",
-    "sha256": "a69bf03f61782ef891b4c29537422b028736df77b60afbce712124785841a786",
+    "sha256": "bc11e77bd6bc8219d5db702eae8c6c454e76aaa6d57219456b447a0930bf9199",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4472,7 +4472,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "abefb8d3b9385cda64cd703930e8e524871becec01c229484e038bc78656fd21",
+    "sha256": "d8ac1a33ad96aee5b4a2e14f0ab4e10d0f2d7176c924766ffcf04dc114bbf6b2",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5285,7 +5285,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "3679b4d398967405949b6b8cec43089b20e9b151e8dc5bd5dce515e8da9de3c7",
+    "sha256": "c0657470e01543a7d7f504e8fc257698a3f439f8e5a65593b8257b88ae510c8a",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5372,9 +5372,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "visualize-plan": {
     "name": "visualize-plan",
-    "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. Use when reviewing a plan or comparing approaches.",
+    "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "9846b464f1c03f782d7e8aad8e5736e2e8a945bb0f8949e59e67eb845eaf420f",
+    "sha256": "9c3556f96acfb1fe7c7835a50f53344cc156c3fa81944b6db7e5f65dbb76e08f",
     "author": "OrchestKit",
     "tags": [
       "visualization",

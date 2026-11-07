@@ -98,7 +98,7 @@ Local dev URLs, served pages, and visual answers in chat.
 | [`/ork:dev`](/docs/reference/skills/dev) | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. | medium | `/ork:dev [start\|stop\|status] [--share\|--funnel\|--live H]` |
 | [`/ork:page-serve`](/docs/reference/skills/page-serve) | Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
 | [`/ork:glyph`](/docs/reference/skills/glyph) | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. | low | `/ork:glyph [--chat\|--ask\|--page] [--eli5] [--decide] [--signoff] [topic-to-render]` |
-| [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. | medium | `/ork:visualize-plan [plan-or-issue]` |
+| [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. | medium | `/ork:visualize-plan [plan-or-issue]` |
 
 ---
 

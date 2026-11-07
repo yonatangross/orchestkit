@@ -1,0 +1,15 @@
+{
+  "description": "Minimum scripts/eval/skill-checklist.mjs score per skill for the quality loop's 10 most-used skills. Floors only move up: raise a skill's floor when a round lifts it. tests/unit/test-skill-checklist.mjs fails when a skill drops below its floor.",
+  "floors": {
+    "assess": 10,
+    "brainstorm": 10,
+    "visualize-plan": 10,
+    "ci-debug": 10,
+    "review-pr": 10,
+    "page-serve": 8,
+    "glyph": 8,
+    "expect": 10,
+    "auto": 7,
+    "verify": 10
+  }
+}

@@ -2,7 +2,7 @@
 name: visualize-plan
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. Use when reviewing a plan or comparing approaches."
+description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph)."
 argument-hint: "[plan-or-issue]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
@@ -121,7 +121,7 @@ mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
 **First**, attempt auto-detection by running `scripts/detect-plan-context.sh`:
 
 ```bash
-bash "$SKILL_DIR/scripts/detect-plan-context.sh"
+bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh"
 ```
 
 This outputs branch name, issue number (if any), commit count, and file change summary.
@@ -190,7 +190,7 @@ NotebookLM job.
 Run `scripts/analyze-impact.sh` for precise counts:
 
 ```bash
-bash "$SKILL_DIR/scripts/analyze-impact.sh"
+bash "${CLAUDE_SKILL_DIR}/scripts/analyze-impact.sh"
 ```
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
@@ -302,7 +302,7 @@ and the artifact gallery work at all.
 > BEFORE authoring:
 >
 > ```bash
-> bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
+> bash "${CLAUDE_SKILL_DIR}/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
 > ```
 >
 > On exit 0, MERGE into the file it printed (flip statuses, append changelog, move removed items to
