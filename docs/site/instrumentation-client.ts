@@ -110,6 +110,11 @@ if (KEY) {
 			// consent is withdrawn (or during init) records no request, so a
 			// later sync() starts for real.
 			replay = createReplayGate(ph, isPostHogLoaded);
+			// Both orders: if posthog-js ever runs `loaded` after init returns
+			// (so after the opt-in and the consent callback, which found no
+			// gate), start here. In the synchronous order canStart is still
+			// false, so this does nothing (b119, #5106).
+			replay.sync(window.location.pathname);
 		},
 	}, (capturing) => {
 		// Capture turned on (first load or a re-allow) or off (a withdraw).

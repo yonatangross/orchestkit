@@ -238,6 +238,36 @@ describe("PostHog consent gate", () => {
 		expect(ph.stopSessionRecording.mock.calls.length).toBeGreaterThan(stopsBefore);
 	});
 
+	it("replay still starts when posthog-js runs loaded after init returns (b119, #5106)", async () => {
+		vi.doUnmock("posthog-js");
+		let deferredLoaded: (() => void) | null = null;
+		const ph = {
+			init: vi.fn((key: string, opts: Record<string, unknown>) => {
+				initKeys.push(key);
+				const loaded = opts.loaded as ((p: unknown) => void) | undefined;
+				// Deferred: the loader's opt-in and consent callback run first.
+				deferredLoaded = () => loaded?.(ph);
+			}),
+			opt_in_capturing: vi.fn(),
+			opt_out_capturing: vi.fn(),
+			capture: vi.fn(),
+			captureException: vi.fn(),
+			identify: vi.fn(),
+			reset: vi.fn(),
+			startSessionRecording: vi.fn(),
+			stopSessionRecording: vi.fn(),
+		};
+		vi.doMock("posthog-js", () => ({ default: ph }));
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(ph.opt_in_capturing).toHaveBeenCalledTimes(1));
+		// The consent callback found no gate yet: nothing started.
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+		(deferredLoaded as (() => void) | null)?.();
+		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];
