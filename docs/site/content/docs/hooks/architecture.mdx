@@ -463,7 +463,7 @@ import {
 
 ## Native HTTP Hooks (CC 2.1.69+)
 
-In addition to `"type": "command"` hooks that spawn a shell process, OrchestKit registers 12 hooks with `"type": "http"`. These hooks POST the hook input as JSON directly to a URL, bypassing the Node.js process spawn entirely.
+Claude Code also supports `"type": "http"` hooks beside `"type": "command"` hooks that spawn a shell process. OrchestKit ships none as http today (every entry in `hooks.json` is `"type": "command"`); the JSON below shows the pattern. These hooks POST the hook input as JSON directly to a URL, bypassing the Node.js process spawn entirely.
 
 ```json
 {
