@@ -23,7 +23,7 @@ Plan, build, and fix features, from a plain-English goal to working code.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:auto`](/docs/reference/skills/auto) | Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. | medium | `/ork:auto [plain-english goal]` |
+| [`/ork:auto`](/docs/reference/skills/auto) | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. | medium | `/ork:auto [plain-english goal]` |
 | [`/ork:implement`](/docs/reference/skills/implement) | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. | medium | `/ork:implement [feature-description]` |
 | [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. | medium | `/ork:fix-issue [issue-number]` |
 | [`/ork:explore`](/docs/reference/skills/explore) | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. | high | `/ork:explore [topic-or-feature] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high]` |
@@ -42,7 +42,7 @@ Write missing tests, run the suites, and check changes in a real browser.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:cover`](/docs/reference/skills/cover) | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. | high | `/ork:cover [scope-or-feature]` |
-| [`/ork:verify`](/docs/reference/skills/verify) | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. | high | `/ork:verify [feature-or-scope]` |
+| [`/ork:verify`](/docs/reference/skills/verify) | Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. | high | `/ork:verify [feature-or-scope]` |
 | [`/ork:expect`](/docs/reference/skills/expect) | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. | high | `/ork:expect [-m <instruction>] [--target unstaged\|branch\|commit] [--flow <slug>] [-y]` |
 
 ---
@@ -55,7 +55,7 @@ Commits, pull requests, reviews, and failing CI runs.
 |---------|--------------|------------|-------|
 | [`/ork:commit`](/docs/reference/skills/commit) | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-only files. | low | `/ork:commit [message]` |
 | [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. | medium | `/ork:create-pr [title]` |
-| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
+| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
 | [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
 | [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
 

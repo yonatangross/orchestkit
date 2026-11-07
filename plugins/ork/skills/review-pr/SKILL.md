@@ -2,7 +2,7 @@
 name: review-pr
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
-description: "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge. Not for scoring a design (use assess) or running the test suites for merge readiness (use verify)."
+description: "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when reviewing a PR before merge. Not for design scores (use assess)."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"

@@ -624,9 +624,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "auto": {
     "name": "auto",
-    "description": "Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing the skill list (use help) or running inside another skill (no recursion).",
+    "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "27f05e48208fa4bb17aeddde88e3da69b42c7ceb8126f561c6b8b7559a930a51",
+    "sha256": "be97176a3b56822d1ebb210853b57e01b2f3ff00582c1ade38623c7579414bfa",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -4470,9 +4470,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge. Not for scoring a design (use assess) or running the test suites for merge readiness (use verify).",
+    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when reviewing a PR before merge. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "5ccf59378eab062eca28903d21838959f17938ba7d30d93c94d1ddad5ae0a079",
+    "sha256": "1b5ee772f21e7e704f973abf78ba3d37fe470477c142279eb03e05643b05bd9f",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5283,9 +5283,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "verify": {
     "name": "verify",
-    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing missing tests (use cover), reviewing a PR diff (use review-pr) or scoring a design (use assess).",
+    "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when a change must be ready to merge. Not for writing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "d4519bcbc2e1a964c77d6fef8dce02d1874f94c79f2d926b08bce0eb9bddc854",
+    "sha256": "5ac610dacd40a7b36cdddf2a21e0b36b6529aff0bc5412b54f5b0c597a706cd4",
     "author": "OrchestKit",
     "tags": [
       "verification",

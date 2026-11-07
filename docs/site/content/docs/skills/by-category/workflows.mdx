@@ -11,7 +11,7 @@ description: "User-invocable commands for common development workflows."
 |-------|------|------------|-------------|
 | [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents... |
-| [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use... |
+| [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use fo... |
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when b... |
 | [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
 | [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
@@ -48,11 +48,11 @@ description: "User-invocable commands for common development workflows."
 | [Release Sync](/docs/reference/skills/release-sync) | Command | low | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Us... |
 | [Remember](/docs/reference/skills/remember) | Command | low | Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping w... |
 | [Review Artifact Comments](/docs/reference/skills/review-artifact-comments) | Command | low | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate... |
-| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comme... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an ... |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when settin... |
 | [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and... |
 | [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable ... |
 | [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. ... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 ... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFI... |
 | [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII,... |
 | [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. Use when writing a P... |
