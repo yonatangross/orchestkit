@@ -14,24 +14,38 @@ export const CONSENT_EVENT = "cookie-consent-change";
 
 export type AnalyticsConsent = "accepted" | "declined";
 
+// When browser storage is blocked (policy, some private modes) or a write fails,
+// the choice is kept in memory for this document so the banner still closes and
+// the choice still applies on this page (Codex P2, #5098). The default stays "no
+// choice", so nothing loads before an explicit Allow. Once storage fails, memory
+// is the source of truth for the rest of the document.
+let memoryChoice: AnalyticsConsent | null = null;
+let storageFailed = false;
+
+const asChoice = (value: string | null): AnalyticsConsent | null =>
+	value === "accepted" || value === "declined" ? value : null;
+
 export function getAnalyticsConsent(): AnalyticsConsent | null {
 	if (typeof window === "undefined") return null;
+	if (storageFailed) return memoryChoice;
 	try {
-		const value = localStorage.getItem(CONSENT_KEY);
-		return value === "accepted" || value === "declined" ? value : null;
+		return asChoice(localStorage.getItem(CONSENT_KEY));
 	} catch {
-		return null;
+		storageFailed = true;
+		return memoryChoice;
 	}
 }
 
 /** Store a choice, or clear it with null so the banner asks again. */
 export function setAnalyticsConsent(value: AnalyticsConsent | null): void {
 	if (typeof window === "undefined") return;
+	memoryChoice = value;
 	try {
 		if (value === null) localStorage.removeItem(CONSENT_KEY);
 		else localStorage.setItem(CONSENT_KEY, value);
 	} catch {
-		// Storage blocked (private mode, policy): treat as no choice, never throw.
+		// Storage blocked or full: keep the choice in memory, never throw.
+		storageFailed = true;
 	}
 	window.dispatchEvent(new Event(CONSENT_EVENT));
 }

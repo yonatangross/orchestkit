@@ -164,6 +164,20 @@ describe("PostHog consent gate", () => {
 		await vi.waitFor(() => expect(ph.stopSessionRecording).toHaveBeenCalledTimes(1));
 	});
 
+	it("a failed SDK download stays quiet: no init, no unhandled rejection (Codex P2, #5098)", async () => {
+		// vitest fails the file on an unhandled rejection, so the old discarded
+		// load() promise turns this test red by itself.
+		vi.doUnmock("posthog-js");
+		vi.doMock("posthog-js", () => {
+			throw new Error("chunk load failed");
+		});
+		await import("@/instrumentation-client");
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("accepted");
+		await settle();
+		expect(initKeys).toEqual([]);
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];

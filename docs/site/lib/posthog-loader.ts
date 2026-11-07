@@ -47,6 +47,11 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
 		// Consent was re-checked just above, with nothing async in between.
 		posthog.opt_in_capturing();
 		enabled = true;
+	} catch {
+		// The SDK chunk failed to download (network drop, or a deploy removed an
+		// old chunk). Analytics is optional: stay unloaded and quiet, never an
+		// unhandled rejection the error reporter would pick up. A later consent
+		// event retries, since `loading` resets below (Codex P2, #5098).
 	} finally {
 		loading = false;
 	}
