@@ -16,15 +16,20 @@ const CONSENT_EVENT = "cookie-consent-change";
 
 let loads = 0;
 let initKeys: string[] = [];
+let lastInitOpts: Record<string, unknown> | null = null;
+let lastPh: { opt_out_capturing: ReturnType<typeof vi.fn> } | null = null;
 
 function bootMock() {
 	loads = 0;
 	initKeys = [];
+	lastInitOpts = null;
+	lastPh = null;
 	vi.doMock("posthog-js", () => {
 		loads += 1;
 		const ph = {
 			init: vi.fn((key: string, opts: Record<string, unknown>) => {
 				initKeys.push(key);
+				lastInitOpts = opts;
 				const loaded = opts.loaded as ((p: unknown) => void) | undefined;
 				loaded?.(ph);
 			}),
@@ -37,6 +42,7 @@ function bootMock() {
 			startSessionRecording: vi.fn(),
 			stopSessionRecording: vi.fn(),
 		};
+		lastPh = ph;
 		return { default: ph };
 	});
 }
@@ -176,6 +182,19 @@ describe("PostHog consent gate", () => {
 		setAnalyticsConsent("accepted");
 		await settle();
 		expect(initKeys).toEqual([]);
+	});
+
+	it("withdrawing consent also drops PostHog persistence (Codex P2, #5098)", async () => {
+		// opt_out_capturing() alone stops events but keeps the identifying ph_
+		// cookie unless opt_out_persistence_by_default is set at init (posthog-js
+		// documents this on opt_out_capturing; Codex reproduced it on 1.438.19).
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		expect(lastInitOpts?.opt_out_persistence_by_default).toBe(true);
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("declined");
+		expect(lastPh?.opt_out_capturing).toHaveBeenCalledTimes(1);
 	});
 
 	it("the consent store writes the shared key and fires the shared event", async () => {

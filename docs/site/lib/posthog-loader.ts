@@ -41,6 +41,10 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
 			defaults: "2026-01-30",
 			// Safety net: capture starts only through the opt-in below.
 			opt_out_capturing_by_default: true,
+			// Withdrawing consent must also drop the identifying ph_ cookie:
+			// opt_out_capturing() disables SDK persistence only when this is set
+			// (Codex P2, #5098, reproduced on 1.438.19).
+			opt_out_persistence_by_default: true,
 			...options,
 		});
 		client = posthog;
