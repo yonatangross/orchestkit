@@ -282,8 +282,8 @@ const DISPATCHERS = {
 
 Hooks are registered at three levels. Scope determines which sessions a hook fires in.
 
-<Tabs items={["Global (42)", "Agent-Scoped (44)", "Skill-Scoped (19)"]}>
-<Tab value="Global (42)">
+<Tabs items={["Global (151)", "Agent-Scoped (0)", "Skill-Scoped (12)"]}>
+<Tab value="Global (151)">
 
 ### Global Hooks
 
@@ -310,7 +310,7 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
 Global hooks cover the core safety layer (dangerous command blocker, file guard), analytics (audit logger, session metrics), and lifecycle management (context loader, cleanup).
 
 </Tab>
-<Tab value="Agent-Scoped (44)">
+<Tab value="Agent-Scoped (0)">
 
 ### Agent-Scoped Hooks
 
@@ -335,10 +335,10 @@ Agent-scoped hooks implement agent-specific safety constraints. For example:
 | `ci-cd-engineer` | `agent/ci-safety-check` | Prevent CI config changes without review |
 | `database-engineer` | `agent/migration-safety-check` | Validate migration scripts before execution |
 
-The 45 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
+No agent ships an agent-scoped hook today: #3461 removed all of them from agent frontmatter. The table above shows the pattern, not live registrations.
 
 </Tab>
-<Tab value="Skill-Scoped (19)">
+<Tab value="Skill-Scoped (12)">
 
 ### Skill-Scoped Hooks
 
