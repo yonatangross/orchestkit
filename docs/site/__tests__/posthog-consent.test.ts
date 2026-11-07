@@ -59,6 +59,7 @@ afterEach(async () => {
 	loader.stopPostHog();
 	vi.doUnmock("posthog-js");
 	vi.unstubAllEnvs();
+	window.history.pushState({}, "", "/");
 	localStorage.clear();
 });
 
@@ -119,6 +120,48 @@ describe("PostHog consent gate", () => {
 		// A later Allow still loads: the aborted download must not leave the gate stuck.
 		setAnalyticsConsent("accepted");
 		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+	});
+
+	it("reconciles replay when a navigation starts while the SDK downloads (Codex P2, #5098)", async () => {
+		// A gated mock: the SDK "arrives" only when release() is called.
+		vi.doUnmock("posthog-js");
+		let release: () => void = () => {};
+		const gate = new Promise<void>((r) => {
+			release = r;
+		});
+		const ph = {
+			init: vi.fn((key: string, opts: Record<string, unknown>) => {
+				initKeys.push(key);
+				const loaded = opts.loaded as ((p: unknown) => void) | undefined;
+				loaded?.(ph);
+			}),
+			opt_in_capturing: vi.fn(),
+			opt_out_capturing: vi.fn(),
+			capture: vi.fn(),
+			captureException: vi.fn(),
+			identify: vi.fn(),
+			reset: vi.fn(),
+			startSessionRecording: vi.fn(),
+			stopSessionRecording: vi.fn(),
+		};
+		vi.doMock("posthog-js", async () => {
+			await gate;
+			loads += 1;
+			return { default: ph };
+		});
+
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		const mod = await import("@/instrumentation-client");
+		// Leave the reference tree while the SDK is still downloading.
+		mod.onRouterTransitionStart("/");
+		// The SDK arrives before the URL commits: loaded() syncs the old page.
+		release();
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
+		// The navigation commits: replay must stop, it may not stay on outside /docs/reference.
+		window.history.pushState({}, "", "/");
+		await vi.waitFor(() => expect(ph.stopSessionRecording).toHaveBeenCalledTimes(1));
 	});
 
 	it("the consent store writes the shared key and fires the shared event", async () => {

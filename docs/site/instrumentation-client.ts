@@ -125,25 +125,27 @@ const COMMIT_WAIT_MS = 10_000;
  * Covers link clicks, router.push/replace, and back/forward.
  */
 export function onRouterTransitionStart(url: string): void {
-	// No gate until PostHog has loaded, which needs consent. A load that lands
-	// mid-navigation syncs the gate itself in `loaded`.
-	const gate = replay;
-	if (!KEY || gate === null) return;
+	if (!KEY) return;
 	const target = pathnameOf(url, window.location.href);
 	const id = ++navigation;
 
 	// Leaving the reference tree: stop NOW, before the next page renders, so
-	// none of its DOM reaches the recording.
-	if (target === null || !isReplayPath(target)) gate.stop();
+	// none of its DOM reaches the recording. No gate yet means PostHog has not
+	// loaded (no consent, or still downloading), so there is nothing to stop.
+	if (target === null || !isReplayPath(target)) replay?.stop();
 
 	// Then settle against where the browser actually ended up. For a navigation
 	// into a reference page this starts replay only after the URL has committed;
-	// for a cancelled or redirected navigation it corrects course.
+	// for a cancelled or redirected navigation it corrects course. The settle
+	// runs even when there is no gate yet: if the SDK finishes loading during
+	// the navigation, `loaded` syncs the OLD page, and this settle is what
+	// reconciles the destination (Codex P2, #5098). It reads `replay` at settle
+	// time, not at navigation start.
 	const deadline = performance.now() + COMMIT_WAIT_MS;
 	const settle = () => {
 		if (id !== navigation) return;
 		if (window.location.pathname === target || performance.now() > deadline) {
-			gate.sync(window.location.pathname);
+			replay?.sync(window.location.pathname);
 			return;
 		}
 		requestAnimationFrame(settle);
