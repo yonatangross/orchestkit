@@ -1,5 +1,5 @@
 ---
-description: "Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing the skill list (use help) or running inside another skill (no recursion)."
+description: "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help)."
 argument-hint: "[plain-english goal]"
 model: sonnet
 context: inherit
