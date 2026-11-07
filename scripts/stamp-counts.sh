@@ -173,6 +173,8 @@ stamp_claudemd_plain_count() {
   local sed_in
   if [[ "$(uname)" == "Darwin" ]]; then sed_in=(sed -i '' -E); else sed_in=(sed -i -E); fi
   "${sed_in[@]}" "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$file"
+  # Same tight anchor for the agents line: "agents/<name>.md  # N agents (CC ...".
+  "${sed_in[@]}" "s/# [0-9]+ agents \\(CC/# ${AGENTS} agents (CC/g" "$file"
 }
 
 # ── docs/site MDX (pattern-based, no markers) ───────────────────────────────
@@ -454,12 +456,12 @@ if [[ "${1:-}" == "--check" ]]; then
     TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$CLAUDE_MD_F" "$TMP"
     if [[ "$(uname)" == "Darwin" ]]; then
-      sed -i '' -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$TMP"
+      sed -i '' -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g; s/# [0-9]+ agents \\(CC/# ${AGENTS} agents (CC/g" "$TMP"
     else
-      sed -i -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$TMP"
+      sed -i -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g; s/# [0-9]+ agents \\(CC/# ${AGENTS} agents (CC/g" "$TMP"
     fi
     if ! diff -q "$CLAUDE_MD_F" "$TMP" >/dev/null 2>&1; then
-      echo "STALE: $CLAUDE_MD_F (plain skills count)"
+      echo "STALE: $CLAUDE_MD_F (plain skills or agents count)"
       STALE=1
     fi
     rm "$TMP"
