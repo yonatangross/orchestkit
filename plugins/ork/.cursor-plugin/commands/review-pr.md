@@ -1,5 +1,5 @@
 ---
-description: "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge."
+description: "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess)."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 name: review-pr
@@ -86,10 +86,10 @@ Default: **Workflow** (star, `skills/review-pr/workflows/review-fanout.js` runs 
 **Fan-out rule:** a single pass is never a fallback. Phase 3 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a reviewer, end the run as BLOCKED and say why.
 
 
-## MCP Probe (CC 2.1.71)
+## MCP Probe
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 Write(".claude/chain/capabilities.json", { memory, timestamp })
 # If memory available: search for past review patterns on these files
@@ -362,7 +362,7 @@ Review dir must contain `review-output.json` (with `verdict`, `repo`, `pr_number
 
 Mirrors the `assess` memory_writeback pattern from PR #1889. Closes orchestkit#1894.
 
-## CC 2.1.20 Enhancements
+## Session Integration
 
 ### PR Status Enrichment
 
@@ -370,7 +370,7 @@ The `pr-status-enricher` hook automatically detects open PRs at session start an
 - `ORCHESTKIT_PR_URL` -- PR URL for quick reference
 - `ORCHESTKIT_PR_STATE` -- PR state (OPEN, MERGED, CLOSED)
 
-### Session Resume with PR Context (CC 2.1.27+)
+### Session Resume with PR Context
 
 Sessions are automatically linked when reviewing PRs. Resume later with full context:
 
@@ -379,7 +379,7 @@ claude --from-pr 123
 claude --from-pr https://github.com/org/repo/pull/123
 ```
 
-### Task Metrics (CC 2.1.30)
+### Task Metrics
 
 Load metrics template: `Read("skills/review-pr/references/task-metrics-template.md")`
 

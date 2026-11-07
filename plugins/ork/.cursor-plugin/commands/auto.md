@@ -1,5 +1,5 @@
 ---
-description: "Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Skip only inside another skill (no recursion)."
+description: "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help)."
 argument-hint: "[plain-english goal]"
 model: sonnet
 context: inherit
@@ -154,7 +154,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 ## Validation
 
-Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 50 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
+Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 78 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
 
 ```bash
 # isolated classification check via the bare-eval harness
@@ -166,7 +166,7 @@ Target ≥95% category accuracy; track the fallback rate as a degradation alarm 
 ## References
 
 - `skills/auto/references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
-- `routing-benchmark.json` — 50 labeled goal→category pairs for accuracy validation
+- `routing-benchmark.json` — 78 labeled goal→category pairs for accuracy validation
 
 ## Quality Bar
 
