@@ -25,8 +25,8 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 ## New in 2026-04 (emulate 0.4.x)
 
 - **Modular `@emulators/*` packages**, each service is its own package (`@emulators/github`, `@emulators/stripe`, etc.); top-level `emulate` re-exports `createEmulator` and the CLI.
-- **4 new services** (12 total): `mongoatlas:4007`, `okta:4008`, `resend:4009`, `stripe:4010` with drop-in seed YAML blocks.
-- **Resend local inbox**: `GET http://localhost:4009/inbox` returns captured emails for assertions without hitting a real provider.
+- **4 new services**: `mongoatlas`, `okta`, `resend`, `stripe`, with drop-in seed YAML blocks (current default ports: see the services table below).
+- **Resend local inbox**: `GET http://localhost:4008/inbox` returns captured emails for assertions without hitting a real provider.
 - **Stripe hosted checkout**: real session redirect flow + `checkout.session.completed`/`expired` webhook delivery, suitable for E2E payment tests.
 - **MongoDB Atlas**: Admin API v2 (projects/clusters/DB users) + Data API v1 with full CRUD + aggregate.
 - **Okta OIDC**: full discovery, JWKS, `authorize/token/userinfo/revoke/introspect` plus Users/Groups/Apps CRUD.
@@ -117,14 +117,18 @@ npx emulate init --service github
 | **Slack** | `:4003` | Chat, conversations, users, reactions, OAuth v2 with consent UI |
 | **Apple Auth** | `:4004` | Sign in with Apple, OIDC discovery, JWKS (RS256), auth flow, token exchange |
 | **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/{id}` |
-| **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
-| **MongoDB Atlas** *(0.4+)* | `:4007` | Admin API v2 (projects, clusters, DB users) + Data API v1 (full CRUD + aggregate) |
-| **Okta** *(0.4+)* | `:4008` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
-| **Resend** *(0.4+)* | `:4009` | Send + batch (100/req), list/retrieve/cancel, domains, API keys, audiences, contacts, **local inbox** (`GET /inbox`) |
-| **Stripe** *(0.4+)* | `:4010` | Customers, payment methods, customer sessions, payment intents, charges, products, prices, **hosted checkout session** w/ webhook delivery |
-| **Clerk** *(0.5+)* | (on-demand) | Users, sessions, organizations |
-| **Linear** *(0.7+)* | (on-demand) | Orgs, teams, issues, cycles, webhooks |
-| **Twilio** *(0.8+)* | (on-demand) | Accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, simulator endpoints |
+| **Okta** *(0.4+)* | `:4006` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
+| **AWS** | `:4007` | S3 buckets, SQS queues, IAM users/roles, STS identity |
+| **Resend** *(0.4+)* | `:4008` | Send + batch (100/req), list/retrieve/cancel, domains, API keys, audiences, contacts, **local inbox** (`GET /inbox`) |
+| **Stripe** *(0.4+)* | `:4009` | Customers, payment methods, customer sessions, payment intents, charges, products, prices, **hosted checkout session** w/ webhook delivery |
+| **MongoDB Atlas** *(0.4+)* | `:4010` | Admin API v2 (projects, clusters, DB users) + Data API v1 (full CRUD + aggregate) |
+| **Clerk** *(0.5+)* | `:4011` | Users, sessions, organizations |
+| **Linear** *(0.7+)* | `:4012` | Orgs, teams, issues, cycles, webhooks |
+| **Twilio** *(0.8+)* | `:4013` | Accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, simulator endpoints |
+
+Default ports are `4000` plus each service's position in emulate's service list (0.12.0), so this
+table is the one place ports are written down; `tests/skills/structure/test-emulate-ports.mjs`
+checks it, its references and the emulate-engineer agent against that order.
 
 See `references/api-coverage.md` for full endpoint lists.
 
@@ -195,7 +199,7 @@ okta:
 resend:
   domains: [{ name: example.com }]
   api_keys: [{ name: default }]
-  # In tests: GET http://localhost:4009/inbox to assert captured emails
+  # In tests: GET http://localhost:4008/inbox to assert captured emails
 
 stripe:
   customers:
@@ -964,7 +968,7 @@ Full list of supported API endpoints per emulate service.
 - `POST /{tenant}/oauth2/v2.0/token`: Token exchange with refresh rotation
 - `GET /{tenant}/oauth2/v2.0/logout`: Logout endpoint
 
-## AWS (`:4006`)
+## AWS (`:4007`)
 
 ### S3
 - `PUT /{bucket}`: Create bucket
