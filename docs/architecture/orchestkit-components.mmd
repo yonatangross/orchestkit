@@ -1,0 +1,39 @@
+architecture-beta
+  group gh(hq:github)[GitHub]
+  group dev(hq:terminal)[Developer machine]
+  group vercel(hq:vercel)[Vercel]
+  group ext(hq:cloud)[External APIs]
+
+  service repo(hq:github)[src and manifests] in gh
+  service ci(hq:github-actions)[Actions build and release] in gh
+  service rel(hq:tag)[Releases dist repo GHCR] in gh
+
+  service plugin(hq:package)[ork plugin installed] in dev
+  service cc(hq:claude)[Claude Code session] in dev
+  service runner(hq:nodejs)[run hook and bundles] in dev
+  service db(hq:sqlite)[sessions db SQLite] in dev
+
+  service site(hq:nextjs)[Docs site Nextjs] in vercel
+  service api(hq:mcp)[api mcp search ask] in vercel
+
+  junction outRunner in ext
+  junction outSite in ext
+  junction outSite2 in ext
+  service jev(hq:mono-ts)[TypeSafe Jev] in ext
+  service oai(hq:openai)[OpenAI] in ext
+  service ph(hq:posthog)[PostHog] in ext
+
+  repo:B --> T:ci
+  ci:B --> T:rel
+  rel:R --> L:plugin
+  plugin:T --> B:cc
+  cc:R --> L:runner
+  runner:B --> T:db
+  site:B --> T:api
+
+  runner:R -- L:outRunner
+  outRunner:R --> L:jev
+  api:R -- L:outSite
+  outSite:R --> L:oai
+  outSite:B -- T:outSite2
+  outSite2:R --> L:ph
