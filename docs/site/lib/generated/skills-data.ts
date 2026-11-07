@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "be97176a3b56822d1ebb210853b57e01b2f3ff00582c1ade38623c7579414bfa",
+    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -2689,7 +2689,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, comparisons, rankings, pipelines or show-me-visually asks. Not for definitions. For a full plan playground, use visualize-plan.",
     "version": "3.2.0",
-    "sha256": "97ded4e1cd00d7ab160095ba80fee7da7fe08c5d4b27ddddec0183bc6059b201",
+    "sha256": "32cccff7fbc78c72d88ef191e1b7eac605a65048c2810579659231a310e6dff0",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3629,9 +3629,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "page-serve": {
     "name": "page-serve",
-    "description": "Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. Use when an agent made a page a person should open: playgrounds, explainers, previews.",
+    "description": "Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. Use when an agent made a page a person should open. Not for app dev servers (use dev).",
     "version": "1.0.0",
-    "sha256": "5e611992f9a6509c82fa887a73e06335b8b5ae8f24617f189ddd50f4e4aa8a0e",
+    "sha256": "da6f6bad0a6140c48de15e5aa79de943480a75de2a371410916965700f922fe0",
     "author": "OrchestKit",
     "tags": [
       "page-serve",
