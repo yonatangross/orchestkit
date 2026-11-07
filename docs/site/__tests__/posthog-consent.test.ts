@@ -108,6 +108,19 @@ describe("PostHog consent gate", () => {
 		expect(localStorage.getItem(CONSENT_KEY)).toBe("accepted");
 	});
 
+	it("does not init when consent is withdrawn while the SDK downloads (Codex P2, #5098)", async () => {
+		await import("@/instrumentation-client");
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		// Allow starts the dynamic import; Decline lands before it resolves.
+		setAnalyticsConsent("accepted");
+		setAnalyticsConsent("declined");
+		await settle();
+		expect(initKeys).toEqual([]);
+		// A later Allow still loads: the aborted download must not leave the gate stuck.
+		setAnalyticsConsent("accepted");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];

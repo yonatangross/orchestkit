@@ -28,6 +28,10 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
 	loading = true;
 	try {
 		const { default: posthog } = await import("posthog-js");
+		// The visitor may have declined or cleared their choice while the chunk
+		// was downloading. init() alone fetches remote config, so it must not run
+		// without consent; `loading` resets in finally so a later Allow loads again.
+		if (!granted()) return;
 		posthog.init(key, {
 			// Same-origin proxy: next.config.mjs rewrites /ingest, and the CSP
 			// allows no PostHog host in script-src.
@@ -40,11 +44,9 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
 			...options,
 		});
 		client = posthog;
-		// The visitor may have declined while the chunk was loading.
-		if (granted()) {
-			posthog.opt_in_capturing();
-			enabled = true;
-		}
+		// Consent was re-checked just above, with nothing async in between.
+		posthog.opt_in_capturing();
+		enabled = true;
 	} finally {
 		loading = false;
 	}
