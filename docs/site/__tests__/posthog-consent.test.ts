@@ -211,6 +211,31 @@ describe("PostHog consent gate", () => {
 		expect(ph.startSessionRecording).not.toHaveBeenCalled();
 	});
 
+	it("allow, decline, enter a reference page, allow again: replay starts on the re-allow (b118 should, #5106)", async () => {
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		const mod = await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const ph = lastPh as unknown as {
+			startSessionRecording: ReturnType<typeof vi.fn>;
+			stopSessionRecording: ReturnType<typeof vi.fn>;
+		};
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("declined");
+		// The gate is asked to start while consent is withdrawn: suppressed.
+		mod.onRouterTransitionStart("/docs/reference/skills/verify");
+		window.history.pushState({}, "", "/docs/reference/skills/verify");
+		await settle();
+		await settle();
+		expect(ph.startSessionRecording).not.toHaveBeenCalled();
+		// Re-allow on the same reference page: the suppressed request must not
+		// keep the gate thinking a recording is already running.
+		setAnalyticsConsent("accepted");
+		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
+		// And a second Decline stops it again.
+		setAnalyticsConsent("declined");
+		expect(ph.stopSessionRecording).toHaveBeenCalled();
+	});
+
 	it("the consent store writes the shared key and fires the shared event", async () => {
 		const { setAnalyticsConsent, getAnalyticsConsent } = await import("@/lib/analytics-consent");
 		const seen: string[] = [];

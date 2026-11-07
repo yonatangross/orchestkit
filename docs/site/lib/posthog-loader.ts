@@ -65,8 +65,17 @@ async function load(key: string, options: PostHogInitOptions): Promise<void> {
  * Start PostHog for this page if the visitor has allowed analytics, and keep
  * following their choice: a later "accepted" loads it, a later "declined" or a
  * cleared choice stops capture. Call once, from instrumentation-client.ts.
+ *
+ * `onConsentChange` runs after capture flips on an already loaded client
+ * (true on a re-allow, false on a withdraw), so callers holding their own
+ * state, like the replay gate, can resync. The first load does not call it:
+ * the `loaded` init option covers that.
  */
-export function startPostHog(key: string | undefined, options: PostHogInitOptions): void {
+export function startPostHog(
+	key: string | undefined,
+	options: PostHogInitOptions,
+	onConsentChange?: (capturing: boolean) => void,
+): void {
 	if (!key || typeof window === "undefined") return;
 	const apply = () => {
 		if (granted()) {
@@ -74,12 +83,14 @@ export function startPostHog(key: string | undefined, options: PostHogInitOption
 			else if (!enabled) {
 				client.opt_in_capturing();
 				enabled = true;
+				onConsentChange?.(true);
 			}
 		} else if (client && enabled) {
 			// Withdrawn: stop any replay in progress as well as capture.
 			client.stopSessionRecording();
 			client.opt_out_capturing();
 			enabled = false;
+			onConsentChange?.(false);
 		}
 	};
 	const onStorage = (e: StorageEvent) => {

@@ -113,6 +113,14 @@ if (KEY) {
 			});
 			replay.sync(window.location.pathname);
 		},
+	}, (capturing) => {
+		// Consent flipped on a loaded client. stop() first in both directions:
+		// a start the gate asked for while consent was withdrawn was suppressed,
+		// yet it still left the gate believing a recording ran, so a re-allow
+		// would otherwise start nothing until the visitor left the reference
+		// tree (b118, #5106). Then a re-allow starts again where the visitor is.
+		replay?.stop();
+		if (capturing) replay?.sync(window.location.pathname);
 	});
 } else if (process.env.NODE_ENV === "development") {
 	// Loud in dev, silent no-op in production: a missing key must never break the
