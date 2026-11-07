@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "66d4f0c42ab3534e2ec66512d5aac6eddd209e4e7dc7a970dfeb4a2bcaeec513",
+    "sha256": "1bbb561773eae7227e4d729ab7186fcc4348317bbb7f06e1bf633e819a83e50c",
     "author": "OrchestKit",
     "tags": [
       "router",

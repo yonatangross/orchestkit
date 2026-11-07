@@ -62,7 +62,7 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 ## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
-- **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals scored against a holdout set). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
+- **Invoke:** the champion/challenger **holdout-promotion gate**: `npm run eval:skill -- --holdout-promote <skill>` (sealed holdout bake-off, add `--challenger <path/to/SKILL.md>` for a candidate). `/ork:assess` only scores a skill; it does not run the holdout comparison or decide promotion. Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
 - **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent** — a SKILL.md, a named skill, an agent prompt — it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
 
 ## setup → /ork:setup

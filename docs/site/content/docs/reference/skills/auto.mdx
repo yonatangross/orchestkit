@@ -137,7 +137,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work, surface it, don't bury it.
 - **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal/references/recipe-library.md`). Route `optimize` there and say so plainly, don't pretend a `experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals scored against a holdout set), not a one-shot edit. It requires a benchmark + holdout set first.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`npm run eval:skill -- --holdout-promote <skill>`, a sealed holdout bake-off; `assess` only scores), not a one-shot edit. It requires a benchmark + holdout set first.
 
 ## Stacked invocation
 
@@ -261,7 +261,7 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 ## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
-- **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals scored against a holdout set). Requires a benchmark + holdout set to exist first, if missing, help the user define 5-10 cases before looping.
+- **Invoke:** the champion/challenger **holdout-promotion gate**: `npm run eval:skill -- --holdout-promote <skill>` (sealed holdout bake-off, add `--challenger <path/to/SKILL.md>` for a candidate). `/ork:assess` only scores a skill; it does not run the holdout comparison or decide promotion. Requires a benchmark + holdout set to exist first, if missing, help the user define 5-10 cases before looping.
 - **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent**, a SKILL.md, a named skill, an agent prompt, it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
 
 ## setup → /ork:setup
