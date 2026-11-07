@@ -658,7 +658,7 @@ echo ""
 echo -e "${CYAN}Test 14: Routing boundary (\"Not for\") in descriptions of ratcheted skills${NC}"
 echo "----------------------------------------"
 
-BOUNDARY_SKILLS=(brainstorm expect assess)
+BOUNDARY_SKILLS=(brainstorm expect assess review-pr verify auto)
 boundary_missing=()
 for skill_name in "${BOUNDARY_SKILLS[@]}"; do
     skill_file="$SKILLS_DIR/$skill_name/SKILL.md"

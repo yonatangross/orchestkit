@@ -2,7 +2,7 @@
 name: verify
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover."
+description: "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing missing tests (use cover), reviewing a PR diff (use review-pr) or scoring a design (use assess)."
 argument-hint: "[feature-or-scope]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
@@ -90,8 +90,8 @@ Scale verification depth based on `/effort` level:
 |-------------|------------|--------|--------|
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
 | **medium** | Tests + code quality + security + API compliance | 4 agents | Score + top issues |
-| **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
-| **xhigh** (Opus 5, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
+| **high** (default) | All 8 phases + 2.5 visual capture | 6 agents | Full report + grades |
+| **xhigh** | All 8 phases + 2.5 visual capture + cross-file pattern sweep + self-verification pass | 6 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 
@@ -117,8 +117,8 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 9 phases (8 + 2.5), 7 parallel agents including visual capture
-- **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
+- **Full verification**: All 8 phases plus 2.5 (visual capture), 6 parallel Phase 2 agents
+- **Tests only**: Skip Phase 2 (agent dispatch) and 2.5 (visual capture)
 - **Security & code quality**: Run security-auditor + code-quality-reviewer agents
 - **Quick check**: Run tests only, skip grading and suggestions (skips Phase 2, outside the Fan-out rule)
 
@@ -137,7 +137,7 @@ Default: **Workflow** (star, `workflows/verify-dispatch.js` runs Phase 2). Choos
 ### MCP Probe + Resume
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 Write(".claude/chain/capabilities.json", { memory, timestamp })
 

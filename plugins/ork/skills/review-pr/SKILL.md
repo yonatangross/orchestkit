@@ -2,7 +2,7 @@
 name: review-pr
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
-description: "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge."
+description: "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge. Not for scoring a design (use assess) or running the test suites for merge readiness (use verify)."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
@@ -106,10 +106,10 @@ Default: **Workflow** (star, `workflows/review-fanout.js` runs Phases 3 and 4.5)
 
 ---
 
-## MCP Probe (CC 2.1.71)
+## MCP Probe
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 Write(".claude/chain/capabilities.json", { memory, timestamp })
 # If memory available: search for past review patterns on these files
@@ -384,7 +384,7 @@ Review dir must contain `review-output.json` (with `verdict`, `repo`, `pr_number
 
 Mirrors the `assess` memory_writeback pattern from PR #1889. Closes orchestkit#1894.
 
-## CC 2.1.20 Enhancements
+## Session Integration
 
 ### PR Status Enrichment
 
@@ -392,7 +392,7 @@ The `pr-status-enricher` hook automatically detects open PRs at session start an
 - `ORCHESTKIT_PR_URL` -- PR URL for quick reference
 - `ORCHESTKIT_PR_STATE` -- PR state (OPEN, MERGED, CLOSED)
 
-### Session Resume with PR Context (CC 2.1.27+)
+### Session Resume with PR Context
 
 Sessions are automatically linked when reviewing PRs. Resume later with full context:
 
@@ -401,7 +401,7 @@ claude --from-pr 123
 claude --from-pr https://github.com/org/repo/pull/123
 ```
 
-### Task Metrics (CC 2.1.30)
+### Task Metrics
 
 Load metrics template: `Read("references/task-metrics-template.md")`
 

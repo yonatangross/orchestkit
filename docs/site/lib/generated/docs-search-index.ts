@@ -793,7 +793,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/auto",
     "title": "Auto",
-    "description": "Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Skip only inside another skill (no recursion)."
+    "description": "Default front door for any goal-shaped request: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing the skill list (use help) or running inside another skill (no recursion)."
   },
   {
     "url": "/docs/reference/skills/bare-eval",
@@ -1368,7 +1368,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
-    "description": "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge."
+    "description": "PR review with parallel agents for quality, security, tests, architecture and performance; returns conventional comments and an approve or request-changes verdict. Use when reviewing a pull request before merge. Not for scoring a design (use assess) or running the test suites for merge readiness (use verify)."
+  },
+  {
+    "url": "/docs/reference/skills/review-pr/references",
+    "title": "Review Pr: References",
+    "description": "11 references for the Review Pr skill: Adversarial Refutation; Claude Code; Cross Model Refuter; Memory Persistence; Orchestration Mode Selection; Progressive And Partial Results; Review Report Template; Review Template; Rule Check Mode; Task Metrics Template; Ultrareview Gate"
+  },
+  {
+    "url": "/docs/reference/skills/review-pr/rules",
+    "title": "Review Pr: Rules",
+    "description": "3 rules for the Review Pr skill: Agent Prompts: Agent Teams Mode; Agent Prompts: Agent Tool Mode; Configure an AI code review agent for prompt injection and token limit checks"
   },
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",
@@ -1453,7 +1463,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/verify",
     "title": "Verify",
-    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. To write missing tests, use cover."
+    "description": "Grades existing work for merge: runs current unit, integration and E2E suites, security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when checking a change is ready to merge. Not for writing missing tests (use cover), reviewing a PR diff (use review-pr) or scoring a design (use assess)."
   },
   {
     "url": "/docs/reference/skills/verify/references",

@@ -72,6 +72,13 @@ for (const [category, route] of [['setup', '/ork:setup'], ['migrate', '/ork:swar
   if (!skill.includes(`\`${route}\``)) failures.push(`SKILL.md table lost the ${route} route (#4981)`);
 }
 
+// Quality loop round 2: SKILL.md said "50 labeled" pairs while the file held 78.
+// Every "<N> labeled" count in SKILL.md must equal the real case count.
+const caseCount = (bench.cases || []).length;
+for (const m of skill.matchAll(/\b(\d+) labeled\b/g)) {
+  if (Number(m[1]) !== caseCount) failures.push(`SKILL.md says "${m[0]}" but routing-benchmark.json has ${caseCount} cases`);
+}
+
 for (const f of failures) console.log(`FAIL: ${f}`);
 if (failures.length) process.exit(1);
 console.log(`PASS: ${ids.size} benchmark cases across ${perCategory.size} categories match the ${table.size}-intent routing table`);
