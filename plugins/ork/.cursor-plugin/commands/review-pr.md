@@ -1,5 +1,5 @@
 ---
-description: "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when reviewing a PR before merge. Not for design scores (use assess)."
+description: "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess)."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true
 name: review-pr
