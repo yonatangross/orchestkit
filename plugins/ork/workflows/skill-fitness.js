@@ -58,10 +58,10 @@ phase('Score')
 const scored = await pipeline(
   SKILLS,
   (s) => agent(
-    `Read src/skills/${s}/SKILL.md (repo-relative to your cwd) and score this ONE skill's fitness for current Claude Code (mid-2026, floor 2.1.220, current model Opus 4.8).
+    `Read src/skills/${s}/SKILL.md (repo-relative to your cwd) and score this ONE skill's fitness for current Claude Code. Read the Claude Code floor from the "Version" line of CLAUDE.md, and take the current model family from your own system context; do not assume either from memory.
 
 Score 0-10 each:
-- freshness: no stale model IDs (Opus 4.6/4.7 cited as current), no CC version requirement below the floor, no drifting hardcoded counts
+- freshness: no stale model IDs cited as current (any model older than the current family), no CC version requirement below the CLAUDE.md floor, no drifting hardcoded counts
 - clarity: the YAML 'description' has clear trigger keywords + a "use when / NOT when"; a router could pick this skill correctly from intent alone
 - structure: valid frontmatter, body under ~500 lines, internal references resolve, no duplicate headings, no install-specific absolute paths (must use \${CLAUDE_PLUGIN_ROOT})
 
