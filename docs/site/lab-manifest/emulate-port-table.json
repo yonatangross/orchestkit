@@ -1,0 +1,12 @@
+{
+  "slug": "emulate-port-table",
+  "source": "docs/fix--emulate-port-table/index.html",
+  "title": "emulate ports: one table, from one source",
+  "description": "The emulate-seed skill and the emulate-engineer agent gave different default ports for 8 of 14 emulated services. Pick a service to see what each said and what emulate 0.12.0 actually uses.",
+  "tags": [
+    "skills",
+    "agents",
+    "emulate"
+  ],
+  "date": "2026-11-07"
+}

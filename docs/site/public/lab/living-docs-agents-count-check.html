@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>stamp-counts: the CLAUDE.md agents line is now checked</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#111;line-height:1.55}
+main{max-width:820px;margin:0 auto;padding:28px 20px}
+h1{font-size:26px;margin:0 0 6px}
+.verdict{border:2px solid #111;border-radius:10px;padding:12px 16px;background:#f3f6ff;margin:14px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+.card{border:2px solid #111;border-radius:10px;padding:12px 14px}
+.card h2{font-size:17px;margin:0 0 8px}
+pre{background:#f4f4f4;border-radius:8px;padding:10px;overflow-x:auto;font-size:13px;margin:6px 0}
+label{display:block;margin:6px 0}
+input[type=number]{width:90px;font-size:16px;padding:4px}
+.ok{color:#05631f;font-weight:700}
+.stale{color:#b00020;font-weight:700}
+button{background:#111;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:15px;cursor:pointer}
+textarea{width:100%;min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.small{font-size:14px;color:#333}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="stamp-counts: the CLAUDE.md agents line is now checked"><meta property="og:description" content="Enter the agents count on disk and the count written in CLAUDE.md, and see what stamp-counts did before this change (never compared the line) and after (flags it stale and stamps the true count)."><meta property="og:url" content="https://orchestkit.dev/lab/living-docs-agents-count-check.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="stamp-counts: the CLAUDE.md agents line is now checked"><meta name="twitter:description" content="Enter the agents count on disk and the count written in CLAUDE.md, and see what stamp-counts did before this change (never compared the line) and after (flags it stale and stamps the true count)."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>stamp-counts: the CLAUDE.md agents line is now checked</h1>
+<p class="small">PR: docs/living-docs-drift-markers · file changed: <code>scripts/stamp-counts.sh</code></p>
+<div class="verdict"><b>Before:</b> <code>stamp-counts.sh</code> stamped and checked the CLAUDE.md line <code># N skills (YAML</code> but never <code># N agents (CC</code>. Adding an agent left that line stale with no failing check. <b>After:</b> the same tight anchor is applied to the agents line, in stamp mode and in check mode.</div>
+
+<div class="grid">
+<div class="card">
+<h2>Try it: what does the check say?</h2>
+<label>Agents on disk (<code>src/agents/*.md</code>): <input type="number" id="disk" value="36" min="0"></label>
+<label>Number written in CLAUDE.md: <input type="number" id="doc" value="36" min="0"></label>
+<p>Before this PR: <span id="before"></span></p>
+<p>After this PR: <span id="after"></span></p>
+</div>
+<div class="card">
+<h2>The CLAUDE.md line it guards</h2>
+<pre id="line"></pre>
+<h2>The added sed (stamp mode)</h2>
+<pre>s/# [0-9]+ agents \(CC/# ${AGENTS} agents (CC/g</pre>
+</div>
+</div>
+
+<h2>How it was tested</h2>
+<p class="small">On a copy of CLAUDE.md at origin/main (115 skills, 36 agents): stamping with a wrong agents count produced a 1-line diff, and stamping with the true count produced 0. The pre-commit shell syntax and component-count checks passed. CI runs the real stamp-counts.sh check mode.</p>
+
+<h2>Copy as prompt</h2>
+<button id="copy" type="button">Copy as prompt</button>
+<textarea id="out" readonly></textarea>
+</main>
+<script>
+(function(){
+  var disk=document.getElementById("disk"), doc=document.getElementById("doc");
+  function render(){
+    var d=parseInt(disk.value||"0",10), w=parseInt(doc.value||"0",10);
+    document.getElementById("line").textContent="├── agents/<name>.md          # "+w+" agents (CC 2.1.78 format)";
+    document.getElementById("before").innerHTML='<span class="ok">passes</span> (the agents line was never compared)';
+    document.getElementById("after").innerHTML = d===w
+      ? '<span class="ok">passes</span> (counts match)'
+      : '<span class="stale">STALE: CLAUDE.md (plain skills or agents count)</span>, stamp rewrites it to '+d;
+  }
+  disk.addEventListener("input",render); doc.addEventListener("input",render); render();
+  document.getElementById("copy").onclick=function(){
+    var t="Review orchestkit PR docs/living-docs-drift-markers: stamp-counts.sh now stamps and checks the CLAUDE.md agents line. Scenario: "+disk.value+" agents on disk, CLAUDE.md says "+doc.value+".";
+    var o=document.getElementById("out"); o.value=t;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).catch(function(){o.select();});}else{o.select();}
+  };
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
