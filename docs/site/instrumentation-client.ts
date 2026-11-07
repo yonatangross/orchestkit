@@ -41,12 +41,20 @@
 //   - Entering a reference page starts replay once the URL has committed, so
 //     the recording opens on the reference page, not the page being left.
 
-import posthog from "posthog-js";
+// CONSENT (2026-11-07): posthog-js is NOT imported here. initPostHog from
+// @yonatan-hq/analytics/posthog imports it dynamically, and only once the
+// visitor has allowed analytics in the banner (components/analytics-consent-
+// banner.tsx, lib/analytics-consent.ts). Before that nothing PostHog loads, not
+// even an opted-out client, which would still fetch remote config. The replay
+// gate is created in the `loaded` callback, so it exists only after consent.
+import { initPostHog } from "@yonatan-hq/analytics/posthog";
 import {
 	createReplayGate,
 	isReplayPath,
 	maskNetworkRequest,
 	pathnameOf,
+	type ReplayControls,
+	type ReplayGate,
 } from "@/lib/replay-gate";
 import { installViewTransitionGuard } from "@/lib/view-transition-guard";
 
@@ -56,49 +64,51 @@ installViewTransitionGuard();
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-const replay = createReplayGate(posthog);
+// Created only once PostHog has loaded, which only happens after consent.
+let replay: ReplayGate | null = null;
 
 if (KEY) {
-	posthog.init(KEY, {
-		// Same-origin proxy — see the CSP note above.
-		api_host: "/ingest",
-		// Where the PostHog UI lives, so in-app links resolve. Note the missing
-		// "i": ingest is eu.i.posthog.com, the app is eu.posthog.com.
-		ui_host: "https://eu.posthog.com",
-		// Pinned defaults bundle, as required by PostHog.
-		defaults: "2026-01-30",
+	// The package supplies the same-origin /ingest proxy (see the CSP note
+	// above), the EU UI host and the pinned "2026-01-30" defaults bundle.
+	initPostHog({
+		key: KEY,
+		// This site uploads source maps (posthog-sourcemaps), so exception traces
+		// are readable. The first-party ClientErrorReporter keeps its own
+		// /api/analytics send; this is the mirror half.
+		captureExceptions: true,
+		init: {
+			// Off by default everywhere. lib/replay-gate.ts turns it on for
+			// /docs/reference/* only (see SESSION REPLAY above). Do not flip this to
+			// false: that would record every path the project settings allow.
+			disable_session_recording: true,
+			session_recording: {
+				// Explicit even though it is the SDK default, so a remote "Privacy and
+				// masking" change cannot unmask inputs (local config wins).
+				maskAllInputs: true,
+				// Second line behind ph-no-capture on the search dialog: if a fumadocs
+				// upgrade ever stops forwarding that className, dialog text is still
+				// masked.
+				maskTextSelector: '.ph-no-capture, [role="dialog"]',
+				recordHeaders: false,
+				recordBody: false,
+				maskCapturedNetworkRequestFn: maskNetworkRequest,
+			},
 
-		// Off by default everywhere. lib/replay-gate.ts turns it on for
-		// /docs/reference/* only (see SESSION REPLAY above). Do not flip this to
-		// false: that would record every path the project settings allow.
-		disable_session_recording: true,
-		session_recording: {
-			// Explicit even though it is the SDK default, so a remote "Privacy and
-			// masking" change cannot unmask inputs (local config wins).
-			maskAllInputs: true,
-			// Second line behind ph-no-capture on the search dialog: if a fumadocs
-			// upgrade ever stops forwarding that className, dialog text is still
-			// masked.
-			maskTextSelector: '.ph-no-capture, [role="dialog"]',
-			recordHeaders: false,
-			recordBody: false,
-			maskCapturedNetworkRequestFn: maskNetworkRequest,
+			// The docs site is fully anonymous — it has no login, so there is never
+			// a distinct id to attach. "always" would mint a billable person row for
+			// every crawler and drive-by reader.
+			person_profiles: "identified_only",
+
+			debug: process.env.NODE_ENV === "development",
+
+			// Runs once, right after posthog-js initialises (after consent). The
+			// replay gate starts on whatever page the visitor is on at that moment.
+			loaded: (ph: ReplayControls) => {
+				replay = createReplayGate(ph);
+				replay.sync(window.location.pathname);
+			},
 		},
-
-		// The docs site is fully anonymous — it has no login, so there is never a
-		// distinct id to attach. "always" would mint a billable person row for
-		// every crawler and drive-by reader.
-		person_profiles: "identified_only",
-
-		// Client-side exception capture. The first-party ClientErrorReporter keeps
-		// its own /api/analytics send; this is the mirror half.
-		capture_exceptions: true,
-
-		debug: process.env.NODE_ENV === "development",
 	});
-
-	// Full page load (or hard refresh) straight onto a page.
-	replay.sync(window.location.pathname);
 } else if (process.env.NODE_ENV === "development") {
 	// Loud in dev, silent no-op in production: a missing key must never break the
 	// site, but it must also never fail silently on a developer's machine.
@@ -117,13 +127,16 @@ const COMMIT_WAIT_MS = 10_000;
  * Covers link clicks, router.push/replace, and back/forward.
  */
 export function onRouterTransitionStart(url: string): void {
-	if (!KEY) return;
+	// No gate until PostHog has loaded, which needs consent. A load that lands
+	// mid-navigation syncs the gate itself in `loaded`.
+	const gate = replay;
+	if (!KEY || gate === null) return;
 	const target = pathnameOf(url, window.location.href);
 	const id = ++navigation;
 
 	// Leaving the reference tree: stop NOW, before the next page renders, so
 	// none of its DOM reaches the recording.
-	if (target === null || !isReplayPath(target)) replay.stop();
+	if (target === null || !isReplayPath(target)) gate.stop();
 
 	// Then settle against where the browser actually ended up. For a navigation
 	// into a reference page this starts replay only after the URL has committed;
@@ -132,7 +145,7 @@ export function onRouterTransitionStart(url: string): void {
 	const settle = () => {
 		if (id !== navigation) return;
 		if (window.location.pathname === target || performance.now() > deadline) {
-			replay.sync(window.location.pathname);
+			gate.sync(window.location.pathname);
 			return;
 		}
 		requestAnimationFrame(settle);
