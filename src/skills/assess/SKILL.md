@@ -47,7 +47,7 @@ assess --model=opus the current database schema
 assess frontend/src/components/Dashboard
 ```
 
-### Effort levels (CC 2.1.111+ adds `xhigh`)
+### Effort levels
 
 | Effort | Behavior |
 |---|---|
@@ -84,21 +84,21 @@ Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. 
 
 > **Switching to Opus via `/model` (CC 2.1.144+):** `/model` now changes the model for the current session only, so picking Opus for an assess run no longer persists past it. Press `d` in the picker only to set a default for new sessions.
 
-### Effort detection (CC 2.1.120+)
+### Effort detection
 
-`$CLAUDE_EFFORT` is the primary signal. CC 2.1.120 sets this env var from `/effort` or the model picker. `--effort=` token in `$ARGUMENTS` is the explicit override fallback (also covers older CC).
+`$CLAUDE_EFFORT` is the primary signal: Claude Code sets it from `/effort` or the model picker. A `--effort=` token in `$ARGUMENTS` is the explicit override.
 
 ```python
-# Read env first (CC 2.1.120+), then check explicit override
+# Read env first, then check explicit override
 EFFORT = os.environ.get("CLAUDE_EFFORT")  # "low" | "medium" | "high" | "xhigh" | None
 for token in "$ARGUMENTS".split():
     if token.startswith("--effort="):
         EFFORT = token.split("=", 1)[1]   # explicit override wins
         TARGET = TARGET.replace(token, "").strip()
-EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
+EFFORT = EFFORT or "high"  # default when neither is set
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `doctor` Category 14 reports a provably unsupported `xhigh` request.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. `doctor` Category 14 reports a provably unsupported `xhigh` request.
 
 ---
 
@@ -108,7 +108,7 @@ Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` unce
 
 ```python
 # 1. Probe MCP servers (once at skill start)
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 
 # 2. Store capabilities
@@ -145,7 +145,7 @@ AskUserQuestion(
     "question": "What dimensions to assess?",
     "header": "Dimensions",
     "options": [
-      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance"},
+      {"label": "Full assessment (Recommended)", "description": "All seven dimensions, from correctness to compliance"},
       {"label": "Code quality only", "description": "Readability, complexity, best practices"},
       {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance"},
       {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes"}
@@ -169,7 +169,7 @@ Load details: `Read("references/orchestration-mode.md")` for env var check logic
 
 ---
 
-## 🚨 Task Management (CC 2.1.16)
+## 🚨 Task Management
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -241,7 +241,7 @@ topic, not a path" and continue to Phase 1.5, which discovers the real file list
 
 Load `Read("references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output
 
 Output results **incrementally** as each evaluation phase completes:
 
@@ -256,7 +256,7 @@ The Phase 2 workflow returns once, so show every dimension's score from its resu
 
 ---
 
-## Phase 2: Quality Rating (6 Dimensions)
+## Phase 2: Quality Rating (7 Dimensions)
 
 Rate each dimension 0-10 with weighted composite score. Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
 
@@ -446,7 +446,7 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for grad
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| 6 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
+| 7 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
 | 0-10 scale | Industry standard | Easy to understand and compare |
 | Parallel assessment | `workflows/assess-fanout.js`, up to 4 assessors | Scores, refutation and verdict held in code, not prose |
 | Effort/Impact scoring | 1-5 scale | Simple prioritization math |

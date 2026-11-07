@@ -1,5 +1,5 @@
 ---
-description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs, in ASCII, an HTML playground or NotebookLM. Use when reviewing a plan or comparing approaches."
+description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph)."
 argument-hint: "[plan-or-issue]"
 model: sonnet
 context: fork
