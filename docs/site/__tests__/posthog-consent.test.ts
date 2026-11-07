@@ -231,9 +231,11 @@ describe("PostHog consent gate", () => {
 		// keep the gate thinking a recording is already running.
 		setAnalyticsConsent("accepted");
 		expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
-		// And a second Decline stops it again.
+		// And a second Decline stops it again: count the delta, since the
+		// re-allow's own stop() already called stopSessionRecording.
+		const stopsBefore = ph.stopSessionRecording.mock.calls.length;
 		setAnalyticsConsent("declined");
-		expect(ph.stopSessionRecording).toHaveBeenCalled();
+		expect(ph.stopSessionRecording.mock.calls.length).toBeGreaterThan(stopsBefore);
 	});
 
 	it("the consent store writes the shared key and fires the shared event", async () => {

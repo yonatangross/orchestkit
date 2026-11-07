@@ -47,7 +47,8 @@
 // banner.tsx, lib/analytics-consent.ts). Before that nothing PostHog loads, not
 // even an opted-out client, which would still fetch remote config. The replay
 // gate is created in the `loaded` callback, so it exists only after consent.
-import { isPostHogLoaded, startPostHog } from "@/lib/posthog-loader";
+import { getAnalyticsConsent } from "@/lib/analytics-consent";
+import { startPostHog } from "@/lib/posthog-loader";
 import {
 	createReplayGate,
 	isReplayPath,
@@ -105,9 +106,13 @@ if (KEY) {
 		loaded: (ph: ReplayControls) => {
 			// Start only while consent stands: after a Decline the gate still
 			// exists, and entering a reference page must not start a recording.
+			// Read the stored choice, not the loader's state: posthog-js calls
+			// `loaded` from inside init(), before the loader marks capture on, so
+			// a loader check would suppress the first start on a reference page
+			// (CodeRabbit, #5106). The loader re-checks consent right before init.
 			replay = createReplayGate({
 				startSessionRecording: () => {
-					if (isPostHogLoaded()) ph.startSessionRecording();
+					if (getAnalyticsConsent() === "accepted") ph.startSessionRecording();
 				},
 				stopSessionRecording: () => ph.stopSessionRecording(),
 			});
