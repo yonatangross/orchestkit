@@ -59,21 +59,50 @@ export const MEDIA_HOSTS: readonly string[] = ["d8j0ntlcm91z4.cloudfront.net"];
 
 const MEDIA_IMAGE_EXT_RE = /\.(?:png|jpe?g|webp|gif)$/;
 
-/** Characters allowed in the path of an exempt media URL. */
+/**
+ * Characters allowed in the path of an exempt media URL: letters, digits and
+ * - . _ / only. Anything else (; @ \ : % + = ~ and so on) ends the path, and
+ * the URL is refused unless what follows is a boundary (#5134 review, Codex
+ * on 2136496a: a ';' path parameter let a signed URL through).
+ */
 function isMediaPathCode(c: number): boolean {
   return (
     (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) ||
-    c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ || c === 0x5f /* _ */ ||
-    c === 0x7e /* ~ */ || c === 0x25 /* % */ || c === 0x2b /* + */ || c === 0x3d /* = */
+    c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ || c === 0x5f /* _ */
+  );
+}
+
+/** True when the URL ends here: end of text, white space, or a closing quote or bracket. */
+function isMediaUrlBoundary(text: string, at: number): boolean {
+  if (at >= text.length) return true;
+  const c = text.charCodeAt(at);
+  return (
+    isSpaceCode(c) || c === 0x22 /* " */ || c === 0x27 /* ' */ || c === 0x60 /* ` */ ||
+    c === 0x29 /* ) */ || c === 0x5d /* ] */ || c === 0x3e /* > */ || c === 0x2c /* , */
+  );
+}
+
+/** True when the scheme is not glued to a word or a longer scheme before it. */
+function isMediaUrlStart(text: string, at: number): boolean {
+  if (at === 0) return true;
+  const c = text.charCodeAt(at - 1);
+  return !(
+    (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) ||
+    c === 0x2b /* + */ || c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ ||
+    c === 0x3a /* : */ || c === 0x40 /* @ */ || c === 0x5c /* \ */ || c === 0x25 /* % */ ||
+    // a URL passed as a parameter value belongs to the outer URL
+    c === 0x3d /* = */ || c === 0x3f /* ? */ || c === 0x26 /* & */ || c === 0x23 /* # */
   );
 }
 
 /**
  * Ranges of https image URLs on a named media host, ascending and disjoint.
  * The entropy layer skips a run inside one; the named-value and vendor-prefix
- * layers still apply. A query, fragment or '&' after the path refuses the
- * URL, so a signed URL (Signature=, Expires=, Key-Pair-Id=) stays masked.
- * Each search resumes past the last path, so the scan stays linear.
+ * layers still apply. The whole URL must be scheme, exact host, and a path of
+ * [A-Za-z0-9._/-] ending in an image extension, followed by a boundary. A
+ * query, fragment, path parameter, userinfo, backslash or percent-encoding
+ * refuses it, so a signed URL (Signature=, Expires=, Key-Pair-Id=) stays
+ * masked. Each search resumes past the last path, so the scan stays linear.
  */
 function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
   const ranges: Array<{ start: number; end: number }> = [];
@@ -87,8 +116,7 @@ function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
       let scan = pathStart;
       while (scan < text.length && isMediaPathCode(text.charCodeAt(scan))) scan++;
       searchPos = Math.max(scan, start + 1);
-      const next = scan < text.length ? text[scan] : "";
-      if (next === "?" || next === "#" || next === "&") continue;
+      if (!isMediaUrlStart(text, start) || !isMediaUrlBoundary(text, scan)) continue;
       // a sentence may end right after the URL
       let end = scan;
       while (end > pathStart && text[end - 1] === ".") end--;

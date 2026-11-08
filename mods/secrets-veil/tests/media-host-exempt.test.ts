@@ -79,6 +79,28 @@ describe("still masked", () => {
     ["image extension then more", `https://${HOST}/${SEG}.png.exe`],
     ["image extension as a folder", `https://${HOST}/${SEG}.png/next`],
     ["bare value", SEG],
+    // Codex on 2136496a: a legal path character ended the scan without a refusal.
+    ["path parameter then signed query", `https://${HOST}/${SEG}.png;download.exe?Signature=${QUERY}`],
+    ["path parameter", `https://${HOST}/${SEG}.png;x`],
+    ["semicolon before the extension", `https://${HOST}/${SEG};x.png`],
+    ["at sign in the path", `https://${HOST}/${SEG}@x.png`],
+    ["userinfo before the host", `https://user@${HOST}/${SEG}.png`],
+    ["backslash in the path", `https://${HOST}/${SEG}\\x.png`],
+    ["backslash after the extension", `https://${HOST}/${SEG}.png\\x`],
+    ["colon after the extension", `https://${HOST}/${SEG}.png:x`],
+    ["percent-encoded query", `https://${HOST}/${SEG}%3FSignature%3Dx.png`],
+    ["percent-encoded dot", `https://${HOST}/${SEG}%2epng`],
+    ["plus in the path", `https://${HOST}/${SEG}+x.png`],
+    ["equals in the path", `https://${HOST}/${SEG}=x.png`],
+    ["tilde in the path", `https://${HOST}/${SEG}~x.png`],
+    ["fragment after a path parameter", `https://${HOST}/${SEG}.png;x#y`],
+    ["glued to a word before the scheme", `xhttps://${HOST}/${SEG}.png`],
+    ["double-encoded dot", `https://${HOST}/${SEG}%252e.png`],
+    ["encoded null byte", `https://${HOST}/${SEG}%00.png`],
+    ["encoded backslash", `https://${HOST}/${SEG}%5C.png`],
+    ["raw null byte", `https://${HOST}/${SEG}.png\u0000x`],
+    ["inside another URL's path", `https://example.com/https://${HOST}/${SEG}.png`],
+    ["inside another URL's query", `https://example.com/?u=https://${HOST}/${SEG}.png`],
   ];
   for (const [name, input] of cases) {
     it(name, () => {
