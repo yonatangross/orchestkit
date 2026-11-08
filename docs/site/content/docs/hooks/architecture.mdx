@@ -15,7 +15,7 @@ OrchestKit compiles its hooks into **11 event-specific bundles** using esbuild (
 
 ```
 hooks.json entry
-    |  "command": "node", "args": [".../hooks/bin/run-hook.mjs", "pretool/bash/dangerous-command-blocker"]
+    |  "command": "node", "args": [".../hooks/bin/run-hook.mjs", "pretool/bash/sync-bash-dispatcher"]
     v
 run-hook.mjs parses prefix "pretool"
     |
@@ -26,7 +26,7 @@ bundleMap["pretool"] -> "pretool.mjs" (48 KB)
 dynamic import("../dist/pretool.mjs")
     |
     v
-hooks["pretool/bash/dangerous-command-blocker"](input) -> HookResult
+hooks["pretool/bash/sync-bash-dispatcher"](input) -> HookResult
 ```
 
 ### Bundle Map
@@ -136,7 +136,7 @@ Registered in `hooks.json` with `"async": true` (110 of the 151 entries). Claude
   "timeout": 10,
   "args": [
     "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-    "posttool/unified-dispatcher"
+    "posttool/commit-nudge"
   ]
 }
 ```
@@ -178,15 +178,15 @@ The `Stop` event in `hooks.json` registers **12 hooks**: 1 synchronous check (`s
 
 <Steps>
 <Step>
-### User triggers Stop
+### Claude finishes responding (`Stop`)
 
-The user types `/exit`, presses Ctrl+C, or the session finishes. Claude Code fires the `Stop` event.
+Claude Code fires the `Stop` event once per turn when Claude finishes responding (session termination is a separate `SessionEnd` event).
 </Step>
 
 <Step>
 ### stop-uncommitted-check.mjs runs synchronously
 
-`node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs` runs as a blocking hook (`"statusMessage": "Checking uncommitted changes..."`) to check for uncommitted git changes and emit a `systemMessage` warning before exit if any exist.
+`node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs` runs as a blocking hook (`"statusMessage": "Checking uncommitted changes..."`) to check for uncommitted git changes and emit a `systemMessage` warning at the end of the turn if any exist.
 </Step>
 
 <Step>
@@ -223,7 +223,7 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
             "command": "node",
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "pretool/bash/dangerous-command-blocker"
+              "pretool/bash/sync-bash-dispatcher"
             ]
           }
         ]
