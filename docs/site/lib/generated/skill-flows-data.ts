@@ -1172,7 +1172,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0",
             "label": "Project Context Discovery",
-            "does": "Load context first. A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its additionalContext in mind:",
+            "does": "Load context first. This skill declares no frontmatter hooks, so nothing loads prior decisions for you: run the loader yourself and keep its additionalContext in mind:",
             "out": null,
             "tag": null
           },
@@ -1690,7 +1690,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "When to invoke this skill (not the cron)",
+            "label": "When to invoke this skill (not the workflow)",
             "does": "",
             "out": null,
             "tag": null

@@ -13,8 +13,10 @@ name: CI Sentinel
 #      is inlined in the prompt); `sweep` has a read-only token
 #   4. `post` (no model) validates, sanitises and posts the verdict as a PR
 #      comment (collapsed group, idempotent)
-#   5. Append a row to .sentinel/ledger.jsonl (cost + classification)
-#   6. Cost-ceiling circuit breaker: stop if daily token spend > budget
+#   5. Append a row to .sentinel/ledger.jsonl (cost + classification), shown
+#      in this run's job summary and not kept between runs
+#
+# What limits a run: manual dispatch, max_prs and the per-PR timeout (#5138).
 #
 # v1 NEVER pushes a fix. It only proposes. v2 may earn write privileges
 # for a narrow subset of patterns (lockfile drift, billing block, etc.)
@@ -48,15 +50,9 @@ permissions:
 
 concurrency:
   group: ci-sentinel-${{ github.repository }}
-  cancel-in-progress: false  # let stragglers finish; don't lose ledger writes
+  cancel-in-progress: false  # let stragglers finish
 
 env:
-  # Daily token ceiling. Sentinel pauses for the calendar day once exceeded.
-  # Bumped 500k → 1M on 2026-05-18 after dropping `--bare` (full CC load
-  # raises per-PR cost from ~4k to ~10k tokens). Now that auth is the Max-plan
-  # OAuth token (not metered credits) this ceiling is a runaway-loop guard,
-  # not a dollar cap — a daily sweep of a few PRs sits well under it.
-  ORK_SENTINEL_DAILY_TOKEN_BUDGET: "1000000"
   # Per-PR analysis timeout (wall clock). Sentinel skips a PR that times out.
   ORK_SENTINEL_PER_PR_TIMEOUT_S: "300"
 
@@ -159,8 +155,7 @@ jobs:
             esac
             exit 1
           fi
-          tokens=$(printf '%s' "$smoke" | jq -r '.usage.total_tokens // 0')
-          echo "Auth smoke test OK (${tokens} tokens)"
+          echo "Auth smoke test OK"
 
       - name: Resolve repo + auth context
         id: ctx
@@ -169,22 +164,10 @@ jobs:
           echo "repo=${GITHUB_REPOSITORY#*/}"  >> "$GITHUB_OUTPUT"
           echo "today=$(date -u +%Y-%m-%d)"    >> "$GITHUB_OUTPUT"
 
-      - name: Load yesterday's ledger (if any)
-        env:
-          TODAY: ${{ steps.ctx.outputs.today }}
+      - name: Start this run's ledger
         run: |
           mkdir -p .sentinel
-          # Idempotent — empty file is fine.
           touch .sentinel/ledger.jsonl
-          today_tokens=$(awk -v d="$TODAY" -F'"' '
-            $0 ~ d { for (i=1; i<=NF; i++) if ($i == "tokens") { sum += $(i+2) } }
-            END { print (sum ? sum : 0) }
-          ' .sentinel/ledger.jsonl)
-          echo "Today's tokens used so far: ${today_tokens}"
-          if [ "${today_tokens}" -gt "${ORK_SENTINEL_DAILY_TOKEN_BUDGET}" ]; then
-            echo "::warning::Daily budget exceeded (${today_tokens} > ${ORK_SENTINEL_DAILY_TOKEN_BUDGET}). Skipping sweep."
-            exit 0
-          fi
 
       - name: List failing PRs
         id: prs
@@ -325,7 +308,7 @@ jobs:
             # empty and no comment or ledger row was ever written. Keep
             # `.content` only as a defensive fallback for future format drift.
             verdict_md=$(jq -r '.result // .content // ""' "${tmpdir}/verdict.json")
-            tokens=$(jq -r '.usage.total_tokens // 0' "${tmpdir}/verdict.json")
+            tokens=$(jq -r '[.usage.input_tokens, .usage.output_tokens, .usage.cache_creation_input_tokens, .usage.cache_read_input_tokens] | map(. // 0) | add' "${tmpdir}/verdict.json")
             rm -rf "$tmpdir"
 
             if [ -z "$verdict_md" ]; then
@@ -385,7 +368,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      - name: Surface daily ledger as job summary
+      - name: Surface this run's ledger as job summary
         if: always()
         env:
           TODAY: ${{ steps.ctx.outputs.today }}
@@ -397,13 +380,10 @@ jobs:
             echo "**PRs scanned this run:** ${count}"
             echo ""
             if [ -s .sentinel/ledger.jsonl ]; then
-              today_tokens=$(awk -v d="$TODAY" -F'"' '
-                $0 ~ d { for (i=1; i<=NF; i++) if ($i == "tokens") { sum += $(i+2) } }
-                END { print (sum ? sum : 0) }
-              ' .sentinel/ledger.jsonl)
-              echo "**Tokens used today:** ${today_tokens} / ${ORK_SENTINEL_DAILY_TOKEN_BUDGET}"
+              run_tokens=$(jq -s 'map(.tokens) | add // 0' .sentinel/ledger.jsonl)
+              echo "**Tokens used this run:** ${run_tokens}"
               echo ""
-              echo "### Recent rows"
+              echo "### Rows"
               echo '```'
               tail -10 .sentinel/ledger.jsonl
               echo '```'
