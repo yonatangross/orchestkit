@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "10.10.4",
+  "version": "10.10.5",
   "description": "A Claude Code plugin library: 115 skills, 36 agents and 163 hooks for planning, building, reviewing and shipping software. Open source, MIT.",
   "author": {
     "name": "Yonatan Gross",
