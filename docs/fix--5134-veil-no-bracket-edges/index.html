@@ -28,7 +28,7 @@
 </head>
 <body><main>
 <h1>secrets-veil lets a named media host's images through</h1>
-<p class="sub">Branch fix/5134-veil-media-hosts, 2026-11-08. Run against mods/secrets-veil/src/mask.ts with generated paths.</p>
+<p class="sub">Branch fix/5134-veil-no-bracket-edges, 2026-11-09. Run against mods/secrets-veil/src/mask.ts with generated paths.</p>
 <section><h2>Pick a case</h2>
 <label for="pick">Case</label>
 <select id="pick"></select>
@@ -39,7 +39,7 @@
 <button id="copy" type="button">Copy prompt</button>
 </section>
 <script>
-const CASES = [["https image on the named host", "Masked: an agent could not read the URL.", "Readable."], ["Same URL with a signature query", "Masked.", "Masked."], ["Any other cloudfront.net host", "Masked.", "Masked."], ["http instead of https", "Masked.", "Masked."], ["Named host as a prefix of another domain", "Masked.", "Masked."], ["Not an image, or .png.exe", "Masked.", "Masked."], ["A known secret value inside the URL", "Masked.", "Masked: only the entropy layer is skipped."]];
+const CASES = [["Bare https image on the named host, between spaces", "Masked: an agent could not read the URL.", "Readable."], ["Same URL in quotes, brackets, backticks or a markdown image", "Masked.", "Masked: only a whole white-space token is exempt."], ["Same URL inside another URL's query, e.g. ?next=[...]", "Masked.", "Masked."], ["Same URL with a signature query", "Masked.", "Masked."], ["Any other cloudfront.net host", "Masked.", "Masked."], ["http instead of https", "Masked.", "Masked."], ["Not an image, .png.exe or .png]private.json", "Masked.", "Masked."], ["A known secret value inside the URL", "Masked.", "Masked: only the entropy layer is skipped."]];
 const pick = document.getElementById('pick');
 pick.replaceChildren(...CASES.map((c, i) => new Option(c[0], String(i))));
 function show() {
