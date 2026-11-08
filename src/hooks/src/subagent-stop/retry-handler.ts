@@ -158,6 +158,10 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
 
   // Skip retry logic for successful completions
   if (outcome === 'success') {
+    // A retried agent finished, so its next task starts with a full retry budget.
+    const name = agentType.replace(/^ork:/, '');
+    const tracked = loadState().activeAgents.find(a => a.agent.replace(/^ork:/, '') === name);
+    if (tracked && tracked.retryCount > 0) updateAgentStatus(agentType, 'completed');
     return outputSilentSuccess();
   }
 

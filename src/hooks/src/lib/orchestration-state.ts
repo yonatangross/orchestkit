@@ -161,6 +161,8 @@ export function updateAgentStatus(
       entry.status = status;
       if (taskId) entry.taskId = taskId;
       if (status === 'retrying') entry.retryCount++;
+      // A chain that ended leaves no budget to carry into the next task of this agent type.
+      else if (status === 'completed' || status === 'failed') entry.retryCount = 0;
     } else {
       state.activeAgents.push({
         agent,

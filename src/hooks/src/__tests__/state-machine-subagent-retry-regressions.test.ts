@@ -86,6 +86,28 @@ describe('State machine subagent task, retry, and batch progress regressions', (
     expect(loadState().activeAgents.find(a => a.agent.endsWith('backend-system-architect'))?.status).toBe('failed');
   });
 
+  test('a retry chain that ends leaves the next task of that agent type a full budget', () => {
+    const ctx = createTestContext({ projectDir: tmpDir, sessionId: 'session-subagent-sm-test' });
+    const tool_input = { subagent_type: 'ork:backend-system-architect' };
+    const session_id = 'session-subagent-sm-test';
+    const fail = { tool_name: 'Task', session_id, tool_input, exit_code: 1, error: 'Agent execution failed' };
+    const succeed = { tool_name: 'Task', session_id, tool_input };
+    const count = () => loadState().activeAgents.find(a => a.agent.endsWith('backend-system-architect'))?.retryCount;
+
+    retryHandler(fail, ctx);
+    retryHandler(fail, ctx);
+    expect(count()).toBe(2);
+    retryHandler(succeed, ctx);
+    expect(count()).toBe(0);
+    expect(retryHandler(fail, ctx).hookSpecificOutput?.additionalContext).toContain('Retry Scheduled');
+    expect(count()).toBe(1);
+
+    retryHandler(fail, ctx);
+    expect(retryHandler(fail, ctx).hookSpecificOutput?.additionalContext).toContain('Retry Not Recommended');
+    expect(count()).toBe(0);
+    expect(retryHandler(fail, ctx).hookSpecificOutput?.additionalContext).toContain('Retry Scheduled');
+  });
+
   test('contextGate warns on expensive agent types with ork: prefix when 2 background agents are active', () => {
     const logDir = join(tmpDir, '.claude', 'logs');
     mkdirSync(logDir, { recursive: true });
