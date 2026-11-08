@@ -1,0 +1,11 @@
+{
+  "slug": "claude-triage-turns",
+  "source": "docs/fix--5142-triage-turns/index.html",
+  "title": "Issue triage that ran out of turns",
+  "description": "Pick a CLI version and compare how often the claude-triage call finished before and after the prompt named the repository.",
+  "tags": [
+    "ci",
+    "models"
+  ],
+  "date": "2026-11-08"
+}
