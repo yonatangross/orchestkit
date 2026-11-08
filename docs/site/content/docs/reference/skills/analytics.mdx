@@ -542,6 +542,8 @@ cost = (input_tokens / 1M * input_price)
 
 **Cache savings** = cost if all cache reads were full-price input minus actual cost.
 
+**Haiku 5.5 is a lower bound.** `stats-cache.json` totals are aggregated by model, so a prompt's size is not known and the formula uses the base rates. A prompt over 100K tokens is billed at up to 5x those rates.
+
 ## All-Time Model Usage Query
 
 ```bash
