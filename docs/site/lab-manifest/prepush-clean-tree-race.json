@@ -1,0 +1,11 @@
+{
+  "slug": "prepush-clean-tree-race",
+  "source": "docs/fix--5127-prepush-race/index.html",
+  "title": "A clean-tree test that blamed the wrong test",
+  "description": "Pick what happens during a parallel pre-push and compare what the clean-tree test reported before and after it stopped watching files its subject cannot write.",
+  "tags": [
+    "ci",
+    "tests"
+  ],
+  "date": "2026-11-08"
+}
