@@ -80,6 +80,12 @@ function isMediaPathCode(c: number): boolean {
  * stays masked. Only ASCII space, tab, LF and CR count (#5146 review round
  * 5): a URL parser keeps U+00A0, U+3000, U+2028 and other non-ASCII white
  * space inside the URL, so a token touching one stays masked.
+ *
+ * Threat model (#5146 round 6, accepted residual): this judges lexical
+ * tokens and does not promise that a URL parser reads the same URL; a
+ * WHATWG parser strips tab, LF and CR, so it can join two tokens shown
+ * separately. Only the entropy layer is skipped, so named values and vendor
+ * prefixes still mask inside an exempt URL.
  */
 function isMediaTokenEdge(text: string, at: number): boolean {
   if (at < 0 || at >= text.length) return true;

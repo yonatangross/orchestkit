@@ -63,6 +63,17 @@ describe("exempt: https image URL on a named host", () => {
       expect(mask(line, table).text).toBe(line);
     });
   }
+
+  // Accepted lexical-token decision (#5146 review round 6, Codex on c5570fbd):
+  // a WHATWG parser strips tab, LF and CR, so it would read one URL here, but
+  // the veil judges the tokens it shows. Only the entropy layer is skipped.
+  // Pinned so a change to this residual is a visible decision.
+  for (const [label, ws] of [["tab", "\t"], ["LF", "\n"], ["CR", "\r"]]) {
+    it(`accepted: lexical tokens, not parser-joined (${label} after ?next=)`, () => {
+      const line = `https://example.com/?next=${ws}https://${HOST}/${SEG}.png`;
+      expect(mask(line, table).text).toBe(line);
+    });
+  }
 });
 
 describe("still masked", () => {

@@ -43,6 +43,18 @@ Three layers, checked on every tool result:
    are public request handles; 890 of 1000 generated `toolu_` ids crossed
    the bar, so tool ids showed as bullets in transcripts and logs.
 
+   Since 0.0.11, an image URL on a named media host (`MEDIA_HOSTS`, today
+   `d8j0ntlcm91z4.cloudfront.net`) is also skipped, when the whole token
+   between ASCII space, tab, LF, CR or the ends of the text is exactly
+   `https://<host>/<path>.<png|jpg|jpeg|webp|gif>` with a path of letters,
+   digits and `-` `.` `_` `/`. A query, fragment, quote, bracket, other
+   punctuation or non-ASCII white space in the token keeps it masked.
+   The exemption judges lexical tokens and does not promise that a URL
+   parser reads the same URL: a parser that strips tab, LF or CR can join
+   two tokens the veil shows separately. It skips only this layer, so
+   named values and vendor prefixes still mask inside such a URL; it aims
+   at accidental secrets in tool output, not at text an adversary crafted.
+
    One exception: an image payload passes byte-equal. An image payload is
    one long high-entropy run, so masking it made the API reject every image
    Read. It passes only when all of these hold:
