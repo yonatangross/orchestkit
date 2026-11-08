@@ -56,7 +56,7 @@ describe("exempt: https image URL on a named host", () => {
     expect(mask(url, table).text).toBe(url);
   });
 
-  for (const [open, close] of [["see ", " now"], ['"', '"'], ["", "\n"], ["<", ">"], ["[", "]"], ["`", "`"], ["\t", "\t"]]) {
+  for (const [open, close] of [["see ", " now"], ['"', '"'], ["", "\n"], ["<", ">"], ["`", "`"], ["\t", "\t"]]) {
     it(`inside text ending ${JSON.stringify(close)}`, () => {
       const line = `${open}https://${HOST}/${SEG}.png${close}`;
       expect(mask(line, table).text).toBe(line);
@@ -108,6 +108,10 @@ describe("still masked", () => {
     ["in parentheses", `(https://${HOST}/${SEG}.png)`],
     ["trailing full stop", `Saved to https://${HOST}/${SEG}.png.`],
     ["trailing comma", `https://${HOST}/${SEG}.png, and more`],
+    // Codex round 4 on 0b7f078e: [ and ] are legal in a URL path and query, so they are not edges.
+    ["after [ in another URL's query", `https://example.com/?next=[https://${HOST}/${SEG}.png`],
+    ["] then a non-image path", `https://${HOST}/${SEG}.png]private.json`],
+    ["in square brackets", `[https://${HOST}/${SEG}.png]`],
   ];
   // review b125 on 1c828b5c: characters that may sit inside an outer URL's path.
   for (const d of [";", ",", "!", "$", "*", "(", "'", "~", "|", "{", "^", ")"]) {
