@@ -126,6 +126,25 @@ describe("Product MCP Actions Server", () => {
 			expect(body.result.content[0].text).toContain("Invalid skill names");
 		});
 
+		it("rejects a list_skills query that is not a string", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.dev/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(
+						rpcRequest("tools/call", {
+							name: "orchestkit_list_skills",
+							arguments: { query: 7 },
+						}),
+					),
+				}),
+			);
+			const body = await res.json();
+			expect(body.result.isError).toBe(true);
+			expect(body.result.content[0].text).toContain("query must be a string");
+		});
+
 		it("refuses a known skill that is not user-invocable", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");
 			const res = await POST(
