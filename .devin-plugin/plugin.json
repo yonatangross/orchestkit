@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "10.10.4",
+  "version": "10.10.5",
   "description": "The Complete AI Development Toolkit: skills, agents and hooks for full-stack development.",
   "skills": "./plugins/ork/skills"
 }
