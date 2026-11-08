@@ -105,7 +105,7 @@ jobs:
       # `claude setup-token` + `gh secret set CLAUDE_CODE_OAUTH_TOKEN` on 401.
       - name: Install Claude Code
         run: |
-          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.319 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 
