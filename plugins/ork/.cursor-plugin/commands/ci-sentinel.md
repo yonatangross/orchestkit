@@ -1,5 +1,5 @@
 ---
-description: "Manually dispatched headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to triage all red PRs in one run. Not for one failing run or check (use ci-debug)."
+description: "Manually dispatched classifier for every open PR with red required checks: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug."
 argument-hint: "[install|status|enable|disable]"
 disable-model-invocation: false
 model: sonnet

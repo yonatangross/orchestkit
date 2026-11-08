@@ -853,7 +853,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/ci-sentinel",
     "title": "CI Sentinel",
-    "description": "Manually dispatched headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to triage all red PRs in one run. Not for one failing run or check (use ci-debug)."
+    "description": "Manually dispatched classifier for every open PR with red required checks: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug."
   },
   {
     "url": "/docs/reference/skills/code-review-playbook",
