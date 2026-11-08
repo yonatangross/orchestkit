@@ -942,7 +942,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-debug",
     "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures.",
     "version": "0.2.0",
-    "sha256": "16508d12f15c0b3751a6390b6d5fe76d604bf79fef68ca97f0b8717a40d86651",
+    "sha256": "83ea2a8b310efa5272c6066fd6a32b5eeff858e394a7192cd301c1b294c5aea4",
     "author": "OrchestKit",
     "tags": [
       "ci",

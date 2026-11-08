@@ -118,7 +118,7 @@ it automatically.
 
 ## Headless invocation (permission mode)
 
-`/ci-debug` REQUIRES Bash tool access — `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In headless `claude -p` runs (ci-sentinel, cron):
+`/ci-debug` REQUIRES Bash tool access — `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In a headless `claude -p` run that loads this skill:
 
 - Use `--permission-mode acceptEdits` — the headless "use tools without prompting" mode. The skill is read-only by design, so this grants nothing risky.
 - **NEVER `dontAsk`** — it silently REFUSES permission-requiring tools (including Bash), so every analysis returns empty output with no error (#1862 Bug C).
@@ -138,7 +138,7 @@ it automatically.
 
 ## When NOT to invoke
 
-- For every open PR with red checks at once, use `ci-sentinel`, which runs this skill across them.
+- For every open PR with red checks at once, use `ci-sentinel`, a workflow that classifies them with a copy of this playbook.
 - For application-level test failures (the playbook is **CI-infra-specific**, not e.g. pytest failures).
 - Before reading the actual log — don't speculate.
 
@@ -150,10 +150,10 @@ When a novel CI failure surfaces (the UNMATCHED report fires), add a row to the 
 2. **Memory ref**: name the memory file you wrote with the full incident write-up.
 3. **Proposed fix**: the EXACT command line. No prose, no "you might want to". The skill produces commands the user runs; ambiguity defeats the purpose.
 
-Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. The `ci-sentinel` workflow picks up new patterns automatically on its next sweep — no separate plumbing needed.
+Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. Add the pattern to the prompt in `.github/workflows/ci-sentinel.yml` in the same change: that workflow runs with no tools, cannot load this skill, and keeps its own list.
 
 ## Related Skills
 
-- **Composes with** — `ci-sentinel` (a manually dispatched workflow that runs this skill against open red PRs).
+- **Related:** `ci-sentinel` (a manually dispatched workflow that applies a copy of this playbook to open red PRs).
 - **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
 - **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.
