@@ -239,6 +239,7 @@ function register(
        branch           = excluded.branch,
        status           = 'running',
        last_heartbeat   = excluded.last_heartbeat,
+       ended_at         = NULL,
        cc_version       = excluded.cc_version,
        ork_version      = excluded.ork_version,
        messaging_socket = excluded.messaging_socket`,

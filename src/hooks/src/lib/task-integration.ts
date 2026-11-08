@@ -318,8 +318,11 @@ export function updateTaskStatus(
  */
 export function getTaskByAgent(agent: string): TaskEntry | undefined {
   const registry = loadRegistry();
+  const normalizedAgent = agent.replace(/^ork:/, '');
   return registry.tasks.find(
-    t => t.agent === agent && (t.status === 'pending' || t.status === 'in_progress')
+    t =>
+      (t.agent === agent || t.agent.replace(/^ork:/, '') === normalizedAgent) &&
+      (t.status === 'pending' || t.status === 'in_progress')
   );
 }
 
