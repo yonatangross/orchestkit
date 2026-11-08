@@ -56,7 +56,7 @@ describe("exempt: https image URL on a named host", () => {
     expect(mask(url, table).text).toBe(url);
   });
 
-  for (const [open, close] of [["see ", " now"], ['"', '"'], ["(", ")"], ["", "\n"], ["Saved to ", "."]]) {
+  for (const [open, close] of [["see ", " now"], ['"', '"'], ["", "\n"], ["<", ">"], ["[", "]"], ["`", "`"], ["\t", "\t"]]) {
     it(`inside text ending ${JSON.stringify(close)}`, () => {
       const line = `${open}https://${HOST}/${SEG}.png${close}`;
       expect(mask(line, table).text).toBe(line);
@@ -101,7 +101,18 @@ describe("still masked", () => {
     ["raw null byte", `https://${HOST}/${SEG}.png\u0000x`],
     ["inside another URL's path", `https://example.com/https://${HOST}/${SEG}.png`],
     ["inside another URL's query", `https://example.com/?u=https://${HOST}/${SEG}.png`],
+    // Codex round 2 on 1c828b5c: , ' ) are legal path characters, so they are not boundaries.
+    ["comma then more path", `https://${HOST}/${SEG}.png,x`],
+    ["apostrophe then more path", `https://${HOST}/${SEG}.png'x`],
+    ["paren then a signed query", `https://${HOST}/${SEG}.png)?Signature=${QUERY}`],
+    ["in parentheses", `(https://${HOST}/${SEG}.png)`],
+    ["trailing full stop", `Saved to https://${HOST}/${SEG}.png.`],
+    ["trailing comma", `https://${HOST}/${SEG}.png, and more`],
   ];
+  // review b125 on 1c828b5c: characters that may sit inside an outer URL's path.
+  for (const d of [";", ",", "!", "$", "*", "(", "'", "~", "|", "{", "^", ")"]) {
+    cases.push([`nested after ${JSON.stringify(d)}`, `https://example.com/a${d}https://${HOST}/${SEG}.png`]);
+  }
   for (const [name, input] of cases) {
     it(name, () => {
       const out = mask(input, table);

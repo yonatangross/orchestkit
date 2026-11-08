@@ -72,27 +72,26 @@ function isMediaPathCode(c: number): boolean {
   );
 }
 
-/** True when the URL ends here: end of text, white space, or a closing quote or bracket. */
-function isMediaUrlBoundary(text: string, at: number): boolean {
-  if (at >= text.length) return true;
-  const c = text.charCodeAt(at);
-  return (
-    isSpaceCode(c) || c === 0x22 /* " */ || c === 0x27 /* ' */ || c === 0x60 /* ` */ ||
-    c === 0x29 /* ) */ || c === 0x5d /* ] */ || c === 0x3e /* > */ || c === 0x2c /* , */
-  );
+/**
+ * Allowlists, not denylists (#5134, third review round): only characters that
+ * can never sit inside a URL count as its edges. Anything else, including
+ * characters legal in a path such as , ' ( ) ; ! $ * ~, keeps the URL masked.
+ */
+function isMediaUrlEdgeCode(c: number, closing: boolean): boolean {
+  if (isSpaceCode(c) || c === 0x22 /* " */ || c === 0x60 /* ` */) return true;
+  return closing
+    ? c === 0x3e /* > */ || c === 0x5d /* ] */
+    : c === 0x3c /* < */ || c === 0x5b /* [ */;
 }
 
-/** True when the scheme is not glued to a word or a longer scheme before it. */
+/** True when the URL ends here: end of text, white space, " ` > or ]. */
+function isMediaUrlBoundary(text: string, at: number): boolean {
+  return at >= text.length || isMediaUrlEdgeCode(text.charCodeAt(at), true);
+}
+
+/** True when the URL starts here: start of text, white space, " ` < or [. */
 function isMediaUrlStart(text: string, at: number): boolean {
-  if (at === 0) return true;
-  const c = text.charCodeAt(at - 1);
-  return !(
-    (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) ||
-    c === 0x2b /* + */ || c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ ||
-    c === 0x3a /* : */ || c === 0x40 /* @ */ || c === 0x5c /* \ */ || c === 0x25 /* % */ ||
-    // a URL passed as a parameter value belongs to the outer URL
-    c === 0x3d /* = */ || c === 0x3f /* ? */ || c === 0x26 /* & */ || c === 0x23 /* # */
-  );
+  return at === 0 || isMediaUrlEdgeCode(text.charCodeAt(at - 1), false);
 }
 
 /**
@@ -117,9 +116,7 @@ function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
       while (scan < text.length && isMediaPathCode(text.charCodeAt(scan))) scan++;
       searchPos = Math.max(scan, start + 1);
       if (!isMediaUrlStart(text, start) || !isMediaUrlBoundary(text, scan)) continue;
-      // a sentence may end right after the URL
-      let end = scan;
-      while (end > pathStart && text[end - 1] === ".") end--;
+      const end = scan;
       const ext = MEDIA_IMAGE_EXT_RE.exec(text.slice(Math.max(pathStart, end - 5), end));
       if (ext !== null && end - ext[0].length > pathStart) ranges.push({ start, end });
     }
