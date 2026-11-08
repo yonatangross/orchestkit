@@ -664,6 +664,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
+
+- **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
+
 **[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
 
 - **docs:** replay never starts without consent (#5106)
@@ -704,10 +708,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.8.6](https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6)** · 2026-11-05
 
 - **skills:** Haiku 5.5 100K cost tiers and the AWS provider line (#5064)
-
-**[v10.8.5](https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5)** · 2026-11-04
-
-- **plugin:** pass validate --strict, add icon, disclose outbound calls (#5057)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
