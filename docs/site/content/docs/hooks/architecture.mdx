@@ -1,6 +1,6 @@
 ---
 title: "Hook Architecture"
-description: "How OrchestKit's 163-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+description: "How OrchestKit's 151-hook registration system works: bundles, runners, execution modes, and the stop pipeline."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -11,11 +11,11 @@ This page is for plugin developers who want to understand how the hook system wo
 
 ## The Bundle System
 
-OrchestKit compiles 163 hooks into **11 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded, not the entire codebase.
+OrchestKit compiles its hooks into **11 event-specific bundles** using esbuild (`hooks.json` registers **151** hook entries across events: 149 routed through `run-hook.mjs`, 1 through `stop-uncommitted-check.mjs`, and 1 through `telemetry-sync.mjs`). When Claude Code fires a hook, only the bundle for that event type is loaded, not the entire codebase.
 
 ```
 hooks.json entry
-    |  "node run-hook.mjs pretool/bash/dangerous-command-blocker"
+    |  "command": "node", "args": [".../hooks/bin/run-hook.mjs", "pretool/bash/dangerous-command-blocker"]
     v
 run-hook.mjs parses prefix "pretool"
     |
@@ -63,11 +63,11 @@ Note that `subagent-start` and `subagent-stop` share the `subagent.mjs` bundle. 
 | `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger |
 | `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector |
 | `lifecycle.mjs` | 31 KB | 17 | SessionStart, SessionEnd, PreCompact, TeammateIdle, TaskCompleted | context-loader, metrics-summary, progress-reporter |
-| `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 7 hooks internally) |
+| `stop.mjs` | 33 KB | 12 | Stop | handoff-writer, session-summary, task-completion-check, security-scan-aggregator, ledger-cleanup, goal-tracker |
 | `subagent.mjs` | 56 KB | 18 | SubagentStart, SubagentStop | context-stager, output-validator, retry-handler |
 | `notification.mjs` | 5 KB | 3 | Notification | desktop, sound, unified-dispatcher |
 | `setup.mjs` | 24 KB | 6 | Setup | first-run-setup, monorepo-detector, setup-repair |
-| `skill.mjs` | 52 KB | 22 | Skill operations, Stop (via dispatcher) | coverage-check, test-runner, redact-secrets |
+| `skill.mjs` | 52 KB | 22 | Skill operations, Stop | coverage-check, test-runner, redact-secrets |
 | `agent.mjs` | 8 KB | 5 | Agent operations | block-writes, ci-safety-check, deployment-safety-check |
 | `hooks.mjs` | 324 KB | all | CLI tools only | Unified bundle, never loaded at runtime |
 
@@ -94,14 +94,14 @@ esbuild tree-shakes each entry point into a self-contained `.mjs` file with zero
 
 ## Execution Modes
 
-OrchestKit hooks run in three distinct modes depending on whether the hook needs to block, run silently, or survive session exit.
+`src/hooks/bin/` ships two primary hook runners invoked by `hooks.json` (`run-hook.mjs` for 149 entries and `stop-uncommitted-check.mjs` for 1 entry, plus `telemetry-sync.mjs` for 1 SessionEnd entry). Rather than spawning custom detached wrapper scripts, OrchestKit uses Claude Code's native `async` and `asyncRewake` flags in `hooks.json` alongside `run-hook.mjs`.
 
-<Tabs items={["Blocking", "Fire-and-Forget", "Background Worker"]}>
+<Tabs items={["Blocking", "Async", "Async with Rewake"]}>
 <Tab value="Blocking">
 
-### Blocking (run-hook.mjs)
+### Blocking (`run-hook.mjs` / `stop-uncommitted-check.mjs`)
 
-The default mode. Claude Code pipes the event payload to stdin, waits for stdout, and acts on the result.
+The synchronous mode (41 entries in `hooks.json`, where `async` is omitted). Claude Code pipes the event payload to stdin, waits for stdout, and acts on the result before proceeding.
 
 ```
 Claude Code                          run-hook.mjs
@@ -115,168 +115,90 @@ Claude Code                          run-hook.mjs
     | act on result (allow/block/inject)  |
 ```
 
-**Used by:** Permission hooks, PreToolUse hooks, PostToolUse quality hooks, SessionStart context loaders.
+**Used by:** Security/safety gates in `PreToolUse`, synchronous `PermissionRequest` hooks, `UserPromptSubmit` context injectors, and `stop-uncommitted-check.mjs` on `Stop`.
 
 **Can block operations:** Yes. Returning `{ continue: false }` stops the tool from executing.
 
 **Can inject context:** Yes. Returning `additionalContext` in `hookSpecificOutput` adds guidance for Claude.
 
 </Tab>
-<Tab value="Fire-and-Forget">
+<Tab value="Async">
 
-### Fire-and-Forget (run-hook-silent.mjs)
+### Async (`run-hook.mjs` with `"async": true`)
 
-A sync hook that immediately returns `{ continue: true, suppressOutput: true }` while spawning a detached background process to do the real work. Because it is registered as a sync hook (no `async: true` in hooks.json), Claude Code does not print "Async hook completed" messages.
+Registered in `hooks.json` with `"async": true` (110 of the 151 entries). Claude Code invokes `node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs <hook-name>` asynchronously without blocking the active turn or tool call.
 
-```
-Claude Code                      run-hook-silent.mjs           run-hook-background.mjs
-    |                                  |                              |
-    |--- stdin: HookInput JSON ------> |                              |
-    |                                  | base64-encode input          |
-    |                                  | spawn('node', [background,   |
-    |                                  |   hookName, inputBase64],     |
-    |                                  |   { detached: true })         |
-    |                                  | child.unref()                |
-    | <-- {"continue":true} ---------- |                              |
-    |                                  | process.exit(0)              |
-    |  (session continues)             |                              |
-    |                                                    | decode input
-    |                                                    | load bundle
-    |                                                    | run hookFn(input)
-    |                                                    | exit
+```json
+{
+  "type": "command",
+  "command": "node",
+  "async": true,
+  "timeout": 10,
+  "args": [
+    "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+    "posttool/unified-dispatcher"
+  ]
+}
 ```
 
-**Used by:** 7 fire-and-forget dispatchers (see below).
+**Used by:** Analytics, audit logging, session metrics, notification dispatchers, lifecycle trackers, and 11 of the 12 `Stop` hooks.
 
-**Can block operations:** No. Always returns success immediately.
+**Can block operations:** No. Runs non-blocking alongside the session.
 
 </Tab>
-<Tab value="Background Worker">
+<Tab value="Async with Rewake">
 
-### Background Worker (stop-fire-and-forget.mjs)
+### Async with Rewake (`"async": true`, `"asyncRewake": true`, `"--rewake"`)
 
-A specialized pattern for the Stop event. Instead of passing input via command-line arguments, it writes a work file to disk and spawns a long-lived background worker. This is necessary because Stop hooks run 7 functions in parallel and may take several seconds.
+Used when an asynchronous validation hook should re-wake Claude Code if a check fails. The `hooks.json` entry sets both `"async": true` and `"asyncRewake": true` and passes `"--rewake"` to `run-hook.mjs`.
 
-```
-Claude Code               stop-fire-and-forget.mjs        background-worker.mjs
-    |                            |                               |
-    |--- stdin: HookInput -----> |                               |
-    |                            | write .claude/hooks/pending/  |
-    |                            |   stop-{uuid}.json            |
-    |                            | spawn('node',                 |
-    |                            |   [background-worker, file],  |
-    |                            |   { detached: true })         |
-    |                            | child.unref()                 |
-    | <-- {"continue":true} ---- |                               |
-    |                            |                               |
-    | (session exits instantly)  |                               |
-    |                                              | read work file
-    |                                              | delete work file
-    |                                              | import stop.mjs bundle
-    |                                              | unifiedStopDispatcher(input)
-    |                                              |   -> Promise.allSettled(7 hooks)
-    |                                              | exit
+```json
+{
+  "type": "command",
+  "command": "node",
+  "async": true,
+  "timeout": 10,
+  "args": [
+    "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+    "skill/coverage-threshold-gate",
+    "--rewake"
+  ],
+  "asyncRewake": true
+}
 ```
 
-**Safeguards:**
-- **5-minute self-termination**: `setTimeout` kills the worker to prevent hangs
-- **Orphan cleanup**: On startup, deletes temp files in `pending/` older than 10 minutes
-- **Parallel execution**: All hooks run via `Promise.allSettled`, so one failure does not block others
-- **Debug logging**: Writes to `.claude/logs/hooks/background-worker.log`
+**Used by:** Stop-time skill validation gates (`skill/coverage-threshold-gate` and `skill/cross-instance-test-validator`).
 
 </Tab>
 </Tabs>
 
-## The 7 Fire-and-Forget Dispatchers
-
-Seven hooks.json entries use `run-hook-silent.mjs` to fan out to multiple internal hooks without blocking Claude Code:
-
-| Dispatcher | Event | Internal Hooks | What It Does |
-|------------|-------|----------------|-------------|
-| `lifecycle/unified-dispatcher` | SessionStart | 4 | Pattern sync pull, coordination init, decision sync, dependency check |
-| `posttool/unified-dispatcher` | PostToolUse | 7+ | Audit logger, session metrics, calibration tracker, style/naming learners |
-| `subagent-stop/unified-dispatcher` | SubagentStop | 5+ | Memory store, context publisher, feedback loop, handoff preparer |
-| `notification/unified-dispatcher` | Notification | 1+ | Desktop notification routing |
-| `setup/unified-dispatcher` | Setup | varies | Background setup initialization tasks |
-| `stop-fire-and-forget.mjs` | Stop | 7 | All stop hooks via background worker (see below) |
-
-The fire-and-forget pattern is used exclusively for operations that can fail silently: analytics, network I/O, memory sync, and cleanup.
-
 ## The Stop Pipeline
 
-The Stop event has the most complex execution pipeline because it must run 7 cleanup hooks without blocking session exit.
+The `Stop` event in `hooks.json` registers **12 hooks**: 1 synchronous check (`stop-uncommitted-check.mjs`) and 11 asynchronous `run-hook.mjs` entries (`"async": true`).
 
 <Steps>
 <Step>
 ### User triggers Stop
 
-The user types `/exit`, presses Ctrl+C, or the session times out. Claude Code fires the Stop event.
+The user types `/exit`, presses Ctrl+C, or the session finishes. Claude Code fires the `Stop` event.
 </Step>
 
 <Step>
-### stop-fire-and-forget.mjs receives the event
+### stop-uncommitted-check.mjs runs synchronously
 
-Reads the hook input from stdin, writes it to a temp file at `.claude/hooks/pending/stop-{uuid}.json`, spawns a detached `background-worker.mjs` process, and returns `{ continue: true }` immediately.
+`node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs` runs as a blocking hook (`"statusMessage": "Checking uncommitted changes..."`) to check for uncommitted git changes and emit a `systemMessage` warning before exit if any exist.
 </Step>
 
 <Step>
-### stop-uncommitted-check.mjs runs in parallel
+### 11 async Stop hooks run via run-hook.mjs
 
-A second Stop hook checks for uncommitted git changes and emits a warning via `systemMessage` if any exist. This runs synchronously (blocking) because it is fast and the warning should appear before exit.
-</Step>
+In parallel, Claude Code invokes 11 `"async": true` hooks through `run-hook.mjs`:
 
-<Step>
-### Session exits (~50ms)
-
-Claude Code receives `{ continue: true }` from both Stop hooks and exits the session. The user is back at their shell prompt.
-</Step>
-
-<Step>
-### Background worker picks up the payload
-
-The detached `background-worker.mjs` process reads the work file, deletes it, imports the `stop.mjs` bundle, and calls `unifiedStopDispatcher(input)`.
-</Step>
-
-<Step>
-### 7 hooks run in parallel via Promise.allSettled
-
-The unified stop dispatcher runs all hooks concurrently. Grouped by category:
-
-**Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
-
-**Memory Sync (1):** workflow-preference-learner
-
-**Instance Management (1):** task-completion-check
-
-**Analysis (2):** context-compressor, security-scan-aggregator
-
-**Skill Validation (12):** coverage-check, evidence-collector, coverage-threshold-gate, cross-instance-test-validator, di-pattern-enforcer, duplicate-code-detector, eval-metrics-collector, migration-validator, review-summary-generator, security-summary, test-pattern-validator, test-runner
-
-**Heavy Analysis (1):** full-test-suite
-</Step>
-
-<Step>
-### Worker exits
-
-After all promises settle (or the 5-minute timeout fires), the background worker exits. If any hooks failed, errors are logged to `.claude/logs/hooks/background-worker.log`.
+- **Stop bundle (6):** `stop/handoff-writer`, `stop/session-summary`, `stop/task-completion-check`, `stop/security-scan-aggregator`, `stop/ledger-cleanup`, `stop/goal-tracker`
+- **Skill bundle (4):** `skill/coverage-check`, `skill/evidence-collector`, `skill/coverage-threshold-gate` (`--rewake`), `skill/cross-instance-test-validator` (`--rewake`)
+- **Lifecycle bundle (1):** `lifecycle/webhook-forwarder`
 </Step>
 </Steps>
-
-### Background Worker Dispatcher Registry
-
-The background worker supports multiple hook dispatchers beyond Stop. Each maps to a bundle and an exported function:
-
-```javascript
-const DISPATCHERS = {
-  'posttool':       () => import('../dist/posttool.mjs').then(m => m.unifiedDispatcher),
-  'lifecycle':      () => import('../dist/lifecycle.mjs').then(m => m.unifiedSessionStartDispatcher),
-  'subagent-stop':  () => import('../dist/subagent.mjs').then(m => m.unifiedSubagentStopDispatcher),
-  'notification':   () => import('../dist/notification.mjs').then(m => m.unifiedNotificationDispatcher),
-  'setup':          () => import('../dist/setup.mjs').then(m => m.unifiedSetupDispatcher),
-  'prompt':         () => import('../dist/prompt.mjs').then(m => m.captureUserIntent),
-  'stop':           () => import('../dist/stop.mjs').then(m => m.unifiedStopDispatcher),
-};
-```
 
 ## Scope Types
 
@@ -298,7 +220,11 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/bash/dangerous-command-blocker"
+            ]
           }
         ]
       }
