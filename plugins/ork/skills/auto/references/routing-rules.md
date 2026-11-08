@@ -62,7 +62,7 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 ## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
-- **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
+- **Invoke:** the champion/challenger **holdout-promotion gate**. The runner ships only in an OrchestKit source checkout: when `tests/evals/scripts/run-skill-eval.sh` exists in the working repo, run `npm run eval:skill -- --holdout-promote <skill>` (sealed holdout bake-off, add `--challenger <path/to/SKILL.md>` for a candidate). In an installed plugin there is no runner: say so, score the incumbent and the candidate with `/ork:assess` on the same held-out cases, and leave the promotion call to the user. `/ork:assess` only scores; it never decides promotion. Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
 - **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent** — a SKILL.md, a named skill, an agent prompt — it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
 
 ## setup → /ork:setup
@@ -140,20 +140,16 @@ Routing **down** is silent. Spending less is never a decision the user has to ap
 
 Routing **up to Heavy** is premium spend (`opus` / `fable`) and MUST be surfaced in the confirm line, naming the heavy signal that triggered it. Never upgrade silently, never mid-handoff, never inside a spawned agent that the user did not see. If the user declines the upgrade, run Standard and state plainly which check is being weakened.
 
-### Composition with the spend cap (they are different mechanisms)
+### No spend cap ships
 
-```
-routing        (ex ante,  per leg)     -> SELECTS the tier
-team-size-gate (ex post,  per session) -> COUNTS what was selected, caps it
-```
+OrchestKit used to back routing with `team-size-gate`, a per-session counter that warned or
+denied premium spawns past a limit. It was removed in #3839, so routing is now the only cost
+control: the tier chosen here is the tier that runs.
 
-`src/hooks/src/pretool/task/team-size-gate.ts` is a **backstop, not a selector**. It reads `toolInput.model` exactly once, read-only, to classify premium vs non-premium, then increments a session ledger and warns or denies past `ORK_TEAM_OPUS_MAX` (default 8). It has no model-override surface and is ADVISORY by default, so its "Use sonnet/haiku" message is advice to a human that it cannot itself enact. Routing is what enacts it.
-
-Rules that keep the two composed rather than duplicated:
-
-- The router never reads, sets, or suggests raising `ORK_TEAM_OPUS_MAX`. The cap is the user's budget, not a router variable.
-- A gate denial is **not** a re-route trigger. Do not relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user choose.
-- The router does not re-implement counting. It has no session ledger and makes no claim about remaining budget.
+- The router has no session ledger and makes no claim about remaining budget.
+- Another gate's denial (a Fable spend prompt, a permission refusal) is **not** a re-route
+  trigger. Do not relabel a Heavy leg as Standard to get past it. Report the denial and let the
+  user choose.
 
 ### Honest limits of this dimension
 

@@ -1030,7 +1030,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Stacked invocation (CC 2.1.199+)",
+            "label": "Stacked invocation",
             "does": "",
             "out": null,
             "tag": null
