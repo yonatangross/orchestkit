@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.4",
+    "date": "2026-11-08",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** stop Windows paths blocking edits and version check ([#5116](https://github.com/yonatangross/orchestkit/issues/5116)) ([16d8ce6](https://github.com/yonatangross/orchestkit/commit/16d8ce6906bb6ab7ff06d933ffbc3e4349826c9d)), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.3",
     "date": "2026-11-07",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3",
