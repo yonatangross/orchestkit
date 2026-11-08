@@ -77,10 +77,14 @@ function isMediaPathCode(c: number): boolean {
  * round 4). Per-character edge lists kept leaking, because a URL parser keeps
  * " < ` [ ] , ' ( ) and more inside an outer URL. So only white space or the
  * ends of the text delimit it, and a quoted, bracketed or punctuated URL
- * stays masked.
+ * stays masked. Only ASCII space, tab, LF and CR count (#5146 review round
+ * 5): a URL parser keeps U+00A0, U+3000, U+2028 and other non-ASCII white
+ * space inside the URL, so a token touching one stays masked.
  */
 function isMediaTokenEdge(text: string, at: number): boolean {
-  return at < 0 || at >= text.length || isSpaceCode(text.charCodeAt(at));
+  if (at < 0 || at >= text.length) return true;
+  const c = text.charCodeAt(at);
+  return c === 0x20 || c === 0x09 /* tab */ || c === 0x0a /* LF */ || c === 0x0d /* CR */;
 }
 
 /**
