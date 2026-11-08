@@ -5,7 +5,9 @@ import { actionsServerCard, serverCardResponse } from "@/lib/server-card";
 // /.well-known/ai-catalog.json lists it. No tools[]: a client learns the tools
 // from tools/list on the live server. The older card at
 // /.well-known/mcp/actions-server-card.json stays served, with its tools[].
-export const revalidate = false;
+// Dynamic so the Accept header is read on every request; a prerendered route
+// would answer every client with the default type.
+export const dynamic = "force-dynamic";
 
 export function GET(request: Request) {
 	return serverCardResponse(actionsServerCard(), request);

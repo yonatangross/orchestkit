@@ -63,6 +63,33 @@ describe("server card media type (#4834)", () => {
 			expect(res.headers.get("Vary")).toBe("Accept");
 		});
 
+		it(`${name}: q=0 on the card type means the client refuses it`, () => {
+			const res = get(
+				new Request(CARD_URL, {
+					headers: { Accept: `application/json, ${CARD_MEDIA_TYPE};q=0` },
+				}),
+			);
+			expect(res.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
+		});
+
+		it(`${name}: a positive weight still counts as asking`, () => {
+			const res = get(
+				new Request(CARD_URL, {
+					headers: { Accept: `application/json;q=0.5, ${CARD_MEDIA_TYPE};q=0.9` },
+				}),
+			);
+			expect(res.headers.get("Content-Type")).toBe(CARD_MEDIA_TYPE);
+		});
+
+		it(`${name}: a longer type containing the card type does not match`, () => {
+			const res = get(
+				new Request(CARD_URL, {
+					headers: { Accept: `${CARD_MEDIA_TYPE}-preview` },
+				}),
+			);
+			expect(res.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
+		});
+
 		it(`${name}: a client that does not ask keeps application/json`, () => {
 			const res = get(plainRequest());
 			expect(res.headers.get("Content-Type")).toBe("application/json; charset=utf-8");

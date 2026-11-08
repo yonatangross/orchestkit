@@ -10,7 +10,9 @@ import { serverCard, serverCardResponse } from "@/lib/server-card";
 // tools from tools/list on the live server, so a static copy can only drift.
 // The older card at /.well-known/mcp/server-card.json stays served, with its
 // tools[], for checkers that already read it.
-export const revalidate = false;
+// Dynamic so the Accept header is read on every request; a prerendered route
+// would answer every client with the default type.
+export const dynamic = "force-dynamic";
 
 export function GET(request: Request) {
 	return serverCardResponse(serverCard(), request);
