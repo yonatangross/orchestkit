@@ -62,10 +62,13 @@ echo "=========================================="
 #
 # Hashing named files works on a dirty tree, needs no skip path, and cannot
 # fail open. Unrelated edits are invisible to it by construction.
+#
+# Only files the subject below can write belong here. The docs/site manifests
+# were listed too, but test-skill-tokens.sh never touches them, and pre-push runs
+# test-mdx-compile.sh in parallel, which swaps them. That read as this subject
+# having modified a tracked file (#5127). The mdx restore is checked in part B.
 AT_RISK=(
   "tests/skills/structure/.skill-tokens-baseline.json"
-  "docs/site/package.json"
-  "docs/site/package-lock.json"
 )
 
 hash_at_risk() {
