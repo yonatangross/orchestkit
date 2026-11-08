@@ -131,9 +131,12 @@ export function trackDispatchedAgent(
     maxRetries: 3,
   };
 
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
     // Remove any existing entry for same agent
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
     state.activeAgents.push(dispatched);
   });
 
@@ -178,8 +181,11 @@ export function updateAgentStatus(
  * Remove completed/failed agent from tracking
  */
 export function removeAgent(agent: string): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
   });
 }
 

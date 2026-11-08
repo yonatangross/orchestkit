@@ -90,10 +90,10 @@ describe('State machine subagent task, retry, and batch progress regressions', (
     const logDir = join(tmpDir, '.claude', 'logs');
     mkdirSync(logDir, { recursive: true });
     const now = Date.now();
-    const spawnLines = [
+    const spawnLines = `${[
       JSON.stringify({ timestamp: new Date(now - 60_000).toISOString(), subagent_type: 'ork:a' }),
       JSON.stringify({ timestamp: new Date(now - 50_000).toISOString(), subagent_type: 'ork:b' }),
-    ].join('\n') + '\n';
+    ].join('\n')}\n`;
     writeFileSync(join(logDir, 'subagent-spawns.jsonl'), spawnLines, 'utf8');
 
     const ctx = createTestContext({ projectDir: tmpDir, sessionId: 'session-subagent-sm-test' });

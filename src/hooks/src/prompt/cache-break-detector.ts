@@ -233,7 +233,7 @@ export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX
     });
 
     // First turn with a shape baseline: no comparison possible, just record baseline
-    if (!prevState || !prevState.lastShapeHash) {
+    if (!prevState?.lastShapeHash) {
       ctx.log(HOOK_NAME, `Baseline shape recorded: ${currentMarkers.length} markers, hash=${currentHash}`);
       return outputSilentSuccess();
     }

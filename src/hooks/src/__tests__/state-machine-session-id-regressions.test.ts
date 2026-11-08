@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { contextCrossingWarn } from '../posttool/context-crossing-warn.js';
 import { loadAccumStateOrNull } from '../lib/session-token-accum.js';
-import { preCompactTaskDonePrompt } from '../lifecycle/pre-compact-task-done-prompt.js';
 import { nudgeOutcomeResolver } from '../lifecycle/nudge-outcome-resolver.js';
 import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
 import { preCompactSaver } from '../lifecycle/pre-compact-saver.js';
