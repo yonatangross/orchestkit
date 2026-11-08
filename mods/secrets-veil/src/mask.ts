@@ -73,32 +73,22 @@ function isMediaPathCode(c: number): boolean {
 }
 
 /**
- * Allowlists, not denylists (#5134, third review round): only characters that
- * can never sit inside a URL count as its edges. Anything else, including
- * characters legal in a path such as , ' ( ) ; ! $ * ~, keeps the URL masked.
+ * The exempt URL must be a whole white-space-delimited token (#5145 review
+ * round 4). Per-character edge lists kept leaking, because a URL parser keeps
+ * " < ` [ ] , ' ( ) and more inside an outer URL. So only white space or the
+ * ends of the text delimit it, and a quoted, bracketed or punctuated URL
+ * stays masked.
  */
-function isMediaUrlEdgeCode(c: number, closing: boolean): boolean {
-  if (isSpaceCode(c) || c === 0x22 /* " */ || c === 0x60 /* ` */) return true;
-  return closing
-    ? c === 0x3e /* > */ || c === 0x5d /* ] */
-    : c === 0x3c /* < */ || c === 0x5b /* [ */;
-}
-
-/** True when the URL ends here: end of text, white space, " ` > or ]. */
-function isMediaUrlBoundary(text: string, at: number): boolean {
-  return at >= text.length || isMediaUrlEdgeCode(text.charCodeAt(at), true);
-}
-
-/** True when the URL starts here: start of text, white space, " ` < or [. */
-function isMediaUrlStart(text: string, at: number): boolean {
-  return at === 0 || isMediaUrlEdgeCode(text.charCodeAt(at - 1), false);
+function isMediaTokenEdge(text: string, at: number): boolean {
+  return at < 0 || at >= text.length || isSpaceCode(text.charCodeAt(at));
 }
 
 /**
  * Ranges of https image URLs on a named media host, ascending and disjoint.
  * The entropy layer skips a run inside one; the named-value and vendor-prefix
  * layers still apply. The whole URL must be scheme, exact host, and a path of
- * [A-Za-z0-9._/-] ending in an image extension, followed by a boundary. A
+ * [A-Za-z0-9._/-] ending in an image extension, and nothing else may share
+ * its white-space-delimited token. A
  * query, fragment, path parameter, userinfo, backslash or percent-encoding
  * refuses it, so a signed URL (Signature=, Expires=, Key-Pair-Id=) stays
  * masked. Each search resumes past the last path, so the scan stays linear.
@@ -115,7 +105,7 @@ function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
       let scan = pathStart;
       while (scan < text.length && isMediaPathCode(text.charCodeAt(scan))) scan++;
       searchPos = Math.max(scan, start + 1);
-      if (!isMediaUrlStart(text, start) || !isMediaUrlBoundary(text, scan)) continue;
+      if (!isMediaTokenEdge(text, start - 1) || !isMediaTokenEdge(text, scan)) continue;
       const end = scan;
       const ext = MEDIA_IMAGE_EXT_RE.exec(text.slice(Math.max(pathStart, end - 5), end));
       if (ext !== null && end - ext[0].length > pathStart) ranges.push({ start, end });
