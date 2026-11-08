@@ -664,6 +664,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
+
+- **docs:** replay never starts without consent (#5106)
+
 **[v10.10.2](https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2)** · 2026-11-07
 
 - **docs:** load PostHog only after consent (#5098)
@@ -704,11 +708,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.8.5](https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5)** · 2026-11-04
 
 - **plugin:** pass validate --strict, add icon, disclose outbound calls (#5057)
-
-**[v10.8.4](https://github.com/yonatangross/orchestkit/compare/v10.8.3...v10.8.4)** · 2026-11-04
-
-- **hooks:** cc-version-check keeps its flag unset on an env-only pass (#5061)
-- **release:** retry the CHANGELOG refresh push and fail loudly (#5059), closes [#5054](https://github.com/yonatangross/orchestkit/issues/5054)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
