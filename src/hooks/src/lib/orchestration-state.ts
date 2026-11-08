@@ -149,12 +149,25 @@ export function updateAgentStatus(
   status: DispatchedAgent['status'],
   taskId?: string
 ): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    const entry = state.activeAgents.find(a => a.agent === agent);
+    const entry = state.activeAgents.find(
+      a => a.agent === agent || a.agent.replace(/^ork:/, '') === normalizedAgent
+    );
     if (entry) {
       entry.status = status;
       if (taskId) entry.taskId = taskId;
       if (status === 'retrying') entry.retryCount++;
+    } else {
+      state.activeAgents.push({
+        agent,
+        taskId,
+        confidence: 0,
+        dispatchedAt: new Date().toISOString(),
+        status,
+        retryCount: status === 'retrying' ? 1 : 0,
+        maxRetries: 3,
+      });
     }
   });
 

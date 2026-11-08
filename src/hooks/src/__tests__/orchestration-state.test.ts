@@ -316,12 +316,18 @@ describe('updateAgentStatus - status transitions', () => {
     expect(state.activeAgents[0].retryCount).toBe(2);
   });
 
-  test('handles non-existent agent gracefully', () => {
+  test('tracks an agent that was never pre-tracked, leaving the others untouched', () => {
     updateAgentStatus('non-existent-agent', 'in_progress');
 
-    // Should not throw
+    // Should not throw; the unknown agent is recorded so its status and retry
+    // count persist (retry-handler relies on this).
     const state = loadState();
-    expect(state.activeAgents.length).toBe(1); // Original agent still there
+    expect(state.activeAgents.length).toBe(2);
+    const original = state.activeAgents.find(a => a.agent === 'test-agent');
+    expect(original?.status).toBe('pending');
+    const added = state.activeAgents.find(a => a.agent === 'non-existent-agent');
+    expect(added?.status).toBe('in_progress');
+    expect(added?.retryCount).toBe(0);
   });
 
   test('supports all valid statuses', () => {

@@ -144,12 +144,14 @@ export function suggestsAlternative(error: string): boolean {
  * Get alternative agent for a given agent
  */
 export function getAlternativeAgent(agent: string, triedAgents: string[] = []): string | undefined {
-  const alternatives = ALTERNATIVE_AGENTS[agent];
+  const normalizedAgent = agent.replace(/^ork:/, '');
+  const normalizedTried = triedAgents.map(t => t.replace(/^ork:/, ''));
+  const alternatives = ALTERNATIVE_AGENTS[agent] || ALTERNATIVE_AGENTS[normalizedAgent];
   if (!alternatives) return undefined;
 
   // Return first alternative not yet tried
   for (const alt of alternatives) {
-    if (!triedAgents.includes(alt)) {
+    if (!normalizedTried.includes(alt)) {
       return alt;
     }
   }

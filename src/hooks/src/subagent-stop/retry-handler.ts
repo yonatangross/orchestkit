@@ -191,7 +191,10 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   const state = loadState();
 
   // Find dispatched agent in state
-  const dispatchedAgent = state.activeAgents.find(a => a.agent === agentType);
+  const normalizedAgentType = agentType.replace(/^ork:/, '');
+  const dispatchedAgent = state.activeAgents.find(
+    a => a.agent === agentType || a.agent.replace(/^ork:/, '') === normalizedAgentType
+  );
   const currentRetryCount = dispatchedAgent?.retryCount || 0;
 
   // Record attempt
