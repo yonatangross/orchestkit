@@ -114,6 +114,15 @@ diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' \
   --exclude='jev-shadow-runtime.integrity.json' >/dev/null
 
+# #5097: Codex runs these commands as written, so a placeholder path can never work.
+if grep -q '/ABSOLUTE/PATH/TO/' "$PLUGIN_ROOT/hooks/hooks.json"; then
+  echo "FAIL: shipped Codex hooks.json carries a placeholder path"; exit 1
+fi
+jq -e '[.hooks[][].hooks[].command] | length == 4 and all(contains("$PLUGIN_ROOT/hooks/jev-shadow-hook.mjs"))' \
+  "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null || {
+  echo "FAIL: Codex hooks must resolve through PLUGIN_ROOT"; exit 1;
+}
+
 jq -e '
   .jevShadow.mode == "disabled-by-default" and
   .jevShadow.runtime == "plugins/ork-codex/runtime/jev-shadow-runtime.mjs" and
