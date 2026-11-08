@@ -48,13 +48,13 @@ interface SessionState {
   }>;
 }
 
-function getSessionStateFile(): string {
+function getSessionStateFile(sessionId: string): string {
   const logDir = getLogDir();
   const stateDir = join(logDir, 'sessions');
   if (!existsSync(stateDir)) {
     mkdirSync(stateDir, { recursive: true });
   }
-  return join(stateDir, `${getSessionId()}-state.json`);
+  return join(stateDir, `${sessionId}-state.json`);
 }
 
 function loadSessionState(stateFile: string): SessionState {
@@ -174,7 +174,8 @@ function getInProgressTasks(): string[] {
 
 export function preCompactSaver(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
-    const stateFile = getSessionStateFile();
+    const sessionId = _input.session_id || ctx.sessionId || getSessionId();
+    const stateFile = getSessionStateFile(sessionId);
     const state = loadSessionState(stateFile);
     const now = new Date().toISOString();
 

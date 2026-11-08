@@ -188,8 +188,8 @@ export function contextCrossingWarn(
   }
 
   try {
-    const projectDir = ctx.projectDir || getProjectDir();
-    const sessionId = ctx.sessionId || getSessionId();
+    const projectDir = input.project_dir || ctx.projectDir || getProjectDir();
+    const sessionId = input.session_id || ctx.sessionId || getSessionId();
     const state = loadAccumState(projectDir, sessionId);
     const zones = computeZones();
 

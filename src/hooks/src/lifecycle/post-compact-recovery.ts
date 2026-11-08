@@ -58,9 +58,9 @@ interface SessionState {
   }>;
 }
 
-function getSessionStateFile(): string {
+function getSessionStateFile(sessionId: string): string {
   const logDir = getLogDir();
-  return join(logDir, 'sessions', `${getSessionId()}-state.json`);
+  return join(logDir, 'sessions', `${sessionId}-state.json`);
 }
 
 function loadSessionState(stateFile: string): SessionState | null {
@@ -85,10 +85,10 @@ function formatInterval(ms: number): string {
  * Append an outcome entry and clear the marker so the SessionStart resolver
  * doesn't double-record it as "clear".
  */
-function recordCompactOutcome(hookCtx: HookContext): void {
+function recordCompactOutcome(input: HookInput, hookCtx: HookContext): void {
   try {
-    const projectDir = hookCtx.projectDir || getProjectDir();
-    const sessionId = hookCtx.sessionId || getSessionId();
+    const projectDir = input.project_dir || hookCtx.projectDir || getProjectDir();
+    const sessionId = input.session_id || hookCtx.sessionId || getSessionId();
     const marker = readMarker(projectDir, sessionId);
     if (!marker || marker.resolved) return;
     const firedMs = new Date(marker.firedAt).getTime();
@@ -109,10 +109,11 @@ function recordCompactOutcome(hookCtx: HookContext): void {
 }
 
 export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  // Always check for nudge outcome first — independent of preserved context
-  recordCompactOutcome(hookCtx);
+  // Always check for nudge outcome first, independent of preserved context
+  recordCompactOutcome(input, hookCtx);
 
-  const stateFile = getSessionStateFile();
+  const sessionId = input.session_id || hookCtx.sessionId || getSessionId();
+  const stateFile = getSessionStateFile(sessionId);
   const state = loadSessionState(stateFile);
 
   if (!state?.preservedContext) {

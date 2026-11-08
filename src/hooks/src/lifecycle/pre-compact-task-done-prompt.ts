@@ -164,8 +164,8 @@ export function preCompactTaskDonePrompt(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
-  const projectDir = ctx.projectDir || getProjectDir();
-  const sessionId = ctx.sessionId || getSessionId();
+  const projectDir = input.project_dir || ctx.projectDir || getProjectDir();
+  const sessionId = input.session_id || ctx.sessionId || getSessionId();
   const telemetry = join(projectDir, '.claude', 'telemetry', 'pre-compact-decisions.jsonl');
   const now = Date.now();
   const noSignals = { gitQuiet: false, quiescent: false, breakpointKeywords: false };
