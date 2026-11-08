@@ -57,7 +57,7 @@ describe("exempt: https image URL on a named host", () => {
   });
 
   // Only white space or the ends of the text delimit the token (#5145 review round 4).
-  for (const [open, close] of [["see ", " now"], ["", "\n"], ["\t", "\t"], ["\n", ""]]) {
+  for (const [open, close] of [["see ", " now"], ["", "\n"], ["\t", "\t"], ["\n", ""], ["", "\r\n"]]) {
     it(`inside text ending ${JSON.stringify(close)}`, () => {
       const line = `${open}https://${HOST}/${SEG}.png${close}`;
       expect(mask(line, table).text).toBe(line);
@@ -125,6 +125,20 @@ describe("still masked", () => {
   // review b125 on 1c828b5c and 0b7f078e: characters that may sit inside an outer URL's path.
   for (const d of [";", ",", "!", "$", "*", "(", "'", "~", "|", "{", "^", ")", '"', "<", "`", "["]) {
     cases.push([`nested after ${JSON.stringify(d)}`, `https://example.com/a${d}https://${HOST}/${SEG}.png`]);
+  }
+  // Codex and review b126 on d687597c: a URL parser keeps non-ASCII white space
+  // inside the URL, so only ASCII space, tab, LF and CR end the exempt token.
+  const unicodeSpaces: Array<[string, string]> = [
+    ["U+00A0", " "], ["U+3000", "　"], ["U+FEFF", "﻿"],
+    ["U+2028", " "], ["U+2029", " "], ["U+202F", " "], ["U+205F", " "],
+    ["U+1680", " "], ["U+000B", "\u000b"], ["U+000C", "\u000c"],
+  ];
+  for (let c = 0x2000; c <= 0x200a; c++) {
+    unicodeSpaces.push([`U+${c.toString(16).toUpperCase()}`, String.fromCharCode(c)]);
+  }
+  for (const [label, ws] of unicodeSpaces) {
+    cases.push([`${label} then a non-image path`, `https://${HOST}/${SEG}.png${ws}private.json`]);
+    cases.push([`${label} before the scheme`, `x${ws}https://${HOST}/${SEG}.png`]);
   }
   for (const [name, input] of cases) {
     it(name, () => {
