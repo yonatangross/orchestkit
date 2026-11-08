@@ -1,6 +1,6 @@
 {
   "slug": "skill-fitness-round-6",
-  "source": "docs/feat--skill-quality-r6/index.html",
+  "source": "docs/feat--skill-quality-r6-2/index.html",
   "title": "Skill fitness round 6: the loop stops at 10",
   "description": "Round 6 of the OrchestKit quality loop kept the deterministic checklist at 10 for the second round running, so the loop's stop rule is met. Pick a skill to see the claim it made and what is actually true.",
   "tags": [

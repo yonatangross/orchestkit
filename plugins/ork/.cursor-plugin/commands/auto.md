@@ -135,7 +135,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.
 - **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal/references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals scored against a holdout set), not a one-shot edit. It requires a benchmark + holdout set first.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (in an OrchestKit source checkout, `npm run eval:skill -- --holdout-promote <skill>`; an installed plugin has no runner, so score both versions with `assess` on held-out cases and let the user decide), not a one-shot edit. It requires a benchmark + holdout set first.
 
 ## Stacked invocation
 

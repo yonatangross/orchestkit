@@ -44,7 +44,10 @@ export function heartbeat(
   try {
     writeWithRetry(db => {
       db.prepare(
-        `UPDATE sessions SET last_heartbeat = ? WHERE sid = ?`,
+        `UPDATE sessions
+            SET last_heartbeat = ?,
+                status = CASE WHEN status = 'crashed' AND ended_at IS NULL THEN 'running' ELSE status END
+          WHERE sid = ? AND status != 'completed'`,
       ).run(nowSec, sid);
     });
   } catch (err) {

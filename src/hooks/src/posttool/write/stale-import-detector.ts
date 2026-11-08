@@ -26,10 +26,9 @@
 
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { dirname, basename, relative, sep, resolve as resolvePath } from 'node:path';
+import { dirname, basename, join, normalize, relative, sep, resolve as resolvePath } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputNotify, outputBlock, getField } from '../../lib/common.js';
-import { assertSafeShellArg } from '../../lib/sanitize-shell.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'posttool/write/stale-import-detector';
@@ -61,11 +60,13 @@ interface StaleRef {
   content: string;
 }
 
-function parseGrepRef(raw: string): StaleRef | null {
-  // grep -n output: "<file>:<lineno>:<content>"
-  const m = raw.match(/^([^:]+):(\d+):(.*)$/);
+export function parseGrepRef(raw: string): StaleRef | null {
+  // grep -n output: "<file>:<lineno>:<content>". A Windows path starts with a
+  // drive letter and its own colon (#5113). normalize() folds the mixed
+  // separators grep prints there so the subtree comparison can match.
+  const m = raw.match(/^((?:[a-zA-Z]:)?[^:]+):(\d+):(.*)$/);
   if (!m) return null;
-  return { file: m[1], line: parseInt(m[2], 10), content: m[3] };
+  return { file: normalize(m[1]), line: parseInt(m[2], 10), content: m[3] };
 }
 
 /**
@@ -124,7 +125,8 @@ function deriveModuleId(projectDir: string, filePath: string): {
   }
   if (CODE_EXT_RE.test(filePath)) {
     // TS/JS: strip extension, use basename for named imports
-    const noExt = rel.replace(CODE_EXT_RE, '');
+    // Imports always use `/`, so a Windows relative path has to as well (#5113).
+    const noExt = rel.replace(CODE_EXT_RE, '').split(sep).join('/');
     return { lang: 'ts', bareName: basename(noExt), pathHint: noExt };
   }
   return { lang: null, bareName: '', pathHint: '' };
@@ -162,12 +164,14 @@ function findStaleReferences(
   // [], and the hook answered silent success for every Write while its unit
   // test, which mocks the shell, stayed green. No shell: grep gets an
   // argument vector, so the pattern is data and needs no quoting at all.
-  const safeDir = assertSafeShellArg(projectDir, 'project dir');
+  // #5113: the same is true of the project dir. Checking it against the shell
+  // allowlist threw on every Windows path and every path with a space, and the
+  // dispatcher turned that throw into a block on each Edit and Write.
   const includes =
     lang === 'ts'
       ? ['--include=*.ts', '--include=*.tsx', '--include=*.js', '--include=*.jsx']
       : ['--include=*.py'];
-  const roots = [`${safeDir}/src`, `${safeDir}/tests`].filter(existsSync);
+  const roots = [join(projectDir, 'src'), join(projectDir, 'tests')].filter(existsSync);
   if (!roots.length) return [];
   try {
     const out = execFileSync('grep', ['-rnE', ...includes, '--', pattern, ...roots], {

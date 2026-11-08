@@ -62,6 +62,20 @@ describe("createReplayGate", () => {
 		return { controls, gate: createReplayGate(controls) };
 	};
 
+	it("a start canStart refuses leaves no request behind, so a later sync starts (#5106)", () => {
+		const controls = { startSessionRecording: vi.fn(), stopSessionRecording: vi.fn() };
+		let allowed = false;
+		const gate = createReplayGate(controls, () => allowed);
+		gate.sync("/docs/reference/skills/a");
+		expect(controls.startSessionRecording).not.toHaveBeenCalled();
+		// Nothing was requested, so leaving owes no stop.
+		gate.stop();
+		expect(controls.stopSessionRecording).not.toHaveBeenCalled();
+		allowed = true;
+		gate.sync("/docs/reference/skills/a");
+		expect(controls.startSessionRecording).toHaveBeenCalledTimes(1);
+	});
+
 	it("never starts on a non-reference path", () => {
 		const { controls, gate } = make();
 		gate.sync("/");

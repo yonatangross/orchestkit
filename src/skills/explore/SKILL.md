@@ -213,7 +213,7 @@ For Phase 3 parallel agents, output each agent's findings **as soon as it return
 **Load the repo map first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
 
 ```bash
-echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/repo-structure-indexer
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/repo-structure-indexer
 ```
 
 ```python

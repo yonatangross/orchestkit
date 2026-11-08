@@ -40,8 +40,8 @@ Full procedure + handoff-file table: `Read("skills/brainstorm/references/mcp-pro
 **Load context first.** This skill declares no frontmatter hooks, so nothing loads prior decisions for you: run the loader yourself and keep its `additionalContext` in mind:
 
 ```bash
-echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/prior-decisions-loader
-echo '{"tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/prior-decisions-loader
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
 ```
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.

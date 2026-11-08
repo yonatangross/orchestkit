@@ -664,6 +664,23 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
+
+- **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
+
+**[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
+
+- **docs:** replay never starts without consent (#5106)
+
+**[v10.10.2](https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2)** · 2026-11-07
+
+- **docs:** load PostHog only after consent (#5098)
+- **docs:** stamp and check the CLAUDE.md agents count line (#5102)
+- **skills:** one emulate port table, checked against upstream (#5100)
+- **skills:** fit review-pr, verify, auto descriptions and fix skill-fitness floor (#5096)
+- **skills:** skill quality round 3, fit descriptions and deterministic checklist (#5099)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.10.1](https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1)** · 2026-11-06
 
 - **ci:** let install-deps outlast a slow apt mirror (#5091)
@@ -691,19 +708,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.8.6](https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6)** · 2026-11-05
 
 - **skills:** Haiku 5.5 100K cost tiers and the AWS provider line (#5064)
-
-**[v10.8.5](https://github.com/yonatangross/orchestkit/compare/v10.8.4...v10.8.5)** · 2026-11-04
-
-- **plugin:** pass validate --strict, add icon, disclose outbound calls (#5057)
-
-**[v10.8.4](https://github.com/yonatangross/orchestkit/compare/v10.8.3...v10.8.4)** · 2026-11-04
-
-- **hooks:** cc-version-check keeps its flag unset on an env-only pass (#5061)
-- **release:** retry the CHANGELOG refresh push and fail loudly (#5059), closes [#5054](https://github.com/yonatangross/orchestkit/issues/5054)
-
-**[v10.8.3](https://github.com/yonatangross/orchestkit/compare/v10.8.2...v10.8.3)** · 2026-11-04
-
-- **site:** keep acronyms upper case in sidebar and category labels (#5053)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

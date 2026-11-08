@@ -3,12 +3,8 @@
 
 /**
  * Sync Task Dispatcher — PreToolUse Task Hook
- * Consolidates 3 Task PreToolUse hooks into a single dispatcher.
- *
- * Consolidated hooks (security-first order):
- * - unified-agent-safety-dispatcher (agent safety checks — FIRST)
- * - team-size-gate (limits team size — SECOND)
- * - task-existence-gate (task tracking enforcement — THIRD)
+ * Consolidates the Task PreToolUse hooks in TASK_HOOKS into a single
+ * dispatcher, security checks first.
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
  * Merges additionalContext from all passing hooks into a single output.
@@ -70,10 +66,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
 /**
  * Consolidated sync Task PreToolUse dispatcher.
  *
- * Execution order:
- * 1. unified-agent-safety-dispatcher (can block — agent safety checks)
- * 2. team-size-gate (can block — team size limits)
- * 3. task-existence-gate (can block in pipeline — task tracking enforcement)
+ * Execution order: the order of TASK_HOOKS.
  *
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext from all hooks.

@@ -131,9 +131,12 @@ export function trackDispatchedAgent(
     maxRetries: 3,
   };
 
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
     // Remove any existing entry for same agent
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
     state.activeAgents.push(dispatched);
   });
 
@@ -149,12 +152,27 @@ export function updateAgentStatus(
   status: DispatchedAgent['status'],
   taskId?: string
 ): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    const entry = state.activeAgents.find(a => a.agent === agent);
+    const entry = state.activeAgents.find(
+      a => a.agent === agent || a.agent.replace(/^ork:/, '') === normalizedAgent
+    );
     if (entry) {
       entry.status = status;
       if (taskId) entry.taskId = taskId;
       if (status === 'retrying') entry.retryCount++;
+      // A chain that ended leaves no budget to carry into the next task of this agent type.
+      else if (status === 'completed' || status === 'failed') entry.retryCount = 0;
+    } else {
+      state.activeAgents.push({
+        agent,
+        taskId,
+        confidence: 0,
+        dispatchedAt: new Date().toISOString(),
+        status,
+        retryCount: status === 'retrying' ? 1 : 0,
+        maxRetries: 3,
+      });
     }
   });
 
@@ -165,8 +183,11 @@ export function updateAgentStatus(
  * Remove completed/failed agent from tracking
  */
 export function removeAgent(agent: string): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
   });
 }
 

@@ -18,6 +18,66 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.4",
+    "date": "2026-11-08",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** stop Windows paths blocking edits and version check ([#5116](https://github.com/yonatangross/orchestkit/issues/5116)) ([16d8ce6](https://github.com/yonatangross/orchestkit/commit/16d8ce6906bb6ab7ff06d933ffbc3e4349826c9d)), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.10.3",
+    "date": "2026-11-07",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** replay never starts without consent ([#5106](https://github.com/yonatangross/orchestkit/issues/5106)) ([caa5346](https://github.com/yonatangross/orchestkit/commit/caa53466305523ad17d7cc0695d28bbfc3011395))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.10.2",
+    "date": "2026-11-07",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** load PostHog only after consent ([#5098](https://github.com/yonatangross/orchestkit/issues/5098)) ([9e55abe](https://github.com/yonatangross/orchestkit/commit/9e55abe9ad2f56a923ec50c170cabbb88b809d51))",
+          "**docs:** stamp and check the CLAUDE.md agents count line ([#5102](https://github.com/yonatangross/orchestkit/issues/5102)) ([a81b302](https://github.com/yonatangross/orchestkit/commit/a81b302f4761ee6a4a65438cd12395244de759e7))",
+          "**skills:** one emulate port table, checked against upstream ([#5100](https://github.com/yonatangross/orchestkit/issues/5100)) ([11bc014](https://github.com/yonatangross/orchestkit/commit/11bc01436e480f938dd335a8bb84f3768bb4e55e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**skills:** fit review-pr, verify, auto descriptions and fix skill-fitness floor ([#5096](https://github.com/yonatangross/orchestkit/issues/5096)) ([5545617](https://github.com/yonatangross/orchestkit/commit/55456177e79a6881a3ff659a3034e5ecab001c3e))",
+          "**skills:** skill quality round 3, fit descriptions and deterministic checklist ([#5099](https://github.com/yonatangross/orchestkit/issues/5099)) ([5a7995f](https://github.com/yonatangross/orchestkit/commit/5a7995fb5990806b184b7bf9afbfaa20252fa986))",
+          "**skills:** skill quality round 4, pass the fitness checklist ([#5101](https://github.com/yonatangross/orchestkit/issues/5101)) ([555a5cb](https://github.com/yonatangross/orchestkit/commit/555a5cbd1e54a1a0b40e30e9c2f3821f6f0ce2cb))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "add architecture doc, diagrams and playground ([#5094](https://github.com/yonatangross/orchestkit/issues/5094)) ([64d0990](https://github.com/yonatangross/orchestkit/commit/64d099011bdbe4ad970781f0d5823c8ab0440715))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.1",
     "date": "2026-11-06",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1",

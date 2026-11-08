@@ -81,6 +81,34 @@ describe('cc-version-check', () => {
     expect(ctx).toContain('not a pass');
   });
 
+  describe('Windows npm global install (#5114)', () => {
+    const origAppData = process.env.APPDATA;
+
+    beforeEach(() => {
+      process.env.APPDATA = 'C:\\Users\\RICU\\AppData\\Roaming';
+      vi.mocked(existsSync).mockImplementation((p) => String(p).includes('claude-code'));
+    });
+
+    afterEach(() => {
+      if (origAppData !== undefined) process.env.APPDATA = origAppData;
+      else delete process.env.APPDATA;
+      vi.mocked(existsSync).mockImplementation(() => false);
+      vi.mocked(readFileSync).mockImplementation(() => '');
+    });
+
+    it('reads the version from the package manifest', () => {
+      vi.mocked(readFileSync).mockImplementation(() => JSON.stringify({ version: LATEST_KNOWN_CC }));
+      const result = ccVersionCheck(makeInput('win-npm'), createTestContext());
+      expect(result.hookSpecificOutput?.additionalContext ?? '').not.toContain('Could not determine');
+    });
+
+    it('still reports the miss when the manifest has no usable version', () => {
+      vi.mocked(readFileSync).mockImplementation(() => JSON.stringify({ version: 'next' }));
+      const result = ccVersionCheck(makeInput('win-npm-bad'), createTestContext());
+      expect(result.hookSpecificOutput?.additionalContext ?? '').toContain('Could not determine');
+    });
+  });
+
   it('resolves the version from the transcript when the env var is unset', () => {
     vi.mocked(existsSync).mockImplementation((p) => String(p).endsWith('.jsonl'));
     vi.mocked(openSync).mockReturnValue(7 as never);

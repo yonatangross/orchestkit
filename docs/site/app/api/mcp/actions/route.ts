@@ -74,8 +74,19 @@ const TOOLS = [
 			openWorldHint: false,
 		},
 		run: (args: Record<string, unknown>): ToolResult => {
-			const query =
-				typeof args.query === "string" ? args.query.trim().toLowerCase() : "";
+			// A wrong type must not read as "no filter": that returned every skill as a success.
+			if (args.query !== undefined && typeof args.query !== "string") {
+				return {
+					content: [
+						{
+							type: "text",
+							text: "Invalid input: query must be a string. Omit it to list every skill.",
+						},
+					],
+					isError: true,
+				};
+			}
+			const query = (args.query ?? "").trim().toLowerCase();
 			const skills = getUserInvocableSkills().filter(
 				(s) =>
 					query === "" ||
