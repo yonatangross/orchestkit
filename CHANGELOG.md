@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4) (2026-11-08)
+
+
+### Bug Fixes
+
+* **hooks:** stop Windows paths blocking edits and version check ([#5116](https://github.com/yonatangross/orchestkit/issues/5116)) ([16d8ce6](https://github.com/yonatangross/orchestkit/commit/16d8ce6906bb6ab7ff06d933ffbc3e4349826c9d)), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
+
 ## [10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3) (2026-11-07)
 
 
