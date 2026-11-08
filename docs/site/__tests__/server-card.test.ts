@@ -46,9 +46,34 @@ function validator() {
 	return ajv.compile(loadShapeSchema());
 }
 
+const CARD_URL = "https://orchestkit.dev/api/mcp/server-card";
+const CARD_MEDIA_TYPE = "application/mcp-server-card+json";
+const plainRequest = () => new Request(CARD_URL);
+const cardRequest = () =>
+	new Request(CARD_URL, { headers: { Accept: CARD_MEDIA_TYPE } });
+
+describe("server card media type (#4834)", () => {
+	for (const [name, get] of [
+		["MCP", serverCardGET],
+		["Actions", actionsServerCardGET],
+	] as const) {
+		it(`${name}: a client asking for the card type gets it back`, () => {
+			const res = get(cardRequest());
+			expect(res.headers.get("Content-Type")).toBe(CARD_MEDIA_TYPE);
+			expect(res.headers.get("Vary")).toBe("Accept");
+		});
+
+		it(`${name}: a client that does not ask keeps application/json`, () => {
+			const res = get(plainRequest());
+			expect(res.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
+			expect(res.headers.get("Vary")).toBe("Accept");
+		});
+	}
+});
+
 describe("MCP server card", () => {
 	it("declares the draft server-card identifier as $schema", async () => {
-		const card = await serverCardGET().json();
+		const card = await serverCardGET(plainRequest()).json();
 		expect(card.$schema).toBe(SERVER_CARD_SCHEMA);
 		expect(card.$schema).toBe(DRAFT_CARD_ID);
 	});
@@ -58,7 +83,7 @@ describe("MCP server card", () => {
 	});
 
 	it("the whole card validates against the published schema", async () => {
-		const card = await serverCardGET().json();
+		const card = await serverCardGET(plainRequest()).json();
 		const validate = validator();
 		const ok = validate(card);
 		expect(validate.errors ?? []).toEqual([]);
@@ -80,7 +105,7 @@ describe("MCP server card", () => {
 	});
 
 	it("has the card fields and no tools[]", async () => {
-		const card = await serverCardGET().json();
+		const card = await serverCardGET(plainRequest()).json();
 		expect(card.name).toBe("dev.orchestkit/mcp");
 		expect(card.description.length).toBeLessThanOrEqual(100);
 		expect(card.remotes).toEqual([
@@ -101,7 +126,7 @@ describe("MCP server card", () => {
 // in the draft shape. Same rules as the docs card, own name and remote.
 describe("Actions MCP server card (draft server-card extension)", () => {
 	it("has the spec fields, its exact server URL and no tools[]", async () => {
-		const res = actionsServerCardGET();
+		const res = actionsServerCardGET(plainRequest());
 		expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
 		const card = await res.json();
 		expect(card.$schema).toBe(SERVER_CARD_SCHEMA);
