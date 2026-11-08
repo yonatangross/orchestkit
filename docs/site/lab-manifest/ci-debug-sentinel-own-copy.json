@@ -1,0 +1,11 @@
+{
+  "slug": "ci-debug-sentinel-own-copy",
+  "source": "docs/docs--5139-ci-debug-sentinel-claims/index.html",
+  "title": "ci-debug stops claiming the sentinel runs it",
+  "description": "Pick a line of the ci-debug skill and compare what it said about ci-sentinel before and after it was matched to the workflow.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}
