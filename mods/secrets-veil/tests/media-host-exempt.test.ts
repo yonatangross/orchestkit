@@ -56,7 +56,8 @@ describe("exempt: https image URL on a named host", () => {
     expect(mask(url, table).text).toBe(url);
   });
 
-  for (const [open, close] of [["see ", " now"], ['"', '"'], ["", "\n"], ["<", ">"], ["`", "`"], ["\t", "\t"]]) {
+  // Only white space or the ends of the text delimit the token (#5145 review round 4).
+  for (const [open, close] of [["see ", " now"], ["", "\n"], ["\t", "\t"], ["\n", ""]]) {
     it(`inside text ending ${JSON.stringify(close)}`, () => {
       const line = `${open}https://${HOST}/${SEG}.png${close}`;
       expect(mask(line, table).text).toBe(line);
@@ -112,9 +113,17 @@ describe("still masked", () => {
     ["after [ in another URL's query", `https://example.com/?next=[https://${HOST}/${SEG}.png`],
     ["] then a non-image path", `https://${HOST}/${SEG}.png]private.json`],
     ["in square brackets", `[https://${HOST}/${SEG}.png]`],
+    // review b125 on 0b7f078e: a URL parser keeps " < ` [ inside the outer URL, so
+    // only a whole white-space-delimited token that is exactly the URL is exempt.
+    ["in double quotes", `"https://${HOST}/${SEG}.png"`],
+    ["in angle brackets", `<https://${HOST}/${SEG}.png>`],
+    ["in backticks", `\`https://${HOST}/${SEG}.png\``],
+    ["markdown image", `![x](https://${HOST}/${SEG}.png)`],
+    ["quote then a non-image path", `https://${HOST}/${SEG}.png"private.json`],
+    ["angle bracket then more", `https://${HOST}/${SEG}.png>x`],
   ];
-  // review b125 on 1c828b5c: characters that may sit inside an outer URL's path.
-  for (const d of [";", ",", "!", "$", "*", "(", "'", "~", "|", "{", "^", ")"]) {
+  // review b125 on 1c828b5c and 0b7f078e: characters that may sit inside an outer URL's path.
+  for (const d of [";", ",", "!", "$", "*", "(", "'", "~", "|", "{", "^", ")", '"', "<", "`", "["]) {
     cases.push([`nested after ${JSON.stringify(d)}`, `https://example.com/a${d}https://${HOST}/${SEG}.png`]);
   }
   for (const [name, input] of cases) {
