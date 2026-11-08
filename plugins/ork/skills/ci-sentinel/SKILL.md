@@ -2,7 +2,7 @@
 name: ci-sentinel
 license: MIT
 compatibility: "Claude Code 2.1.277+ (uses --permission-mode + --no-session-persistence for headless GHA runs; --bare was tried but doesn't honor ANTHROPIC_API_KEY in CC 2.1.143 — see SKILL body for the trade-off)."
-description: "Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to automate recurring CI triage."
+description: "Manually dispatched headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to triage all red PRs in one run."
 argument-hint: "[install|status|enable|disable]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
@@ -23,14 +23,14 @@ paths:
   - ".sentinel/**"
 ---
 
-# ci-sentinel — Daily autonomous CI classifier
+# ci-sentinel: manually dispatched CI classifier
 
 Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging + 7 fix-ci-failures sessions in one month, most of them re-running the same 10-pattern classification you already encoded in `/ci-debug`. This skill makes the classifier autonomous.
 
 ## What it does
 
 ```
-   ⏰ daily cron (08:17 UTC)
+   ▶️ manual workflow_dispatch (no schedule, by policy)
         │
         ▼
    📥 gh pr list → PRs with FAILURE checks (yours, max 10)
@@ -73,7 +73,7 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
 2. Mint a Max-plan OAuth token with `claude setup-token`, then add it as the `CLAUDE_CODE_OAUTH_TOKEN` secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN -R <owner>/<repo>`. The workflow reads this natively from job-level env; `ANTHROPIC_API_KEY` is **not** used any more, and setting it alone leaves the run red: the workflow's auth canary hard-fails when `CLAUDE_CODE_OAUTH_TOKEN` is unset or expired.
 3. (Optional) Adjust `ORK_SENTINEL_DAILY_TOKEN_BUDGET` env in the workflow.
 4. Trigger a manual run with `inputs.dry_run = true` to validate the wiring.
-5. Once a dry-run posts no comments and looks healthy in the job summary, let the daily cron take over.
+5. Once a dry-run posts no comments and looks healthy in the job summary, dispatch a real run whenever you want a sweep. Do not add a schedule: automatic runs draw on the shared weekly quota, and the workflow allows only `workflow_dispatch` by policy.
 
 Rotate the token the same way when the canary reports a 401: `claude setup-token`, then re-run `gh secret set`.
 
@@ -100,7 +100,7 @@ The workflow is intentionally configured via in-file env vars (not workflow inpu
 
 Originally designed around `claude -p --bare` (CC 2.1.81+) for minimal plugin/hook load and predictable ~4k tokens/PR. First real dispatch revealed `--bare` doesn't honor `ANTHROPIC_API_KEY` env var, `--settings.apiKey`, or `--settings.apiKeyHelper` — every call returns `"Not logged in · Please run /login"`. Reproduced locally against multiple settings shapes.
 
-Dropped `--bare`; cost per PR rises ~4k → ~10k tokens (plugins + hooks load), partially offset by `--no-session-persistence` (avoids disk writes). Daily budget bumped 500k → 1M to absorb the change. (That budget bump predates the 2026-07 move to a daily cron and Max-plan OAuth auth; at the current cadence the ceiling is pure headroom, see "Cost model" below.)
+Dropped `--bare`; cost per PR rises ~4k → ~10k tokens (plugins + hooks load), partially offset by `--no-session-persistence` (avoids disk writes). Daily budget bumped 500k → 1M to absorb the change. (That budget bump predates Max-plan OAuth auth and the move to manual dispatch; the ceiling is now pure headroom, see "Cost model" below.)
 
 If/when CC fixes `--bare` auth, the workflow can revert to bare mode by changing one line.
 
@@ -197,12 +197,12 @@ When v1.1 lands the journal:
 ## Cost model (back-of-envelope)
 
 Per-PR analysis: ~8-12k tokens (full CC load — plugins + hooks — since `--bare` was dropped, see "Why no --bare" above).
-One daily sweep with avg 3 failing PRs: ~30k tokens/day. A bad day at the `max_prs=10` cap is ~120k tokens.
-Daily budget 1M tokens = roughly 30x headroom on a typical day and ~8x at the cap. At this cadence the ceiling is a runaway-loop guard (a stuck retry loop), not a spend cap you will ever approach normally.
+One sweep with avg 3 failing PRs: ~30k tokens. A sweep at the `max_prs=10` cap is ~120k tokens.
+The daily budget of 1M tokens is roughly 30x one typical sweep and ~8x one sweep at the cap. The ceiling is a runaway-loop guard (a stuck retry loop), not a spend cap you will approach normally.
 
-Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sweep draws on plan quota rather than metered credits, with no incremental invoice line. If you swap a fork back to a metered `ANTHROPIC_API_KEY`, ~30k tokens/day at ~$15/MTok (Sonnet input/output blended) is roughly **$12-15/month per repo**. Either way, against 21 manual ci-debug sessions/month at 10-20 minutes each, payback is immediate.
+Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sweep draws on plan quota rather than metered credits, with no incremental invoice line. If you swap a fork back to a metered `ANTHROPIC_API_KEY`, ~30k tokens at ~$15/MTok (Sonnet input/output blended) is roughly **$0.45 per sweep**.
 
-> The old figures in this section ("~30k tokens/hour", "~720k/day") were derived from the original hourly cron. The workflow was throttled to daily in 2026-07 (`cron: "17 8 * * *"`) alongside the OAuth migration, since an hourly sweep would draw on the same interactive Max-plan quota.
+> History: the workflow started on an hourly cron and moved to a daily cron in 2026-07 alongside the OAuth migration. It is now manual dispatch only, because any automatic run draws on the same quota as interactive sessions.
 
 ## Related Skills
 
@@ -210,16 +210,16 @@ Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sw
 - **Composes with** — `swarm-migrate` (after sentinel diagnoses, you might fix-and-swarm across repos), `/status` (sentinel doesn't replace org-wide sweeps).
 - **Anti-pattern** — `/loop /ci-debug` in your own session is the manual analog; ship the sentinel and unplug from that.
 
-## When to invoke this skill (not the cron)
+## When to invoke this skill (not the workflow)
 
 - **`ci-sentinel install`** — copy the workflow into a new repo + check secrets.
 - **`ci-sentinel status`** — read `.sentinel/ledger.jsonl` and summarize the last 24h.
-- **`ci-sentinel enable`** / **`disable`** — toggle the workflow's `on.schedule` block.
+- **`ci-sentinel enable`** / **`disable`**: turn the workflow on or off with `gh workflow enable ci-sentinel.yml` or `gh workflow disable ci-sentinel.yml`. Never add an `on.schedule` block.
 
 The dispatched workflow run itself does **not** invoke this skill: the workflow calls `claude -p` directly with the `/ci-debug` playbook inlined in the prompt and no tools (headless mode, not `--bare`, which was dropped over the auth failure documented in "Why no --bare" above). This skill is for the human admin actions around the sentinel.
 
-> **CC 2.1.183 hardens propose-don't-apply:** Scheduled-task and webhook trigger deliveries now classify as **task notifications**, not keyboard input — so a delivery can no longer approve a pending action or set the session title in auto mode. If you ever run the sentinel inside a live auto-mode session (rather than the headless `-p` cron), a triggered re-run can no longer auto-approve a fix prompt. That closes the trigger-delivery vector at the harness layer. It does **not** change the headless dispatch path: there, the model runs with no tools and no GitHub token in its process, inside a job whose token is read-only, and only the model-free `post` job holds `pull-requests: write` + `issues: write` (#5014). See the dispatch-envelope note above.
+> **CC 2.1.183 hardens propose-don't-apply:** Scheduled-task and webhook trigger deliveries now classify as **task notifications**, not keyboard input — so a delivery can no longer approve a pending action or set the session title in auto mode. If you ever run the sentinel inside a live auto-mode session (rather than the headless `-p` workflow), a triggered re-run can no longer auto-approve a fix prompt. That closes the trigger-delivery vector at the harness layer. It does **not** change the headless dispatch path: there, the model runs with no tools and no GitHub token in its process, inside a job whose token is read-only, and only the model-free `post` job holds `pull-requests: write` + `issues: write` (#5014). See the dispatch-envelope note above.
 
 ## Why this design wins (one paragraph)
 
-You already have 10 encoded CI failure patterns in `/ci-debug` and 632 ScheduleWakeup invocations in your history — you trust async, and you trust pattern-matched classifications when they cite the memory entry. The CI sentinel is composition, not invention: a GitHub Actions cron triggers headless `/ci-debug` against every open red PR, posts a collapsed verdict, and respects propose-don't-apply. Worst case is a noisy comment. Best case is 21 sessions/month of recurring CI archaeology reclaimed. Build effort: hours. Payback: immediate.
+You already have 10 encoded CI failure patterns in `/ci-debug` and 632 ScheduleWakeup invocations in your history — you trust async, and you trust pattern-matched classifications when they cite the memory entry. The CI sentinel is composition, not invention: a manually dispatched GitHub Actions workflow runs headless `/ci-debug` against every open red PR, posts a collapsed verdict, and respects propose-don't-apply. Worst case is a noisy comment. Best case is 21 sessions/month of recurring CI archaeology reclaimed. Build effort: hours. Payback: immediate.

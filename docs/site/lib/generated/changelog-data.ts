@@ -18,6 +18,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.5",
+    "date": "2026-11-08",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "Codex hook paths and docs MCP query validation ([#5119](https://github.com/yonatangross/orchestkit/issues/5119)) ([dbbeb46](https://github.com/yonatangross/orchestkit/commit/dbbeb469a695a5469f1c84c6c24b2a00cc271e9e))",
+          "**hooks:** state machine audit bundle ([#5117](https://github.com/yonatangross/orchestkit/issues/5117)) ([2362df3](https://github.com/yonatangross/orchestkit/commit/2362df38e95bdda2b3d69396db8158a61cb857a3))",
+          "**skills:** bill long Haiku 5.5 prompts on the higher rate card ([#5124](https://github.com/yonatangross/orchestkit/issues/5124)) ([aad6cd1](https://github.com/yonatangross/orchestkit/commit/aad6cd1b9cd35126376c3bdcde6786ffeac7c965))",
+          "**skills:** send the event name from fork skill body loaders ([#5122](https://github.com/yonatangross/orchestkit/issues/5122)) ([9bf9171](https://github.com/yonatangross/orchestkit/commit/9bf9171c67e1d2e36b49ff1b3a21afc50450f4b6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**skills:** skill quality round 5, pass the fitness checklist ([#5104](https://github.com/yonatangross/orchestkit/issues/5104)) ([6af168a](https://github.com/yonatangross/orchestkit/commit/6af168aa8f3839f431ac0c428a6e1032042f1f43))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.4",
     "date": "2026-11-08",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4",

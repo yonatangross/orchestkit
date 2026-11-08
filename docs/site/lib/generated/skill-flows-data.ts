@@ -1690,7 +1690,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "When to invoke this skill (not the cron)",
+            "label": "When to invoke this skill (not the workflow)",
             "does": "",
             "out": null,
             "tag": null

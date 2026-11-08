@@ -1,4 +1,4 @@
-import { serverCard } from "@/lib/server-card";
+import { serverCard, serverCardResponse } from "@/lib/server-card";
 
 // MCP server card, served where the draft server-card extension (SEP-2127)
 // puts it: <server>/server-card, which is /api/mcp/server-card for the server
@@ -10,14 +10,10 @@ import { serverCard } from "@/lib/server-card";
 // tools from tools/list on the live server, so a static copy can only drift.
 // The older card at /.well-known/mcp/server-card.json stays served, with its
 // tools[], for checkers that already read it.
-export const revalidate = false;
+// Dynamic so the Accept header is read on every request; a prerendered route
+// would answer every client with the default type.
+export const dynamic = "force-dynamic";
 
-export function GET() {
-	return new Response(JSON.stringify(serverCard(), null, 2), {
-		headers: {
-			"Content-Type": "application/json; charset=utf-8",
-			"Cache-Control": "public, max-age=3600",
-			"Access-Control-Allow-Origin": "*",
-		},
-	});
+export function GET(request: Request) {
+	return serverCardResponse(serverCard(), request);
 }

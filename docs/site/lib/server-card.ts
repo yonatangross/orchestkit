@@ -13,6 +13,34 @@ import { SITE } from "@/lib/constants";
 export const SERVER_CARD_SCHEMA =
 	"https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json";
 
+const SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json";
+
+// True when Accept names the card type exactly with a weight above zero.
+function acceptsCardType(accept: string | null): boolean {
+	for (const entry of (accept ?? "").split(",")) {
+		const [type, ...params] = entry.split(";").map((p) => p.trim().toLowerCase());
+		if (type !== SERVER_CARD_MEDIA_TYPE) continue;
+		const weight = params.find((p) => p.startsWith("q="));
+		return weight === undefined || Number(weight.slice(2)) > 0;
+	}
+	return false;
+}
+
+// The discovery doc says a client asks for this type with Accept and the server
+// echoes it. A client that does not ask keeps application/json, so a scanner
+// already reading the card sees no change. Vary keeps caches from mixing them.
+export function serverCardResponse(card: unknown, request: Request): Response {
+	const asked = acceptsCardType(request.headers.get("accept"));
+	return new Response(JSON.stringify(card, null, 2), {
+		headers: {
+			"Content-Type": asked ? SERVER_CARD_MEDIA_TYPE : "application/json; charset=utf-8",
+			"Cache-Control": "public, max-age=3600",
+			"Access-Control-Allow-Origin": "*",
+			Vary: "Accept",
+		},
+	});
+}
+
 // The card name is reverse DNS of the canonical host (orchestkit.dev).
 export const SERVER_CARD_NAME = "dev.orchestkit/mcp";
 
