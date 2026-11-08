@@ -170,6 +170,6 @@ Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. T
 
 ## Related Skills
 
-- **Composes with** — `ci-sentinel` (the autonomous daily trigger for this skill against open red PRs).
+- **Composes with** — `ci-sentinel` (a manually dispatched workflow that runs this skill against open red PRs).
 - **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
 - **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.
