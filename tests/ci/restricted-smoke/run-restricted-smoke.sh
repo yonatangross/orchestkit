@@ -19,7 +19,13 @@ command -v "$CLAUDE_BIN" >/dev/null || { echo "FAIL: $CLAUDE_BIN not on PATH"; e
 # first CI run of this lane died on).
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/restricted-smoke.XXXXXX")"
 cleanup() {
+  local rc=$?
   [ -n "${STUB_PID:-}" ] && kill "$STUB_PID" 2>/dev/null || true
+  # A failed run keeps its stub log and outputs, so the failure can be read (#4764).
+  if [ "$rc" -ne 0 ] && [ -n "${SMOKE_ARTIFACT_DIR:-}" ]; then
+    mkdir -p "$SMOKE_ARTIFACT_DIR"
+    find "$SCRATCH" -maxdepth 1 -type f -exec cp {} "$SMOKE_ARTIFACT_DIR/" \;
+  fi
   [ "${SMOKE_KEEP:-0}" = "1" ] || rm -rf "$SCRATCH"
 }
 trap cleanup EXIT
