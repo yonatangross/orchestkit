@@ -48,8 +48,8 @@ Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 **Load context first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
 
 ```bash
-echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/prior-decisions-loader
-echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/prior-decisions-loader
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader
 ```
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.

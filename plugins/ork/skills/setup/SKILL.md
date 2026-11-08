@@ -104,7 +104,7 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 **Load the stack snapshot first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
 
 ```bash
-echo '{"tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/setup-env-detector
+echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/setup-env-detector
 ```
 
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).

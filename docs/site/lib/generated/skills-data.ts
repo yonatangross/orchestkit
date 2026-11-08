@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "1db5ef7638ce79f38bf20f3044b257722faa8297de6e7a95df4b1e8db7b5c18a",
+    "sha256": "db9b04cfc2f63bfff91d18223bfc40dab4267d71ec541a4b124b53e082674cd6",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -2411,7 +2411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research).",
     "version": "2.6.0",
-    "sha256": "bdd63a7b8f04c358dc1d304566b27f3b83973a1e9179af3f6334d755c9415ec7",
+    "sha256": "5c0e8517a6d43a7b05857c6e6886bacc54e38f679f72e7017b64d84af143efd0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2849,7 +2849,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code.",
     "version": "2.8.0",
-    "sha256": "5edc4eda99608d60817dbd130d606ae752314aa2143c4b6b351946b47d3408d6",
+    "sha256": "cd0af6364e7a962e320224696834b9843e7ed41a2cdadfb67bbf45cedc9c1277",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4658,7 +4658,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes.",
     "version": "2.1.0",
-    "sha256": "47071d72372c9c9e0323a856f1bb8dfd21426e3fed1cf6c07a1c2076657d797c",
+    "sha256": "24b5ad8968ed85dab03c7dc6ad063298959b18223e569f3351f813ae7c450b6d",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
