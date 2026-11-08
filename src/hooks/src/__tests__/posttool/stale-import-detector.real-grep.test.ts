@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 // only acceptable answer is a block. A control with a single importer must
 // stay silent, which proves the block is the detector's, not a crash.
 
-import { staleImportDetector } from '../../posttool/write/stale-import-detector.js';
+import { parseGrepRef, staleImportDetector } from '../../posttool/write/stale-import-detector.js';
 import { createTestContext } from '../fixtures/test-context.js';
 import type { HookInput } from '../../types.js';
 
@@ -56,5 +56,36 @@ describe('staleImportDetector with the real grep (#3801)', () => {
     fixture(1);
     const result = staleImportDetector(writeInput(), createTestContext({ projectDir: proj }));
     expect(result.continue).toBe(true);
+  });
+
+  // #5113: the project dir went through the shell allowlist, so a character
+  // outside it threw. A space is that same failure on any platform.
+  it('does not throw on a project dir the shell allowlist rejects', () => {
+    rmSync(proj, { recursive: true, force: true });
+    proj = mkdtempSync(join(tmpdir(), 'stale import real.'));
+    fixture(3);
+    const result = staleImportDetector(writeInput(), createTestContext({ projectDir: proj }));
+    expect(result.stopReason).toMatch(/Stale imports detected for b\.ts \(3 references\)/);
+  });
+});
+
+describe('parseGrepRef (#5113)', () => {
+  it('keeps the drive letter of a Windows path', () => {
+    const ref = parseGrepRef("C:\\Users\\RICU\\src\\a.ts:12:import { x } from './b';");
+    expect(ref?.file).toContain('C:');
+    expect(ref?.line).toBe(12);
+    expect(ref?.content).toBe("import { x } from './b';");
+  });
+
+  it('still parses a POSIX path', () => {
+    expect(parseGrepRef('/repo/src/a.ts:3:import y')).toEqual({
+      file: '/repo/src/a.ts',
+      line: 3,
+      content: 'import y',
+    });
+  });
+
+  it('rejects a line with no line number', () => {
+    expect(parseGrepRef('not a grep line')).toBeNull();
   });
 });
