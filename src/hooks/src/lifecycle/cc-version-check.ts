@@ -107,6 +107,24 @@ function versionFromInstallPath(): string | null {
 }
 
 /**
+ * The Windows npm global install has no versioned path or launcher symlink to
+ * read; its version lives in the package manifest under %APPDATA% (#5114).
+ * Same weaker evidence as the install path: what is installed now.
+ */
+function versionFromWindowsNpm(): string | null {
+  const appData = process.env.APPDATA;
+  if (!appData) return null;
+  try {
+    const manifest = join(appData, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'package.json');
+    if (!existsSync(manifest)) return null;
+    const { version } = JSON.parse(readFileSync(manifest, 'utf8')) as { version?: unknown };
+    return typeof version === 'string' && SEMVER_RE.test(version) ? version : null;
+  } catch {
+    return null; // silent: unreadable manifest is a miss, the caller reports it
+  }
+}
+
+/**
  * Resolve the running CC version, most authoritative source first.
  *
  * Order: transcript (what THIS session is running), then the install path the
@@ -123,7 +141,7 @@ export function resolveRunningCC(input: HookInput): { version: string; source: s
   const fromTranscript = versionFromTranscript(input.transcript_path);
   if (fromTranscript) return { version: fromTranscript, source: 'transcript' };
 
-  const fromInstall = versionFromInstallPath();
+  const fromInstall = versionFromInstallPath() ?? versionFromWindowsNpm();
   if (fromInstall) return { version: fromInstall, source: 'install-path' };
 
   const env = process.env.CLAUDE_CODE_VERSION;
