@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 151-hook registration system works: bundles, runners, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's hook registration system works: bundles, runners, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
