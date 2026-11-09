@@ -1,0 +1,11 @@
+{
+  "slug": "npm-ci-symlink-guard",
+  "source": "docs/fix--npm-ci-symlink-guard/index.html",
+  "title": "npm ci in a reclaimed worktree emptied the main tree, and nothing stopped it",
+  "description": "Pick a command and see whether it reaches npm with a symlinked node_modules, before and after the new guard in the Bash dispatcher.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-08"
+}
