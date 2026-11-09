@@ -2,9 +2,10 @@
 
 // Analytics consent banner (approved design: approved-design/posthog-consent-mockup.txt).
 //
-// Shown at the bottom of every page until the visitor answers. Nothing PostHog
-// loads before "Allow analytics": instrumentation-client.ts waits for the stored
-// choice (lib/analytics-consent.ts). Decline and Allow carry the same visual
+// Shown at the bottom of every page until the visitor answers. Before an answer
+// PostHog only counts page views cookieless, with nothing stored; "Allow
+// analytics" upgrades it and "Decline" stops it (lib/posthog-loader.ts,
+// lib/analytics-consent.ts). Decline and Allow carry the same visual
 // weight on purpose, so declining is as easy as allowing.
 //
 // It renders nothing on the server and on the first client pass, then reads the
@@ -49,8 +50,9 @@ export function AnalyticsConsentBanner() {
 		>
 			<div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<p className="text-sm text-fd-muted-foreground">
-					We use PostHog for anonymous usage analytics on this site. Nothing loads
-					unless you allow it.{" "}
+					We count page views with PostHog without cookies and without storing
+					anything on your device. Allow analytics adds a cookie, usage events and
+					session replay on reference docs; Decline stops the count too.{" "}
 					<Link href="/privacy" className="text-fd-foreground underline underline-offset-2">
 						Privacy policy
 					</Link>
