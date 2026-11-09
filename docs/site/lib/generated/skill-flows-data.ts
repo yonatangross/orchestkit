@@ -1669,7 +1669,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "CI Debug: <repo> · #<n>",
+            "label": "CI Debug: PR <n>",
             "does": "",
             "out": null,
             "tag": null
@@ -1683,7 +1683,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Cost model (back-of-envelope)",
+            "label": "Cost model",
             "does": "",
             "out": null,
             "tag": null
