@@ -664,6 +664,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8)** · 2026-11-09
+
+- **release:** fetch mcp-publisher through the authenticated API (#5162)
+
 **[v10.10.7](https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7)** · 2026-11-09
 
 - **ci-sentinel:** match the skill to the locked-down dispatch (#5156)
@@ -714,12 +718,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **release:** cap entries per dist tree request (#5088)
 - **release:** refuse an invalid dist entry cap
 - **memory:** remove the false scored-promotion story and dead hooks (#5089)
-
-**[v10.10.0](https://github.com/yonatangross/orchestkit/compare/v10.9.1...v10.10.0)** · 2026-11-06
-
-- **docs-site:** upload source maps to PostHog at build time (#5082)
-- **hooks:** count every frontmatter hook handler (#5079)
-- **release:** drop stable description counts and give the scan fetch its own budget (#5081)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

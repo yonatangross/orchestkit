@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.8",
+    "date": "2026-11-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**release:** fetch mcp-publisher through the authenticated API ([#5162](https://github.com/yonatangross/orchestkit/issues/5162)) ([748bc30](https://github.com/yonatangross/orchestkit/commit/748bc30384577f95c817a7921738bb5080221034))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.7",
     "date": "2026-11-09",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7",
