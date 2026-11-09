@@ -664,6 +664,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.6](https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6)** · 2026-11-09
+
+- **ci-sentinel:** refresh drifted skill text (#5147)
+- **ci:** remove the ci-sentinel ceiling that could never fire (#5141), closes [#5138](https://github.com/yonatangross/orchestkit/issues/5138)
+- **ci:** tell claude-triage the repo so it stops running out of turns (#5143), closes [#5142](https://github.com/yonatangross/orchestkit/issues/5142)
+- **docs:** serve the server card media type when a client asks (#5125)
+- **secrets-veil:** keep image URLs on named media hosts readable (#5146)
+- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.10.5](https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5)** · 2026-11-08
 
 - Codex hook paths and docs MCP query validation (#5119)
@@ -708,10 +717,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** pin ruff, and clear SIM102 in circuit-breaker (#5080)
 - **docs-site:** serve missing /lab pages as static HTML, not the app shell (#5075)
 - stamp the README hook counts from one source (#5076), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)
-
-**[v10.9.0](https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0)** · 2026-11-05
-
-- **release:** sync plugins/ork to the orchestkit-plugin dist repo (#5070)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
