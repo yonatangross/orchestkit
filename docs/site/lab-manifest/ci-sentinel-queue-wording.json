@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-queue-wording",
+  "source": "docs/fix--ci-sentinel-queue-wording/index.html",
+  "title": "ci-sentinel said required checks; it reads every failed check",
+  "description": "Pick a part of the ci-sentinel skill or workflow and compare what it said before and after it was matched to what the queue step does.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

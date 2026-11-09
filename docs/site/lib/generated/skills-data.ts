@@ -973,9 +973,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-sentinel": {
     "name": "ci-sentinel",
-    "description": "Manually dispatched classifier for every open PR with red required checks: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug.",
+    "description": "Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug.",
     "version": "0.1.0",
-    "sha256": "f2c8ff00e4588935a55c378ee64e3810f9fc9bcfc9e3f347241b112333ce01c1",
+    "sha256": "b19d24509d2d9737d73258275e890587ae5681d32741e7aeb1b693dbc9f36fe2",
     "author": "OrchestKit",
     "tags": [
       "ci",
