@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-name-swap-arm",
+  "source": "docs/test--ci-sentinel-name-swap-arm/index.html",
+  "title": "The playbook sync test now proves its name check can fail",
+  "description": "Pick a fault and compare which check catches it before and after the new arm in tests/ci/test-ci-sentinel-playbook-sync.sh.",
+  "tags": [
+    "ci",
+    "tests"
+  ],
+  "date": "2026-11-08"
+}
