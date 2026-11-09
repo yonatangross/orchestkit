@@ -58,8 +58,12 @@ Example hook entry:
   "hooks": [
     {
       "type": "command",
-      "command": "node dist/pre-tool-use/dangerous-command-blocker.mjs",
-      "timeout": 5000
+      "command": "node",
+      "timeout": 15,
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+        "pretool/bash/sync-bash-dispatcher"
+      ]
     }
   ]
 }
@@ -70,8 +74,8 @@ Example hook entry:
 You can test a hook in isolation by calling it with a mock input:
 
 ```bash
-echo '{"event":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | \
-  node src/hooks/dist/pre-tool-use/dangerous-command-blocker.mjs
+echo '{"event":"PreToolUse","tool_name":"Bash","tool_input":{"command":"ls"}}' | \
+  node src/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher
 ```
 
 The hook should return a JSON object. If it throws an error, the issue is in the hook code itself.
@@ -85,7 +89,7 @@ If the hook source (`src/hooks/src/`) looks correct but the behavior is wrong, t
 cd src/hooks && npm run build
 
 # Verify the bundle was updated
-ls -la dist/pre-tool-use/dangerous-command-blocker.mjs
+ls -la dist/pretool.mjs
 ```
 
 <Callout type="warn">

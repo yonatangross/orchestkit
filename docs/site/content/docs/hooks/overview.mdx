@@ -232,7 +232,11 @@ Every hook registration in `hooks.json` follows this pattern:
 ```json
 {
   "type": "command",
-  "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+  "command": "node",
+  "args": [
+    "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+    "pretool/bash/sync-bash-dispatcher"
+  ]
 }
 ```
 

@@ -24,7 +24,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
 - CC 2.1.91 compliant: MCP `_meta["anthropic/maxResultSizeChars"]` respected by mcp-output-transform, `disableSkillShellExecution` awareness
 - CC 2.1.98 compliant: Monitor tool in workflow skills, SCRIPT_CAPS enforcement, bg subagent partial progress handling, hook stderr display awareness
-- CC 2.1.101 compliant: 253-entry version matrix, deny-overrides-ask in dangerous-command-blocker, 26 skill frontmatter corrections (context/agent fields now enforced), dynamic MCP inheritance for subagents
+- CC 2.1.101 compliant: 253-entry version matrix, deny-overrides-ask in dangerous-command-blocker (removed in #3841), 26 skill frontmatter corrections (context/agent fields now enforced), dynamic MCP inheritance for subagents
 - CC 2.1.158 compliant: 460-entry version matrix (catalogued through 2.1.158 — MessageDisplay 2.1.152, dynamic workflows + Opus 4.8 2.1.154, .claude/skills autoload 2.1.157), `MessageDisplay` event in the HookEventName union, `disallowed-tools` frontmatter. Counts: `claude plugin details ork` is the source of truth.
 - CC 2.1.162 compliant: 478-entry version matrix (catalogued through 2.1.162 — workflow→ultracode rename 2.1.160, parallel-tool independent failure + mcp secret redaction 2.1.161, agents --json waitingFor + dedicated search tools + WebFetch preapproved-domain fix 2.1.162); 2.1.159 is infra-only. Floor 2.1.183 (deliberate owner decision 2026-06-20, renewing the 2026-06-10 strict bump: strict floor=latest=latest_known, support only the newest CC; override expires 2026-09-20).
 - CC 2.1.179 adoption: `latest_known` 2.1.176 → 2.1.179 (the version matrix is now 2 stamped constants — `MIN_CC_VERSION` + `LATEST_KNOWN_CC` — after the #2229 THIN; no more hand-maintained catalogue). 2.1.178 features adopted into docs (`Tool(param:value)` permission rules e.g. `Agent(model:opus)`, MCP `disallowedTools` now enforced in subagents, nested `.claude/skills` + closest-wins precedence, workflow keyword now explicit-phrase only). 2.1.177/2.1.179 are bugfix-only (no snapshots). Subtraction pass (`shared/rules/cc-native-first.md`): 0 ork code removable — `Tool(param:value)` is orthogonal to the model-cost-advisor + fable-spend-consent hooks. Floor was 2.1.170 at that point (override); bumped to 2.1.183 in the adoption below.
@@ -161,8 +161,8 @@ from those configs).
 Execute BEFORE a tool runs, can inject context or block execution.
 
 **Examples:**
-- `pretool/bash/git-validator` - Validate git operations (branch protection, commit messages)
-- `pretool/bash/dangerous-command-blocker` - Block `rm -rf`, `sudo`, force push
+- `pretool/bash/sync-bash-dispatcher` - The synchronous Bash entry: runs `headless-defer`, `network-egress-guard`, the gh label and milestone enforcers, then the advisory dispatcher and the later checks, in that order
+- `pretool/bash/network-egress-guard` - Deny commands that execute fetched remote content (`curl url | sh`)
 - `pretool/Write/architecture-change-detector` - Detect major architecture changes
 
 **CC 2.1.9 Feature:** Use `additionalContext` to inject guidance before execution.

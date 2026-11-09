@@ -14,7 +14,7 @@ OrchestKit implements security at multiple layers. No single hook is responsible
 PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
       |                     |                                     |
   auto-approve          file-guard                          secret-redactor
-  safe commands     dangerous-command-blocker               audit-logger
+  safe commands     sync-bash-dispatcher                    audit-logger
   project writes    security-pattern-validator               error-handler
                     architecture-change-detector
                     multi-instance-lock
@@ -22,90 +22,30 @@ PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
 
 If any hook in the chain returns `{ continue: false }`, the operation is blocked and Claude receives the `stopReason` explaining why.
 
-## Dangerous Command Blocker
+## Destructive Commands: Operator Deny Rules
 
-**Hook:** `pretool/bash/dangerous-command-blocker`
-**Event:** PreToolUse (Bash)
-**Behavior:** Blocks commands that match known destructive patterns.
+The old `pretool/bash/dangerous-command-blocker` hook was removed in #3841. Its patterns are now `permissions.deny` rules in your own settings scope (`~/.claude/settings.json` or `<project>/.claude/settings.json`). A plugin cannot ship enforcing permission rules, because Claude Code reads only `agent` and `subagentStatusLine` from a plugin settings file. Rules in your own scope are enforced by Claude Code itself, even under `--dangerously-skip-permissions`.
 
-### What It Blocks
+- **Written by** `/ork:setup` phase 3.6, which shows a dry run first and writes only after you say yes. The payload is `src/skills/setup/references/operator-permissions.json`, delivered by `src/skills/setup/scripts/write-operator-permissions.mjs`.
+- **Audited by** `/ork:doctor` (`check-operator-permissions.sh`), which reports whether the rules are present.
 
-The blocker checks against three categories of dangerous patterns:
+### What the Rules Deny
 
-<Tabs items={["Literal Patterns", "Regex Patterns"]}>
-<Tab value="Literal Patterns">
+| Rule (examples) | Category |
+|-----------------|----------|
+| `Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -fr .)` | Filesystem destruction |
+| `Bash(mv /* /dev/null)` | Filesystem destruction |
+| `Bash(> /dev/sd*)`, `Bash(mkfs*)`, `Bash(dd if=*)` | Device wiping |
+| `Bash(chmod 777 *)`, `Bash(chmod -R 777 *)` | Permission abuse |
+| `Bash(find *-delete*)` | Bulk deletion |
+| `Bash(git push --force origin main)` and its `-f` and `master` variants | Force push to main or master |
+| `Read(~/.ssh/**)`, `Read(**/.env)`, `Edit(**/*.pem)` | Secret and credential files |
 
-These are matched as literal substrings in the normalized (lowercased, whitespace-collapsed) command:
+The JSON file holds the full list. It also names two admitted gaps: the SQL substrings the old hook matched (`drop database`, `drop schema`, `truncate table` inside a `psql -c` string) and the fork bomb cannot be written as `Bash()` rules, so no rule denies them.
 
-| Pattern | Category |
-|---------|----------|
-| `rm -rf /` | Filesystem destruction |
-| `rm -rf ~` | Filesystem destruction |
-| `rm -fr /` | Filesystem destruction (alternate flag order) |
-| `rm -fr ~` | Filesystem destruction |
-| `mv /* /dev/null` | Filesystem destruction |
-| `> /dev/sda` | Device wiping |
-| `mkfs.` | Device wiping (filesystem format) |
-| `dd if=/dev/zero of=/dev/` | Device wiping |
-| `dd if=/dev/random of=/dev/` | Device wiping |
-| `chmod -R 777 /` | Permission abuse |
-| `:(){:\|:&};:` | Fork bomb |
-| `git reset --hard` | Destructive git (data loss) |
-| `git clean -fd` | Destructive git (data loss) |
-| `drop database` | Database destruction |
-| `drop schema` | Database destruction |
-| `truncate table` | Database destruction |
+### What Still Runs as a Hook
 
-</Tab>
-<Tab value="Regex Patterns">
-
-These are matched using regular expressions for patterns that require flexible matching:
-
-| Pattern | What It Catches |
-|---------|-----------------|
-| `/\|\s*(sh\|bash\|zsh\|dash)\b/i` | Piping to shell: `curl url \| bash`, `wget url \| sh` |
-| `/git\s+push\s+.*(-f\|--force)\b/i` | Force push: `git push --force`, `git push -f origin main` |
-
-</Tab>
-</Tabs>
-
-### How Normalization Prevents Bypass
-
-Before pattern matching, commands are normalized to prevent evasion techniques:
-
-```typescript
-function normalizeCommand(command: string): string {
-  return command
-    .replace(/\\\s*[\r\n]+/g, ' ')  // Remove line continuations (rm -rf \<newline>/)
-    .replace(/\n/g, ' ')             // Replace newlines with spaces
-    .replace(/\s+/g, ' ')            // Collapse whitespace
-    .trim();
-}
-```
-
-This means `rm \<newline>-rf /` is caught just as reliably as `rm -rf /`.
-
-### When a Command Is Blocked
-
-The user sees a clear denial message:
-
-```json
-{
-  "continue": false,
-  "stopReason": "Command matches dangerous pattern: rm -rf /\n\nThis command could cause severe system damage and has been blocked.",
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny",
-    "permissionDecisionReason": "Command matches dangerous pattern: rm -rf /"
-  }
-}
-```
-
-Every denial is also logged to `permission-feedback.log` for audit:
-
-```
-2026-01-23T10:15:30.123Z | deny | Dangerous pattern: rm -rf / | tool=Bash | session=abc123
-```
+`pretool/bash/sync-bash-dispatcher` is the synchronous PreToolUse entry for Bash. Inside it, `pretool/bash/network-egress-guard` keeps a DENY tier for commands that execute fetched remote content, such as `curl url | bash`.
 
 ## File Guard
 
@@ -344,7 +284,7 @@ Tracks which commands the user manually approves over time. This data feeds into
 
 ## Additional PreToolUse Safety Hooks
 
-Beyond the command blocker and file guard, several other hooks provide safety at the PreToolUse stage:
+Beyond the operator deny rules and the sync Bash dispatcher, several other hooks provide safety at the PreToolUse stage:
 
 ### Compound Command Validator
 
@@ -438,7 +378,7 @@ export function myQualityGate(input: HookInput): HookResult {
 }
 ```
 
-Security-critical hooks (dangerous command blocker, file guard) always block regardless of permission mode.
+Operator deny rules always block regardless of permission mode, because Claude Code enforces them itself.
 
 ## Audit Trail
 

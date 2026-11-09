@@ -242,7 +242,7 @@ Count drift is the most common consistency bug in OrchestKit. After adding any s
 
 **Fix:**
 
-The `dangerous-command-blocker` hook blocks commands like `git push --force`, `git reset --hard`, and `rm -rf` by default. This is intentional.
+The `permissions.deny` rules that `/ork:setup` writes to your settings deny commands like `git push --force origin main` and `rm -rf /`. This is intentional. `/ork:doctor` audits them.
 
 If the operation is legitimate:
 

@@ -21,7 +21,7 @@ OrchestKit runs a **defense-in-depth security audit** that checks 8 layers in pa
 | `security-auditor` | Agent (opus) | OWASP Top 10 scan, dependency audit, secrets detection |
 | `code-quality-reviewer` | Agent | Identifies unsafe code patterns and complexity |
 | `debug-investigator` | Agent | Traces data flow for injection points |
-| `dangerous-command-blocker` | Hook (pretool) | Prevents destructive commands during audit |
+| `permissions.deny` rules | Operator settings | Deny destructive commands during the audit (written by `/ork:setup`) |
 | `file-guard` | Hook (pretool) | Blocks commits of `.env`, `*.pem`, credentials |
 | `security-command-audit` | Hook (posttool) | Logs all security scan results to audit trail |
 | `owasp-top-10` | Reference skill | OWASP vulnerability patterns and fixes |
@@ -249,7 +249,7 @@ OrchestKit Security Tests (CRITICAL — ZERO TOLERANCE)
 Results: 7 passed, 0 failed
 ```
 
-These tests validate that OrchestKit's own hooks (like `dangerous-command-blocker` and `file-guard`) correctly block attack vectors. They run automatically in CI and must all pass before merge.
+These tests validate that OrchestKit's own hooks (like `network-egress-guard`) correctly block attack vectors. They run automatically in CI and must all pass before merge.
 
 <Callout type="info">
 The security test suite covers 7 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, and additional security checks. These are not application tests; they validate OrchestKit's defensive hooks that protect your development workflow.
@@ -261,7 +261,7 @@ The security test suite covers 7 attack categories: command injection, JQ inject
 
 | Hook | Event | What It Does |
 |---|---|---|
-| `dangerous-command-blocker` | pretool/bash | Prevents the security auditor from running destructive commands like `rm -rf /`, `chmod 777`, or `DROP TABLE`. Even security agents are sandboxed. |
+| `permissions.deny` rules | operator settings | Deny destructive commands like `rm -rf /` or `chmod 777` for every agent, the security auditor included. Claude Code enforces them itself. SQL such as `DROP TABLE` is not covered. |
 | `file-guard` | pretool/write | Blocks any attempt to write `.env`, `*.pem`, `*credentials*`, or `*.key` files to disk. Prevents accidental exposure of secrets during testing. |
 | `security-command-audit` | posttool/bash | Logs every security scan command and its results to the session audit trail. Creates a reproducible record of what was checked. |
 | `session-env-setup` | lifecycle/start | Detects available security tools (bandit, pip-audit, npm audit, semgrep) at session start. Reports missing tools so you can install them. |
@@ -355,5 +355,5 @@ If a tool is not installed, the agent skips it and notes it in the findings: "ba
 
 - **[Implement a Feature](/docs/cookbook/implement-feature)**: See how security checks integrate into the implementation workflow
 - **[Review a Pull Request](/docs/cookbook/review-pr)**: Multi-agent PR review with security as one of six dimensions
-- **[Hooks Overview](/docs/hooks/overview)**: Understand how `dangerous-command-blocker` and `file-guard` work
+- **[Hooks Overview](/docs/hooks/overview)**: Understand how the Bash and Write/Edit dispatchers work
 - **[Configuration](/docs/getting-started/configuration)**: Environment setup for security scanning tools
