@@ -40,11 +40,11 @@ Runs the `/ci-debug` playbook classification over every red PR in one dispatch, 
    ▶️ manual workflow_dispatch (no schedule, by policy)
         │
         ▼
-   📥 gh pr list → PRs with FAILURE checks (yours, max 10)
+   📥 gh pr list → every open PR with a FAILURE check, any author (max_prs, default 10)
         │
         ▼
    🤖 for each PR (skipping those already commented at this SHA):
-       claude -p → run /ci-debug → capture verdict markdown
+       fetch its failed logs → claude -p with no tools, /ci-debug playbook inlined → verdict
         │
         ▼
    💬 post collapsed PR comment with marker so future runs dedupe
@@ -100,11 +100,9 @@ The workflow is intentionally configured via in-file env vars (not workflow inpu
 
 ### Why no --bare (2026-05-18 finding)
 
-Originally designed around `claude -p --bare` (CC 2.1.81+) for minimal plugin/hook load and predictable ~4k tokens/PR. First real dispatch revealed `--bare` doesn't honor `ANTHROPIC_API_KEY` env var, `--settings.apiKey`, or `--settings.apiKeyHelper` — every call returns `"Not logged in · Please run /login"`. Reproduced locally against multiple settings shapes.
+The first design used `claude -p --bare` for a minimal load. The first real dispatch showed `--bare` does not honor `ANTHROPIC_API_KEY`, `--settings.apiKey` or `--settings.apiKeyHelper`: every call returned `"Not logged in · Please run /login"`, reproduced locally against several settings shapes. So the workflow does not use it.
 
-Dropped `--bare`; cost per PR rises ~4k → ~10k tokens (plugins + hooks load), partially offset by `--no-session-persistence` (avoids disk writes).
-
-If/when CC fixes `--bare` auth, the workflow can revert to bare mode by changing one line.
+What gives the minimal load today is the dispatch envelope below: `--safe-mode` loads no hooks or plugins from the checkout, `--strict-mcp-config` loads no MCP server, and `--tools ""` loads no tools. `--bare` would add nothing on top of those, so there is nothing to revert to.
 
 ### Dispatch envelope (M146-6 / #1849)
 
@@ -175,17 +173,18 @@ Every verdict comment looks like:
 
 <details><summary>🛰️ <b>CI Sentinel verdict</b> (sha abc123def)</summary>
 
-## CI Debug: <repo> · #<n>
+## CI Debug: PR <n>
 
 **Failing job:** ...
-**Classification:** Pattern #N — <name>
-**Reference:** memory <file.md>
-**Proposed fix:** ...
+**Failing step:** ...
+(error excerpt, at most 10 log lines, in a code block)
+**Classification:** Pattern #N, <name> (or NOVEL)
+**Proposed fix:** commands, one per line
 
 </details>
 ```
 
-Collapsed by default — no inbox noise unless you click. Always carries the SHA so you know whether the verdict is still current.
+The post job writes the marker and the `<details>` wrapper; the model writes only the inside, in the shape the dispatch prompt asks for (`ci-sentinel.yml`, the `prompt=` line). Before posting, the verdict is capped, HTML tags are removed, images are dropped, links are reduced to their text, and `@` is neutralised so it pings nobody. Collapsed by default, so no inbox noise unless you click. Always carries the SHA so you know whether the verdict is still current.
 
 ## Mutation journal (deferred to v1.1)
 
@@ -196,13 +195,12 @@ When v1.1 lands the journal:
 2. If novel, it opens a follow-up issue suggesting the pattern be added to `/ci-debug` SKILL.md.
 3. Human approves the pattern in a PR; sentinel picks it up next sweep.
 
-## Cost model (back-of-envelope)
+## Cost model
 
-Per-PR analysis: ~8-12k tokens (full CC load — plugins + hooks — since `--bare` was dropped, see "Why no --bare" above).
-One sweep with avg 3 failing PRs: ~30k tokens. A sweep at the `max_prs=10` cap is ~120k tokens.
+Per-PR tokens: **unmeasured** for the current envelope. The earlier ~8-12k figure assumed plugins and hooks loaded, which `--safe-mode`, `--strict-mcp-config` and `--tools ""` now prevent, so it no longer applies. What a call carries is the inlined `/ci-debug` playbook, the trimmed failure data on stdin, and at most `--max-turns 2`. The real figure is in each run's job summary and its `.sentinel/ledger.jsonl` row (the `usage` counts from `--output-format json`); read it from a dispatched run before quoting a number.
 There is no token ceiling: an earlier daily budget could never fire, because the ledger is not kept between runs (#5138). `max_prs` and the per-PR timeout bound a run.
 
-Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sweep draws on plan quota rather than metered credits, with no incremental invoice line. If you swap a fork back to a metered `ANTHROPIC_API_KEY`, ~30k tokens at ~$15/MTok (Sonnet input/output blended) is roughly **$0.45 per sweep**.
+Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sweep draws on plan quota rather than metered credits, with no incremental invoice line. If you swap a fork back to a metered `ANTHROPIC_API_KEY`, the cost of a sweep is the measured per-PR tokens from the ledger, times the PRs swept, at the model's current price; no figure is given here until a run under the current envelope is measured.
 
 > History: the workflow started on an hourly cron and moved to a daily cron in 2026-07 alongside the OAuth migration. It is now manual dispatch only, because any automatic run draws on the same quota as interactive sessions.
 
