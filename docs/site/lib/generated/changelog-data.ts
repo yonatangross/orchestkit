@@ -18,6 +18,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.6",
+    "date": "2026-11-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci-sentinel:** refresh drifted skill text ([#5147](https://github.com/yonatangross/orchestkit/issues/5147)) ([fed8995](https://github.com/yonatangross/orchestkit/commit/fed8995983233d769478029b111537cc0563676d))",
+          "**ci:** remove the ci-sentinel ceiling that could never fire ([#5141](https://github.com/yonatangross/orchestkit/issues/5141)) ([8f3a316](https://github.com/yonatangross/orchestkit/commit/8f3a3168f93fbeae92ae2fcdadbb790fa3341344)), closes [#5138](https://github.com/yonatangross/orchestkit/issues/5138)",
+          "**ci:** tell claude-triage the repo so it stops running out of turns ([#5143](https://github.com/yonatangross/orchestkit/issues/5143)) ([2615499](https://github.com/yonatangross/orchestkit/commit/2615499167530d43f93deccf682128ed2d45394e)), closes [#5142](https://github.com/yonatangross/orchestkit/issues/5142)",
+          "**docs:** serve the server card media type when a client asks ([#5125](https://github.com/yonatangross/orchestkit/issues/5125)) ([5018624](https://github.com/yonatangross/orchestkit/commit/50186247819de1bec0f2ce839f689916fdd56761))",
+          "**secrets-veil:** keep image URLs on named media hosts readable ([#5146](https://github.com/yonatangross/orchestkit/issues/5146)) ([83dab3d](https://github.com/yonatangross/orchestkit/commit/83dab3d5db15c1b3a4c84c8b04065e91cf6d9e62))",
+          "**skills:** say ci-sentinel keeps its own copy of the ci-debug patterns ([#5144](https://github.com/yonatangross/orchestkit/issues/5144)) ([d04f582](https://github.com/yonatangross/orchestkit/commit/d04f582abd615e836231542a9e492f372c360647)), closes [#5139](https://github.com/yonatangross/orchestkit/issues/5139)",
+          "**skills:** say ci-sentinel runs by manual dispatch ([#5137](https://github.com/yonatangross/orchestkit/issues/5137)) ([7e4b97c](https://github.com/yonatangross/orchestkit/commit/7e4b97c2dc5b2f48618aafee7cca252fd7c83f1f)), closes [#5132](https://github.com/yonatangross/orchestkit/issues/5132)"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**ci:** move five workflows to Claude Code 2.1.319 ([#5135](https://github.com/yonatangross/orchestkit/issues/5135)) ([54ed98e](https://github.com/yonatangross/orchestkit/commit/54ed98e94f0100f167439cc2bda7450b8fe670d2)), closes [#5023](https://github.com/yonatangross/orchestkit/issues/5023)",
+          "**skills:** skill quality round 6, the loop stops at 10 ([#5136](https://github.com/yonatangross/orchestkit/issues/5136)) ([a110fb5](https://github.com/yonatangross/orchestkit/commit/a110fb5ba19371844a9f563cc2578f1a31829b08))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.5",
     "date": "2026-11-08",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5",
