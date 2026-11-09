@@ -135,7 +135,7 @@ Beyond the operator deny rules and the sync Bash dispatcher, two dispatchers run
 
 ### Write and Edit
 
-`pretool/write-edit/sync-write-edit-dispatcher` runs `content-secret-scanner`, `context-file-budget-guard`, `dependency-confusion-scanner` and `write-headers`, then `unified-quality-dispatcher`, which runs `architecture-change-detector`. The detector adds context when a write touches an architecturally significant file, reminding Claude about backwards compatibility and documentation.
+`pretool/write-edit/sync-write-edit-dispatcher` runs `content-secret-scanner`, `context-file-budget-guard`, `dependency-confusion-scanner` and `write-headers`, then `unified-quality-dispatcher`. That dispatcher calls `security-pattern-validator` first: it checks code being written for hardcoded secrets, SQL and command injection, `eval`/`exec`, `shell=True`, `innerHTML`, insecure random numbers and plain HTTP URLs, and adds a warning to Claude's context (it does not block). Then `architecture-change-detector` adds context when a write touches an architecturally significant file, reminding Claude about backwards compatibility and documentation.
 
 ### Agent spawns (Task hooks)
 
