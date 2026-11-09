@@ -1,0 +1,11 @@
+{
+  "slug": "docs-stale-hook-names",
+  "source": "docs/docs--5148-stale-hook-names/index.html",
+  "title": "Docs that named a hook deleted two months ago",
+  "description": "Pick a docs page and compare what it said blocks a destructive command before and after this fix.",
+  "tags": [
+    "docs",
+    "hooks"
+  ],
+  "date": "2026-11-08"
+}
