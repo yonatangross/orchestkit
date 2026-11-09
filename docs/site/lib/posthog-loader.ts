@@ -3,7 +3,8 @@
 // visitor's stored choice (lib/analytics-consent.ts):
 //
 //   no choice yet  cookieless: memory persistence, no person profiles, replay
-//                  off, mirrored events off. Page views are counted; nothing
+//                  off, mirrored events off, and every non-pageview SDK
+//                  feature off (PAGEVIEW_ONLY). Page views are counted; nothing
 //                  is written to cookies, localStorage or sessionStorage, and
 //                  no consent flag is set (opt_in and opt_out both write one).
 //   "accepted"     the consented client #5098 built: persistent storage,
@@ -61,15 +62,69 @@ const BASE_OPTIONS: PostHogInitOptions = {
 	opt_out_persistence_by_default: true,
 };
 
+// Every SDK feature that would send something other than $pageview before
+// consent, turned off. The approval is anonymous page view counts only, so
+// $pageleave (time on page) is off too. Allow turns each one back on through
+// consentedCapture() below.
+const PAGEVIEW_ONLY = {
+	autocapture: false,
+	rageclick: false,
+	capture_exceptions: false,
+	capture_heatmaps: false,
+	capture_dead_clicks: false,
+	// Web vitals (and replay network timing).
+	capture_performance: false,
+	capture_pageleave: false,
+	disable_surveys: true,
+} as const;
+
+type PageviewOnlyKey = keyof typeof PAGEVIEW_ONLY;
+
+// What each of those keys is on the consented client when the caller passes
+// nothing for it: the SDK default under the 2026-01-30 defaults. `undefined`
+// means "follow the project's remote config", which is how #5098 ran them.
+const CONSENTED_DEFAULTS: Record<PageviewOnlyKey, unknown> = {
+	autocapture: true,
+	rageclick: true,
+	capture_exceptions: undefined,
+	capture_heatmaps: undefined,
+	capture_dead_clicks: undefined,
+	capture_performance: undefined,
+	capture_pageleave: "if_capture_pageview",
+	disable_surveys: false,
+};
+
 // Applied last, over the caller's options, so nothing the caller passes can
-// turn on storage, person profiles or replay before consent.
+// turn on storage, person profiles, replay or non-pageview events before
+// consent.
 const COOKIELESS_OVERRIDES: PostHogInitOptions = {
 	persistence: "memory",
 	person_profiles: "never",
 	disable_session_recording: true,
 	// Capture is on from init. Opting in would write a consent flag to storage.
 	opt_out_capturing_by_default: false,
+	...PAGEVIEW_ONLY,
 };
+
+/**
+ * The consented value of every PAGEVIEW_ONLY key: the caller's option when it
+ * set one (instrumentation-client.ts sets capture_exceptions), else the SDK
+ * default. Split into values to set and keys to unset, because set_config
+ * skips undefined values and cannot unset anything by itself.
+ */
+function consentedCapture(options: PostHogInitOptions): {
+	set: PostHogInitOptions;
+	unset: PageviewOnlyKey[];
+} {
+	const set: PostHogInitOptions = {};
+	const unset: PageviewOnlyKey[] = [];
+	for (const key of Object.keys(PAGEVIEW_ONLY) as PageviewOnlyKey[]) {
+		const value = key in options ? options[key] : CONSENTED_DEFAULTS[key];
+		if (value === undefined) unset.push(key);
+		else set[key] = value;
+	}
+	return { set, unset };
+}
 
 async function load(
 	key: string,
@@ -146,7 +201,15 @@ export function startPostHog(
 			// resetDeviceID is required: a bare reset() mints a new distinct_id
 			// but keeps $device_id, which would link the two phases.
 			client.reset({ resetDeviceID: true });
+			// Restore the consented capture set. Keys whose consented value is
+			// "follow remote config" are deleted from the live config first; the
+			// set_config call below then re-runs each feature's startIfEnabled
+			// (posthog-js 1.438.19 set_config), so they start from remote config.
+			const capture = consentedCapture(options);
+			const live = client.config as unknown as Record<string, unknown>;
+			for (const key of capture.unset) delete live[key];
 			client.set_config({
+				...capture.set,
 				persistence: CONSENTED_PERSISTENCE,
 				// What instrumentation-client.ts passes for the consented client.
 				person_profiles: "identified_only",

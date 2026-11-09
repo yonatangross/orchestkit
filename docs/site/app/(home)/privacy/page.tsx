@@ -27,25 +27,26 @@ export default function PrivacyPage() {
 			<p>
 				Until you answer the analytics banner, PostHog counts page views without
 				cookies: it keeps no identifier in a cookie, in local storage or in
-				session storage, creates no person profile, records no session replay
-				and receives none of the site's own usage events (such as searches that
-				found nothing). What it sends is page views, clicks on links and buttons
-				(never what you type) and script errors, each with the page address, the
-				referring page, your browser and device type, and the screen size. A
-				full page reload starts a new, unrelated count.
+				session storage, creates no person profile and records no session
+				replay. It sends page views and nothing else: no clicks, no errors, no
+				time on page, no heatmaps, no performance data and none of the site's
+				own usage events. Each page view carries the page address, the referring
+				page, your browser and device type, and the screen size. A full page
+				reload starts a new, unrelated count.
 			</p>
 			<p>
 				As with any web request, PostHog (hosted in the EU) receives your IP
-				address. This site does not store it. PostHog uses it to derive an
-				approximate location (country and city) unless the project setting
-				&quot;Discard client IP data&quot; is on, in which case the address is
-				dropped before the event is stored. Page counts are never matched with
-				the data collected after you allow analytics: allowing starts a fresh
-				identifier.
+				address. This site does not store it, and the PostHog project has
+				&quot;Discard client IP data&quot; turned on, so PostHog drops the
+				address before the page view is stored. Page counts are never matched
+				with the data collected after you allow analytics: allowing starts a
+				fresh identifier and a fresh device id.
 			</p>
 			<p>
-				The legal basis for this count is our legitimate interest in knowing
-				which documentation pages are read, so we can keep them useful. To
+				The legal basis for this page view count, and only for it, is our
+				legitimate interest in knowing which documentation pages are read, so we
+				can keep them useful. Clicks, errors and the other events above are sent
+				only after you allow analytics. To
 				object, press Decline in the banner (or use the button below, then
 				Decline): PostHog then stops in that browser and is not loaded on later
 				visits.
