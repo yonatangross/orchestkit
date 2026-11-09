@@ -20,8 +20,10 @@ import {
 	setAnalyticsConsent,
 } from "@/lib/analytics-consent";
 
+// One class string for both answers, so Decline and Allow can never drift to
+// different sizes or weights. Larger tap target than before (min-h-10).
 const BUTTON =
-	"rounded-md border border-fd-border bg-fd-card px-3 py-1.5 text-sm font-medium text-fd-foreground hover:bg-fd-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary";
+	"min-h-10 rounded-md border border-fd-border bg-fd-background px-4 py-2 text-sm font-semibold text-fd-foreground hover:bg-fd-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary";
 
 export function AnalyticsConsentBanner() {
 	const [open, setOpen] = useState(false);
@@ -45,14 +47,20 @@ export function AnalyticsConsentBanner() {
 	return (
 		<section
 			aria-label="Analytics consent"
-			className="fixed inset-x-0 bottom-0 z-50 border-t border-fd-border bg-fd-background/95 px-4 py-3 shadow-lg backdrop-blur"
+			className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-4 sm:pb-4"
 		>
-			<div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<p className="text-sm text-fd-muted-foreground">
+			<div
+				data-testid="analytics-consent-card"
+				className="pointer-events-auto mx-auto flex max-w-4xl flex-col gap-3 rounded-lg border-2 border-fd-primary bg-fd-card p-4 shadow-xl sm:flex-row sm:items-center sm:justify-between"
+			>
+				<p className="text-sm text-fd-card-foreground">
 					We use PostHog for anonymous usage analytics on this site. Nothing loads
 					unless you allow it.{" "}
-					<Link href="/privacy" className="text-fd-foreground underline underline-offset-2">
-						Privacy policy
+					<Link
+						href="/privacy"
+						className="font-medium text-fd-card-foreground underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
+					>
+						Privacy notice
 					</Link>
 				</p>
 				<div className="flex shrink-0 gap-2">
