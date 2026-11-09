@@ -559,9 +559,27 @@ jobs:
             exit 1
           fi
 
+      # Fetched through the authenticated API with the job token, not the
+      # anonymous github.com/.../releases/download URL. On 2026-11-09 the
+      # anonymous path returned 504 to runners for over 10 minutes (GitHub
+      # incident: timeouts from a surge in anonymous users) while the asset
+      # was there, and v10.10.7 missed the registry twice. The pinned sha256
+      # below still decides what runs.
       - name: Install mcp-publisher (pinned)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL --retry 5 --retry-delay 5 --connect-timeout 20 "https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz" -o mcp-publisher.tar.gz
+          for attempt in 1 2 3; do
+            if gh release download v1.7.9 --repo modelcontextprotocol/registry \
+                 --pattern mcp-publisher_linux_amd64.tar.gz --output mcp-publisher.tar.gz --clobber; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::could not download mcp-publisher v1.7.9 after 3 authenticated attempts"
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
           echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum -c -
           tar -xzf mcp-publisher.tar.gz mcp-publisher
           sudo install mcp-publisher /usr/local/bin/mcp-publisher

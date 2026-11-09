@@ -1,0 +1,11 @@
+{
+  "slug": "release-mcp-publisher-auth-fetch",
+  "source": "docs/fix--release-mcp-publisher-auth-fetch/index.html",
+  "title": "The registry publish fetched its tool anonymously, and anonymous downloads timed out",
+  "description": "Pick a moment of the v10.10.7 release and compare what the MCP Registry Publish job did before and after the fetch moved to the authenticated API.",
+  "tags": [
+    "ci",
+    "release"
+  ],
+  "date": "2026-11-08"
+}
