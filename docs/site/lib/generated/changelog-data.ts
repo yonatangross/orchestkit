@@ -18,6 +18,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.7",
+    "date": "2026-11-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci-sentinel:** match the skill to the locked-down dispatch ([#5156](https://github.com/yonatangross/orchestkit/issues/5156)) ([d7417e1](https://github.com/yonatangross/orchestkit/commit/d7417e1a513324fde6e270ad0c80d8e969a22c0b))",
+          "**ci-sentinel:** say every failed check, and pin the playbook copy ([#5159](https://github.com/yonatangross/orchestkit/issues/5159)) ([b217581](https://github.com/yonatangross/orchestkit/commit/b217581df8d95ca11fc22c6fad81a226133ae0da))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump @biomejs/biome ([#5153](https://github.com/yonatangross/orchestkit/issues/5153)) ([e13e469](https://github.com/yonatangross/orchestkit/commit/e13e469653e2b6ee78faa89c8c91c7a7d9fda803))",
+          "**deps-dev:** bump @sanity/client ([#5154](https://github.com/yonatangross/orchestkit/issues/5154)) ([f9ba639](https://github.com/yonatangross/orchestkit/commit/f9ba6392e8585f5ed926613ea31a6d225bc89885))",
+          "**deps:** bump @anthropic-ai/sdk ([#5151](https://github.com/yonatangross/orchestkit/issues/5151)) ([e2b069f](https://github.com/yonatangross/orchestkit/commit/e2b069fcc76f6a7f273223aac83c81f3c4e1ee38))",
+          "**deps:** bump @modelcontextprotocol/sdk ([#5152](https://github.com/yonatangross/orchestkit/issues/5152)) ([732b781](https://github.com/yonatangross/orchestkit/commit/732b781b0023f3952fd7c0b005c6371a2d1dfcb3))",
+          "**deps:** bump the npm-minor-patch group in /docs/site with 7 updates ([#5155](https://github.com/yonatangross/orchestkit/issues/5155)) ([6b96dc5](https://github.com/yonatangross/orchestkit/commit/6b96dc50fd80e2c9429940da04dbe0822d38d9dd))",
+          "**traffic:** snapshot week of 2026-11-02 ([#5160](https://github.com/yonatangross/orchestkit/issues/5160)) ([0f3db00](https://github.com/yonatangross/orchestkit/commit/0f3db00500814c0c6c07e4f6bb56abc752267c95))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**hooks:** stop naming the deleted dangerous-command-blocker ([#5157](https://github.com/yonatangross/orchestkit/issues/5157)) ([9f9fd4e](https://github.com/yonatangross/orchestkit/commit/9f9fd4e404d4fbf6ab93e4ec0db0cf7610ade873))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.6",
     "date": "2026-11-09",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6",

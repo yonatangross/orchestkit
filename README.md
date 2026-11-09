@@ -664,6 +664,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.7](https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7)** · 2026-11-09
+
+- **ci-sentinel:** match the skill to the locked-down dispatch (#5156)
+- **ci-sentinel:** say every failed check, and pin the playbook copy (#5159)
+- **deps-dev:** bump @biomejs/biome (#5153)
+- **deps-dev:** bump @sanity/client (#5154)
+- **deps:** bump @anthropic-ai/sdk (#5151)
+- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.10.6](https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6)** · 2026-11-09
 
 - **ci-sentinel:** refresh drifted skill text (#5147)
@@ -711,12 +720,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs-site:** upload source maps to PostHog at build time (#5082)
 - **hooks:** count every frontmatter hook handler (#5079)
 - **release:** drop stable description counts and give the scan fetch its own budget (#5081)
-
-**[v10.9.1](https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1)** · 2026-11-05
-
-- **ci:** pin ruff, and clear SIM102 in circuit-breaker (#5080)
-- **docs-site:** serve missing /lab pages as static HTML, not the app shell (#5075)
-- stamp the README hook counts from one source (#5076), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
