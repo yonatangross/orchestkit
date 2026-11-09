@@ -29,6 +29,8 @@ type MockPh = {
 	capture: ReturnType<typeof vi.fn>;
 	identify: ReturnType<typeof vi.fn>;
 	reset: ReturnType<typeof vi.fn>;
+	get_distinct_id: () => string;
+	get_property: (name: string) => unknown;
 	startSessionRecording: ReturnType<typeof vi.fn>;
 	stopSessionRecording: ReturnType<typeof vi.fn>;
 };
@@ -42,7 +44,15 @@ function bootMock() {
 	lastPh = null;
 	vi.doMock("posthog-js", () => {
 		loads += 1;
+		// Identity the way posthog-js keeps it: reset() always mints a new
+		// distinct_id, and a new $device_id only with reset(true) or
+		// reset({ resetDeviceID: true }).
+		let generation = 0;
+		let distinctId = "anon-0";
+		let deviceId = "device-0";
 		const ph = {
+			get_distinct_id: vi.fn(() => distinctId),
+			get_property: vi.fn((name: string) => (name === "$device_id" ? deviceId : undefined)),
 			init: vi.fn((key: string, opts: Record<string, unknown>) => {
 				initKeys.push(key);
 				lastInitOpts = opts;
@@ -55,7 +65,13 @@ function bootMock() {
 			capture: vi.fn(),
 			captureException: vi.fn(),
 			identify: vi.fn(),
-			reset: vi.fn(),
+			reset: vi.fn((options?: boolean | { resetDeviceID?: boolean }) => {
+				generation += 1;
+				distinctId = `anon-${generation}`;
+				if (options === true || (typeof options === "object" && options.resetDeviceID)) {
+					deviceId = `device-${generation}`;
+				}
+			}),
 			startSessionRecording: vi.fn(),
 			stopSessionRecording: vi.fn(),
 		};
@@ -157,6 +173,18 @@ describe("PostHog consent gate", () => {
 		expect(order(phMock().set_config)).toBeLessThan(order(phMock().opt_in_capturing));
 		// The replay gate follows consent as before: on a reference page it starts now.
 		expect(phMock().startSessionRecording).toHaveBeenCalledTimes(1);
+	});
+
+	it("Allow gives a fresh identity: distinct_id and $device_id both differ from the cookieless ones", async () => {
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const cookielessDistinct = phMock().get_distinct_id();
+		const cookielessDevice = phMock().get_property("$device_id");
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("accepted");
+		await vi.waitFor(() => expect(phMock().opt_in_capturing).toHaveBeenCalledTimes(1));
+		expect(phMock().get_distinct_id()).not.toBe(cookielessDistinct);
+		expect(phMock().get_property("$device_id")).not.toBe(cookielessDevice);
 	});
 
 	it("Decline stops the cookieless client and never identifies or upgrades", async () => {
