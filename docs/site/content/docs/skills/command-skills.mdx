@@ -57,7 +57,7 @@ Commits, pull requests, reviews, and failing CI runs.
 | [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. | medium | `/ork:create-pr [title]` |
 | [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
 | [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
-| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Manually dispatched classifier for every open PR with red required checks: runs ci-debug headless, posts a collapsed verdict per PR. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
+| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
 
 ---
 

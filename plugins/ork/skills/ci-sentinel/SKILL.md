@@ -2,7 +2,7 @@
 name: ci-sentinel
 license: MIT
 compatibility: "Claude Code 2.1.277+ (uses --permission-mode + --no-session-persistence for headless GHA runs; --bare was tried but doesn't honor ANTHROPIC_API_KEY in CC 2.1.143 — see SKILL body for the trade-off)."
-description: "Manually dispatched classifier for every open PR with red required checks: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug."
+description: "Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug."
 argument-hint: "[install|status|enable|disable]"
 context: fork
 # user-typed commands stay interactive; CC backgrounds forks by default (#3093)
@@ -33,7 +33,8 @@ Runs the `/ci-debug` playbook classification over every red PR in one dispatch, 
    ▶️ manual workflow_dispatch (no schedule, by policy)
         │
         ▼
-   📥 gh pr list → every open PR with a FAILURE check, any author (max_prs, default 10)
+   📥 gh pr list (newest 50 open) → each with a FAILURE check, any author,
+      required or not (first max_prs, default 10)
         │
         ▼
    🤖 for each PR (skipping those already commented at this SHA):
@@ -95,7 +96,7 @@ The workflow is intentionally configured via in-file env vars (not workflow inpu
 
 The first design used `claude -p --bare` for a minimal load. The first real dispatch showed `--bare` does not honor `ANTHROPIC_API_KEY`, `--settings.apiKey` or `--settings.apiKeyHelper`: every call returned `"Not logged in · Please run /login"`, reproduced locally against several settings shapes. So the workflow does not use it.
 
-What gives the minimal load today is the dispatch envelope below: `--safe-mode` loads no hooks or plugins from the checkout, `--strict-mcp-config` loads no MCP server, and `--tools ""` loads no tools. `--bare` would add nothing on top of those, so there is nothing to revert to.
+What gives the minimal load today is the dispatch envelope below: `--safe-mode` loads no hooks or plugins from the checkout, `--strict-mcp-config` loads no MCP server, and `--tools ""` loads no tools. Whether `--bare` would trim anything more on top of those is not measured; it stays out because of the auth failure above.
 
 ### Dispatch envelope (M146-6 / #1849)
 
@@ -210,6 +211,8 @@ Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sw
 - **`ci-sentinel enable`** / **`disable`**: turn the workflow on or off with `gh workflow enable ci-sentinel.yml` or `gh workflow disable ci-sentinel.yml`. Never add an `on.schedule` block.
 
 The dispatched workflow run itself does **not** invoke this skill: the workflow calls `claude -p` directly with the `/ci-debug` playbook inlined in the prompt and no tools (headless mode, not `--bare`, which was dropped over the auth failure documented in "Why no --bare" above). This skill is for the human admin actions around the sentinel.
+
+That inlined playbook is a second copy: a one-line summary of each `/ci-debug` pattern, on the line of the `prompt=` text that starts "Walk these patterns". `tests/ci/test-ci-sentinel-playbook-sync.sh` fails when the copy and the `/ci-debug` table differ in count, numbering or order, so a pattern added to `/ci-debug` needs its line added there too.
 
 > **The harness backs propose-don't-apply:** Scheduled-task and webhook trigger deliveries classify as **task notifications**, not keyboard input — so a delivery can no longer approve a pending action or set the session title in auto mode. If you ever run the sentinel inside a live auto-mode session (rather than the headless `-p` workflow), a triggered re-run can no longer auto-approve a fix prompt. That closes the trigger-delivery vector at the harness layer. It does **not** change the headless dispatch path: there, the model runs with no tools and no GitHub token in its process, inside a job whose token is read-only, and only the model-free `post` job holds `pull-requests: write` + `issues: write` (#5014). See the dispatch-envelope note above.
 
