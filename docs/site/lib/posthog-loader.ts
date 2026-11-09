@@ -9,8 +9,9 @@
 //   "accepted"     the consented client #5098 built: persistent storage,
 //                  identified_only person profiles, replay gate, mirrored
 //                  events. A cookieless client already running is upgraded in
-//                  place: reset() first, so the cookieless id never reaches
-//                  persistent storage and the two cannot be matched.
+//                  place: reset({ resetDeviceID: true }) first, so neither the
+//                  cookieless distinct_id nor its $device_id reaches persistent
+//                  storage and the two phases cannot be matched.
 //   "declined"     nothing is imported. A client already running stops
 //                  capturing. Decline is how a visitor objects to the
 //                  cookieless count (legitimate interest, see /privacy).
@@ -141,8 +142,10 @@ export function startPostHog(
 		if (choice === "accepted") {
 			if (mode === "consented") return;
 			// Upgrade in place. reset() runs while persistence is still memory, so
-			// the id minted for the cookieless count is dropped, never saved.
-			client.reset();
+			// the ids minted for the cookieless count are dropped, never saved.
+			// resetDeviceID is required: a bare reset() mints a new distinct_id
+			// but keeps $device_id, which would link the two phases.
+			client.reset({ resetDeviceID: true });
 			client.set_config({
 				persistence: CONSENTED_PERSISTENCE,
 				// What instrumentation-client.ts passes for the consented client.
