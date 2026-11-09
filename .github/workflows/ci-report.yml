@@ -5,8 +5,17 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+    # Not a required check. On PRs it runs only when its coverage inputs
+    # change; push to main/dev, merge queues and the nightly run cover the
+    # rest (tests/unit/test-ci-pr-scope.sh).
+    paths:
+      - 'src/hooks/**'
+      - 'scripts/generate-ci-report.ts'
+      - '.github/workflows/ci-report.yml'
   merge_group:
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
 
 permissions: {}
 
