@@ -40,7 +40,7 @@ The dispatcher operates in three phases:
 | `affected-tests-finder` | Suggests relevant tests to run based on changed files |
 
 <Callout type="info">
-Security-critical hooks (`dangerous-command-blocker`, `compound-command-validator`) are **not** part of this dispatcher. They run as standalone entries to ensure they can block before any advisory logic executes.
+Security checks are **not** part of this dispatcher. Destructive commands are denied by the operator's `permissions.deny` rules (written by `/ork:setup`), and `network-egress-guard` runs earlier inside `pretool/bash/sync-bash-dispatcher`, so it can block before any advisory logic executes.
 </Callout>
 
 ## Token Budget

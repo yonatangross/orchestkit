@@ -6,10 +6,10 @@
     "visualize-plan": 10,
     "ci-debug": 10,
     "review-pr": 10,
-    "page-serve": 8,
-    "glyph": 8,
+    "page-serve": 10,
+    "glyph": 10,
     "expect": 10,
-    "auto": 7,
+    "auto": 10,
     "verify": 10
   }
 }

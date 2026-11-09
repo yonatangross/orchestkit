@@ -120,6 +120,13 @@ for (const [name, markers] of Object.entries(BODY_LOADERS)) {
       failures.push(`src/skills/${name}/SKILL.md: body lacks \`${marker}\`, so the old hook's context is lost (#4683)`);
     }
   }
+  // With no event name the output guard treats the step as an unknown event and
+  // strips additionalContext, so the loader runs and prints nothing.
+  for (const line of body.split('\n')) {
+    if (/^echo .*run-hook\.mjs" skill\//.test(line) && !line.includes('"hook_event_name"')) {
+      failures.push(`src/skills/${name}/SKILL.md: body loader sends no hook_event_name, so its context is stripped: ${line}`);
+    }
+  }
 }
 
 // fix-issue is the exception to the loader map: skill/issue-context-loader

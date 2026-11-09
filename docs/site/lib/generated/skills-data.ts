@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "be97176a3b56822d1ebb210853b57e01b2f3ff00582c1ade38623c7579414bfa",
+    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "1db5ef7638ce79f38bf20f3044b257722faa8297de6e7a95df4b1e8db7b5c18a",
+    "sha256": "0f804fed2371fbafc2c94f47d34f51e602b11a2dd8826e18cf3660524ef785fa",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -940,9 +940,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for org-wide sweeps (use status) or app test failures.",
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures.",
     "version": "0.2.0",
-    "sha256": "1380f1bcc55f7ab0a99dfad996726bef5c26f4a9262aed7fc80d32cf858ee2e7",
+    "sha256": "83ea2a8b310efa5272c6066fd6a32b5eeff858e394a7192cd301c1b294c5aea4",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -973,9 +973,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-sentinel": {
     "name": "ci-sentinel",
-    "description": "Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. Proposes only, never pushes. Use to automate recurring CI triage.",
+    "description": "Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug.",
     "version": "0.1.0",
-    "sha256": "1f487437118148d36cd94b27791e6a46413920405fe65a2d5ef448bccb285e4d",
+    "sha256": "b19d24509d2d9737d73258275e890587ae5681d32741e7aeb1b693dbc9f36fe2",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -2411,7 +2411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research).",
     "version": "2.6.0",
-    "sha256": "bdd63a7b8f04c358dc1d304566b27f3b83973a1e9179af3f6334d755c9415ec7",
+    "sha256": "5c0e8517a6d43a7b05857c6e6886bacc54e38f679f72e7017b64d84af143efd0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2689,7 +2689,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, comparisons, rankings, pipelines or show-me-visually asks. Not for definitions. For a full plan playground, use visualize-plan.",
     "version": "3.2.0",
-    "sha256": "97ded4e1cd00d7ab160095ba80fee7da7fe08c5d4b27ddddec0183bc6059b201",
+    "sha256": "32cccff7fbc78c72d88ef191e1b7eac605a65048c2810579659231a310e6dff0",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -2849,7 +2849,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code.",
     "version": "2.8.0",
-    "sha256": "5edc4eda99608d60817dbd130d606ae752314aa2143c4b6b351946b47d3408d6",
+    "sha256": "cd0af6364e7a962e320224696834b9843e7ed41a2cdadfb67bbf45cedc9c1277",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3629,9 +3629,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "page-serve": {
     "name": "page-serve",
-    "description": "Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. Use when an agent made a page a person should open: playgrounds, explainers, previews.",
+    "description": "Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. Use when an agent made a page a person should open. Not for app dev servers (use dev).",
     "version": "1.0.0",
-    "sha256": "5e611992f9a6509c82fa887a73e06335b8b5ae8f24617f189ddd50f4e4aa8a0e",
+    "sha256": "da6f6bad0a6140c48de15e5aa79de943480a75de2a371410916965700f922fe0",
     "author": "OrchestKit",
     "tags": [
       "page-serve",
@@ -4658,7 +4658,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes.",
     "version": "2.1.0",
-    "sha256": "47071d72372c9c9e0323a856f1bb8dfd21426e3fed1cf6c07a1c2076657d797c",
+    "sha256": "24b5ad8968ed85dab03c7dc6ad063298959b18223e569f3351f813ae7c450b6d",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -5374,7 +5374,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "9c3556f96acfb1fe7c7835a50f53344cc156c3fa81944b6db7e5f65dbb76e08f",
+    "sha256": "b38b8b22bd97f5dc2aabd6bce322d94c8319da00119e0be05e0f76091b0ccfe8",
     "author": "OrchestKit",
     "tags": [
       "visualization",

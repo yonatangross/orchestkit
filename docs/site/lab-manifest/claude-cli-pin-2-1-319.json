@@ -1,0 +1,11 @@
+{
+  "slug": "claude-cli-pin-2-1-319",
+  "source": "docs/chore--5023-cli-pin/index.html",
+  "title": "Five workflows move to Claude Code 2.1.319",
+  "description": "Pick a workflow and compare which Claude Code CLI it installed before and after the pin moved.",
+  "tags": [
+    "ci",
+    "models"
+  ],
+  "date": "2026-11-08"
+}

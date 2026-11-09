@@ -54,7 +54,7 @@ jobs:
           # Pinned to the supported floor (2.1.251, shared/cc-support.json) instead of @latest —
           # reproducible CI and no unpinned supply-chain pull. The `claude ultrareview --help`
           # guard below still skips gracefully if the subcommand is absent at this version.
-          npm install -g @anthropic-ai/claude-code@2.1.251
+          npm install -g @anthropic-ai/claude-code@2.1.319
           claude --version || echo "::warning::claude --version failed; will check ultrareview availability"
 
       - name: Verify ultrareview subcommand is available

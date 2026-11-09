@@ -148,7 +148,7 @@ ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")
 ```
 
 Record what is available as `AVAILABLE`: **ascii** always (the floor); **playground** if the
-`playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above
+`playground` skill is installed (the separate playground plugin, not part of ork); **infographic** if `studio_create` resolved above
 (server reachable + `nlm login` done). Orthogonally, if the **`/dataviz`** skill resolved, upgrade
 the chart *marks* in the non-ASCII formats via its form-heuristic + validated palette; if it did not
 resolve, charts stay ASCII-card — dataviz is never required.
@@ -359,7 +359,7 @@ Available when user selects "Drill deeper". Load `Read("skills/visualize-plan/re
 
 | Principle | Application |
 |-----------|-------------|
-| **Progressive disclosure** | Tier 1 header always, sections on request |
+| **Progressive disclosure** | Tier 1 header always, then all six sections |
 | **Judgment over decoration** | Every section answers a reviewer question |
 | **Precise over estimated** | Use scripts for file/line counts |
 | **Honest uncertainty** | Confidence levels, pre-mortems, tradeoff costs |
@@ -420,7 +420,8 @@ Done means all of these hold:
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
 - **Zero blocking questions before the first render.** Source is auto-detected (asked only when
   genuinely ambiguous), sections default to all, and format is chosen after the ASCII floor is
-  already on screen — at most one question per run, none under `--quick`.
+  already on screen: at most one question before the first render (the source, only when
+  genuinely ambiguous) and one after it (the next step), none under `--quick`.
 - A playground output started from `plan-dashboard.template.html` (or the living-plan / player /
   board exemplar the §0 routing rule selected) — never hand-rolled CSS — and passed the §10
   self-audit including the DASHBOARD rows.

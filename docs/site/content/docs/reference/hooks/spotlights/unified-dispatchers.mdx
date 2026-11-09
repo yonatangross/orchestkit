@@ -59,7 +59,7 @@ These dispatchers are launched via `background-worker.mjs` as detached processes
 - Cleans up orphaned temp files older than 10 minutes
 
 <Callout type="info">
-Security-critical hooks (`dangerous-command-blocker`, `compound-command-validator`, `file-guard`) are **never** part of a dispatcher. They run as standalone entries to guarantee they can block before any other logic.
+Destructive commands are denied by the operator's `permissions.deny` rules (written by `/ork:setup`), which Claude Code enforces before any hook runs. The blocking hook checks that remain, such as `network-egress-guard`, run inside the synchronous `pretool/bash/sync-bash-dispatcher`, ahead of its advisory dispatcher.
 </Callout>
 
 ## Why Not One Giant Dispatcher?

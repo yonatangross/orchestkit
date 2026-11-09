@@ -18,6 +18,92 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.10.7",
+    "date": "2026-11-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci-sentinel:** match the skill to the locked-down dispatch ([#5156](https://github.com/yonatangross/orchestkit/issues/5156)) ([d7417e1](https://github.com/yonatangross/orchestkit/commit/d7417e1a513324fde6e270ad0c80d8e969a22c0b))",
+          "**ci-sentinel:** say every failed check, and pin the playbook copy ([#5159](https://github.com/yonatangross/orchestkit/issues/5159)) ([b217581](https://github.com/yonatangross/orchestkit/commit/b217581df8d95ca11fc22c6fad81a226133ae0da))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump @biomejs/biome ([#5153](https://github.com/yonatangross/orchestkit/issues/5153)) ([e13e469](https://github.com/yonatangross/orchestkit/commit/e13e469653e2b6ee78faa89c8c91c7a7d9fda803))",
+          "**deps-dev:** bump @sanity/client ([#5154](https://github.com/yonatangross/orchestkit/issues/5154)) ([f9ba639](https://github.com/yonatangross/orchestkit/commit/f9ba6392e8585f5ed926613ea31a6d225bc89885))",
+          "**deps:** bump @anthropic-ai/sdk ([#5151](https://github.com/yonatangross/orchestkit/issues/5151)) ([e2b069f](https://github.com/yonatangross/orchestkit/commit/e2b069fcc76f6a7f273223aac83c81f3c4e1ee38))",
+          "**deps:** bump @modelcontextprotocol/sdk ([#5152](https://github.com/yonatangross/orchestkit/issues/5152)) ([732b781](https://github.com/yonatangross/orchestkit/commit/732b781b0023f3952fd7c0b005c6371a2d1dfcb3))",
+          "**deps:** bump the npm-minor-patch group in /docs/site with 7 updates ([#5155](https://github.com/yonatangross/orchestkit/issues/5155)) ([6b96dc5](https://github.com/yonatangross/orchestkit/commit/6b96dc50fd80e2c9429940da04dbe0822d38d9dd))",
+          "**traffic:** snapshot week of 2026-11-02 ([#5160](https://github.com/yonatangross/orchestkit/issues/5160)) ([0f3db00](https://github.com/yonatangross/orchestkit/commit/0f3db00500814c0c6c07e4f6bb56abc752267c95))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**hooks:** stop naming the deleted dangerous-command-blocker ([#5157](https://github.com/yonatangross/orchestkit/issues/5157)) ([9f9fd4e](https://github.com/yonatangross/orchestkit/commit/9f9fd4e404d4fbf6ab93e4ec0db0cf7610ade873))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.10.6",
+    "date": "2026-11-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci-sentinel:** refresh drifted skill text ([#5147](https://github.com/yonatangross/orchestkit/issues/5147)) ([fed8995](https://github.com/yonatangross/orchestkit/commit/fed8995983233d769478029b111537cc0563676d))",
+          "**ci:** remove the ci-sentinel ceiling that could never fire ([#5141](https://github.com/yonatangross/orchestkit/issues/5141)) ([8f3a316](https://github.com/yonatangross/orchestkit/commit/8f3a3168f93fbeae92ae2fcdadbb790fa3341344)), closes [#5138](https://github.com/yonatangross/orchestkit/issues/5138)",
+          "**ci:** tell claude-triage the repo so it stops running out of turns ([#5143](https://github.com/yonatangross/orchestkit/issues/5143)) ([2615499](https://github.com/yonatangross/orchestkit/commit/2615499167530d43f93deccf682128ed2d45394e)), closes [#5142](https://github.com/yonatangross/orchestkit/issues/5142)",
+          "**docs:** serve the server card media type when a client asks ([#5125](https://github.com/yonatangross/orchestkit/issues/5125)) ([5018624](https://github.com/yonatangross/orchestkit/commit/50186247819de1bec0f2ce839f689916fdd56761))",
+          "**secrets-veil:** keep image URLs on named media hosts readable ([#5146](https://github.com/yonatangross/orchestkit/issues/5146)) ([83dab3d](https://github.com/yonatangross/orchestkit/commit/83dab3d5db15c1b3a4c84c8b04065e91cf6d9e62))",
+          "**skills:** say ci-sentinel keeps its own copy of the ci-debug patterns ([#5144](https://github.com/yonatangross/orchestkit/issues/5144)) ([d04f582](https://github.com/yonatangross/orchestkit/commit/d04f582abd615e836231542a9e492f372c360647)), closes [#5139](https://github.com/yonatangross/orchestkit/issues/5139)",
+          "**skills:** say ci-sentinel runs by manual dispatch ([#5137](https://github.com/yonatangross/orchestkit/issues/5137)) ([7e4b97c](https://github.com/yonatangross/orchestkit/commit/7e4b97c2dc5b2f48618aafee7cca252fd7c83f1f)), closes [#5132](https://github.com/yonatangross/orchestkit/issues/5132)"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**ci:** move five workflows to Claude Code 2.1.319 ([#5135](https://github.com/yonatangross/orchestkit/issues/5135)) ([54ed98e](https://github.com/yonatangross/orchestkit/commit/54ed98e94f0100f167439cc2bda7450b8fe670d2)), closes [#5023](https://github.com/yonatangross/orchestkit/issues/5023)",
+          "**skills:** skill quality round 6, the loop stops at 10 ([#5136](https://github.com/yonatangross/orchestkit/issues/5136)) ([a110fb5](https://github.com/yonatangross/orchestkit/commit/a110fb5ba19371844a9f563cc2578f1a31829b08))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.10.5",
+    "date": "2026-11-08",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "Codex hook paths and docs MCP query validation ([#5119](https://github.com/yonatangross/orchestkit/issues/5119)) ([dbbeb46](https://github.com/yonatangross/orchestkit/commit/dbbeb469a695a5469f1c84c6c24b2a00cc271e9e))",
+          "**hooks:** state machine audit bundle ([#5117](https://github.com/yonatangross/orchestkit/issues/5117)) ([2362df3](https://github.com/yonatangross/orchestkit/commit/2362df38e95bdda2b3d69396db8158a61cb857a3))",
+          "**skills:** bill long Haiku 5.5 prompts on the higher rate card ([#5124](https://github.com/yonatangross/orchestkit/issues/5124)) ([aad6cd1](https://github.com/yonatangross/orchestkit/commit/aad6cd1b9cd35126376c3bdcde6786ffeac7c965))",
+          "**skills:** send the event name from fork skill body loaders ([#5122](https://github.com/yonatangross/orchestkit/issues/5122)) ([9bf9171](https://github.com/yonatangross/orchestkit/commit/9bf9171c67e1d2e36b49ff1b3a21afc50450f4b6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**skills:** skill quality round 5, pass the fitness checklist ([#5104](https://github.com/yonatangross/orchestkit/issues/5104)) ([6af168a](https://github.com/yonatangross/orchestkit/commit/6af168aa8f3839f431ac0c428a6e1032042f1f43))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.10.4",
     "date": "2026-11-08",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4",

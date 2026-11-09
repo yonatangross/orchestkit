@@ -405,7 +405,19 @@ jobs:
           claude --version
 
       - name: Run restricted smoke lane
+        env:
+          SMOKE_ARTIFACT_DIR: ${{ runner.temp }}/restricted-smoke
         run: bash tests/ci/restricted-smoke/run-restricted-smoke.sh ./plugins/ork
+
+      # #4764: the stub log shows which request offered Bash or WebFetch.
+      - name: Upload restricted smoke logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: restricted-smoke-logs
+          path: ${{ runner.temp }}/restricted-smoke
+          retention-days: 14
+          if-no-files-found: ignore
 
       # #3835: the divergence purge stands on CC's native permissions.deny
       # holding under --dangerously-skip-permissions with NO hooks loaded.

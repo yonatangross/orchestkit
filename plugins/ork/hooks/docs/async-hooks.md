@@ -212,7 +212,7 @@ One async hook = one task:
 ```json
 // Wrong: Security check must block!
 {
-  "command": ".../pretool/bash/dangerous-command-blocker",
+  "command": ".../pretool/bash/sync-bash-dispatcher",
   "async": true  // DANGEROUS - won't block execution
 }
 ```

@@ -19,7 +19,7 @@ description: "Hooks triggered on PreToolUse events (21 hooks)."
 | `webhook-forwarder` | `mcp__context7__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `memory-validator` | `mcp__memory__*` | Blocks | Validates memory operations to prevent accidental data loss |
 | `webhook-forwarder` | `mcp__memory__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
-| `sync-task-dispatcher` | `Agent` | Injects | Consolidates 3 Task PreToolUse hooks into a single dispatcher. |
+| `sync-task-dispatcher` | `Agent` | Injects | Consolidates the Task PreToolUse hooks in TASK_HOOKS into a single dispatcher, security checks first. |
 | `route-observer` | `Agent` | Fire-and-forget | Route Observer: async PreToolUse Agent hook (#4297). |
 | `webhook-forwarder` | `Agent` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `tldr-summary` | `Read` | Injects | Intercepts Read calls on large files (&gt;500 lines or &gt;2000 tokens) and injects a structural summary as additionalContext. Claude sees the summary as a roadmap alongside the full file content. |

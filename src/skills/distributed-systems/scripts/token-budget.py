@@ -418,7 +418,15 @@ class TokenBudgetGuard:
             "gpt-5-mini": {"input": 0.15, "output": 0.60},
         }
 
+        # A prompt over the limit bills the whole request, output included, on the higher card.
+        LONG_CONTEXT = {
+            "claude-haiku-5-5": {"above": 100_000, "input": 0.50, "output": 2.50},
+        }
+
         prices = PRICING.get(self.model, {"input": 1.0, "output": 3.0})
+        long_context = LONG_CONTEXT.get(self.model)
+        if long_context is not None and input_tokens > long_context["above"]:
+            prices = long_context
 
         return (input_tokens / 1_000_000) * prices["input"] + (output_tokens / 1_000_000) * prices[
             "output"

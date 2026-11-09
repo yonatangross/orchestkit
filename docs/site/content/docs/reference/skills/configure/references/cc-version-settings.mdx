@@ -390,7 +390,7 @@ CC 2.1.116 closes a prior escape where sandbox auto-allow could bypass the dange
 
 Before 2.1.116, agent-scoped hooks (defined in `src/agents/<name>.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent <name>`.
 
-**Impact for OrchestKit**: All 14 agent hooks in OrchestKit are defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing is a **net positive**, users who pick an OrchestKit agent as their default get the same safety rails that subagent runs get.
+**Impact for OrchestKit** (as of 2.1.116; #3461 later removed every agent-scoped hook, and dangerous-command-blocker was removed in #3841): All 14 agent hooks in OrchestKit were defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing was a **net positive**: users who picked an OrchestKit agent as their default get the same safety rails that subagent runs get.
 
 **No action required.** The audit in PR "chore(compat): CC 2.1.116 adoption" confirmed all existing agent hooks are main-thread safe.
 

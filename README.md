@@ -664,6 +664,32 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.10.7](https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7)** · 2026-11-09
+
+- **ci-sentinel:** match the skill to the locked-down dispatch (#5156)
+- **ci-sentinel:** say every failed check, and pin the playbook copy (#5159)
+- **deps-dev:** bump @biomejs/biome (#5153)
+- **deps-dev:** bump @sanity/client (#5154)
+- **deps:** bump @anthropic-ai/sdk (#5151)
+- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
+
+**[v10.10.6](https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6)** · 2026-11-09
+
+- **ci-sentinel:** refresh drifted skill text (#5147)
+- **ci:** remove the ci-sentinel ceiling that could never fire (#5141), closes [#5138](https://github.com/yonatangross/orchestkit/issues/5138)
+- **ci:** tell claude-triage the repo so it stops running out of turns (#5143), closes [#5142](https://github.com/yonatangross/orchestkit/issues/5142)
+- **docs:** serve the server card media type when a client asks (#5125)
+- **secrets-veil:** keep image URLs on named media hosts readable (#5146)
+- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
+
+**[v10.10.5](https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5)** · 2026-11-08
+
+- Codex hook paths and docs MCP query validation (#5119)
+- **hooks:** state machine audit bundle (#5117)
+- **skills:** bill long Haiku 5.5 prompts on the higher rate card (#5124)
+- **skills:** send the event name from fork skill body loaders (#5122)
+- **skills:** skill quality round 5, pass the fitness checklist (#5104)
+
 **[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
 
 - **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
@@ -694,20 +720,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs-site:** upload source maps to PostHog at build time (#5082)
 - **hooks:** count every frontmatter hook handler (#5079)
 - **release:** drop stable description counts and give the scan fetch its own budget (#5081)
-
-**[v10.9.1](https://github.com/yonatangross/orchestkit/compare/v10.9.0...v10.9.1)** · 2026-11-05
-
-- **ci:** pin ruff, and clear SIM102 in circuit-breaker (#5080)
-- **docs-site:** serve missing /lab pages as static HTML, not the app shell (#5075)
-- stamp the README hook counts from one source (#5076), closes [#5067](https://github.com/yonatangross/orchestkit/issues/5067)
-
-**[v10.9.0](https://github.com/yonatangross/orchestkit/compare/v10.8.6...v10.9.0)** · 2026-11-05
-
-- **release:** sync plugins/ork to the orchestkit-plugin dist repo (#5070)
-
-**[v10.8.6](https://github.com/yonatangross/orchestkit/compare/v10.8.5...v10.8.6)** · 2026-11-05
-
-- **skills:** Haiku 5.5 100K cost tiers and the AWS provider line (#5064)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

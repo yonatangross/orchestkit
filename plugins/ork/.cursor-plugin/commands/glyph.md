@@ -48,14 +48,14 @@ Given a topic (or the conversation, when none is given):
    | ranked list, scores, counts | table + bar meters |
    | over time | sparkline or milestone track |
    | triage open issues, what is left, categorize the backlog | **triage page** (`templates/triage.html`). Not an inline render. |
-| explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`skills/glyph/references/js-art.md`). Chat stays ASCII. |
+   | explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`skills/glyph/references/js-art.md`). Chat stays ASCII. |
 
 3. **Emit inline in the reply, except the triage page.** Never write a file unless the user asked for one. The triage row above is the exception: that answer is `templates/triage.html`, not an inline render. Every other answer stays in the reply.
 4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `skills/glyph/rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
 5. **Stay inside the budget: ONE render per reply, up to about 50 lines, every line 76 cells or fewer.** Two competing renders in one reply is flooding. Above 50 lines it is a page, not a chat answer. The 2026-08-09 budget (12 lines, 40 percent) over-corrected and was reset by operator word on 2026-09-17; the history is in `skills/glyph/rules/visual-style.md`.
 6. **Verdict first, then the render, then what the numbers told me.** One prose line states the point before the render. After the render, two or three bold-led bullets say what is not obvious from the chart. If the reader has to parse the render to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
-8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
+8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and the narrow form of the same data fits in 72 (GH-4159; the OrchestKit repo keeps a reference renderer for it, render-ascii.sh, which does not ship with the plugin).
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or any file output other than the triage page, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline. The triage page stays here.
 
@@ -241,8 +241,8 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Rule | Description |
 |------|-------------|
 | Font | Always monospace; box-drawing requires fixed-width |
-| Weight | Standard for normal, Heavy for emphasis, Double for titles |
-| Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
+| Weight | `default` for normal, `emphasis` for focus, `title` for titles |
+| Arrows | `──▶` for flow; `->` or `│` with `v`/`^` in the `portable` set |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
 | Width | 76 cells or fewer in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |

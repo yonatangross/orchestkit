@@ -50,6 +50,81 @@ export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
  */
 export const ANTHROPIC_ID_RE = /^(?:srvtoolu_01|toolu_01|msg_01|req_011C)[A-Za-z0-9]{18,26}$/;
 
+/**
+ * Media hosts whose image URLs stay readable (#5134). Exact, lower-case
+ * hostnames only: a whole CDN domain such as cloudfront.net is shared by
+ * everyone, so it is never listed.
+ */
+export const MEDIA_HOSTS: readonly string[] = ["d8j0ntlcm91z4.cloudfront.net"];
+
+const MEDIA_IMAGE_EXT_RE = /\.(?:png|jpe?g|webp|gif)$/;
+
+/**
+ * Characters allowed in the path of an exempt media URL: letters, digits and
+ * - . _ / only. Anything else (; @ \ : % + = ~ and so on) ends the path, and
+ * the URL is refused unless what follows is a boundary (#5134 review, Codex
+ * on 2136496a: a ';' path parameter let a signed URL through).
+ */
+function isMediaPathCode(c: number): boolean {
+  return (
+    (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) ||
+    c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ || c === 0x5f /* _ */
+  );
+}
+
+/**
+ * The exempt URL must be a whole white-space-delimited token (#5145 review
+ * round 4). Per-character edge lists kept leaking, because a URL parser keeps
+ * " < ` [ ] , ' ( ) and more inside an outer URL. So only white space or the
+ * ends of the text delimit it, and a quoted, bracketed or punctuated URL
+ * stays masked. Only ASCII space, tab, LF and CR count (#5146 review round
+ * 5): a URL parser keeps U+00A0, U+3000, U+2028 and other non-ASCII white
+ * space inside the URL, so a token touching one stays masked.
+ *
+ * Threat model (#5146 round 6, accepted residual): this judges lexical
+ * tokens and does not promise that a URL parser reads the same URL; a
+ * WHATWG parser strips tab, LF and CR, so it can join two tokens shown
+ * separately. Only the entropy layer is skipped, so named values and vendor
+ * prefixes still mask inside an exempt URL.
+ */
+function isMediaTokenEdge(text: string, at: number): boolean {
+  if (at < 0 || at >= text.length) return true;
+  const c = text.charCodeAt(at);
+  return c === 0x20 || c === 0x09 /* tab */ || c === 0x0a /* LF */ || c === 0x0d /* CR */;
+}
+
+/**
+ * Ranges of https image URLs on a named media host, ascending and disjoint.
+ * The entropy layer skips a run inside one; the named-value and vendor-prefix
+ * layers still apply. The whole URL must be scheme, exact host, and a path of
+ * [A-Za-z0-9._/-] ending in an image extension, and nothing else may share
+ * its white-space-delimited token. A
+ * query, fragment, path parameter, userinfo, backslash or percent-encoding
+ * refuses it, so a signed URL (Signature=, Expires=, Key-Pair-Id=) stays
+ * masked. Each search resumes past the last path, so the scan stays linear.
+ */
+function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
+  const ranges: Array<{ start: number; end: number }> = [];
+  for (const host of MEDIA_HOSTS) {
+    const prefix = `https://${host}/`;
+    let searchPos = 0;
+    while (true) {
+      const start = text.indexOf(prefix, searchPos);
+      if (start === -1) break;
+      const pathStart = start + prefix.length;
+      let scan = pathStart;
+      while (scan < text.length && isMediaPathCode(text.charCodeAt(scan))) scan++;
+      searchPos = Math.max(scan, start + 1);
+      if (!isMediaTokenEdge(text, start - 1) || !isMediaTokenEdge(text, scan)) continue;
+      const end = scan;
+      const ext = MEDIA_IMAGE_EXT_RE.exec(text.slice(Math.max(pathStart, end - 5), end));
+      if (ext !== null && end - ext[0].length > pathStart) ranges.push({ start, end });
+    }
+  }
+  if (MEDIA_HOSTS.length > 1) ranges.sort((a, b) => a.start - b.start);
+  return ranges;
+}
+
 /** True when the entropy layer must skip this whole token. */
 function isEntropyExempt(value: string): boolean {
   // First-character check before any regex: this runs on every scored run.
@@ -477,8 +552,20 @@ export function mask(text: string, table: MaskTable): MaskResult {
   if (entropy) {
     const tokenRe = new RegExp(`${ENTROPY_ALPHABET}{${entropy.minLength},}`, "g");
     let m: RegExpExecArray | null;
+    const mediaRanges = mediaUrlRanges(maskedText);
+    let mediaAt = 0;
     while ((m = tokenRe.exec(maskedText)) !== null) {
       const run = m[0];
+      // Runs arrive in ascending order, so the range pointer only moves forward.
+      while (mediaAt < mediaRanges.length && mediaRanges[mediaAt].end <= m.index) mediaAt++;
+      if (
+        mediaAt < mediaRanges.length &&
+        mediaRanges[mediaAt].start <= m.index &&
+        m.index + run.length <= mediaRanges[mediaAt].end
+      ) {
+        // an image URL on a named media host (#5134)
+        continue;
+      }
       if (SRI_VALUE_RE.test(run)) {
         // public integrity hash, never a secret
         continue;

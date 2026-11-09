@@ -57,7 +57,7 @@ Commits, pull requests, reviews, and failing CI runs.
 | [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. | medium | `/ork:create-pr [title]` |
 | [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
 | [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL>` |
-| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Daily headless classifier for every open PR with red required checks: runs ci-debug, posts a collapsed verdict comment, logs a ledger. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
+| [`/ork:ci-sentinel`](/docs/reference/skills/ci-sentinel) | Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. | medium | `/ork:ci-sentinel [install\|status\|enable\|disable]` |
 
 ---
 
@@ -96,7 +96,7 @@ Local dev URLs, served pages, and visual answers in chat.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:dev`](/docs/reference/skills/dev) | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. | medium | `/ork:dev [start\|stop\|status] [--share\|--funnel\|--live H]` |
-| [`/ork:page-serve`](/docs/reference/skills/page-serve) | Serves a rendered HTML page to a human at a stable https://NAME.localhost/ URL via portless, never a port, and tears it down on stop. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
+| [`/ork:page-serve`](/docs/reference/skills/page-serve) | Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. | low | `/ork:page-serve [path] [--name slug] [--screenshot\|--no-screenshot] \| stop [name\|--all] \| status [--json]` |
 | [`/ork:glyph`](/docs/reference/skills/glyph) | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. | low | `/ork:glyph [--chat\|--ask\|--page] [--eli5] [--decide] [--signoff] [topic-to-render]` |
 | [`/ork:visualize-plan`](/docs/reference/skills/visualize-plan) | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. | medium | `/ork:visualize-plan [plan-or-issue]` |
 
