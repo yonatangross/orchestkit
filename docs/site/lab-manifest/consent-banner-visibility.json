@@ -1,0 +1,11 @@
+{
+  "slug": "consent-banner-visibility",
+  "source": "docs/feat--consent-banner-visibility/index.html",
+  "title": "A consent banner people notice, without a dark pattern",
+  "description": "Pick a banner property and compare the orchestkit.dev consent banner before and after the visibility change.",
+  "tags": [
+    "analytics",
+    "accessibility"
+  ],
+  "date": "2026-11-09"
+}
