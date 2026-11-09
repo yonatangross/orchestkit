@@ -65,9 +65,9 @@
 #                 every other worktree at once, while printing a normal
 #                 "added N packages" success line.
 #
-# The dangerous-command-blocker hook denies `npm ci` when node_modules is a
-# symlink, in every permission mode. If you remove that guard, remove these
-# entries too.
+# Nothing blocks `npm ci` here today. The dangerous-command-blocker hook that
+# denied it when node_modules is a symlink was removed in #3841, and no
+# operator deny rule covers it, so the warning above is the only guard.
 
 set -euo pipefail
 

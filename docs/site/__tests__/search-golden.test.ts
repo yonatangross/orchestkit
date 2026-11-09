@@ -94,7 +94,6 @@ const ANY_OF: Array<[query: string, urls: string[]]> = [
     "cmd", // → command / slash-command
     [
       "/docs/skills/command-skills",
-      "/docs/hooks/spotlights/dangerous-command-blocker",
     ],
   ],
 ];

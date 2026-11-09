@@ -24,9 +24,8 @@ Your team needs JWT-based authentication for a FastAPI backend. The requirements
 | `test-generator` | Agent | Writes unit and integration tests |
 | `security-auditor` | Agent | Scans for OWASP vulnerabilities |
 | `code-quality-reviewer` | Agent | Style, patterns, complexity check |
-| `permissions.deny` rules | Operator settings | Deny destructive commands such as `rm -rf /` (written by `/ork:setup`, audited by `/ork:doctor`) |
+| `permissions.deny` rules | Operator settings | Deny destructive commands such as `rm -rf /` and edits to `.env` and key files (written by `/ork:setup`, audited by `/ork:doctor`) |
 | `auto-lint` | Hook | Formats code on save |
-| `file-guard` | Hook | Warns about sensitive files |
 | `skill-suggester` | Hook | Injects relevant reference skills |
 
 ---
@@ -252,9 +251,7 @@ Here is what happened invisibly during this workflow.
 | Hook | When | What It Did |
 |---|---|---|
 | `skill-suggester` | Step 1 prompt | Detected "JWT" and "authentication" keywords, injected `security-patterns` and `python-backend` reference skills into agent context |
-| `file-guard` | During coding | Warned when agent attempted to write `.env` with a JWT secret, redirected to `.env.example` |
 | `auto-lint` | After each file write | Ran `ruff format` on every Python file the agents created |
-| `git-validator` | Step 4 commit | Verified the branch name and checked for uncommitted secrets |
 | `security-command-audit` | Step 3 verify | Logged the security scan results to session metrics |
 
 ### Skills Auto-Injected

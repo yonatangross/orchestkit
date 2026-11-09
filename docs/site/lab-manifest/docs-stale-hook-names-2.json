@@ -1,0 +1,11 @@
+{
+  "slug": "docs-stale-hook-names-2",
+  "source": "docs/docs--5148-stale-hook-names-2/index.html",
+  "title": "Docs described file-guard, git-validator and five other hooks that no longer run",
+  "description": "Pick a page and compare what it said a hook does with what actually guards that case today.",
+  "tags": [
+    "docs",
+    "hooks"
+  ],
+  "date": "2026-11-08"
+}

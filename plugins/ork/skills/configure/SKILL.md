@@ -108,10 +108,10 @@ Categories available:
 
 ## Step 4: Configure Hooks
 
-**Safety Hooks (Always On):**
-- git-branch-protection
-- file-guard
-- redact-secrets
+**Safety (Always On):**
+- operator `permissions.deny` rules (written by `/ork:setup`, enforced by Claude Code)
+- network egress guard (DENY tier, inside the Bash dispatcher)
+- secret handler (PostToolUse output scan; logs only by default, `ORK_SECRET_HOOK=REDACT` to redact)
 
 **Toggleable Hooks:**
 - Productivity (auto-approve, logging)
