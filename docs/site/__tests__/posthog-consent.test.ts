@@ -27,8 +27,10 @@ type MockPh = {
 	opt_out_capturing: ReturnType<typeof vi.fn>;
 	set_config: ReturnType<typeof vi.fn>;
 	capture: ReturnType<typeof vi.fn>;
+	captureException: ReturnType<typeof vi.fn>;
 	identify: ReturnType<typeof vi.fn>;
 	reset: ReturnType<typeof vi.fn>;
+	config: Record<string, unknown>;
 	get_distinct_id: () => string;
 	get_property: (name: string) => unknown;
 	startSessionRecording: ReturnType<typeof vi.fn>;
@@ -51,17 +53,23 @@ function bootMock() {
 		let distinctId = "anon-0";
 		let deviceId = "device-0";
 		const ph = {
+			// Live config the way posthog-js keeps it: init copies the options,
+			// set_config merges and skips undefined values.
+			config: {} as Record<string, unknown>,
 			get_distinct_id: vi.fn(() => distinctId),
 			get_property: vi.fn((name: string) => (name === "$device_id" ? deviceId : undefined)),
 			init: vi.fn((key: string, opts: Record<string, unknown>) => {
 				initKeys.push(key);
 				lastInitOpts = opts;
+				ph.config = { ...opts };
 				const loaded = opts.loaded as ((p: unknown) => void) | undefined;
 				loaded?.(ph);
 			}),
 			opt_in_capturing: vi.fn(),
 			opt_out_capturing: vi.fn(),
-			set_config: vi.fn(),
+			set_config: vi.fn((next: Record<string, unknown>) => {
+				for (const [k, v] of Object.entries(next)) if (v !== undefined) ph.config[k] = v;
+			}),
 			capture: vi.fn(),
 			captureException: vi.fn(),
 			identify: vi.fn(),
@@ -173,6 +181,55 @@ describe("PostHog consent gate", () => {
 		expect(order(phMock().set_config)).toBeLessThan(order(phMock().opt_in_capturing));
 		// The replay gate follows consent as before: on a reference page it starts now.
 		expect(phMock().startSessionRecording).toHaveBeenCalledTimes(1);
+	});
+
+	it("before consent only $pageview is captured: no clicks, errors, heatmaps, vitals, pageleave or surveys", async () => {
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		// Every SDK feature that sends something other than $pageview is off.
+		expect(lastInitOpts).toMatchObject({
+			autocapture: false,
+			rageclick: false,
+			capture_exceptions: false,
+			capture_heatmaps: false,
+			capture_dead_clicks: false,
+			capture_performance: false,
+			capture_pageleave: false,
+			disable_surveys: true,
+		});
+		// Page views stay on (history_change under the 2026-01-30 defaults).
+		expect(lastInitOpts?.capture_pageview).not.toBe(false);
+		// A click reaches no capture call of ours either. (A thrown error is
+		// covered by capture_exceptions: false above; dispatching a window error
+		// here would be reported by vitest's jsdom environment as unhandled.)
+		const link = document.createElement("a");
+		link.href = "#docs";
+		link.textContent = "Docs";
+		document.body.append(link);
+		link.click();
+		link.remove();
+		expect(phMock().capture).not.toHaveBeenCalled();
+		expect(phMock().captureException).not.toHaveBeenCalled();
+	});
+
+	it("Allow restores the consented capture set: autocapture, exceptions, remote driven features", async () => {
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		const { setAnalyticsConsent } = await import("@/lib/analytics-consent");
+		setAnalyticsConsent("accepted");
+		await vi.waitFor(() => expect(phMock().opt_in_capturing).toHaveBeenCalledTimes(1));
+		const config = phMock().config;
+		expect(config.autocapture).toBe(true);
+		expect(config.rageclick).toBe(true);
+		// instrumentation-client.ts asks for exceptions on the consented client.
+		expect(config.capture_exceptions).toBe(true);
+		expect(config.capture_pageleave).toBe("if_capture_pageview");
+		expect(config.disable_surveys).toBe(false);
+		// Unset on the consented client, so the project's remote config decides
+		// again, as it did under #5098. Not forced on, not left off.
+		expect(config.capture_heatmaps).toBeUndefined();
+		expect(config.capture_dead_clicks).toBeUndefined();
+		expect(config.capture_performance).toBeUndefined();
 	});
 
 	it("Allow gives a fresh identity: distinct_id and $device_id both differ from the cookieless ones", async () => {
