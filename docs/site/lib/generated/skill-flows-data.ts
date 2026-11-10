@@ -1172,7 +1172,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0",
             "label": "Project Context Discovery",
-            "does": "Load context first. This skill declares no frontmatter hooks, so nothing loads prior decisions for you: run the loader yourself and keep its additionalContext in mind:",
+            "does": "Context already loaded. Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each additionalContext below in mind; there is nothing to run. A blank line means that loader had nothing to add. If you see [shell command execution disabled by policy] instead, run skill/prior-decisions-loader and skill/brainstorm-instructions-loader yourself, each as echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{}}' | node \"${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs\" <loader>:",
             "out": null,
             "tag": null
           },
