@@ -236,7 +236,7 @@ Count drift is the most common consistency bug in OrchestKit. After adding any s
 
 ## 9. Git Operations Blocked
 
-**Symptom:** Git commands fail with "operation blocked by file-guard" or "branch protection prevents this action."
+**Symptom:** A command or file edit is refused by a permission rule, or a push fails because the branch is protected.
 
 **Cause:** OrchestKit's safety hooks are preventing a potentially destructive operation.
 
@@ -248,8 +248,8 @@ If the operation is legitimate:
 
 1. Check the hook output for which rule triggered
 2. If it is a branch protection rule: create a feature branch instead of committing to `main`
-3. If it is a file-guard rule: verify you are not modifying protected files (`.claude/coordination/`, secrets)
-4. If the block is incorrect: the hook returns `{"continue": false}` with a reason; share this in a GitHub issue
+3. If it is a protected-file rule (`Edit(**/.env)`, `Edit(**/*.pem)` and the like): make that change yourself, outside Claude Code
+4. If a rule is wrong for you: edit the `permissions.deny` list in your settings; if an OrchestKit hook blocked it, share its reason in a GitHub issue
 
 ---
 

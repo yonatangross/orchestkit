@@ -292,7 +292,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/safety-hooks",
-    "title": "Security Gates and File Guards",
+    "title": "Security Gates and Operator Deny Rules",
     "description": "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations: the defense-in-depth hooks that run before every tool use."
   },
   {
