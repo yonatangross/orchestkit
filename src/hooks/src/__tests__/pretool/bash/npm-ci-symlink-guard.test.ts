@@ -67,6 +67,12 @@ describe('npmCiTargetDir', () => {
     ['(cd /other && true); npm ci', '/wt'],
     ['((cd /a) && cd /b) && npm ci', '/wt'],
     ['(cd /a && (cd /b) && npm ci)', '/a'],
+    // Vercel Security Review on #5168 (second finding): the ')' that closes a
+    // $(...) command substitution is not the end of a subshell.
+    ['(cd /a && x=$(pwd) && npm ci)', '/a'],
+    ['(cd /a && echo $(date) && npm ci)', '/a'],
+    ['cd /a && echo "$(git rev-parse HEAD)" && npm ci', '/a'],
+    ['(cd /a && echo $(echo $(pwd)) && npm ci)', '/a'],
   ])('%s targets %s', (command, dir) => {
     expect(npmCiTargetDir(command, '/wt', '/home/u')).toBe(dir);
   });
@@ -105,6 +111,11 @@ describe('npmCiSymlinkGuard', () => {
 
   it('denies npm ci after a subshell cd when only the original dir has a linked node_modules', () => {
     const result = npmCiSymlinkGuard(bash('(cd /other) && npm ci'), NOOP_CTX, linksAt('/wt/node_modules'));
+    expect(denied(result)).toBe(true);
+  });
+
+  it('denies npm ci after a command substitution inside the subshell that changed dir', () => {
+    const result = npmCiSymlinkGuard(bash('(cd /a && x=$(pwd) && npm ci)'), NOOP_CTX, linksAt('/a/node_modules'));
     expect(denied(result)).toBe(true);
   });
 
