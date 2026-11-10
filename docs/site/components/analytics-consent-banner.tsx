@@ -51,7 +51,7 @@ export function AnalyticsConsentBanner() {
 		>
 			<div
 				data-testid="analytics-consent-card"
-				className="pointer-events-auto mx-auto flex max-w-4xl flex-col gap-3 rounded-lg border-2 border-fd-primary bg-fd-card p-4 shadow-xl sm:flex-row sm:items-center sm:justify-between"
+				className="pointer-events-auto mx-auto flex max-w-4xl flex-col gap-3 rounded-lg border-2 border-fd-primary bg-fd-card p-4 shadow-xl"
 			>
 				<p className="text-sm text-fd-card-foreground">
 					We use PostHog for anonymous usage analytics on this site. Nothing loads
@@ -63,7 +63,8 @@ export function AnalyticsConsentBanner() {
 						Privacy notice
 					</Link>
 				</p>
-				<div className="flex shrink-0 gap-2">
+				{/* Below the sentence and right-aligned at every width, as the approved mockup draws it. */}
+				<div className="flex shrink-0 gap-2 self-end">
 					<button type="button" className={BUTTON} onClick={() => setAnalyticsConsent("declined")}>
 						Decline
 					</button>
