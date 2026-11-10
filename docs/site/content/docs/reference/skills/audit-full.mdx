@@ -93,7 +93,7 @@ audit-full has **two execution tiers**. The estimate decides which:
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({
-  "scriptPath": "${CLAUDE_SKILL_DIR}/workflows/audit-full-mapreduce.js",
+  "name": "ork:audit-full-mapreduce",
   "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
 })
 ```

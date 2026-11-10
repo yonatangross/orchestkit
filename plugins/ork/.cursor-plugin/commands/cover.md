@@ -308,7 +308,7 @@ Do NOT hand-roll the loop. Run the real executor:
 
 ```python
 Workflow(
-  scriptPath="skills/cover/workflows/heal-loop.js",
+  name="ork:heal-loop",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )

@@ -107,6 +107,16 @@
         "Reports the first failure as soon as it appears rather than waiting for all to finish",
         "References chain-patterns/references/monitor-patterns.md for the pattern"
       ]
+    },
+    {
+      "id": "refused-workflow",
+      "rule": null,
+      "query": "Verify the authentication flow implementation, in a run where the Workflow tool call is denied",
+      "expectedBehavior": [
+        "The report's first Phase 2 line reads 'verify-dispatch workflow not run' with the reason and the fallback mode",
+        "The verdict is no higher than IMPROVEMENTS RECOMMENDED because the refuter majority and evidence gate did not run",
+        "Does not present the fallback run as a normal verify"
+      ]
     }
   ]
 }

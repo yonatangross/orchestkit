@@ -389,6 +389,8 @@ else:
 
 ## Fallback
 
+If the verify Workflow call is refused, errors or is unavailable, name it in the report (`Phase 2: verify-dispatch workflow not run (<reason>), fell back to <mode>`) and cap the verdict at IMPROVEMENTS RECOMMENDED; see SKILL.md STEP 0b.
+
 If Agent Teams encounters issues mid-execution, fall back to Agent tool for remaining work. This is safe because both modes produce the same output format (dimensional scores 0-10).
 
 ## Context Window Note
