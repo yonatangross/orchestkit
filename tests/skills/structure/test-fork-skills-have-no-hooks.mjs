@@ -123,8 +123,32 @@ for (const [name, markers] of Object.entries(BODY_LOADERS)) {
   // With no event name the output guard treats the step as an unknown event and
   // strips additionalContext, so the loader runs and prints nothing.
   for (const line of body.split('\n')) {
-    if (/^echo .*run-hook\.mjs" skill\//.test(line) && !line.includes('"hook_event_name"')) {
+    if (/^(!`)?echo .*run-hook\.mjs" skill\//.test(line) && !line.includes('"hook_event_name"')) {
       failures.push(`src/skills/${name}/SKILL.md: body loader sends no hook_event_name, so its context is stripped: ${line}`);
+    }
+  }
+}
+
+// A body step is only an instruction: in the 2026-11-08 live run the model
+// skipped both loaders in brainstorm and both in implement (#4683). Each
+// context loader therefore runs as load-time shell injection, a line that
+// starts with !` : Claude Code runs it while it renders the skill and puts its
+// output in the text, before the model reads a word, so no step can be
+// skipped. pattern-consistency-enforcer is a check after writes, not a loader,
+// so it stays a step.
+const INJECTED = {
+  brainstorm: ['skill/prior-decisions-loader', 'skill/brainstorm-instructions-loader'],
+  explore: ['skill/repo-structure-indexer'],
+  implement: ['skill/project-convention-loader', 'skill/implement-standards-loader'],
+  setup: ['skill/setup-env-detector'],
+};
+for (const [name, loaders] of Object.entries(INJECTED)) {
+  const text = readFileSync(path.join(SKILLS, name, 'SKILL.md'), 'utf8');
+  const lines = text.replace(/^-{3}\n[\s\S]*?\n-{3}\n/, '').split('\n');
+  for (const loader of loaders) {
+    const injected = lines.some((l) => l.startsWith('!`') && l.endsWith('`') && l.includes(run(loader)));
+    if (!injected) {
+      failures.push(`src/skills/${name}/SKILL.md: ${loader} is not a !\` load-time line, so the model can skip it (#4683)`);
     }
   }
 }
