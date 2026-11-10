@@ -138,6 +138,7 @@ What style fits your content?
 ○ Tutorial (30-60s) - Detailed explanation, code examples
 ○ Cinematic (60s+) - Story-driven, high polish
 ○ Scrapbook (15-35s) - Warm paper, fast cuts, social proof collage (Anthropic style)
+○ Code-drawn (15-40s) - Every frame drawn by a storyboard page; skills, agents, gates as moving pictures
 ```
 
 ### Question 4: Audio
@@ -154,6 +155,20 @@ Audio preferences?
 > Load details: `Read("references/demo-pipeline.md")` for the full pipeline diagram, generation commands, and output structure.
 
 Content Detector -> Content Analyzer -> Script Generator -> Terminal Script -> VHS Recorder -> Remotion Composer -> Final Outputs (horizontal/vertical/square).
+
+## Code-drawn mode
+
+> Load details: `Read("references/code-drawn-mode.md")` for the contract, the pipeline and what the compare can and cannot catch.
+
+The storyboard page is the renderer: `drawFrame(g, t)` draws every frame, the owner approves the page, and the same code renders the film. Freeze the approved page in `approved-design/`, then:
+
+```bash
+python3 scripts/code-drawn/make-film.py storyboard/index.html          # film.html, 2x canvas
+node scripts/code-drawn/render-frames.mjs <url>/film.html frames         # needs Chrome on CDP 9222
+python3 scripts/code-drawn/compare.py approved-stills rendered-stills    # exit 1 on any mismatch
+```
+
+Every string on screen comes from a real capture. The compare samples moments only, so a fresh reviewer still reads strips across every transition.
 
 ## Finish line and budget
 
@@ -251,3 +266,4 @@ Load on demand with `Read("references/<file>")`:
 | `demo-pipeline.md` | Pipeline architecture, generation commands, output structure |
 | `remotion-composition.md` | Remotion folder structure and composition guide |
 | `skill-category-mapping.md` | Skill category mapping and content type templates |
+| `code-drawn-mode.md` | Storyboard page as renderer: contract, pipeline, compare limits, lessons |

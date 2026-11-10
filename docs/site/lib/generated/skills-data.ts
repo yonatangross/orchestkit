@@ -1487,7 +1487,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "demo-producer",
     "description": "Demo videos for skills, plugins, CLIs and code walkthroughs: scripts, storyboards, VHS terminal recordings, Remotion. Use when producing a showcase or marketing video.",
     "version": "1.1.0",
-    "sha256": "19b6d83bbe5671844056feaa7d4d5d3b7fcbdf1f391f67322f29b89d89da3a7d",
+    "sha256": "c9e9da8745cc24579d8295ae8d24cf3c22fbab3ea33a887bf8beb8f207b1ef65",
     "author": "OrchestKit",
     "tags": [
       "demo",
@@ -1519,6 +1519,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {
       "references": [
+        "code-drawn-mode.md",
         "content-types.md",
         "demo-pipeline.md",
         "format-selection.md",
@@ -1529,6 +1530,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "terminal-simulation.md"
       ],
       "scripts": [
+        "code-drawn",
         "full-pipeline.sh",
         "generate.sh"
       ]
