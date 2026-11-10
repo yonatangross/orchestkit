@@ -17,7 +17,7 @@
 // dimensions; that is Phase 4 judgment, and Phase 4 grades within the cap.
 //
 // Run it via the Workflow tool from SKILL.md Phase 2:
-//   Workflow({ name: "ork:verify-dispatch", args: { effort, dimensions, scope, rubric,
+//   Workflow({ <registered as ork:verify-dispatch>, args: { effort, dimensions, scope, rubric,
 //              modelOverride, testEvidence: { outcome, exitCode, summaryLine } } })
 //
 // Workflow runtime notes: no fs/process in the script body; Date.now(),

@@ -1,0 +1,8 @@
+{
+  "slug": "verify-workflow-by-name",
+  "source": "docs/fix--verify-workflow-by-name-5183/index.html",
+  "title": "Skills launch plugin workflows by name",
+  "description": "verify and seven other skills start their plugin workflow by registered name instead of a plugin-cache script path, so headless runs without --add-dir keep the verdict gate, and a refused call is named in the report.",
+  "tags": ["verify", "workflow", "headless"],
+  "date": "2026-11-11"
+}
