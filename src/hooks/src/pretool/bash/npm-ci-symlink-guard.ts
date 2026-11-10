@@ -36,8 +36,41 @@ export interface NpmCiSymlinkGuardDeps {
 
 const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath };
 
-function resolveDir(base: string, dir: string): string {
-  return isAbsolute(dir) ? dir : resolve(base, dir);
+/** npm options that take their value as the next word (`--prefix` and `-C` are handled apart). */
+const VALUE_FLAGS = new Set([
+  '--loglevel', '--workspace', '-w', '--userconfig', '--globalconfig', '--cache', '--registry',
+  '--tag', '--otp', '--include', '--omit', '--before', '--install-strategy', '--scope',
+]);
+
+/** npm's spellings of the install prefix. */
+const PREFIX_FLAGS = new Set(['--prefix', '-C']);
+
+/** Command words that run the rest of the segment as a command. */
+const WRAPPERS = new Set(['env', 'time', 'command', 'exec', 'nohup', 'nice']);
+
+/** `~` and `~/x` against the home dir; anything else unchanged. */
+function expandHome(dir: string, home: string): string {
+  if (home && (dir === '~' || dir.startsWith('~/'))) return home + dir.slice(1);
+  return dir;
+}
+
+/**
+ * Replace each command substitution ($(...), $((...)), `...`) with a plain
+ * word, innermost first. Its parentheses are not subshell parentheses, and
+ * its separators do not split the outer command.
+ */
+function blankSubstitutions(command: string): string {
+  let out = command.replace(/`[^`]*`/g, '_');
+  for (let prev = ''; prev !== out; ) {
+    prev = out;
+    out = out.replace(/\$\(\([^()]*\)\)/g, '_').replace(/\$\([^()]*\)/g, '_');
+  }
+  return out;
+}
+
+function resolveDir(base: string, dir: string, home: string): string {
+  const expanded = expandHome(dir, home);
+  return isAbsolute(expanded) ? expanded : resolve(base, expanded);
 }
 
 /** Strip one pair of matching outer quotes from a token. */
@@ -49,33 +82,102 @@ function unquote(token: string): string {
 /**
  * The directory whose node_modules a clean install in `command` would clear,
  * or null when the command runs no clean install. Commands are split on
- * shell separators; `cd <dir>` updates the directory for what follows; a
- * segment counts only when `npm` is its command word (after env assignments).
+ * shell separators (including a backgrounding `&`); a subshell's
+ * directory ends with its closing parenthesis; `cd <dir>` (quoted or not, `~` expanded) updates the directory for
+ * what follows; a segment counts only when `npm` is its command word after env
+ * assignments and wrappers such as `env`, `time` and `command`. Options that
+ * take a value (`--loglevel warn`, `-w api`) are skipped with their value, so
+ * the value is never read as the subcommand.
  */
-export function npmCiTargetDir(command: string, cwd: string): string | null {
+export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? ''): string | null {
+  return scan(blankSubstitutions(command), cwd, home).target;
+}
+
+/** Bodies of every $(...) and `...` in the command, innermost first. */
+function substitutionBodies(command: string): string[] {
+  const bodies: string[] = [];
+  for (const m of command.matchAll(/`([^`]*)`/g)) bodies.push(m[1]);
+  let text = command;
+  for (let prev = ''; prev !== text; ) {
+    prev = text;
+    text = text.replace(/\$\(([^()]*)\)/g, (_all, body: string) => {
+      bodies.push(body);
+      return '_';
+    });
+  }
+  return bodies;
+}
+
+/**
+ * Every directory a clean install in `command` might clear, or [] when no
+ * reading of the command finds a clean install. The parser cannot follow
+ * every shell form (quotes around a backtick, an escaped ')', a case
+ * pattern), so it reads the command several ways (substitutions blanked,
+ * the raw text, each substitution body on its own) and, if any reading
+ * finds a clean install, returns the cwd, every cd and prefix directory any
+ * reading passed through, and every target. A misparse then checks too many
+ * directories, never too few.
+ */
+export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
+  const readings = [blankSubstitutions(command), command, ...substitutionBodies(command)];
+  const scans = readings.map((text) => scan(text, cwd, home));
+  if (!scans.some((s) => s.target !== null)) return [];
+  const dirs = new Set<string>([cwd]);
+  for (const s of scans) {
+    for (const d of s.seen) dirs.add(d);
+    if (s.target !== null) dirs.add(s.target);
+  }
+  return [...dirs];
+}
+
+/** One reading of a command: the clean-install target (or null) and every directory it passed through. */
+function scan(command: string, cwd: string, home: string): { target: string | null; seen: string[] } {
+  const seen: string[] = [cwd];
   let dir = cwd;
-  for (const raw of command.split(/&&|\|\||[;|\n]/)) {
-    const segment = raw.trim();
-    const cd = /^cd\s+(\S+)$/.exec(segment);
+  // A subshell runs in a copy of the shell: a cd inside it ends when it
+  // closes. Each '(' saves the directory, each ')' restores it.
+  const saved: string[] = [];
+  for (const raw of command.split(/&&|\|\||[;|&\n]/)) {
+    let segment = raw.trim();
+    const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
+    segment = segment.slice(opens).trim();
+    const closes = /\)+$/.exec(segment)?.[0].length ?? 0;
+    segment = segment.slice(0, segment.length - closes).trim();
+    for (let n = 0; n < opens; n++) saved.push(dir);
+    const restore = () => {
+      for (let n = 0; n < closes; n++) dir = saved.pop() ?? dir;
+    };
+    const cd = /^cd\s+("[^"]*"|'[^']*'|\S+)$/.exec(segment);
     if (cd) {
-      dir = resolveDir(dir, unquote(cd[1]));
+      dir = resolveDir(dir, unquote(cd[1]), home);
+      seen.push(dir);
+      restore();
       continue;
     }
-    const tokens = segment.replace(/^(?:\w+=\S*\s+)*/, '').split(/\s+/).filter(Boolean);
-    if (tokens[0] !== 'npm') continue;
+    const words = segment.split(/\s+/).filter(Boolean);
+    let start = 0;
+    while (start < words.length && (/^\w+=/.test(words[start]) || WRAPPERS.has(words[start]))) start++;
+    const tokens = words.slice(start);
+    if (tokens[0] !== 'npm') {
+      restore();
+      continue;
+    }
     let prefix: string | null = null;
     let sub: string | null = null;
     for (let i = 1; i < tokens.length; i++) {
       const t = tokens[i];
       if (t.startsWith('--prefix=')) prefix = unquote(t.slice('--prefix='.length));
-      else if (t === '--prefix' && i + 1 < tokens.length) prefix = unquote(tokens[++i]);
+      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = unquote(tokens[++i]);
+      else if (VALUE_FLAGS.has(t)) i++;
       else if (!t.startsWith('-') && sub === null) sub = t;
     }
+    if (prefix !== null) seen.push(resolveDir(dir, prefix, home));
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
-      return prefix === null ? dir : resolveDir(dir, prefix);
+      return { target: prefix === null ? dir : resolveDir(dir, prefix, home), seen };
     }
+    restore();
   }
-  return null;
+  return { target: null, seen };
 }
 
 /**
@@ -89,11 +191,10 @@ export function npmCiSymlinkGuard(
   const command = input.tool_input?.command;
   if (typeof command !== 'string' || !command.includes('npm')) return outputSilentSuccess();
 
-  const target = npmCiTargetDir(command, input.cwd || ctx.projectDir);
-  if (target === null) return outputSilentSuccess();
-
-  const modules = join(target, 'node_modules');
-  if (!deps.isSymlink(modules)) return outputSilentSuccess();
+  const candidates = npmCiCandidateDirs(command, input.cwd || ctx.projectDir);
+  const linked = candidates.map((d) => join(d, 'node_modules')).find((m) => deps.isSymlink(m));
+  if (linked === undefined) return outputSilentSuccess();
+  const modules = linked;
 
   ctx.log(HOOK_NAME, `denied clean install through symlinked ${modules}`);
   return outputDeny(
