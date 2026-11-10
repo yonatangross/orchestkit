@@ -63,9 +63,66 @@ const SHELL_KEYWORDS = new Set(['then', 'do', 'else', 'elif', 'if', 'while', 'un
 /** Shells whose `-c <script>` argument is read as one more command (#5169). */
 const SHELLS = 'bash|sh|zsh|dash|ksh';
 
-/** One word as the shell would read it: backslash escapes and quotes removed. */
+/**
+ * Loose text for detection only: every backslash escape and quote character
+ * removed, so `n\pm` and `np''m` read as npm. It over-reads on purpose (an
+ * apostrophe inside double quotes is lost), so it must never produce a path.
+ */
 function shellWord(word: string): string {
   return word.replace(/\\(.)/g, '$1').replace(/["']/g, '');
+}
+
+/** Characters a backslash escapes inside double quotes. */
+const DQ_ESCAPABLE = '$`"\\\n';
+
+/**
+ * Split a segment into words as the shell reads them (Vercel finding
+ * 01M73R2WWKHP1QKXGW63DA83C9 on #5195): split only on unquoted blanks; inside
+ * single quotes every character is literal; inside double quotes a backslash
+ * escapes only $ ` " \ and newline; outside quotes a backslash escapes the next
+ * character. Quote characters of the other kind stay in the word, so
+ * "a'b" is a'b and '/L\z' is /L\z.
+ */
+function shellWords(segment: string): string[] {
+  const words: string[] = [];
+  let cur = '';
+  let inWord = false;
+  let i = 0;
+  while (i < segment.length) {
+    const c = segment[i];
+    if (/\s/.test(c)) {
+      if (inWord) words.push(cur);
+      cur = '';
+      inWord = false;
+      i++;
+      continue;
+    }
+    inWord = true;
+    if (c === "'") {
+      const end = segment.indexOf("'", i + 1);
+      cur += end === -1 ? segment.slice(i + 1) : segment.slice(i + 1, end);
+      i = end === -1 ? segment.length : end + 1;
+    } else if (c === '"') {
+      i++;
+      while (i < segment.length && segment[i] !== '"') {
+        if (segment[i] === '\\' && i + 1 < segment.length && DQ_ESCAPABLE.includes(segment[i + 1])) {
+          cur += segment[i + 1];
+          i += 2;
+        } else {
+          cur += segment[i++];
+        }
+      }
+      i++;
+    } else if (c === '\\' && i + 1 < segment.length) {
+      cur += segment[i + 1];
+      i += 2;
+    } else {
+      cur += c;
+      i++;
+    }
+  }
+  if (inWord) words.push(cur);
+  return words;
 }
 
 /**
@@ -109,12 +166,6 @@ function blankSubstitutions(command: string): string {
 function resolveDir(base: string, dir: string, home: string): string {
   const expanded = expandHome(dir, home);
   return isAbsolute(expanded) ? expanded : resolve(base, expanded);
-}
-
-/** Strip one pair of matching outer quotes from a token. */
-function unquote(token: string): string {
-  const m = /^(['"])(.*)\1$/.exec(token);
-  return m ? m[2] : token;
 }
 
 /**
@@ -215,14 +266,13 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     // A brace group runs in the current shell, so `{ cd X; }` moves the
     // directory for what follows; only the grammar is stripped (#5169).
     segment = stripShellGrammar(segment);
-    const cd = /^cd\s+("[^"]*"|'[^']*'|\S+)$/.exec(segment);
-    if (cd) {
-      dir = resolveDir(dir, unquote(cd[1]), home);
+    const words = shellWords(segment);
+    if (words.length === 2 && words[0] === 'cd') {
+      dir = resolveDir(dir, words[1], home);
       seen.push(dir);
       restore();
       continue;
     }
-    const words = segment.split(/\s+/).filter(Boolean).map(shellWord);
     // `env -C DIR` runs this one command in DIR, without moving the shell.
     let cmdDir = dir;
     let start = 0;
@@ -256,8 +306,9 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     let sub: string | null = null;
     for (let i = 1; i < tokens.length; i++) {
       const t = tokens[i];
-      if (t.startsWith('--prefix=')) prefix = unquote(t.slice('--prefix='.length));
-      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = unquote(tokens[++i]);
+      // Words are already read as the shell reads them; no second unquote.
+      if (t.startsWith('--prefix=')) prefix = t.slice('--prefix='.length);
+      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = tokens[++i];
       else if (VALUE_FLAGS.has(t)) i++;
       else if (!t.startsWith('-') && sub === null) sub = t;
     }
@@ -279,7 +330,8 @@ export function npmCiSymlinkGuard(
   deps: NpmCiSymlinkGuardDeps = DEFAULT_DEPS,
 ): HookResult {
   const command = input.tool_input?.command;
-  if (typeof command !== 'string' || !command.includes('npm')) return outputSilentSuccess();
+  // The fast exit reads the loose text, so `n\pm` and `np''m` still enter (b137 P2 on #5195).
+  if (typeof command !== 'string' || !shellWord(command).includes('npm')) return outputSilentSuccess();
 
   const cwd = input.cwd || ctx.projectDir;
   const candidates = npmCiCandidateDirs(command, cwd);
