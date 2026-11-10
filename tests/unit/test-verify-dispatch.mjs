@@ -163,6 +163,10 @@ await test('Tests outcome other than EVIDENCE is BLOCKED', async () => {
   const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'COULD-NOT-OBSERVE' } } });
   assert.equal(result.verdictCap, 'BLOCKED');
 });
+await test('gate refused (no exit code) is BLOCKED, never a waiver (#5172)', async () => {
+  const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'COULD-NOT-OBSERVE', exitCode: null, summaryLine: 'gate refused: PreToolUse hook' } } });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
 await test('probe C: EVIDENCE with a non-zero exit is BLOCKED', async () => {
   const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'EVIDENCE', exitCode: 1, summaryLine: '3 failed, 211 passed' } } });
   assert.equal(result.verdictCap, 'BLOCKED');

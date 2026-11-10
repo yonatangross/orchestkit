@@ -360,7 +360,8 @@ the rebuild answers only the first. The budget pass is a script, so the report i
 runs it. Read-only by default; `--apply` only after the user accepts the moves (batch when > 3):
 
 ```python
-Bash(command=f"node ${{CLAUDE_PLUGIN_ROOT}}/skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
+BUDGET = "${CLAUDE_PLUGIN_ROOT}/skills/dream/scripts/index-budget.mjs"
+Bash(command=f"node {BUDGET} '{memory_dir}' --json")
 # bytes vs ceiling (ORK_CONTEXT_FILE_BUDGET_BYTES, else 17,408 B), per-section sizes, long entries,
 # the two-file invariant, and moves proposed BY RULE (oldest first). Add --apply to rotate
 # .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).

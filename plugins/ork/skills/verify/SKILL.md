@@ -230,12 +230,17 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash \"${{CLAUDE_SKILL_DIR}}/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
+GATE = "${CLAUDE_SKILL_DIR}/scripts/assert-evidence.sh"   # Claude Code swaps in an absolute path before the shell sees it
+Bash(command=f"bash \"{GATE}\" {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →
 #   the Tests dimension has NO score; report `Tests: COULD-NOT-OBSERVE (assert-evidence exit N, bytes, pid_alive)`
 #   and the verdict is BLOCKED. Never emit a grade from an empty run.
+# the call was denied by a hook or permission, errored before the script started, or returned no exit code →
+#   the gate never ran: report `Tests: COULD-NOT-OBSERVE (gate refused: <reason text>)`, pass testEvidence
+#   {"outcome": "COULD-NOT-OBSERVE", "exitCode": None, "summaryLine": "gate refused: ..."} (verdictCap BLOCKED).
+#   The test-evidence gate can never be WAIVED, and a cap still PENDING-TESTS at report time means BLOCKED.
 ```
 
 Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner never appeared, and the skill waited ~40 min on a completion signal that could not fire. An empty run must be loud, not pending. Contract and the refuted hypotheses: `Read("references/background-task-contract.md")`.
@@ -264,6 +269,7 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dime
 
 Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 9.0 (fixed, hard), every other dimension `min_blocker` 3.0, compliance `min_pass` 6.0, compliance `min_pass` 6.0.
 
+- **The Tests gate can never be WAIVED.** If `assert-evidence.sh` was refused or never ran (`gate refused`), the outcome is `COULD-NOT-OBSERVE`, not a waiver.
 - **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.

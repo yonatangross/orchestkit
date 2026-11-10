@@ -2156,7 +2156,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. Use when memory needs cleanup. To store use remember; to search use memory.",
     "version": "1.1.0",
-    "sha256": "14530a582568df659417917efebb7641f9188ff125240d0a8c75d4800875978f",
+    "sha256": "7e6b69c5d3f3662ea35952c4fef1ae0e0e4ba27d5478f985f550b3c7f9ea57e4",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -5287,7 +5287,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "c0657470e01543a7d7f504e8fc257698a3f439f8e5a65593b8257b88ae510c8a",
+    "sha256": "95312301bab65b40c78050674eb0e93a56d840808899d1bd88af3487c0892fd4",
     "author": "OrchestKit",
     "tags": [
       "verification",

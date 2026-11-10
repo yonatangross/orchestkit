@@ -27,8 +27,8 @@ manifest the claims the merge *rests on*. If in doubt, it's load-bearing.
 | ✅ **VERIFIED** | The **lead** ran the proof **fresh this session** and read the output. | The command · exit code · the key output line |
 | 🟡 **CLAIMED** | A sub-agent, tool summary, doc, or memory asserted it — **not** independently re-run by the lead. | Who asserted it |
 | ⬜ **UNCHECKED** | Assumed true; nobody ran a proof (e.g. "no other caller depends on this" with no grep). | Why it was assumed |
-| ⚪ **WAIVED** | A CLAIMED/UNCHECKED item deliberately accepted as non-blocking. | A one-line reason + issue ref if deferred |
-| 🔴 **COULD-NOT-OBSERVE** | Evidence was **attempted and nothing was observed**: the run wrote 0 bytes with no live process, or the runner's banner never appeared (`scripts/assert-evidence.sh` exit 3 or 1). | The assert-evidence output line |
+| ⚪ **WAIVED** | A CLAIMED/UNCHECKED item deliberately accepted as non-blocking. The test-evidence gate (`assert-evidence.sh`) and any 🔴 COULD-NOT-OBSERVE row can never be WAIVED. | A one-line reason + issue ref if deferred |
+| 🔴 **COULD-NOT-OBSERVE** | Evidence was **attempted and nothing was observed**: the run wrote 0 bytes with no live process, or the runner's banner never appeared (`scripts/assert-evidence.sh` exit 3 or 1), **or the gate never ran** (the Bash call was denied by a hook or permission, errored before the script started, or returned no exit code): report `Tests: COULD-NOT-OBSERVE (gate refused: <reason text>)`. | The assert-evidence output line, or the refusal text |
 
 > An agent reporting "PASS" and the lead **copying** that into the manifest is still
 > 🟡 CLAIMED — not ✅ VERIFIED. VERIFIED means *the lead* ran it. The distinction is the
