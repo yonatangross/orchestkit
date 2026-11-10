@@ -71,11 +71,24 @@ New in CC 2.1.214; older data lacks them, so queries must null-check before grou
 
 2.1.302 also fixed the new attributes pushing `tool_use_id`, `tool_source` and `tool_parameters` out when `OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT` is low. A pre/post join on `tool_use_id` over 2.1.301 data can miss rows for that reason.
 
-### From 2.1.307 (`claude_code.safety_event`)
+### 2.1.307 to 2.1.311 only (`claude_code.safety_event`, withdrawn in 2.1.312)
 
 | Field | Event | Values | Purpose |
 |---|---|---|---|
-| (event) | `claude_code.safety_event` | one per tool call | Emitted for each tool call that a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back. ork's PreToolUse guards that deny or ask show up here, so the count of hook-caused stops per guard can be read from OTel instead of hook logs. Attribute names beyond the event name are not in the CHANGELOG; read them from one exported event before writing a panel. |
+| (event) | `claude_code.safety_event` | one per tool call | Emitted on 2.1.307 through 2.1.311 for each tool call that a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back. CC 2.1.312 stopped sending it, so a panel built on it reads zero from 2.1.312 on; count ork guard denials from hook logs instead. |
+
+### From 2.1.317 (`anthropic.*` attributes)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `anthropic.plan` | metrics, events, spans | string | The account's plan. Lets cost panels split by plan. |
+| `anthropic.seat_type` | metrics, events, spans | string | The seat type of the signed-in user. |
+| `anthropic.provider` | metrics, events, spans | string | Which API provider served the session (first party, Bedrock, Vertex, Foundry). |
+| `anthropic.custom_base_url` | metrics, events, spans | string | Set when the session uses a custom base URL (an LLM gateway). |
+
+Values beyond the attribute names are not in the CHANGELOG; read them from one exported record before building a panel.
+
+From 2.1.312 the `effort` attribute names the level in force, not a level picked mid-task before the model applied it, so per-effort panels over earlier data can misattribute a few requests.
 
 Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
 
