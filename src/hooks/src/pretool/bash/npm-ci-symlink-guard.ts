@@ -68,8 +68,8 @@ function unquote(token: string): string {
 /**
  * The directory whose node_modules a clean install in `command` would clear,
  * or null when the command runs no clean install. Commands are split on
- * shell separators (including a backgrounding `&`); subshell parentheses are
- * dropped; `cd <dir>` (quoted or not, `~` expanded) updates the directory for
+ * shell separators (including a backgrounding `&`); a subshell's
+ * directory ends with its closing parenthesis; `cd <dir>` (quoted or not, `~` expanded) updates the directory for
  * what follows; a segment counts only when `npm` is its command word after env
  * assignments and wrappers such as `env`, `time` and `command`. Options that
  * take a value (`--loglevel warn`, `-w api`) are skipped with their value, so
@@ -77,18 +77,33 @@ function unquote(token: string): string {
  */
 export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? ''): string | null {
   let dir = cwd;
+  // A subshell runs in a copy of the shell: a cd inside it ends when it
+  // closes. Each '(' saves the directory, each ')' restores it.
+  const saved: string[] = [];
   for (const raw of command.split(/&&|\|\||[;|&\n]/)) {
-    const segment = raw.trim().replace(/^\(+\s*/, '').replace(/\s*\)+$/, '').trim();
+    let segment = raw.trim();
+    const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
+    segment = segment.slice(opens).trim();
+    const closes = /\)+$/.exec(segment)?.[0].length ?? 0;
+    segment = segment.slice(0, segment.length - closes).trim();
+    for (let n = 0; n < opens; n++) saved.push(dir);
+    const restore = () => {
+      for (let n = 0; n < closes; n++) dir = saved.pop() ?? dir;
+    };
     const cd = /^cd\s+("[^"]*"|'[^']*'|\S+)$/.exec(segment);
     if (cd) {
       dir = resolveDir(dir, unquote(cd[1]), home);
+      restore();
       continue;
     }
     const words = segment.split(/\s+/).filter(Boolean);
     let start = 0;
     while (start < words.length && (/^\w+=/.test(words[start]) || WRAPPERS.has(words[start]))) start++;
     const tokens = words.slice(start);
-    if (tokens[0] !== 'npm') continue;
+    if (tokens[0] !== 'npm') {
+      restore();
+      continue;
+    }
     let prefix: string | null = null;
     let sub: string | null = null;
     for (let i = 1; i < tokens.length; i++) {
@@ -101,6 +116,7 @@ export function npmCiTargetDir(command: string, cwd: string, home: string = proc
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
       return prefix === null ? dir : resolveDir(dir, prefix, home);
     }
+    restore();
   }
   return null;
 }
