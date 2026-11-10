@@ -3,8 +3,9 @@
 // visitor's stored choice (lib/analytics-consent.ts):
 //
 //   no choice yet  cookieless: memory persistence, no person profiles, replay
-//                  off, mirrored events off, and every non-pageview SDK
-//                  feature off (PAGEVIEW_ONLY). Page views are counted; nothing
+//                  off, mirrored events off, no /flags or remote config call,
+//                  and every non-pageview SDK feature off (PAGEVIEW_ONLY).
+//                  Page views are counted; nothing
 //                  is written to cookies, localStorage or sessionStorage, and
 //                  no consent flag is set (opt_in and opt_out both write one).
 //   "accepted"     the consented client #5098 built: persistent storage,
@@ -103,6 +104,13 @@ const COOKIELESS_OVERRIDES: PostHogInitOptions = {
 	disable_session_recording: true,
 	// Capture is on from init. Opting in would write a consent flag to storage.
 	opt_out_capturing_by_default: false,
+	// No /flags call and no remote config fetch before consent: init() makes
+	// both unless this is set, and they carry the in-memory distinct_id and the
+	// visitor IP (b136, #5180). The site evaluates no feature flags, and every
+	// PAGEVIEW_ONLY feature is set locally above, so nothing here needs them.
+	// posthog-js reads this from the init config for the client's whole life
+	// (_shouldDisableFlags, 1.438.21): set_config cannot clear it on upgrade.
+	advanced_disable_flags: true,
 	...PAGEVIEW_ONLY,
 };
 
@@ -204,7 +212,12 @@ export function startPostHog(
 			// Restore the consented capture set. Keys whose consented value is
 			// "follow remote config" are deleted from the live config first; the
 			// set_config call below then re-runs each feature's startIfEnabled
-			// (posthog-js 1.438.19 set_config), so they start from remote config.
+			// (posthog-js 1.438.19 set_config). This client was started with
+			// advanced_disable_flags, which posthog-js keeps for its lifetime, so
+			// it never fetches remote config: those features (and replay, which
+			// waits on remote config) start on the next full page load, when the
+			// stored "accepted" choice inits the consented client directly. That
+			// delay is the price of sending nothing but $pageview before consent.
 			const capture = consentedCapture(options);
 			const live = client.config as unknown as Record<string, unknown>;
 			for (const key of capture.unset) delete live[key];
