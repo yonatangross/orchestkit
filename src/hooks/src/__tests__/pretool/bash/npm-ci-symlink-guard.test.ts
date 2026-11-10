@@ -228,4 +228,44 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
     const result = syncBashDispatcher(bash(command, join(root, 'real')), NOOP_CTX);
     expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
   });
+
+  // Vercel finding 01M73R2WWKHP1QKXGW63DA83C9 on #5195: deleting every quote
+  // character turned a double-quoted a'b into ab, so the guard probed a sibling
+  // that does not exist and let npm ci empty the linked tree.
+  describe('a double-quoted path keeps the apostrophe inside it', () => {
+    beforeEach(() => {
+      mkdirSync(join(root, "a'b"));
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, "a'b", 'node_modules'));
+    });
+
+    it.each([
+      [`npm ci --prefix "ROOT/a'b"`],
+      [`npm --prefix="ROOT/a'b" ci`],
+      [`npm -C "ROOT/a'b" ci`],
+      [`env -C "ROOT/a'b" npm ci`],
+      [`npm ci --prefix ROOT/a\\'b`],
+    ])('denies %s from a cwd whose node_modules is real', (template) => {
+      const result = syncBashDispatcher(bash(template.replace('ROOT', root), join(root, 'real')), NOOP_CTX);
+      expect(denied(result)).toBe(true);
+    });
+  });
+
+  // Review of #5195 (b137 HOLD 6780732034): a backslash inside single quotes is
+  // literal, and a quoted blank does not split the word.
+  it.each([
+    [`npm ci --prefix 'ROOT/L\\z'`, 'L\\z'],
+    [`npm ci --prefix "ROOT/L y"`, 'L y'],
+    [`cd "ROOT/L y" && npm ci`, 'L y'],
+  ])('denies %s when that dir has a symlinked node_modules', (template, name) => {
+    mkdirSync(join(root, name));
+    symlinkSync(join(root, 'shared', 'node_modules'), join(root, name, 'node_modules'));
+    const result = syncBashDispatcher(bash(template.replace('ROOT', root), join(root, 'real')), NOOP_CTX);
+    expect(denied(result)).toBe(true);
+  });
+
+  // Review of #5195 (b137 P2): the raw-text early exit ran before quotes and
+  // escapes were removed, so the shell's npm spelled n\pm or np''m skipped the guard.
+  it.each([['n\\pm ci'], ["np''m ci"], ['"np"m ci']])('denies %s in a worktree whose node_modules is a symlink', (command) => {
+    expect(denied(syncBashDispatcher(bash(command, join(root, 'wt')), NOOP_CTX))).toBe(true);
+  });
 });
