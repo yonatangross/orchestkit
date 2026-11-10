@@ -664,6 +664,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0)** · 2026-11-10
+
+- **cc:** adopt Claude Code 2.1.310 through 2.1.322 (#5181)
+- **demo-producer:** add code-drawn mode, storyboard renders the film (#5185)
+- **docs-site:** count page views cookieless before consent (#5180)
+- **docs-site:** make the consent banner easier to notice (#5179)
+- **agents:** raise builder maxTurns above documented workload (#5192)
+- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8)** · 2026-11-09
 
 - **release:** fetch mcp-publisher through the authenticated API (#5162)
@@ -710,14 +719,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **skills:** fit review-pr, verify, auto descriptions and fix skill-fitness floor (#5096)
 - **skills:** skill quality round 3, fit descriptions and deterministic checklist (#5099)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.10.1](https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1)** · 2026-11-06
-
-- **ci:** let install-deps outlast a slow apt mirror (#5091)
-- **docs-site:** remove dead memory hooks and correct the hook count (#5085)
-- **release:** cap entries per dist tree request (#5088)
-- **release:** refuse an invalid dist entry cap
-- **memory:** remove the false scored-promotion story and dead hooks (#5089)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
