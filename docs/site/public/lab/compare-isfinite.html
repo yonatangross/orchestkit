@@ -49,7 +49,11 @@ const pyFloat = s => { const t = s.trim().toLowerCase();
 function judge() {
   const s = stem(n.value), f = s === null ? undefined : pyFloat(s);
   const before = f !== undefined, after = f !== undefined && Number.isFinite(f);
-  rows.innerHTML = `<tr><td>${n.value || '(empty)'}</td><td class="${before ? 'ok' : 'bad'}">${before ? 'accepted' : 'REFUSE'}</td><td class="${after ? 'ok' : 'bad'}">${after ? 'accepted' : 'REFUSE'}</td></tr>`;
+  // built with textContent: the typed name is never parsed as HTML
+  const tr = document.createElement('tr');
+  [[n.value || '(empty)', ''], [before ? 'accepted' : 'REFUSE', before ? 'ok' : 'bad'], [after ? 'accepted' : 'REFUSE', after ? 'ok' : 'bad']]
+    .forEach(([text, cls]) => { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.appendChild(td); });
+  rows.replaceChildren(tr);
 }
 n.oninput = judge; judge();
 document.getElementById('copy').onclick = async () => {
