@@ -20,8 +20,8 @@
 # directory and leaves the shared tree alone, so just re-run this script to
 # get the saving back. `npm ci` is NOT safe: it clears node_modules through
 # the symlink and empties the MAIN repository's tree, breaking every other
-# worktree at once. The dangerous-command-blocker hook denies that case in
-# every permission mode.
+# worktree at once. The pretool/bash/npm-ci-symlink-guard hook (inside
+# sync-bash-dispatcher) denies that case.
 #
 # Guards:
 #   - refuses to touch a worktree whose node_modules was modified in the last

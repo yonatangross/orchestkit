@@ -65,9 +65,9 @@
 #                 every other worktree at once, while printing a normal
 #                 "added N packages" success line.
 #
-# The dangerous-command-blocker hook denies `npm ci` when node_modules is a
-# symlink, in every permission mode. If you remove that guard, remove these
-# entries too.
+# The pretool/bash/npm-ci-symlink-guard hook (inside sync-bash-dispatcher)
+# denies `npm ci` when node_modules is a symlink. If you remove that guard,
+# remove these entries too.
 
 set -euo pipefail
 
