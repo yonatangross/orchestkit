@@ -188,11 +188,9 @@ For Phase 3 parallel agents, output each agent's findings **as soon as it return
 
 ### Phase 1: Initial Search
 
-**Load the repo map first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+**Repo map, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind:
 
-```bash
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/repo-structure-indexer
-```
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/explore/../../hooks/bin/run-hook.mjs" skill/repo-structure-indexer`
 
 ```python
 # PARALLEL - Quick searches

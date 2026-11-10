@@ -139,13 +139,13 @@ Scan codebase signals and classify into tiers 1-6 (Interview through Open Source
 
 Load tier details, workflow mapping, and orchestration mode: `Read("skills/implement/references/tier-classification.md")`
 
-**Load project context.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+**Project context, already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind:
 
-```bash
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/project-convention-loader
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/implement-standards-loader
-git rev-parse HEAD  # note it as the start sha for the Phase 6 pattern check
-```
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/project-convention-loader`
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/implement-standards-loader`
+
+Start sha for the Phase 6 pattern check: !`git rev-parse HEAD`
 
 ### Worktree Isolation (CC 2.1.49)
 
