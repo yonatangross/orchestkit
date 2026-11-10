@@ -8,7 +8,7 @@ experimental:
   # CI wait, long review), so every resume after that paid a full cache write.
   # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
-maxTurns: 30
+maxTurns: 60
 effort: medium
 color: orange
 memory: project

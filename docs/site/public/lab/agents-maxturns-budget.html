@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Builder agents stop at their turn cap</title>
+<meta name="description" content="ci-cd-engineer and frontend-ui-developer capped at 30 turns while their own docs say 25-40 tool calls. Raised to 60, with a test that keeps the cap above the documented workload.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .bad { color:var(--bad); font-weight:600; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Builder agents stop at their turn cap"><meta property="og:description" content="ci-cd-engineer and frontend-ui-developer capped at 30 turns against 25-40 documented tool calls; raised to 60 with a test that keeps the cap above the documented workload."><meta property="og:url" content="https://orchestkit.dev/lab/agents-maxturns-budget.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Builder agents stop at their turn cap"><meta name="twitter:description" content="ci-cd-engineer and frontend-ui-developer capped at 30 turns against 25-40 documented tool calls; raised to 60 with a test that keeps the cap above the documented workload."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Builder agents stop at their turn cap</h1>
+      <p class="lead">A Workflow builder that hits <code>maxTurns</code> is stopped mid-task: files written, no commit, no StructuredOutput. The Workflow then reports a generic error that hides the cap. Issue #4628.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>Cap against documented workload</h2>
+  <table>
+    <tr><th>Agent</th><th>Documented tool calls</th><th>maxTurns before</th><th>maxTurns after</th></tr>
+    <tr><td><code>ci-cd-engineer</code></td><td>Standard 25-40, full pipeline 50-80</td><td class="bad">30</td><td class="ok">60</td></tr>
+    <tr><td><code>frontend-ui-developer</code></td><td>Component family 25-40, full page 40-60</td><td class="bad">30</td><td class="ok">60</td></tr>
+    <tr><td><code>test-generator</code></td><td>Module coverage 20-35</td><td class="ok">50</td><td class="ok">50</td></tr>
+  </table>
+
+  <h2>The guard</h2>
+  <p><code>tests/agents/test-agent-maxturns-budget.sh</code>: every agent whose body carries the build-result contract (<code>committed_sha</code>) must have <code>maxTurns</code> at least the upper bound of its second Resource Scaling tier, plus 5.</p>
+
+  <h2>Not covered</h2>
+  <p>The 50-80 tier of ci-cd-engineer still exceeds 60. The same rule is a warning-only follow-up for the other under-budget agents. The Workflow <code>agent()</code> call has no per-call <code>maxTurns</code> override, so the frontmatter value is the only lever.</p>
+
+  <footer>Generated for PR #5192.</footer>
+</main>
+<script>
+  (function () {
+    var b = document.getElementById('theme');
+    b.addEventListener('click', function () {
+      var d = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', d ? 'light' : 'dark');
+      b.textContent = d ? 'Dark' : 'Light';
+    });
+  })();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
