@@ -119,6 +119,19 @@ describe('npmCiSymlinkGuard', () => {
     expect(denied(result)).toBe(true);
   });
 
+  // Security review of #5168: the parser can still misread a ')' (escaped,
+  // in a case pattern, ...). The guard fails closed by checking every
+  // directory the command may run npm ci in, not only the parsed one.
+  it('denies when any directory the command passed through has a linked node_modules', () => {
+    const result = npmCiSymlinkGuard(bash('(cd /a && echo \\) && npm ci)'), NOOP_CTX, linksAt('/a/node_modules'));
+    expect(denied(result)).toBe(true);
+  });
+
+  it('still allows npm ci when no directory it passed through has a linked node_modules', () => {
+    const result = npmCiSymlinkGuard(bash('(cd /a && echo \\) && npm ci)'), NOOP_CTX, linksAt('/elsewhere/node_modules'));
+    expect(result.continue).toBe(true);
+  });
+
   it('allows npm ci when node_modules is a real directory or missing', () => {
     const result = npmCiSymlinkGuard(bash('npm ci'), NOOP_CTX, linksAt());
     expect(result.continue).toBe(true);
