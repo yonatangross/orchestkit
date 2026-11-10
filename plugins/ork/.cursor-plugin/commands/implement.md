@@ -139,13 +139,13 @@ Scan codebase signals and classify into tiers 1-6 (Interview through Open Source
 
 Load tier details, workflow mapping, and orchestration mode: `Read("skills/implement/references/tier-classification.md")`
 
-**Project context, already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind:
+**Project context, already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/project-convention-loader` and `skill/implement-standards-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" <loader>`, and take the start sha from `git rev-parse HEAD`:
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/project-convention-loader`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/project-convention-loader 2>/dev/null || true`
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/implement-standards-loader`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/implement/../../hooks/bin/run-hook.mjs" skill/implement-standards-loader 2>/dev/null || true`
 
-Start sha for the Phase 6 pattern check: !`git rev-parse HEAD`
+Start sha for the Phase 6 pattern check (`none` outside a repository or before the first commit): !`git rev-parse HEAD 2>/dev/null || echo none`
 
 ### Worktree Isolation (CC 2.1.49)
 

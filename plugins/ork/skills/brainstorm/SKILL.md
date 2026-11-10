@@ -45,11 +45,11 @@ Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 
 ## STEP 0: Project Context Discovery
 
-**Context already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind; there is nothing to run:
+**Context already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind; there is nothing to run. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/prior-decisions-loader` and `skill/brainstorm-instructions-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" <loader>`:
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/prior-decisions-loader`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/prior-decisions-loader 2>/dev/null || true`
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader 2>/dev/null || true`
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 
