@@ -55,10 +55,11 @@ export function AnalyticsConsentBanner() {
 			>
 				<p className="text-sm text-fd-card-foreground">
 					We use PostHog for anonymous usage analytics on this site. Nothing loads
-					unless you allow it.{" "}
+					unless you allow it.
+					{/* Its own line under the sentence, as the approved mockup draws it; w-fit keeps the tap target to the text. */}
 					<Link
 						href="/privacy"
-						className="font-medium text-fd-card-foreground underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
+						className="mt-1 block w-fit font-medium text-fd-card-foreground underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
 					>
 						Privacy notice
 					</Link>
