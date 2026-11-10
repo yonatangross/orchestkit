@@ -44,6 +44,14 @@ cases = {
     "human-thread-unreplied": [t([c("yonatangross")])],
     "mixed-one-unreplied": [t([c(*CR), c("someone")]), t([c(*CODEX)], path="docs/x.md", line=None)],
     "truncated-no-reply": [t([c(*CR)] + [c("coderabbitai[bot]")] * 3, more=True)],
+    # The floor's agents post through the yonatan-hq-floor GitHub App (orchestkit
+    # #5128): GraphQL reports it as login "yonatan-hq-floor", __typename Bot.
+    # Its reply is an agent's reply and counts (#5188 thread 4529282210).
+    "floor-agent-replied": [t([c("github-advanced-security", "Bot"), c("yonatan-hq-floor", "Bot")], resolved=True)],
+    "floor-agent-replied-rest-login": [t([c(*CR), c("yonatan-hq-floor[bot]", "Bot")])],
+    # Only that exact identity: a lookalike App and the thread's own bot still fail.
+    "lookalike-bot-replied": [t([c(*CR), c("yonatan-hq-floor-x", "Bot")])],
+    "floor-agent-starts-thread": [t([c("yonatan-hq-floor", "Bot")])],
 }
 for name, threads in cases.items():
     with open(os.path.join(out, name + ".json"), "w") as fh:
@@ -78,6 +86,10 @@ expect human-thread-unreplied 0 "0 bot review thread(s)"
 expect mixed-one-unreplied 1 "docs/x.md"
 expect truncated-no-reply 1 "more than 100 comments"
 expect malformed 2 "could not read"
+expect floor-agent-replied 0 "1 bot review thread(s), all replied"
+expect floor-agent-replied-rest-login 0 "1 bot review thread(s), all replied"
+expect lookalike-bot-replied 1 "coderabbitai"
+expect floor-agent-starts-thread 1 "yonatan-hq-floor"
 
 
 # The fetch path (Codex XREVIEW HOLD 6351379772 Must 2, S1, S3): a stub `gh`

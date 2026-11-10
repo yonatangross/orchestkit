@@ -11,7 +11,11 @@ Operator word GROK-REVIEW-2121 (2026-10-22), items 1 and 2:
      resolved thread with no reply is exactly the silent resolve item 1 bans.
 
 A thread a person starts is outside the rule. An agent replies through a user
-account, so its reply counts as a reply. A bot replying to a bot does not.
+account, so its reply counts as a reply. A bot replying to a bot does not,
+with one named exception: the floor's agents post through the
+yonatan-hq-floor GitHub App (orchestkit #5128, so a floor seat never posts
+as the owner), and that App's reply is an agent's reply. Only that exact
+identity counts (AGENT_APPS); any other App reply still does not.
 
 Usage:
   review-thread-replies.py --repo OWNER/NAME --pr N   (reads GitHub via `gh`)
@@ -80,6 +84,18 @@ def is_bot(author: object) -> bool:
     return author.get("__typename") == "Bot" or login.endswith("[bot]")
 
 
+# GitHub Apps that agents post through. GraphQL reports an App author without
+# the [bot] suffix (login "yonatan-hq-floor", __typename Bot); REST adds it.
+AGENT_APPS = frozenset({"yonatan-hq-floor", "yonatan-hq-floor[bot]"})
+
+
+def is_reply_author(author: object) -> bool:
+    """A person, an agent on a user account, or an agent App in AGENT_APPS."""
+    if not is_bot(author):
+        return True
+    return str((author or {}).get("login") or "") in AGENT_APPS
+
+
 def evaluate(threads: list[dict]) -> tuple[int, list[str]]:
     """Return (bot thread count, one line per bot thread with no reply)."""
     bot_threads = 0
@@ -90,7 +106,7 @@ def evaluate(threads: list[dict]) -> tuple[int, list[str]]:
         if not comments or not is_bot(comments[0].get("author")):
             continue
         bot_threads += 1
-        if any(not is_bot(c.get("author")) for c in comments[1:]):
+        if any(is_reply_author(c.get("author")) for c in comments[1:]):
             continue
         first = comments[0]
         who = (first.get("author") or {}).get("login") or "?"
