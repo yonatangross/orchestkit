@@ -1068,22 +1068,27 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
     "title": "Doctor: Version Compatibility: Overview",
-    "description": "Version Compatibility for the Doctor skill, page 1 of 4: Overview."
+    "description": "Version Compatibility for the Doctor skill, page 1 of 5: Overview."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
-    "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 2)",
-    "description": "Version Compatibility for the Doctor skill, page 2 of 4: Feature Matrix (part 1 of 2)."
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 3)",
+    "description": "Version Compatibility for the Doctor skill, page 2 of 5: Feature Matrix (part 1 of 3)."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
-    "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 2)",
-    "description": "Version Compatibility for the Doctor skill, page 3 of 4: Feature Matrix (part 2 of 2)."
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 3)",
+    "description": "Version Compatibility for the Doctor skill, page 3 of 5: Feature Matrix (part 2 of 3)."
   },
   {
-    "url": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3",
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 3 of 3)",
+    "description": "Version Compatibility for the Doctor skill, page 4 of 5: Feature Matrix (part 3 of 3)."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation",
     "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
-    "description": "Version Compatibility for the Doctor skill, page 4 of 4: Prompt Caching Recommendation."
+    "description": "Version Compatibility for the Doctor skill, page 5 of 5: Prompt Caching Recommendation."
   },
   {
     "url": "/docs/reference/skills/doctor/rules",

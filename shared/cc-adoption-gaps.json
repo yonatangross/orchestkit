@@ -1,5 +1,65 @@
 [
   {
+    "version": "2.1.310",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 26
+  },
+  {
+    "version": "2.1.311",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 92
+  },
+  {
+    "version": "2.1.312",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 39
+  },
+  {
+    "version": "2.1.314",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 119
+  },
+  {
+    "version": "2.1.316",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 55
+  },
+  {
+    "version": "2.1.317",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 87
+  },
+  {
+    "version": "2.1.318",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 84
+  },
+  {
+    "version": "2.1.319",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 146
+  },
+  {
+    "version": "2.1.321",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 118
+  },
+  {
+    "version": "2.1.322",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1
+  },
+  {
     "version": "2.1.299",
     "parse_failed": false,
     "features": [
@@ -616,7 +676,7 @@
         "reference_changelog_line": "Added the `claude_code.safety_event` OpenTelemetry event for each tool call a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back",
         "relevance": "plugin",
         "disposition": "adopted-doc",
-        "ork_disposition_note": "Documented in otel-fields.md; attribute names unverified."
+        "ork_disposition_note": "Documented in otel-fields.md; CC 2.1.312 stopped sending it, so the doc marks it 2.1.307 to 2.1.311 only."
       },
       {
         "feature_slug": "claude_api_api_version",
@@ -1081,7 +1141,7 @@
           "doctor",
           "analytics"
         ],
-        "reference_changelog_line": "Added Claude Haiku 5.5 (`claude-haiku-5-5`), now the default Haiku model on the Anthropic API \u2014 1M context, $0.10/$0.50 per Mtok ($0.50/$2.50 for prompts over 100K)",
+        "reference_changelog_line": "Added Claude Haiku 5.5 (`claude-haiku-5-5`), now the default Haiku model on the Anthropic API — 1M context, $0.10/$0.50 per Mtok ($0.50/$2.50 for prompts over 100K)",
         "relevance": "plugin",
         "disposition": "deferred-S",
         "ork_disposition_note": "Follow-up in flight: #4660 (vocab and pricing row) and #4661 (alias), both OPEN on 2026-10-10. Claude Code's own haiku alias already resolves to Haiku 5.5 (probe 2026-10-08)."
@@ -2159,7 +2219,7 @@
         "affected_skills": [
           "analytics"
         ],
-        "reference_changelog_line": "Added Claude Sonnet 5.5 (`claude-sonnet-5-5`), now the default Sonnet model on the Anthropic API \u2014 1M context, $2/$10 per Mtok with $0.20/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Sonnet 5.5 (`claude-sonnet-5-5`), now the default Sonnet model on the Anthropic API — 1M context, $2/$10 per Mtok with $0.20/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "Adopted in orchestkit#4541 (models.vocab.json sonnet row and matrix row \"Sonnet 5.5 default model\")."
@@ -2209,7 +2269,7 @@
           "doctor",
           "analytics"
         ],
-        "reference_changelog_line": "Added Claude Opus 5.5 (`claude-opus-5-5`), now the default Opus model \u2014 1M context, $4/$20 per Mtok with $0.20/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Opus 5.5 (`claude-opus-5-5`), now the default Opus model — 1M context, $4/$20 per Mtok with $0.20/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "models.vocab.json: opus alias -> claude-opus-5-5, fullIds + pricing (cache write 5.00 at the vocab's 1.25x ratio). Without the row cost-estimator billed Opus 5.5 at the claude-sonnet-5 fallback. tests/ci/claude-model-ids.txt gains claude-opus-5-5 (and the missing claude-opus-5). model-recency-scan.py date-snapshot exemption fixed so the gate sees claude-opus-5 as superseded; 24 live Opus 5 claims retargeted."
@@ -2971,7 +3031,7 @@
           "security-patterns"
         ],
         "disposition": "triaged-noop",
-        "ork_disposition_note": "Do not adopt: 2.1.260 REVERTED this one release later ('it denied `npm run build` under a `Read(./**/build/**)` rule in every mode and made `cd \u2026 && grep` prompt even in auto mode'). Net effect across the wave is zero. Recorded so a future reader does not re-adopt a reverted behaviour from the 2.1.259 snapshot alone."
+        "ork_disposition_note": "Do not adopt: 2.1.260 REVERTED this one release later ('it denied `npm run build` under a `Read(./**/build/**)` rule in every mode and made `cd … && grep` prompt even in auto mode'). Net effect across the wave is zero. Recorded so a future reader does not re-adopt a reverted behaviour from the 2.1.259 snapshot alone."
       },
       {
         "feature_slug": "glab_mr_recognition",
@@ -3278,7 +3338,7 @@
           "security-patterns"
         ],
         "disposition": "upside",
-        "ork_disposition_note": "Closes two carriers that ork's own deny rules structurally cannot see. VERIFIED ork ships 9 literal `rm -rf` deny rules in src/settings/ork.settings.json (`Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -rf .)`, the /private/* pair set), all of which match command TEXT and therefore miss `rm -rf \"$1\"` and `sh -c \"rm -rf \u2026\"` entirely; those rules are also discarded because CC reads only `agent` and `subagentStatusLine` from a plugin settings file. So the native prompt is the only thing that ever covered this, and it now covers more. Free."
+        "ork_disposition_note": "Closes two carriers that ork's own deny rules structurally cannot see. VERIFIED ork ships 9 literal `rm -rf` deny rules in src/settings/ork.settings.json (`Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -rf .)`, the /private/* pair set), all of which match command TEXT and therefore miss `rm -rf \"$1\"` and `sh -c \"rm -rf …\"` entirely; those rules are also discarded because CC reads only `agent` and `subagentStatusLine` from a plugin settings file. So the native prompt is the only thing that ever covered this, and it now covers more. Free."
       },
       {
         "feature_slug": "agent_team_first_turn_announcement_cache_miss",
@@ -3450,7 +3510,7 @@
           "analytics",
           "doctor"
         ],
-        "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model \u2014 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads",
+        "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads",
         "relevance": "plugin",
         "disposition": "adopted-in-pr",
         "ork_disposition_note": "Added to src/hooks/src/lib/models.vocab.json (fullIds + pricing, `fable` alias now resolves to 5.1 like CC does) and tests/ci/claude-model-ids.txt. cost-estimator picks the $0.25 cache-read rate up via the vocab import."
@@ -3549,7 +3609,7 @@
           "agent-orchestration",
           "chain-patterns"
         ],
-        "reference_changelog_line": "Fixed worktree-isolated sessions refusing Bash loops, `$VAR` reads, `\"$(\u2026)\"` and heredocs that never touch git as \"too complex to verify that it stays inside the worktree\"",
+        "reference_changelog_line": "Fixed worktree-isolated sessions refusing Bash loops, `$VAR` reads, `\"$(…)\"` and heredocs that never touch git as \"too complex to verify that it stays inside the worktree\"",
         "relevance": "plugin",
         "disposition": "upside",
         "ork_disposition_note": "25 agents declare `isolation: worktree` (grep src/agents). Free. The cross-repo `git -C` refusal (hq-ext #795) is a different check and is NOT lifted by this bullet."
@@ -3826,7 +3886,7 @@
         "description": "/btw history browsing moved from left/right arrows to Shift+arrows or [ ]; Ctrl+E command explanation removed from Bash permission prompts.",
         "gap_score": 15,
         "affected_skills": [],
-        "reference_changelog_line": "Changed `/btw` history browsing from `\u2190`/`\u2192` to `Shift+\u2190`/`Shift+\u2192` (or `[`/`]`), stepping through your recent side questions and back to the live answer",
+        "reference_changelog_line": "Changed `/btw` history browsing from `←`/`→` to `Shift+←`/`Shift+→` (or `[`/`]`), stepping through your recent side questions and back to the live answer",
         "relevance": "end-user",
         "disposition": "triaged-noop",
         "ork_disposition_note": "No ork doc cites the old keys (grep /btw and Ctrl+E: 0 in src)."
