@@ -1,0 +1,8 @@
+{
+  "slug": "demo-producer-code-drawn-lows",
+  "source": "docs/fix--demo-producer-code-drawn-lows/index.html",
+  "title": "compare.py: the five review notes, closed",
+  "description": "Follow-up to the demo-producer code-drawn mode: still names are refused by name, still holds trip the control on purpose, a Pillow fallback, Node 22, and the frame 0 guess tested.",
+  "tags": ["demo-producer", "video", "verification"],
+  "date": "2026-11-10"
+}

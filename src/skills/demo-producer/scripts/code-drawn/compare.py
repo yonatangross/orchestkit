@@ -11,11 +11,17 @@ A pair matches when the mean difference is under --mean (default 4 of 255) and u
 
 The control pairs each approved still with the rendered frame of the NEXT moment.
 Those must NOT match; if any control matches, the measure cannot see change and the
-run fails, whatever the true pairs say.
+run fails, whatever the true pairs say. A storyboard that holds still between two
+sampled moments also trips the control (reported as BLIND): sample moments where
+something changes, or move one of the two.
+
+Every .png in the approved folder must be named by its time in seconds (12.5.png);
+any other name is refused by name before anything is measured.
 
 Usage: compare.py <approved-dir> <rendered-dir> [--json out.json] [--mean 4] [--off 1] [--min-pairs 6]
 Exit 0: every true pair matches and every control differs. Exit 1 otherwise.
-Needs Pillow (pip install pillow).
+Needs Pillow (pip install pillow). Pixels are read with get_flattened_data where Pillow
+has it (12.2 does) and with getdata otherwise; Pillow 12 deprecates getdata for removal in 14.
 """
 
 import argparse
@@ -48,11 +54,26 @@ def load(p):
 def measure(pa, pr):
     d = ImageChops.difference(load(pa), load(pr))
     mean = sum(ImageStat.Stat(d).mean) / 3
-    off = sum(1 for px in d.convert("L").get_flattened_data() if px > 48) / (540 * 960) * 100
+    gray = d.convert("L")
+    pixels = gray.get_flattened_data() if hasattr(gray, "get_flattened_data") else gray.getdata()
+    off = sum(1 for px in pixels if px > 48) / (540 * 960) * 100
     return round(mean, 2), round(off, 2)
 
 
+def is_time(name):
+    try:
+        float(name[:-4])
+    except ValueError:
+        return False
+    return True
+
+
 A, R = pathlib.Path(a.approved), pathlib.Path(a.rendered)
+bad_names = sorted(p.name for p in A.glob("*.png") if not is_time(p.name))
+if bad_names:
+    sys.exit(
+        f"REFUSE: approved stills must be named by time in seconds (12.5.png); got {bad_names}"
+    )
 names = sorted(
     (p.name for p in A.glob("*.png") if (R / p.name).exists()), key=lambda n: float(n[:-4])
 )

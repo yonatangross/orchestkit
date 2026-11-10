@@ -585,8 +585,11 @@ storyboard page ──▶ owner approves ──▶ freeze approved-design/
 4. **Frames.** Serve the folder (any static server), start Chrome with
    `--remote-debugging-port=9222`, then
    `node scripts/code-drawn/render-frames.mjs <url>/film.html frames --fps 30 --seconds 32`.
-   It opens its own tab, saves the canvas pixels (not a screenshot) as
-   `f000.png`... and closes the tab. 960 frames at 2160x3840 took 98 to 107 s.
+   It needs Node 22 or later (it uses the built-in global `WebSocket`). It opens
+   its own tab, saves the canvas pixels (not a screenshot) as `f000.png`... and
+   closes the tab. 960 frames at 2160x3840 took 98 to 107 s. Measured on the
+   verify reel: in one tab, t=0 drawn cold and t=0 drawn again after t=1 are
+   identical, so the first frame does not suffer a font fallback here.
 5. **Encode.** From 2x frames, downscaled once:
    ```bash
    ffmpeg -framerate 30 -i frames/f%03d.png \
@@ -617,6 +620,12 @@ storyboard page ──▶ owner approves ──▶ freeze approved-design/
   must differ, or the run fails. It also exits 1 on a planted wrong frame. The
   margin is thin for small changes: a frame 1.5 s late in a slow shot measured
   mean 3.26 and 1.19 % off, caught only by the second limit.
+- A storyboard that holds still between two sampled moments trips the control on
+  purpose: the run fails as BLIND. Pick moments where something changes.
+- Stills are named by their time in seconds (`12.5.png`); any other `.png` in the
+  approved folder is refused by name before anything is measured.
+- Pixels are read with Pillow's `get_flattened_data` where it exists (12.2 has
+  it) and `getdata` otherwise.
 - It samples moments. A defect between them (a slide over the footer during a pan,
   a carried element landing in the wrong place) passes the compare and is found
   only by the strips in the fresh review. On the verify reel, the first review
