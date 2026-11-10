@@ -11,8 +11,9 @@ export * from '../lib/common.js';
 export * from '../lib/git.js';
 export * from '../lib/guards.js';
 
-// PreTool/Bash hooks (21)
+// PreTool/Bash hooks (22)
 import { networkEgressGuard } from '../pretool/bash/network-egress-guard.js';
+import { npmCiSymlinkGuard } from '../pretool/bash/npm-ci-symlink-guard.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
@@ -80,8 +81,9 @@ import type { HookFn } from '../types.js';
  * PreTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PreTool/Bash hooks (21)
+  // PreTool/Bash hooks (22)
   'pretool/bash/network-egress-guard': networkEgressGuard,
+  'pretool/bash/npm-ci-symlink-guard': npmCiSymlinkGuard,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,

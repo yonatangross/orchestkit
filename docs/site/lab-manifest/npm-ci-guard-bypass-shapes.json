@@ -1,0 +1,11 @@
+{
+  "slug": "npm-ci-guard-bypass-shapes",
+  "source": "docs/fix--npm-ci-guard-bypass-shapes-2/index.html",
+  "title": "The npm ci guard missed eight ways to write npm ci",
+  "description": "Pick a command shape and see whether the npm ci symlink guard checked it, before and after the review follow-up.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-10"
+}

@@ -11,8 +11,10 @@
 #   2. same count, numbered 1..N in order in both
 #   3. pattern i starts with the same word in both (case, hyphens and dots
 #      folded), so a reorder or a swap is caught, not only a count change
-#   4. fault arms: a copy with one pattern dropped, and one with two patterns
-#      swapped, must both fail the same comparison
+#   4. fault arms: a copy with one pattern dropped, one with two lines
+#      swapped (numbers move with them), and one with two names swapped but
+#      the numbers kept in order must all fail the same comparison; the
+#      name swap must fail on the name, not on the numbering
 # WORKFLOW_FILE and CI_DEBUG_FILE override the paths.
 
 set -euo pipefail
@@ -84,6 +86,16 @@ if [ "$fail" -eq 0 ]; then
   compare "$dl" "$dropped" > /dev/null && bad "fault arm: a dropped pattern still compared equal"
   swapped="$(printf '%s\n' "$sl" | awk 'NR==2{a=$0; next} NR==3{print; print a; next} {print}')"
   compare "$dl" "$swapped" > /dev/null && bad "fault arm: two swapped patterns still compared equal"
+  # Names 2 and 3 trade places, numbers stay 1..N, so only the name check can catch it.
+  renamed="$(printf '%s\n' "$sl" | awk 'NR==2{n2=$1; w2=$2; next} NR==3{print n2, $2; print $1, w2; next} {print}')"
+  if msg="$(compare "$dl" "$renamed")"; then
+    bad "fault arm: two swapped names with numbers kept still compared equal"
+  else
+    case "$msg" in
+      "pattern 2:"*) ;;
+      *) bad "fault arm: name swap failed for the wrong reason: $msg" ;;
+    esac
+  fi
 fi
 
 if [ "$fail" -eq 0 ]; then

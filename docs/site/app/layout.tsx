@@ -125,7 +125,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				<GitHubClickTracker />
 				<ThemeRevealOrigin />
 				<WebMcpProvider />
-				{/* PostHog loads only after "Allow analytics" here. */}
+				{/* Before an answer PostHog only counts page views cookieless; Allow upgrades it. */}
 				<AnalyticsConsentBanner />
 			</body>
 		</html>

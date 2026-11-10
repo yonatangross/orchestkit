@@ -503,7 +503,11 @@ describe('Cross-Bundle Consistency', () => {
     //              process per event for the flagged hooks.json variant
     //              (scripts/unified-pretool-hooks.mjs); the shipped hooks.json
     //              names neither, so validate-counts.sh is unchanged.
-    expect(totalHooks).toBe(182);
+    // 182 -> 183: pretool/bash/npm-ci-symlink-guard, a member of
+    //              sync-bash-dispatcher (no hooks.json entry of its own, so
+    //              validate-counts.sh is unchanged): denies npm ci through a
+    //              symlinked node_modules, unguarded since #3841.
+    expect(totalHooks).toBe(183);
   });
 });
 

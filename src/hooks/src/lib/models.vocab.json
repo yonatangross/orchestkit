@@ -16,6 +16,7 @@
   },
   "fullIds": [
     "claude-fable-5-1",
+    "claude-fable-5-2",
     "claude-fable-5",
     "claude-opus-5-5",
     "claude-opus-5",
@@ -46,6 +47,12 @@
       "output_per_mtok": 50.0,
       "cache_read_per_mtok": 0.25,
       "cache_write_per_mtok": 12.5
+    },
+    "claude-fable-5-2": {
+      "input_per_mtok": 8.0,
+      "output_per_mtok": 40.0,
+      "cache_read_per_mtok": 0.2,
+      "cache_write_per_mtok": 10.0
     },
     "claude-fable-5": {
       "input_per_mtok": 10.0,

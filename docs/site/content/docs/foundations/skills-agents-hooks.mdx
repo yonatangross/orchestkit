@@ -116,8 +116,7 @@ When Claude runs `git push`, hooks fire in sequence:
 | Hook | Action |
 |---|---|
 | `permissions.deny` (operator settings, not a hook) | Denies force-push to main or master |
-| `git-validator` | Validates branch rules |
-| `compound-command-validator` | Checks piped commands |
+| `sync-bash-dispatcher` | Runs the Bash checks, including the issue, label and milestone enforcers and the network egress guard |
 
 **After execution (posttool):**
 

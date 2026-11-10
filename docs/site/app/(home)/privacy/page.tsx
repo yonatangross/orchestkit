@@ -23,9 +23,37 @@ export default function PrivacyPage() {
 				not tied to a personal identity, and no account or login is required to
 				read the documentation.
 			</p>
+			<h3>Anonymous page counts before you choose</h3>
+			<p>
+				Until you answer the analytics banner, PostHog counts page views without
+				cookies: it keeps no identifier in a cookie, in local storage or in
+				session storage, creates no person profile and records no session
+				replay. It sends page views and nothing else: no clicks, no errors, no
+				time on page, no heatmaps, no performance data and none of the site's
+				own usage events. Each page view carries the page address, the referring
+				page, your browser and device type, and the screen size. A full page
+				reload starts a new, unrelated count.
+			</p>
+			<p>
+				As with any web request, PostHog (hosted in the EU) receives your IP
+				address. This site does not store it, and the PostHog project has
+				&quot;Discard client IP data&quot; turned on, so PostHog drops the
+				address before the page view is stored. Page counts are never matched
+				with the data collected after you allow analytics: allowing starts a
+				fresh identifier and a fresh device id.
+			</p>
+			<p>
+				The legal basis for this page view count, and only for it, is our
+				legitimate interest in knowing which documentation pages are read, so we
+				can keep them useful. Clicks, errors and the other events above are sent
+				only after you allow analytics. To
+				object, press Decline in the banner (or use the button below, then
+				Decline): PostHog then stops in that browser and is not loaded on later
+				visits.
+			</p>
 			<p>
 				On reference documentation pages under <code>/docs/reference/</code>, the
-				site also records an anonymous session replay (pointer movement, clicks
+				site also records, only after you allow analytics, an anonymous session replay (pointer movement, clicks
 				and scrolling) to understand why those pages are abandoned. All form and
 				search input is masked, the search dialog is excluded entirely, and no
 				request headers, bodies or query strings are captured. Nothing is
@@ -136,9 +164,10 @@ export default function PrivacyPage() {
 				the form <code>ph_&lt;project-key&gt;_posthog</code>) holding an
 				anonymous distinct id, a device id, the session id, and the
 				first-visit referrer and landing URL; that data stays with this
-				site's own analytics and is not shared with advertisers. PostHog loads
-				only after you allow analytics in the banner at the bottom of the page:
-				until then neither its script nor its cookie is used. Your choice is
+				site's own analytics and is not shared with advertisers. That cookie is
+				set only after you allow analytics in the banner at the bottom of the
+				page. Before you choose, PostHog runs only the cookieless page count
+				described above; after Decline it does not run at all. Your choice is
 				kept in your browser's local storage, and you can change it here at any
 				time.
 			</p>

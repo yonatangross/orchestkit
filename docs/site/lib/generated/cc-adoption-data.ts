@@ -16,6 +16,46 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.322",
+    "features": []
+  },
+  {
+    "version": "2.1.321",
+    "features": []
+  },
+  {
+    "version": "2.1.319",
+    "features": []
+  },
+  {
+    "version": "2.1.318",
+    "features": []
+  },
+  {
+    "version": "2.1.317",
+    "features": []
+  },
+  {
+    "version": "2.1.316",
+    "features": []
+  },
+  {
+    "version": "2.1.314",
+    "features": []
+  },
+  {
+    "version": "2.1.312",
+    "features": []
+  },
+  {
+    "version": "2.1.311",
+    "features": []
+  },
+  {
+    "version": "2.1.310",
+    "features": []
+  },
+  {
     "version": "2.1.309",
     "features": [
       {
@@ -4965,10 +5005,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.277",
-  latestKnown: "2.1.309",
+  latestKnown: "2.1.322",
   supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "cda8bb6fc245" as const;
+export const SOURCE_DIGEST = "b6ca0b189021" as const;

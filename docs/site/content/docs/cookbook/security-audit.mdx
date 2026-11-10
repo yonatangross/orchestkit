@@ -21,8 +21,7 @@ OrchestKit runs a **defense-in-depth security audit** that checks 8 layers in pa
 | `security-auditor` | Agent (opus) | OWASP Top 10 scan, dependency audit, secrets detection |
 | `code-quality-reviewer` | Agent | Identifies unsafe code patterns and complexity |
 | `debug-investigator` | Agent | Traces data flow for injection points |
-| `permissions.deny` rules | Operator settings | Deny destructive commands during the audit (written by `/ork:setup`) |
-| `file-guard` | Hook (pretool) | Blocks commits of `.env`, `*.pem`, credentials |
+| `permissions.deny` rules | Operator settings | Deny destructive commands and edits to `.env`, `*.pem` and credential files during the audit (written by `/ork:setup`) |
 | `security-command-audit` | Hook (posttool) | Logs all security scan results to audit trail |
 | `owasp-top-10` | Reference skill | OWASP vulnerability patterns and fixes |
 | `defense-in-depth` | Reference skill | Layered security architecture patterns |
@@ -261,8 +260,7 @@ The security test suite covers 7 attack categories: command injection, JQ inject
 
 | Hook | Event | What It Does |
 |---|---|---|
-| `permissions.deny` rules | operator settings | Deny destructive commands like `rm -rf /` or `chmod 777` for every agent, the security auditor included. Claude Code enforces them itself. SQL such as `DROP TABLE` is not covered. |
-| `file-guard` | pretool/write | Blocks any attempt to write `.env`, `*.pem`, `*credentials*`, or `*.key` files to disk. Prevents accidental exposure of secrets during testing. |
+| `permissions.deny` rules | operator settings | Deny destructive commands like `rm -rf /` or `chmod 777` for every agent, the security auditor included. Claude Code enforces them itself. The same rules refuse edits to `.env`, `*.pem`, `credentials.json`, `secrets.json` and private keys. SQL such as `DROP TABLE` is not covered. |
 | `security-command-audit` | posttool/bash | Logs every security scan command and its results to the session audit trail. Creates a reproducible record of what was checked. |
 | `session-env-setup` | lifecycle/start | Detects available security tools (bandit, pip-audit, npm audit, semgrep) at session start. Reports missing tools so you can install them. |
 

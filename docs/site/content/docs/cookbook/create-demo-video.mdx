@@ -232,7 +232,6 @@ Throughout the pipeline, several hooks fire automatically:
 | Hook | Event | What It Does |
 |---|---|---|
 | `session-env-setup` | lifecycle/start | Detects `KLING_API_KEY`, `FAL_KEY`, `SUNO_API_KEY` availability |
-| `file-guard` | pretool/write | Prevents overwriting existing output files without confirmation |
 | `audit-logger` | posttool/bash | Records every tool execution for pipeline reproducibility |
 | `session-metrics` | posttool/bash | Tracks render times, file sizes, scene counts |
 
