@@ -137,6 +137,21 @@ describe("PostHog consent gate", () => {
 		expect(phMock().opt_out_capturing).not.toHaveBeenCalled();
 	});
 
+	it("before consent init makes no /flags or remote config call (b136, #5180)", async () => {
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		// init() calls /flags and fetches remote config unless this is set, and
+		// that request carries the in-memory distinct_id and the visitor IP.
+		expect(lastInitOpts?.advanced_disable_flags).toBe(true);
+	});
+
+	it("the consented client loads flags and remote config as before", async () => {
+		localStorage.setItem(CONSENT_KEY, "accepted");
+		await import("@/instrumentation-client");
+		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
+		expect(lastInitOpts).not.toHaveProperty("advanced_disable_flags");
+	});
+
 	it("writes nothing to cookies, localStorage or sessionStorage before consent", async () => {
 		const mod = await import("@/instrumentation-client");
 		await vi.waitFor(() => expect(initKeys).toEqual([KEY]));
