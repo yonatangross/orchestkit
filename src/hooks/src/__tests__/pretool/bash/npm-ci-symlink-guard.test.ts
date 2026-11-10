@@ -186,4 +186,46 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
     const result = syncBashDispatcher(bash('npm ci', join(root, 'real')), NOOP_CTX);
     expect(denied(result)).toBe(false);
   });
+
+  // #5169: shapes that reach npm ci through shell grammar, quoting, wrappers or
+  // a nested shell. Each one empties the shared tree exactly like plain npm ci.
+  it.each([
+    ['if true; then npm ci; fi'],
+    ['for x in 1; do npm ci; done'],
+    ['case a in a) npm ci;; esac'],
+    ['{ npm ci; }'],
+    ['! npm ci'],
+    ['"npm" ci'],
+    ['\\npm ci'],
+    ['sudo npm ci'],
+    ['nice -n 10 npm ci'],
+    ['timeout 5 npm ci'],
+    ['bash -c "npm ci"'],
+    ["sh -c 'npm ci'"],
+  ])('denies %s in a worktree whose node_modules is a symlink (#5169)', (command) => {
+    expect(denied(syncBashDispatcher(bash(command, join(root, 'wt')), NOOP_CTX))).toBe(true);
+  });
+
+  it('denies a brace-group cd into the worktree, then npm ci (#5169)', () => {
+    const command = `{ cd ${join(root, 'wt')}; } && npm ci`;
+    expect(denied(syncBashDispatcher(bash(command, join(root, 'real')), NOOP_CTX))).toBe(true);
+  });
+
+  it('denies env -C into the worktree, then npm ci (#5169)', () => {
+    const command = `env -C ${join(root, 'wt')} npm ci`;
+    expect(denied(syncBashDispatcher(bash(command, join(root, 'real')), NOOP_CTX))).toBe(true);
+  });
+
+  it('asks, not denies, when npm ci appears in a shape the parser cannot place (#5169)', () => {
+    const result = syncBashDispatcher(bash("grep -rn 'npm ci' docs", join(root, 'wt')), NOOP_CTX);
+    expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+  });
+
+  it.each([
+    ["grep -rn 'npm ci' docs"],
+    ['if true; then npm ci; fi'],
+  ])('neither denies nor asks for %s where node_modules is a real directory (#5169)', (command) => {
+    const result = syncBashDispatcher(bash(command, join(root, 'real')), NOOP_CTX);
+    expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+  });
 });
