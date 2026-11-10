@@ -20,7 +20,7 @@
 
 import { isAbsolute, join, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { isSymlinkPath } from '../../lib/fs-probe.js';
 
@@ -46,7 +46,102 @@ const VALUE_FLAGS = new Set([
 const PREFIX_FLAGS = new Set(['--prefix', '-C']);
 
 /** Command words that run the rest of the segment as a command. */
-const WRAPPERS = new Set(['env', 'time', 'command', 'exec', 'nohup', 'nice']);
+const WRAPPERS = new Set(['env', 'time', 'command', 'exec', 'nohup', 'nice', 'sudo', 'doas', 'timeout']);
+
+/** Per wrapper, the options that take the next word as their value (#5169). */
+const WRAPPER_VALUE_OPTIONS: Record<string, Set<string>> = {
+  nice: new Set(['-n', '--adjustment']),
+  sudo: new Set(['-u', '-g', '-C', '-D', '-h', '-p', '-r', '-t', '-U']),
+  doas: new Set(['-u', '-C']),
+  env: new Set(['-u', '--unset', '-S', '--split-string']),
+  timeout: new Set(['-s', '--signal', '-k', '--kill-after']),
+};
+
+/** Shell words that open or continue a compound command; the command after them is what runs (#5169). */
+const SHELL_KEYWORDS = new Set(['then', 'do', 'else', 'elif', 'if', 'while', 'until', '!', '{', '}', 'esac', 'fi', 'done']);
+
+/** Shells whose `-c <script>` argument is read as one more command (#5169). */
+const SHELLS = 'bash|sh|zsh|dash|ksh';
+
+/**
+ * Loose text for detection only: every backslash escape and quote character
+ * removed, so `n\pm` and `np''m` read as npm. It over-reads on purpose (an
+ * apostrophe inside double quotes is lost), so it must never produce a path.
+ */
+function shellWord(word: string): string {
+  return word.replace(/\\(.)/g, '$1').replace(/["']/g, '');
+}
+
+/** Characters a backslash escapes inside double quotes. */
+const DQ_ESCAPABLE = '$`"\\\n';
+
+/**
+ * Split a segment into words as the shell reads them (Vercel finding
+ * 01M73R2WWKHP1QKXGW63DA83C9 on #5195): split only on unquoted blanks; inside
+ * single quotes every character is literal; inside double quotes a backslash
+ * escapes only $ ` " \ and newline; outside quotes a backslash escapes the next
+ * character. Quote characters of the other kind stay in the word, so
+ * "a'b" is a'b and '/L\z' is /L\z.
+ */
+function shellWords(segment: string): string[] {
+  const words: string[] = [];
+  let cur = '';
+  let inWord = false;
+  let i = 0;
+  while (i < segment.length) {
+    const c = segment[i];
+    if (/\s/.test(c)) {
+      if (inWord) words.push(cur);
+      cur = '';
+      inWord = false;
+      i++;
+      continue;
+    }
+    inWord = true;
+    if (c === "'") {
+      const end = segment.indexOf("'", i + 1);
+      cur += end === -1 ? segment.slice(i + 1) : segment.slice(i + 1, end);
+      i = end === -1 ? segment.length : end + 1;
+    } else if (c === '"') {
+      i++;
+      while (i < segment.length && segment[i] !== '"') {
+        if (segment[i] === '\\' && i + 1 < segment.length && DQ_ESCAPABLE.includes(segment[i + 1])) {
+          cur += segment[i + 1];
+          i += 2;
+        } else {
+          cur += segment[i++];
+        }
+      }
+      i++;
+    } else if (c === '\\' && i + 1 < segment.length) {
+      cur += segment[i + 1];
+      i += 2;
+    } else {
+      cur += c;
+      i++;
+    }
+  }
+  if (inWord) words.push(cur);
+  return words;
+}
+
+/**
+ * Strip shell grammar from the front of a segment until a command word is
+ * left: `case <word> in`, a case pattern `<pat>)` or `(<pat>)`, and the
+ * keywords above. `if true; then npm ci; fi` reaches `npm ci` this way.
+ */
+function stripShellGrammar(segment: string): string {
+  let s = segment.trim();
+  for (let prev = ''; prev !== s; ) {
+    prev = s;
+    s = s.replace(/^case\s+\S+\s+in(\s+|$)/, '');
+    s = s.replace(/^\(?[^\s()]+\)(\s+|$)/, '');
+    const first = /^(\S+)(\s+|$)/.exec(s);
+    if (first && SHELL_KEYWORDS.has(first[1])) s = s.slice(first[0].length);
+    s = s.trim();
+  }
+  return s.replace(/\s*\}$/, '').trim();
+}
 
 /** `~` and `~/x` against the home dir; anything else unchanged. */
 function expandHome(dir: string, home: string): string {
@@ -73,12 +168,6 @@ function resolveDir(base: string, dir: string, home: string): string {
   return isAbsolute(expanded) ? expanded : resolve(base, expanded);
 }
 
-/** Strip one pair of matching outer quotes from a token. */
-function unquote(token: string): string {
-  const m = /^(['"])(.*)\1$/.exec(token);
-  return m ? m[2] : token;
-}
-
 /**
  * The directory whose node_modules a clean install in `command` would clear,
  * or null when the command runs no clean install. Commands are split on
@@ -91,6 +180,14 @@ function unquote(token: string): string {
  */
 export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? ''): string | null {
   return scan(blankSubstitutions(command), cwd, home).target;
+}
+
+/** The script of every `bash -c '<script>'` (and sh, zsh, dash, ksh) in the command (#5169). */
+function nestedShellBodies(command: string): string[] {
+  const bodies: string[] = [];
+  const re = new RegExp(`(?:^|[^\\w/-])(?:${SHELLS})((?:\\s+-[a-zA-Z]+)*?)\\s+-[a-zA-Z]*c\\s+(?:"([^"]*)"|'([^']*)'|(\\S+))`, 'g');
+  for (const m of command.matchAll(re)) bodies.push(m[2] ?? m[3] ?? m[4] ?? '');
+  return bodies;
 }
 
 /** Bodies of every $(...) and `...` in the command, innermost first. */
@@ -119,14 +216,33 @@ function substitutionBodies(command: string): string[] {
  * directories, never too few.
  */
 export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
-  const readings = [blankSubstitutions(command), command, ...substitutionBodies(command)];
-  const scans = readings.map((text) => scan(text, cwd, home));
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
   if (!scans.some((s) => s.target !== null)) return [];
   const dirs = new Set<string>([cwd]);
   for (const s of scans) {
     for (const d of s.seen) dirs.add(d);
     if (s.target !== null) dirs.add(s.target);
   }
+  return [...dirs];
+}
+
+/** Every reading of a command: substitutions blanked, raw, each substitution body, each nested shell script. */
+function readingsOf(command: string): string[] {
+  return [blankSubstitutions(command), command, ...substitutionBodies(command), ...nestedShellBodies(command)];
+}
+
+/**
+ * The fail-safe half (#5169). When no reading finds a clean install but the
+ * text still holds `npm` and, later, a clean-install word (after quotes and
+ * escapes are removed), return the cwd and every directory any reading passed
+ * through, so the guard can ask instead of failing open. [] otherwise.
+ */
+export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
+  const words = shellWord(command).split(/[\s;&|()]+/).filter(Boolean);
+  const npmAt = words.indexOf('npm');
+  if (npmAt === -1 || !words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w))) return [];
+  const dirs = new Set<string>([cwd]);
+  for (const text of readingsOf(command)) for (const d of scan(text, cwd, home).seen) dirs.add(d);
   return [...dirs];
 }
 
@@ -147,16 +263,40 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     const restore = () => {
       for (let n = 0; n < closes; n++) dir = saved.pop() ?? dir;
     };
-    const cd = /^cd\s+("[^"]*"|'[^']*'|\S+)$/.exec(segment);
-    if (cd) {
-      dir = resolveDir(dir, unquote(cd[1]), home);
+    // A brace group runs in the current shell, so `{ cd X; }` moves the
+    // directory for what follows; only the grammar is stripped (#5169).
+    segment = stripShellGrammar(segment);
+    const words = shellWords(segment);
+    if (words.length === 2 && words[0] === 'cd') {
+      dir = resolveDir(dir, words[1], home);
       seen.push(dir);
       restore();
       continue;
     }
-    const words = segment.split(/\s+/).filter(Boolean);
+    // `env -C DIR` runs this one command in DIR, without moving the shell.
+    let cmdDir = dir;
     let start = 0;
-    while (start < words.length && (/^\w+=/.test(words[start]) || WRAPPERS.has(words[start]))) start++;
+    while (start < words.length) {
+      const w = words[start];
+      if (/^\w+=/.test(w)) {
+        start++;
+        continue;
+      }
+      if (!WRAPPERS.has(w)) break;
+      start++;
+      const valueOptions = WRAPPER_VALUE_OPTIONS[w] ?? new Set<string>();
+      while (start < words.length && words[start].startsWith('-')) {
+        const option = words[start++];
+        if (w === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
+          cmdDir = resolveDir(cmdDir, words[start++], home);
+          seen.push(cmdDir);
+        } else if (valueOptions.has(option) && start < words.length) {
+          start++;
+        }
+      }
+      // timeout takes a duration before the command.
+      if (w === 'timeout' && start < words.length && /^\d/.test(words[start])) start++;
+    }
     const tokens = words.slice(start);
     if (tokens[0] !== 'npm') {
       restore();
@@ -166,14 +306,15 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     let sub: string | null = null;
     for (let i = 1; i < tokens.length; i++) {
       const t = tokens[i];
-      if (t.startsWith('--prefix=')) prefix = unquote(t.slice('--prefix='.length));
-      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = unquote(tokens[++i]);
+      // Words are already read as the shell reads them; no second unquote.
+      if (t.startsWith('--prefix=')) prefix = t.slice('--prefix='.length);
+      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = tokens[++i];
       else if (VALUE_FLAGS.has(t)) i++;
       else if (!t.startsWith('-') && sub === null) sub = t;
     }
-    if (prefix !== null) seen.push(resolveDir(dir, prefix, home));
+    if (prefix !== null) seen.push(resolveDir(cmdDir, prefix, home));
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
-      return { target: prefix === null ? dir : resolveDir(dir, prefix, home), seen };
+      return { target: prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home), seen };
     }
     restore();
   }
@@ -189,9 +330,25 @@ export function npmCiSymlinkGuard(
   deps: NpmCiSymlinkGuardDeps = DEFAULT_DEPS,
 ): HookResult {
   const command = input.tool_input?.command;
-  if (typeof command !== 'string' || !command.includes('npm')) return outputSilentSuccess();
+  // The fast exit reads the loose text, so `n\pm` and `np''m` still enter (b137 P2 on #5195).
+  if (typeof command !== 'string' || !shellWord(command).includes('npm')) return outputSilentSuccess();
 
-  const candidates = npmCiCandidateDirs(command, input.cwd || ctx.projectDir);
+  const cwd = input.cwd || ctx.projectDir;
+  const candidates = npmCiCandidateDirs(command, cwd);
+  if (candidates.length === 0) {
+    // No reading found a clean install, yet the text names one: a shape the
+    // parser cannot place. Ask instead of failing open, but only where a
+    // linked node_modules is at stake (#5169).
+    const mentioned = npmCiMentionDirs(command, cwd)
+      .map((d) => join(d, 'node_modules'))
+      .find((m) => deps.isSymlink(m));
+    if (mentioned === undefined) return outputSilentSuccess();
+    ctx.log(HOOK_NAME, `asked about an unparsed npm clean install near symlinked ${mentioned}`);
+    return outputAsk(
+      `This command mentions npm ci (or another clean install) in a form the npm ci guard cannot read, and ${mentioned} is a symlink. ` +
+        'If it runs npm ci there, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or confirm it does not run npm ci.',
+    );
+  }
   const linked = candidates.map((d) => join(d, 'node_modules')).find((m) => deps.isSymlink(m));
   if (linked === undefined) return outputSilentSuccess();
   const modules = linked;
