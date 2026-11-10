@@ -77,6 +77,13 @@ describe("AnalyticsConsentBanner", () => {
 		expect(buttons.className).toContain("self-end");
 	});
 
+	it("puts the Privacy notice link on its own line under the sentence (approved mockup v1)", () => {
+		render(<AnalyticsConsentBanner />);
+		const link = screen.getByRole("link", { name: "Privacy notice" });
+		// A block element starts its own line; inline it ran on after the sentence.
+		expect(link.className).toMatch(/(^|\s)block(\s|$)/);
+	});
+
 	it("gives Decline and Allow the same styling (equal weight)", () => {
 		render(<AnalyticsConsentBanner />);
 		const decline = screen.getByRole("button", { name: "Decline" });
