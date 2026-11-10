@@ -127,6 +127,16 @@ describe('npmCiSymlinkGuard', () => {
     expect(denied(result)).toBe(true);
   });
 
+  it.each([
+    ['x=$(npm ci)'],
+    ['echo "$(npm ci)"'],
+    ['echo `npm ci`'],
+    ["echo '`'; npm ci; echo '`'"],
+    ["echo '$('; npm ci; echo ')'"],
+  ])('finds the clean install in %s (substitution bodies and quotes)', (command) => {
+    expect(denied(npmCiSymlinkGuard(bash(command), NOOP_CTX, linksAt('/wt/node_modules')))).toBe(true);
+  });
+
   it('still allows npm ci when no directory it passed through has a linked node_modules', () => {
     const result = npmCiSymlinkGuard(bash('(cd /a && echo \\) && npm ci)'), NOOP_CTX, linksAt('/elsewhere/node_modules'));
     expect(result.continue).toBe(true);

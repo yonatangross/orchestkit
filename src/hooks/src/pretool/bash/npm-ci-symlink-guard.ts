@@ -90,11 +90,54 @@ function unquote(token: string): string {
  * the value is never read as the subcommand.
  */
 export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? ''): string | null {
+  return scan(blankSubstitutions(command), cwd, home).target;
+}
+
+/** Bodies of every $(...) and `...` in the command, innermost first. */
+function substitutionBodies(command: string): string[] {
+  const bodies: string[] = [];
+  for (const m of command.matchAll(/`([^`]*)`/g)) bodies.push(m[1]);
+  let text = command;
+  for (let prev = ''; prev !== text; ) {
+    prev = text;
+    text = text.replace(/\$\(([^()]*)\)/g, (_all, body: string) => {
+      bodies.push(body);
+      return '_';
+    });
+  }
+  return bodies;
+}
+
+/**
+ * Every directory a clean install in `command` might clear, or [] when no
+ * reading of the command finds a clean install. The parser cannot follow
+ * every shell form (quotes around a backtick, an escaped ')', a case
+ * pattern), so it reads the command several ways (substitutions blanked,
+ * the raw text, each substitution body on its own) and, if any reading
+ * finds a clean install, returns the cwd, every cd and prefix directory any
+ * reading passed through, and every target. A misparse then checks too many
+ * directories, never too few.
+ */
+export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
+  const readings = [blankSubstitutions(command), command, ...substitutionBodies(command)];
+  const scans = readings.map((text) => scan(text, cwd, home));
+  if (!scans.some((s) => s.target !== null)) return [];
+  const dirs = new Set<string>([cwd]);
+  for (const s of scans) {
+    for (const d of s.seen) dirs.add(d);
+    if (s.target !== null) dirs.add(s.target);
+  }
+  return [...dirs];
+}
+
+/** One reading of a command: the clean-install target (or null) and every directory it passed through. */
+function scan(command: string, cwd: string, home: string): { target: string | null; seen: string[] } {
+  const seen: string[] = [cwd];
   let dir = cwd;
   // A subshell runs in a copy of the shell: a cd inside it ends when it
   // closes. Each '(' saves the directory, each ')' restores it.
   const saved: string[] = [];
-  for (const raw of blankSubstitutions(command).split(/&&|\|\||[;|&\n]/)) {
+  for (const raw of command.split(/&&|\|\||[;|&\n]/)) {
     let segment = raw.trim();
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
@@ -107,6 +150,7 @@ export function npmCiTargetDir(command: string, cwd: string, home: string = proc
     const cd = /^cd\s+("[^"]*"|'[^']*'|\S+)$/.exec(segment);
     if (cd) {
       dir = resolveDir(dir, unquote(cd[1]), home);
+      seen.push(dir);
       restore();
       continue;
     }
@@ -127,12 +171,13 @@ export function npmCiTargetDir(command: string, cwd: string, home: string = proc
       else if (VALUE_FLAGS.has(t)) i++;
       else if (!t.startsWith('-') && sub === null) sub = t;
     }
+    if (prefix !== null) seen.push(resolveDir(dir, prefix, home));
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
-      return prefix === null ? dir : resolveDir(dir, prefix, home);
+      return { target: prefix === null ? dir : resolveDir(dir, prefix, home), seen };
     }
     restore();
   }
-  return null;
+  return { target: null, seen };
 }
 
 /**
@@ -146,11 +191,10 @@ export function npmCiSymlinkGuard(
   const command = input.tool_input?.command;
   if (typeof command !== 'string' || !command.includes('npm')) return outputSilentSuccess();
 
-  const target = npmCiTargetDir(command, input.cwd || ctx.projectDir);
-  if (target === null) return outputSilentSuccess();
-
-  const modules = join(target, 'node_modules');
-  if (!deps.isSymlink(modules)) return outputSilentSuccess();
+  const candidates = npmCiCandidateDirs(command, input.cwd || ctx.projectDir);
+  const linked = candidates.map((d) => join(d, 'node_modules')).find((m) => deps.isSymlink(m));
+  if (linked === undefined) return outputSilentSuccess();
+  const modules = linked;
 
   ctx.log(HOOK_NAME, `denied clean install through symlinked ${modules}`);
   return outputDeny(
