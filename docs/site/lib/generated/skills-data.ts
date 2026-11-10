@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "0f804fed2371fbafc2c94f47d34f51e602b11a2dd8826e18cf3660524ef785fa",
+    "sha256": "98ba19679806c95b4808885f3f417ffbec75040447d620792148748fcf2f6789",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -2413,7 +2413,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research).",
     "version": "2.6.0",
-    "sha256": "5c0e8517a6d43a7b05857c6e6886bacc54e38f679f72e7017b64d84af143efd0",
+    "sha256": "31bf3cb3ac528ca60bcf2a18a691dc210127fd31dbefd49f474c8f2002c7328d",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2851,7 +2851,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code.",
     "version": "2.8.0",
-    "sha256": "cd0af6364e7a962e320224696834b9843e7ed41a2cdadfb67bbf45cedc9c1277",
+    "sha256": "425bbec10afc0a4342f61b83921d6580ec63b776d78ca8415b54b72db8bb5c7b",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4660,7 +4660,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes.",
     "version": "2.1.0",
-    "sha256": "24b5ad8968ed85dab03c7dc6ad063298959b18223e569f3351f813ae7c450b6d",
+    "sha256": "a37b382c70bd4841ee6888a56360b259235d06729dc90d67e22502f3347aeff5",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -5376,7 +5376,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "b38b8b22bd97f5dc2aabd6bce322d94c8319da00119e0be05e0f76091b0ccfe8",
+    "sha256": "7f9c05cdd789615647ac95036c890aa9df3f26360332746b81494072302d2b1b",
     "author": "OrchestKit",
     "tags": [
       "visualization",

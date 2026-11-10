@@ -111,13 +111,9 @@ mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
 
 ## STEP 0: Detect or Clarify Plan Context
 
-**First**, attempt auto-detection by running `scripts/detect-plan-context.sh`:
+**Plan context, already detected.** Claude Code ran `scripts/detect-plan-context.sh` when it opened this skill (a body step can be skipped, #4683). Its output, the branch name, issue number (if any), commit count and file change summary, is below (first 60 lines; the file list can run to thousands of lines); there is nothing to run. A blank result means the script had nothing to report. If you see `[shell command execution disabled by policy]` instead, run it yourself: `bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh" | head -n 60`.
 
-```bash
-bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh"
-```
-
-This outputs branch name, issue number (if any), commit count, and file change summary.
+!`bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh" 2>/dev/null | head -n 60 2>/dev/null || true`
 
 **If auto-detection finds a clear plan** (branch with commits diverging from main, or issue number in args), proceed to Step 1.
 
