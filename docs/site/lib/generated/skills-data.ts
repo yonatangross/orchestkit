@@ -408,7 +408,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify).",
     "version": "1.9.0",
-    "sha256": "74d6e77371b120538b6b7be2ac2c17200de560b882d357bbda045aaaa77a485c",
+    "sha256": "d444bd6d5cc4cafdb8f26c34d38bea24255b442aba5dc753434d0e5d0bbd476e",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -562,7 +562,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce.",
     "version": "1.2.0",
-    "sha256": "73a3a3224ac47b8a51f3db281133809f898a89acf4be0de19825bfc2fe754ba9",
+    "sha256": "e84a5e34b87330af28d39160ee852253e5a2fefe4d0dfb9df7fc203ba272b1b0",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -663,7 +663,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy.",
     "version": "1.1.0",
-    "sha256": "eda7c83ee62b9e352c893c04d4f1bb03702c02a2ec8ae587995519cdb3a83bfb",
+    "sha256": "db7e09842ce4ffcf96b914d7fcb5dcc4f71466ce282b38284fb099a52ef9f0c5",
     "author": "OrchestKit",
     "tags": [
       "eval",
@@ -1227,7 +1227,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite.",
     "version": "1.3.0",
-    "sha256": "c510aae4bbe0ee5fefbc0ed321d4c402123ccfb794fe06fc950b060eb25c6d4e",
+    "sha256": "3f2a298c323e51615692c00519df5c9b3db907083a66816d037cae625c166474",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4474,7 +4474,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "d8ac1a33ad96aee5b4a2e14f0ab4e10d0f2d7176c924766ffcf04dc114bbf6b2",
+    "sha256": "b84de32d20693032e28f5eb7ee478bc680a0bc18e9bab39dbed35db8e5eded06",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -5287,7 +5287,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "c0657470e01543a7d7f504e8fc257698a3f439f8e5a65593b8257b88ae510c8a",
+    "sha256": "527e25acbfe39db63a04ee0b27f78ce06c4e939324a5cc1e6651708ad36e2467",
     "author": "OrchestKit",
     "tags": [
       "verification",

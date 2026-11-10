@@ -53,7 +53,9 @@ else
     fail "manifests/ork.json does not list skills/brainstorm/workflows/brainstorm-diverge.js"
 fi
 
-if grep -Fq 'workflows/brainstorm-diverge.js' "$SKILLS_DIR/brainstorm/references/phase-workflow.md"; then
+# Phase 2 launches the workflow by its registered name (#5183: a scriptPath into the
+# plugin cache is refused headless), so the marker is ork:brainstorm-diverge.
+if grep -Fq 'name="ork:brainstorm-diverge"' "$SKILLS_DIR/brainstorm/references/phase-workflow.md"; then
     pass "Phase 2 runs through brainstorm-diverge.js"
 else
     fail "references/phase-workflow.md Phase 2 does not call brainstorm-diverge.js"

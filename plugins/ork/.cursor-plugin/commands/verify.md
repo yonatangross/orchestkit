@@ -105,6 +105,8 @@ Default: **Workflow** (star, `skills/verify/workflows/verify-dispatch.js` runs P
 
 **Fan-out rule:** a single pass is never a fallback when the selected scope runs Phase 2. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a verifier, end the run as BLOCKED and say why. A scope that skips Phase 2 (effort low, Tests only, Quick check) is not a violation.
 
+**Refused workflow rule:** if the Workflow call is refused, errors or is unavailable, the report's first Phase 2 line reads `Phase 2: verify-dispatch workflow not run (<refused|error|unavailable>: <reason>), fell back to <Agent Teams|Agent tool>`, and the verdict is IMPROVEMENTS RECOMMENDED at most, because the refuter majority and evidence gate in verify-dispatch.js did not run. Headless (`claude -p`) needs Workflow allowed (`Workflow(ork:verify-dispatch)` allow rule, auto or bypass); it does not need `--add-dir`.
+
 
 ### MCP Probe + Resume
 
@@ -185,7 +187,7 @@ Do NOT hand-roll the dispatch. Start Phase 3's test run (below) in the backgroun
 
 ```python
 Workflow(
-  scriptPath="skills/verify/workflows/verify-dispatch.js",
+  name="ork:verify-dispatch",
   args={"effort": EFFORT, "scope": "<diff summary from Phase 1>", "rubric": <rubric.json>,
         "dimensions": DIMS, "modelOverride": MODEL_OVERRIDE}
 )   # add "testEvidence": {"outcome", "exitCode", "summaryLine"} if assert-evidence.sh already ran
