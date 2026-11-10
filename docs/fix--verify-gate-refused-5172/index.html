@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A refused evidence gate is COULD-NOT-OBSERVE</title>
+<meta name="description" content="Pick what happened to the verify evidence gate and see the Tests row and verdict before and after the fix.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  select{width:100%;margin-top:.4rem}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media (max-width:40rem){.grid{grid-template-columns:1fr}}
+  .box{background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:8px;padding:.8rem 1rem;font-size:.85rem}
+  .box b{display:block;color:var(--pg-dim);font-weight:normal;font-size:.75rem;margin-bottom:.3rem}
+  .bad{color:var(--status-bad)}.ok{color:var(--status-ok)}
+</style>
+</head>
+<body>
+<main>
+  <h1>A refused evidence gate is COULD-NOT-OBSERVE</h1>
+  <p class="sub">/ork:verify, issue 5172. Before the fix the skill had no row for a gate that never ran, so WAIVED was the only fit.</p>
+  <section>
+    <h2>What happened to assert-evidence.sh</h2>
+    <label for="case">Gate outcome</label>
+    <select id="case">
+      <option value="ok">Ran, exit 0 (EVIDENCE)</option>
+      <option value="e3">Ran, exit 3 (0 bytes, no live process)</option>
+      <option value="refused" selected>Never ran: the Bash call was denied by a hook</option>
+    </select>
+  </section>
+  <section>
+    <h2>Tests row and verdict</h2>
+    <div class="grid">
+      <div class="box"><b>Before</b><span id="before"></span></div>
+      <div class="box"><b>After</b><span id="after"></span></div>
+    </div>
+    <button id="copy" type="button">Copy as prompt</button>
+  </section>
+</main>
+<script>
+const CASES = {
+  ok: {
+    before: ['Tests graded from the runner summary line', 'ok'],
+    after: ['Tests graded from the runner summary line', 'ok']
+  },
+  e3: {
+    before: ['Tests: COULD-NOT-OBSERVE (assert-evidence exit 3). BLOCKED', 'ok'],
+    after: ['Tests: COULD-NOT-OBSERVE (assert-evidence exit 3). BLOCKED', 'ok']
+  },
+  refused: {
+    before: ['Tests gate WAIVED, the run goes on (no row fits a gate that never ran)', 'bad'],
+    after: ['Tests: COULD-NOT-OBSERVE (gate refused: reason). BLOCKED. The gate can never be WAIVED', 'ok']
+  }
+};
+const sel = document.getElementById('case');
+function draw() {
+  const c = CASES[sel.value];
+  for (const k of ['before', 'after']) {
+    const el = document.getElementById(k);
+    el.textContent = c[k][0];
+    el.className = c[k][1];
+  }
+}
+sel.addEventListener('change', draw);
+document.getElementById('copy').addEventListener('click', () => {
+  const c = CASES[sel.value];
+  const text = 'When the verify evidence gate outcome is "' + sel.options[sel.selectedIndex].text + '", the Tests row must read: ' + c.after[0];
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+});
+draw();
+</script>
+</body>
+</html>

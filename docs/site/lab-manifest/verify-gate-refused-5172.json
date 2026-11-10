@@ -1,0 +1,11 @@
+{
+  "slug": "verify-gate-refused-5172",
+  "source": "docs/fix--verify-gate-refused-5172/index.html",
+  "title": "A refused evidence gate is COULD-NOT-OBSERVE",
+  "description": "Pick what happened to the verify evidence gate and see the Tests row and verdict before and after the fix.",
+  "tags": [
+    "verify",
+    "skills"
+  ],
+  "date": "2026-11-11"
+}
