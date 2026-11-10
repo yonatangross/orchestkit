@@ -1,0 +1,11 @@
+{
+  "slug": "npm-ci-guard-shell-shapes",
+  "source": "docs/fix--5169-npm-ci-guard-shapes/index.html",
+  "title": "The npm ci guard now sees npm ci behind shell grammar, quotes, wrappers and nested shells",
+  "description": "Pick a command shape and compare what the guard did before and after, in a worktree whose node_modules is a symlink.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-08"
+}
