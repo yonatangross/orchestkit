@@ -2,7 +2,7 @@
  * isSymlinkPath: true only for the link itself; a real directory, a regular
  * file and a missing path are all false (lstat, not stat).
  */
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -19,6 +19,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  if (process.platform !== 'win32') chmodSync(join(root, 'real'), 0o700);
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -39,4 +40,19 @@ describe('isSymlinkPath', () => {
   it('is false for a missing path', () => {
     expect(isSymlinkPath(join(root, 'missing'))).toBe(false);
   });
+
+  it('is false under a regular file (ENOTDIR is a missing path)', () => {
+    expect(isSymlinkPath(join(root, 'file', 'node_modules'))).toBe(false);
+  });
+
+  // Review of #5166 (b133): every lstat error used to read as not-a-link, so a
+  // path the guard could not inspect let npm ci through. Only "missing"
+  // (ENOENT, ENOTDIR) is a safe no; any other error answers true (fail closed).
+  it.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
+    'is true when lstat fails for another reason (EACCES fails closed)',
+    () => {
+      chmodSync(join(root, 'real'), 0o000);
+      expect(isSymlinkPath(join(root, 'real', 'node_modules'))).toBe(true);
+    },
+  );
 });
