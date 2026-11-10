@@ -19,6 +19,7 @@ Needs Pillow (pip install pillow).
 """
 
 import argparse
+import itertools
 import json
 import pathlib
 import sys
@@ -61,7 +62,7 @@ pairs, controls = [], []
 for n in names:
     m, off = measure(A / n, R / n)
     pairs.append({"t": float(n[:-4]), "mean": m, "off": off, "match": m < a.mean and off < a.off})
-for n, nxt in zip(names, names[1:]):
+for n, nxt in itertools.pairwise(names):
     m, off = measure(A / n, R / nxt)
     controls.append(
         {
