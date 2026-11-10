@@ -1,0 +1,10 @@
+{
+  "slug": "visualize-plan-context-at-load-time",
+  "source": "docs/fix--4683-visualize-plan-load-time/index.html",
+  "title": "visualize-plan now detects the plan before the model reads a word",
+  "description": "Compare how visualize-plan found its plan context before and after this change.",
+  "tags": [
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

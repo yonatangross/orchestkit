@@ -101,9 +101,9 @@ for (const name of readdirSync(SKILLS).sort()) {
 }
 
 // Fork skills that lost their frontmatter loaders in #4683: each body must
-// still do every loader's work, as a `run-hook.mjs" skill/<loader>` step.
-// visualize-plan's STEP 0 already runs scripts/detect-plan-context.sh, which
-// covers everything skill/plan-context-loader reported.
+// still do every loader's work, as a `run-hook.mjs" skill/<loader>` line.
+// visualize-plan runs scripts/detect-plan-context.sh instead, which covers
+// everything skill/plan-context-loader reported.
 const run = (loader) => `run-hook.mjs" ${loader}`;
 const BODY_LOADERS = {
   brainstorm: [run('skill/prior-decisions-loader'), run('skill/brainstorm-instructions-loader')],
@@ -135,12 +135,17 @@ for (const [name, markers] of Object.entries(BODY_LOADERS)) {
 // starts with !` : Claude Code runs it while it renders the skill and puts its
 // output in the text, before the model reads a word, so no step can be
 // skipped. pattern-consistency-enforcer is a check after writes, not a loader,
-// so it stays a step.
+// so it stays a step. visualize-plan's STEP 0 script was a step too, and the
+// model skipped it in 1 of 2 live runs (2026-11-10), so it joins the map.
+// Each entry is the exact command text, path included: ${CLAUDE_SKILL_DIR} is
+// the form the live runs proved resolves at render time.
+const hookLine = (loader) => `node "\${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" ${loader}`;
 const INJECTED = {
-  brainstorm: ['skill/prior-decisions-loader', 'skill/brainstorm-instructions-loader'],
-  explore: ['skill/repo-structure-indexer'],
-  implement: ['skill/project-convention-loader', 'skill/implement-standards-loader'],
-  setup: ['skill/setup-env-detector'],
+  brainstorm: [hookLine('skill/prior-decisions-loader'), hookLine('skill/brainstorm-instructions-loader')],
+  explore: [hookLine('skill/repo-structure-indexer')],
+  implement: [hookLine('skill/project-convention-loader'), hookLine('skill/implement-standards-loader')],
+  setup: [hookLine('skill/setup-env-detector')],
+  'visualize-plan': ['bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh"'],
 };
 // A !` command that exits non-zero aborts the whole skill, not just the
 // context: rev-parse exits 128 outside a repository, and run-hook.mjs exits
@@ -153,15 +158,17 @@ for (const [name, loaders] of Object.entries(INJECTED)) {
   const text = readFileSync(path.join(SKILLS, name, 'SKILL.md'), 'utf8');
   const lines = text.replace(/^-{3}\n[\s\S]*?\n-{3}\n/, '').split('\n');
   for (const loader of loaders) {
-    const injected = lines.some((l) => l.startsWith('!`') && l.endsWith('`') && l.includes(run(loader)));
+    const injected = lines.some((l) => l.startsWith('!`') && l.endsWith('`') && l.includes(loader));
     if (!injected) {
-      failures.push(`src/skills/${name}/SKILL.md: ${loader} is not a !\` load-time line, so the model can skip it (#4683)`);
+      failures.push(`src/skills/${name}/SKILL.md: \`${loader}\` is not a !\` load-time line, so the model can skip it (#4683)`);
     }
   }
+  // Every load-time command on a line, not only the first (b137 review, #5191).
   for (const line of lines) {
-    const inline = /!`[^`]+`/.exec(line);
-    if (inline && !NEVER_FAILS.test(inline[0])) {
-      failures.push(`src/skills/${name}/SKILL.md: load-time command can fail and abort the skill (add 2>/dev/null || true): ${inline[0]}`);
+    for (const inline of line.matchAll(/!`[^`]+`/g)) {
+      if (!NEVER_FAILS.test(inline[0])) {
+        failures.push(`src/skills/${name}/SKILL.md: load-time command can fail and abort the skill (add 2>/dev/null || true): ${inline[0]}`);
+      }
     }
   }
   if (!text.includes(POLICY_PLACEHOLDER)) {
