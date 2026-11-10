@@ -21,6 +21,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 
 // Import consolidated hook implementations
 import { networkEgressGuard } from './network-egress-guard.js';
+import { npmCiSymlinkGuard } from './npm-ci-symlink-guard.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
@@ -68,6 +69,10 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // 2026-09-06 (#3877): CC 2.1.263 ran `curl | sh` from an allowlisted host with
   // nothing intervening; see shared/rules/cc-native-first.md.
   { name: 'network-egress-guard', fn: networkEgressGuard },
+  // npm ci through a symlinked node_modules empties the linked (main) tree.
+  // dangerous-command-blocker denied it until #3841; a deny rule cannot see
+  // the symlink, so this guard checks it and denies only that case.
+  { name: 'npm-ci-symlink-guard', fn: npmCiSymlinkGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },

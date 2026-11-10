@@ -70,7 +70,7 @@ jobs:
         shell: pwsh
         run: |
           $payload = '{"tool_name":"Bash","session_id":"winsmoke","tool_input":{"command":"echo hello"}}'
-          $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker
+          $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher
           Write-Output "Hook result: $result"
           if ($LASTEXITCODE -ne 0) { throw "Hook invocation failed with exit $LASTEXITCODE" }
 

@@ -596,7 +596,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '22']
+        # PRs run node 22 only (the required "Unit Tests (node 22)"); node 20
+        # runs on push, merge_group, schedule and dispatch.
+        node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["20", "22"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
