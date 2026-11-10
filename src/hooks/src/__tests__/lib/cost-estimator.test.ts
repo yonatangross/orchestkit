@@ -88,6 +88,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
   // ratio it bends; the other stays on the convention.
   const CACHE_RATIO_EXCEPTIONS: Record<string, { read?: number; write?: number }> = {
     'claude-fable-5-1': { read: 0.025 },
+    // CC 2.1.321 CHANGELOG: $8 input with $0.20/Mtok cache reads, a 0.025x read.
+    'claude-fable-5-2': { read: 0.025 },
     // CC 2.1.280 CHANGELOG: $4 input with $0.20/Mtok cache reads, a 0.05x read.
     'claude-opus-5-5': { read: 0.05 },
     // Pricing page 2026-10-10, footnote 2: Sonnet 5.5 cache hits are 0.05x input ($0.10).
@@ -113,6 +115,21 @@ describe('cost-estimator vocab canaries (#2338)', () => {
       cache_write_per_mtok: 12.5,
     });
     expect(getPricing('claude-fable-5-1[1m]').cache_read_per_mtok).toBe(0.25);
+  });
+
+  // CC 2.1.321 made Fable 5.2 the default Fable model. Without its own row,
+  // getPricing() cannot relate claude-fable-5-2 to claude-fable-5-1 and the
+  // session falls through to the Sonnet 5.5 fallback.
+  it('prices claude-fable-5-2 at $8/$40 per MTok with $0.20 cache reads (CC 2.1.321)', () => {
+    const fable52 = getCostConfig().models['claude-fable-5-2'];
+    expect(fable52).toEqual({
+      input_per_mtok: 8.0,
+      output_per_mtok: 40.0,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 10.0,
+    });
+    expect(getPricing('claude-fable-5-2[1m]').input_per_mtok).toBe(8.0);
+    expect(calculateCost('claude-fable-5-2', MTOK).total).toBeCloseTo(48.0, 5); // $8 + $40
   });
 
   it('resolves the `fable` alias to claude-fable-5-1 pricing (advanced 2026-09-01, CC 2.1.257 default)', () => {
