@@ -41,12 +41,15 @@
 //   - Entering a reference page starts replay once the URL has committed, so
 //     the recording opens on the reference page, not the page being left.
 
-// CONSENT (2026-11-07): posthog-js is NOT imported here. startPostHog from
-// lib/posthog-loader.ts imports it dynamically, and only once the
-// visitor has allowed analytics in the banner (components/analytics-consent-
-// banner.tsx, lib/analytics-consent.ts). Before that nothing PostHog loads, not
-// even an opted-out client, which would still fetch remote config. The replay
-// gate is created in the `loaded` callback, so it exists only after consent.
+// CONSENT (2026-11-07, cookieless count 2026-11-09): posthog-js is NOT
+// imported here. startPostHog from lib/posthog-loader.ts imports it
+// dynamically. Before the visitor answers the banner (components/analytics-
+// consent-banner.tsx, lib/analytics-consent.ts) it runs cookieless: memory
+// persistence, no person profiles, replay off, so page views are counted and
+// nothing is stored. Allow upgrades it to the consented client configured
+// below; Decline stops it, and a stored Decline loads nothing at all. The
+// replay gate is created in the `loaded` callback but starts only with
+// consent (isPostHogLoaded is false for the cookieless client).
 import { isPostHogLoaded, startPostHog } from "@/lib/posthog-loader";
 import {
 	createReplayGate,
@@ -64,7 +67,7 @@ installViewTransitionGuard();
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-// Created only once PostHog has loaded, which only happens after consent.
+// Created once PostHog has loaded; it starts a recording only with consent.
 let replay: ReplayGate | null = null;
 
 if (KEY) {
@@ -88,9 +91,10 @@ if (KEY) {
 			maskCapturedNetworkRequestFn: maskNetworkRequest,
 		},
 
-		// The docs site is fully anonymous — it has no login, so there is never
+		// The docs site is fully anonymous: it has no login, so there is never
 		// a distinct id to attach. "always" would mint a billable person row for
-		// every crawler and drive-by reader.
+		// every crawler and drive-by reader. This is the consented value; the
+		// loader forces "never" for the cookieless client before consent.
 		person_profiles: "identified_only",
 
 		debug: process.env.NODE_ENV === "development",
@@ -100,7 +104,7 @@ if (KEY) {
 		// /api/analytics send; this is the mirror half.
 		capture_exceptions: true,
 
-		// Runs once, from inside posthog-js init() (after consent). It only
+		// Runs once, from inside posthog-js init() (cookieless or consented). It only
 		// CREATES the gate: capture is not on yet at this point (the loader opts
 		// in after init returns), so nothing starts here. The first start comes
 		// from the consent callback below, which the loader calls right after
@@ -147,7 +151,7 @@ export function onRouterTransitionStart(url: string): void {
 
 	// Leaving the reference tree: stop NOW, before the next page renders, so
 	// none of its DOM reaches the recording. No gate yet means PostHog has not
-	// loaded (no consent, or still downloading), so there is nothing to stop.
+	// loaded (declined, or still downloading), so there is nothing to stop.
 	if (target === null || !isReplayPath(target)) replay?.stop();
 
 	// Then settle against where the browser actually ended up. For a navigation
