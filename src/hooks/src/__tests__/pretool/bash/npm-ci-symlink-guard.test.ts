@@ -61,6 +61,12 @@ describe('npmCiTargetDir', () => {
     ['sleep 1 & npm ci', '/wt'],
     ['cd "/my wt" && npm ci', '/my wt'],
     ["cd '/my wt' && npm ci", '/my wt'],
+    // Vercel Security Review on #5168: a cd inside a subshell must not leak
+    // out of it; the install after the subshell runs in the original dir.
+    ['(cd /other) && npm ci', '/wt'],
+    ['(cd /other && true); npm ci', '/wt'],
+    ['((cd /a) && cd /b) && npm ci', '/wt'],
+    ['(cd /a && (cd /b) && npm ci)', '/a'],
   ])('%s targets %s', (command, dir) => {
     expect(npmCiTargetDir(command, '/wt', '/home/u')).toBe(dir);
   });
@@ -94,6 +100,11 @@ describe('npmCiSymlinkGuard', () => {
 
   it('denies npm ci --prefix when that node_modules is a symlink', () => {
     const result = npmCiSymlinkGuard(bash('npm ci --prefix src/hooks'), NOOP_CTX, linksAt('/wt/src/hooks/node_modules'));
+    expect(denied(result)).toBe(true);
+  });
+
+  it('denies npm ci after a subshell cd when only the original dir has a linked node_modules', () => {
+    const result = npmCiSymlinkGuard(bash('(cd /other) && npm ci'), NOOP_CTX, linksAt('/wt/node_modules'));
     expect(denied(result)).toBe(true);
   });
 
