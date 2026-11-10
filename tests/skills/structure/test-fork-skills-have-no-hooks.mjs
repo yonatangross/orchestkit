@@ -142,6 +142,13 @@ const INJECTED = {
   implement: ['skill/project-convention-loader', 'skill/implement-standards-loader'],
   setup: ['skill/setup-env-detector'],
 };
+// A !` command that exits non-zero aborts the whole skill, not just the
+// context: rev-parse exits 128 outside a repository, and run-hook.mjs exits
+// 1 or 2 on a bundle or handler error. So every load-time line in these skills
+// must end in a tail that cannot fail. And under disableSkillShellExecution the
+// model sees only a placeholder, so each skill says what to do then.
+const POLICY_PLACEHOLDER = '[shell command execution disabled by policy]';
+const NEVER_FAILS = /2>\/dev\/null \|\| (true|echo [a-z]+)`$/;
 for (const [name, loaders] of Object.entries(INJECTED)) {
   const text = readFileSync(path.join(SKILLS, name, 'SKILL.md'), 'utf8');
   const lines = text.replace(/^-{3}\n[\s\S]*?\n-{3}\n/, '').split('\n');
@@ -150,6 +157,22 @@ for (const [name, loaders] of Object.entries(INJECTED)) {
     if (!injected) {
       failures.push(`src/skills/${name}/SKILL.md: ${loader} is not a !\` load-time line, so the model can skip it (#4683)`);
     }
+  }
+  for (const line of lines) {
+    const inline = /!`[^`]+`/.exec(line);
+    if (inline && !NEVER_FAILS.test(inline[0])) {
+      failures.push(`src/skills/${name}/SKILL.md: load-time command can fail and abort the skill (add 2>/dev/null || true): ${inline[0]}`);
+    }
+  }
+  if (!text.includes(POLICY_PLACEHOLDER)) {
+    failures.push(`src/skills/${name}/SKILL.md: says nothing for ${POLICY_PLACEHOLDER}, so with shell execution disabled the context is silently missing`);
+  }
+}
+// implement's start sha is "none" outside a repository; Phase 6 must say what then.
+{
+  const ref = readFileSync(path.join(SKILLS, 'implement', 'references', 'phase-6-pattern-check.md'), 'utf8');
+  if (!/start sha is `none`/.test(ref)) {
+    failures.push('src/skills/implement/references/phase-6-pattern-check.md: no step for a start sha of `none` (no repository)');
   }
 }
 
