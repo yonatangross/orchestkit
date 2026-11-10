@@ -5,12 +5,17 @@
  */
 import { lstatSync } from 'node:fs';
 
-/** True when `path` exists and is a symbolic link (the link itself, not its target). */
+/**
+ * True when `path` is a symbolic link (the link itself, not its target).
+ * A missing path (ENOENT, ENOTDIR) is not a link. Any other lstat error means
+ * the path could not be inspected, and answers true so a guard built on this
+ * fails closed rather than letting a destructive command through.
+ */
 export function isSymlinkPath(path: string): boolean {
   try {
     return lstatSync(path).isSymbolicLink();
-  } catch {
-    // silent: a missing path is not a link; lstat throws ENOENT for it
-    return false;
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    return !(code === 'ENOENT' || code === 'ENOTDIR');
   }
 }
