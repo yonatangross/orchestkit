@@ -3,6 +3,6 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|demo-producer:{SKILL.md,references/{content-types.md,demo-pipeline.md,format-selection.md,remotion-composition.md,script-generation.md,skill-category-mapping.md,template-system.md,terminal-simulation.md}}|demo,video,marketing,vhs,remotion,terminal,showcase,tutorial
+|demo-producer:{SKILL.md,references/{code-drawn-mode.md,content-types.md,demo-pipeline.md,format-selection.md,remotion-composition.md,script-generation.md,skill-category-mapping.md,template-system.md,terminal-simulation.md}}|demo,video,marketing,vhs,remotion,terminal,showcase,tutorial
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

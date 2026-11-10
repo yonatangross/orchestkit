@@ -2318,6 +2318,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Code-drawn mode",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Finish line and budget",
             "does": "",
             "out": null,
