@@ -67,6 +67,16 @@ describe("AnalyticsConsentBanner", () => {
 		expect(text.className).toContain("text-fd-card-foreground");
 	});
 
+	it("puts the buttons below the sentence, right-aligned, at every width (approved mockup v1)", () => {
+		render(<AnalyticsConsentBanner />);
+		const card = screen.getByTestId("analytics-consent-card");
+		expect(card.className).toContain("flex-col");
+		// No breakpoint may turn the card into one row (the 1440 px build did).
+		expect(card.className).not.toMatch(/\b\w+:flex-row\b/);
+		const buttons = screen.getByRole("button", { name: "Decline" }).parentElement as HTMLElement;
+		expect(buttons.className).toContain("self-end");
+	});
+
 	it("gives Decline and Allow the same styling (equal weight)", () => {
 		render(<AnalyticsConsentBanner />);
 		const decline = screen.getByRole("button", { name: "Decline" });
