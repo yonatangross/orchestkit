@@ -45,8 +45,24 @@ describe('npmCiTargetDir', () => {
     ['cd sub && npm ci', '/wt/sub'],
     ['git pull && npm ci', '/wt'],
     ['FOO=1 npm ci', '/wt'],
+    // Review of #5166 (b133): shapes the first version let through.
+    ['npm --loglevel warn ci', '/wt'],
+    ['npm --workspace api ci', '/wt'],
+    ['npm -w api ci', '/wt'],
+    ['npm -C src/hooks ci', '/wt/src/hooks'],
+    ['(cd /other && npm ci)', '/other'],
+    ['(npm ci)', '/wt'],
+    ['cd ~/wt2 && npm ci', '/home/u/wt2'],
+    ['cd ~ && npm ci', '/home/u'],
+    ['npm ci --prefix ~/x', '/home/u/x'],
+    ['env CI=1 npm ci', '/wt'],
+    ['time npm ci', '/wt'],
+    ['command npm ci', '/wt'],
+    ['sleep 1 & npm ci', '/wt'],
+    ['cd "/my wt" && npm ci', '/my wt'],
+    ["cd '/my wt' && npm ci", '/my wt'],
   ])('%s targets %s', (command, dir) => {
-    expect(npmCiTargetDir(command, '/wt')).toBe(dir);
+    expect(npmCiTargetDir(command, '/wt', '/home/u')).toBe(dir);
   });
 
   it.each([
@@ -58,8 +74,12 @@ describe('npmCiTargetDir', () => {
     "grep -rn 'npm ci' docs",
     'git commit -m "run npm ci later"',
     'npm cinnamon',
+    'npm --loglevel warn install',
+    'npm -w api run ci',
+    'env CI=1 npm run ci',
+    'time npm test',
   ])('%s is not npm ci', (command) => {
-    expect(npmCiTargetDir(command, '/wt')).toBeNull();
+    expect(npmCiTargetDir(command, '/wt', '/home/u')).toBeNull();
   });
 });
 
