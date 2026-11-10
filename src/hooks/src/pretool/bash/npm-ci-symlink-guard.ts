@@ -54,6 +54,20 @@ function expandHome(dir: string, home: string): string {
   return dir;
 }
 
+/**
+ * Replace each command substitution ($(...), $((...)), `...`) with a plain
+ * word, innermost first. Its parentheses are not subshell parentheses, and
+ * its separators do not split the outer command.
+ */
+function blankSubstitutions(command: string): string {
+  let out = command.replace(/`[^`]*`/g, '_');
+  for (let prev = ''; prev !== out; ) {
+    prev = out;
+    out = out.replace(/\$\(\([^()]*\)\)/g, '_').replace(/\$\([^()]*\)/g, '_');
+  }
+  return out;
+}
+
 function resolveDir(base: string, dir: string, home: string): string {
   const expanded = expandHome(dir, home);
   return isAbsolute(expanded) ? expanded : resolve(base, expanded);
@@ -80,7 +94,7 @@ export function npmCiTargetDir(command: string, cwd: string, home: string = proc
   // A subshell runs in a copy of the shell: a cd inside it ends when it
   // closes. Each '(' saves the directory, each ')' restores it.
   const saved: string[] = [];
-  for (const raw of command.split(/&&|\|\||[;|&\n]/)) {
+  for (const raw of blankSubstitutions(command).split(/&&|\|\||[;|&\n]/)) {
     let segment = raw.trim();
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
