@@ -27,6 +27,7 @@ has it (12.2 does) and with getdata otherwise; Pillow 12 deprecates getdata for 
 import argparse
 import itertools
 import json
+import math
 import pathlib
 import sys
 
@@ -61,11 +62,11 @@ def measure(pa, pr):
 
 
 def is_time(name):
+    # float() also parses "nan" and "inf", which are not times: require a finite number
     try:
-        float(name[:-4])
+        return math.isfinite(float(name[:-4]))
     except ValueError:
         return False
-    return True
 
 
 A, R = pathlib.Path(a.approved), pathlib.Path(a.rendered)

@@ -1,0 +1,8 @@
+{
+  "slug": "compare-isfinite",
+  "source": "docs/fix--compare-isfinite/index.html",
+  "title": "compare.py: still names must be finite times",
+  "description": "demo-producer code-drawn compare.py now refuses nan.png and inf.png: float parses them, math.isfinite does not accept them. Try a file name.",
+  "tags": ["demo-producer", "verification"],
+  "date": "2026-11-10"
+}
