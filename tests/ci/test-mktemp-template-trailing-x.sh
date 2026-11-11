@@ -10,8 +10,9 @@
 # (tests/unit/test-image-paste-guard.sh). GNU mktemp in CI accepts such a
 # template only with --suffix, so CI never showed it.
 #
-# The safe form: make a directory with `mktemp -d ".../name.XXXXXX"` and put
-# the file with the extension it needs inside it.
+# The safe forms: reserve a unique name with trailing X's and add the
+# extension by rename, or make a directory with mktemp -d and put the file
+# with the extension it needs inside it.
 #
 # Fail closed: outside a git work tree, or when the listing comes back empty,
 # the test FAILS rather than passing. Self-checks prove the matcher flags a
@@ -86,7 +87,7 @@ if [[ ${#BAD[@]} -gt 0 ]]; then
     for b in "${BAD[@]}"; do
         echo "  $b"
     done
-    echo "  fix: d=\$(mktemp -d \".../name.XXXXXX\"); f=\"\$d/name.ext\"; rm -rf \"\$d\" when done"
+    echo "  fix: b=\$(mktemp \".../name.XXXXXX\"); f=\"\$b.ext\"; mv \"\$b\" \"\$f\""
     FAILS=$((FAILS + 1))
 fi
 
