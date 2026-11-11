@@ -295,8 +295,36 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pwv.outputs.version }}
-      - name: Bound apt network waits
+      - name: Install Playwright Chromium
+        if: steps.gate.outputs.run == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        working-directory: docs/site
+        run: |
+          for attempt in 1 2; do
+            timeout 120 npx playwright install chromium && exit 0
+            echo "::warning::playwright install attempt $attempt failed or timed out"
+          done
+          exit 1
+      # The apt mirror is needed only when Chromium cannot start. On the
+      # ubuntu-26.04 image install-deps adds just 9 font packages (run
+      # 43063535095); every library Chromium links is already installed, and
+      # no e2e spec here compares screenshots. On 2026-11-11 the runner could
+      # not resolve archive.ubuntu.com and apt-get update failed the job twice.
+      # So try one launch first; the two apt steps below run only if it fails.
+      - name: Check Chromium launches without apt
+        id: pw-launch
         if: steps.gate.outputs.run == 'true'
+        timeout-minutes: 2
+        working-directory: docs/site
+        run: |
+          if timeout 60 node -e "require('playwright').chromium.launch().then((b) => b.close())"; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Chromium did not launch on this runner image; installing its system deps from apt"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Bound apt network waits
+        if: steps.gate.outputs.run == 'true' && steps.pw-launch.outputs.ok != 'true'
         # DPkg::Lock::Timeout: `timeout 120` below stops npx but not the root
         # apt-get it started under sudo, so a timed-out attempt 1 keeps the
         # dpkg lock and attempt 2 failed at once with "Could not get lock
@@ -307,7 +335,7 @@ jobs:
             'DPkg::Lock::Timeout "120";' \
             | sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts >/dev/null
       - name: Install Playwright system deps
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.pw-launch.outputs.ok != 'true'
         timeout-minutes: 10
         working-directory: docs/site
         # `timeout` stops npx but not the root apt-get it starts under sudo,
@@ -341,16 +369,6 @@ jobs:
             echo "::warning::playwright install-deps attempt $attempt failed or timed out"
           done
           lock_holder
-          exit 1
-      - name: Install Playwright Chromium
-        if: steps.gate.outputs.run == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
-        timeout-minutes: 5
-        working-directory: docs/site
-        run: |
-          for attempt in 1 2; do
-            timeout 120 npx playwright install chromium && exit 0
-            echo "::warning::playwright install attempt $attempt failed or timed out"
-          done
           exit 1
       - name: Run docs-site Playwright e2e
         if: steps.gate.outputs.run == 'true'

@@ -643,8 +643,13 @@ test_hanging_hook_timeout() {
         log_pass "hanging hook is reported as a timeout (skipped - no timeout binary on this box)"
         return
     fi
-    local hang_runner
-    hang_runner=$(mktemp "${TMPDIR:-/tmp}/ork-hang.XXXXXX.mjs")
+    # BSD mktemp randomizes only trailing X's, so a ".mjs" suffix after them
+    # made one fixed path that concurrent runs collided on: reserve a unique
+    # name, then add the extension by rename.
+    local hang_base hang_runner
+    hang_base=$(mktemp "${TMPDIR:-/tmp}/ork-hang.XXXXXX")
+    hang_runner="$hang_base.mjs"
+    mv "$hang_base" "$hang_runner"
     printf 'setInterval(() => {}, 1000);\n' > "$hang_runner"
     local saved_run_hook="$RUN_HOOK"
     RUN_HOOK="$hang_runner"
