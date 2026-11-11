@@ -983,7 +983,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/disk-cleanup",
     "title": "Disk Cleanup",
-    "description": "Frees the disk that AI agents and git worktrees leave behind: package and build caches, merged worktrees, Docker build cache, old agent logs. Prints a safe, regenerable and ask-first inventory with sizes, dry run by default, --apply after confirmation. Use when the disk is nearly full, free space keeps shrinking, or after many agents or worktrees ran. Disk space only: it never closes sessions or deletes branches."
+    "description": "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches."
   },
   {
     "url": "/docs/reference/skills/distributed-systems",
@@ -1018,7 +1018,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/hook-validation",
     "title": "Doctor: Hook Validation",
-    "description": "OrchestKit uses 151 global hook entries across 32 event types, compiled into 11 bundles."
+    "description": "OrchestKit uses 153 global hook entries across 32 event types, compiled into 11 bundles."
   },
   {
     "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",

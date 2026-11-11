@@ -1957,9 +1957,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "disk-cleanup": {
     "name": "disk-cleanup",
-    "description": "Frees the disk that AI agents and git worktrees leave behind: package and build caches, merged worktrees, Docker build cache, old agent logs. Prints a safe, regenerable and ask-first inventory with sizes, dry run by default, --apply after confirmation. Use when the disk is nearly full, free space keeps shrinking, or after many agents or worktrees ran. Disk space only: it never closes sessions or deletes branches.",
+    "description": "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches.",
     "version": "1.0.0",
-    "sha256": "43f371e2d0d5ba1d5167cdf0ea8e387e8070b7e946b60281c4bdc3c300abd1c5",
+    "sha256": "7cc01d774c09beb95740cd212f532ff49ea689e56c2f2ff0e11c0068641b8d1f",
     "author": "OrchestKit",
     "tags": [
       "disk",
