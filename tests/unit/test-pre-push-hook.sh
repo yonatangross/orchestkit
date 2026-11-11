@@ -157,12 +157,17 @@ test_skip_regex_parity() {
     fi
     log_pass "scripts/ci/version-skip-pattern.sh defines VERSION_SKIP_PATTERN"
 
-    # 4b: behaviour, not text. Every conventional-commit prefix, a release-please
-    # branch and a Dependabot branch skip; a bare-named branch and main do not.
+    # 4b: behaviour, not text. Every conventional-commit prefix, a floor lane/
+    # branch, a wip/ park branch, a release-please branch and a Dependabot branch
+    # skip; a bare-named branch and main do not. A wip/ park branch holds a
+    # parked commit and never becomes a release, so a bump there would be a
+    # ghost version (#1457); without the skip a park cannot be published at
+    # all (2026-11-11, wip/park-2026-11-11/fix-5172 refused by this gate).
     local wrong=()
     local skip_names=(docs/x chore/x ci/x style/x test/x feat/x fix/x perf/x refactor/x issue/x bug/x
+        lane/x wip/park-2026-11-11/fix-5172
         release-please--branches--main dependabot/npm_and_yarn/lodash-4.17.21)
-    local enforce_names=(main hotfix-1457 docs bugfix/x feature/x)
+    local enforce_names=(main hotfix-1457 docs bugfix/x feature/x wip wipe/x)
     local name
     for name in "${skip_names[@]}"; do
         [[ "$name" =~ $pattern ]] || wrong+=("should-skip:$name")
