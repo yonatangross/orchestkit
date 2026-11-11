@@ -5,6 +5,40 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0) (2026-11-10)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.310 through 2.1.322 ([#5181](https://github.com/yonatangross/orchestkit/issues/5181)) ([786eb65](https://github.com/yonatangross/orchestkit/commit/786eb6514631f19461d3070fee91a9d07539ccb4))
+* **demo-producer:** add code-drawn mode, storyboard renders the film ([#5185](https://github.com/yonatangross/orchestkit/issues/5185)) ([29fe6dc](https://github.com/yonatangross/orchestkit/commit/29fe6dca56e9e0e680573ca7b87e0b653a0c6506))
+* **docs-site:** count page views cookieless before consent ([#5180](https://github.com/yonatangross/orchestkit/issues/5180)) ([2c7fb5a](https://github.com/yonatangross/orchestkit/commit/2c7fb5a9d165b8d2be6047fee3a456c71cf13325))
+* **docs-site:** make the consent banner easier to notice ([#5179](https://github.com/yonatangross/orchestkit/issues/5179)) ([c995cf5](https://github.com/yonatangross/orchestkit/commit/c995cf536d74dc8ebbb6e7740f74b1a61d7946fe))
+
+
+### Bug Fixes
+
+* **agents:** raise builder maxTurns above documented workload ([#5192](https://github.com/yonatangross/orchestkit/issues/5192)) ([0964f4c](https://github.com/yonatangross/orchestkit/commit/0964f4cb975924b472c72071ebcad7f6b3cf680d))
+* **ci:** count the floor agent App as a review-thread reply ([#5190](https://github.com/yonatangross/orchestkit/issues/5190)) ([ed52128](https://github.com/yonatangross/orchestkit/commit/ed521287db170f6949b265e9f72cfde16a33a102))
+* **ci:** point two checks at hooks and pages that exist ([#5165](https://github.com/yonatangross/orchestkit/issues/5165)) ([3f0df29](https://github.com/yonatangross/orchestkit/commit/3f0df29468cfbff0edc3217473171665f56af2a8)), closes [#5148](https://github.com/yonatangross/orchestkit/issues/5148)
+* **demo-producer:** close the five LOW review notes on code-drawn mode ([#5187](https://github.com/yonatangross/orchestkit/issues/5187)) ([9f23d46](https://github.com/yonatangross/orchestkit/commit/9f23d46aff8249a7fdf9b157763ca713c485eb52))
+* **demo-producer:** require finite times for compare.py still names ([#5188](https://github.com/yonatangross/orchestkit/issues/5188)) ([897e26d](https://github.com/yonatangross/orchestkit/commit/897e26da5dc7443c6165e5debaf3d409bac7fcdc))
+* **hooks:** deny npm ci through a symlinked node_modules ([#5166](https://github.com/yonatangross/orchestkit/issues/5166)) ([4c3757f](https://github.com/yonatangross/orchestkit/commit/4c3757f61757dd1fa1da8e2bc56a5a6d53cb51ab))
+* **hooks:** npm ci guard reads shell grammar, quotes and wrappers ([#5169](https://github.com/yonatangross/orchestkit/issues/5169)) ([#5195](https://github.com/yonatangross/orchestkit/issues/5195)) ([1b454c0](https://github.com/yonatangross/orchestkit/commit/1b454c0d87f0b1ade75a422e8dc0eac788abeb2b))
+* **skills:** forked brainstorm and implement run their context loaders at load time ([#4683](https://github.com/yonatangross/orchestkit/issues/4683)) ([#5191](https://github.com/yonatangross/orchestkit/issues/5191)) ([ac08e66](https://github.com/yonatangross/orchestkit/commit/ac08e661b58ca63519784979191d79f316e06364))
+* **skills:** visualize-plan detects its plan at skill load time ([#5196](https://github.com/yonatangross/orchestkit/issues/5196)) ([de9fe33](https://github.com/yonatangross/orchestkit/commit/de9fe33a81bdc4ddcea4d8ddc4c34af3aca4bb52))
+* **verify:** launch plugin workflows by name, disclose a refused dispatch ([#5197](https://github.com/yonatangross/orchestkit/issues/5197)) ([3d88eca](https://github.com/yonatangross/orchestkit/commit/3d88ecacdb6dc4d9a20410b3a40c248090e41750))
+
+
+### Documentation
+
+* **hooks:** stop describing hooks that no longer run ([#5178](https://github.com/yonatangross/orchestkit/issues/5178)) ([87f0495](https://github.com/yonatangross/orchestkit/commit/87f0495d8b6b1ff465b9065cc7bed666c6d7ba18))
+
+
+### CI/CD
+
+* trim PR runs (Quality Report on hook changes, one node leg) ([#5170](https://github.com/yonatangross/orchestkit/issues/5170)) ([0d38e66](https://github.com/yonatangross/orchestkit/commit/0d38e66123f2a4a70737bfae758df796070f07df))
+
 ## [10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8) (2026-11-09)
 
 
