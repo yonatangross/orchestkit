@@ -10,10 +10,10 @@
  * process.
  *
  * ON by default (#5003): scripts/build-plugins.sh writes the shipped
- * plugins/ork/hooks/hooks.json with scripts/unified-pretool-hooks.mjs
- * --shipped, which replaces the registry's PostToolUse groups with one entry
- * for this command whose matcher is the union of theirs (PostToolBatch stays;
- * only the opt-in flag variant drops it). A
+ * plugins/ork/hooks/hooks.json with scripts/unified-pretool-hooks.mjs, which
+ * replaces the registry's PostToolUse groups with one entry for this command
+ * whose matcher is the union of theirs (since 2026-11-11 the shipped file also
+ * drops PostToolBatch). A
  * call any group matches starts one process, and a call no group matches
  * starts none, exactly as today, without relying on CC deduping commands.
  *
