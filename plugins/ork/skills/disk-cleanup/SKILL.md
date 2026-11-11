@@ -7,7 +7,7 @@ argument-hint: "[--apply] [--only ID] [--tier safe|regenerable] [--root DIR] [--
 user-invocable: true
 disable-model-invocation: false
 effort: low
-allowed-tools: Bash, Read
+allowed-tools: Bash, Read, AskUserQuestion
 metadata:
   category: devops
   version: "1.0.0"
