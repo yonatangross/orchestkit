@@ -17,7 +17,7 @@ The list lives in `CATALOG` in `scripts/disk_cleanup.py`; add a row there and on
 | xcode-derived-data | safe | `~/Library/Developer/Xcode/DerivedData` | none | next build is slower |
 | browser-caches | safe | `~/Library/Caches/Google/Chrome`, `.../Chromium` | `~/.cache/google-chrome`, `~/.cache/chromium` | |
 | agent-debug-logs | safe | `~/.claude/debug` | same | only files older than 14 days |
-| agent-shell-snapshots | safe | `~/.claude/shell-snapshots` | same | only files older than 7 days |
+| agent-shell-snapshots | safe | `~/.claude/shell-snapshots` | same | only files older than 30 days (a long session still sources its own) |
 | pnpm-store | regenerable | `~/Library/pnpm/store` | `~/.local/share/pnpm/store` | reinstall re-downloads |
 | gradle-caches | regenerable | `~/.gradle/caches` | same | slow rebuild |
 | playwright | regenerable | `~/Library/Caches/ms-playwright` | `~/.cache/ms-playwright` | browsers re-download |
@@ -41,7 +41,7 @@ Read with `docker system df` and `docker images -f dangling=true`. Skipped quiet
 |---|---|---|
 | docker-build-cache | safe | `docker builder prune -f` |
 | docker-dangling-images | safe | `docker image prune -f` |
-| docker-unused-images | regenerable | `docker image prune -a -f` |
+| docker-unused-images | ask | prints `docker image prune -a`, never runs it (a locally built image cannot be pulled back) |
 | docker-volumes | ask | prints `docker volume prune`, never runs it |
 
 ## Worktrees
