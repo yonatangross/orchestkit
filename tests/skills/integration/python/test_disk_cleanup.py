@@ -248,9 +248,13 @@ def test_dry_run_prints_the_apply_command_for_exactly_its_list(repo, home, capsy
     line = next(ln for ln in out.splitlines() if "--apply" in ln and "--only" in ln)
     assert "--only npm-cache" in line
     assert f"--only worktree:{wt}" in line
+    # The pinned line carries the scan it came from: run it as printed, with no
+    # --home or --root added, and it must still reach the --root repo (b146 P3).
+    for flag in (f"--home {home}", "--platform darwin", f"--root {repo}", "--idle-minutes 60"):
+        assert flag in line, (flag, line)
     add_wt(repo, "arrived-later")  # merges and idles between the dry run and the apply
     argv = shlex.split(line.split("$", 1)[1])[2:]  # drop python3 and the script path
-    run_main(["--home", str(home), "--platform", "darwin", "--root", str(repo), *argv], capsys)
+    run_main(argv, capsys)
     assert not wt.exists()
     assert (repo / ".worktrees" / "arrived-later").exists()
 
