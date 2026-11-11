@@ -700,6 +700,31 @@ def newest_mtime(env: Env, wt: Path) -> float:
     return max(times) if times else env.now
 
 
+# Ignored directories a worktree can lose because a tool rebuilds them. Any other
+# ignored path (.env.local, a local database, notes) keeps the tree.
+REGENERABLE_IGNORED_DIRS = frozenset(
+    {
+        "node_modules",
+        ".venv",
+        "venv",
+        "dist",
+        "build",
+        ".next",
+        ".turbo",
+        "__pycache__",
+        ".pytest_cache",
+        "coverage",
+    }
+)
+
+
+def regenerable_path(path: str) -> bool:
+    """True when a `git status --ignored` path lies inside a regenerable directory."""
+    parts = [p for p in path.strip().strip('"').split("/") if p]
+    dirs = parts if path.rstrip().endswith("/") else parts[:-1]
+    return any(d in REGENERABLE_IGNORED_DIRS for d in dirs)
+
+
 def classify_worktree(
     env: Env,
     inv: Inventory,
@@ -728,12 +753,25 @@ def classify_worktree(
     held = next((pid for pid, cwd in cwds if inside(Path(cwd), wt)), None)
     if held is not None:
         return keep(f"process cwd inside (pid {held})")
-    rc, out = env.runner.run(["git", "-C", str(wt), "status", "--porcelain"])
+    # --ignored: git worktree remove deletes ignored files with the tree, and plain
+    # --porcelain never lists them, so a hand-written .env.local read as clean.
+    # =matching names the path the ignore rule matched (packages/a/node_modules/),
+    # where the default collapses an all-ignored parent into packages/.
+    rc, out = env.runner.run(["git", "-C", str(wt), "status", "--porcelain", "--ignored=matching"])
     if rc != 0:
         return keep("git status failed")
-    dirty = [line for line in out.splitlines() if line.strip()]
+    lines = [line for line in out.splitlines() if line.strip()]
+    dirty = [line for line in lines if not line.startswith("!! ")]
     if dirty:
         return keep(f"dirty ({len(dirty)} files)")
+    precious = [
+        p for p in (line[3:] for line in lines if line.startswith("!! ")) if not regenerable_path(p)
+    ]
+    if precious:
+        shown = ", ".join(precious[:3]) + (
+            f" and {len(precious) - 3} more" if len(precious) > 3 else ""
+        )
+        return keep(f"ignored files would be deleted: {shown}")
     idle = env.idle_minutes * 60
     age = env.now - newest_mtime(env, wt)
     if age < idle:
