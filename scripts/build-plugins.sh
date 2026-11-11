@@ -459,10 +459,14 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         # above copied the per-handler registry (src/hooks/hooks.json, which
         # route tables and tests keep reading); Claude Code starts one process
         # per matching entry of THE SHIPPED FILE, so that copy is rewritten to
-        # PreToolUse + PostToolUse dispatcher entries with every other event,
-        # PostToolBatch included, kept as is (--shipped; only the opt-in flag
-        # variant drops PostToolBatch). scripts/unified-pretool-hooks.mjs,
-        # #4962/#4971. Only the shipped copy changes. Pinned by
+        # PreToolUse + PostToolUse dispatcher entries, PostToolBatch dropped
+        # and every other event kept as is (the unifiedToolHooks form, no
+        # --shipped). PostToolBatch's only listener, tool-batch-observer, was
+        # one log line per batch that nothing read; dropping it takes a
+        # successful tool call from 3 hook processes to 2 (operator yes
+        # 2026-11-11). The registry keeps it: to restore, add --shipped back.
+        # scripts/unified-pretool-hooks.mjs, #4962/#4971. Only the shipped
+        # copy changes. Pinned by
         # src/__tests__/shipped-dispatchers.test.ts and measured by
         # scripts/spawn-ratchet.mjs.
         # Delete the rsync'd per-handler copy first, then require a written
@@ -470,7 +474,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         # guard missed under a symlinked path, #5004) must fail the build, not
         # ship the stale per-handler registry.
         rm -f "$PLUGIN_DIR/hooks/hooks.json"
-        node "$SRC_DIR/hooks/scripts/unified-pretool-hooks.mjs" --shipped \
+        node "$SRC_DIR/hooks/scripts/unified-pretool-hooks.mjs" \
             --in "$SRC_DIR/hooks/hooks.json" \
             --out "$PLUGIN_DIR/hooks/hooks.json" >/dev/null || {
             echo -e "    ${RED}Failed to write the dispatcher hooks.json${NC}"

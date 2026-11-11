@@ -32,23 +32,6 @@
         ]
       }
     ],
-    "PostToolBatch": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "async": true,
-            "timeout": 5,
-            "args": [
-              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "posttool/tool-batch-observer"
-            ]
-          }
-        ]
-      }
-    ],
     "PostToolUseFailure": [
       {
         "matcher": "Bash|Write|Edit|Agent",

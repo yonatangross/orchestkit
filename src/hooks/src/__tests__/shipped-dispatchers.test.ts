@@ -6,12 +6,15 @@
  *
  * src/hooks/hooks.json stays the per-handler registry (route tables and 99
  * readers use it). scripts/build-plugins.sh writes
- * plugins/ork/hooks/hooks.json = shippedToolHooks(src/hooks/hooks.json), and
+ * plugins/ork/hooks/hooks.json = unifiedToolHooks(src/hooks/hooks.json), and
  * that copy is what Claude Code runs. This pins the two together so the
  * shipped file cannot drift from the registry or lose a dispatcher.
  *
- * PostToolBatch stays in the shipped file. Only the opt-in flag variant
- * (unifiedToolHooks, the CLI default of unified-pretool-hooks.mjs) drops it.
+ * The shipped file has no PostToolBatch (operator yes, 2026-11-11): its only
+ * listener, posttool/tool-batch-observer, was one telemetry line per batch
+ * that nothing read, and dropping it takes a successful Bash, Edit, Write or
+ * Read call from 3 hook processes to 2. The registry keeps the observer, so
+ * a revert is the build flag only.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -32,12 +35,12 @@ const shippedText = readFileSync(SHIPPED_JSON, 'utf8');
 const shipped = JSON.parse(shippedText);
 
 describe('shipped plugins/ork/hooks/hooks.json', () => {
-  it('equals shippedToolHooks(src/hooks/hooks.json)', () => {
-    expect(shipped).toEqual(shippedToolHooks(src));
+  it('equals unifiedToolHooks(src/hooks/hooks.json)', () => {
+    expect(shipped).toEqual(unifiedToolHooks(src));
   });
 
   it('is byte-identical to what the build writes (2-space JSON, trailing newline)', () => {
-    expect(shippedText).toBe(`${JSON.stringify(shippedToolHooks(src), null, 2)}\n`);
+    expect(shippedText).toBe(`${JSON.stringify(unifiedToolHooks(src), null, 2)}\n`);
   });
 
   it('names both dispatchers', () => {
@@ -50,17 +53,18 @@ describe('shipped plugins/ork/hooks/hooks.json', () => {
     expect(shipped.hooks.PostToolUse).toHaveLength(1);
   });
 
-  it('still registers PostToolBatch, unchanged from the registry', () => {
-    expect(src.hooks.PostToolBatch?.length).toBeGreaterThan(0);
-    expect(shipped.hooks.PostToolBatch).toEqual(src.hooks.PostToolBatch);
-    expect(JSON.stringify(shipped.hooks.PostToolBatch)).toContain('posttool/tool-batch-observer');
+  it('does not ship PostToolBatch, while the registry keeps the observer', () => {
+    expect(shipped.hooks.PostToolBatch).toBeUndefined();
+    expect(JSON.stringify(src.hooks.PostToolBatch)).toContain('posttool/tool-batch-observer');
   });
 
-  it('only the flag variant (unifiedToolHooks) drops PostToolBatch', () => {
-    const variant = unifiedToolHooks(src);
-    expect(variant.hooks.PostToolBatch).toBeUndefined();
-    const { PostToolBatch: _dropped, ...rest } = shipped.hooks;
-    expect(variant.hooks).toEqual(rest);
+  it('differs from shippedToolHooks only by the PostToolBatch event', () => {
+    const { PostToolBatch: _kept, ...rest } = shippedToolHooks(src).hooks;
+    expect(shipped.hooks).toEqual(rest);
+  });
+
+  it('starts 2 processes on a successful Bash, Edit, Write or Read call', () => {
+    expect(measure(shipped).success).toEqual({ Bash: 2, Edit: 2, Write: 2, Read: 2 });
   });
 
   it('the registry keeps the per-handler entries and names neither dispatcher', () => {
@@ -82,7 +86,7 @@ describe('spawn ratchet on the shipped copy (paired probe)', () => {
       baseline.target,
       measure(unifiedToolHooks(shipped)),
     );
-    expect(lines.join('\n')).toContain('ok    success.Bash: 3');
+    expect(lines.join('\n')).toContain('ok    success.Bash: 2');
     expect(failed).toBe(false);
   });
 
@@ -99,6 +103,6 @@ describe('spawn ratchet on the shipped copy (paired probe)', () => {
       measure(unifiedToolHooks(probe)),
     );
     expect(failed).toBe(true);
-    expect(lines.join('\n')).toContain('ROSE  success.Bash: 3 -> 4');
+    expect(lines.join('\n')).toContain('ROSE  success.Bash: 2 -> 3');
   });
 });

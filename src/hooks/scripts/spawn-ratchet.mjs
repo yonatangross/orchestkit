@@ -24,8 +24,8 @@
  *   target   a success-path count above `target` fails. The target is the
  *            yellow-refactor finish line (under 3 processes per tool call),
  *            read from the flag variant (unifiedToolHooks, no PostToolBatch).
- *            The shipped default keeps PostToolBatch, so its baseline is one
- *            above the target on every path that counts it.
+ *            Since 2026-11-11 the build ships that variant, so the shipped
+ *            success baseline equals the target.
  *
  * Matcher semantics follow Claude Code: absent, "" or "*" matches every tool;
  * a matcher of word characters and "|" is an exact list; anything else is an
