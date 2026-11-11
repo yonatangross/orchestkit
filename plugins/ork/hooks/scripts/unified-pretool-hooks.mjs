@@ -17,16 +17,17 @@
  *                  matches starts one process, a call none matches starts
  *                  none. No tool matches two entries, so the count does not
  *                  rest on CC deduping identical commands (phase 2)
- *   PostToolBatch  shippedToolHooks keeps it; unifiedToolHooks (the flag
- *                  variant) drops it (tool-batch-observer is a one-line
- *                  telemetry probe; the drop is operator-approved for the
- *                  variant only)
+ *   PostToolBatch  shippedToolHooks keeps it; unifiedToolHooks drops it
+ *                  (tool-batch-observer is a one-line telemetry probe;
+ *                  operator yes to dropping it from the shipped file,
+ *                  2026-11-11)
  *   other events   copied unchanged
  *
- * Default ON: scripts/build-plugins.sh runs this with --shipped, so the
- * shipped plugins/ork/hooks/hooks.json is shippedToolHooks(src/hooks/hooks.json)
- * (pinned by src/__tests__/shipped-dispatchers.test.ts). src/hooks/hooks.json
- * stays the per-handler registry. Without --shipped the CLI writes the flag
+ * Default ON: scripts/build-plugins.sh runs this WITHOUT --shipped since
+ * 2026-11-11, so the shipped plugins/ork/hooks/hooks.json is
+ * unifiedToolHooks(src/hooks/hooks.json) (pinned by
+ * src/__tests__/shipped-dispatchers.test.ts); --shipped is the rollback.
+ * src/hooks/hooks.json stays the per-handler registry. Without --shipped the CLI writes the flag
  * variant, which also drops PostToolBatch.
  *
  * Usage:
