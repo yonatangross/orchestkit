@@ -1,7 +1,7 @@
 ---
 name: mcp-visual-output
 compatibility: "Claude Code 2.1.277+"
-description: "Upgrades MCP tool JSON results to dashboards via @json-render/mcp (stat grids, tables, badges) in MCP clients. Use when a tool result reads better visually. Not for building the server itself."
+description: "Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result reads better visually. Not for building the server."
 user-invocable: false
 disable-model-invocation: false
 context: inherit

@@ -1544,9 +1544,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-context-extract": {
     "name": "design-context-extract",
-    "description": "Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. Use when asked to extract or audit a design or match a visual identity.",
+    "description": "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity.",
     "version": "1.0.1",
-    "sha256": "bcd15e924e9f943ce881bf101d20143d349b47849cf2490a730e8e1a1984abee",
+    "sha256": "e0ac61b74cccf475ef28e757f430a37db286527f4814257e5fb70384dd08fa26",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1602,9 +1602,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-import": {
     "name": "design-import",
-    "description": "Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design URL or bundle. For a full PR with tests and browser checks, use design-ship.",
+    "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship.",
     "version": "1.0.0",
-    "sha256": "5a6fdea843d5d2358588bc55cc1e4925bcee1704a9cc9babce092ed9d262246b",
+    "sha256": "405f13d5ae02fe13edde80eabd2c1edeef4616840ded156299cbdaf729b782ba",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1787,9 +1787,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-to-code": {
     "name": "design-to-code",
-    "description": "Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when building UI from a mockup or screenshot. To call Storybook MCP tools alone, use storybook-mcp-integration.",
+    "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "8cd534ba0649c269d469a4b6ae8632fed9732eaddadf9895e7ef88359d997db0",
+    "sha256": "0dae5027b3427ec7b6d7236b51cf3eb7dfb280b8f7b579ee897bb5ec2ee4120c",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -3337,9 +3337,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "mcp-visual-output": {
     "name": "mcp-visual-output",
-    "description": "Upgrades MCP tool JSON results to dashboards via @json-render/mcp (stat grids, tables, badges) in MCP clients. Use when a tool result reads better visually. Not for building the server itself.",
+    "description": "Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result reads better visually. Not for building the server.",
     "version": "1.1.0",
-    "sha256": "5165774d04f5dfff9af46ffedc65d10b0ea9890bc27eab6519ea38099c47155e",
+    "sha256": "69c718440013657d329d9cda8cb5894410f5d03f91f4d2e81f81feb4069a386c",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -4073,9 +4073,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "python-backend": {
     "name": "python-backend",
-    "description": "Async Python runtime patterns: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Use when building async services. Not for the API contract (use api-design).",
+    "description": "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design).",
     "version": "2.0.0",
-    "sha256": "a799c12d30d72a689d19664842943c923f6c777781719c6b2f9418835a250d59",
+    "sha256": "e3a3cb184a85231acc4619ad1206863972586039dcc8ba3e60bf61f367135e44",
     "author": "OrchestKit",
     "tags": [
       "python",
@@ -4758,9 +4758,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "storybook-mcp-integration": {
     "name": "storybook-mcp-integration",
-    "description": "Reference for the Storybook MCP server (@storybook/addon-mcp): its tools, toolsets and availability. Use when calling those tools on existing components. To build a component from a mockup, use design-to-code.",
+    "description": "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code.",
     "version": "1.0.0",
-    "sha256": "8cf28717fae19e0eb673f2988bfa9d186ad2e9a66998715edc4b613aef100feb",
+    "sha256": "bcc4555c4b60fb5c7a70cd893f7a1da297f36d3c4fa259f6fe4bcd8cff3dd20a",
     "author": "OrchestKit",
     "tags": [
       "storybook",

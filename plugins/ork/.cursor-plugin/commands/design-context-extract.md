@@ -1,5 +1,5 @@
 ---
-description: "Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. Use when asked to extract or audit a design or match a visual identity."
+description: "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity."
 argument-hint: "[screenshot-path | video-path | url | 'current project']"
 model: sonnet
 context: fork

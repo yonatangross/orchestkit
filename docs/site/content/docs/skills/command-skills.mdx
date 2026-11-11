@@ -67,10 +67,10 @@ Turn mockups, screenshots, and design handoffs into components.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a Claude Design bundle and stops at files on disk. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
+| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
 | [`/ork:design-ship`](/docs/reference/skills/design-ship) | Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. | complex | `/ork:design-ship <handoff-url \| path-to-bundle.json>` |
-| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
-| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
+| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
+| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
 | [`/ork:design-stylecards`](/docs/reference/skills/design-stylecards) | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. | low | `/ork:design-stylecards [list \| <recipe-name> \| apply <recipe> to <file>]` |
 | [`/ork:component-search`](/docs/reference/skills/component-search) | Searches the 21st.dev registry for production React components, ranked with install steps. | simple | `/ork:component-search [component description]` |
 

@@ -943,12 +943,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-context-extract",
     "title": "Design Context Extract",
-    "description": "Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. Use when asked to extract or audit a design or match a visual identity."
+    "description": "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity."
   },
   {
     "url": "/docs/reference/skills/design-import",
     "title": "Design Import",
-    "description": "Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design URL or bundle. For a full PR with tests and browser checks, use design-ship."
+    "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship."
   },
   {
     "url": "/docs/reference/skills/design-ship",
@@ -968,7 +968,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-to-code",
     "title": "Design To Code",
-    "description": "Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when building UI from a mockup or screenshot. To call Storybook MCP tools alone, use storybook-mcp-integration."
+    "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration."
   },
   {
     "url": "/docs/reference/skills/dev",
@@ -1253,7 +1253,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/mcp-visual-output",
     "title": "MCP Visual Output",
-    "description": "Upgrades MCP tool JSON results to dashboards via @json-render/mcp (stat grids, tables, badges) in MCP clients. Use when a tool result reads better visually. Not for building the server itself."
+    "description": "Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result reads better visually. Not for building the server."
   },
   {
     "url": "/docs/reference/skills/memory-fabric",
@@ -1333,7 +1333,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/python-backend",
     "title": "Python Backend",
-    "description": "Async Python runtime patterns: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Use when building async services. Not for the API contract (use api-design)."
+    "description": "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design)."
   },
   {
     "url": "/docs/reference/skills/quality-gates",
@@ -1398,7 +1398,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/storybook-mcp-integration",
     "title": "Storybook MCP Integration",
-    "description": "Reference for the Storybook MCP server (@storybook/addon-mcp): its tools, toolsets and availability. Use when calling those tools on existing components. To build a component from a mockup, use design-to-code."
+    "description": "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code."
   },
   {
     "url": "/docs/reference/skills/storybook-testing",

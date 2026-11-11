@@ -1,5 +1,5 @@
 ---
-description: "Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when building UI from a mockup or screenshot. To call Storybook MCP tools alone, use storybook-mcp-integration."
+description: "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration."
 argument-hint: "[screenshot-path | description | url]"
 model: sonnet
 effort: high
