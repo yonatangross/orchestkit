@@ -569,7 +569,7 @@ def test_apply_runs_docker_prune_commands(home, capsys):
 
 
 PS = (
-    "  500     1 tester 2-03:10:00  81234 /Applications/Chrome --headless --remote-debugging-port=9222\n"
+    "  500     1 tester 2-03:10:00  81234 /Applications/Chrome --headless --use-mock-keychain --password-store=basic --remote-debugging-port=9222\n"
     "  501     1 tester    00:05:00  41234 /usr/bin/python3 -m http.server 8000\n"
     "  502     1 other   3-00:00:00  41234 /usr/bin/python3 -m http.server 8001\n"
     "  503   900 tester 5-00:00:00  41234 /usr/bin/python3 -m http.server 8002\n"
