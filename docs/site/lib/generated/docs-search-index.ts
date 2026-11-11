@@ -981,6 +981,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "CI/CD, containers and infrastructure as code: GitHub Actions, Docker, Kubernetes, Helm, Terraform. Use when setting up pipelines or deployments."
   },
   {
+    "url": "/docs/reference/skills/disk-cleanup",
+    "title": "Disk Cleanup",
+    "description": "Frees the disk that AI agents and git worktrees leave behind: package and build caches, merged worktrees, Docker build cache, old agent logs. Prints a safe, regenerable and ask-first inventory with sizes, dry run by default, --apply after confirmation. Use when the disk is nearly full, free space keeps shrinking, or after many agents or worktrees ran. Disk space only: it never closes sessions or deletes branches."
+  },
+  {
     "url": "/docs/reference/skills/distributed-systems",
     "title": "Distributed Systems",
     "description": "Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns."
@@ -1063,7 +1068,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 115 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 116 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1198,7 +1203,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 115 OrchestKit skills."
+    "description": "Complete reference for all 116 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1567,13 +1572,13 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "43 Commands You Can Invoke",
+    "title": "44 Commands You Can Invoke",
     "description": "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
   },
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 115 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 116 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",

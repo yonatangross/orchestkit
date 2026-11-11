@@ -405,6 +405,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 1
   },
   {
+    "id": "disk-cleanup",
+    "label": "Disk Cleanup",
+    "type": "command",
+    "complexity": "low",
+    "category": "devops",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "distributed-systems",
     "label": "Distributed Systems",
     "type": "reference",

@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
+    "sha256": "065f202ffdd4c112748774615fceef1b0d87c30aa361c4a2b1c09883995fc126",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1860,7 +1860,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dev",
     "description": "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project.",
     "version": "1.1.0",
-    "sha256": "620d7911355b253ccfa5592b6d38e095d4b1443f4e22dba1d539fdaf8ffa85a2",
+    "sha256": "0ac8da971a548f0305b678d5c325b344a0c0b515c84e2488c9a685e5898fcbdb",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -1954,6 +1954,44 @@ export const SKILLS: Record<string, SkillMeta> = {
       "deployment-manager",
       "infrastructure-architect"
     ]
+  },
+  "disk-cleanup": {
+    "name": "disk-cleanup",
+    "description": "Frees the disk that AI agents and git worktrees leave behind: package and build caches, merged worktrees, Docker build cache, old agent logs. Prints a safe, regenerable and ask-first inventory with sizes, dry run by default, --apply after confirmation. Use when the disk is nearly full, free space keeps shrinking, or after many agents or worktrees ran. Disk space only: it never closes sessions or deletes branches.",
+    "version": "1.0.0",
+    "sha256": "43f371e2d0d5ba1d5167cdf0ea8e387e8070b7e946b60281c4bdc3c300abd1c5",
+    "author": "OrchestKit",
+    "tags": [
+      "disk",
+      "cleanup",
+      "worktrees",
+      "caches",
+      "docker",
+      "agents",
+      "macos",
+      "linux"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash,",
+      "Read"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "references": [
+        "catalog.md"
+      ],
+      "scripts": [
+        "disk_cleanup.py"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "distributed-systems": {
     "name": "distributed-systems",
