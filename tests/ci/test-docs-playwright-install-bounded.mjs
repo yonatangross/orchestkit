@@ -38,6 +38,14 @@
  *             and the 240 s wait gave up on two orphans still fetching, runs
  *             42214992662 and 42215416026. The attempt budget stays inside
  *             the step, so the retry still runs before timeout-minutes kills it.
+ *   offline:  a normal run never touches the apt mirror. On 2026-11-11 the
+ *             runner could not resolve archive.ubuntu.com, and Docs Site Build
+ *             failed twice on two PRs (runs 43053876278 and its rerun) in
+ *             `apt-get update`, before any package was fetched. On the
+ *             ubuntu-26.04 image install-deps only adds 9 font packages
+ *             (run 43063535095); every library Chromium links is already
+ *             there. So the cached Chromium is installed first, one launch is
+ *             tried, and the apt steps run only when that launch fails.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -134,6 +142,23 @@ if (depsIdx !== -1) {
   if (!(wait >= 480)) fail('slow-mirror', `the wait for apt-get to exit is ${wait} s, want at least 480`);
   if (!(budget >= wait + 60 && budget < stepSeconds)) {
     fail('slow-mirror', `attempt budget ${budget} s must leave attempt 2 at least 60 s after the ${wait} s wait and stay under the ${stepSeconds} s step`);
+  }
+}
+
+// offline
+const browserIdx = steps.findIndex((s) => /playwright install chromium/.test(runOf(s)));
+const probeIdx = steps.findIndex((s) => /chromium\.launch\(/.test(runOf(s)));
+const probe = steps[probeIdx];
+if (probeIdx === -1) {
+  fail('offline', 'no step tries a Chromium launch before reaching for apt');
+} else {
+  if (!probe.id) fail('offline', `launch step "${probe.name}" has no id, so later steps cannot read its result`);
+  if (browserIdx === -1 || browserIdx > probeIdx) fail('offline', 'the launch is tried before Chromium is installed');
+  const gated = (s) => probe.id && new RegExp(`steps\\.${probe.id}\\.outputs\\.`).test(String(s.if || ''));
+  for (const [idx, what] of [[aptIdx, 'apt network timeouts'], [depsIdx, 'install-deps']]) {
+    if (idx === -1) continue;
+    if (idx < probeIdx) fail('offline', `${what} step "${steps[idx].name}" runs before the launch is tried`);
+    if (!gated(steps[idx])) fail('offline', `${what} step "${steps[idx].name}" runs on every build; its if must read steps.${probe.id}.outputs`);
   }
 }
 
