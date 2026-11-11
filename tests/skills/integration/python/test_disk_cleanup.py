@@ -690,7 +690,20 @@ def test_render_shape_and_width(home, capsys):
             continue  # copy-paste commands are never wrapped or cut
         assert cells(line) <= 76, f"{cells(line)} cells: {line!r}"
     for bad in ("—", "–", "--"):
-        assert bad not in out.replace("--apply", "").replace("--only", "").replace("--tier", "")
+        flags = (
+            "--apply",
+            "--only",
+            "--tier",
+            "--home",
+            "--platform",
+            "--root",
+            "--idle-minutes",
+            "--ledger",
+        )
+        text = out
+        for flag in flags:  # CLI flags in the printed commands are not dashes
+            text = text.replace(flag, "")
+        assert bad not in text
 
 
 def test_json_output_is_parseable(home, capsys):

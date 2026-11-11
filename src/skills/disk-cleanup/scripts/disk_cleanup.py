@@ -1099,7 +1099,15 @@ def render(
     if results is None and (safe or regen):
         # --apply scans again; pinning the ids keeps it to the list confirmed here
         ids = [i.id for i in inv.items if i.tier in ("safe", "regenerable") and i.action]
-        pinned = " ".join(f"--only {shlex.quote(i)}" for i in ids)
+        # carry the scan this list came from, so the pin works from any cwd
+        scan = [
+            f"--home {shlex.quote(str(env.home))}",
+            f"--platform {env.platform}",
+            *(f"--root {shlex.quote(str(r))}" for r in env.roots),
+            f"--idle-minutes {env.idle_minutes}",
+            *([f"--ledger {shlex.quote(str(env.ledger))}"] if env.ledger else []),
+        ]
+        pinned = " ".join(scan + [f"--only {shlex.quote(i)}" for i in ids])
         out += [
             "",
             "Run with --apply after you confirm. Exit: 0 clean, 3 findings, 2 refused.",
