@@ -5,7 +5,7 @@ description: "User-invocable commands for common development workflows."
 
 # Workflows Skills
 
-**47 skills** for user-invocable commands for common development workflows.
+**48 skills** for user-invocable commands for common development workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -23,12 +23,13 @@ description: "User-invocable commands for common development workflows."
 | [Create Plan](/docs/reference/skills/create-plan) | Command | medium | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success c... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
 | [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how code works today for a task's questions, with file:line citations. Use before planning a change; descri... |
-| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or T... |
-| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design... |
+| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tai... |
+| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests... |
 | [Design Ship](/docs/reference/skills/design-ship) | Command | complex | Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design ... |
 | [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. Use for polish... |
-| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. Use when buildin... |
+| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For St... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to t... |
+| [Disk Cleanup](/docs/reference/skills/disk-cleanup) | Command | low | Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry ru... |
 | [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. U... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
