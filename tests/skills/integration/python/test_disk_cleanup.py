@@ -730,6 +730,40 @@ def test_report_has_marker_and_refuses_to_overwrite_foreign_file(home, tmp_path,
     assert foreign.read_text() == "hand written"
 
 
+# Vercel finding 01M75W96A on #5211: --report checked the path, then wrote it by
+# name, so a symlink at the report path sent the write to the link's target.
+def report_argv(home: Path, rep: Path) -> list[str]:
+    return ["--home", str(home), "--platform", "darwin", "--report", str(rep)]
+
+
+def test_report_refuses_a_dangling_symlink_and_creates_nothing(home, tmp_path, capsys):
+    target = tmp_path / "elsewhere" / "planted.txt"
+    target.parent.mkdir()
+    rep = tmp_path / "report.txt"
+    rep.symlink_to(target)
+    rc, _ = run_main(report_argv(home, rep), capsys)
+    assert rc == 2
+    assert not target.exists()
+
+
+def test_report_refuses_a_symlink_to_a_marked_file(home, tmp_path, capsys):
+    target = tmp_path / "victim.txt"
+    body = dc.REPORT_MARKER + "\nsomeone else's file that happens to start with the marker\n"
+    target.write_text(body)
+    rep = tmp_path / "report.txt"
+    rep.symlink_to(target)
+    rc, _ = run_main(report_argv(home, rep), capsys)
+    assert rc == 2
+    assert target.read_text() == body
+
+
+def test_report_new_file_is_private(home, tmp_path, capsys):
+    rep = tmp_path / "fresh.txt"
+    run_main(report_argv(home, rep), capsys)
+    assert rep.read_text().startswith(dc.REPORT_MARKER)
+    assert (rep.stat().st_mode & 0o777) == 0o600
+
+
 def test_ask_commands_never_force_and_park_detached_tips(repo, home):
     a = add_wt(repo, "unm2")
     commit_in(a)

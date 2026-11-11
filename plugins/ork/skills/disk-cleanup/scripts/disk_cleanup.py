@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import errno
 import json
 import os
 import re
@@ -1213,11 +1214,68 @@ def main(
     if not home.is_dir():
         print(f"home is not a directory: {home}", file=sys.stderr)
         return 2
+    report_fd: int | None = None
     if args.report:
-        rp = Path(args.report)
-        if rp.exists() and not rp.read_text(errors="replace").startswith(REPORT_MARKER):
-            print(f"refusing to overwrite {rp}: not a disk-cleanup report", file=sys.stderr)
+        report_fd, why = open_report(args.report)
+        if report_fd is None:
+            print(f"refusing to write {args.report}: {why}", file=sys.stderr)
             return 2
+    try:
+        return _run(args, out, home, platform, runner, now, disk_usage, cwd, report_fd)
+    finally:
+        if report_fd is not None:
+            os.close(report_fd)
+
+
+def open_report(path: str) -> tuple[int | None, str]:
+    """Open the --report file once and keep the handle; never follow a symlink.
+
+    A new file is created exclusively (mode 600). An existing one is opened
+    without following links, must be a regular file, and must already start
+    with REPORT_MARKER, read from the same handle that is later written, so
+    nothing can swap the target between the check and the write (Vercel
+    finding 01M75W96A). O_EXCL also fails on a dangling symlink.
+    """
+    nofollow = getattr(os, "O_NOFOLLOW", 0)
+    try:
+        return os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | nofollow, 0o600), ""
+    except FileExistsError:
+        pass
+    except OSError as e:
+        return None, e.strerror or "cannot create"
+    try:
+        fd = os.open(path, os.O_RDWR | nofollow)
+    except OSError as e:
+        return None, "it is a symlink" if e.errno == errno.ELOOP else (e.strerror or "cannot open")
+    if not stat.S_ISREG(os.fstat(fd).st_mode):
+        os.close(fd)
+        return None, "not a regular file"
+    head = os.read(fd, len(REPORT_MARKER.encode()))
+    if head != REPORT_MARKER.encode():
+        os.close(fd)
+        return None, "not a disk-cleanup report"
+    return fd, ""
+
+
+def write_report(fd: int, text: str) -> None:
+    data = text.encode("utf-8")
+    os.ftruncate(fd, 0)
+    os.lseek(fd, 0, os.SEEK_SET)
+    while data:
+        data = data[os.write(fd, data) :]
+
+
+def _run(
+    args: argparse.Namespace,
+    out: TextIO,
+    home: Path,
+    platform: str,
+    runner: Runner | None,
+    now: float | None,
+    disk_usage: Callable[[Path], tuple[int, int, int]] | None,
+    cwd: Path | None,
+    report_fd: int | None,
+) -> int:
     run = runner or Runner()
     roots = [Path(r) for r in args.root]
     if not roots:
@@ -1250,10 +1308,8 @@ def main(
         to_json(env, inv, results, freed) + "\n" if args.json else render(env, inv, results, freed)
     )
     out.write(text)
-    if args.report:
-        Path(args.report).write_text(
-            REPORT_MARKER + "\n" + render(env, inv, results, freed), encoding="utf-8"
-        )
+    if report_fd is not None:
+        write_report(report_fd, REPORT_MARKER + "\n" + render(env, inv, results, freed))
     if results is not None:
         return 0 if all(r.ok for r in results) else 3
     return 3 if inv.tier("safe") or inv.tier("regenerable") else 0
