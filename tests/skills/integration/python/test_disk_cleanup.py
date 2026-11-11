@@ -370,6 +370,43 @@ def test_dirty_worktree_is_keep(repo, home):
     assert it.tier == "keep" and "dirty" in it.reason
 
 
+def ignore_on_main(app: Path, patterns: str) -> None:
+    (app / ".gitignore").write_text(patterns)
+    git(app, "add", ".gitignore")
+    git(app, "commit", "-m", "ignore")
+    git(app, "push")
+
+
+def test_ignored_env_file_keeps_the_worktree_and_survives_apply(repo, home, capsys):
+    # git status --porcelain omits ignored files and git worktree remove deletes
+    # them, so a merged tree holding a hand-written .env.local read as clean and
+    # lost it on --apply with no line in the dry run (review on #5211).
+    ignore_on_main(repo, ".env.local\nnode_modules/\n")
+    wt = add_wt(repo, "envwt")
+    (wt / ".env.local").write_text("API_KEY=not-a-real-key\n")
+    it = wt_item(dc.build_inventory(make_env(home, roots=[repo])), wt)
+    assert it.tier == "keep", it
+    assert ".env.local" in it.reason
+    rc, out = run_main(["--home", str(home), "--platform", "darwin", "--root", str(repo)], capsys)
+    assert ".env.local" in out  # the dry run names it
+    rc, out = run_main(
+        ["--home", str(home), "--platform", "darwin", "--root", str(repo), "--apply"], capsys
+    )
+    assert rc == 0
+    assert (wt / ".env.local").read_text() == "API_KEY=not-a-real-key\n"
+
+
+def test_only_regenerable_ignored_dirs_still_remove_the_worktree(repo, home):
+    ignore_on_main(repo, "node_modules/\n__pycache__/\n")
+    wt = add_wt(repo, "nmwt")
+    write(wt / "node_modules" / "pkg" / "index.js", 100)
+    write(wt / "packages" / "a" / "node_modules" / "x.js", 100)
+    write(wt / "tools" / "__pycache__" / "m.pyc", 100)
+    it = wt_item(dc.build_inventory(make_env(home, roots=[repo])), wt)
+    assert it.tier == "regenerable", it
+    assert "merged" in it.reason
+
+
 def test_unmerged_branch_is_ask_first(repo, home):
     wt = add_wt(repo, "spike")
     commit_in(wt)
