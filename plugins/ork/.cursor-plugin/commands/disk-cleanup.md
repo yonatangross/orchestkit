@@ -5,7 +5,7 @@ disable-model-invocation: false
 effort: low
 user-invocable: true
 name: disk-cleanup
-allowed-tools: Bash, Read
+allowed-tools: Bash, Read, AskUserQuestion
 ---
 
 # Auto-generated from skills/disk-cleanup/SKILL.md
