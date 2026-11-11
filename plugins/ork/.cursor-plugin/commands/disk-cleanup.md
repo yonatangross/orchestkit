@@ -30,7 +30,9 @@ what is provably safe, after you confirm.
 3. **Unreadable is KEEP.** A failed `git`, `gh`, `lsof` or `docker` call keeps the item and says why.
    Never remove on a guess.
 4. **A worktree is removed only when all of these hold:** its tip is on the default branch
-   (or equals the head of a merged PR), the tree is clean, it is not locked, no process has
+   (or equals the head of a merged PR), the tree is clean, it holds no ignored file outside
+   a rebuildable folder (`node_modules`, `.venv`, `dist`, `build`, `.next`, `__pycache__` and
+   the like; an ignored `.env.local` keeps the tree), it is not locked, no process has
    its working directory inside, nothing in it changed for 60 minutes, and it sits under
    the home directory. Removal is `git worktree remove` without force. The branch stays.
 5. **Report the measured number.** The freed total is free space before versus after. The

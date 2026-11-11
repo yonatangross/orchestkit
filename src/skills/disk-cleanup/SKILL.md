@@ -1,6 +1,6 @@
 ---
 name: disk-cleanup
-compatibility: "macOS or Linux, Python 3.9+, git. Optional: gh, docker, lsof."
+compatibility: "Claude Code 2.1.277+. macOS or Linux, Python 3.9+, git. Optional: gh, docker, lsof."
 description: "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches."
 license: MIT
 argument-hint: "[--apply] [--only ID] [--tier safe|regenerable] [--root DIR] [--json]"

@@ -1959,7 +1959,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "disk-cleanup",
     "description": "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches.",
     "version": "1.0.0",
-    "sha256": "7cc01d774c09beb95740cd212f532ff49ea689e56c2f2ff0e11c0068641b8d1f",
+    "sha256": "4f185e8e117b60fe9d5a4d4337ed25a49bce827d057499a153883129a08eab40",
     "author": "OrchestKit",
     "tags": [
       "disk",
