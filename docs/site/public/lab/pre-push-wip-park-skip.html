@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The version gate now skips wip/ park branches</title>
+<meta name="description" content="Type a branch name and see whether the pre-push and CI version-bump gate skips it or enforces it, before and after this change.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  input,select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  input,select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.8rem;min-height:3rem}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  code{color:var(--pg-accent)}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The version gate now skips wip/ park branches"><meta property="og:description" content="Type a branch name and see whether the pre-push and CI version-bump gate skips it or enforces it, before and after this change."><meta property="og:url" content="https://orchestkit.dev/lab/pre-push-wip-park-skip.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The version gate now skips wip/ park branches"><meta name="twitter:description" content="Type a branch name and see whether the pre-push and CI version-bump gate skips it or enforces it, before and after this change."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>The version gate now skips wip/ park branches</h1>
+<p class="sub">Branch fix/pre-push-wip-park-skip, 2026-11-11. One pattern, <code>scripts/ci/version-skip-pattern.sh</code>, decides for both the pre-push hook and version-check.yml. A wip/ branch publishes a parked commit so nothing is lost; it never becomes a release, so a version bump there would be a ghost version (#1457). Before this change the gate refused wip/park-2026-11-11/fix-5172 outright.</p>
+<section><h2>Try a branch name</h2>
+<label for="pick">Example</label>
+<select id="pick"></select>
+<label for="name">Branch</label>
+<input id="name" type="text" spellcheck="false">
+<div class="grid">
+  <div><h3>Before (no wip/)</h3><div class="out" id="before"></div></div>
+  <div><h3>Now</h3><div class="out" id="after"></div></div>
+</div>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+<section><h2>Proof</h2>
+<p>tests/unit/test-pre-push-hook.sh Test 4b runs the real pattern file: in CI on this PR it printed <code>pattern skips 15 owned branch shapes and enforces 7 bare ones</code> (was 13 and 5; the new skip cases are <code>lane/x</code> and <code>wip/park-2026-11-11/fix-5172</code>, the new enforce cases are bare <code>wip</code> and <code>wipe/x</code>).</p>
+</section>
+<script>
+const BEFORE=/^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug|lane)\/|^release-please|^dependabot\//;
+const NOW=/^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug|lane|wip)\/|^release-please|^dependabot\//;
+const EX=["wip/park-2026-11-11/fix-5172","wip","wipe/x","fix/x","lane/x","main","hotfix-1457","release-please--branches--main"];
+const pick=document.getElementById("pick"),name=document.getElementById("name");
+const say=(re,b)=>re.test(b)?["skips the version gate","ok"]:["enforces a version bump","bad"];
+function show(){
+  const b=name.value.trim();
+  for(const [id,re] of [["before",BEFORE],["after",NOW]]){
+    const el=document.getElementById(id),[t,c]=say(re,b);
+    el.textContent=b?b+": "+t:"";el.className="out "+c;
+  }
+}
+for(const e of EX){const o=document.createElement("option");o.textContent=e;pick.append(o);}
+pick.addEventListener("change",()=>{name.value=pick.value;show();});
+name.addEventListener("input",show);
+name.value=EX[0];show();
+document.getElementById("copy").addEventListener("click",()=>{
+  const b=name.value.trim(),[t]=say(NOW,b);
+  navigator.clipboard.writeText("In orchestkit, branch "+b+" "+t+" under scripts/ci/version-skip-pattern.sh. Check this against tests/unit/test-pre-push-hook.sh Test 4b.");
+});
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

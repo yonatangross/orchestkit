@@ -13,9 +13,10 @@
 # branches creates a "ghost version" when the two disagree (#1457), so the gate
 # stands down on every conventional-commit prefix (issue/ and bug/ included,
 # see CONTRIBUTING.md "Branch naming"), on floor lane/ branches (#4600), on
-# release-please's own PR branches, and on Dependabot branches, which never
-# carry a version bump. Bare-named
-# branches (hotfixes) are still enforced.
+# wip/ park branches (a parked commit published so nothing is lost; it never
+# becomes a release, and without this skip a park could not be pushed at all),
+# on release-please's own PR branches, and on Dependabot branches, which never
+# carry a version bump. Bare-named branches (hotfixes) are still enforced.
 #
 # #1458 mirrored this alternation into both consumers and held them equal with
 # a drift test. That made drift loud, not impossible. Now there is one copy.
@@ -26,5 +27,5 @@
 # pattern would silently ENFORCE the bump on every branch, the inverse of the
 # #1457 failure. tests/ci/fault-arms/version-skip-pattern.sh proves both
 # consumers fail (not skip, not enforce) with this file emptied or missing.
-VERSION_SKIP_PATTERN='^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug|lane)/|^release-please|^dependabot/'
+VERSION_SKIP_PATTERN='^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug|lane|wip)/|^release-please|^dependabot/'
 export VERSION_SKIP_PATTERN
