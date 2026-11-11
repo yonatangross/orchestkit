@@ -9,6 +9,18 @@ background: false
 allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/setup" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/setup/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -78,7 +90,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
 | 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
-| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
+| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node <ORK_PLUGIN_DIR>/skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |

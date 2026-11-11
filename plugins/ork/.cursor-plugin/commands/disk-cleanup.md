@@ -8,6 +8,18 @@ name: disk-cleanup
 allowed-tools: Bash, Read, AskUserQuestion
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/disk-cleanup" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/disk-cleanup/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -44,8 +56,8 @@ what is provably safe, after you confirm.
    for a folder that holds several repos:
 
    ```bash
-   python3 "skills/disk-cleanup/scripts/disk_cleanup.py"
-   python3 "skills/disk-cleanup/scripts/disk_cleanup.py" --root ~/code
+   python3 "<ORK_PLUGIN_DIR>/skills/disk-cleanup/scripts/disk_cleanup.py"
+   python3 "<ORK_PLUGIN_DIR>/skills/disk-cleanup/scripts/disk_cleanup.py" --root ~/code
    ```
 
    Exit 0 means nothing to clean, 3 means findings, 2 means it could not look.
@@ -56,8 +68,8 @@ what is provably safe, after you confirm.
 4. Apply:
 
    ```bash
-   python3 "skills/disk-cleanup/scripts/disk_cleanup.py" --apply
-   python3 "skills/disk-cleanup/scripts/disk_cleanup.py" --apply --tier safe
+   python3 "<ORK_PLUGIN_DIR>/skills/disk-cleanup/scripts/disk_cleanup.py" --apply
+   python3 "<ORK_PLUGIN_DIR>/skills/disk-cleanup/scripts/disk_cleanup.py" --apply --tier safe
    ```
 
    Expected: one line per action (done or failed), then `freed (measured, before and after)`.

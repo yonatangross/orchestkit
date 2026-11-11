@@ -9,6 +9,18 @@ name: memory
 allowed-tools: "Read Grep Glob Bash AskUserQuestion mcp__memory__search_nodes mcp__memory__read_graph"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/memory" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/memory/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -81,10 +93,10 @@ Load details: `Read("skills/memory/references/memory-commands.md")` for full usa
 
 ### Nightly KG staleness report
 
-Cron job in `.github/workflows/memory-staleness.yml` runs nightly at 04:00 UTC. Calls `skills/memory/scripts/staleness_cron.py` to scan ALL memory MCP entities, flag those whose latest observation timestamp is older than 30 days, and write a Markdown report to `docs/reports/memory-staleness-YYYY-MM-DD.md`.
+Cron job in `.github/workflows/memory-staleness.yml` runs nightly at 04:00 UTC. Calls `<ORK_PLUGIN_DIR>/skills/memory/scripts/staleness_cron.py` to scan ALL memory MCP entities, flag those whose latest observation timestamp is older than 30 days, and write a Markdown report to `docs/reports/memory-staleness-YYYY-MM-DD.md`.
 
 ```bash
-python3 skills/memory/scripts/staleness_cron.py docs/reports/ \
+python3 <ORK_PLUGIN_DIR>/skills/memory/scripts/staleness_cron.py docs/reports/ \
     --threshold-days 30 --limit 50
 ```
 

@@ -9,6 +9,18 @@ background: false
 allowed-tools: "AskUserQuestion Bash Read Write Agent TaskCreate TaskUpdate Skill mcp__memory__search_nodes CronCreate CronDelete"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/create-pr" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/create-pr/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -357,7 +369,7 @@ Done means all of these hold:
 - CodeRabbit CLI pre-review ran once before `gh pr create` (Phase 3c), or its one-line skip reason is in the Test Plan
 - Playground HTML exists at docs/{branch-dir}/*.html and the body links it, per `skills/create-pr/references/pr-playground.md` (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
-- On repos with `.coderabbit.yaml` and a non-draft PR: every CodeRabbit thread is resolved per `skills/create-pr/references/coderabbit-harvest.md`, with a reply naming the fix sha or the dismissal reason (`skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
+- On repos with `.coderabbit.yaml` and a non-draft PR: every CodeRabbit thread is resolved per `skills/create-pr/references/coderabbit-harvest.md`, with a reply naming the fix sha or the dismissal reason (`<ORK_PLUGIN_DIR>/skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
 
 ## Related Skills
 
@@ -378,7 +390,7 @@ Load on demand with `Read("references/<file>")`:
 | `skills/create-pr/references/ci-integration.md` | CI integration patterns |
 | `skills/create-pr/references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `skills/create-pr/assets/pr-template.md` | PR template (legacy) |
-| `skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `<ORK_PLUGIN_DIR>/skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
 | `skills/create-pr/references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
 | `skills/create-pr/references/coderabbit-cli-prereview.md` | Phase 3c: why the PR review allowance is scarce, CLI command, degrade table, triage |
 | `skills/create-pr/references/pr-playground.md` | Phase 4b: PR playground archetype, commit path, SHA-pinned Live Preview link (CI gate) |

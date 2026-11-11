@@ -6,6 +6,18 @@ name: iterate-plan
 allowed-tools: "Bash Read Write Grep Glob"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/iterate-plan" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/iterate-plan/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -22,7 +34,7 @@ review record must outlive every revision. Layout: the create-plan skill's
    plans). List the open comments:
 
    ```bash
-   node "skills/iterate-plan/scripts/artifact.mjs" list --file <plan> --open
+   node "<ORK_PLUGIN_DIR>/skills/iterate-plan/scripts/artifact.mjs" list --file <plan> --open
    ```
 
 2. **Check each comment against the code before acting on it.** Open the files it names. A comment
@@ -34,7 +46,7 @@ review record must outlive every revision. Layout: the create-plan skill's
    keeps the comments:
 
    ```bash
-   node "skills/iterate-plan/scripts/artifact.mjs" iterate --file <plan> --body /tmp/plan-body.md
+   node "<ORK_PLUGIN_DIR>/skills/iterate-plan/scripts/artifact.mjs" iterate --file <plan> --body /tmp/plan-body.md
    # prints <plan> revision N
    ```
 
@@ -42,8 +54,8 @@ review record must outlive every revision. Layout: the create-plan skill's
    reviewer asked you to, or when the comment is a factual fix you made:
 
    ```bash
-   node "skills/iterate-plan/scripts/artifact.mjs" reply   --file <plan> --id c1 --author Claude --text "Phase 1 now names src/x.ts:40."
-   node "skills/iterate-plan/scripts/artifact.mjs" resolve --file <plan> --id c2 --author Claude --text "Rollback step added to phase 2."
+   node "<ORK_PLUGIN_DIR>/skills/iterate-plan/scripts/artifact.mjs" reply   --file <plan> --id c1 --author Claude --text "Phase 1 now names src/x.ts:40."
+   node "<ORK_PLUGIN_DIR>/skills/iterate-plan/scripts/artifact.mjs" resolve --file <plan> --id c2 --author Claude --text "Rollback step added to phase 2."
    ```
 
 6. **Reply with the path, the new revision and which comments are still open.** Do not implement.

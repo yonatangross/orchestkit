@@ -9,6 +9,18 @@ background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Agent TaskCreate TaskUpdate TaskStop Grep Glob ToolSearch ExitWorktree CronCreate CronDelete PushNotification mcp__memory__search_nodes mcp__memory__create_entities mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/fix-issue" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/fix-issue/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -84,10 +96,10 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ## Phase 0b — Prior-fix lookup (signal-fired, optional)
 
-Before diagnosis kicks off, optionally invoke `skills/fix-issue/scripts/prior_fix_lookup.py <session-dir>` to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:
+Before diagnosis kicks off, optionally invoke `<ORK_PLUGIN_DIR>/skills/fix-issue/scripts/prior_fix_lookup.py <session-dir>` to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:
 
 ```bash
-python3 skills/fix-issue/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
+python3 <ORK_PLUGIN_DIR>/skills/fix-issue/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

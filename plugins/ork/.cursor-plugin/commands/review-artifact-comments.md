@@ -6,6 +6,18 @@ name: review-artifact-comments
 allowed-tools: "Bash Read Grep Glob AskUserQuestion"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/review-artifact-comments" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/review-artifact-comments/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -21,13 +33,13 @@ hand; both are read the same way. Nothing here deletes a comment.
 1. **Pick the artifact.** Use the file given. Otherwise list the task directory and ask which one:
 
    ```bash
-   node "skills/review-artifact-comments/scripts/artifact.mjs" status --task-dir .ork/tasks/<task>
+   node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" status --task-dir .ork/tasks/<task>
    ```
 
 2. **Read the artifact in full, then its open comments:**
 
    ```bash
-   node "skills/review-artifact-comments/scripts/artifact.mjs" list --file <artifact> --open
+   node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" list --file <artifact> --open
    ```
 
 3. **Ask how to proceed** unless the user already said (AskUserQuestion), for example:
@@ -38,8 +50,8 @@ hand; both are read the same way. Nothing here deletes a comment.
    found or changed:
 
    ```bash
-   node "skills/review-artifact-comments/scripts/artifact.mjs" reply   --file <artifact> --id c1 --author Claude --text "..."
-   node "skills/review-artifact-comments/scripts/artifact.mjs" resolve --file <artifact> --id c1 --author Claude --text "..."
+   node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" reply   --file <artifact> --id c1 --author Claude --text "..."
+   node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" resolve --file <artifact> --id c1 --author Claude --text "..."
    ```
 
    Resolve only when told to, or when the reply records a fix already made.
@@ -49,7 +61,7 @@ hand; both are read the same way. Nothing here deletes a comment.
    (exit 2):
 
    ```bash
-   node "skills/review-artifact-comments/scripts/artifact.mjs" approve --file <artifact> --by <reviewer seat> --ref <LAND or comment id>
+   node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" approve --file <artifact> --by <reviewer seat> --ref <LAND or comment id>
    ```
 
    An approved artifact with no open comment is the "phase done" signal other tools read.
@@ -57,7 +69,7 @@ hand; both are read the same way. Nothing here deletes a comment.
 ## Adding a comment as a reviewer
 
 ```bash
-node "skills/review-artifact-comments/scripts/artifact.mjs" comment --file <artifact> \
+node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" comment --file <artifact> \
   --author "<name>" --quote "<the line it is about>" --text "<the comment>"
 ```
 

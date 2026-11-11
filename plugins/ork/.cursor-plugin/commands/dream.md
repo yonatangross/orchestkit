@@ -9,6 +9,18 @@ name: dream
 allowed-tools: "Read Write Edit Glob Grep Bash mcp__memory__search_nodes mcp__memory__open_nodes mcp__memory__read_graph"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/dream" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/dream/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -345,7 +357,7 @@ the rebuild answers only the first. The budget pass is a script, so the report i
 runs it. Read-only by default; `--apply` only after the user accepts the moves (batch when > 3):
 
 ```python
-Bash(command=f"node skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
+Bash(command=f"node <ORK_PLUGIN_DIR>/skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
 # bytes vs ceiling (ORK_CONTEXT_FILE_BUDGET_BYTES, else 17,408 B), per-section sizes, long entries,
 # the two-file invariant, and moves proposed BY RULE (oldest first). Add --apply to rotate
 # .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).

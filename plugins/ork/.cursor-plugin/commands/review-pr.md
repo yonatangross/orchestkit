@@ -6,6 +6,18 @@ name: review-pr
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations ToolSearch Monitor"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/review-pr" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/review-pr/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -33,7 +45,7 @@ A pronoun target (`this`, `them`, `the above`) is read back from the conversatio
 Resolve the target with the script first, then review exactly that target (#3892). Read the mode and opt-in flags (`--rules`, `--standards`, `--post`, `--post-verdict`) from the arguments yourself and drop them, then run the script as one plain command (the post gate allows only simple read-only commands, so no assignment, loop or `$(...)`):
 
 ```bash
-bash skills/review-pr/scripts/resolve-target.sh <the arguments without the four flags>   # prints one JSON object: TARGET
+bash <ORK_PLUGIN_DIR>/skills/review-pr/scripts/resolve-target.sh <the arguments without the four flags>   # prints one JSON object: TARGET
 ```
 
 | `kind` | Comes from | Review source |
@@ -305,7 +317,7 @@ Runs when `RULES_MODE` or `STANDARDS_MODE` is true, or the user asks to check th
 
 ```python
 REPO = Bash("git rev-parse --show-toplevel")  # run first; pass the printed path, never $(...); the gate passes --repo only when it is the cwd
-SOURCES = Bash("node skills/review-pr/scripts/collect-rules.mjs --repo <REPO>")  # project + ~/.claude CLAUDE.md and rules/*.md
+SOURCES = Bash("node <ORK_PLUGIN_DIR>/skills/review-pr/scripts/collect-rules.mjs --repo <REPO>")  # project + ~/.claude CLAUDE.md and rules/*.md
 Workflow(name="ork:rule-check",
          args={"target": TARGET_LABEL, "diffCommand": "gh pr diff <PR_NUMBER> (or git diff --no-ext-diff --no-textconv base...head)",
                "sources": SOURCES.sources, "changedFiles": CHANGED_FILES, "modelOverride": MODEL_OVERRIDE})
@@ -327,14 +339,14 @@ After synthesis, persist critical/high findings to the memory graph for cross-se
 
 This skill never posts unless the user typed `--post` on `/ork:review-pr` (#4675). Without it, print the review and stop: the user posts it, or re-runs with `--post`. Never ask to post and never post because the review "looks done".
 
-Every post goes through `skills/review-pr/scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A verdict also needs `--post-verdict` typed by the user: `--event approve` or `request-changes`, or a body with a verdict line. `--post` is the boundary; `--post-verdict` is a should behind it (operator word on #4678). The script reads every line (split on newline and carriage return) as it renders: NFKC, format characters dropped (zero-width, soft hyphen, bidi marks), HTML tags dropped, Cyrillic and Greek look-alike letters folded. The line is a verdict line when `LAND`, `HOLD` or `XREVIEW` in capitals stands anywhere as a word, or `land`, `hold` or `xreview` in any case is one of its first four words. By design that also refuses prose like `hold on, one nit`, `Hold-out set` or `Land access`; reword the line or have the user type `--post-verdict`.
+Every post goes through `<ORK_PLUGIN_DIR>/skills/review-pr/scripts/post-review.mjs`; the workflow never writes to GitHub. Post the producer-basis `verdict` unless the user confirmed the post-refutation one in Phase 4.5. A verdict also needs `--post-verdict` typed by the user: `--event approve` or `request-changes`, or a body with a verdict line. `--post` is the boundary; `--post-verdict` is a should behind it (operator word on #4678). The script reads every line (split on newline and carriage return) as it renders: NFKC, format characters dropped (zero-width, soft hyphen, bidi marks), HTML tags dropped, Cyrillic and Greek look-alike letters folded. The line is a verdict line when `LAND`, `HOLD` or `XREVIEW` in capitals stands anywhere as a word, or `land`, `hold` or `xreview` in any case is one of its first four words. By design that also refuses prose like `hold on, one nit`, `Hold-out set` or `Land access`; reword the line or have the user type `--post-verdict`.
 
 **Residuals (should, behind `--post`).** Still posts without `--post-verdict`: a verdict word in lower or mixed case after the fourth word (`My recommendation is to hold`), look-alike letters outside the folded Cyrillic and Greek set, an HTML entity (`&#72;OLD`), letters spaced out (`H O L D`) or split across lines, and a verdict inside an image.
 
 ```bash
 # Only when the user typed --post (Argument Resolution). Write the review under /tmp first.
 # CC writes the skill dir in as a literal path. The call is one plain command (letters, digits, - _ . / : and spaces): no quotes, $, globs or chaining, and --pr is exactly what the user typed.
-node skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/review-4668.md --post
+node <ORK_PLUGIN_DIR>/skills/review-pr/scripts/post-review.mjs --pr 4668 --event comment --body-file /tmp/review-4668.md --post
 # --kind comment posts a PR comment instead of a review.
 # --event approve or request-changes, or a verdict line (LAND, HOLD or XREVIEW anywhere, or any case in the first four words), also needs --post-verdict, and only when the user typed it.
 ```
@@ -343,10 +355,10 @@ The skill's `skill/review-post-gate` hook enforces this in code. While the skill
 
 ## Phase 8c — Verdict KG writeback (signal-fired, optional)
 
-After the verdict is submitted, optionally invoke `skills/review-pr/scripts/verdict_writeback.py <review-dir>` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
+After the verdict is submitted, optionally invoke `<ORK_PLUGIN_DIR>/skills/review-pr/scripts/verdict_writeback.py <review-dir>` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
 
 ```bash
-python3 skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
+python3 <ORK_PLUGIN_DIR>/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

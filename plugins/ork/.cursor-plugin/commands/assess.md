@@ -8,6 +8,18 @@ name: assess
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/assess" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/assess/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -301,7 +313,7 @@ When emitting a spec:
 5. Validate before declaring success:
 
 ```bash
-node "skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
+node "<ORK_PLUGIN_DIR>/skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
 ```
 
 If validation fails, fall back to markdown-only and surface the error. Never write a partial spec.
@@ -309,7 +321,7 @@ If validation fails, fall back to markdown-only and surface the error. Never wri
 6. For `--render=both`, render the markdown view from the spec:
 
 ```bash
-node "skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
+node "<ORK_PLUGIN_DIR>/skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
 ```
 
 This guarantees JSON spec and markdown report stay in sync.
@@ -324,7 +336,7 @@ This guarantees JSON spec and markdown report stay in sync.
 When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
 
 ```bash
-python3 skills/assess/scripts/memory_writeback.py "<assessment-dir>"
+python3 <ORK_PLUGIN_DIR>/skills/assess/scripts/memory_writeback.py "<assessment-dir>"
 ```
 
 `<assessment-dir>` is the dir containing `assessment.json` (typically the session's `.claude/chain/`). The script writes a `memory-writeback.json` handoff alongside it.

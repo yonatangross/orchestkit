@@ -141,6 +141,69 @@ def rewrite_bare_refs(text: str, skill_name: str, skill_dir: Path) -> str:
     return text
 
 
+# Executed skill scripts (default deny). Cursor substitutes no plugin-root
+# variable in a command body (measured in cursor-agent 2026.11.05: only
+# mcpServers config gets ${CURSOR_PLUGIN_ROOT}), so a plugin-relative
+# `skills/<name>/scripts/x` cannot name the installed plugin's own script.
+# Default deny: EVERY unanchored skills script path (after an interpreter with
+# or without flags, run bare or as ./, or named in prose or a table) becomes a
+# `<ORK_PLUGIN_DIR>/skills/...` placeholder that does not run as written, and
+# the command gets GUARD_HEADING plus script_guard(): the agent asks for the
+# installed plugin's absolute path and uses only what that resolver accepts.
+# References outside scripts/ keep the plugin-relative form.
+EXEC_SKILL_SCRIPT = re.compile(NOT_PATH_CHAR + r"(?:\./)?(skills/[A-Za-z0-9._-]+/scripts/)")
+PLUGIN_DIR_PLACEHOLDER = "<ORK_PLUGIN_DIR>"
+GUARD_HEADING = "## Before running a script from this command (Cursor)"
+
+
+def script_guard(skill_name: str) -> str:
+    """One subshell command that vets a user-given plugin directory.
+
+    Prints exactly one line: `ORK_PLUGIN_DIR=<realpath>` when the directory is
+    absolute, has no `.` or `..` segment, resolves outside the workspace (the
+    current directory), sits under ~/.cursor/plugins and holds an OrchestKit
+    plugin root with this skill; otherwise `REFUSED: <reason>`. The subshell
+    keeps a refusal from ending the agent's shell.
+    """
+    return (
+        "( ork_dir='PASTE_PATH_HERE'; "
+        'ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; '
+        'case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; '
+        'case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; '
+        '[ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; '
+        'ork_real="$(cd "$ork_dir" && pwd -P)"; '
+        'case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; '
+        'case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; '
+        '*) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; '
+        f'[ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/{skill_name}" ] '
+        '|| { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; '
+        'echo "ORK_PLUGIN_DIR=$ork_real" )'
+    )
+
+
+def guard_section(skill_name: str) -> str:
+    return (
+        f"{GUARD_HEADING}\n\n"
+        "Cursor does not tell a command where this plugin is installed. Run skill scripts "
+        "only from the installed plugin directory, never by a relative `skills/...` path.\n\n"
+        "Ask the user for the absolute path of the installed OrchestKit plugin, put it in "
+        "place of `PASTE_PATH_HERE`, and run:\n\n"
+        f"```bash\n{script_guard(skill_name)}\n```\n\n"
+        f"Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` "
+        f"in place of `{PLUGIN_DIR_PLACEHOLDER}` below. If it prints `REFUSED: ...`, stop "
+        "and tell the user the reason.\n\n"
+    )
+
+
+def guard_executed_scripts(text: str, skill_name: str) -> str:
+    rewritten = EXEC_SKILL_SCRIPT.sub(rf"{PLUGIN_DIR_PLACEHOLDER}/\1", text)
+    if PLUGIN_DIR_PLACEHOLDER not in rewritten or GUARD_HEADING in rewritten:
+        return rewritten
+    match = FRONTMATTER.match(rewritten)
+    cut = match.end() if match else 0
+    return rewritten[:cut] + guard_section(skill_name) + rewritten[cut:]
+
+
 def rewrite_command(text: str, skill_name: str, skill_dir: Path) -> str:
     # Order matters, though not for the reason it first looks like. A
     # cross-skill `${CLAUDE_PLUGIN_ROOT}/skills/other/references/x.md` is safe
@@ -156,7 +219,8 @@ def rewrite_command(text: str, skill_name: str, skill_dir: Path) -> str:
     # belongs.
     text = strip_plugin_root(text)
     text = rewrite_skill_dir(text, skill_name)
-    return rewrite_bare_refs(text, skill_name, skill_dir)
+    text = rewrite_bare_refs(text, skill_name, skill_dir)
+    return guard_executed_scripts(text, skill_name)
 
 
 FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)

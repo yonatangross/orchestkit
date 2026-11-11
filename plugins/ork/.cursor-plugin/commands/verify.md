@@ -8,6 +8,18 @@ name: verify
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/verify" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/verify/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -209,7 +221,7 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash \"skills/verify/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
+Bash(command=f"bash \"<ORK_PLUGIN_DIR>/skills/verify/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →
@@ -242,7 +254,7 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dime
 
 Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 9.0 (fixed, hard), every other dimension `min_blocker` 3.0, compliance `min_pass` 6.0, compliance `min_pass` 6.0.
 
-- **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `skills/verify/scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
+- **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `<ORK_PLUGIN_DIR>/skills/verify/scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
 - Blocked verdicts list every tripped dimension first, each with the fix needed to clear it.
@@ -433,7 +445,7 @@ Done means all of these hold:
 
 A check that prints the same thing whether or not the fault is present has
 measured nothing, yet it still returns an answer and that answer reads as
-evidence. The `paired-probe` skill exists for this and is model-invocable (and `skills/verify/scripts/assert-evidence.sh` is the Tests-dimension instance: it refuses the verdict when the run produced no observable evidence): it applies
+evidence. The `paired-probe` skill exists for this and is model-invocable (and `<ORK_PLUGIN_DIR>/skills/verify/scripts/assert-evidence.sh` is the Tests-dimension instance: it refuses the verdict when the run produced no observable evidence): it applies
 to any check whose PASS decides the verdict,
 especially a sweep that reported zero findings or a gate that passed
 unexpectedly. It refuses the verdict rather than the check.

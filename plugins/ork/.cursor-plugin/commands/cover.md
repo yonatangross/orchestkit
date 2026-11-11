@@ -8,6 +8,18 @@ name: cover
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/cover" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/cover/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -285,7 +297,7 @@ Output each agent's results **as soon as it returns**. Don't wait for all agents
 
 ### Phase 3b: Behaviour Gate
 
-Before Phase 4, run `node "skills/cover/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("skills/cover/references/behaviour-gate.md")`.
+Before Phase 4, run `node "<ORK_PLUGIN_DIR>/skills/cover/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("skills/cover/references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
@@ -463,7 +475,7 @@ Load on demand with `Read("references/<file>")`:
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
 | `behaviour-gate.md` | Risk target signals, the three reject rules, checker usage and limits |
-| `skills/cover/scripts/check-behaviour-tests.mjs` | Phase 3b checker: per-test keep or reject verdicts for new test files |
+| `<ORK_PLUGIN_DIR>/skills/cover/scripts/check-behaviour-tests.mjs` | Phase 3b checker: per-test keep or reject verdicts for new test files |
 | `skills/cover/workflows/heal-loop.js` | Phase 5 executor: script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 

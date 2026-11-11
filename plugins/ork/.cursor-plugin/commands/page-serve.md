@@ -8,6 +8,18 @@ name: page-serve
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/page-serve" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/page-serve/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -38,12 +50,12 @@ a stop, a status, and a loud failure when the URL contract cannot be met.
 The skill is three scripts in its own folder. Run them by path:
 
 ```bash
-bash "skills/page-serve/scripts/serve.sh" ./report.html
-bash "skills/page-serve/scripts/serve.sh" ./pages/ --name pages
-bash "skills/page-serve/scripts/serve.sh" <path> --screenshot   # agent-browser, returns the png path
-bash "skills/page-serve/scripts/status.sh" [--json]
-bash "skills/page-serve/scripts/stop.sh" <name>
-bash "skills/page-serve/scripts/stop.sh" --all
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" ./report.html
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" ./pages/ --name pages
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" <path> --screenshot   # agent-browser, returns the png path
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/status.sh" [--json]
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh" <name>
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh" --all
 ```
 
 `serve.sh` prints `url=`, `name=`, `port=`, `pid=`, `http=`, optional `screenshot=`,
@@ -53,9 +65,9 @@ and the exact `stop=` line to paste. Put the `url=` line in your reply's Open se
 
 | Invocation | Script | What happens |
 |---|---|---|
-| `<path> [flags]` | `skills/page-serve/scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
-| `status [--json]` | `skills/page-serve/scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
-| `stop <name>` or `stop --all` | `skills/page-serve/scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
+| `<path> [flags]` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
+| `status [--json]` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
+| `stop <name>` or `stop --all` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
 
 ## Failure modes, all loud
 

@@ -9,6 +9,18 @@ background: false
 allowed-tools: "Read Glob Grep Bash TaskCreate TaskUpdate TaskList"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+
+Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+
+```bash
+( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/audit-activation" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/audit-activation/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -47,7 +59,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 1. **Run the script FIRST** — every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
 
    ```bash
-   bash "skills/audit-activation/scripts/run-activation-audit.sh" \
+   bash "<ORK_PLUGIN_DIR>/skills/audit-activation/scripts/run-activation-audit.sh" \
      --telemetry-root /path/to/consumer-project \
      --stop-feed "$HOME/.claude/analytics/agent-usage.jsonl" \
      --days 30 --json
@@ -62,7 +74,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 
 ## Report Contract (every audit MUST include all six)
 
-1. **Data-source line (first line of the report)** — name `skills/audit-activation/scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
+1. **Data-source line (first line of the report)** — name `<ORK_PLUGIN_DIR>/skills/audit-activation/scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
 2. **Spawn split** — generic (Explore/general-purpose/Plan) vs **ork-catalog** vs other-plugin, as **counts AND percentages** (e.g. "412 generic (74%) / 78 ork-catalog (14%) / 67 other (12%)"). Never percentages alone.
 3. **Concentration** — the **top-5 agents' share of all catalog spawns** as a percentage (e.g. "top-5 = 81% of catalog spawns"), plus the top-5 list with fire counts.
 4. **Observed-zero-start list** — only when spawn coverage is `observed`, enumerate every catalog agent with zero start events in the supplied roots, one per line with its reference count and bucket. This is not an estate-wide or lifetime dormancy claim. Do not render the list when coverage is missing, empty, or partial.
@@ -94,7 +106,7 @@ Bucket by **reference counts**, never by description quality. For each observed-
 ## Example report shape (illustrative numbers — imitate the FORM exactly)
 
 ```markdown
-Data: skills/audit-activation/scripts/run-activation-audit.sh over /consumer/.claude/logs/subagent-spawns.jsonl (window: 2026-05-23T00:00:00Z to 2026-07-14T00:00:00Z; coverage: observed)
+Data: <ORK_PLUGIN_DIR>/skills/audit-activation/scripts/run-activation-audit.sh over /consumer/.claude/logs/subagent-spawns.jsonl (window: 2026-05-23T00:00:00Z to 2026-07-14T00:00:00Z; coverage: observed)
 Stop feed: ~/.claude/analytics/agent-usage.jsonl supplied separately; it is not joined to starts.
 
 ## Spawn split
