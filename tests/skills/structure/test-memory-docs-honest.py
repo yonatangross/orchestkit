@@ -23,7 +23,10 @@ SKILL = ROOT / "src" / "skills" / "remember" / "SKILL.md"
 DOCS = ROOT / "docs" / "site" / "content" / "docs"
 RECIPE = DOCS / "cookbook" / "setup-memory.mdx"
 
-MEMORY_TIER = re.compile(r"mcp__memory__|memory MCP|\*\*1\. Graph\*\*|Graph and MCP memory", re.I)
+MEMORY_TIER = re.compile(
+    r"mcp__memory__|memory MCP|\*\*1\. Graph\*\*|Graph and MCP memory|memory tiers|all 3 tiers|1\. Graph",
+    re.I,
+)
 OVERCLAIM = re.compile(r"zero[- ]config|always available", re.I)
 
 
