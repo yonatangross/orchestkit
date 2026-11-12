@@ -65,10 +65,16 @@ describe("docs-data", () => {
       expect(Array.isArray(plugin.agents)).toBe(true);
     });
 
-    it("ork skillCount matches TOTALS.skills", () => {
+    it("ork skillCount matches TOTALS.coreSkills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
-      expect(ork!.skillCount).toBe(TOTALS.skills);
+      expect(ork!.skillCount).toBe(TOTALS.coreSkills);
+    });
+
+    it("core plus extras skillCounts add up to TOTALS.skills (#4936)", () => {
+      const sum = PLUGINS.reduce((n, p) => n + p.skillCount, 0);
+      expect(sum).toBe(TOTALS.skills);
+      expect(TOTALS.coreSkills + TOTALS.extrasSkills).toBe(TOTALS.skills);
     });
   });
 

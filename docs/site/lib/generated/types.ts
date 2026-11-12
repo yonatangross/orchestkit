@@ -115,6 +115,8 @@ export interface CategoryMeta {
 export interface Totals {
   plugins: number;
   skills: number;
+  coreSkills: number;
+  extrasSkills: number;
   agents: number;
   hooks: number;
   commands: number;

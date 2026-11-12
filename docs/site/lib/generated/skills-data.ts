@@ -44,7 +44,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -93,7 +93,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -143,7 +143,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -237,7 +237,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -513,7 +513,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -1734,7 +1734,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2047,7 +2047,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2145,7 +2145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {},
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2187,7 +2187,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2549,7 +2549,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2802,7 +2802,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -2882,7 +2882,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3019,7 +3019,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3200,7 +3200,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "high",
     "structure": {},
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3251,7 +3251,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3332,7 +3332,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3547,7 +3547,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3626,7 +3626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "high",
     "structure": {},
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3841,7 +3841,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -4217,7 +4217,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -4313,7 +4313,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -4470,7 +4470,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -4842,7 +4842,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -5278,7 +5278,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -5531,7 +5531,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -5665,7 +5665,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   }
