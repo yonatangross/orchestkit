@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which OrchestKit memory tiers need setup</title>
+<meta name="description" content="Pick a memory tier and see what it needs before it stores anything.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .out{margin-top:1rem;padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.85rem;min-height:3rem;white-space:pre-wrap}
+  .ok{color:var(--status-ok)} .warn{color:var(--status-warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Which OrchestKit memory tiers need setup"><meta property="og:description" content="Pick a memory tier and see what it needs before it stores anything."><meta property="og:url" content="https://orchestkit.dev/lab/memory-recipe-honest-setup.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Which OrchestKit memory tiers need setup"><meta name="twitter:description" content="Pick a memory tier and see what it needs before it stores anything."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Which OrchestKit memory tiers need setup</h1>
+<p class="sub">Branch docs/memory-recipe-honest-setup, 2026-11-12. The docs called the knowledge graph tier zero-config; it needs a memory MCP server that OrchestKit does not bundle, as the remember skill says. tests/skills/structure/test-memory-docs-honest.py keeps every page honest.</p>
+<section><h2>Pick a tier</h2>
+<label for="pick">Memory tier</label>
+<select id="pick"></select>
+<div class="out" id="out"></div>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+<script>
+const CASES = [
+  ["1. Graph (mcp__memory__*)", false, "Needs a memory MCP server, not bundled.\nclaude mcp add memory -- npx -y @modelcontextprotocol/server-memory\nclaude mcp list   (confirm it is listed)\nWithout it, /ork:remember and /ork:memory have no graph to use."],
+  ["2. Local (.claude/memory/*.jsonl)", true, "No setup. Files appear when something writes them."],
+  ["3. CC Native (MEMORY.md)", true, "No setup. Claude Code loads it at session start; Claude or you write it."]
+];
+const pick = document.getElementById('pick');
+pick.replaceChildren(...CASES.map((c, i) => new Option(c[0], String(i))));
+function show() {
+  const c = CASES[Number(pick.value)];
+  const o = document.getElementById('out');
+  o.textContent = c[2];
+  o.className = 'out ' + (c[1] ? 'ok' : 'warn');
+}
+pick.addEventListener('change', show);
+document.getElementById('copy').addEventListener('click', () => {
+  const c = CASES[Number(pick.value)];
+  navigator.clipboard.writeText('OrchestKit memory tier ' + c[0] + ': ' + c[2].replace(/\n/g, ' '));
+});
+show();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

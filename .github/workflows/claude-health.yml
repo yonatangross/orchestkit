@@ -159,6 +159,30 @@ jobs:
             exit 1
           fi
 
+          # A clean exit and a non-empty file do not prove the call worked: an
+          # auth or turn-limit failure still exits 0 with is_error true, and a
+          # run that produced nothing can leave an empty result. Print the
+          # fields that name the cause (never the report body), then fail on
+          # each cause separately so the job log says which one it was.
+          if ! jq -e . /tmp/health-report.json > /dev/null 2>&1; then
+            echo "::error::health report is not JSON, cannot check the Claude call"
+            exit 1
+          fi
+          jq -c '{is_error, subtype, num_turns, duration_api_ms, output_tokens: .usage.output_tokens, starts: (.result|tostring|.[0:3])}' /tmp/health-report.json
+          subtype="$(jq -r '.subtype // "unknown"' /tmp/health-report.json)"
+          if [ "$(jq -r '.is_error == true' /tmp/health-report.json)" = "true" ]; then
+            echo "::error::Claude call reported is_error true (subtype ${subtype})"
+            exit 1
+          fi
+          if [ "$(jq -r '((.usage.output_tokens // 0) | tonumber? // 0) > 0' /tmp/health-report.json)" != "true" ]; then
+            echo "::error::Claude call produced no output tokens (subtype ${subtype})"
+            exit 1
+          fi
+          if [ "$(jq -r '((.result // "") | tostring | length) > 0' /tmp/health-report.json)" != "true" ]; then
+            echo "::error::Claude call returned an empty result (subtype ${subtype})"
+            exit 1
+          fi
+
       - name: Parse and display report
         run: |
           echo "## Nightly Health Report" >> $GITHUB_STEP_SUMMARY
@@ -166,7 +190,23 @@ jobs:
           node -e "
             const fs = require('fs');
             const raw = JSON.parse(fs.readFileSync('/tmp/health-report.json', 'utf8'));
-            const report = JSON.parse(raw.result || '{}');
+            // The model often wraps the JSON in a code fence. Strip a leading
+            // fence line (optionally tagged json) and the closing fence first.
+            // The fence is built from char code 96 (a backtick), which the
+            // shell would otherwise expand inside this double-quoted script.
+            const fence = String.fromCharCode(96).repeat(3);
+            let text = String(raw.result || '{}').trim();
+            if (text.startsWith(fence)) {
+              text = text.slice(text.indexOf('\n') + 1);
+              if (text.trimEnd().endsWith(fence)) text = text.trimEnd().slice(0, -3);
+            }
+            let report;
+            try {
+              report = JSON.parse(text);
+            } catch (e) {
+              console.log('Report parsing failed (not JSON)');
+              process.exit(0);
+            }
             if (report.overall_score !== undefined) {
               console.log('| Metric | Score |');
               console.log('|--------|-------|');
@@ -180,7 +220,7 @@ jobs:
                 report.recommendations.forEach(r => console.log('- ' + r));
               }
             } else {
-              console.log('Report parsing failed. Raw output saved as artifact.');
+              console.log('Report parsing failed. No overall_score in the result; see the result fields line in the job log.');
             }
           " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Report parsing failed" >> $GITHUB_STEP_SUMMARY
 

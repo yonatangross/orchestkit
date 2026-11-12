@@ -12,12 +12,12 @@ OrchestKit maintains a **3-tier memory architecture** that stores decisions once
 
 | Tier | Name | Storage | Config Required | Purpose |
 |------|------|---------|-----------------|---------|
-| **1** | [Graph Memory](/docs/memory/graph-memory) | MCP `mcp__memory__*` | None | Primary. Entities with typed relations. Always available. |
+| **1** | [Graph Memory](/docs/memory/graph-memory) | MCP `mcp__memory__*` | Needs a memory MCP server (not bundled) | Primary once configured. Entities with typed relations. |
 | **2** | [Local Persistence](/docs/memory/local-memory) | `.claude/memory/*.jsonl` | None | Session backup, offline queues, durability. |
 | **3** | [CC Native](/docs/memory/native-cc-memory) | `~/.claude/projects/*/memory/MEMORY.md` | None | Injected into Claude's system prompt. Survives plugin removal. |
 
 <Callout type="info">
-All 3 tiers require zero configuration. They work the moment you install OrchestKit. Tier 2 creates its directory automatically.
+Tiers 2 and 3 need no setup. Tier 1 needs a memory MCP server, which OrchestKit does not bundle: see [Set up memory](/docs/cookbook/setup-memory). Tier 2 creates its directory automatically.
 </Callout>
 
 ## How Decisions Flow Across Tiers

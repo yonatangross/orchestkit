@@ -1,0 +1,10 @@
+{
+  "slug": "page-serve-close-inherited-fds",
+  "source": "docs/fix--page-serve-close-inherited-fds/index.html",
+  "title": "page-serve no longer hands its caller's file descriptors to the server",
+  "description": "Pick a file descriptor the caller holds and see whether the page server kept it open before and after the fix.",
+  "tags": [
+    "skills"
+  ],
+  "date": "2026-11-12"
+}
