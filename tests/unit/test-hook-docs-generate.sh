@@ -184,8 +184,14 @@ with tempfile.TemporaryDirectory() as tmp:
     )
     assert n == len(invocable), (n, len(invocable))
     assert f'title: "{n} Commands You Can Invoke"' in page
-    rows = _re.findall(r"^\| \[`/ork:([a-z0-9-]+)`\]", page, _re.M)
+    # Skills that moved to the opt-in ork-extras plugin are listed under their
+    # new namespace, never as /ork:<name>, which core no longer ships.
+    row_pairs = _re.findall(r"^\| \[`/(ork|ork-extras):([a-z0-9-]+)`\]", page, _re.M)
+    rows = [slug for _, slug in row_pairs]
     assert sorted(rows) == invocable, set(rows) ^ set(invocable)
+    assert ("ork-extras", "design-stylecards") in row_pairs, row_pairs
+    assert ("ork", "design-stylecards") not in row_pairs, row_pairs
+    assert ("ork", "verify") in row_pairs, "control: a core skill keeps /ork:"
     assert "\u2014" not in page and "\u2013" not in page
 
 print("ok")
