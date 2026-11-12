@@ -328,7 +328,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/memory/graph-memory",
     "title": "Graph Memory (Primary)",
-    "description": "The zero-config knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier."
+    "description": "The knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier. Needs a memory MCP server."
   },
   {
     "url": "/docs/memory",
