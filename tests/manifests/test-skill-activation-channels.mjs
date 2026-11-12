@@ -100,7 +100,8 @@ const skillSet = new Set(skillDirs);
 const chainedBy = new Map(skillDirs.map((n) => [n, new Set()]));
 for (const [src, t] of Object.entries(skillText)) {
   const refs = new Set();
-  for (const m of t.matchAll(/\/(?:ork:)?([a-z][a-z0-9-]{2,})/g)) refs.add(m[1]);
+  // Both plugin namespaces: moved skills are referenced as /ork-extras:<skill> (#4936).
+  for (const m of t.matchAll(/\/(?:ork(?:-extras)?:)?([a-z][a-z0-9-]{2,})/g)) refs.add(m[1]);
   for (const s of frontmatterSkills(t)) refs.add(s);
   for (const r of refs) if (skillSet.has(r) && r !== src) chainedBy.get(r).add(src);
 }
