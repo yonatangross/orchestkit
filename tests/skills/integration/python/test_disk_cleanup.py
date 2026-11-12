@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -221,6 +222,41 @@ def test_linux_ignores_darwin_paths_and_reads_xdg_cache(home):
 def test_missing_paths_produce_no_items(home):
     inv = dc.build_inventory(make_env(home))
     assert inv.items == []
+
+
+def test_shell_snapshots_wait_30_days(home):
+    # A session that runs for days still sources its own snapshot, so a week
+    # was too short (review on #5211).
+    snaps = home / ".claude" / "shell-snapshots"
+    write(snaps / "week-old.sh", 40_000, age_days=10)
+    inv = dc.build_inventory(make_env(home))
+    assert not [i for i in inv.items if i.id == "agent-shell-snapshots" and i.size > 0]
+    write(snaps / "month-old.sh", 40_000, age_days=31)
+    item = by_id(dc.build_inventory(make_env(home)), "agent-shell-snapshots")
+    assert (
+        blocks(snaps / "month-old.sh")
+        <= item.size
+        < blocks(snaps / "month-old.sh") + blocks(snaps / "week-old.sh")
+    )
+
+
+def test_dry_run_prints_the_apply_command_for_exactly_its_list(repo, home, capsys):
+    # --apply scans again, so the dry run hands over the exact ids it showed.
+    write(home / ".npm" / "_cacache" / "x", 60_000)
+    wt = add_wt(repo, "pinned")
+    rc, out = run_main(["--home", str(home), "--platform", "darwin", "--root", str(repo)], capsys)
+    line = next(ln for ln in out.splitlines() if "--apply" in ln and "--only" in ln)
+    assert "--only npm-cache" in line
+    assert f"--only worktree:{wt}" in line
+    # The pinned line carries the scan it came from: run it as printed, with no
+    # --home or --root added, and it must still reach the --root repo (b146 P3).
+    for flag in (f"--home {home}", "--platform darwin", f"--root {repo}", "--idle-minutes 60"):
+        assert flag in line, (flag, line)
+    add_wt(repo, "arrived-later")  # merges and idles between the dry run and the apply
+    argv = shlex.split(line.split("$", 1)[1])[2:]  # drop python3 and the script path
+    run_main(argv, capsys)
+    assert not wt.exists()
+    assert (repo / ".worktrees" / "arrived-later").exists()
 
 
 def test_age_filtered_entry_counts_only_old_files(home):
@@ -577,8 +613,12 @@ def test_docker_tiers(home):
     assert by_id(inv, "docker-build-cache").tier == "safe"
     assert by_id(inv, "docker-dangling-images").tier == "safe"
     assert by_id(inv, "docker-dangling-images").size == 2_500_000_000
-    assert by_id(inv, "docker-unused-images").tier == "regenerable"
-    assert by_id(inv, "docker-unused-images").size == 9_500_000_000
+    # A locally built image cannot be pulled back, so unused images are the
+    # user's call: listed with the command, never run by the script.
+    unused = by_id(inv, "docker-unused-images")
+    assert unused.tier == "ask"
+    assert unused.size == 9_500_000_000
+    assert unused.action is None and "docker image prune -a" in unused.ask_cmd
     vol = by_id(inv, "docker-volumes")
     assert vol.tier == "ask" and "docker volume prune" in vol.ask_cmd
 
@@ -601,7 +641,7 @@ def test_apply_runs_docker_prune_commands(home, capsys):
     cmds = [c for c in runner.calls if c[0] == "docker"]
     assert ["docker", "builder", "prune", "-f"] in cmds
     assert ["docker", "image", "prune", "-f"] in cmds
-    assert ["docker", "image", "prune", "-a", "-f"] in cmds
+    assert not any(c[:3] == ["docker", "image", "prune"] and "-a" in c for c in cmds)
     assert not any(c[1:3] == ["volume", "prune"] for c in cmds)
 
 
@@ -650,7 +690,20 @@ def test_render_shape_and_width(home, capsys):
             continue  # copy-paste commands are never wrapped or cut
         assert cells(line) <= 76, f"{cells(line)} cells: {line!r}"
     for bad in ("—", "–", "--"):
-        assert bad not in out.replace("--apply", "").replace("--only", "").replace("--tier", "")
+        flags = (
+            "--apply",
+            "--only",
+            "--tier",
+            "--home",
+            "--platform",
+            "--root",
+            "--idle-minutes",
+            "--ledger",
+        )
+        text = out
+        for flag in flags:  # CLI flags in the printed commands are not dashes
+            text = text.replace(flag, "")
+        assert bad not in text
 
 
 def test_json_output_is_parseable(home, capsys):

@@ -296,12 +296,13 @@ CATALOG: tuple[Spec, ...] = (
     ),
     Spec(
         "agent-shell-snapshots",
-        "Agent shell snapshots older than 7 d",
+        "Agent shell snapshots older than 30 d",
         "🧠",
         "safe",
         ("~/.claude/shell-snapshots",),
         ("~/.claude/shell-snapshots",),
-        min_age_days=7,
+        # a session that runs for days still sources its own snapshot
+        min_age_days=30,
     ),
     Spec(
         "pnpm-store",
@@ -520,13 +521,15 @@ def scan_docker(env: Env, inv: Inventory) -> None:
             Item(
                 "docker-unused-images",
                 "docker",
-                "regenerable",
+                "ask",
                 "Docker unused images",
                 "🐳",
                 unused,
-                "re-pulled on demand",
-                "prune",
-                ("cmd", ("docker", "image", "prune", "-a", "-f")),
+                # a pulled image comes back, a locally built one needs its build context
+                "locally built ones cannot be pulled back",
+                "ask",
+                None,
+                "docker image prune -a",
             )
         )
     vols = rows.get("Local Volumes", 0)
@@ -1095,9 +1098,22 @@ def render(
         out.append(trunc(f"ℹ️  {c}", WIDTH))
     out.append("ℹ️  Sizes are allocated blocks, so sparse files read small.")
     if results is None and (safe or regen):
+        # --apply scans again; pinning the ids keeps it to the list confirmed here
+        ids = [i.id for i in inv.items if i.tier in ("safe", "regenerable") and i.action]
+        # carry the scan this list came from, so the pin works from any cwd
+        scan = [
+            f"--home {shlex.quote(str(env.home))}",
+            f"--platform {env.platform}",
+            *(f"--root {shlex.quote(str(r))}" for r in env.roots),
+            f"--idle-minutes {env.idle_minutes}",
+            *([f"--ledger {shlex.quote(str(env.ledger))}"] if env.ledger else []),
+        ]
+        pinned = " ".join(scan + [f"--only {shlex.quote(i)}" for i in ids])
         out += [
             "",
             "Run with --apply after you confirm. Exit: 0 clean, 3 findings, 2 refused.",
+            "To act on exactly this list (nothing found after this run):",
+            f"    $ python3 {shlex.quote(str(Path(__file__).resolve()))} --apply {pinned}",
         ]
     return "\n".join(out) + "\n"
 

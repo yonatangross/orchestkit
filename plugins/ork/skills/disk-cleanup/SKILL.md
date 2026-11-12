@@ -57,10 +57,12 @@ what is provably safe, after you confirm.
    biggest rows and any KEEP lines that explain why a worktree was left alone.
 3. Ask the user to confirm. Offer the narrower forms when they hesitate:
    `--tier safe` (caches only) or `--only npm-cache` (one item id, or a section such as `docker`).
-4. Apply:
+4. Apply with the command the dry run printed under "To act on exactly this list". It
+   pins `--only` to the ids the user just saw, so anything that became removable after
+   the dry run (a worktree that merged or went idle meanwhile) is left alone:
 
    ```bash
-   python3 "${CLAUDE_SKILL_DIR}/scripts/disk_cleanup.py" --apply
+   python3 "${CLAUDE_SKILL_DIR}/scripts/disk_cleanup.py" --apply --only npm-cache --only 'worktree:/path/to/tree'
    python3 "${CLAUDE_SKILL_DIR}/scripts/disk_cleanup.py" --apply --tier safe
    ```
 

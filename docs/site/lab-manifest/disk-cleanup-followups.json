@@ -1,0 +1,11 @@
+{
+  "slug": "disk-cleanup-followups",
+  "source": "docs/feat--disk-cleanup-followups/index.html",
+  "title": "/ork:disk-cleanup now asks before it can lose something",
+  "description": "Pick a case and compare what /ork:disk-cleanup did before this change with what it does now.",
+  "tags": [
+    "skills",
+    "devops"
+  ],
+  "date": "2026-11-11"
+}
