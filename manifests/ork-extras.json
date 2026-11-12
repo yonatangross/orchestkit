@@ -1,0 +1,49 @@
+{
+  "name": "ork-extras",
+  "version": "10.12.0",
+  "description": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork.",
+  "author": {
+    "name": "Yonatan Gross",
+    "url": "https://github.com/yonatangross"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": [
+    "ai-development",
+    "skills",
+    "reference",
+    "claude-code",
+    "plugin"
+  ],
+  "skills": [
+    "ai-ui-generation",
+    "animation-motion-design",
+    "async-jobs",
+    "figma-design-handoff",
+    "i18n-date-patterns",
+    "langgraph",
+    "llm-integration",
+    "mcp-patterns",
+    "monitoring-observability",
+    "multimodal-llm",
+    "portless",
+    "rag-retrieval",
+    "storybook-testing",
+    "ui-components",
+    "vite-advanced",
+    "zustand-patterns",
+    "accessibility",
+    "agent-orchestration",
+    "design-stylecards",
+    "distributed-systems",
+    "documentation-patterns",
+    "domain-driven-design",
+    "golden-dataset",
+    "interaction-patterns",
+    "release-management",
+    "responsive-patterns"
+  ],
+  "agents": "none",
+  "hooks": "none"
+}

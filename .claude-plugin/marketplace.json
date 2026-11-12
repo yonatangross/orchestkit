@@ -45,6 +45,22 @@
       }
     },
     {
+      "name": "ork-extras",
+      "version": "10.12.0",
+      "description": "Opt-in reference skills split out of ork: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork; invoke as /ork-extras:<skill>.",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "plugins/ork-extras",
+        "ref": "main"
+      }
+    },
+    {
       "name": "promote-lights",
       "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
       "version": "0.0.15",
