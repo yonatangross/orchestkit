@@ -31,15 +31,28 @@ fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.pageserve.XXXXXX")"
 cleanup() {
+    local rc=$? found=0 f pid real
     for f in "$TMP"/proj/*/state/page-serve/*.json; do
         [[ -f "$f" ]] || continue
+        found=$((found + 1))
         pid="$(sed -n 's/.*"pid": *\([0-9][0-9]*\).*/\1/p' "$f" | head -1)"
         if [[ -n "$pid" ]]; then
             # silent: post-cleanup (the server this test started may already be gone)
             kill "$pid" 2>/dev/null || true
         fi
     done
+    # Diagnostic: the state file serve.sh really wrote, by its literal path.
+    real="$TMP/proj/.claude/state/page-serve/ork-ps-test.json"
+    if [[ -f "$real" ]]; then
+        echo "  state file written by serve.sh: $real pid=$(sed -n 's/.*"pid": *\([0-9][0-9]*\).*/\1/p' "$real" | head -1)"
+    fi
+    # A cleanup that stops nothing is a failure: the server it started is still running.
+    if [[ "$found" -eq 0 ]]; then
+        echo "FAIL: cleanup found no page-serve state file, so it stopped no server (leak)" >&2
+        rc=1
+    fi
     rm -rf "$TMP"
+    exit "$rc"
 }
 trap cleanup EXIT
 
