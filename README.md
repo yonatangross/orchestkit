@@ -664,6 +664,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0)** · 2026-11-12
+
+- **hooks:** ship 2 hook processes per tool call, not 3 (#5214)
+- **skills:** add /ork:disk-cleanup (#5211)
+- **cursor:** commands run skill scripts only from the installed plugin (#5216)
+- **docs:** hook pages say when the shipped plugin skips an event (#5215)
+- **docs:** try Chromium before apt, so the mirror is not on every build (#5212)
+- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0)** · 2026-11-10
 
 - **cc:** adopt Claude Code 2.1.310 through 2.1.322 (#5181)
@@ -710,15 +719,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
 
 - **docs:** replay never starts without consent (#5106)
-
-**[v10.10.2](https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2)** · 2026-11-07
-
-- **docs:** load PostHog only after consent (#5098)
-- **docs:** stamp and check the CLAUDE.md agents count line (#5102)
-- **skills:** one emulate port table, checked against upstream (#5100)
-- **skills:** fit review-pr, verify, auto descriptions and fix skill-fitness floor (#5096)
-- **skills:** skill quality round 3, fit descriptions and deterministic checklist (#5099)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
