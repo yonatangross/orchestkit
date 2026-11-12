@@ -1,11 +1,11 @@
 ---
 title: "Graph Memory (Primary)"
-description: "The zero-config knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier."
+description: "The knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier. Needs a memory MCP server."
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Graph memory is Tier 1, the **primary** storage layer in OrchestKit's memory architecture. It uses the `@modelcontextprotocol/server-memory` MCP server to maintain a knowledge graph of entities and their relationships. It requires zero configuration and is always available.
+Graph memory is Tier 1, the **primary** storage layer in OrchestKit's memory architecture. It uses the `@modelcontextprotocol/server-memory` MCP server to maintain a knowledge graph of entities and their relationships. OrchestKit does not bundle that server: add it once with `claude mcp add --scope user memory -- npx -y @modelcontextprotocol/server-memory` and confirm it with `claude mcp list`. Without it, the graph tier is not available.
 
 ## How It Works
 
