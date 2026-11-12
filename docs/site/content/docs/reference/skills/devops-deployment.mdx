@@ -172,7 +172,7 @@ threshold, config or ordering decision, not the vendor tutorial.
 | structlog context binding | https://www.structlog.org/en/stable/contextvars.html (the bind-then-call ordering stays in `references/ork-delta.md`) |
 | Trivy severity filtering and scan configuration | https://trivy.dev/latest/docs/configuration/filtering/ (the house image-scan CI wiring stays in `references/docker-patterns.md`, the weekly-scan schedule and severity floor in `references/ork-delta.md`) |
 | CloudFront invalidation semantics and cost | https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html (the sync-then-invalidate order stays in `references/ork-delta.md`) |
-| Pre-launch security, load-testing and monitoring checklists | `ork:security-patterns`, `ork:testing-perf`, `ork:monitoring-observability` (the deploy-day checklist stays in `references/checklists-and-templates.md`) |
+| Pre-launch security, load-testing and monitoring checklists | `ork:security-patterns`, `ork:testing-perf`, `ork-extras:monitoring-observability` (the deploy-day checklist stays in `references/checklists-and-templates.md`) |
 
 ---
 
@@ -185,7 +185,7 @@ Load: `Read("references/checklists-and-templates.md")` for pre/during/post-deplo
 ## Related Skills
 
 - `ork:security-patterns` - Security scanning and hardening patterns for CI/CD pipelines
-- `ork:monitoring-observability` - Prometheus, Grafana and alerting for deployed applications
+- `ork-extras:monitoring-observability` - Prometheus, Grafana and alerting for deployed applications
 - `ork:database-patterns` - Python/Alembic migration workflow for backend deployments
 - `portless` (upstream) - Named `.localhost` URLs for multi-service local dev (`portless alias api 8080`)
 
@@ -690,7 +690,7 @@ railway shell              # Open shell in service
 **Solves:**
 - Which alert thresholds and dwell windows do we page on? (`references/ork-delta.md`)
 - How request ids get bound into log context and echoed back (`references/ork-delta.md`)
-- Full monitoring and alerting design: `ork:monitoring-observability`
+- Full monitoring and alerting design: `ork-extras:monitoring-observability`
 - Prometheus client, PromQL and OpenTelemetry docs: fetch upstream (see `SKILL.md`)
 
 
@@ -1297,7 +1297,7 @@ point-in-time recovery enabled, and multi-AZ deployment. Circuit breakers, retri
 timeouts are owned by the in-repo `distributed-systems` skill; the rest are checks this
 skill still expects before a release goes out.
 Upstream: the in-repo `ork:testing-perf`, `ork:security-patterns` and
-`ork:distributed-systems` skills
+`ork-extras:distributed-systems` skills
 
 
 ### Railway Json Config

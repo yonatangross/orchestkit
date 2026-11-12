@@ -40,7 +40,7 @@ and tells the next reader which app was under test. Nothing in OrchestKit blocks
 local URLs. With the sandbox network allow list on, add the local host names
 you use to `allowedDomains`. (Electron and desktop CDP attach carry no URL, so
 a URL allow list does not apply to them.)
-Upstream: `ork:portless` skill, and https://github.com/vercel-labs/portless
+Upstream: `ork-extras:portless` skill, and https://github.com/vercel-labs/portless
 
 ## Keep page-derived output targeted, verified, and out of the repo
 

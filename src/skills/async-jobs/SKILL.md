@@ -199,9 +199,9 @@ Load: `Read("rules/temporal-activities.md")`.
 ## Related Skills
 
 - `ork:python-backend` - FastAPI, asyncio, SQLAlchemy patterns
-- `ork:langgraph` - LangGraph workflow patterns (use for LLM workflows, not Celery)
-- `ork:distributed-systems` - Resilience patterns, circuit breakers
-- `ork:monitoring-observability` - Metrics and alerting
+- `ork-extras:langgraph` - LangGraph workflow patterns (use for LLM workflows, not Celery)
+- `ork-extras:distributed-systems` - Resilience patterns, circuit breakers
+- `ork-extras:monitoring-observability` - Metrics and alerting
 
 ## Capability Details
 

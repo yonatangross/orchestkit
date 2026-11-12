@@ -195,4 +195,4 @@ For the selected component:
 
 - `ork:design-to-code` — Full mockup-to-component pipeline (uses this skill)
 - `ork:design-system-tokens` — Adapt components to project tokens
-- `ork:ui-components` — Component library patterns
+- `ork-extras:ui-components` — Component library patterns

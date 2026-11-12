@@ -163,7 +163,7 @@ house decisions here (they live in [references/ork-delta.md](references/ork-delt
 | Radix asChild / Slot composition | https://www.radix-ui.com/primitives/docs/guides/composition |
 | Radix data-attribute styling and focus management | https://www.radix-ui.com/primitives/docs/guides/styling |
 | Dropdown menu, popover, tooltip, hover card | https://www.radix-ui.com/primitives/docs/components/dropdown-menu (and sibling component pages) |
-| Radix accessibility audit checklist | https://www.radix-ui.com/primitives/docs/overview/accessibility plus `ork:accessibility` |
+| Radix accessibility audit checklist | https://www.radix-ui.com/primitives/docs/overview/accessibility plus `ork-extras:accessibility` |
 
 ## Detailed Documentation
 
@@ -223,5 +223,5 @@ Cognitive-science-grounded UI/UX principles with specific numeric thresholds for
 
 ## Related Skills
 
-- `ork:accessibility` - WCAG compliance and React Aria patterns
+- `ork-extras:accessibility` - WCAG compliance and React Aria patterns
 - `ork:testing-unit` - Component testing patterns

@@ -189,7 +189,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
+- `ork-extras:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
 - `agent-loops` -- Multi-step tool use with reasoning
 - `llm-evaluation` -- Evaluate fine-tuned and local models
 - `langfuse-observability` -- Track training experiments

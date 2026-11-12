@@ -249,5 +249,5 @@ The Applitools Figma Plugin overlays production screenshots on Figma frames to c
 ## Related Skills
 
 - `ork:design-system-tokens` — W3C token architecture and Style Dictionary transforms
-- `ork:ui-components` — shadcn/ui and Radix component patterns
-- `ork:accessibility` — WCAG compliance for components extracted from Figma
+- `ork-extras:ui-components` — shadcn/ui and Radix component patterns
+- `ork-extras:accessibility` — WCAG compliance for components extracted from Figma

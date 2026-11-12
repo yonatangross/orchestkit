@@ -252,7 +252,7 @@ Long-form tutorials on these topics were removed from this skill (2026-07-31 wra
 
 - `ork:scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
 - `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
-- `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
+- `ork-extras:distributed-systems` - Distributed locking, resilience, idempotency patterns
 - `ork:api-design` - REST API design, versioning, error handling
 - `ork:testing-unit` - Unit testing: AAA pattern, fixtures, mocking, factories
 - `ork:testing-e2e` - E2E testing: Playwright, page objects, visual regression

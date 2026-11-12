@@ -261,7 +261,7 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 
 - `ork:create-pr` - Create pull requests with proper formatting and review assignments
 - `ork:review-pr` - Comprehensive PR review with specialized agents
-- `ork:release-management` - GitHub release workflow with semantic versioning and changelogs
+- `ork-extras:release-management` - GitHub release workflow with semantic versioning and changelogs
 - `ork:commit` - Stacked-PR workflow and rebase coordination live in `src/skills/commit/rules/` (`stacked-pr-workflow`, `stacked-pr-rebase`). There is no `stacked-prs` skill.
 - `ork:issue-progress-tracking` - Automatic issue progress updates from commits
 
