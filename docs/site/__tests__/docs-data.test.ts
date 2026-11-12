@@ -200,7 +200,11 @@ describe("docs-data", () => {
     });
 
     it("every skill has valid plugins array", () => {
-      const validPlugins = ["ork"];
+      // Same source the generator writes: a third plugin cannot break this,
+      // and an unknown plugin name on a skill still fails.
+      const validPlugins = PLUGINS.map((p) => p.name);
+      expect(validPlugins).toContain("ork");
+      expect(validPlugins).toContain("ork-extras");
       for (const skill of Object.values(SKILLS)) {
         expect(skill.plugins.length).toBeGreaterThan(0);
         for (const plugin of skill.plugins) {
