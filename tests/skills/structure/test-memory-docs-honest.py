@@ -24,10 +24,52 @@ DOCS = ROOT / "docs" / "site" / "content" / "docs"
 RECIPE = DOCS / "cookbook" / "setup-memory.mdx"
 
 MEMORY_TIER = re.compile(
-    r"mcp__memory__|memory MCP|\*\*1\. Graph\*\*|Graph and MCP memory|memory tiers|all 3 tiers|1\. Graph",
+    r"mcp__memory__|(?<!in-)\bmemory\b|knowledge graph|\*\*1\. Graph\*\*|all 3 tiers|1\. Graph",
     re.I,
 )
-OVERCLAIM = re.compile(r"zero[- ]config|always available", re.I)
+OVERCLAIM = re.compile(
+    r"zero[- ]config|always available|out of the box|no setup|no configuration", re.I
+)
+# A line that also states the server requirement is honest even when it says
+# another tier needs no setup.
+HONEST = re.compile(
+    r"not bundle|needs a memory MCP server|only with a memory MCP server|only if a memory MCP server",
+    re.I,
+)
+# Table cells that claim "no setup" for the graph tier through their column header.
+CLAIM_HEADER = re.compile(r"config|setup|always available", re.I)
+CLAIM_CELL = re.compile(r"^(none|yes|none \(zero-config\))$", re.I)
+GRAPH_ROW = re.compile(r"mcp__memory__|graph", re.I)
+
+
+def doc_files() -> list[Path]:
+    files = sorted(DOCS.rglob("*.mdx"))
+    files += sorted((ROOT / "src" / "skills").rglob("*.md"))
+    return files
+
+
+def table_overclaims(lines: list[str]) -> list[int]:
+    """Line numbers of graph-tier table rows whose config or availability cell claims no setup."""
+    hits: list[int] = []
+    header: list[str] = []
+    for n, line in enumerate(lines, 1):
+        s = line.strip()
+        if not s.startswith("|"):
+            header = []
+            continue
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
+            continue
+        if not header:
+            header = cells
+            continue
+        if not GRAPH_ROW.search(s):
+            continue
+        for h, c in zip(header, cells):
+            if CLAIM_HEADER.search(h) and CLAIM_CELL.match(c):
+                hits.append(n)
+                break
+    return hits
 
 
 def test_skill_says_the_server_is_not_bundled() -> None:
@@ -39,10 +81,13 @@ def test_skill_says_the_server_is_not_bundled() -> None:
 
 def test_no_page_calls_the_graph_tier_zero_config() -> None:
     bad = []
-    for page in sorted(DOCS.rglob("*.mdx")):
-        for n, line in enumerate(page.read_text(encoding="utf-8").splitlines(), 1):
-            if MEMORY_TIER.search(line) and OVERCLAIM.search(line):
+    for page in doc_files():
+        lines = page.read_text(encoding="utf-8").splitlines()
+        for n, line in enumerate(lines, 1):
+            if MEMORY_TIER.search(line) and OVERCLAIM.search(line) and not HONEST.search(line):
                 bad.append(f"{page.relative_to(ROOT)}:{n}: {line.strip()[:160]}")
+        for n in table_overclaims(lines):
+            bad.append(f"{page.relative_to(ROOT)}:{n} (table cell): {lines[n - 1].strip()[:160]}")
     assert not bad, "graph memory described as zero-config or always available:\n  " + "\n  ".join(
         bad
     )
@@ -51,7 +96,9 @@ def test_no_page_calls_the_graph_tier_zero_config() -> None:
 def test_recipe_names_the_server_and_the_check() -> None:
     text = RECIPE.read_text(encoding="utf-8")
     missing = [
-        s for s in ("@modelcontextprotocol/server-memory", "claude mcp list") if s not in text
+        s
+        for s in ("@modelcontextprotocol/server-memory", "claude mcp list", "--scope user")
+        if s not in text
     ]
     assert not missing, f"setup-memory.mdx does not name: {missing}"
 
