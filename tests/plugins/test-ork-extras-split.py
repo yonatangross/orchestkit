@@ -319,6 +319,43 @@ OLD_NAME_ON_PURPOSE = {
     "docs/site/content/docs/getting-started/ork-extras.mdx": "the migration note shows each old name next to its new one",
 }
 
+
+HIDDEN_FLAG = re.compile(r"^disable-model-invocation:\s*true\s*$", re.M)
+# Recorded manual-only choice (#848): the one extras skill that stays hidden.
+STAYS_HIDDEN = frozenset({"release-management"})
+# A core skill hidden on purpose, so the check is shown to see the flag at all.
+HIDDEN_CONTROL = "careful"
+
+
+def frontmatter(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    m = re.match(r"---\n(.*?)\n---", text, re.S)
+    return m.group(1) if m else ""
+
+
+def check_model_invocable() -> None:
+    """Skills in ork-extras are model-invocable, so installing the plugin makes them reachable."""
+    dirs = sorted(p for p in EXTRAS.iterdir() if p.is_dir()) if EXTRAS.is_dir() else []
+    if not dirs:
+        failures.append("invocable: plugins/ork-extras/skills is missing or empty")
+        return
+    hidden = sorted(p.name for p in dirs if HIDDEN_FLAG.search(frontmatter(p / "SKILL.md")))
+    unexpected = sorted(set(hidden) - STAYS_HIDDEN)
+    if unexpected:
+        failures.append(
+            f"invocable: {len(unexpected)} ork-extras skills are hidden from the model "
+            f"(disable-model-invocation: true): {unexpected}"
+        )
+    for name in sorted(STAYS_HIDDEN):
+        if name not in hidden:
+            failures.append(f"invocable: {name} must keep disable-model-invocation: true")
+    control = CORE / HIDDEN_CONTROL / "SKILL.md"
+    if not control.is_file() or not HIDDEN_FLAG.search(frontmatter(control)):
+        failures.append(
+            f"invocable: control failed, core skill {HIDDEN_CONTROL} should still be hidden; the matcher is blind"
+        )
+
+
 THIS_PAGE = "feat" + "-" * 2 + "ork-extras-split"
 # The split's own playground pages (PR1 and its stacked refs PR) are swept,
 # never skipped: they must use the new names.
@@ -417,6 +454,7 @@ def main() -> int:
     check_cited_paths()
     check_release_please()
     check_cursor_marketplace()
+    check_model_invocable()
     sweep_errs = check_sweep()
     if SWEEP_EXPECTED_FAIL is None:
         failures.extend(sweep_errs)
