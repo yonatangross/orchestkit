@@ -162,25 +162,59 @@ echo ""
 # ---------------------------------------------------------------------------
 # 3. release-please stamps the ALPHA entry, never the pinned one.
 # ---------------------------------------------------------------------------
-echo "▶ release-please stamps the prerelease entry"
+echo "▶ release-please stamps every main-tracking entry"
 echo "──────────────────────────────────────"
 
-stamped=$(jq -r '
-  .packages["."]["extra-files"][]
-  | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("plugins")))
-  | .jsonpath' "$RP_CONFIG")
+# The class, not one instance: an entry whose source tracks main reads the
+# plugin.json that release-please bumps on main, so its marketplace version
+# must be bumped in the same release or CC refuses the install at load
+# (plugin.json and the entry must agree). Every such entry needs a stamp at
+# its OWN index, found by name. ork-extras (#4936) was missed once because
+# this check only knew about ork-alpha.
+#
+# Scope: entries under plugins/ only. The mods/* entries (promote-lights,
+# secrets-veil, memory-lens, prompt-enhancer) also track main but version
+# themselves (0.x), independent of the repo release, so the repo-wide stamp
+# must NOT touch them.
+tracking_count=$(jq '[.plugins[] | select(.source.ref == "main" and (.source.path | startswith("plugins/")))] | length' "$MARKETPLACE")
+stamp_count=$(jq '[.packages["."]["extra-files"][]
+  | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("plugins")))] | length' "$RP_CONFIG")
 
-if [[ -z "$stamped" ]]; then
-    bad "release-please stamps no plugin entry at all"
+if [[ "$tracking_count" -eq 0 ]]; then
+    bad "no marketplace entry tracks main, so there is nothing to check (expected ork-alpha and ork-extras)"
+elif [[ "$stamp_count" -eq 0 ]]; then
+    bad "release-please stamps no plugin entry at all ($tracking_count entries track main)"
 else
-    want="\$.plugins[${alpha_idx}].version"
-    if [[ "$stamped" == "$want" ]]; then
-        ok "stamps $stamped, which is ork-alpha"
-    else
-        bad "stamps $stamped but ork-alpha is at index $alpha_idx (want $want)"
-        echo "      Reordering the plugins array silently redirects the version"
-        echo "      stamp onto the pinned stable channel. Fix the jsonpath."
-    fi
+    while IFS= read -r name; do
+        idx=$(jq -r --arg n "$name" '[.plugins[].name] | index($n) // "none"' "$MARKETPLACE")
+        want="\$.plugins[${idx}].version"
+        if jq -e --arg w "$want" '[.packages["."]["extra-files"][]
+              | select(type == "object" and (.path | test("marketplace")))
+              | .jsonpath] | index($w) != null' "$RP_CONFIG" >/dev/null; then
+            ok "stamps $want, which is $name"
+        else
+            bad "'$name' tracks main at index $idx but nothing stamps $want"
+            echo "      Its plugin.json on main moves at release; the marketplace entry would"
+            echo "      stay behind and CC rejects the mismatch. Add the jsonpath to"
+            echo "      .release-please-config.json extra-files."
+        fi
+    done < <(jq -r '.plugins[] | select(.source.ref == "main" and (.source.path | startswith("plugins/"))) | .name' "$MARKETPLACE")
+
+    # The reverse direction: a stamp that lands on a pinned entry (reorder bug).
+    while IFS= read -r sidx; do
+        sname=$(jq -r --argjson i "$sidx" '.plugins[$i].name // "none"' "$MARKETPLACE")
+        sref=$(jq -r --argjson i "$sidx" '.plugins[$i].source.ref // ""' "$MARKETPLACE")
+        spath=$(jq -r --argjson i "$sidx" '.plugins[$i].source.path // ""' "$MARKETPLACE")
+        if [[ "$sref" == "main" && "$spath" == plugins/* ]]; then
+            ok "stamp \$.plugins[$sidx].version targets '$sname', which tracks main"
+        else
+            bad "stamp \$.plugins[$sidx].version targets '$sname' (ref '$sref'), which is not main-tracking"
+            echo "      Reordering the plugins array silently redirects the version"
+            echo "      stamp onto a pinned channel. Fix the jsonpath."
+        fi
+    done < <(jq -r '.packages["."]["extra-files"][]
+        | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("^\\$\\.plugins\\[[0-9]+\\]\\.version$")))
+        | .jsonpath | capture("\\[(?<i>[0-9]+)\\]").i' "$RP_CONFIG")
 fi
 
 echo ""
