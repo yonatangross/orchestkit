@@ -1,0 +1,11 @@
+{
+  "slug": "memory-recipe-honest-setup",
+  "source": "docs/fix--memory-recipe-honest-setup/index.html",
+  "title": "Which OrchestKit memory tiers need setup",
+  "description": "Pick a memory tier and see what it needs before it stores anything.",
+  "tags": [
+    "memory",
+    "docs"
+  ],
+  "date": "2026-11-12"
+}
