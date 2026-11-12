@@ -42,6 +42,11 @@ build_tree() {
   write_skill "$dir/src/skills/beta/SKILL.md" beta
   write_skill "$dir/plugins/ork/skills/alpha/SKILL.md" alpha
   write_skill "$dir/plugins/ork/skills/beta/SKILL.md" beta
+  # The split (#4936): gamma is in skillsExclude, so it exists in src only. The
+  # gate expects plugins/ork/skills to be src minus skillsExclude, by name.
+  write_skill "$dir/src/skills/gamma/SKILL.md" gamma
+  mkdir -p "$dir/manifests"
+  printf '{"skillsExclude":["gamma"]}\n' >"$dir/manifests/ork.json"
   # The stray non-skill markdown the real tree also carries, so the fixture
   # exercises the exclude pattern rather than a tidier shape than production.
   echo "# Contributing" >"$dir/plugins/ork/skills/CONTRIBUTING-SKILLS.md"
@@ -77,6 +82,13 @@ rm -f "$FIX/fault2/.pi/mcp.json.example"
 build_tree "$FIX/fault3"
 write_pkg "$FIX/fault3" '["./plugins/ork/skills/alpha"]'
 
+# fault4: the exclusion list is empty. The expectation would then be src as a
+# whole (3 skills) against 2 built, and an unreadable list must fail as a read,
+# not pass as zero equals zero.
+build_tree "$FIX/fault4"
+write_pkg "$FIX/fault4" "$SOURCES"
+printf '{"skillsExclude":[]}\n' >"$FIX/fault4/manifests/ork.json"
+
 run_arm() {
   CLAUDE_PROJECT_DIR="$1" bash "$GATE" >"$2" 2>&1
 }
@@ -85,6 +97,7 @@ run_arm "$FIX/control" "$FIX/control.log"; control_rc=$?
 run_arm "$FIX/fault" "$FIX/fault.log"; fault_rc=$?
 run_arm "$FIX/fault2" "$FIX/fault2.log"; fault2_rc=$?
 run_arm "$FIX/fault3" "$FIX/fault3.log"; fault3_rc=$?
+run_arm "$FIX/fault4" "$FIX/fault4.log"; fault4_rc=$?
 
 {
   echo "--- control tail ---"; tail -3 "$FIX/control.log"
@@ -93,5 +106,5 @@ run_arm "$FIX/fault3" "$FIX/fault3.log"; fault3_rc=$?
   echo "--- fault3 tail ---";  tail -3 "$FIX/fault3.log"
 } >&2
 
-printf 'RESULT gate=%s control=%s fault=%s fault2=%s fault3=%s\n' \
-  "pi-plugin" "$control_rc" "$fault_rc" "$fault2_rc" "$fault3_rc"
+printf 'RESULT gate=%s control=%s fault=%s fault2=%s fault3=%s fault4=%s\n' \
+  "pi-plugin" "$control_rc" "$fault_rc" "$fault2_rc" "$fault3_rc" "$fault4_rc"
