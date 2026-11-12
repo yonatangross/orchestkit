@@ -79,7 +79,9 @@ BUSINESS_STAY = frozenset(
 
 # The sweep is the one gate that may run as expected-fail, and only while the
 # re-points are still in the stacked follow-up branch. Set to None there.
-SWEEP_EXPECTED_FAIL: str | None = None
+SWEEP_EXPECTED_FAIL: str | None = (
+    "the ork:<moved> re-points land in the stacked follow-up PR on feat/ork-extras-split-refs"
+)
 
 # Directories the walk never enters: VCS data, other checkouts, installed
 # dependencies and build caches. None of them is a file a reader opens.
@@ -161,6 +163,175 @@ def check_marketplace() -> None:
         failures.append(f"marketplace: ork-extras source path is {path!r}, want plugins/ork-extras")
 
 
+CORE_PLUGIN = ROOT / "plugins" / "ork"
+RELEASE_PLEASE = ROOT / ".release-please-config.json"
+# A plugin-root path cited from inside the extras plugin: shared/... or
+# skills/<name>/... with a file extension, optionally behind CLAUDE_PLUGIN_ROOT.
+CITED_PATH = re.compile(
+    r"(?:\$\{CLAUDE_PLUGIN_ROOT\}/)?(?<![\w./-])((?:shared|skills)/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\.(?:md|mdc|json|sh|py|mjs|js|ts|tsx|yaml|yml))"
+)
+
+
+def check_no_shared() -> None:
+    """ork-extras must not duplicate core files: shared/ and Cursor rules stay in ork."""
+    if not EXTRAS_PLUGIN.is_dir():
+        return  # check_extras already reported the missing plugin
+    if (EXTRAS_PLUGIN / "shared").exists():
+        failures.append("shared: plugins/ork-extras/shared exists; core files would ship twice")
+    rules = EXTRAS_PLUGIN / ".cursor-plugin" / "rules"
+    if rules.exists():
+        n = len(list(rules.glob("*.mdc")))
+        failures.append(
+            f"shared: plugins/ork-extras/.cursor-plugin/rules holds {n} rules; Cursor loads them twice next to ork"
+        )
+    cursor_manifest = EXTRAS_PLUGIN / ".cursor-plugin" / "plugin.json"
+    if cursor_manifest.is_file() and "rules" in json.loads(
+        cursor_manifest.read_text(encoding="utf-8")
+    ):
+        failures.append("shared: plugins/ork-extras/.cursor-plugin/plugin.json declares rules")
+    # Positive control: the gate must not have stripped core as well.
+    if not (CORE_PLUGIN / "shared").is_dir():
+        failures.append("shared: control failed, plugins/ork/shared is gone")
+    core_rules = list((CORE_PLUGIN / ".cursor-plugin" / "rules").glob("*.mdc"))
+    if not core_rules:
+        failures.append("shared: control failed, plugins/ork/.cursor-plugin/rules is empty")
+
+
+def check_cited_paths() -> None:
+    """Every plugin-root path cited inside ork-extras resolves inside ork-extras."""
+    if not EXTRAS_PLUGIN.is_dir():
+        return
+    scanned = 0
+    broken: list[str] = []
+    for path in sorted(EXTRAS_PLUGIN.rglob("*")):
+        if not path.is_file() or path.suffix not in {".md", ".mdc", ".json"}:
+            continue
+        scanned += 1
+        text = path.read_text(encoding="utf-8", errors="replace")
+        # HTML comments carry provenance (SYNCED from upstream skills/x/...),
+        # not paths a reader opens.
+        text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+        for m in CITED_PATH.finditer(text):
+            cited = m.group(1)
+            if not (EXTRAS_PLUGIN / cited).exists():
+                broken.append(f"{path.relative_to(ROOT)} -> {cited}")
+    if scanned == 0:
+        failures.append("cited paths: scanned zero files in plugins/ork-extras")
+    if broken:
+        shown = "\n    ".join(sorted(set(broken))[:30])
+        failures.append(
+            f"cited paths: {len(set(broken))} paths in ork-extras do not resolve inside it:\n    {shown}"
+        )
+
+
+CURSOR_MARKETPLACE = ROOT / ".cursor-plugin" / "marketplace.json"
+
+
+def check_cursor_marketplace() -> None:
+    """Every built plugins/X/.cursor-plugin has a Cursor marketplace entry, and the reverse.
+
+    A Cursor build nobody can install is dead weight, and an entry with no
+    build is a broken install; both happened silently before this case.
+    """
+    built = sorted(p.parent.name for p in (ROOT / "plugins").glob("*/.cursor-plugin") if p.is_dir())
+    if not built:
+        failures.append(
+            "cursor: found zero plugins/*/.cursor-plugin dirs; the build or the glob is broken"
+        )
+        return
+    data = json.loads(CURSOR_MARKETPLACE.read_text(encoding="utf-8"))
+    listed: dict[str, str] = {}
+    for p in data.get("plugins", []):
+        src = p.get("source")
+        path = src.get("path") if isinstance(src, dict) else src
+        if isinstance(path, str):
+            listed[p.get("name", "?")] = path.strip("./")
+    sources = set(listed.values())
+    for name in built:
+        if f"plugins/{name}" not in sources:
+            failures.append(
+                f"cursor: plugins/{name}/.cursor-plugin is built but .cursor-plugin/marketplace.json has no entry for it"
+            )
+    for name, path in sorted(listed.items()):
+        if not (ROOT / path / ".cursor-plugin").is_dir():
+            failures.append(
+                f"cursor: marketplace entry {name} points at {path}, which has no .cursor-plugin build"
+            )
+    if "plugins/ork" not in sources:
+        failures.append(
+            "cursor: control failed, the ork entry is missing from the Cursor marketplace"
+        )
+
+
+def check_release_please() -> None:
+    """Every ork-extras version file is bumped by release-please, so versions cannot drift."""
+    cfg = json.loads(RELEASE_PLEASE.read_text(encoding="utf-8"))
+    entries = [e for pkg in cfg.get("packages", {}).values() for e in pkg.get("extra-files", [])]
+    listed = {
+        e.get("path")
+        for e in entries
+        if isinstance(e, dict) and e.get("type") == "json" and e.get("jsonpath") == "$.version"
+    }
+    want = {"manifests/ork-extras.json"}
+    plugin_jsons = sorted(
+        str(p.relative_to(ROOT))
+        for p in EXTRAS_PLUGIN.rglob("plugin.json")
+        if "node_modules" not in p.parts
+    )
+    if EXTRAS_PLUGIN.is_dir() and not plugin_jsons:
+        failures.append("release-please: found zero plugin.json files under plugins/ork-extras")
+    want.update(plugin_jsons)
+    missing = sorted(want - listed)
+    if missing:
+        failures.append(f"release-please: extra-files lacks $.version for {missing}")
+    # Control: a core file known to be listed must be seen by the same parser.
+    if "manifests/ork.json" not in listed:
+        failures.append(
+            "release-please: control failed, manifests/ork.json not seen in extra-files"
+        )
+    # The extras marketplace entry is owned by bump-stable-pin once pinned,
+    # so release-please must not write it by index.
+    mkt = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
+    names = [p.get("name") for p in mkt.get("plugins", [])]
+    for e in entries:
+        jp = e.get("jsonpath", "") if isinstance(e, dict) else ""
+        m = re.fullmatch(r"\$\.plugins\[(\d+)\]\.version", jp)
+        if e.get("path") == ".claude-plugin/marketplace.json" and m:
+            idx = int(m.group(1))
+            name = names[idx] if idx < len(names) else None
+            if name != "ork-alpha":
+                failures.append(
+                    f"release-please: writes marketplace plugins[{idx}] ({name}); only ork-alpha may be bumped by index"
+                )
+    extras_manifest = ROOT / "manifests" / "ork-extras.json"
+    if extras_manifest.is_file():
+        v_extras = json.loads(extras_manifest.read_text(encoding="utf-8")).get("version")
+        v_core = json.loads((ROOT / "manifests" / "ork.json").read_text(encoding="utf-8")).get(
+            "version"
+        )
+        if v_extras != v_core:
+            failures.append(
+                f"release-please: manifests/ork-extras.json version {v_extras} != ork {v_core}"
+            )
+
+
+THIS_PAGE = "feat" + "-" * 2 + "ork-extras-split"
+HISTORICAL_REASON = (
+    "historical playground pages record what was true when their PR shipped; they are not rewritten"
+)
+
+
+def historical(rel: Path) -> bool:
+    """docs/<type><two hyphens><slug>/ pages and their published docs/site/public/lab copies, except this PR's own."""
+    parts = rel.parts
+    pair = "-" * 2
+    if len(parts) >= 3 and parts[0] == "docs" and pair in parts[1]:
+        return parts[1] != THIS_PAGE
+    if parts[:4] == ("docs", "site", "public", "lab") and len(parts) == 5:
+        return not parts[4].startswith(THIS_PAGE)
+    return False
+
+
 def exempt(rel: Path) -> bool:
     parts = rel.parts
     if parts[:2] == ("plugins", "ork-extras"):
@@ -174,6 +345,7 @@ def check_sweep() -> list[str]:
     scanned = 0
     control_hits = 0
     offenders: list[str] = []
+    skipped_historical: list[str] = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
@@ -192,6 +364,9 @@ def check_sweep() -> list[str]:
             if exempt(rel):
                 continue
             hits = sorted({m.group(1) for m in MOVED_REF.finditer(text)})
+            if hits and historical(rel):
+                skipped_historical.append(str(rel))
+                continue
             if hits:
                 offenders.append(f"{rel} ({', '.join(hits)})")
     if scanned == 0:
@@ -208,6 +383,10 @@ def check_sweep() -> list[str]:
     print(
         f"sweep: scanned {scanned} files, control ork:verify in {control_hits}, offenders {len(offenders)}"
     )
+    # Visible skip: every historical file that still names a moved skill is listed.
+    print(f"sweep: SKIP {len(skipped_historical)} historical files ({HISTORICAL_REASON})")
+    for rel in skipped_historical:
+        print(f"  skip {rel}")
     return errs
 
 
@@ -216,6 +395,10 @@ def main() -> int:
     check_core()
     check_extras()
     check_marketplace()
+    check_no_shared()
+    check_cited_paths()
+    check_release_please()
+    check_cursor_marketplace()
     sweep_errs = check_sweep()
     if SWEEP_EXPECTED_FAIL is None:
         failures.extend(sweep_errs)
@@ -233,8 +416,10 @@ def main() -> int:
         for f in failures:
             print(f"  - {f}")
         return 1
+    sweep_state = "sweep" if SWEEP_EXPECTED_FAIL is None else "sweep XFAIL"
     print(
-        f"PASS test-ork-extras-split: core lacks {len(MOVED)} moved, keeps {len(BUSINESS_STAY)} business; extras exact; marketplace entry; sweep"
+        f"PASS test-ork-extras-split: core lacks {len(MOVED)} moved, keeps {len(BUSINESS_STAY)} business; "
+        f"extras exact; marketplace entry; {sweep_state}"
     )
     return 0
 
