@@ -6,7 +6,6 @@ description: "Reference for Zustand 5.x state management including slices, middl
 context: inherit
 allowed-tools: "Read Write Grep Glob"
 user-invocable: false
-disable-model-invocation: true
 effort: low
 targets:
   - library: zustand

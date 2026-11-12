@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.
 user-invocable: false
-disable-model-invocation: true
 metadata:
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation

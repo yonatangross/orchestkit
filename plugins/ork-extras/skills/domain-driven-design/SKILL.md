@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
 user-invocable: false
-disable-model-invocation: true
 metadata:
   owner-agent: "backend-system-architect"
   category: document-asset-creation
