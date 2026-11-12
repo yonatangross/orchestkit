@@ -10,6 +10,49 @@ background: false
 allowed-tools: "Read Grep Glob Agent TaskCreate TaskUpdate AskUserQuestion Bash Write mcp__memory__search_nodes mcp__memory__create_entities ToolSearch mcp__notebooklm-mcp__studio_create"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/visualize-plan" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/visualize-plan/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -103,13 +146,9 @@ mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
 
 ## STEP 0: Detect or Clarify Plan Context
 
-**First**, attempt auto-detection by running `skills/visualize-plan/scripts/detect-plan-context.sh`:
+**Plan context, already detected.** Claude Code ran `<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/detect-plan-context.sh` when it opened this skill (a body step can be skipped, #4683). Its output, the branch name, issue number (if any), commit count and file change summary, is below (first 60 lines; the file list can run to thousands of lines); there is nothing to run. A blank result means the script had nothing to report. If you see `[shell command execution disabled by policy]` instead, run it yourself: `bash "<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/detect-plan-context.sh" | head -n 60`.
 
-```bash
-bash "skills/visualize-plan/scripts/detect-plan-context.sh"
-```
-
-This outputs branch name, issue number (if any), commit count, and file change summary.
+!`bash "<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/detect-plan-context.sh" 2>/dev/null | head -n 60 2>/dev/null || true`
 
 **If auto-detection finds a clear plan** (branch with commits diverging from main, or issue number in args), proceed to Step 1.
 
@@ -170,10 +209,10 @@ NotebookLM job.
 
 ## STEP 1: Gather Data
 
-Run `skills/visualize-plan/scripts/analyze-impact.sh` for precise counts:
+Run `<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/analyze-impact.sh` for precise counts:
 
 ```bash
-bash "skills/visualize-plan/scripts/analyze-impact.sh"
+bash "<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/analyze-impact.sh"
 ```
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
@@ -281,7 +320,7 @@ and the artifact gallery work at all.
 > BEFORE authoring:
 >
 > ```bash
-> bash "skills/visualize-plan/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
+> bash "<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
 > ```
 >
 > On exit 0, MERGE into the file it printed (flip statuses, append changelog, move removed items to
@@ -412,7 +451,7 @@ Load on demand with `Read("assets/<file>")`:
 
 Done means all of these hold:
 - The Tier 1 header always renders with every field populated — risk, confidence, reversibility, branch, and file/line counts.
-- File and line counts come from `skills/visualize-plan/scripts/analyze-impact.sh`, not estimated or guessed.
+- File and line counts come from `<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/analyze-impact.sh`, not estimated or guessed.
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
 - **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `skills/visualize-plan/rules/section-rendering.md` §[3] carries the falsifiable test for both.
 - Section [0] Before/After maps base (`git show origin/main:<path>`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
@@ -425,7 +464,7 @@ Done means all of these hold:
 - A playground output started from `plan-dashboard.template.html` (or the living-plan / player /
   board exemplar the §0 routing rule selected) — never hand-rolled CSS — and passed the §10
   self-audit including the DASHBOARD rows.
-- A living plan was located by **slug** via `skills/visualize-plan/scripts/find-living-plan.sh` before authoring, so an
+- A living plan was located by **slug** via `<ORK_PLUGIN_DIR>/skills/visualize-plan/scripts/find-living-plan.sh` before authoring, so an
   existing plan is updated in place rather than forked into a second file.
 
 ## Related Skills

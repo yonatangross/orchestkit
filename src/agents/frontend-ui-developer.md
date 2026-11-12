@@ -2,7 +2,7 @@
 name: frontend-ui-developer
 description: "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns."
 model: inherit
-maxTurns: 30
+maxTurns: 60
 effort: medium
 color: purple
 memory: project

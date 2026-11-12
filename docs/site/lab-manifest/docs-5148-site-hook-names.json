@@ -1,0 +1,11 @@
+{
+  "slug": "docs-5148-site-hook-names",
+  "source": "docs/docs--5148-site-hook-names/index.html",
+  "title": "The architecture page no longer names hooks that were removed",
+  "description": "Pick a spot on the hooks architecture page and compare the hook it named with the one hooks.json registers today.",
+  "tags": [
+    "docs",
+    "hooks"
+  ],
+  "date": "2026-11-11"
+}

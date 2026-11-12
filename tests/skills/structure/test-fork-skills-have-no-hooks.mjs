@@ -101,9 +101,9 @@ for (const name of readdirSync(SKILLS).sort()) {
 }
 
 // Fork skills that lost their frontmatter loaders in #4683: each body must
-// still do every loader's work, as a `run-hook.mjs" skill/<loader>` step.
-// visualize-plan's STEP 0 already runs scripts/detect-plan-context.sh, which
-// covers everything skill/plan-context-loader reported.
+// still do every loader's work, as a `run-hook.mjs" skill/<loader>` line.
+// visualize-plan runs scripts/detect-plan-context.sh instead, which covers
+// everything skill/plan-context-loader reported.
 const run = (loader) => `run-hook.mjs" ${loader}`;
 const BODY_LOADERS = {
   brainstorm: [run('skill/prior-decisions-loader'), run('skill/brainstorm-instructions-loader')],
@@ -123,9 +123,63 @@ for (const [name, markers] of Object.entries(BODY_LOADERS)) {
   // With no event name the output guard treats the step as an unknown event and
   // strips additionalContext, so the loader runs and prints nothing.
   for (const line of body.split('\n')) {
-    if (/^echo .*run-hook\.mjs" skill\//.test(line) && !line.includes('"hook_event_name"')) {
+    if (/^(!`)?echo .*run-hook\.mjs" skill\//.test(line) && !line.includes('"hook_event_name"')) {
       failures.push(`src/skills/${name}/SKILL.md: body loader sends no hook_event_name, so its context is stripped: ${line}`);
     }
+  }
+}
+
+// A body step is only an instruction: in the 2026-11-08 live run the model
+// skipped both loaders in brainstorm and both in implement (#4683). Each
+// context loader therefore runs as load-time shell injection, a line that
+// starts with !` : Claude Code runs it while it renders the skill and puts its
+// output in the text, before the model reads a word, so no step can be
+// skipped. pattern-consistency-enforcer is a check after writes, not a loader,
+// so it stays a step. visualize-plan's STEP 0 script was a step too, and the
+// model skipped it in 1 of 2 live runs (2026-11-10), so it joins the map.
+// Each entry is the exact command text, path included: ${CLAUDE_SKILL_DIR} is
+// the form the live runs proved resolves at render time.
+const hookLine = (loader) => `node "\${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" ${loader}`;
+const INJECTED = {
+  brainstorm: [hookLine('skill/prior-decisions-loader'), hookLine('skill/brainstorm-instructions-loader')],
+  explore: [hookLine('skill/repo-structure-indexer')],
+  implement: [hookLine('skill/project-convention-loader'), hookLine('skill/implement-standards-loader')],
+  setup: [hookLine('skill/setup-env-detector')],
+  'visualize-plan': ['bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh"'],
+};
+// A !` command that exits non-zero aborts the whole skill, not just the
+// context: rev-parse exits 128 outside a repository, and run-hook.mjs exits
+// 1 or 2 on a bundle or handler error. So every load-time line in these skills
+// must end in a tail that cannot fail. And under disableSkillShellExecution the
+// model sees only a placeholder, so each skill says what to do then.
+const POLICY_PLACEHOLDER = '[shell command execution disabled by policy]';
+const NEVER_FAILS = /2>\/dev\/null \|\| (true|echo [a-z]+)`$/;
+for (const [name, loaders] of Object.entries(INJECTED)) {
+  const text = readFileSync(path.join(SKILLS, name, 'SKILL.md'), 'utf8');
+  const lines = text.replace(/^-{3}\n[\s\S]*?\n-{3}\n/, '').split('\n');
+  for (const loader of loaders) {
+    const injected = lines.some((l) => l.startsWith('!`') && l.endsWith('`') && l.includes(loader));
+    if (!injected) {
+      failures.push(`src/skills/${name}/SKILL.md: \`${loader}\` is not a !\` load-time line, so the model can skip it (#4683)`);
+    }
+  }
+  // Every load-time command on a line, not only the first (b137 review, #5191).
+  for (const line of lines) {
+    for (const inline of line.matchAll(/!`[^`]+`/g)) {
+      if (!NEVER_FAILS.test(inline[0])) {
+        failures.push(`src/skills/${name}/SKILL.md: load-time command can fail and abort the skill (add 2>/dev/null || true): ${inline[0]}`);
+      }
+    }
+  }
+  if (!text.includes(POLICY_PLACEHOLDER)) {
+    failures.push(`src/skills/${name}/SKILL.md: says nothing for ${POLICY_PLACEHOLDER}, so with shell execution disabled the context is silently missing`);
+  }
+}
+// implement's start sha is "none" outside a repository; Phase 6 must say what then.
+{
+  const ref = readFileSync(path.join(SKILLS, 'implement', 'references', 'phase-6-pattern-check.md'), 'utf8');
+  if (!/start sha is `none`/.test(ref)) {
+    failures.push('src/skills/implement/references/phase-6-pattern-check.md: no step for a start sha of `none` (no repository)');
   }
 }
 

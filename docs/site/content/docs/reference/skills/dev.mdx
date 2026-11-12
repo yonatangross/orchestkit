@@ -164,6 +164,8 @@ Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs desc
 
 Each git worktree gets its own subdomain, `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
 
+Every worktree also carries its own `node_modules` and build output. When the disk fills after many branches, `/ork:disk-cleanup` lists the merged, clean worktrees and the caches it can reclaim (dry run first).
+
 ## Idempotency
 
 Re-running `dev` while the stack is already live is a no-op:

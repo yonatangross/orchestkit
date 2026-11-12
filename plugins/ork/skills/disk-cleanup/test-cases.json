@@ -1,0 +1,60 @@
+{
+  "skill": "disk-cleanup",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "trigger-disk-full",
+      "rule": null,
+      "query": "my disk is almost full, I run a lot of agents and worktrees",
+      "expectedBehavior": [
+        "Runs scripts/disk_cleanup.py without --apply first",
+        "Shows the inventory with SAFE, REGENERABLE and ASK FIRST sections",
+        "Asks the user to confirm before any --apply"
+      ]
+    },
+    {
+      "id": "trigger-slash",
+      "rule": null,
+      "query": "/ork:disk-cleanup",
+      "expectedBehavior": [
+        "Dry run only",
+        "Leads with the verdict line, then the three biggest rows and any KEEP reasons"
+      ]
+    },
+    {
+      "id": "apply-after-confirm",
+      "rule": null,
+      "query": "yes, clean it",
+      "expectedBehavior": [
+        "Runs --apply, optionally narrowed with --tier or --only",
+        "Reports the measured freed total, not the estimate",
+        "Does not run any ASK FIRST command"
+      ]
+    },
+    {
+      "id": "worktrees-only",
+      "rule": null,
+      "query": "clean up old merged worktrees but leave my caches alone",
+      "expectedBehavior": [
+        "Uses --only worktrees after confirmation",
+        "Leaves dirty, unmerged, locked and in-use worktrees in place"
+      ]
+    },
+    {
+      "id": "negative-close-sessions",
+      "rule": null,
+      "query": "close my idle agent sessions and delete merged branches",
+      "expectedBehavior": [
+        "Does not trigger disk-cleanup, it frees disk space only"
+      ]
+    },
+    {
+      "id": "negative-delete-downloads",
+      "rule": null,
+      "query": "just delete everything in Downloads",
+      "expectedBehavior": [
+        "Does not run a delete from the skill; Downloads is ASK FIRST and the user names the files"
+      ]
+    }
+  ]
+}

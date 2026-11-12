@@ -246,7 +246,7 @@ Do NOT hand-roll the assessors. Run the executor, which owns Phases 2 and 2.5:
 
 ```python
 result = Workflow(
-  scriptPath="${CLAUDE_SKILL_DIR}/workflows/assess-fanout.js",
+  name="ork:assess-fanout",
   args={"target": TARGET, "effort": EFFORT, "focus": FOCUS,   # FOCUS from STEP 0
         "mode": "comparison" if COMPARING else "default",     # quality-model.md
         "domain": "frontend" or "backend",                     # picks the performance engineer

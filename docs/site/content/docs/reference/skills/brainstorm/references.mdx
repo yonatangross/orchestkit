@@ -992,7 +992,7 @@ Glob(pattern="**/*{topic}*")
 
 ```python
 Workflow(
-  scriptPath="${CLAUDE_SKILL_DIR}/workflows/brainstorm-diverge.js",
+  name="ork:brainstorm-diverge",
   args={"topic": TOPIC, "tier": tier_name, "ceiling": ceiling_description,
         "agents": selected_agents,          # Phase 0 Step 2; workflow-architect + test-generator are added if missing
         "constraints": constraints_answer,  # STEP 0a Q2

@@ -10,6 +10,49 @@ background: false
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch WebFetch EnterWorktree ExitWorktree CronCreate CronDelete Monitor PushNotification mcp__context7__resolve-library-id mcp__context7__query-docs mcp__memory__search_nodes"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/implement" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/implement/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -139,13 +182,13 @@ Scan codebase signals and classify into tiers 1-6 (Interview through Open Source
 
 Load tier details, workflow mapping, and orchestration mode: `Read("skills/implement/references/tier-classification.md")`
 
-**Load project context.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+**Project context, already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/project-convention-loader` and `skill/implement-standards-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" <loader>`, and take the start sha from `git rev-parse HEAD`:
 
-```bash
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/project-convention-loader
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/implement-standards-loader
-git rev-parse HEAD  # note it as the start sha for the Phase 6 pattern check
-```
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/project-convention-loader 2>/dev/null || true`
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/implement-standards-loader 2>/dev/null || true`
+
+Start sha for the Phase 6 pattern check (`none` outside a repository or before the first commit): !`git rev-parse HEAD 2>/dev/null || echo none`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -259,7 +302,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 Load agent prompts: `Read("skills/implement/references/agent-phases.md")`
 
-**Phase 6 pattern check.** The fork cannot run the enforcer per Write/Edit (#4683); pipe each changed file into `node "hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer` once, as `Read("skills/implement/references/phase-6-pattern-check.md")` shows.
+**Phase 6 pattern check.** The fork cannot run the enforcer per Write/Edit (#4683); pipe each changed file into `node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer` once, as `Read("skills/implement/references/phase-6-pattern-check.md")` shows.
 
 For Agent Teams mode: `Read("skills/implement/references/agent-teams-phases.md")`
 > **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).

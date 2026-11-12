@@ -10,6 +10,49 @@ background: false
 allowed-tools: "AskUserQuestion Read Write Grep Glob Agent TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes Bash ToolSearch"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/explore" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/explore/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -188,11 +231,9 @@ For Phase 3 parallel agents, output each agent's findings **as soon as it return
 
 ### Phase 1: Initial Search
 
-**Load the repo map first.** A fork skill never runs frontmatter hooks (#4683), so run the loader yourself and keep its `additionalContext` in mind:
+**Repo map, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/repo-structure-indexer`:
 
-```bash
-echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/repo-structure-indexer
-```
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/repo-structure-indexer 2>/dev/null || true`
 
 ```python
 # PARALLEL - Quick searches
@@ -251,7 +292,7 @@ When emitting a spec:
 4. Validate before declaring success:
 
 ```bash
-node "skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
+node "<ORK_PLUGIN_DIR>/skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
 ```
 
 If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only and surface the error to the user. Never write a partial or invalid spec.
@@ -259,7 +300,7 @@ If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only
 5. For `--render=both`, render the markdown view from the spec for consistency:
 
 ```bash
-node "skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
+node "<ORK_PLUGIN_DIR>/skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
 ```
 
 Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync — a single source of truth.
@@ -268,10 +309,10 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 
 ## Phase 6.5 — Notebook summary (signal-fired, optional)
 
-After the session synthesis lands, optionally invoke `skills/explore/scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
+After the session synthesis lands, optionally invoke `<ORK_PLUGIN_DIR>/skills/explore/scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 
 ```bash
-python3 skills/explore/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
+python3 <ORK_PLUGIN_DIR>/skills/explore/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):
