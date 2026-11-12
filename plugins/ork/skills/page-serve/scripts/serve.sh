@@ -133,7 +133,27 @@ fi
 if [[ "$live_pid" == "0" ]]; then
   PORT="$(python3 -I -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
   LOG="${STATE_DIR}/${NAME}.log"
-  ( cd "$ROOT" && exec python3 -I -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 ) &
+  # The server outlives this call, so it must not keep the caller's fds (a flock
+  # slot, a lock file, a pipe): a held fd keeps that resource taken after the
+  # caller's job ends. Close every fd above 2 in the daemon subshell; 0 goes to
+  # /dev/null, 1 and 2 to the log.
+  (
+    cd "$ROOT"
+    if [[ -d /dev/fd ]]; then
+      for fd_path in /dev/fd/*; do
+        fd_num="${fd_path##*/}"
+        [[ "$fd_num" =~ ^[0-9]+$ && "$fd_num" -gt 2 ]] && eval "exec ${fd_num}>&-"
+      done
+    fi
+    # Bash cannot list fds on every platform and the glob above can miss one
+    # opened by the listing itself, so also sweep the low range explicitly.
+    fd_num=3
+    while [[ "$fd_num" -le 255 ]]; do
+      eval "exec ${fd_num}>&-"
+      fd_num=$((fd_num + 1))
+    done
+    exec python3 -I -m http.server "$PORT" --bind 127.0.0.1 </dev/null >"$LOG" 2>&1
+  ) &
   live_pid=$!
   new_pid=$!
   ok=0
