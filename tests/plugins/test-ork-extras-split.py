@@ -263,6 +263,43 @@ def check_cursor_marketplace() -> None:
         )
 
 
+def stamp_problems(entries: list[object], plugins: list[dict[str, object]]) -> list[str]:
+    """Problems with the by-index marketplace version stamps in release-please extra-files.
+
+    The allowed set is every marketplace entry whose source tracks main under
+    plugins/, found by name (the class rule tests/schemas/test-alpha-channel.sh
+    uses). An empty allowed set is a problem, so the check cannot pass on nothing.
+    """
+    names: list[object] = [p.get("name") for p in plugins]
+    allowed: set[object] = set()
+    for p in plugins:
+        src = p.get("source")
+        if (
+            isinstance(src, dict)
+            and src.get("ref") == "main"
+            and str(src.get("path", "")).startswith("plugins/")
+        ):
+            allowed.add(p.get("name"))
+    problems: list[str] = []
+    if not allowed:
+        problems.append(
+            "no marketplace entry tracks main, so the allowed by-index stamp set is empty"
+        )
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        m = re.fullmatch(r"\$\.plugins\[(\d+)\]\.version", str(e.get("jsonpath", "")))
+        if e.get("path") == ".claude-plugin/marketplace.json" and m:
+            idx = int(m.group(1))
+            name = names[idx] if idx < len(names) else None
+            if name not in allowed:
+                problems.append(
+                    f"writes marketplace plugins[{idx}] ({name}); only entries that track main "
+                    f"may be bumped by index (allowed: {sorted(str(a) for a in allowed)})"
+                )
+    return problems
+
+
 def check_release_please() -> None:
     """Every ork-extras version file is bumped by release-please, so versions cannot drift."""
     cfg = json.loads(RELEASE_PLEASE.read_text(encoding="utf-8"))
@@ -289,20 +326,36 @@ def check_release_please() -> None:
         failures.append(
             "release-please: control failed, manifests/ork.json not seen in extra-files"
         )
-    # The extras marketplace entry is owned by bump-stable-pin once pinned,
-    # so release-please must not write it by index.
+    # release-please may stamp a marketplace entry by index only while that
+    # entry tracks main (ork-alpha and ork-extras today): its plugin.json moves
+    # on main at release, so the entry must move with it. A pinned entry (ork)
+    # is owned by bump-stable-pin, so release-please must not write it.
     mkt = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
-    names = [p.get("name") for p in mkt.get("plugins", [])]
-    for e in entries:
-        jp = e.get("jsonpath", "") if isinstance(e, dict) else ""
-        m = re.fullmatch(r"\$\.plugins\[(\d+)\]\.version", jp)
-        if e.get("path") == ".claude-plugin/marketplace.json" and m:
-            idx = int(m.group(1))
-            name = names[idx] if idx < len(names) else None
-            if name != "ork-alpha":
-                failures.append(
-                    f"release-please: writes marketplace plugins[{idx}] ({name}); only ork-alpha may be bumped by index"
-                )
+    plugins = mkt.get("plugins", [])
+    failures.extend(f"release-please: {p}" for p in stamp_problems(entries, plugins))
+    # Control: the same rule must refuse a stamp on a pinned entry, or the
+    # check above could pass on anything.
+    control_plugins = [
+        {"name": "pinned", "source": {"ref": "v1.0.0", "path": "plugins/pinned"}},
+        {"name": "floating", "source": {"ref": "main", "path": "plugins/floating"}},
+    ]
+    stamp_on = lambda i: [  # noqa: E731
+        {
+            "type": "json",
+            "path": ".claude-plugin/marketplace.json",
+            "jsonpath": f"$.plugins[{i}].version",
+        }
+    ]
+    if not any("(pinned)" in p for p in stamp_problems(stamp_on(0), control_plugins)):
+        failures.append(
+            "release-please: control failed, a stamp on a pinned marketplace entry was not refused"
+        )
+    if stamp_problems(stamp_on(1), control_plugins):
+        failures.append(
+            "release-please: control failed, a stamp on a main-tracking marketplace entry was refused"
+        )
+    if not any("no marketplace entry tracks main" in p for p in stamp_problems([], [])):
+        failures.append("release-please: control failed, an empty allowed set was not refused")
     extras_manifest = ROOT / "manifests" / "ork-extras.json"
     if extras_manifest.is_file():
         v_extras = json.loads(extras_manifest.read_text(encoding="utf-8")).get("version")
