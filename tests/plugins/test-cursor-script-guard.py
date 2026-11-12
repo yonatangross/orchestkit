@@ -24,6 +24,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -84,9 +85,18 @@ def test_rewrite_turns_plugin_scripts_into_the_placeholder() -> None:
     assert ex.GUARD_HEADING in out, out
 
 
-def run_guard(ex, cwd: Path, home: Path, skill: str = "demo") -> tuple[int, str]:
+# The agent may run the resolver under any of these; each one present is tested
+# (macOS /bin/bash is 3.2 and /bin/sh is bash in POSIX mode; Ubuntu's is dash).
+SHELLS = [s for s in ("/bin/sh", "/bin/bash", "/bin/dash", "/bin/zsh") if Path(s).exists()]
+for _name in ("bash", "zsh", "dash"):
+    _found = shutil.which(_name)
+    if _found and _found not in SHELLS:
+        SHELLS.append(_found)
+
+
+def run_guard(ex, cwd: Path, home: Path, shell: str, skill: str = "demo") -> tuple[int, str]:
     r = subprocess.run(
-        ["bash", "-c", ex.script_guard(skill) + "\necho AFTER-GUARD"],
+        [shell, "-c", ex.script_guard(skill) + "\necho AFTER-GUARD"],
         cwd=cwd,
         env={**os.environ, "HOME": str(home)},
         capture_output=True,
@@ -95,9 +105,13 @@ def run_guard(ex, cwd: Path, home: Path, skill: str = "demo") -> tuple[int, str]
     return r.returncode, r.stdout
 
 
-def make_plugin(base: Path, skill: str = "demo", name: str = "ork") -> Path:
+def make_plugin(
+    base: Path, skill: str = "demo", name: str = "ork", author: str = "OrchestKit"
+) -> Path:
     (base / ".cursor-plugin").mkdir(parents=True)
-    (base / ".cursor-plugin" / "plugin.json").write_text(f'{{\n  "name": "{name}"\n}}\n')
+    (base / ".cursor-plugin" / "plugin.json").write_text(
+        f'{{\n  "name": "{name}",\n  "author": {{\n    "name": "{author}"\n  }}\n}}\n'
+    )
     (base / "skills" / skill / "scripts").mkdir(parents=True)
     return base
 
@@ -105,52 +119,76 @@ def make_plugin(base: Path, skill: str = "demo", name: str = "ork") -> Path:
 def test_resolver_verdicts_are_exact() -> None:
     ex = exporter()
     assert "PASTE" not in ex.script_guard("demo"), "the resolver must not take a pasted path"
+    assert SHELLS, "no shell to run the resolver under"
     with tempfile.TemporaryDirectory() as tmp:
         t = Path(tmp).resolve()
 
-        def case(label: str) -> tuple[Path, Path]:
+        def layout(label: str) -> tuple[Path, Path]:
             home = t / label / "home"
             ws = t / label / "workspace"
             home.mkdir(parents=True)
             ws.mkdir(parents=True)
             return home, ws
 
-        # nothing installed
-        home, ws = case("empty")
-        assert run_guard(ex, ws, home)[1].splitlines() == [NOT_FOUND, "AFTER-GUARD"]
+        def plugins(home: Path) -> Path:
+            return home / ".cursor" / "plugins"
 
-        # a plugin root with another name
-        home, ws = case("other")
-        make_plugin(home / ".cursor" / "plugins" / "cache" / "x", name="not-ork")
-        assert run_guard(ex, ws, home)[1].splitlines() == [NOT_FOUND, "AFTER-GUARD"]
+        cases: list[tuple[str, Path, Path, str]] = []
 
-        # the ork plugin without this skill
-        home, ws = case("noskill")
-        make_plugin(home / ".cursor" / "plugins" / "cache" / "ork", skill="other")
-        assert run_guard(ex, ws, home)[1].splitlines() == [NOT_FOUND, "AFTER-GUARD"]
+        home, ws = layout("empty")
+        cases.append(("nothing installed", ws, home, NOT_FOUND))
 
-        # a copy in the workspace only, plus a link to it from the plugin tree
-        home, ws = case("inws")
+        home, ws = layout("other")
+        make_plugin(plugins(home) / "cache" / "x", name="not-ork")
+        cases.append(("another plugin name", ws, home, NOT_FOUND))
+
+        home, ws = layout("author")
+        make_plugin(plugins(home) / "cache" / "x", name="not-ork", author="ork")
+        cases.append(("ork only as the author name", ws, home, NOT_FOUND))
+
+        home, ws = layout("noskill")
+        make_plugin(plugins(home) / "cache" / "ork", skill="other")
+        cases.append(("ork without this skill", ws, home, NOT_FOUND))
+
+        home, ws = layout("inws")
         vendored = make_plugin(ws / "vendored-ork")
-        (home / ".cursor" / "plugins").mkdir(parents=True)
-        (home / ".cursor" / "plugins" / "linked").symlink_to(vendored)
-        assert run_guard(ex, ws, home)[1].splitlines() == [NOT_FOUND, "AFTER-GUARD"]
+        plugins(home).mkdir(parents=True)
+        (plugins(home) / "linked").symlink_to(vendored)
+        cases.append(("a link from the plugin tree into the workspace", ws, home, NOT_FOUND))
 
-        # a workspace opened inside the plugin tree does not vouch for itself
-        home, ws = case("wsinside")
-        inside = make_plugin(home / ".cursor" / "plugins" / "cache" / "ork")
-        assert run_guard(ex, inside, home)[1].splitlines() == [NOT_FOUND, "AFTER-GUARD"]
+        home, ws = layout("baselink")
+        make_plugin(ws / "plugins" / "cache" / "ork")
+        (home / ".cursor").mkdir(parents=True)
+        plugins(home).symlink_to(ws / "plugins")
+        cases.append(("~/.cursor/plugins itself links into the workspace", ws, home, NOT_FOUND))
 
-        # the installed plugin is found
-        home, ws = case("good")
-        good = make_plugin(home / ".cursor" / "plugins" / "cache" / "ork")
-        rc, out = run_guard(ex, ws, home)
-        assert out.splitlines() == [f"ORK_PLUGIN_DIR={good}", "AFTER-GUARD"], out
-        assert rc == 0
+        home, ws = layout("wsinside")
+        inside = make_plugin(plugins(home) / "cache" / "ork")
+        cases.append(("a workspace inside the plugin", inside, home, NOT_FOUND))
 
-        # a workspace equal to HOME still finds it
-        rc, out = run_guard(ex, home, home)
-        assert out.splitlines() == [f"ORK_PLUGIN_DIR={good}", "AFTER-GUARD"], out
+        home, ws = layout("good")
+        good = make_plugin(plugins(home) / "cache" / "ork")
+        cases.append(("the installed plugin", ws, home, f"ORK_PLUGIN_DIR={good}"))
+        cases.append(
+            ("the installed plugin, workspace is HOME", home, home, f"ORK_PLUGIN_DIR={good}")
+        )
+
+        home, ws = layout("two")
+        old = make_plugin(plugins(home) / "aaa" / "ork" / "1")
+        new = make_plugin(plugins(home) / "cache" / "ork" / "2")
+        os.utime(old / ".cursor-plugin" / "plugin.json", (1_000_000_000, 1_000_000_000))
+        os.utime(new / ".cursor-plugin" / "plugin.json", (2_000_000_000, 2_000_000_000))
+        cases.append(("two installs, the newest wins", ws, home, f"ORK_PLUGIN_DIR={new}"))
+
+        bad = []
+        for shell in SHELLS:
+            for label, cwd, home, verdict in cases:
+                rc, out = run_guard(ex, cwd, home, shell)
+                if out.splitlines() != [verdict, "AFTER-GUARD"]:
+                    bad.append(f"{shell}: {label}: {out!r}")
+                elif verdict.startswith("ORK_PLUGIN_DIR=") and rc != 0:
+                    bad.append(f"{shell}: {label}: rc {rc}")
+        assert not bad, "resolver verdicts:\n  " + "\n  ".join(bad)
 
 
 def test_no_unanchored_plugin_script_in_export() -> None:
