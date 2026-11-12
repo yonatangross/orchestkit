@@ -12,12 +12,32 @@ allowed-tools: "AskUserQuestion Read Write Grep Glob Agent TaskCreate TaskUpdate
 
 ## Before running a script from this command (Cursor)
 
-Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
 
-Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+Find the installed plugin directory first:
 
 ```bash
-( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/explore" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+(
+  ork_ws="$(pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_base/" in "$ork_ws"/*) ork_above=1 ;; esac
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | sort | while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in "$ork_base"/*) ;; *) continue ;; esac
+      if [ -z "$ork_above" ]; then case "$ork_r/" in "$ork_ws"/*) continue ;; esac; fi
+      case "$ork_ws/" in "$ork_r"/*) continue ;; esac
+      grep -Eq '"name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/explore" ] || continue
+      printf '%s\n' "$ork_r"
+      break
+    done)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
 ```
 
 Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
@@ -200,9 +220,9 @@ For Phase 3 parallel agents, output each agent's findings **as soon as it return
 
 ### Phase 1: Initial Search
 
-**Repo map, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/repo-structure-indexer`:
+**Repo map, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/repo-structure-indexer`:
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/explore/../../hooks/bin/run-hook.mjs" skill/repo-structure-indexer 2>/dev/null || true`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/repo-structure-indexer 2>/dev/null || true`
 
 ```python
 # PARALLEL - Quick searches

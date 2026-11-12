@@ -10,12 +10,32 @@ allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate Ta
 
 ## Before running a script from this command (Cursor)
 
-Cursor does not tell a command where this plugin is installed. Run skill scripts only from the installed plugin directory, never by a relative `skills/...` path.
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
 
-Ask the user for the absolute path of the installed OrchestKit plugin, put it in place of `PASTE_PATH_HERE`, and run:
+Find the installed plugin directory first:
 
 ```bash
-( ork_dir='PASTE_PATH_HERE'; ork_ws="$(pwd -P)"; ork_home="$(cd "$HOME" && pwd -P)"; case "$ork_dir" in /*) ;; *) echo "REFUSED: not an absolute path"; exit 3 ;; esac; case "/$ork_dir/" in */../*|*/./*) echo "REFUSED: path traversal"; exit 3 ;; esac; [ -d "$ork_dir" ] || { echo "REFUSED: not a directory"; exit 3; }; ork_real="$(cd "$ork_dir" && pwd -P)"; case "$ork_real/" in "$ork_ws"/*) echo "REFUSED: inside the workspace"; exit 3 ;; esac; case "$ork_real/" in "$ork_home"/.cursor/plugins/*) ;; *) echo "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"; exit 3 ;; esac; [ -f "$ork_real/.cursor-plugin/plugin.json" ] && [ -d "$ork_real/skills/brainstorm" ] || { echo "REFUSED: not an OrchestKit plugin root"; exit 3; }; echo "ORK_PLUGIN_DIR=$ork_real" )
+(
+  ork_ws="$(pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_base/" in "$ork_ws"/*) ork_above=1 ;; esac
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | sort | while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in "$ork_base"/*) ;; *) continue ;; esac
+      if [ -z "$ork_above" ]; then case "$ork_r/" in "$ork_ws"/*) continue ;; esac; fi
+      case "$ork_ws/" in "$ork_r"/*) continue ;; esac
+      grep -Eq '"name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/brainstorm" ] || continue
+      printf '%s\n' "$ork_r"
+      break
+    done)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
 ```
 
 Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
@@ -49,11 +69,11 @@ Full procedure + handoff-file table: `Read("skills/brainstorm/references/mcp-pro
 
 ## STEP 0: Project Context Discovery
 
-**Context already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind; there is nothing to run. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/prior-decisions-loader` and `skill/brainstorm-instructions-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" <loader>`:
+**Context already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind; there is nothing to run. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/prior-decisions-loader` and `skill/brainstorm-instructions-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" <loader>`:
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/brainstorm/../../hooks/bin/run-hook.mjs" skill/prior-decisions-loader 2>/dev/null || true`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/prior-decisions-loader 2>/dev/null || true`
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/brainstorm/../../hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader 2>/dev/null || true`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader 2>/dev/null || true`
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 
