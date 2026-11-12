@@ -138,7 +138,7 @@ Plain-English explanations of the stats every PM needs. Load `references/stats-c
 ## Related Skills
 
 - `ork:product-frameworks` — OKRs, KPI trees, RICE prioritization, PRD templates
-- `ork:monitoring-observability` — Metric definition, alerting, and drift monitoring
+- `ork-extras:monitoring-observability` — Metric definition, alerting, and drift monitoring
 - `ork:brainstorm` — Generate hypotheses and experiment ideas
 - `ork:assess` — Evaluate product quality and risks
 

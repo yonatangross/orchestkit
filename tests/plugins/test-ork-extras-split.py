@@ -79,9 +79,7 @@ BUSINESS_STAY = frozenset(
 
 # The sweep is the one gate that may run as expected-fail, and only while the
 # re-points are still in the stacked follow-up branch. Set to None there.
-SWEEP_EXPECTED_FAIL: str | None = (
-    "the ork:<moved> re-points land in the stacked follow-up PR on feat/ork-extras-split-refs"
-)
+SWEEP_EXPECTED_FAIL: str | None = None
 
 # Directories the walk never enters: VCS data, other checkouts, installed
 # dependencies and build caches. None of them is a file a reader opens.
@@ -368,6 +366,13 @@ def check_release_please() -> None:
             )
 
 
+# Files that show the old ork:<moved> form on purpose, each with its reason.
+# Listed by exact path so a new offender never hides behind a pattern.
+OLD_NAME_ON_PURPOSE = {
+    "docs/site/content/docs/getting-started/ork-extras.mdx": "the migration note shows each old name next to its new one",
+}
+
+
 HIDDEN_FLAG = re.compile(r"^disable-model-invocation:\s*true\s*$", re.M)
 # Recorded manual-only choice (#848): the one extras skill that stays hidden.
 STAYS_HIDDEN = frozenset({"release-management"})
@@ -405,6 +410,9 @@ def check_model_invocable() -> None:
 
 
 THIS_PAGE = "feat" + "-" * 2 + "ork-extras-split"
+# The split's own playground pages (PR1 and its stacked refs PR) are swept,
+# never skipped: they must use the new names.
+THIS_PAGES = (THIS_PAGE, THIS_PAGE + "-refs")
 HISTORICAL_REASON = (
     "historical playground pages record what was true when their PR shipped; they are not rewritten"
 )
@@ -415,9 +423,9 @@ def historical(rel: Path) -> bool:
     parts = rel.parts
     pair = "-" * 2
     if len(parts) >= 3 and parts[0] == "docs" and pair in parts[1]:
-        return parts[1] != THIS_PAGE
+        return parts[1] not in THIS_PAGES
     if parts[:4] == ("docs", "site", "public", "lab") and len(parts) == 5:
-        return not parts[4].startswith(THIS_PAGE)
+        return parts[4].removesuffix(".html") not in THIS_PAGES
     return False
 
 
@@ -435,6 +443,7 @@ def check_sweep() -> list[str]:
     control_hits = 0
     offenders: list[str] = []
     skipped_historical: list[str] = []
+    skipped_on_purpose: list[str] = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
@@ -456,6 +465,9 @@ def check_sweep() -> list[str]:
             if hits and historical(rel):
                 skipped_historical.append(str(rel))
                 continue
+            if hits and rel.as_posix() in OLD_NAME_ON_PURPOSE:
+                skipped_on_purpose.append(rel.as_posix())
+                continue
             if hits:
                 offenders.append(f"{rel} ({', '.join(hits)})")
     if scanned == 0:
@@ -476,6 +488,13 @@ def check_sweep() -> list[str]:
     print(f"sweep: SKIP {len(skipped_historical)} historical files ({HISTORICAL_REASON})")
     for rel in skipped_historical:
         print(f"  skip {rel}")
+    for rel in skipped_on_purpose:
+        print(f"sweep: SKIP {rel} ({OLD_NAME_ON_PURPOSE[rel]})")
+    # An exemption that no longer matches anything is stale and must go.
+    for rel in sorted(set(OLD_NAME_ON_PURPOSE) - set(skipped_on_purpose)):
+        errs.append(
+            f"sweep: exemption for {rel} matched nothing; remove it from OLD_NAME_ON_PURPOSE"
+        )
     return errs
 
 

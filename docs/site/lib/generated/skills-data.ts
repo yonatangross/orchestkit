@@ -8,7 +8,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "accessibility",
     "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility.",
     "version": "2.1.0",
-    "sha256": "d4861ce4fe1ccd7bda59d33f00474ee746382baa2464682ffb832fb830071acf",
+    "sha256": "b54912aa0f8af24cb885ab5f1b66cfd6f6e249718a15eeb3e092bf24f5f91da8",
     "author": "OrchestKit",
     "tags": [
       "accessibility",
@@ -52,7 +52,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "agent-orchestration",
     "description": "Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.",
     "version": "2.0.0",
-    "sha256": "61fcc9bc0904e98fa8da10f779772925038573c2f74244dda5025a7c987a66d2",
+    "sha256": "a27d3d65b6fcac41d2fb5c97cf8dfbbc1ce6ea18e3c7eaa21f6677eb7bb033d8",
     "author": "OrchestKit",
     "tags": [
       "agents",
@@ -101,7 +101,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.1.0",
-    "sha256": "f26517ab36fe7e10a78f0fb470febaca6ee69efd49cc1d06cc27ee69658db556",
+    "sha256": "200cfb9a5327cf11fd73e37a6f0677cd0f64f46d9189e441f52f2a9b33ccdfa4",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -203,7 +203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "animation-motion-design",
     "description": "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.",
     "version": "1.0.0",
-    "sha256": "a945e5502f886e47b5266b0701b32f4e08459343b0b0f7cdcccacc89a3cdfba3",
+    "sha256": "2b75964b270300d27522684b3ab6fe88b5034136cf8887afc2ad0cfd927d7462",
     "author": "OrchestKit",
     "tags": [
       "animation",
@@ -353,7 +353,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "architecture-patterns",
     "description": "Clean and layered architecture patterns, project structure and test-standard validation. Use when designing system boundaries or enforcing structure. For tier sizing, use scope-appropriate-architecture.",
     "version": "2.1.0",
-    "sha256": "6ea782b2f60ee763ee87ebfcf16176f1dd041ae9c913596d911cd0172b89688a",
+    "sha256": "ecb28969e436fe44300c341c8c989d889fb67093bb7bee090d819e72977803ca",
     "author": "OrchestKit",
     "tags": [
       "architecture",
@@ -481,7 +481,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "async-jobs",
     "description": "Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.",
     "version": "2.0.0",
-    "sha256": "4ecac0c82fed398bdf477615af3859248c2af2171b03986feeef00a6e40bedb4",
+    "sha256": "88459723f3e54396d9fb009d5454dfdf73b178deb86743401d5d6f85ae0a2d40",
     "author": "OrchestKit",
     "tags": [
       "async",
@@ -782,7 +782,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Safety rules over the upstream agent-browser skill: scraping ethics, auth, request pacing, local URLs. Use for browser automation.",
     "version": "6.1.0",
-    "sha256": "a4967288de46ca08a4f34e343a05ada96997455a9b2648a2d2e602610e00ad0f",
+    "sha256": "b0a45a99aa82a4b31a062be62dec02528f4974391abae48bc1475ee9e238b6dd",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -1137,7 +1137,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "component-search",
     "description": "Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI component or an alternative to one.",
     "version": "1.1.0",
-    "sha256": "8641c1d218fb4a5a9e214f145ab550bb861870225a86c523abcad6828f835351",
+    "sha256": "4cd1d0a3d1156f5e0837f3f5e05974dbbbec30349b037a1da0fc9582c667e79b",
     "author": "OrchestKit",
     "tags": [
       "components",
@@ -1742,7 +1742,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-system-tokens",
     "description": "W3C design tokens: global, alias and component tiers, OKLCH color, Style Dictionary, dark mode. Use when creating token files or theme systems.",
     "version": "1.1.0",
-    "sha256": "33e0859673ad1d737866c08adcda8b9c7077476a15eb3e13d45fbb64512076cf",
+    "sha256": "bdb6e0783cc52bf4ee70cbf2dbe7644547b9fb7571bc63b36eb6733d561b74ec",
     "author": "OrchestKit",
     "tags": [
       "design-tokens",
@@ -1789,7 +1789,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "0dae5027b3427ec7b6d7236b51cf3eb7dfb280b8f7b579ee897bb5ec2ee4120c",
+    "sha256": "d55c9aa4c25786a27935318385ca2454ba36c1411046df01aa1ddcedb782d833",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1900,7 +1900,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "devops-deployment",
     "description": "CI/CD, containers and infrastructure as code: GitHub Actions, Docker, Kubernetes, Helm, Terraform. Use when setting up pipelines or deployments.",
     "version": "1.0.0",
-    "sha256": "3c8ac90157dd5a0da2fbbddcbd94b52ffebba771cb41ee4d8938f9eaed7b449f",
+    "sha256": "d333bb945d49eab148f9fece0c1e43c06e163f9d79bfba81b5531a323c4a0814",
     "author": "OrchestKit",
     "tags": [
       "devops",
@@ -2120,7 +2120,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "documentation-patterns",
     "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
     "version": "1.0.0",
-    "sha256": "2b1be18241105d4c4dc1e048ca57a8eb8fbba7546780292d81773e9e52247036",
+    "sha256": "cf9ff6486719436855399f68e8050f4f4068d5a0fd15542f91a0476dbd806181",
     "author": "OrchestKit",
     "tags": [
       "documentation",
@@ -2153,7 +2153,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "domain-driven-design",
     "description": "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure.",
     "version": "1.0.0",
-    "sha256": "f925384a76c231ed4917c6c21f1bbbed5a0a286e715678f52e3241cb3bd159ed",
+    "sha256": "7ffa2035baeb2cb768b0e8092d32a511011e3b611605ea8085819654df8e42dd",
     "author": "OrchestKit",
     "tags": [
       "ddd",
@@ -2515,7 +2515,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "figma-design-handoff",
     "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
     "version": "1.1.0",
-    "sha256": "f359b31f0a2df22ab2654f7895f8df0e7a02a9cef4a87b41bc1232810b1a2389",
+    "sha256": "0d2505dab70a43a6ea954a3b30467c550430a1d0cf2975600298f7db801bbd1b",
     "author": "OrchestKit",
     "tags": [
       "figma",
@@ -2675,7 +2675,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "github-operations",
     "description": "gh CLI and REST patterns for issues, PRs, milestones and Projects v2. Use when managing GitHub issues, PRs or projects.",
     "version": "1.1.0",
-    "sha256": "bead8277e7511200472369559ed5fd6134fcce47399541f62f13133c4df313d2",
+    "sha256": "3ca82f25e75073338faeda0140a6ed0471344f4cbf43435612fd4c708c98e2f3",
     "author": "OrchestKit",
     "tags": [
       "github",
@@ -2767,7 +2767,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "golden-dataset",
     "description": "Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines.",
     "version": "2.0.0",
-    "sha256": "ca30a03a23979c030f8c03cd6f9ae252d59dcd3ded494c21b62c504978ec0880",
+    "sha256": "a66a06bfebf8a83f4288e48aa2b90388280d73ba9cbed7d64ecdec65583f850a",
     "author": "OrchestKit",
     "tags": [
       "golden-dataset",
@@ -2844,7 +2844,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
     "version": "1.2.0",
-    "sha256": "a934b8202d3514eba08f3a568047ee8736b7b03784a4ab9eb8504581997ef088",
+    "sha256": "c88384f421120721f55981051ffab720a9f2ddf970f0c7184ec7ce9149dcb56b",
     "author": "Yonatan Gross",
     "tags": [
       "i18n",
@@ -2985,7 +2985,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "interaction-patterns",
     "description": "UI interaction design patterns for skeleton loading, infinite scroll with accessibility, progressive disclosure, modal/drawer/inline selection, drag-and-drop with keyboard alternatives, tab overflow handling, and toast notification positioning. Use when implementing loading states, content pagination, disclosure patterns, overlay components, reorderable lists, or notification systems.",
     "version": "1.0.0",
-    "sha256": "a164c14eb833f6b2fe83e0ad075b9471492f9c3782950644e5bfacefb232412a",
+    "sha256": "ad8d0143e7e3728aa985e04c6ae5d123e3dfd755bb7668eea270508f8e7ed283",
     "author": "OrchestKit",
     "tags": [
       "interaction-design",
@@ -3125,7 +3125,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs for AI-generated UIs.",
     "version": "1.3.1",
-    "sha256": "e5af673a11b53fe55908f53f31965df2ef166ca2cc24a9777e63a3a2fc6a7db9",
+    "sha256": "4ee43bce66f7673516ce176309f9a9b7d065a37edf731a3fe3205b052e0af8e6",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3165,7 +3165,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.3.0",
-    "sha256": "e536bebf3ac9ef8e93b356e194ce33d4ae618140cb3555caa8f1cbb383c973f7",
+    "sha256": "20120d210f7877f0751cd8fc4cd4663ba80166342b07c86c3c3fe3ee28530860",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -3208,7 +3208,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
     "version": "2.0.0",
-    "sha256": "a4448a2a6faa399ed2210e320f2d1c430e7a4d1563b38aeb24243e5350de418c",
+    "sha256": "caa04fc7d7a02435616124e5594c9d0a2bd3d1a552a1080215f2c5d565270c3e",
     "author": "OrchestKit",
     "tags": [
       "llm",
@@ -3295,7 +3295,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.",
     "version": "3.1.0",
-    "sha256": "fda8be00845ea0b67c071308435a0968ae1af7ea57dad5858ee2539dacbc76d0",
+    "sha256": "38f5a2301f3264ea7b29f479090e55ccfde4b9e9dbb9edae3ef313dba1f57208",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3340,7 +3340,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result reads better visually. Not for building the server.",
     "version": "1.1.0",
-    "sha256": "69c718440013657d329d9cda8cb5894410f5d03f91f4d2e81f81feb4069a386c",
+    "sha256": "13b4e6d1a38db10f04e746a981a5c739264162de919029c9eecdd759b79d10ee",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3596,7 +3596,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "f88ffa4f083abdf712ce79ff10ce5dea3cdd6b688900b897a16edb30a00a1e28",
+    "sha256": "628cc50d45d499233aa4412ec9dac7af92ed8adf9f44f47aa2b49671b3e8114a",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3732,7 +3732,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "performance",
     "description": "Performance patterns: Core Web Vitals, React renders, lazy loading, images, backend profiling, LLM inference. Use when improving page speed, slow renders, bundle size or backend latency.",
     "version": "2.1.0",
-    "sha256": "ce6285760e557522b7831d2c02593b98018f0d3358238ae1cb70c03287e8abbd",
+    "sha256": "752178f265f47544176f826aa3e42ebaf2ae45821cf291fe6ae0478845faedda",
     "author": "OrchestKit",
     "tags": [
       "performance",
@@ -3925,7 +3925,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "product-analytics",
     "description": "A/B test evaluation, cohort retention, funnels and significance. Use when analyzing experiments, feature adoption or conversion drop-offs.",
     "version": "1.0.0",
-    "sha256": "894e6216a08f5bfba42f24a012de22bedf2364f1b2a1dac4326ad6db94e3117c",
+    "sha256": "15cf238287df8eba517ccc9c58a3a3207b574a7271379ef3004ad688c4215b02",
     "author": "OrchestKit",
     "tags": [
       "ab-test",
@@ -4076,7 +4076,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "python-backend",
     "description": "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design).",
     "version": "2.0.0",
-    "sha256": "e3a3cb184a85231acc4619ad1206863972586039dcc8ba3e60bf61f367135e44",
+    "sha256": "962ac47ad897c7ec5888138066c5d166d4e4a95adbb588c9867187514374afee",
     "author": "OrchestKit",
     "tags": [
       "python",
@@ -4129,7 +4129,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "quality-gates",
     "description": "Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after repeated failed attempts.",
     "version": "1.3.0",
-    "sha256": "e48fc31ce1272d43d5be6416863ec09b91fc54c49d04380f94630a204a38882b",
+    "sha256": "d5c7fb5299771b57d0b96c16fd6562283bee4cf60786cfd2db3a5fda550d6f18",
     "author": "OrchestKit",
     "tags": [
       "quality",
@@ -4178,7 +4178,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
     "version": "2.0.0",
-    "sha256": "0ae17cc1ec96ddc2830022fb4304effb9fd8d6994eb467cd90b1506dd07e6b9a",
+    "sha256": "8db1d4ddec173bdcddbf27cc450f53eb5164f2011f594045bf6cbc1827fa2fe0",
     "author": "OrchestKit",
     "tags": [
       "rag",
@@ -4425,7 +4425,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "responsive-patterns",
     "description": "Responsive design with Container Queries, fluid typography, cqi/cqb units, subgrid, intrinsic layouts, foldable devices, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.",
     "version": "1.1.0",
-    "sha256": "aa772df04ec24fc858c0ba4e5f23de6cecddc1d88faa2416679292da6e378bdb",
+    "sha256": "3e987d8878215789c922972d87f7608fb3bfa3450faf581344c18465c980b90e",
     "author": "OrchestKit",
     "tags": [
       "responsive",
@@ -4625,7 +4625,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Auth, defense in depth, input validation, OWASP Top 10, LLM prompt-injection defense and PII masking. Use when implementing auth or security layers.",
     "version": "2.0.0",
-    "sha256": "f1e0198b8774af670e9dae6d2cf0c144c2b31bf61efa1fc39cb18c8bda44918d",
+    "sha256": "fc17697df905585025eab9f6529d86a6bf201711c1e42ed19ba614c580aa1444",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -5082,7 +5082,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-llm",
     "description": "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features.",
     "version": "2.1.0",
-    "sha256": "1dfe090a0f3e4fdd30f41d845f283dd43efd57663503607153871f8d5424071e",
+    "sha256": "3cad76a8f88101a15f16e5d249cf1a7f6c20a43c35b9f41b71b03f3132728764",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -5236,7 +5236,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ui-components",
     "description": "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.",
     "version": "2.1.0",
-    "sha256": "885aedcae4aacf43d925db1957cc91f39fcfea7341c7fb40fe6b3cc27c4173ec",
+    "sha256": "2ad8814dbf4a0b13ee2ff7fffddfc85d212accd8456baeb9369682e3634288bc",
     "author": "OrchestKit",
     "tags": [
       "ui-components",
@@ -5492,7 +5492,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "vite-advanced",
     "description": "Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
     "version": "2.0.0",
-    "sha256": "f3d6bc29618ff8f8b3942b049b7301a21e3b6c1800a5a6ef954586d509462905",
+    "sha256": "be6890c2bce8e799bc4d089ae4fa7ea80ef647a18b504f7f4421bea6c700762b",
     "author": "OrchestKit",
     "tags": [
       "vite",

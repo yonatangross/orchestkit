@@ -160,8 +160,8 @@ Choosing the right AI tool and iterating effectively.
 - `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
 - `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
 - `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:animation-motion-design` — Motion library animation patterns
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:animation-motion-design` — Motion library animation patterns
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:design-system-tokens` — Design token architecture and theming

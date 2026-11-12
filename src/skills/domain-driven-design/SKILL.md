@@ -170,7 +170,7 @@ boundaries, invariants, and sizing, which live in full in `rules/`.
 
 - `rules/aggregate-boundaries.md`, `rules/aggregate-invariants.md`, `rules/aggregate-sizing.md` - aggregate design, in this skill
 - `ork:architecture-patterns` - Layer boundaries and project structure validation
-- `ork:distributed-systems` - Cross-aggregate coordination
+- `ork-extras:distributed-systems` - Cross-aggregate coordination
 - `ork:database-patterns` - Schema design for DDD
 
 ## References

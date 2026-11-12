@@ -166,5 +166,5 @@ Vendor tutorials, API references, and criterion walkthroughs removed in the 2026
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing
 - `design-system-starter` - Accessible component library patterns
-- `ork:i18n-date-patterns` - RTL layout and locale-aware formatting
+- `ork-extras:i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility

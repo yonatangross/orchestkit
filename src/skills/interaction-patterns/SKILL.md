@@ -203,8 +203,8 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 ## Related Skills
 
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:animation-motion-design` — Motion library and View Transitions API
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:animation-motion-design` — Motion library and View Transitions API
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:performance` — Core Web Vitals and runtime performance optimization

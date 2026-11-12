@@ -232,6 +232,6 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 
 - `ork:testing-unit` — Unit testing fundamentals, AAA pattern
 - `ork:testing-integration` — Integration testing for AI pipelines
-- `ork:golden-dataset` — Evaluation dataset management
+- `ork-extras:golden-dataset` — Evaluation dataset management
 - `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
 - `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`

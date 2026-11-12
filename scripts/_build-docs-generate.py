@@ -16,6 +16,38 @@ import shutil
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
+# Plugin namespace per skill (#4936)
+# ---------------------------------------------------------------------------
+# A skill that ships in an add-on plugin (ork-extras) is invoked under that
+# plugin's namespace, /ork-extras:<skill>, not /ork:<skill>. The manifests are
+# the source: any manifest other than ork with a skills array claims those
+# names. Read once; a missing manifests/ dir means everything is core ork.
+_MANIFESTS_DIR = Path(__file__).resolve().parent.parent / "manifests"
+
+
+def _load_skill_namespaces() -> dict[str, str]:
+    owners: dict[str, str] = {}
+    if not _MANIFESTS_DIR.is_dir():
+        return owners
+    for manifest in sorted(_MANIFESTS_DIR.glob("*.json")):
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+        name = data.get("name")
+        skills = data.get("skills")
+        if name and name != "ork" and isinstance(skills, list):
+            for skill in skills:
+                owners[skill] = name
+    return owners
+
+
+_SKILL_NAMESPACES = _load_skill_namespaces()
+
+
+def skill_namespace(slug: str) -> str:
+    """The plugin namespace a skill is invoked under: ork or an add-on."""
+    return _SKILL_NAMESPACES.get(slug, "ork")
+
+
+# ---------------------------------------------------------------------------
 # YAML frontmatter parser (no external deps)
 # ---------------------------------------------------------------------------
 
@@ -885,7 +917,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         # booleans, so the .get returns a real bool.
         if user_invocable:
             lines.append('```bash title="Invoke"')
-            lines.append(f"/ork:{slug}")
+            lines.append(f"/{skill_namespace(slug)}:{slug}")
             lines.append("```")
             lines.append("")
         elif meta.get("disable-model-invocation", False):
@@ -2286,9 +2318,10 @@ def generate_command_skills(skills_src: str, out_file: str, reference_count: int
         meta = commands[slug]
         desc = _ref_table_cell(_plain_dashes(_first_sentence(meta.get("description", "") or "")))
         hint = (meta.get("argument-hint", "") or "").strip()
-        usage = _ref_table_cell(f"`/ork:{slug} {hint}`" if hint else f"`/ork:{slug}`")
+        ns = skill_namespace(slug)
+        usage = _ref_table_cell(f"`/{ns}:{slug} {hint}`" if hint else f"`/{ns}:{slug}`")
         cplx = meta.get("complexity", "") or "-"
-        return f"| [`/ork:{slug}`](/docs/reference/skills/{slug}) | {desc} | {cplx} | {usage} |"
+        return f"| [`/{ns}:{slug}`](/docs/reference/skills/{slug}) | {desc} | {cplx} | {usage} |"
 
     lines = [
         "---",

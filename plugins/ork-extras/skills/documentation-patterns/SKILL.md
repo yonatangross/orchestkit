@@ -86,6 +86,6 @@ Technical writing conventions for clear, scannable documentation.
 
 - `ork:api-design` -- API design patterns (complements OpenAPI documentation)
 - `ork:architecture-decision-record` -- ADR workflow and lifecycle
-- `ork:release-management` -- Release process including changelog updates
+- `ork-extras:release-management` -- Release process including changelog updates
 
 **Version:** 1.0.0 (March 2026)

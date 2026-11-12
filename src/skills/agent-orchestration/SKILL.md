@@ -91,7 +91,7 @@ Local tutorials for these topics were retired; consult the first-party source an
 | Topic | First-party source |
 |-------|--------------------|
 | ReAct / plan-and-execute / self-correction loop implementations | OpenAI function calling guide (https://platform.openai.com/docs/guides/function-calling); LangGraph tutorials (context7: /langchain-ai/langgraph) |
-| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork:langgraph` supervisor patterns |
+| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork-extras:langgraph` supervisor patterns |
 | CrewAI (crews, Flows, MCP tools, guardrails) | CrewAI docs (https://docs.crewai.com); context7: /crewaiinc/crewai |
 | OpenAI Agents SDK (handoffs, sessions, guardrails, MCP) | https://openai.github.io/openai-agents-python/ ; context7: /openai/openai-agents-python |
 | Microsoft Agent Framework / AutoGen (teams, termination, A2A) | https://learn.microsoft.com/en-us/agent-framework/ ; context7: /microsoft/autogen |
@@ -130,7 +130,7 @@ Local tutorials for these topics were retired; consult the first-party source an
 
 ## Related Skills
 
-- `ork:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
+- `ork-extras:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
 - `function-calling` - Tool definitions and execution
 - `ork:task-dependency-patterns` - Task management with Agent Teams workflow
 

@@ -248,7 +248,7 @@ The `design-system-architect` agent orchestrates token workflows end-to-end — 
 
 ## Related Skills
 
-- `ork:ui-components` — Component library patterns (shadcn/ui, Radix)
-- `ork:accessibility` — WCAG compliance, contrast ratios
-- `ork:responsive-patterns` — Responsive breakpoints, fluid typography
-- `ork:figma-design-handoff` — Figma Variables to tokens pipeline
+- `ork-extras:ui-components` — Component library patterns (shadcn/ui, Radix)
+- `ork-extras:accessibility` — WCAG compliance, contrast ratios
+- `ork-extras:responsive-patterns` — Responsive breakpoints, fluid typography
+- `ork-extras:figma-design-handoff` — Figma Variables to tokens pipeline
