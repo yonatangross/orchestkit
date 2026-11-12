@@ -91,7 +91,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/cookbook/setup-memory": {
       "title": "Set Up Cross-Session Memory",
-      "inbound": 5
+      "inbound": 7
     },
     "/docs/cookbook/task-management": {
       "title": "Task Management Patterns",
@@ -173,6 +173,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Find What You Need",
       "inbound": 2
     },
+    "/docs/getting-started/ork-extras": {
+      "title": "ork-extras, the opt-in reference skills",
+      "inbound": 0
+    },
     "/docs/getting-started/sandbox": {
       "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
       "inbound": 2
@@ -234,11 +238,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/hooks/overview": {
-      "title": "161 Hooks: What Fires When",
+      "title": "163 Hooks: What Fires When",
       "inbound": 3
     },
     "/docs/hooks/safety-hooks": {
-      "title": "Security Gates and File Guards",
+      "title": "Security Gates and Operator Deny Rules",
       "inbound": 4
     },
     "/docs/hooks/spotlights/memory-validator": {
@@ -278,7 +282,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 3
     },
     "/docs/memory/native-cc-memory": {
-      "title": "Auto-Sync to MEMORY.md",
+      "title": "CC Native MEMORY.md",
       "inbound": 2
     },
     "/docs/memory/overview": {
@@ -793,13 +797,17 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Devops Deployment",
       "inbound": 6
     },
+    "/docs/reference/skills/disk-cleanup": {
+      "title": "Disk Cleanup",
+      "inbound": 4
+    },
     "/docs/reference/skills/distributed-systems": {
       "title": "Distributed Systems",
       "inbound": 2
     },
     "/docs/reference/skills/doctor": {
       "title": "Doctor",
-      "inbound": 24
+      "inbound": 25
     },
     "/docs/reference/skills/doctor/references/agent-memory-dir": {
       "title": "Doctor: Per-agent memory directory",
@@ -863,19 +871,23 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor/references/version-compatibility/00-overview": {
       "title": "Doctor: Version Compatibility: Overview",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1": {
-      "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 2)",
-      "inbound": 4
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 3)",
+      "inbound": 5
     },
     "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2": {
-      "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 2)",
-      "inbound": 4
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 3)",
+      "inbound": 5
     },
-    "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation": {
+    "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3": {
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 3 of 3)",
+      "inbound": 5
+    },
+    "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation": {
       "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/doctor/rules": {
       "title": "Doctor: Rules",
@@ -1258,7 +1270,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "43 Commands You Can Invoke",
+      "title": "44 Commands You Can Invoke",
       "inbound": 11
     },
     "/docs/skills/dependency-graph": {
@@ -1453,6 +1465,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/getting-started/skills-sh"
     ],
     "/docs/getting-started/claude-code": [
+      "/docs/cookbook/setup-memory",
       "/docs/foundations/mcp-servers",
       "/docs/getting-started/configuration",
       "/docs/getting-started/first-10-minutes",
@@ -1464,6 +1477,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/guides/orchestkit-on-pi-codex-cursor"
     ],
     "/docs/getting-started/configuration": [
+      "/docs/cookbook/setup-memory",
       "/docs/foundations/mcp-servers",
       "/docs/foundations/skills-agents-hooks",
       "/docs/getting-started/installation",
@@ -1513,6 +1527,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/skills/command-skills",
       "/docs/skills/overview"
     ],
+    "/docs/getting-started/ork-extras": [],
     "/docs/getting-started/sandbox": [
       "/docs/foundations/mcp-servers",
       "/docs/getting-started/installation"
@@ -2029,6 +2044,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/dev",
       "/docs/reference/skills/devops-deployment",
+      "/docs/reference/skills/disk-cleanup",
       "/docs/reference/skills/distributed-systems",
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/documentation-patterns",
@@ -2187,6 +2203,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/design-to-code": [],
     "/docs/reference/skills/dev": [],
     "/docs/reference/skills/devops-deployment": [],
+    "/docs/reference/skills/disk-cleanup": [],
     "/docs/reference/skills/distributed-systems": [],
     "/docs/reference/skills/doctor": [
       "/docs/reference/skills/doctor/references/agent-memory-dir",
@@ -2207,7 +2224,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
       "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
       "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
-      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
+      "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3",
+      "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation",
       "/docs/reference/skills/doctor/rules"
     ],
     "/docs/reference/skills/doctor/references/agent-memory-dir": [
@@ -2259,25 +2277,36 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
       "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
-      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
+      "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3",
+      "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1": [
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
       "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
-      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
+      "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3",
+      "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2": [
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
       "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
-      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
+      "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3",
+      "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation"
     ],
-    "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation": [
+    "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3": [
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
       "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
-      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2"
+      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+      "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation"
+    ],
+    "/docs/reference/skills/doctor/references/version-compatibility/04-prompt-caching-recommendation": [
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+      "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+      "/docs/reference/skills/doctor/references/version-compatibility/03-feature-matrix-part-3"
     ],
     "/docs/reference/skills/doctor/rules": [
       "/docs/reference/skills/doctor"
@@ -2460,6 +2489,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/configure",
       "/docs/reference/skills/create-pr",
       "/docs/reference/skills/devops-deployment",
+      "/docs/reference/skills/disk-cleanup",
       "/docs/reference/skills/documentation-patterns",
       "/docs/reference/skills/emulate-seed",
       "/docs/reference/skills/fix-issue",
@@ -2579,6 +2609,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/design-stylecards",
       "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/dev",
+      "/docs/reference/skills/disk-cleanup",
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/dream",
       "/docs/reference/skills/expect",
@@ -2627,6 +2658,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/design-stylecards",
       "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/dev",
+      "/docs/reference/skills/disk-cleanup",
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/dream",
       "/docs/reference/skills/expect",

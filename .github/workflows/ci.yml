@@ -96,6 +96,20 @@ jobs:
       # (release-please.yml "Rebuild hook bundles on the release PR"), so
       # feature PRs never touch them and never conflict on them. The next step
       # enforces the other half: a feature PR must not carry a dist change.
+      #
+      # docs/site/lib/generated/related-graph.ts and search-suggest-index.ts are
+      # written by docs/site's prebuild (gen-related-graph, gen-search-suggest-index),
+      # not by the root `npm run build`, so they sat inside the GENERATED roster
+      # below while nothing in this job ever regenerated them: they went stale
+      # on main ("161 Hooks" where the count was 163, no ork-extras page) and the
+      # diff stayed green. Both scripts import only node builtins and repo
+      # scripts, so they run here without a docs/site install. They must run
+      # before the drift diff.
+      - name: Regenerate docs-site link graph and search index
+        run: |
+          node docs/site/scripts/gen-related-graph.mjs
+          node docs/site/scripts/gen-search-suggest-index.mjs
+
       - name: Check for uncommitted build changes
         run: |
           # docs/site/public/lab/ joined 2026-09-11 (#4049): lab-manifest.mjs now
@@ -136,6 +150,9 @@ jobs:
               case "$f" in
                 plugins/ork/skills/*)
                   echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+                docs/site/lib/generated/related-graph.ts|docs/site/lib/generated/search-suggest-index.ts)
+                  # Written by docs/site prebuild, not by the root npm run build.
+                  echo "::error::$f is not written by 'npm run build'. Run: node docs/site/scripts/gen-related-graph.mjs && node docs/site/scripts/gen-search-suggest-index.mjs" ;;
               esac
             done
             exit 1

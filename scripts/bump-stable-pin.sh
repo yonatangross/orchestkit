@@ -13,7 +13,8 @@
 # entries: `ork` pinned to the last stable tag, and `ork-alpha` tracking main.
 # Three things write that file today and NONE of them moves the pin:
 #
-#   .release-please-config.json  ->  $.plugins[1].version   (alpha only, by index)
+#   .release-please-config.json  ->  $.plugins[1].version (alpha) and
+#                                    $.plugins[2].version (ork-extras), by index
 #   scripts/stamp-counts.sh      ->  the entry whose source.ref == "main"
 #   scripts/stamp-counts.sh      ->  descriptions
 #
