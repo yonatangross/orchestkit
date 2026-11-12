@@ -225,7 +225,7 @@ EXCLUDE_MANIFEST="${SKILL_EXCLUDE_MANIFEST:-$PROJECT_ROOT/manifests/ork.json}"
 MOVED_MANIFEST="${MOVED_MANIFEST:-$PROJECT_ROOT/manifests/ork-extras.json}"
 
 # names_of FILE KEY: the sorted string array at .KEY of a JSON file, one per line
-names_of() { jq -r ".$2[]?" "$1" | LC_ALL=C sort; }
+names_of() { jq -r --arg k "$2" '.[$k][]?' "$1" | LC_ALL=C sort; }
 
 EXCLUDED_NAMES="$(names_of "$EXCLUDE_MANIFEST" skillsExclude)"
 MOVED_NAMES="$(names_of "$MOVED_MANIFEST" skills)"
