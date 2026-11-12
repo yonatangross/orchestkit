@@ -211,6 +211,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Hub-and-spoke navigation: find the right skills and agents for your role and task."
   },
   {
+    "url": "/docs/getting-started/ork-extras",
+    "title": "ork-extras, the opt-in reference skills",
+    "description": "26 library and engineering skills moved from core ork to the opt-in ork-extras plugin. How to install it, the new /ork-extras: names, and what each host gets."
+  },
+  {
     "url": "/docs/getting-started/sandbox",
     "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
     "description": "Exercise OrchestKit without touching real data: read-only hosted tools (every call is a dry run), a dry-run install plan, and a throwaway local project."

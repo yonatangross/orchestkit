@@ -1,0 +1,207 @@
+---
+name: agent-orchestration
+license: MIT
+compatibility: "Claude Code 2.1.277+."
+description: Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.
+user-invocable: false
+effort: high
+metadata:
+  owner-agent: "workflow-architect"
+  category: workflow-automation
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
+---
+
+# Agent Orchestration
+
+Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Coordination and multi-scenario categories have individual rule files in `rules/` loaded on-demand; loop and framework tutorials live upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)), with house defaults in `references/ork-delta.md`.
+
+> **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
+>
+> **Ask only when genuinely blocked (CC 2.1.154):** CC now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, rather than asking when it already has enough context to proceed. When orchestrating agents, don't gate progress on an `AskUserQuestion` the lead can resolve from available context — reserve prompts for true branch points (irreversible actions, missing requirements). This complements ork's voice-friendly decision guidance.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Agent Loops](#agent-loops) | upstream | HIGH | ReAct reasoning, plan-and-execute, self-correction |
+| [Multi-Agent Coordination](#multi-agent-coordination) | 2 | CRITICAL | Supervisor routing, agent debate, result synthesis |
+| [Alternative Frameworks](#alternative-frameworks) | upstream | HIGH | CrewAI crews, AutoGen teams, framework comparison |
+| [Multi-Scenario](#multi-scenario) | 2 | MEDIUM | Parallel scenario orchestration, difficulty routing |
+
+**Total: 4 rules across 4 categories.** Loop and framework tutorials moved to first-party sources; the rescued house defaults live in `references/ork-delta.md`.
+
+## Quick Start
+
+```python
+# ReAct agent loop
+async def react_loop(question: str, tools: dict, max_steps: int = 10) -> str:
+    history = REACT_PROMPT.format(tools=list(tools.keys()), question=question)
+    for step in range(max_steps):
+        response = await llm.chat([{"role": "user", "content": history}])
+        if "Final Answer:" in response.content:
+            return response.content.split("Final Answer:")[-1].strip()
+        if "Action:" in response.content:
+            action = parse_action(response.content)
+            result = await tools[action.name](*action.args)
+            history += f"\nObservation: {result}\n"
+    return "Max steps reached without answer"
+```
+
+```python
+# Supervisor with fan-out/fan-in
+async def multi_agent_analysis(content: str) -> dict:
+    agents = [("security", security_agent), ("perf", perf_agent)]
+    tasks = [agent(content) for _, agent in agents]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return await synthesize_findings(results)
+```
+
+## Agent Loops
+
+Patterns for autonomous LLM reasoning: ReAct (Reasoning + Acting), Plan-and-Execute with replanning, self-correction loops, and sliding-window memory management.
+
+**Key decisions:** Max steps 5-15, temperature 0.3-0.7, memory window 10-20 messages.
+
+## Multi-Agent Coordination
+
+Fan-out/fan-in parallelism, supervisor routing with dependency ordering, conflict resolution (confidence-based or LLM arbitration), result synthesis, and CC Agent Teams (mesh topology for peer messaging in CC 2.1.33+).
+
+**Key decisions:** 3-8 specialists, parallelize independent agents. Pick one of three modes: the Agent tool (star) for simple work, Agent Teams (mesh) for cross-cutting concerns, and a Workflow for large background fan-out you check back on later.
+
+## Alternative Frameworks
+
+CrewAI hierarchical crews with Flows (1.8+), OpenAI Agents SDK handoffs and guardrails (0.12+), Microsoft Agent Framework (AutoGen + SK merger), GPT-5.2-Codex for long-horizon coding, and AG2 for open-source flexibility.
+
+**Key decisions:** Match framework to team expertise + use case. LangGraph for state machines, CrewAI for role-based teams, OpenAI SDK for handoff workflows, MS Agent for enterprise compliance.
+
+## Multi-Scenario
+
+Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) with progressive difficulty scaling (1x/3x/8x), milestone synchronization, and cross-scenario result aggregation.
+
+**Key decisions:** Free-running with checkpoints, always 3 scenarios, 1x/3x/8x exponential scaling, 30s/90s/300s time budgets.
+
+## Upstream coverage (do not restate)
+
+Local tutorials for these topics were retired; consult the first-party source and keep only house deltas in `references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| ReAct / plan-and-execute / self-correction loop implementations | OpenAI function calling guide (https://platform.openai.com/docs/guides/function-calling); LangGraph tutorials (context7: /langchain-ai/langgraph) |
+| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork:langgraph` supervisor patterns |
+| CrewAI (crews, Flows, MCP tools, guardrails) | CrewAI docs (https://docs.crewai.com); context7: /crewaiinc/crewai |
+| OpenAI Agents SDK (handoffs, sessions, guardrails, MCP) | https://openai.github.io/openai-agents-python/ ; context7: /openai/openai-agents-python |
+| Microsoft Agent Framework / AutoGen (teams, termination, A2A) | https://learn.microsoft.com/en-us/agent-framework/ ; context7: /microsoft/autogen |
+| GPT-5.2-Codex capabilities, pricing, IDE integrations | OpenAI model docs (https://platform.openai.com/docs/models) |
+| Multi-scenario state machine, architecture and skill-agnostic template deep-dives | Superseded in-skill by `rules/scenario-orchestrator.md` and `rules/scenario-routing.md` |
+
+## References
+
+- `references/ork-delta.md` - House defaults and dated decisions rescued from retired tutorials
+- `references/framework-comparison.md` - Condensed framework decision matrix and use-case table
+- `references/langgraph-implementation.md` - LangGraph 1.2+ implementation of the multi-scenario orchestrator
+- `references/claude-code-instance-management.md` - Running 3 parallel Claude Code instances for scenario demos
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Single vs multi-agent | Single for focused tasks, multi for decomposable work |
+| Max loop steps | 5-15 (prevent infinite loops) |
+| Agent count | 3-8 specialists per workflow |
+| Framework | Match to team expertise + use case |
+| Topology | Agent tool (star) for simple; Agent Teams (mesh) for complex; Workflow for large background fan-out |
+| Scenario count | Always 3: simple, medium, complex |
+
+## Common Mistakes
+
+- No step limit in agent loops (infinite loops)
+- No memory management (context overflow)
+- No error isolation in multi-agent (one failure crashes all)
+  - Note (CC 2.1.161): parallel *tool calls* now fail independently — a failed Bash no longer cancels siblings in the same batch. This caveat still applies at the agent-orchestration level, not to tool batches; `claude agents` rows now show `done/total` for fanned-out work.
+  - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent <name>` overrides it — pin the agent type explicitly when dispatching.
+- Missing synthesis step (raw agent outputs not useful)
+- Mixing frameworks in one project (complexity explosion)
+- Using Agent Teams for simple sequential work (use the Agent tool)
+- Sequential instead of parallel scenarios (defeats purpose)
+
+## Related Skills
+
+- `ork:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
+- `function-calling` - Tool definitions and execution
+- `ork:task-dependency-patterns` - Task management with Agent Teams workflow
+
+## Capability Details
+
+### react-loop
+**Keywords:** react, reason, act, observe, loop, agent
+**Solves:**
+- Implement ReAct pattern
+- Create reasoning loops
+- Build iterative agents
+
+### plan-execute
+**Keywords:** plan, execute, replan, multi-step, autonomous
+**Solves:**
+- Create plan then execute steps
+- Implement replanning on failure
+- Build goal-oriented agents
+
+### supervisor-coordination
+**Keywords:** supervisor, route, coordinate, fan-out, fan-in, parallel
+**Solves:**
+- Route tasks to specialized agents
+- Run agents in parallel
+- Aggregate multi-agent results
+
+### agent-debate
+**Keywords:** debate, conflict, resolution, arbitration, consensus
+**Solves:**
+- Resolve agent disagreements
+- Implement LLM arbitration
+- Handle conflicting outputs
+
+### result-synthesis
+**Keywords:** synthesize, combine, aggregate, merge, summary
+**Solves:**
+- Combine outputs from multiple agents
+- Create executive summaries
+- Score confidence across findings
+
+### crewai-patterns
+**Keywords:** crewai, crew, hierarchical, delegation, role-based, flows
+**Solves:**
+- Build role-based agent teams
+- Implement hierarchical coordination
+- Use Flows for event-driven orchestration
+
+### autogen-patterns
+**Keywords:** autogen, microsoft, agent framework, teams, enterprise, a2a
+**Solves:**
+- Build enterprise agent systems
+- Use AutoGen/SK merged framework
+- Implement A2A protocol
+
+### framework-selection
+**Keywords:** choose, compare, framework, decision, which, crewai, autogen, openai
+**Solves:**
+- Select appropriate framework
+- Compare framework capabilities
+- Match framework to requirements
+
+### scenario-orchestrator
+**Keywords:** scenario, parallel, fan-out, difficulty, progressive, demo
+**Solves:**
+- Run skill across multiple difficulty levels
+- Implement parallel scenario execution
+- Aggregate cross-scenario results
+
+### scenario-routing
+**Keywords:** route, synchronize, milestone, checkpoint, scaling
+**Solves:**
+- Route tasks by difficulty level
+- Synchronize at milestones
+- Scale inputs progressively

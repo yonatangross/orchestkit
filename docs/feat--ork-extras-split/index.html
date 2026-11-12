@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork-extras split: which plugin ships each skill</title>
+<style>
+  :root { --bg:#0b1020; --panel:#121a33; --ink:#e6ebff; --dim:#9aa6cc; --core:#06b6d4; --extras:#a78bfa; --line:#24305a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .lead { color: var(--dim); margin: 0 0 24px; }
+  .meter { display:flex; height: 34px; border-radius: 8px; overflow: hidden; border:1px solid var(--line); margin-bottom: 8px; }
+  .meter div { display:flex; align-items:center; padding: 0 10px; font-weight: 600; color:#0b1020; white-space: nowrap; }
+  .legend { display:flex; gap: 18px; color: var(--dim); font-size: 13px; margin-bottom: 28px; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align: middle; }
+  .controls { display:flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  input[type=search] { flex: 1 1 260px; padding: 9px 12px; border-radius: 8px; border:1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 15px; }
+  .seg button { padding: 8px 12px; border:1px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; }
+  .seg button:first-child { border-radius: 8px 0 0 8px; } .seg button:last-child { border-radius: 0 8px 8px 0; }
+  .seg button[aria-pressed=true] { color: var(--ink); background: #1d2850; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .chip { text-align:left; padding: 9px 11px; border-radius: 8px; border:1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font: inherit; }
+  .chip small { display:block; color: var(--dim); font-size: 12px; }
+  .chip.core { border-left: 4px solid var(--core); } .chip.extras { border-left: 4px solid var(--extras); }
+  .chip[aria-selected=true] { outline: 2px solid var(--ink); }
+  .card { margin-top: 22px; padding: 18px; border-radius: 10px; background: var(--panel); border:1px solid var(--line); }
+  .card h2 { margin: 0 0 8px; font-size: 18px; }
+  code { background:#0b1020; padding: 2px 6px; border-radius: 5px; }
+  .row { display:flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+  .arrow { color: var(--dim); }
+  .actions { margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap; }
+  .actions button { padding: 9px 14px; border-radius: 8px; border: 0; background: var(--extras); color: #0b1020; font-weight: 600; cursor: pointer; }
+  .note { color: var(--dim); font-size: 13px; margin-top: 26px; }
+  #copied { color: var(--core); font-size: 13px; min-height: 1em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Which plugin ships each skill after the ork-extras split</h1>
+  <p class="lead">Core <b>ork</b> keeps 90 skills. 26 reference skills move to the opt-in <b>ork-extras</b> plugin and change their name from <code>/ork:&lt;skill&gt;</code> to <code>/ork-extras:&lt;skill&gt;</code>. Search any skill to see where it lives and how to call it.</p>
+
+  <div class="meter" id="meter" aria-label="Skill split"></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--core)"></span>ork (core, installed by default)</span>
+    <span><span class="dot" style="background:var(--extras)"></span>ork-extras (opt-in)</span>
+  </div>
+
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search a skill, e.g. langgraph, verify, accessibility" aria-label="Search skills">
+    <div class="seg" role="group" aria-label="Filter">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="extras" aria-pressed="false">Moved</button>
+      <button data-f="business" aria-pressed="false">Business (stays)</button>
+    </div>
+  </div>
+  <div class="grid" id="grid" role="listbox" aria-label="Skills"></div>
+
+  <div class="card" id="card" aria-live="polite"></div>
+
+  <p class="note">The moved skills are the same files, published from the same repository; nothing was deleted. Until a release that contains ork-extras exists, its marketplace entry tracks main while stable ork stays pinned to its tag, so for one release the two can differ. Cursor installs ork-extras from the same OrchestKit marketplace as ork. Codex does not export it; Antigravity is not verified.</p>
+</main>
+<script>
+const MOVED = {
+  "library": ["ai-ui-generation","animation-motion-design","async-jobs","figma-design-handoff","i18n-date-patterns","langgraph","llm-integration","mcp-patterns","monitoring-observability","multimodal-llm","portless","rag-retrieval","storybook-testing","ui-components","vite-advanced","zustand-patterns"],
+  "engineering domain": ["accessibility","agent-orchestration","design-stylecards","distributed-systems","documentation-patterns","domain-driven-design","golden-dataset","interaction-patterns","release-management","responsive-patterns"]
+};
+const BUSINESS = ["business-case","competitive-analysis","market-sizing","okr-design","prioritization","product-analytics","product-frameworks","user-research"];
+const CORE_SAMPLE = ["assess","brainstorm","commit","cover","create-pr","explore","fix-issue","glyph","implement","memory","remember","review-pr","verify"];
+const INVOCABLE_MOVED = new Set(["design-stylecards"]);
+const CORE_TOTAL = 90, EXTRAS_TOTAL = 26;
+
+const skills = [];
+for (const [group, names] of Object.entries(MOVED)) for (const n of names) skills.push({ n, plugin: "extras", group });
+for (const n of BUSINESS) skills.push({ n, plugin: "core", group: "business (stays in core)" });
+for (const n of CORE_SAMPLE) skills.push({ n, plugin: "core", group: "workflow (core)" });
+skills.sort((a, b) => a.n.localeCompare(b.n));
+
+const meter = document.getElementById("meter");
+const total = CORE_TOTAL + EXTRAS_TOTAL;
+for (const [label, n, color] of [["ork " + CORE_TOTAL, CORE_TOTAL, "var(--core)"], ["ork-extras " + EXTRAS_TOTAL, EXTRAS_TOTAL, "var(--extras)"]]) {
+  const d = document.createElement("div");
+  d.style.width = (100 * n / total) + "%";
+  d.style.background = color;
+  d.textContent = label;
+  meter.appendChild(d);
+}
+
+let filter = "all", selected = "langgraph";
+const grid = document.getElementById("grid"), card = document.getElementById("card"), q = document.getElementById("q");
+
+function visible(s) {
+  const term = q.value.trim().toLowerCase();
+  if (term && !s.n.includes(term)) return false;
+  if (filter === "extras") return s.plugin === "extras";
+  if (filter === "business") return s.group.startsWith("business");
+  return true;
+}
+
+function renderGrid() {
+  grid.innerHTML = "";
+  const term = q.value.trim().toLowerCase();
+  const shown = skills.filter(visible);
+  if (term && !shown.length) {
+    const p = document.createElement("p");
+    p.style.color = "var(--dim)";
+    p.textContent = "Not in the moved list or the business list, so it stays in core ork under /ork:" + term + ".";
+    grid.appendChild(p);
+  }
+  for (const s of shown) {
+    const b = document.createElement("button");
+    b.className = "chip " + s.plugin;
+    b.setAttribute("role", "option");
+    b.setAttribute("aria-selected", String(s.n === selected));
+    b.innerHTML = "";
+    b.append(s.n);
+    const small = document.createElement("small");
+    small.textContent = s.group;
+    b.appendChild(small);
+    b.onclick = () => { selected = s.n; renderGrid(); renderCard(); };
+    grid.appendChild(b);
+  }
+}
+
+function renderCard() {
+  const s = skills.find(x => x.n === selected);
+  card.innerHTML = "";
+  if (!s) return;
+  const h = document.createElement("h2");
+  h.textContent = s.n;
+  card.appendChild(h);
+  const row = document.createElement("div");
+  row.className = "row";
+  if (s.plugin === "extras") {
+    row.innerHTML = "<code></code><span class='arrow'>moves to</span><code></code>";
+    row.children[0].textContent = "ork:" + s.n;
+    row.children[2].textContent = "ork-extras:" + s.n;
+  } else {
+    row.innerHTML = "<code></code><span class='arrow'>unchanged, stays in core ork</span>";
+    row.children[0].textContent = "ork:" + s.n;
+  }
+  card.appendChild(row);
+  const p = document.createElement("p");
+  p.style.color = "var(--dim)";
+  p.textContent = s.plugin === "extras"
+    ? (INVOCABLE_MOVED.has(s.n) ? "User-invocable: type /ork-extras:" + s.n + " once ork-extras is installed." : "Loads by description when ork-extras is installed; you rarely type its name.")
+    : "Ships with core ork. Nothing to do.";
+  card.appendChild(p);
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const copy = document.createElement("button");
+  copy.textContent = "Copy as prompt";
+  copy.onclick = copyPrompt;
+  actions.appendChild(copy);
+  const status = document.createElement("span");
+  status.id = "copied";
+  actions.appendChild(status);
+  card.appendChild(actions);
+}
+
+function copyPrompt() {
+  const s = skills.find(x => x.n === selected);
+  const text = s.plugin === "extras"
+    ? "Install the ork-extras plugin (/plugin install ork-extras@orchestkit) and replace every reference to /ork:" + s.n + " in this project with /ork-extras:" + s.n + "."
+    : "The skill ork:" + s.n + " stays in core ork after the ork-extras split; no change needed.";
+  const done = () => { document.getElementById("copied").textContent = "Copied."; };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => { document.getElementById("copied").textContent = text; });
+  else document.getElementById("copied").textContent = text;
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  filter = b.dataset.f;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  renderGrid();
+});
+q.oninput = renderGrid;
+renderGrid();
+renderCard();
+</script>
+</body>
+</html>

@@ -155,6 +155,9 @@ jobs:
 
   # Advance the PINNED stable marketplace channel to this tag — GA tags only.
   #
+  # Since #4936 the stable channel is two entries, `ork` and `ork-extras`,
+  # pinned together by the script below.
+  #
   # The pin (.claude-plugin/marketplace.json, the `ork` entry) must carry
   # version X.Y.Z and source.ref vX.Y.Z together; CC validates that agreement at
   # plugin load, so a half-bump is a broken install for every stable user rather
@@ -258,7 +261,7 @@ jobs:
           # Deliberately NO `Closes #3350`. This PR is opened on every GA tag;
           # the issue is closed once, by the PR that adds this automation.
           printf '%s\n\n%s\n' \
-            "Advances the pinned \`ork\` marketplace entry to version \`$VERSION\` with \`source.ref\` \`$TAG\`, both fields in one write, so CC's load-time agreement check holds." \
+            "Advances the stable marketplace entries (\`ork\` and \`ork-extras\`) to version \`$VERSION\` with \`source.ref\` \`$TAG\`, both fields in one write, so CC's load-time agreement check holds." \
             "Opened automatically by \`.github/workflows/release.yml\` on the \`$TAG\` tag. \`ork-alpha\` is untouched: it tracks \`main\`." \
             > /tmp/pin-pr-body.md
 

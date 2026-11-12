@@ -370,7 +370,9 @@ function readManifest(manifestPath) {
  */
 function getManifestSkills(manifest, allSkillNames) {
   if (manifest.skills === 'all') {
-    return allSkillNames;
+    // skillsExclude (#4936): skills that ship in another plugin (ork-extras).
+    const excluded = new Set(manifest.skillsExclude || []);
+    return allSkillNames.filter(name => !excluded.has(name));
   }
   return manifest.skills || [];
 }
@@ -804,6 +806,8 @@ function generateSplitModules(data) {
     'export interface Totals {',
     '  plugins: number;',
     '  skills: number;',
+    '  coreSkills: number;',
+    '  extrasSkills: number;',
     '  agents: number;',
     '  hooks: number;',
     '  commands: number;',
@@ -1288,9 +1292,16 @@ function generate() {
   const orkSkills = getManifestSkills(manifestData['ork'], allSkillNames);
 
   // Build totals
+  // #4936: skills is every skill OrchestKit publishes (core ork plus the
+  // opt-in ork-extras); coreSkills is what installing ork alone gives you.
+  const extrasSkills = manifestData['ork-extras']
+    ? getManifestSkills(manifestData['ork-extras'], allSkillNames)
+    : [];
   const totals = {
-    plugins: 1,
+    plugins: manifestData['ork-extras'] ? 2 : 1,
     skills: allSkillNames.length,
+    coreSkills: orkSkills.length,
+    extrasSkills: extrasSkills.length,
     agents: agentFiles.length,
     hooks: hookCounts.total,
     commands: userInvocableCount,
@@ -1317,9 +1328,30 @@ function generate() {
       commands: Object.entries(skillsDetailed)
         .filter(([_, s]) => s.userInvocable)
         .map(([name]) => name)
+        .filter(name => orkSkills.includes(name))
         .sort()
     }
   ];
+  if (extrasSkills.length > 0) {
+    const extrasManifest = manifestData['ork-extras'];
+    plugins.push({
+      name: "ork-extras",
+      description: `Opt-in reference skills split out of ork: ${extrasSkills.length} skills, no agents or hooks.`,
+      fullDescription: extrasManifest.description,
+      category: "development",
+      version: extrasManifest.version || manifestData['ork'].version,
+      skillCount: extrasSkills.length,
+      agentCount: 0,
+      hooks: 0,
+      commandCount: extrasSkills.filter(name => skillsDetailed[name] && skillsDetailed[name].userInvocable).length,
+      color: "#a78bfa",
+      required: false,
+      recommended: false,
+      skills: extrasSkills.slice(0, 24),
+      agents: [],
+      commands: extrasSkills.filter(name => skillsDetailed[name] && skillsDetailed[name].userInvocable).sort()
+    });
+  }
 
   // Build agents array for display (category read from frontmatter)
   const agents = Object.entries(agentsData).map(([name, data]) => {

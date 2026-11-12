@@ -390,14 +390,26 @@ def export_commands(plugin_dir: Path) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 3:
-        print("usage: _cursor-export.py <plugin_dir> <src_dir>", file=sys.stderr)
+    # --no-rules (#4936): a skills-only add-on plugin (ork-extras) installs
+    # next to ork, which already emits the rules; emitting them again makes
+    # Cursor load every rule twice. Wrappers are still exported.
+    args = argv[1:]
+    no_rules = "--no-rules" in args
+    args = [a for a in args if a != "--no-rules"]
+    if len(args) != 2:
+        print("usage: _cursor-export.py [--no-rules] <plugin_dir> <src_dir>", file=sys.stderr)
         return 2
-    plugin_dir = Path(argv[1]).resolve()
-    src_dir = Path(argv[2]).resolve()
+    plugin_dir = Path(args[0]).resolve()
+    src_dir = Path(args[1]).resolve()
 
     commands = export_commands(plugin_dir)
-    rules = export_rules(plugin_dir, src_dir)
+    if no_rules:
+        stale = plugin_dir / ".cursor-plugin" / "rules"
+        if stale.exists():
+            shutil.rmtree(stale)
+        rules = 0
+    else:
+        rules = export_rules(plugin_dir, src_dir)
     print(f"  Cursor export: {commands} command wrappers rewritten, {rules} rules emitted")
     return 0
 

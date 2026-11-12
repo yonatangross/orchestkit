@@ -244,14 +244,47 @@ fi
 echo ""
 echo "Test 9: src/ vs plugins/ sync validation"
 
-# Count skills in src/ and plugins/ork/
-SRC_SKILLS=$(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-PLUGIN_SKILLS=$(find "$PROJECT_ROOT/plugins/ork/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+# Compare skill NAME sets, not counts (#4936). Core ships src minus the
+# manifest's skillsExclude; ork-extras ships exactly the excluded skills.
+skill_names() {
+    local dir="$1" d
+    for d in "$dir"/*/; do
+        [[ -f "${d}SKILL.md" ]] && basename "$d"
+    done | LC_ALL=C sort
+}
+count_lines() { printf '%s\n' "$1" | sed '/^$/d' | wc -l | tr -d ' '; }
+SRC_NAMES=$(skill_names "$PROJECT_ROOT/src/skills")
+PLUGIN_NAMES=$(skill_names "$PROJECT_ROOT/plugins/ork/skills")
+EXTRAS_NAMES=$(skill_names "$PROJECT_ROOT/plugins/ork-extras/skills")
+EXCLUDED_NAMES=$(jq -r '.skillsExclude[]?' "$PROJECT_ROOT/manifests/ork.json" | LC_ALL=C sort)
+SRC_SKILLS=$(count_lines "$SRC_NAMES")
+PLUGIN_SKILLS=$(count_lines "$PLUGIN_NAMES")
 
-if [[ "$SRC_SKILLS" -eq "$PLUGIN_SKILLS" ]]; then
-    pass "Skills in sync: src/ ($SRC_SKILLS) = plugins/ork/ ($PLUGIN_SKILLS)"
+if [[ -z "$SRC_NAMES" || -z "$PLUGIN_NAMES" || -z "$EXCLUDED_NAMES" ]]; then
+    # A failed read must not look like an empty-equals-empty pass.
+    fail "Skill sync could not read its inputs: src=$SRC_SKILLS plugins/ork=$PLUGIN_SKILLS skillsExclude=$(count_lines "$EXCLUDED_NAMES")"
 else
-    fail "Skills out of sync: src/ ($SRC_SKILLS) != plugins/ork/ ($PLUGIN_SKILLS) - run 'npm run build'"
+    EXPECTED_CORE=$(comm -23 <(printf '%s\n' "$SRC_NAMES") <(printf '%s\n' "$EXCLUDED_NAMES"))
+    MISSING_CORE=$(comm -23 <(printf '%s\n' "$EXPECTED_CORE") <(printf '%s\n' "$PLUGIN_NAMES") | tr '\n' ' ')
+    EXTRA_CORE=$(comm -13 <(printf '%s\n' "$EXPECTED_CORE") <(printf '%s\n' "$PLUGIN_NAMES") | tr '\n' ' ')
+    UNKNOWN_EXCLUDED=$(comm -13 <(printf '%s\n' "$SRC_NAMES") <(printf '%s\n' "$EXCLUDED_NAMES") | tr '\n' ' ')
+    if [[ -z "$MISSING_CORE" && -z "$EXTRA_CORE" ]]; then
+        pass "Skills in sync: plugins/ork/ ($PLUGIN_SKILLS) = src/ ($SRC_SKILLS) minus skillsExclude"
+    else
+        fail "Skills out of sync: plugins/ork/ lacks [${MISSING_CORE}] and wrongly ships [${EXTRA_CORE}] - run 'npm run build'"
+    fi
+    if [[ -z "$UNKNOWN_EXCLUDED" ]]; then
+        pass "skillsExclude names only skills that exist in src/"
+    else
+        fail "skillsExclude names unknown skills: [${UNKNOWN_EXCLUDED}]"
+    fi
+    ONLY_EXTRAS=$(comm -23 <(printf '%s\n' "$EXTRAS_NAMES") <(printf '%s\n' "$EXCLUDED_NAMES") | tr '\n' ' ')
+    ONLY_EXCLUDE=$(comm -13 <(printf '%s\n' "$EXTRAS_NAMES") <(printf '%s\n' "$EXCLUDED_NAMES") | tr '\n' ' ')
+    if [[ -z "$ONLY_EXTRAS" && -z "$ONLY_EXCLUDE" ]]; then
+        pass "plugins/ork-extras/ ships exactly the skillsExclude set"
+    else
+        fail "plugins/ork-extras/ differs from skillsExclude: only in extras [${ONLY_EXTRAS}], only in exclude [${ONLY_EXCLUDE}]"
+    fi
 fi
 
 # Count agents — manifest may use "all" or an explicit array

@@ -30,6 +30,14 @@ build_arm() {
            "$root/plugins/ork/agents" "$root/plugins/ork/hooks/dist"
   cp "$REPO/tests/plugins/test-build-drift.sh" "$root/tests/plugins/"
 
+  # The split (#4936): the gate reads manifests/ork.json skillsExclude and
+  # compares those skills with plugins/ork-extras. "split" is the fixture's
+  # excluded skill; it is built into ork-extras in EVERY arm.
+  mkdir -p "$root/manifests" "$root/plugins/ork-extras/skills/split"
+  printf '{"skillsExclude":["split"]}\n' > "$root/manifests/ork.json"
+  printf -- '---\nname: split\ndescription: s\n---\nbody\n' \
+    > "$root/plugins/ork-extras/skills/split/SKILL.md"
+
   # The plugins/ side is fully built in EVERY arm. Only the src/ side varies.
   printf -- '---\nname: doctor\ndescription: d\n---\nbody\n' \
     > "$root/plugins/ork/skills/doctor/SKILL.md"
@@ -43,6 +51,8 @@ build_arm() {
     cp "$root/plugins/ork/skills/doctor/references/version-compatibility.md" \
        "$root/src/skills/doctor/references/version-compatibility.md"
     cp "$root/plugins/ork/hooks/dist/lifecycle.mjs" "$root/src/hooks/dist/lifecycle.mjs"
+    mkdir -p "$root/src/skills/split"
+    cp "$root/plugins/ork-extras/skills/split/SKILL.md" "$root/src/skills/split/SKILL.md"
   fi
 }
 
@@ -54,10 +64,16 @@ build_arm fault2 yes
 printf -- '---\nname: doctor\ndescription: EDITED IN SRC ONLY\n---\nbody\n' \
   > "$FIX/fault2/src/skills/doctor/SKILL.md"
 
-control_rc=0; fault_rc=0; fault2_rc=0
+# fault3: an empty skillsExclude must not pass. Every skill is then expected in
+# plugins/ork, nothing is compared against ork-extras, and the split floor trips.
+build_arm fault3 yes
+printf '{"skillsExclude":[]}\n' > "$FIX/fault3/manifests/ork.json"
+
+control_rc=0; fault_rc=0; fault2_rc=0; fault3_rc=0
 bash "$FIX/control/tests/plugins/test-build-drift.sh" >"$FIX/control.log" 2>&1 || control_rc=$?
 bash "$FIX/fault/tests/plugins/test-build-drift.sh"   >"$FIX/fault.log"   2>&1 || fault_rc=$?
 bash "$FIX/fault2/tests/plugins/test-build-drift.sh"  >"$FIX/fault2.log"  2>&1 || fault2_rc=$?
+bash "$FIX/fault3/tests/plugins/test-build-drift.sh"  >"$FIX/fault3.log"  2>&1 || fault3_rc=$?
 
 {
   echo "--- control tail ---"; tail -4 "$FIX/control.log"
@@ -65,5 +81,5 @@ bash "$FIX/fault2/tests/plugins/test-build-drift.sh"  >"$FIX/fault2.log"  2>&1 |
   echo "--- fault2 (real drift) rc=$fault2_rc ---"; tail -3 "$FIX/fault2.log"
 } >&2
 
-printf 'RESULT gate=%s control=%s fault=%s fault2=%s\n' \
-  "build-drift" "$control_rc" "$fault_rc" "$fault2_rc"
+printf 'RESULT gate=%s control=%s fault=%s fault2=%s fault3=%s\n' \
+  "build-drift" "$control_rc" "$fault_rc" "$fault2_rc" "$fault3_rc"

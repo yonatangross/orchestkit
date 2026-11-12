@@ -41,7 +41,8 @@
 # Exit codes (the caller branches on these, not on stdout):
 #   0  pin moved, file rewritten
 #   3  nothing to do — prerelease version, or the pin is already there
-#   1  refused — unusable version, missing file, or no single pinned entry
+#   1  refused: unusable version, missing file, a stable-set entry missing,
+#      a pinned entry outside the stable set, or stable pins that disagree
 
 set -euo pipefail
 
@@ -88,34 +89,76 @@ fi
 # code, so a variable there is the same shape as an eval. Selecting once into
 # PINNED_JSON keeps the filter defined in exactly one place without putting a
 # shell variable inside the program text.
-PINNED_JSON=$(jq -c '
-  [.plugins[] | select((.source.ref // "") | (. != "" and . != "main" and . != "HEAD"))]
+#
+# THE STABLE SET (#4936). Since the ork-extras split the stable channel is two
+# entries, ork and ork-extras, and a GA release pins BOTH to the same tag in
+# one write; pinning only ork would leave stable users with a core and an
+# extras plugin from different releases. The set is explicit (passed as data
+# with --argjson, never as program text). ork-extras starts out tracking main,
+# because the tag it would pin to did not contain it yet; the first GA release
+# that runs this pins it next to ork.
+#
+# Refusals, each exit 1 with the file untouched:
+#   - a stable-set entry is missing from the marketplace (a half pin is skew);
+#   - no stable-set entry is pinned (this is not a stable channel layout);
+#   - an entry OUTSIDE the stable set is pinned (refusing to guess, as before);
+#   - the already-pinned stable entries disagree on their ref.
+STABLE_NAMES='["ork","ork-extras"]'
+
+STATE=$(jq -c --argjson names "$STABLE_NAMES" '
+  def pinned: (.source.ref // "") | (. != "" and . != "main" and . != "HEAD");
+  {
+    missing: [$names[] as $n | select([.plugins[] | select(.name == $n)] | length != 1) | $n],
+    pinned_stable: [.plugins[] | select((.name as $n | $names | index($n)) and pinned)],
+    pinned_other: [.plugins[] | select((.name as $n | $names | index($n) | not) and pinned) | .name],
+    stable: [.plugins[] | select(.name as $n | $names | index($n))]
+  }
 ' "$MARKETPLACE")
 
-pinned_count=$(printf '%s' "$PINNED_JSON" | jq 'length')
-if [[ "$pinned_count" != "1" ]]; then
-    echo "bump-stable-pin: expected exactly 1 pinned entry, found $pinned_count — refusing to guess." >&2
+missing=$(printf '%s' "$STATE" | jq -r '.missing | join(", ")')
+if [[ -n "$missing" ]]; then
+    echo "bump-stable-pin: stable-set entries missing or duplicated: ${missing}. Refusing a partial pin." >&2
+    exit 1
+fi
+other=$(printf '%s' "$STATE" | jq -r '.pinned_other | join(", ")')
+if [[ -n "$other" ]]; then
+    echo "bump-stable-pin: entries outside the stable set are pinned: ${other}. Refusing to guess." >&2
+    exit 1
+fi
+pinned_count=$(printf '%s' "$STATE" | jq '.pinned_stable | length')
+if [[ "$pinned_count" == "0" ]]; then
+    echo "bump-stable-pin: no stable-set entry is pinned. Refusing to guess." >&2
+    exit 1
+fi
+ref_count=$(printf '%s' "$STATE" | jq '[.pinned_stable[].source.ref] | unique | length')
+if [[ "$ref_count" != "1" ]]; then
+    refs=$(printf '%s' "$STATE" | jq -r '[.pinned_stable[] | "\(.name)@\(.source.ref)"] | join(", ")')
+    echo "bump-stable-pin: stable pins disagree (${refs}). Refusing to paper over skew." >&2
     exit 1
 fi
 
-cur_ref=$(printf '%s' "$PINNED_JSON" | jq -r '.[0].source.ref')
-cur_ver=$(printf '%s' "$PINNED_JSON" | jq -r '.[0].version // ""')
+cur_ref=$(printf '%s' "$STATE" | jq -r '.pinned_stable[0].source.ref')
+cur_ver=$(printf '%s' "$STATE" | jq -r '.pinned_stable[0].version // ""')
 
-if [[ "$cur_ref" == "v$VERSION" && "$cur_ver" == "$VERSION" ]]; then
-    echo "bump-stable-pin: pin is already at v$VERSION — nothing to do."
+at_target=$(printf '%s' "$STATE" | jq --arg v "$VERSION" \
+    '[.stable[] | select(.version == $v and .source.ref == "v" + $v)] | length')
+stable_count=$(printf '%s' "$STATE" | jq '.stable | length')
+if [[ "$at_target" == "$stable_count" ]]; then
+    echo "bump-stable-pin: stable set is already at v$VERSION, nothing to do."
     exit 3
 fi
 
-# Both fields in ONE jq program. Two sequential writes is how they end up
-# disagreeing when the second one fails.
+# Every stable-set entry, both fields, in ONE jq program. Two sequential
+# writes is how they end up disagreeing when the second one fails.
 #
-# --arg, never interpolation into the program text: a version is data. The same
-# rule is enforced on the test side (tests/schemas/test-alpha-channel.sh:77).
+# --arg / --argjson, never interpolation into the program text: a version
+# and a name list are data. The same rule is enforced on the test side
+# (tests/schemas/test-alpha-channel.sh:77).
 tmp="${MARKETPLACE}.tmp"
-jq --arg v "$VERSION" '
-  (.plugins[] | select((.source.ref // "") | (. != "" and . != "main" and . != "HEAD")))
+jq --arg v "$VERSION" --argjson names "$STABLE_NAMES" '
+  (.plugins[] | select(.name as $n | $names | index($n)))
   |= (.version = $v | .source.ref = "v" + $v)
 ' "$MARKETPLACE" > "$tmp"
 mv "$tmp" "$MARKETPLACE"
 
-echo "bump-stable-pin: stable pin ${cur_ver} @ ${cur_ref} -> ${VERSION} @ v${VERSION}"
+echo "bump-stable-pin: stable set (ork, ork-extras) ${cur_ver} @ ${cur_ref} -> ${VERSION} @ v${VERSION}"

@@ -3,6 +3,7 @@
   "icon": "Rocket",
   "pages": [
     "installation",
+    "ork-extras",
     "sandbox",
     "hosts",
     "claude-code",
