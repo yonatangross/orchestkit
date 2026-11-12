@@ -44,6 +44,20 @@ echo "=========================================="
 echo ""
 
 PLUGIN_DIR="$PROJECT_ROOT/plugins/ork"
+EXTRAS_DIR="$PROJECT_ROOT/plugins/ork-extras"
+
+# Skills in the core manifest's skillsExclude ship in ork-extras instead of
+# ork (#4936). Each src skill is compared against the plugin that ships it.
+EXCLUDED=" $(jq -r '.skillsExclude[]?' "$PROJECT_ROOT/manifests/ork.json" | tr '\n' ' ') "
+EXCLUDED_COMPARED=0
+DEST_SKILL_DIR=""
+set_skill_dest_dir() {
+    if [[ "$EXCLUDED" == *" $1 "* ]]; then
+        DEST_SKILL_DIR="$EXTRAS_DIR/skills/$1"
+        return 0
+    fi
+    DEST_SKILL_DIR="$PLUGIN_DIR/skills/$1"
+}
 
 # --- A. Skill content drift (SKILL.md) ---------------------------------------
 # NOTE: the build strips the object-shaped `triggers` frontmatter block from
@@ -57,7 +71,9 @@ for src_skill in "$PROJECT_ROOT"/src/skills/*/SKILL.md; do
     [[ -f "$src_skill" ]] || continue
     skill_name=$(basename "$(dirname "$src_skill")")
     SKILLS_COMPARED=$((${SKILLS_COMPARED:-0} + 1))
-    dest_skill="$PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    set_skill_dest_dir "$skill_name"
+    [[ "$DEST_SKILL_DIR" == "$EXTRAS_DIR"/* ]] && EXCLUDED_COMPARED=$((EXCLUDED_COMPARED + 1))
+    dest_skill="$DEST_SKILL_DIR/SKILL.md"
     CHECKED=$((CHECKED + 1))
     if [[ ! -f "$dest_skill" ]]; then
         DRIFTED=$((DRIFTED + 1))
@@ -80,6 +96,12 @@ while IFS= read -r t; do
     DRIFTED=$((DRIFTED + 1))
     DRIFTED_FILES+=("TRIGGERS: ${t#$PROJECT_ROOT/} still carries the triggers key (#4147)")
 done < <(grep -rl '^triggers:' "$PLUGIN_DIR/skills" --include='SKILL.md' 2>/dev/null || true)
+
+while IFS= read -r t; do
+    [[ -n "$t" ]] || continue
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("TRIGGERS: ${t#$PROJECT_ROOT/} still carries the triggers key (#4147)")
+done < <(grep -rl '^triggers:' "$EXTRAS_DIR/skills" --include='SKILL.md')
 
 # --- B. Agent content drift ---------------------------------------------------
 # NOTE: Build script appends a "Skill Index" section to agents in plugins/.
@@ -115,7 +137,8 @@ echo "C. Checking rules/references drift..."
 for src_skill_dir in "$PROJECT_ROOT"/src/skills/*/; do
     [[ -d "$src_skill_dir" ]] || continue
     skill_name=$(basename "$src_skill_dir")
-    dest_skill_dir="$PLUGIN_DIR/skills/$skill_name"
+    set_skill_dest_dir "$skill_name"
+    dest_skill_dir="$DEST_SKILL_DIR"
 
     for subdir in rules references; do
         if [[ -d "$src_skill_dir/$subdir" ]]; then
@@ -172,6 +195,13 @@ echo -e "Files drifted: ${RED}$DRIFTED${NC}"
 if [[ "${SKILLS_COMPARED:-0}" -eq 0 ]]; then
     DRIFTED=$((DRIFTED + 1))
     DRIFTED_FILES+=("VACUOUS: ${SKILLS_COMPARED:-0} skill(s) and ${AGENTS_COMPARED:-0} agent(s) compared; src/skills or src/agents is empty or mis-rooted")
+fi
+
+# Split floor: an unreadable or empty skillsExclude would send every skill to
+# the core check and leave the extras tree unchecked, still printing PASSED.
+if [[ "$EXCLUDED_COMPARED" -eq 0 ]]; then
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("VACUOUS: 0 skill(s) compared against plugins/ork-extras; manifests/ork.json skillsExclude is empty or unreadable")
 fi
 
 if [[ "$DRIFTED" -gt 0 ]]; then

@@ -14,10 +14,12 @@ def test_marketplace_points_at_ork() -> None:
     data = json.loads(MARKET.read_text(encoding="utf-8"))
     assert data["name"] == "orchestkit"
     names = [p["name"] for p in data["plugins"]]
-    assert names == ["ork"]
+    # The opt-in ork-extras plugin (#4936) is listed next to the full ork plugin.
+    assert names == ["ork", "ork-extras"], names
     # Cursor Import Marketplace rejects "./plugins/ork" as invalid_argument.
     # Official cursor/plugins uses bare relative paths (e.g. "third_party/gmail").
-    assert data["plugins"][0]["source"] == "plugins/ork"
+    sources = {p["name"]: p["source"] for p in data["plugins"]}
+    assert sources == {"ork": "plugins/ork", "ork-extras": "plugins/ork-extras"}, sources
 
 
 def test_cursor_manifest_is_the_full_plugin() -> None:
@@ -35,8 +37,20 @@ def test_cursor_manifest_is_the_full_plugin() -> None:
     assert "hooks" not in cursor
     assert "mcpServers" not in cursor
     assert (PLUGIN / "skills").is_dir()
-    skill_dirs = [p for p in (PLUGIN / "skills").iterdir() if p.is_dir()]
-    assert len(skill_dirs) >= 100
+    # Core ships src/skills minus the manifest's skillsExclude (#4936), compared
+    # by name so equal counts cannot hide wrong membership.
+    excluded = set(
+        json.loads((ROOT / "manifests" / "ork.json").read_text(encoding="utf-8")).get(
+            "skillsExclude", []
+        )
+    )
+    assert excluded, (
+        "manifests/ork.json skillsExclude is empty or missing; the split check would be vacuous"
+    )
+    src = {p.name for p in (ROOT / "src" / "skills").iterdir() if (p / "SKILL.md").is_file()}
+    built = {p.name for p in (PLUGIN / "skills").iterdir() if (p / "SKILL.md").is_file()}
+    assert src, "src/skills has no skills"
+    assert built == src - excluded, sorted(built ^ (src - excluded))
 
 
 def test_no_thin_cursor_fork() -> None:
