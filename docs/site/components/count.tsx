@@ -8,6 +8,7 @@ const counts: Record<string, number> = {
   agents: TOTALS.agents,
   hooks: TOTALS.hooks,
   ork: PLUGINS.find((p) => p.name === "ork")?.skillCount ?? 0,
+  "ork-extras": PLUGINS.find((p) => p.name === "ork-extras")?.skillCount ?? 0,
 };
 
 export function Count({ k }: { k: keyof typeof counts }) {

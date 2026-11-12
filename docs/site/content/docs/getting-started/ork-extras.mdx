@@ -1,0 +1,58 @@
+---
+title: ork-extras, the opt-in reference skills
+seoTitle: "ork-extras: opt-in OrchestKit reference skills"
+description: "26 library and engineering domain skills moved out of core ork into the opt-in ork-extras plugin. How to install it, the new /ork-extras: names, and what each host gets."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Count } from '@/components/count';
+
+## What changed
+
+Core `ork` now ships <Count k="ork" /> skills. <Count k="ork-extras" /> reference skills moved to a second plugin, `ork-extras`, that you install only if you want them. Nothing was deleted: the skills are the same files, published from the same repository.
+
+Core keeps every workflow skill, every agent, every hook and the 8 business skills (business-case, competitive-analysis, market-sizing, okr-design, prioritization, product-analytics, product-frameworks, user-research).
+
+The 26 that moved:
+
+| Group | Skills |
+|---|---|
+| Library patterns (16) | ai-ui-generation, animation-motion-design, async-jobs, figma-design-handoff, i18n-date-patterns, langgraph, llm-integration, mcp-patterns, monitoring-observability, multimodal-llm, portless, rag-retrieval, storybook-testing, ui-components, vite-advanced, zustand-patterns |
+| Engineering domain (10) | accessibility, agent-orchestration, design-stylecards, distributed-systems, documentation-patterns, domain-driven-design, golden-dataset, interaction-patterns, release-management, responsive-patterns |
+
+## Install it (Claude Code)
+
+```bash
+/plugin install ork-extras@orchestkit
+```
+
+It installs next to `ork` and adds skills only: no agents, no hooks, no settings. Remove it with `/plugin uninstall ork-extras` and core is unchanged.
+
+## The names change
+
+A moved skill is now namespaced by its new plugin:
+
+| Before | After |
+|---|---|
+| `/ork:design-stylecards` | `/ork-extras:design-stylecards` |
+| `ork:langgraph` (cited by another skill) | `ork-extras:langgraph` |
+
+Only design-stylecards is user-invocable; the other 25 load when a task matches their description, so most people never type the name. If a script, prompt or CLAUDE.md of yours names `/ork:<moved skill>`, change it to `/ork-extras:<moved skill>`.
+
+## Version skew for one release
+
+<Callout type="warn">
+The stable `ork` marketplace entry is pinned to a release tag. `ork-extras` cannot be pinned to a tag until a release that contains it exists, so until then it tracks the `main` branch. For that one release window, `ork-extras` can carry skill changes newer than your stable `ork`. From the next release on, the release step pins both entries to the same tag.
+</Callout>
+
+Until you update `ork` past that release, your installed stable `ork` still carries all 26 skills itself, so installing `ork-extras` early only adds a second copy under the new names.
+
+## Other hosts
+
+| Host | ork-extras |
+|---|---|
+| Claude Code | Yes, `/plugin install ork-extras@orchestkit`. |
+| Cursor | Yes. Install `ork-extras` from the same OrchestKit marketplace you installed `ork` from. It adds the 26 skills and the design-stylecards command; Cursor rules stay in `ork` so they are not loaded twice. |
+| Codex | Not exported. `ork-codex` is its own pack of portable skills and does not include the reference skills. |
+| Antigravity (agy) | Not verified. `agy plugin install <checkout>/plugins/ork-extras` should load it the same way as `plugins/ork`, but nobody has run it yet. |
+| Devin, Pi, skills.sh | Unchanged by this split; they read their own manifests. |
