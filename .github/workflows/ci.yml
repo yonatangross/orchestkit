@@ -150,6 +150,9 @@ jobs:
               case "$f" in
                 plugins/ork/skills/*)
                   echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+                docs/site/lib/generated/related-graph.ts|docs/site/lib/generated/search-suggest-index.ts)
+                  # Written by docs/site prebuild, not by the root npm run build.
+                  echo "::error::$f is not written by 'npm run build'. Run: node docs/site/scripts/gen-related-graph.mjs && node docs/site/scripts/gen-search-suggest-index.mjs" ;;
               esac
             done
             exit 1
