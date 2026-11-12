@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs-site drift follow-ups: stale search and link data, now checked</title>
+<style>
+  :root { --bg:#0b1020; --panel:#121a33; --ink:#e6ebff; --dim:#9aa6cc; --old:#f87171; --new:#a78bfa; --ok:#4ade80; --line:#24305a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; }
+  .lead { color: var(--dim); margin: 0 0 22px; }
+  .stats { display:flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .stat { background: var(--panel); border:1px solid var(--line); border-radius: 10px; padding: 12px 16px; min-width: 150px; }
+  .stat b { display:block; font-size: 24px; }
+  .stat span { color: var(--dim); font-size: 13px; }
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 10px; }
+  .tabs button { background: var(--panel); color: var(--ink); border:1px solid var(--line); border-radius: 8px; padding: 7px 12px; font: inherit; cursor: pointer; }
+  .tabs button[aria-pressed=true] { border-color: var(--new); color: var(--new); font-weight: 600; }
+  table { width:100%; border-collapse: collapse; background: var(--panel); border:1px solid var(--line); border-radius: 10px; overflow:hidden; }
+  th, td { text-align:left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 500; font-size: 13px; }
+  td.n { font-variant-numeric: tabular-nums; }
+  .old { color: var(--old); } .new { color: var(--new); } .ok { color: var(--ok); }
+  code, pre { font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: var(--panel); border:1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow:auto; margin: 8px 0; }
+  .actions { margin-top: 18px; display:flex; gap: 10px; align-items: center; }
+  .actions button { padding: 9px 14px; border-radius: 8px; border: 0; background: var(--new); color: #0b1020; font-weight: 600; cursor: pointer; }
+  #copied { color: var(--dim); font-size: 13px; }
+  .note { color: var(--dim); font-size: 13px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Docs-site drift follow-ups</h1>
+  <p class="lead">Two generated files the docs site serves, <code>related-graph.ts</code> (the Related block) and <code>search-suggest-index.ts</code> (search suggestions), had gone stale on main because nothing in CI regenerated them before the drift check. This PR regenerates them and adds the missing CI step, so the next stale copy fails the PR that causes it.</p>
+
+  <div class="stats">
+    <div class="stat"><b>161 to 163</b><span>hooks in the overview title</span></div>
+    <div class="stat"><b>327 to 330</b><span>pages in both files</span></div>
+    <div class="stat"><b>929 to 945</b><span>related-page links</span></div>
+    <div class="stat"><b>+17</b><span>lines in ci.yml (1 new step)</span></div>
+  </div>
+
+  <h2>1. What users see: main vs this PR (pick a view)</h2>
+  <div class="tabs" id="tabs"></div>
+  <table>
+    <thead><tr><th>Measure</th><th>main (9b2079a56)</th><th>this PR</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>2. The docs-data oracle</h2>
+  <p>The "every skill has valid plugins array" test used to compare against the generator's own output, so a third plugin name could never fail it. It now checks a literal list.</p>
+<pre><span class="old">- const validPlugins = PLUGINS.map((p) =&gt; p.name);
+- expect(validPlugins).toContain("ork");
+- expect(validPlugins).toContain("ork-extras");</span>
+<span class="new">+ const validPlugins = ["ork", "ork-extras"];
++ expect(PLUGINS.map((p) =&gt; p.name).sort()).toEqual([...validPlugins].sort());</span></pre>
+
+  <h2>3. The new CI drift step</h2>
+  <p>It runs before "Check for uncommitted build changes". Both scripts import only node builtins and repo scripts, so no docs/site install is needed.</p>
+<pre>- name: Regenerate docs-site link graph and search index
+  run: |
+    node docs/site/scripts/gen-related-graph.mjs
+    node docs/site/scripts/gen-search-suggest-index.mjs</pre>
+  <p>If a stale copy is committed, the drift diff fails and prints this for the two files:</p>
+<pre class="old">::error::docs/site/lib/generated/related-graph.ts is not written by 'npm run build'.
+Run: node docs/site/scripts/gen-related-graph.mjs &amp;&amp; node docs/site/scripts/gen-search-suggest-index.mjs</pre>
+
+  <h2>4. Also in this PR</h2>
+  <ul>
+    <li><code>scripts/bump-stable-pin.sh</code> and <code>.github/workflows/release.yml</code>: comments now say the pin covers both the <code>ork</code> and <code>ork-extras</code> entries, and that <code>$.plugins[2].version</code> is governed by release-please.</li>
+  </ul>
+
+  <div class="actions"><button id="copy">Copy as prompt</button><span id="copied"></span></div>
+
+  <p class="note">Numbers were measured by loading both generated files from main (9b2079a56) and from this PR's head and counting pages, links and headings. Nothing on this page is fetched at runtime.</p>
+</main>
+<script>
+const VIEWS = {
+  "Hook count": [
+    ["Overview title (graph and search)", "161 Hooks: What Fires When", "163 Hooks: What Fires When"],
+    ["Commands page title", "43 Commands You Can Invoke", "44 Commands You Can Invoke"]
+  ],
+  "New and missing pages": [
+    ["ork-extras page in Related graph", "absent", "present"],
+    ["ork-extras page in search suggestions", "absent", "present"],
+    ["disk-cleanup skill page in graph", "absent", "present"],
+    ["Doctor version-compatibility pages", "4", "5 (feature matrix now 3 parts)"]
+  ],
+  "Titles and headings": [
+    ["Hooks safety page title", "Security Gates and File Guards", "Security Gates and Operator Deny Rules"],
+    ["Hooks safety page search headings", "34", "21"],
+    ["Total search headings", "11267", "11276"]
+  ],
+  "Totals": [
+    ["Pages in graph and in search index", "327", "330"],
+    ["Related-page links", "929", "945"],
+    ["Inbound links to setup-memory", "5", "7"]
+  ]
+};
+const tabs = document.getElementById("tabs"), rows = document.getElementById("rows");
+let current = Object.keys(VIEWS)[0];
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function draw() {
+  tabs.innerHTML = Object.keys(VIEWS).map(k => `<button aria-pressed="${k===current}" data-k="${esc(k)}">${esc(k)}</button>`).join("");
+  rows.innerHTML = VIEWS[current].map(r => `<tr><td>${esc(r[0])}</td><td class="old">${esc(r[1])}</td><td class="new">${esc(r[2])}</td></tr>`).join("");
+}
+tabs.addEventListener("click", e => { const b = e.target.closest("button"); if (b) { current = b.dataset.k; draw(); } });
+draw();
+document.getElementById("copy").addEventListener("click", () => {
+  const lines = VIEWS[current].map(r => `- ${r[0]}: ${r[1]} -> ${r[2]}`).join("\n");
+  const text = "Review the docs-site drift follow-ups PR. View: " + current + "\n" + lines +
+    "\nCheck that CI regenerates docs/site/lib/generated/related-graph.ts and search-suggest-index.ts before the drift diff.";
+  const done = () => { document.getElementById("copied").textContent = "Copied"; };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done); else done();
+});
+</script>
+</body>
+</html>
