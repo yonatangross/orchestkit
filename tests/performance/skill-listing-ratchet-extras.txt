@@ -1,0 +1,12 @@
+7530
+# Ceiling, in bytes, for the ork-extras skill listing total: name + description + when_to_use
+# of every model-facing skill (disable-model-invocation not true) named in manifests/ork.json
+# skillsExclude, i.e. the skills that ship in the opt-in ork-extras plugin (#4936).
+# Read by tests/performance/test-token-overhead.sh (Test 4b). These skills are listed only when
+# a user installs ork-extras, so they have their own ceiling and do not count toward the core
+# ceiling in skill-listing-ratchet.txt. The number only moves DOWN: lower it to the measured total
+# when a trim lands; the test fails when the total falls more than 256 bytes under it.
+# Never raise it to make a red run green. Test 4d also fails a PR that raises it versus its base.
+# History: 2026-11-12 orchestkit#4936: 7530 bytes over 25 model-facing skills (23 made model-invocable
+# in ork-extras, plus portless and design-stylecards). 14 of them are over the 260-byte per-skill
+# cap (980 bytes over); trimming them is a separate follow-up and would lower this ceiling.

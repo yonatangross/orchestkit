@@ -1,9 +1,15 @@
-16006
-# Ceiling, in bytes, for the skill listing total: name + description + when_to_use
-# of every model-facing skill (disable-model-invocation not true) in src/skills.
+15588
+# Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
+# of every model-facing skill (disable-model-invocation not true) that core ork ships,
+# which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
+# skillsExclude ship in the opt-in ork-extras plugin and have their own ceiling in
+# skill-listing-ratchet-extras.txt.
 # Read by tests/performance/test-token-overhead.sh (Test 4b). The number only moves
 # DOWN: lower it to the measured total when a trim lands; the test fails when the
 # total falls more than 256 bytes under it. Never raise it to make a red run green.
 # Test 4d also fails a PR that raises this number versus its base branch.
 # History: 2026-11-04 orchestkit#4936 W1, 29171 on main before the diet, 16008 after it.
 # 2026-11-04 orchestkit#5044: explore and create-research got NOT-for boundaries, -2 bytes net, 16006.
+# 2026-11-12 orchestkit#4936 (ork-extras split): the test measures what core ships. LOWERED 16006 -> 15588:
+# portless (no longer in core) and design-stylecards left the core listing (-414 bytes, 83 skills).
+# Not raised. The 23 skills made model-invocable in ork-extras do not count here.
