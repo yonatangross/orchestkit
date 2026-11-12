@@ -1,0 +1,13 @@
+{
+  "slug": "feat--ork-extras-split-refs",
+  "source": "docs/feat--ork-extras-split-refs/index.html",
+  "title": "ork-extras split, part 2: every reference re-pointed",
+  "description": "153 references in 79 files move from ork:<skill> to ork-extras:<skill> so nothing points at a command core ork no longer ships. Pick a skill to see its rewrite and copy a migration prompt.",
+  "tags": [
+    "plugins",
+    "ork-extras",
+    "migration",
+    "references"
+  ],
+  "date": "2026-11-12"
+}
