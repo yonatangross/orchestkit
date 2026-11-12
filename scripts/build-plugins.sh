@@ -269,14 +269,30 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Copy skills
     if [[ "$SKILLS_MODE" == "all" ]]; then
         cp -R "$SRC_DIR/skills" "$PLUGIN_DIR/"
+        # skillsExclude (#4936): skills that ship in another plugin instead
+        # (ork-extras). An exclude list rather than an array of everything
+        # else, so a new skill lands in core by default. A name that is not a
+        # skill directory is a typo that would silently ship the skill, so it
+        # fails the build.
+        while IFS= read -r skill; do
+            [[ -z "$skill" ]] && continue
+            if [[ ! -d "$PLUGIN_DIR/skills/$skill" ]]; then
+                echo -e "${RED}  ERROR: $PLUGIN_NAME skillsExclude names unknown skill: $skill${NC}"
+                exit 1
+            fi
+            rm -rf "${PLUGIN_DIR:?}/skills/$skill"
+        done < <(jq -r '.skillsExclude[]?' "$manifest")
         skill_count=$(find "$PLUGIN_DIR/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
     elif [[ "$SKILLS_MODE" == "array" ]]; then
         mkdir -p "$PLUGIN_DIR/skills"
         while IFS= read -r skill; do
-            if [[ -n "$skill" ]] && [[ -d "$SRC_DIR/skills/$skill" ]]; then
-                cp -R "$SRC_DIR/skills/$skill" "$PLUGIN_DIR/skills/"
-                skill_count=$((skill_count + 1))
+            [[ -z "$skill" ]] && continue
+            if [[ ! -d "$SRC_DIR/skills/$skill" ]]; then
+                echo -e "${RED}  ERROR: $PLUGIN_NAME skills names unknown skill: $skill${NC}"
+                exit 1
             fi
+            cp -R "$SRC_DIR/skills/$skill" "$PLUGIN_DIR/skills/"
+            skill_count=$((skill_count + 1))
         done < <(jq -r '.skills[]?' "$manifest")
     fi
 
