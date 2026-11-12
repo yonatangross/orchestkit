@@ -103,10 +103,25 @@ const VIEWS = {
 };
 const tabs = document.getElementById("tabs"), rows = document.getElementById("rows");
 let current = Object.keys(VIEWS)[0];
-function esc(s) { return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function cell(text, cls) {
+  const td = document.createElement("td");
+  if (cls) td.className = cls;
+  td.textContent = text;
+  return td;
+}
 function draw() {
-  tabs.innerHTML = Object.keys(VIEWS).map(k => `<button aria-pressed="${k===current}" data-k="${esc(k)}">${esc(k)}</button>`).join("");
-  rows.innerHTML = VIEWS[current].map(r => `<tr><td>${esc(r[0])}</td><td class="old">${esc(r[1])}</td><td class="new">${esc(r[2])}</td></tr>`).join("");
+  tabs.replaceChildren(...Object.keys(VIEWS).map(k => {
+    const b = document.createElement("button");
+    b.setAttribute("aria-pressed", String(k === current));
+    b.dataset.k = k;
+    b.textContent = k;
+    return b;
+  }));
+  rows.replaceChildren(...VIEWS[current].map(r => {
+    const tr = document.createElement("tr");
+    tr.append(cell(r[0]), cell(r[1], "old"), cell(r[2], "new"));
+    return tr;
+  }));
 }
 tabs.addEventListener("click", e => { const b = e.target.closest("button"); if (b) { current = b.dataset.k; draw(); } });
 draw();
