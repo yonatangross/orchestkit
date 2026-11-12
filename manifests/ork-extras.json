@@ -45,5 +45,6 @@
     "responsive-patterns"
   ],
   "agents": "none",
-  "hooks": "none"
+  "hooks": "none",
+  "shared": false
 }

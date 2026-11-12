@@ -20,6 +20,5 @@
     "multi-agent"
   ],
   "skills": "./skills/",
-  "commands": "./.cursor-plugin/commands/",
-  "rules": "./.cursor-plugin/rules/"
+  "commands": "./.cursor-plugin/commands/"
 }

@@ -357,8 +357,18 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Hard-fail, deliberately. A warn-and-continue here ships a Cursor plugin
     # whose command palette is full of paths nobody can open, and the build still
     # prints BUILD COMPLETE, the same shape #2360 fixed for stale hook bundles.
+    # shared (#4936): a manifest with "shared": false is a skills-only add-on
+    # that installs next to ork. It ships no copy of src/shared and no Cursor
+    # rules, which ork already carries; shipping them again loads every
+    # Cursor rule twice. Absent means true, so ork is unchanged.
+    SHIPS_SHARED=$(jq -r 'if has("shared") then .shared else true end' "$manifest")
+    CURSOR_EXPORT_FLAGS=()
+    if [[ "$SHIPS_SHARED" == "false" ]]; then
+        CURSOR_EXPORT_FLAGS+=(--no-rules)
+    fi
+
     if [[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]]; then
-        python3 "$SCRIPT_DIR/_cursor-export.py" "$PLUGIN_DIR" "$SRC_DIR" || {
+        python3 "$SCRIPT_DIR/_cursor-export.py" ${CURSOR_EXPORT_FLAGS[@]+"${CURSOR_EXPORT_FLAGS[@]}"} "$PLUGIN_DIR" "$SRC_DIR" || {
             echo -e "${RED}  ERROR: Cursor export failed, aborting (#3941)${NC}"
             exit 1
         }
@@ -515,8 +525,10 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # directory existing, so they would have skipped silently forever — dead
     # build machinery that reads as "OrchestKit ships an MCP server".
 
-    # Copy shared resources if they exist
-    if [[ -d "$SRC_DIR/shared" ]]; then
+    # Copy shared resources if they exist (not for a "shared": false add-on,
+    # see SHIPS_SHARED above; cc-support.json below then skips too, since it
+    # is gated on the shared/ dir existing)
+    if [[ -d "$SRC_DIR/shared" && "$SHIPS_SHARED" != "false" ]]; then
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"
     fi
     # doctor check 10 tells the model to read shared/cc-support.json as the
