@@ -99,9 +99,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ai-ui-generation": {
     "name": "ai-ui-generation",
-    "description": "AI UI generation with json-render, v0.app, Stitch, Bolt Cloud, and Cursor: prompt engineering, review checklists, design token injection, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output.",
+    "description": "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output.",
     "version": "1.1.0",
-    "sha256": "4946b4343cfbc9c314ad1ff29556c8f44bf0e87f55b1f647ac19d20009e07ee2",
+    "sha256": "103f16a83d446cfa0b7c62735dafcdac90bf69ec47c985fed5059fac683871bc",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -2983,9 +2983,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "interaction-patterns": {
     "name": "interaction-patterns",
-    "description": "UI interaction patterns: skeleton loading, accessible infinite scroll, progressive disclosure, modal/drawer/inline selection, keyboard drag-and-drop, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications.",
+    "description": "UI interaction patterns: skeleton loading, infinite scroll, progressive disclosure, modal/drawer/inline selection, drag-and-drop, tab overflow, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications.",
     "version": "1.0.0",
-    "sha256": "632ec608aec630e3e8f2e9f5ec6519522e23fa9a1d6de463735005823d61f589",
+    "sha256": "c451eb81bcee46fedca09e423de034466312d348c9c8b6ac68ecc94ad6fb9c7b",
     "author": "OrchestKit",
     "tags": [
       "interaction-design",
@@ -3163,9 +3163,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "langgraph": {
     "name": "langgraph",
-    "description": "LangGraph 1.x Python workflow patterns: state, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, resilience. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
+    "description": "LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.3.0",
-    "sha256": "592a0e45c7031f41fe849ca1117e57cf2bfacc0beb589828ad59fe3ca1fd894e",
+    "sha256": "371691a32fc875e69066b1d1b51dcead1587ac67db841ce19b027d43ba97ac62",
     "author": "OrchestKit",
     "tags": [
       "langgraph",

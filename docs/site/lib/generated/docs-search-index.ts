@@ -748,7 +748,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/ai-ui-generation",
     "title": "AI UI Generation",
-    "description": "AI UI generation with json-render, v0.app, Stitch, Bolt Cloud, and Cursor: prompt engineering, review checklists, design token injection, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
+    "description": "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
   },
   {
     "url": "/docs/reference/skills/analytics",
@@ -1213,7 +1213,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/interaction-patterns",
     "title": "Interaction Patterns",
-    "description": "UI interaction patterns: skeleton loading, accessible infinite scroll, progressive disclosure, modal/drawer/inline selection, keyboard drag-and-drop, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications."
+    "description": "UI interaction patterns: skeleton loading, infinite scroll, progressive disclosure, modal/drawer/inline selection, drag-and-drop, tab overflow, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications."
   },
   {
     "url": "/docs/reference/skills/issue-progress-tracking",
@@ -1238,7 +1238,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/langgraph",
     "title": "Langgraph",
-    "description": "LangGraph 1.x Python workflow patterns: state, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, resilience. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
+    "description": "LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
   },
   {
     "url": "/docs/reference/skills/llm-integration",

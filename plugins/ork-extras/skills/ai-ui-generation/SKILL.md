@@ -2,7 +2,7 @@
 name: ai-ui-generation
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "AI UI generation with json-render, v0.app, Stitch, Bolt Cloud, and Cursor: prompt engineering, review checklists, design token injection, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
+description: "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
 user-invocable: false
 metadata:
   owner-agent: "frontend-ui-developer"

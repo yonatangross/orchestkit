@@ -1,4 +1,4 @@
-6269
+6254
 # Ceiling, in bytes, for the ork-extras skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) named in manifests/ork.json
 # skillsExclude, i.e. the skills that ship in the opt-in ork-extras plugin (#4936).
@@ -13,3 +13,5 @@
 # cap (980 bytes over); trimming them is a separate follow-up and would lower this ceiling.
 # History: 2026-11-13 ork-extras-desc-cap: 7530 to 6269 bytes (1261 down) after trimming the 14
 # descriptions to 260 bytes or less. 0 over the cap, now enforced for extras as well as core.
+# History: 2026-11-13 ork-extras-desc-cap fix round 1: 6269 to 6254 bytes after putting one trigger
+# term back in each of langgraph, interaction-patterns and ai-ui-generation.
