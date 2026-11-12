@@ -9,6 +9,49 @@ background: false
 allowed-tools: "AskUserQuestion Bash Read Write Agent TaskCreate TaskUpdate Skill mcp__memory__search_nodes CronCreate CronDelete"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/create-pr" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/create-pr/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -357,7 +400,7 @@ Done means all of these hold:
 - CodeRabbit CLI pre-review ran once before `gh pr create` (Phase 3c), or its one-line skip reason is in the Test Plan
 - Playground HTML exists at docs/{branch-dir}/*.html and the body links it, per `skills/create-pr/references/pr-playground.md` (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
-- On repos with `.coderabbit.yaml` and a non-draft PR: every CodeRabbit thread is resolved per `skills/create-pr/references/coderabbit-harvest.md`, with a reply naming the fix sha or the dismissal reason (`skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
+- On repos with `.coderabbit.yaml` and a non-draft PR: every CodeRabbit thread is resolved per `skills/create-pr/references/coderabbit-harvest.md`, with a reply naming the fix sha or the dismissal reason (`<ORK_PLUGIN_DIR>/skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
 
 ## Related Skills
 
@@ -378,7 +421,7 @@ Load on demand with `Read("references/<file>")`:
 | `skills/create-pr/references/ci-integration.md` | CI integration patterns |
 | `skills/create-pr/references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `skills/create-pr/assets/pr-template.md` | PR template (legacy) |
-| `skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `<ORK_PLUGIN_DIR>/skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
 | `skills/create-pr/references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
 | `skills/create-pr/references/coderabbit-cli-prereview.md` | Phase 3c: why the PR review allowance is scarce, CLI command, degrade table, triage |
 | `skills/create-pr/references/pr-playground.md` | Phase 4b: PR playground archetype, commit path, SHA-pinned Live Preview link (CI gate) |

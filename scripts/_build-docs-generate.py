@@ -1421,12 +1421,21 @@ def extract_hook_metadata(hooks_src_dir: Path, hook_path: str, command: str) -> 
     return {"description": description, "behavior": behavior}
 
 
-def generate_hooks(hooks_json: str, hooks_out: str) -> int:
-    """Generate hook category MDX pages. Returns total hook count."""
+def generate_hooks(hooks_json: str, hooks_out: str, shipped_json: str | None = None) -> int:
+    """Generate hook category MDX pages. Returns total hook count.
+
+    hooks_json is the per-handler registry. shipped_json, when given, is the
+    plugin's built hooks.json: an event the registry has but the shipped file
+    does not register gets a note that its hooks do not run.
+    """
     print("Generating hook category pages...")
 
     with open(hooks_json) as f:
         data = json.load(f)
+
+    shipped_events: set[str] | None = None
+    if shipped_json and Path(shipped_json).is_file():
+        shipped_events = set(json.loads(Path(shipped_json).read_text()).get("hooks", {}))
 
     hooks_data = data.get("hooks", {})
     categories = list(hooks_data.keys())
@@ -1487,6 +1496,13 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
             f"**{len(rows)} hooks** registered for the `{cat}` lifecycle event.",
             "",
         ]
+        if shipped_events is not None and cat not in shipped_events:
+            lines += [
+                f"> Not in the shipped plugin: `plugins/ork/hooks/hooks.json` does not register "
+                f"`{cat}`, so these hooks do not run. They stay in the registry "
+                "(`src/hooks/hooks.json`) so the build can ship them again.",
+                "",
+            ]
 
         if rows:
             lines.append("| Hook | Matcher | Behavior | Description |")
@@ -2372,7 +2388,13 @@ def main():
 
     generate_skills(skills_src, skills_out)
     generate_agents(agents_src, agents_out)
-    generate_hooks(hooks_json, hooks_out)
+    project_root = os.environ.get("PROJECT_ROOT", "")
+    shipped = (
+        str(Path(project_root) / "plugins" / "ork" / "hooks" / "hooks.json")
+        if project_root
+        else None
+    )
+    generate_hooks(hooks_json, hooks_out, shipped_json=shipped)
 
     # Category index pages (#9003)
     categories_out = os.environ.get("CATEGORIES_OUT", "")

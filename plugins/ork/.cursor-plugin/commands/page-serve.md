@@ -8,6 +8,49 @@ name: page-serve
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/page-serve" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/page-serve/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -38,12 +81,12 @@ a stop, a status, and a loud failure when the URL contract cannot be met.
 The skill is three scripts in its own folder. Run them by path:
 
 ```bash
-bash "skills/page-serve/scripts/serve.sh" ./report.html
-bash "skills/page-serve/scripts/serve.sh" ./pages/ --name pages
-bash "skills/page-serve/scripts/serve.sh" <path> --screenshot   # agent-browser, returns the png path
-bash "skills/page-serve/scripts/status.sh" [--json]
-bash "skills/page-serve/scripts/stop.sh" <name>
-bash "skills/page-serve/scripts/stop.sh" --all
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" ./report.html
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" ./pages/ --name pages
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh" <path> --screenshot   # agent-browser, returns the png path
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/status.sh" [--json]
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh" <name>
+bash "<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh" --all
 ```
 
 `serve.sh` prints `url=`, `name=`, `port=`, `pid=`, `http=`, optional `screenshot=`,
@@ -53,9 +96,9 @@ and the exact `stop=` line to paste. Put the `url=` line in your reply's Open se
 
 | Invocation | Script | What happens |
 |---|---|---|
-| `<path> [flags]` | `skills/page-serve/scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
-| `status [--json]` | `skills/page-serve/scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
-| `stop <name>` or `stop --all` | `skills/page-serve/scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
+| `<path> [flags]` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
+| `status [--json]` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
+| `stop <name>` or `stop --all` | `<ORK_PLUGIN_DIR>/skills/page-serve/scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
 
 ## Failure modes, all loud
 
