@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0) (2026-11-12)
+
+
+### Features
+
+* **hooks:** ship 2 hook processes per tool call, not 3 ([#5214](https://github.com/yonatangross/orchestkit/issues/5214)) ([ede9cb7](https://github.com/yonatangross/orchestkit/commit/ede9cb7cae820dfc489f475cab26fa9c80c691dd))
+* **skills:** add /ork:disk-cleanup ([#5211](https://github.com/yonatangross/orchestkit/issues/5211)) ([be62229](https://github.com/yonatangross/orchestkit/commit/be62229183c60bd40f0377028af4cbe05b451d91))
+
+
+### Bug Fixes
+
+* **cursor:** commands run skill scripts only from the installed plugin ([#5216](https://github.com/yonatangross/orchestkit/issues/5216)) ([02ded35](https://github.com/yonatangross/orchestkit/commit/02ded3508aefb3f27cf7921ec64374efba4a8e1a))
+* **docs:** hook pages say when the shipped plugin skips an event ([#5215](https://github.com/yonatangross/orchestkit/issues/5215)) ([df6d8fe](https://github.com/yonatangross/orchestkit/commit/df6d8febbb64b38740957687879474f4abdfeab9))
+* **docs:** try Chromium before apt, so the mirror is not on every build ([#5212](https://github.com/yonatangross/orchestkit/issues/5212)) ([58ea980](https://github.com/yonatangross/orchestkit/commit/58ea980375b679d61f161e34fcc14cab556d410c))
+* **page-serve:** run every python3 call in serve.sh isolated (-I) ([#5209](https://github.com/yonatangross/orchestkit/issues/5209)) ([f09a23d](https://github.com/yonatangross/orchestkit/commit/f09a23d42f54732c7c17412cd108bac1553cf998))
+* **pre-push:** skip the version gate on wip/ park branches ([#5201](https://github.com/yonatangross/orchestkit/issues/5201)) ([de94c99](https://github.com/yonatangross/orchestkit/commit/de94c99eed8c35d9f5562ca87a294e2105a03e72))
+* **tests:** reserve temp names with trailing X's, then add the extension ([#5210](https://github.com/yonatangross/orchestkit/issues/5210)) ([c0dd8f5](https://github.com/yonatangross/orchestkit/commit/c0dd8f5c24bff6c4ae7c0ac7a27736a9e607a997))
+* **tests:** restore the exec bit that broke the local pre-commit lint ([#5205](https://github.com/yonatangross/orchestkit/issues/5205)) ([52875c4](https://github.com/yonatangross/orchestkit/commit/52875c4fd2dc3bee45bfb81dab89592b0b86ce92))
+
+
+### Documentation
+
+* **hooks:** fix dispatcher and Bash-guard rows on architecture ([#5148](https://github.com/yonatangross/orchestkit/issues/5148)) ([#5208](https://github.com/yonatangross/orchestkit/issues/5208)) ([3ae5616](https://github.com/yonatangross/orchestkit/commit/3ae56165ca06f94919cb9515a4e5f4b6be22acf1))
+
 ## [10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0) (2026-11-10)
 
 
