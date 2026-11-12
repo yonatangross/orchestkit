@@ -9,6 +9,49 @@ background: false
 allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
 ---
 
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/setup" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
+
 # Auto-generated from skills/setup/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
@@ -78,7 +121,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
 | 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
-| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
+| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node <ORK_PLUGIN_DIR>/skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
@@ -93,9 +136,9 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
-**Stack snapshot, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "hooks/bin/run-hook.mjs" skill/setup-env-detector`:
+**Stack snapshot, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/setup-env-detector`:
 
-!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "skills/setup/../../hooks/bin/run-hook.mjs" skill/setup-env-detector 2>/dev/null || true`
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/setup-env-detector 2>/dev/null || true`
 
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 

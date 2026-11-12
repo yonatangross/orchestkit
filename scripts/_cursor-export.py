@@ -141,6 +141,107 @@ def rewrite_bare_refs(text: str, skill_name: str, skill_dir: Path) -> str:
     return text
 
 
+# Plugin scripts (default deny). Cursor substitutes no plugin-root variable in
+# a command body (measured in cursor-agent 2026.11.05: only mcpServers config
+# gets ${CURSOR_PLUGIN_ROOT}), so a plugin-relative `skills/<name>/scripts/x`,
+# `skills/<name>/../../hooks/bin/x` or `hooks/bin/x` cannot name the installed
+# plugin's own file. Default deny: EVERY unanchored path of those shapes (after
+# an interpreter with or without flags, run bare or as ./, or named in prose or
+# a table) becomes a `<ORK_PLUGIN_DIR>/...` placeholder that does not run as
+# written, and the command gets GUARD_HEADING plus script_guard(), which finds
+# the installed plugin directory itself. References outside scripts/ keep the
+# plugin-relative form.
+PLUGIN_DIR_PLACEHOLDER = "<ORK_PLUGIN_DIR>"
+PLUGIN_SCRIPT_REWRITES = (
+    (
+        re.compile(NOT_PATH_CHAR + r"(?:\./)?skills/[A-Za-z0-9._-]+/\.\./\.\./"),
+        PLUGIN_DIR_PLACEHOLDER + "/",
+    ),
+    (
+        re.compile(NOT_PATH_CHAR + r"(?:\./)?skills/[A-Za-z0-9._-]+/\.\./"),
+        PLUGIN_DIR_PLACEHOLDER + "/skills/",
+    ),
+    (
+        re.compile(NOT_PATH_CHAR + r"(?:\./)?(skills/[A-Za-z0-9._-]+/scripts/)"),
+        PLUGIN_DIR_PLACEHOLDER + r"/\1",
+    ),
+    (re.compile(NOT_PATH_CHAR + r"(?:\./)?(hooks/bin/)"), PLUGIN_DIR_PLACEHOLDER + r"/\1"),
+)
+GUARD_HEADING = "## Before running a script from this command (Cursor)"
+
+# Finds the installed plugin: a `.cursor-plugin/plugin.json` whose top-level
+# name is `ork`, under ~/.cursor/plugins, whose root holds this skill. Each
+# candidate is resolved with `pwd -P` and kept only inside ~/.cursor/plugins and
+# outside the workspace (the current directory); only a workspace that is HOME
+# or above it does not rule the plugin out. With several installs the newest
+# plugin.json wins. Nothing is pasted in. Prints exactly one line, and the
+# subshell keeps a refusal from ending the agent's shell. Portable to bash 3.2,
+# sh, dash and zsh: every case pattern has its leading paren, and the loop is a
+# function, because bash 3.2 misparses a bare case pattern inside $( ... ).
+SCRIPT_GUARD = r"""(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/__SKILL__" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)"""
+
+
+def script_guard(skill_name: str) -> str:
+    """The resolver for one skill; prints `ORK_PLUGIN_DIR=<dir>` or `REFUSED: <reason>`."""
+    return SCRIPT_GUARD.replace("__SKILL__", skill_name)
+
+
+def guard_section(skill_name: str) -> str:
+    return (
+        f"{GUARD_HEADING}\n\n"
+        "Cursor does not tell a command where this plugin is installed. Run plugin scripts "
+        "only from the installed plugin directory, never by a relative `skills/...` or "
+        "`hooks/...` path.\n\n"
+        "Find the installed plugin directory first:\n\n"
+        f"```bash\n{script_guard(skill_name)}\n```\n\n"
+        f"Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` "
+        f"in place of `{PLUGIN_DIR_PLACEHOLDER}` below. If it prints `REFUSED: ...`, stop "
+        "and tell the user the reason.\n\n"
+    )
+
+
+def guard_executed_scripts(text: str, skill_name: str) -> str:
+    rewritten = text
+    for pattern, replacement in PLUGIN_SCRIPT_REWRITES:
+        rewritten = pattern.sub(replacement, rewritten)
+    if PLUGIN_DIR_PLACEHOLDER not in rewritten or GUARD_HEADING in rewritten:
+        return rewritten
+    match = FRONTMATTER.match(rewritten)
+    cut = match.end() if match else 0
+    return rewritten[:cut] + guard_section(skill_name) + rewritten[cut:]
+
+
 def rewrite_command(text: str, skill_name: str, skill_dir: Path) -> str:
     # Order matters, though not for the reason it first looks like. A
     # cross-skill `${CLAUDE_PLUGIN_ROOT}/skills/other/references/x.md` is safe
@@ -156,7 +257,8 @@ def rewrite_command(text: str, skill_name: str, skill_dir: Path) -> str:
     # belongs.
     text = strip_plugin_root(text)
     text = rewrite_skill_dir(text, skill_name)
-    return rewrite_bare_refs(text, skill_name, skill_dir)
+    text = rewrite_bare_refs(text, skill_name, skill_dir)
+    return guard_executed_scripts(text, skill_name)
 
 
 FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
