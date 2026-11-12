@@ -169,29 +169,43 @@ PLUGIN_SCRIPT_REWRITES = (
 )
 GUARD_HEADING = "## Before running a script from this command (Cursor)"
 
-# Finds the installed plugin: a `.cursor-plugin/plugin.json` named `ork` under
-# ~/.cursor/plugins whose root holds this skill. Each candidate is resolved with
-# `pwd -P` and kept only inside ~/.cursor/plugins and outside the workspace (the
-# current directory); a workspace that contains ~/.cursor/plugins (HOME, say)
-# does not rule the plugin out. Nothing is pasted in. Prints exactly one line,
-# and the subshell keeps a refusal from ending the agent's shell.
+# Finds the installed plugin: a `.cursor-plugin/plugin.json` whose top-level
+# name is `ork`, under ~/.cursor/plugins, whose root holds this skill. Each
+# candidate is resolved with `pwd -P` and kept only inside ~/.cursor/plugins and
+# outside the workspace (the current directory); only a workspace that is HOME
+# or above it does not rule the plugin out. With several installs the newest
+# plugin.json wins. Nothing is pasted in. Prints exactly one line, and the
+# subshell keeps a refusal from ending the agent's shell. Portable to bash 3.2,
+# sh, dash and zsh: every case pattern has its leading paren, and the loop is a
+# function, because bash 3.2 misparses a bare case pattern inside $( ... ).
 SCRIPT_GUARD = r"""(
   ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
   ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
   ork_above=""
-  case "$ork_base/" in "$ork_ws"/*) ork_above=1 ;; esac
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/__SKILL__" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
   ork_real=""
   if [ -n "$ork_base" ]; then
-    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | sort | while IFS= read -r ork_pj; do
-      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
-      case "$ork_r/" in "$ork_base"/*) ;; *) continue ;; esac
-      if [ -z "$ork_above" ]; then case "$ork_r/" in "$ork_ws"/*) continue ;; esac; fi
-      case "$ork_ws/" in "$ork_r"/*) continue ;; esac
-      grep -Eq '"name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
-      [ -d "$ork_r/skills/__SKILL__" ] || continue
-      printf '%s\n' "$ork_r"
-      break
-    done)"
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
   fi
   [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
   echo "ORK_PLUGIN_DIR=$ork_real"
