@@ -29,12 +29,12 @@ Before diving into commands, understand what each tier does and when it activate
 
 | Tier | Storage | Config | Behavior |
 |---|---|---|---|
-| **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Stores entities with typed relations. Primary tier. Always available. |
+| **1. Graph** | MCP `mcp__memory__*` | Needs a memory MCP server (not bundled) | Stores entities with typed relations. Primary tier once the server is configured. |
 | **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session artifacts and offline backup surfaces used by skills and compaction snapshots. |
 | **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Loaded by Claude Code at session start. Survives plugin removal. Written by skills/agents, not by a dedicated OrchestKit writer hook. |
 
 <Callout type="info">
-Graph and MCP memory require zero configuration once the memory MCP server is available. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). No OrchestKit hook writes decisions into MEMORY.md.
+The graph tier needs a `memory` MCP server, which OrchestKit does not bundle. Add one once, for example `claude mcp add memory -- npx -y @modelcontextprotocol/server-memory`, and confirm it with `claude mcp list`. Without it, `/ork:remember` and `/ork:memory` have no graph to write to or read from. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). No OrchestKit hook writes decisions into MEMORY.md.
 </Callout>
 
 ## Step-by-Step

@@ -73,11 +73,11 @@ Then restart Claude Code or open a new terminal.
 
 ## Memory Tiers
 
-OrchestKit has 3 memory tiers. All work automatically with zero configuration:
+OrchestKit has 3 memory tiers. Tiers 2 and 3 need no setup; tier 1 needs a memory MCP server, which OrchestKit does not bundle (see [Set up memory](/docs/cookbook/setup-memory)):
 
 | Tier | Storage | Config Needed | What It Does |
 |---|---|---|---|
-| **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Knowledge graph: entities + relations |
+| **1. Graph** | MCP `mcp__memory__*` | Needs a memory MCP server (not bundled) | Knowledge graph: entities + relations |
 | **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence |
 | **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Injected into system prompt |
 

@@ -118,9 +118,9 @@ Yes. Edit `src/hooks/hooks.json` and set `"enabled": false` on the hook entry. T
 
 ## Memory
 
-### How does memory work without any configuration?
+### Which memory tiers need setup?
 
-All 3 tiers work out of the box with zero configuration. Decisions go to the MCP knowledge graph (Tier 1), optional `.claude/memory/*.jsonl` files can hold a record (Tier 2), and CC Native MEMORY.md (Tier 3) holds what Claude or you write there.
+Tiers 2 and 3 work out of the box. Tier 1 (the knowledge graph) needs a memory MCP server, which OrchestKit does not bundle. Decisions go to the MCP knowledge graph (Tier 1), optional `.claude/memory/*.jsonl` files can hold a record (Tier 2), and CC Native MEMORY.md (Tier 3) holds what Claude or you write there.
 
 ### What gets stored automatically?
 
