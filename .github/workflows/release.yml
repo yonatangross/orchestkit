@@ -158,8 +158,9 @@ jobs:
   # Since #4936 the stable channel is two entries, `ork` and `ork-extras`,
   # pinned together by the script below.
   #
-  # The pin (.claude-plugin/marketplace.json, the `ork` entry) must carry
-  # version X.Y.Z and source.ref vX.Y.Z together; CC validates that agreement at
+  # The pin (.claude-plugin/marketplace.json, the `ork` and `ork-extras`
+  # entries) must carry version X.Y.Z and source.ref vX.Y.Z together on each
+  # entry; CC validates that agreement at
   # plugin load, so a half-bump is a broken install for every stable user rather
   # than a red CI job. Nothing wrote it before #3350: release-please stamps the
   # ALPHA entry by index, and stamp-counts.sh deliberately stamps only the entry
@@ -173,9 +174,12 @@ jobs:
   # Lands as a PR, not a push: main requires pull requests (enforce_admins is on
   # and there is no bypass allowance), so a direct push would 403. That is also
   # why release-please-guard matters here, and it clears twice over — the PR
-  # author is orchestkit-release-bot[bot] (exempt at the bot check), and the two
-  # governed jsonpaths on this file, $.version and $.plugins[1].version, are not
-  # the fields this writes.
+  # author is orchestkit-release-bot[bot], which the guard exempts at its bot
+  # check. That exemption is the only thing that clears it now: release-please
+  # governs three jsonpaths on this file ($.version, $.plugins[1].version and
+  # $.plugins[2].version, see .release-please-config.json), and the pin writes
+  # the `ork-extras` entry, which is $.plugins[2]. Only $.plugins[0] (`ork`) and
+  # source.ref stay outside the governed set.
   bump-stable-pin:
     needs: create-release
     if: github.event_name == 'push'
