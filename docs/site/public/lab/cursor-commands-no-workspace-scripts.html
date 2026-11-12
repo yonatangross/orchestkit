@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cursor commands run skill scripts only from the installed plugin</title>
-<meta name="description" content="Pick a plugin path a user might give and see what the Cursor command's path check answers.">
+<meta name="description" content="Pick what is installed and see what the Cursor command's plugin lookup answers.">
 <style>
   :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
   *{box-sizing:border-box}
@@ -22,18 +22,18 @@
   .ok{color:var(--status-ok)} .bad{color:var(--status-bad)}
   @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Cursor commands run skill scripts only from the installed plugin"><meta property="og:description" content="Pick a plugin path a user might give and see what the Cursor command's path check answers."><meta property="og:url" content="https://orchestkit.dev/lab/cursor-commands-no-workspace-scripts.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Cursor commands run skill scripts only from the installed plugin"><meta name="twitter:description" content="Pick a plugin path a user might give and see what the Cursor command's path check answers."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Cursor commands run skill scripts only from the installed plugin"><meta property="og:description" content="Pick what is installed and see what the Cursor command's plugin lookup answers."><meta property="og:url" content="https://orchestkit.dev/lab/cursor-commands-no-workspace-scripts.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Cursor commands run skill scripts only from the installed plugin"><meta name="twitter:description" content="Pick what is installed and see what the Cursor command's plugin lookup answers."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
 <body><main>
 <h1>Cursor commands run skill scripts only from the installed plugin</h1>
-<p class="sub">Branch fix/cursor-commands-no-workspace-scripts, 2026-11-11. Cursor does not tell a command where its plugin is installed, so a command that runs a skill script first checks the plugin path the user gives. Each case below is a test in tests/plugins/test-cursor-script-guard.py.</p>
-<section><h2>Pick a path</h2>
-<label for="pick">Plugin path given</label>
+<p class="sub">Branch fix/cursor-commands-no-workspace-scripts, 2026-11-11. Cursor does not tell a command where its plugin is installed, so a command that runs a plugin script first looks for the installed plugin under ~/.cursor/plugins and nowhere else. Each case below is a test in tests/plugins/test-cursor-script-guard.py.</p>
+<section><h2>Pick a setup</h2>
+<label for="pick">What is installed, and where the project is open</label>
 <select id="pick"></select>
 <div class="out" id="out"></div>
 <button id="copy" type="button">Copy prompt</button>
 </section>
 <script>
-const CASES = [["The installed plugin under ~/.cursor/plugins", true, "ORK_PLUGIN_DIR=<the resolved path>: the command runs the script from there."], ["A relative path", false, "REFUSED: not an absolute path"], ["A path with a .. segment", false, "REFUSED: path traversal"], ["A copy inside the open project", false, "REFUSED: inside the workspace"], ["A folder outside ~/.cursor/plugins", false, "REFUSED: not an installed Cursor plugin (outside ~/.cursor/plugins)"], ["A folder under ~/.cursor/plugins that is not OrchestKit", false, "REFUSED: not an OrchestKit plugin root"], ["A path that does not exist", false, "REFUSED: not a directory"]];
+const CASES = [["The plugin installed under ~/.cursor/plugins", true, "ORK_PLUGIN_DIR=<the resolved path>: the command runs the script from there."], ["The same, with HOME open as the project", true, "ORK_PLUGIN_DIR=<the resolved path>: the command runs the script from there."], ["Nothing installed", false, "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"], ["A plugin with another name", false, "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"], ["OrchestKit without this skill", false, "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"], ["A copy inside the open project only", false, "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"], ["The project opened inside the plugin folder", false, "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"]];
 const pick = document.getElementById('pick');
 pick.replaceChildren(...CASES.map((c, i) => new Option(c[0], String(i))));
 function show() {
@@ -45,7 +45,7 @@ function show() {
 pick.addEventListener('change', show);
 document.getElementById('copy').addEventListener('click', () => {
   const c = CASES[Number(pick.value)];
-  navigator.clipboard.writeText('In Cursor, an OrchestKit command given this plugin path: ' + c[0] + ' should answer: ' + c[2]);
+  navigator.clipboard.writeText('In Cursor, an OrchestKit command in this setup: ' + c[0] + ' should answer: ' + c[2]);
 });
 show();
 </script>
