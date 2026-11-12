@@ -268,6 +268,17 @@ else
         else
             bad "GA bump touched the tracking channel: version='$alpha_ver' ref='$alpha_ref'"
         fi
+
+        # #4936: ork-extras is part of the stable set. A GA bump that pins ork
+        # alone leaves stable users with core and extras from different
+        # releases, so it must move to the same tag in the same write.
+        extras_ref=$(jq -r '[.plugins[] | select(.name == "ork-extras")] | .[0].source.ref // ""' "$fixture")
+        extras_ver=$(jq -r '[.plugins[] | select(.name == "ork-extras")] | .[0].version // ""' "$fixture")
+        if [[ "$extras_ref" == "v99.0.0" && "$extras_ver" == "99.0.0" ]]; then
+            ok "GA bump pins 'ork-extras' to the same tag (99.0.0 @ v99.0.0)"
+        else
+            bad "GA bump left 'ork-extras' at version='$extras_ver' ref='$extras_ref' (expected 99.0.0 @ v99.0.0)"
+        fi
     fi
 
     # --- Prerelease: refuses, and changes nothing ---
