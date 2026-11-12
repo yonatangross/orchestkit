@@ -2,7 +2,7 @@
 name: vite-advanced
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.
+description: "Advanced Vite 8 patterns: Rolldown builds, advancedChunks, Environment API, plugin development, SSR, library mode, build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds."
 user-invocable: false
 targets:
   - library: vite
