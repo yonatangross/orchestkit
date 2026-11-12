@@ -1,0 +1,11 @@
+{
+  "slug": "disk-cleanup-skill",
+  "source": "docs/feat--disk-cleanup-skill-2/index.html",
+  "title": "/ork:disk-cleanup gets the disk back from your agents",
+  "description": "Pick a kind of leftover and see which tier it lands in and what --apply does with it.",
+  "tags": [
+    "skills",
+    "devops"
+  ],
+  "date": "2026-11-11"
+}

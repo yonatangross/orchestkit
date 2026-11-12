@@ -2,7 +2,7 @@
 name: design-import
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
-description: "Scaffolds React components from a Claude Design bundle and stops at files on disk. Use when handed a claude.ai/design URL or bundle. For a full PR with tests and browser checks, use design-ship."
+description: "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

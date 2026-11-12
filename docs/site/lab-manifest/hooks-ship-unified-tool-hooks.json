@@ -1,0 +1,11 @@
+{
+  "slug": "hooks-ship-unified-tool-hooks",
+  "source": "docs/feat--hooks-ship-unified-tool-hooks/index.html",
+  "title": "Every tool call now starts 2 OrchestKit hook processes, not 3",
+  "description": "Pick a tool and a path and compare how many hook processes the shipped plugin started before and after the PostToolBatch observer left it.",
+  "tags": [
+    "hooks",
+    "performance"
+  ],
+  "date": "2026-11-11"
+}

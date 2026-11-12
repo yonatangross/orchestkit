@@ -1,0 +1,27 @@
+# Created: 2026-11-11
+id: disk-cleanup
+name: "Disk-cleanup skill evaluation"
+skill_path: src/skills/disk-cleanup/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "My disk is almost full after running a lot of agents, what can I safely delete?"
+    should_trigger: true
+  - prompt: "Clean up the merged worktrees and old caches eating my disk"
+    should_trigger: true
+  - prompt: "Delete the feature branch I just merged on GitHub"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Free some disk space, I'm down to 5 GB"
+    assertions:
+      - name: "dry run first"
+        check: "the reply shows a dry-run inventory sorted into SAFE, REGENERABLE and ASK FIRST with sizes before anything is removed"
+      - name: "asks before applying"
+        check: "the reply asks the user to confirm before running --apply and does not run --apply in the same turn"
+      - name: "ask-first items are not run"
+        check: "ASK FIRST rows (Downloads, Docker volumes or images, transcripts) are shown with a command for the user, never executed by the assistant"
+      - name: "kept worktrees are explained"
+        check: "a worktree left alone is listed with its reason, such as dirty, unmerged or holding ignored files like .env.local"
+
+tags: [disk-cleanup, worktrees, caches]

@@ -7,6 +7,8 @@ description: "Hooks triggered on PostToolBatch events (1 hooks)."
 
 **1 hooks** registered for the `PostToolBatch` lifecycle event.
 
+> Not in the shipped plugin: `plugins/ork/hooks/hooks.json` does not register `PostToolBatch`, so these hooks do not run. They stay in the registry (`src/hooks/hooks.json`) so the build can ship them again.
+
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `tool-batch-observer` | `*` | Fire-and-forget | Tool Batch Observer |

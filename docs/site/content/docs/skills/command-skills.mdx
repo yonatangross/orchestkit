@@ -1,5 +1,5 @@
 ---
-title: "43 Commands You Can Invoke"
+title: "44 Commands You Can Invoke"
 description: "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
 ---
 
@@ -7,7 +7,7 @@ description: "Every /ork: command skill in OrchestKit, grouped by task, with wha
 
 ## What Are Command Skills?
 
-Command skills are the **43 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
+Command skills are the **44 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
 
 Command skills differ from reference skills in three ways:
 
@@ -67,10 +67,10 @@ Turn mockups, screenshots, and design handoffs into components.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a Claude Design bundle and stops at files on disk. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
+| [`/ork:design-import`](/docs/reference/skills/design-import) | Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. | medium | `/ork:design-import <handoff-url \| path-to-bundle.json>` |
 | [`/ork:design-ship`](/docs/reference/skills/design-ship) | Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. | complex | `/ork:design-ship <handoff-url \| path-to-bundle.json>` |
-| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup to React component via Stitch, 21st.dev and Storybook MCP, reusing existing components first. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
-| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extracts design DNA from screenshots, URLs or recordings: colors, type, spacing, components and motion as tokens or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
+| [`/ork:design-to-code`](/docs/reference/skills/design-to-code) | Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. | complex | `/ork:design-to-code [screenshot-path \| description \| url]` |
+| [`/ork:design-context-extract`](/docs/reference/skills/design-context-extract) | Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. | medium | `/ork:design-context-extract [screenshot-path \| video-path \| url \| 'current project']` |
 | [`/ork:design-stylecards`](/docs/reference/skills/design-stylecards) | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. | low | `/ork:design-stylecards [list \| <recipe-name> \| apply <recipe> to <file>]` |
 | [`/ork:component-search`](/docs/reference/skills/component-search) | Searches the 21st.dev registry for production React components, ranked with install steps. | simple | `/ork:component-search [component description]` |
 
@@ -125,6 +125,7 @@ Commands not yet filed under a task above.
 | [`/ork:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork:careful` |
 | [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. | medium | `/ork:create-plan <task> [slug]` |
 | [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how code works today for a task's questions, with file:line citations. | medium | `/ork:create-research <task> <question or questions file>` |
+| [`/ork:disk-cleanup`](/docs/reference/skills/disk-cleanup) | Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. | low | `/ork:disk-cleanup [--apply] [--only ID] [--tier safe\|regenerable] [--root DIR] [--json]` |
 | [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
 | [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
 | [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. | medium | `/ork:iterate-research <research file> [follow-up]` |

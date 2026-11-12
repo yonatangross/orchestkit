@@ -129,8 +129,15 @@ optimize_skill() {
 
     # Create train/test eval files
     local train_file test_file
-    train_file=$(mktemp "${TMPDIR:-/tmp}/ork-opt-train-XXXXXX.yaml")
-    test_file=$(mktemp "${TMPDIR:-/tmp}/ork-opt-test-XXXXXX.yaml")
+    # BSD mktemp randomizes only trailing X's: reserve a unique name, then
+    # add the extension by rename (tests/ci/test-mktemp-template-trailing-x.sh).
+    local train_base test_base
+    train_base=$(mktemp "${TMPDIR:-/tmp}/ork-opt-train-XXXXXX")
+    test_base=$(mktemp "${TMPDIR:-/tmp}/ork-opt-test-XXXXXX")
+    train_file="$train_base.yaml"
+    test_file="$test_base.yaml"
+    mv "$train_base" "$train_file"
+    mv "$test_base" "$test_file"
     CLEANUP_FILES+=("$train_file" "$test_file")
 
     # Split via yq, jq, yq. The repo's yq is mikefarah/Go (no python-yq `-y` flag,

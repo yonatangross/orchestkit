@@ -109,7 +109,7 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 # ── 3. Reuse or start the static server ──────────────────────────────────────
-read_state() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2], ""))' "$STATE_FILE" "$1"; }
+read_state() { python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2], ""))' "$STATE_FILE" "$1"; }
 
 live_pid=0
 new_pid=0
@@ -131,15 +131,15 @@ if [[ -f "$STATE_FILE" ]]; then
 fi
 
 if [[ "$live_pid" == "0" ]]; then
-  PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
+  PORT="$(python3 -I -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
   LOG="${STATE_DIR}/${NAME}.log"
-  ( cd "$ROOT" && exec python3 -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 ) &
+  ( cd "$ROOT" && exec python3 -I -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 ) &
   live_pid=$!
   new_pid=$!
   ok=0
   for _ in $(seq 1 30); do
     # silent: gating-relaxed (readiness poll; connection refused is the expected early answer)
-    if python3 -c 'import socket,sys; s=socket.socket(); s.settimeout(0.2); s.connect(("127.0.0.1",int(sys.argv[1]))); s.close()' "$PORT" 2>/dev/null; then ok=1; break; fi
+    if python3 -I -c 'import socket,sys; s=socket.socket(); s.settimeout(0.2); s.connect(("127.0.0.1",int(sys.argv[1]))); s.close()' "$PORT" 2>/dev/null; then ok=1; break; fi
     sleep 0.1
   done
   if [[ "$ok" != "1" ]]; then
@@ -162,7 +162,7 @@ fi
 URL="https://${NAME}.localhost/${FILE}"
 
 # ── 5. Record state ──────────────────────────────────────────────────────────
-python3 - "$STATE_FILE" "$NAME" "$ROOT" "$FILE" "$PORT" "$live_pid" "$URL" <<'PY'
+python3 -I - "$STATE_FILE" "$NAME" "$ROOT" "$FILE" "$PORT" "$live_pid" "$URL" <<'PY'
 import json, sys, datetime
 f, name, root, file, port, pid, url = sys.argv[1:8]
 json.dump({"name": name, "root": root, "file": file, "port": int(port), "pid": int(pid),

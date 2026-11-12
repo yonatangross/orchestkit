@@ -1,0 +1,11 @@
+{
+  "slug": "hooks-pages-mark-unshipped-events",
+  "source": "docs/docs--hooks-pages-mark-unshipped-events/index.html",
+  "title": "Hook reference pages now say when an event is not shipped",
+  "description": "Pick a hook event and see whether the OrchestKit plugin runs it, and what its reference page says.",
+  "tags": [
+    "docs",
+    "hooks"
+  ],
+  "date": "2026-11-11"
+}
