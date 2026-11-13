@@ -372,8 +372,7 @@ fi
 listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
 listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
 
-# EXTRAS listing: reported with its own down-only ceiling (the 260-byte cap is
-# not enforced here yet: trimming those descriptions is a separate follow-up).
+# EXTRAS listing: the same hard per-skill cap as core, plus its own down-only ceiling.
 extras_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing-extras.XXXXXX")"
 trap 'rm -f "$listing_report_file" "$extras_report_file"' EXIT
 if ! measure_listing "${EXTRAS_FILES[@]}" > "$extras_report_file"; then
@@ -385,7 +384,7 @@ extras_total=$(awk '$1=="TOTAL"{print $2}' "$extras_report_file")
 extras_over=$(awk '$1=="TOTAL"{print $3}' "$extras_report_file")
 
 RATCHET_FILE_EXTRAS="$SCRIPT_DIR/skill-listing-ratchet-extras.txt"
-info "Listing: core ${#CORE_FILES[@]} skills ${listing_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE" || echo '?') B) · extras ${#EXTRAS_FILES[@]} skills ${extras_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE_EXTRAS" || echo '?') B, ${extras_over} over the ${SKILL_DESC_MAX_BYTES} B cap, not enforced)"
+info "Listing: core ${#CORE_FILES[@]} skills ${listing_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE" || echo '?') B) · extras ${#EXTRAS_FILES[@]} skills ${extras_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE_EXTRAS" || echo '?') B, ${extras_over} over the ${SKILL_DESC_MAX_BYTES} B cap)"
 
 if [[ "$listing_over" -eq 0 ]]; then
     pass "Every model-facing core skill: description + when_to_use ≤ ${SKILL_DESC_MAX_BYTES} bytes"
@@ -409,6 +408,15 @@ else
     else
         pass "Skill listing total: ${listing_total} bytes ≤ ratchet ceiling ${ratchet_ceiling}"
     fi
+fi
+
+if [[ "$extras_over" -eq 0 ]]; then
+    pass "Every model-facing ork-extras skill: description + when_to_use ≤ ${SKILL_DESC_MAX_BYTES} bytes"
+else
+    fail "${extras_over} model-facing ork-extras skill(s) over the ${SKILL_DESC_MAX_BYTES}-byte description + when_to_use cap"
+    awk '$1=="OVER"{print $2, $3}' "$extras_report_file" | sort -k1,1nr | while read -r b n; do
+        info "  ${n}: ${b} bytes"
+    done
 fi
 
 # ork-extras ceiling: same down-only rule and slack as the core ceiling, own file.

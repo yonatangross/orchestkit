@@ -1,0 +1,13 @@
+{
+  "slug": "ork-extras-desc-cap",
+  "source": "docs/fix--ork-extras-desc-cap/index.html",
+  "title": "ork-extras skill descriptions held to the 260 byte cap",
+  "description": "Test 4b now fails any ork-extras skill whose description plus when_to_use is over 260 bytes, the same cap core has. 14 descriptions were trimmed, keeping their Use when triggers. Pick a skill to compare the text and byte counts before and after.",
+  "tags": [
+    "skills",
+    "ork-extras",
+    "token-budget",
+    "tests"
+  ],
+  "date": "2026-11-13"
+}
