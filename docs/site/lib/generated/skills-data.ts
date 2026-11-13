@@ -863,7 +863,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "careful",
     "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "2a4bff743d74a1e5fa1801d5e3832f2ff94215dcd238354376b82345fc87352a",
+    "sha256": "1c72fbb5d7689ed8be30aa0f66026ab66609f4415ddf7af81aab3aa9fe87a7b0",
     "author": "OrchestKit",
     "tags": [
       "careful",
@@ -1298,7 +1298,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-plan",
     "description": "Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. Use when research is done and a reviewable plan is needed before code.",
     "version": "1.0.0",
-    "sha256": "48f9005f36f319b149046b547e5a1fbc712bf9a684073249680769902ec9cb90",
+    "sha256": "4788aebc6f87574c7547cc45865bb801a4e2cb9c02ddf95ba6a2a424c0f50881",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1396,7 +1396,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-research",
     "description": "Documents how code works today for a task's questions, with file:line citations. Use before planning a change; describes, never proposes. NOT for mapping a repo (use explore).",
     "version": "1.0.0",
-    "sha256": "32c89be0c102bb95f71c538868a1cf84747a22d2f78f39bb22836d1f7e8664df",
+    "sha256": "7b733103d595ddb02416306e5539d4993453ff4e004aa27e8074ebd779d6b1ac",
     "author": "OrchestKit",
     "tags": [
       "research",
@@ -1959,7 +1959,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "disk-cleanup",
     "description": "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches.",
     "version": "1.0.0",
-    "sha256": "6dded03f0e8b30907326e3909c7415d2a6d5ca5496f396e45d639d2768a961b0",
+    "sha256": "a5273075bdd53c61988291d5eb9e9702629e7f0bf05e27cbc2a5cd12c924ffe6",
     "author": "OrchestKit",
     "tags": [
       "disk",
@@ -2638,7 +2638,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "00868bc99cb1974d5c1977c4d4316ad0669c7cdb6547490b80f0509e3a2c81f5",
+    "sha256": "371a529dae0e73a9aa3275b8b55915df1067fc1b608fdae457bb0362d7c4be80",
     "author": "OrchestKit",
     "tags": [
       "freeze",
@@ -3054,7 +3054,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "iterate-plan",
     "description": "Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. Use when a plan got feedback; never to start one.",
     "version": "1.0.0",
-    "sha256": "6dfa0431405d3d87e0889c39b0e2d943192851eb64d566ce1e8db7b184c70106",
+    "sha256": "e30e29a0868d57e90f378ee2f10d3843d2401060393a83abcb1849ae87a5c1e0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -3089,7 +3089,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "iterate-research",
     "description": "Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use after review comments on research.",
     "version": "1.0.0",
-    "sha256": "dd38ffcd3e054b81a2bafe6dba60e64c8ae0d437a514d18816d6cebbbfe5dc1c",
+    "sha256": "eb75db431f2d71f88ab658ccba9cbb1c978b63982c0805921e8ae2f11ef93a04",
     "author": "OrchestKit",
     "tags": [
       "research",
@@ -4478,7 +4478,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-artifact-comments",
     "description": "Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate-research, approves when none are open. Use when an artifact file has reviewer comments.",
     "version": "1.0.0",
-    "sha256": "135f65e53224e297c3230402560327c29487e8579895330170b5add2b556d93e",
+    "sha256": "f0538df5d14e4751f26de874da12569d6d09749e460b5d302e24dd0824076c5f",
     "author": "OrchestKit",
     "tags": [
       "review",

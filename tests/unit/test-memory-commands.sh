@@ -12,6 +12,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
+# The description standard (#5043) is shared with the other description checks.
+source "$SCRIPT_DIR/../fixtures/description-standard.sh"
+
+# skill_description_has_trigger <SKILL.md path>: first description line carries a trigger phrase.
+skill_description_has_trigger() {
+    local desc
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$1" | head -n 1)"
+    description_has_trigger_phrase "$desc"
+}
 
 # CC 2.1.3: Commands merged with skills
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
@@ -55,7 +64,7 @@ test_remember_has_when_to_use() {
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
-    elif grep -qiE "description:.*use\s+(when|for|this)" "$file"; then
+    elif skill_description_has_trigger "$file"; then
         # Description has triggers - Overview optional
         return 0
     else
@@ -108,7 +117,7 @@ test_memory_has_when_to_use() {
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
-    elif grep -qiE "description:.*use\s+(when|for|this)" "$file"; then
+    elif skill_description_has_trigger "$file"; then
         # Description has triggers - Overview optional
         return 0
     else

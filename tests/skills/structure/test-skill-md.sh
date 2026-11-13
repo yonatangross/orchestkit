@@ -25,7 +25,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
-SKILLS_DIR="$PROJECT_ROOT/src/skills"
+# ORK_SKILLS_DIR lets tests/skills/test-description-standard-controls.sh point Test 5
+# at a planted skills tree and prove it still warns on a bad description.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+# The description standard is shared with the other description checks (#5043).
+# shellcheck source=../../fixtures/description-standard.sh
+source "$SCRIPT_DIR/../../fixtures/description-standard.sh"
 
 VERBOSE="${1:-}"
 
@@ -137,9 +142,10 @@ has_overview_section() {
 }
 
 has_trigger_in_description() {
-    local file="$1"
-    # Check if description field has trigger phrases
-    grep -qiE "description:.*use\s+(when|for|this)" "$file"
+    local file="$1" desc
+    # The description standard (#5043) is shared: "Use when|for|before|after|to|only when ..."
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$file" | head -n 1)"
+    description_has_trigger_phrase "$desc"
 }
 
 has_code_block() {
