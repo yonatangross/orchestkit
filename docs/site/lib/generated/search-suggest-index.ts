@@ -4335,7 +4335,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "What it blocks",
       "When a command is blocked",
-      "Limits"
+      "Limits",
+      "Related Skills"
     ]
   },
   {
@@ -5102,7 +5103,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "Steps",
       "Rules",
-      "Related",
+      "Related Skills",
       "References (2)",
       "Artifact Layout",
       "Path",
@@ -5214,7 +5215,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "Steps",
       "Rules",
-      "Related",
+      "Related Skills",
       "References (1)",
       "Research Template"
     ]
@@ -5877,6 +5878,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Troubleshooting",
       "Audit trail",
       "Scope",
+      "Related Skills",
       "References (1)",
       "Catalog",
       "Caches and stores",
@@ -7087,7 +7089,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "How it works",
       "Usage",
       "When an edit is blocked",
-      "Limits"
+      "Limits",
+      "Related Skills"
     ]
   },
   {
@@ -7928,7 +7931,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "Steps",
       "Rules",
-      "Related"
+      "Related Skills"
     ]
   },
   {
@@ -7937,7 +7940,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "Steps",
       "Rules",
-      "Related"
+      "Related Skills"
     ]
   },
   {
@@ -10571,7 +10574,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": [
       "Steps",
       "Adding a comment as a reviewer",
-      "Rules"
+      "Rules",
+      "Related Skills"
     ]
   },
   {
