@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mcp-server audit gate: hono 4.13.13 to 4.13.18</title>
+<meta name="description" content="PR for branch fix/mcp-server-hono-4-13-16. Five moderate hono advisories failed the npm audit gate again. A lockfile refresh inside the SDK's own range moves hono from 4.13.13 to 4.13.18 and clears all five.">
+<style>
+  :root{--paper:#f7f4ef;--ink:#1c1916;--dim:#6a645c;--rule:#ddd6cb;--accent:#0f5c4c;--ok:#1b6b3a;--bad:#9b1c1c}
+  @media (prefers-color-scheme:dark){:root{--paper:#141513;--ink:#ece8e1;--dim:#a39e94;--rule:#2c2d29;--accent:#6fbfa8;--ok:#7fc785;--bad:#f08b84}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--paper);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Palatino,serif;line-height:1.55}
+  main{max-width:42rem;margin-inline:auto}
+  h1{font-size:1.55rem;margin:0 0 .35rem;letter-spacing:-0.02em}
+  .sub{color:var(--dim);margin:0 0 1.6rem;font-size:.95rem}
+  section{border-top:1px solid var(--rule);padding-block:1.15rem}
+  h2{font-size:.72rem;margin:0 0 .7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-family:ui-sans-serif,system-ui,sans-serif}
+  p,li{font-size:1.02rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:3px;padding:0 4px}
+  ul{padding-inline-start:1.15rem;margin:.35rem 0}
+  li{margin:.25rem 0}
+  .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:.15rem 0 1rem}
+  button{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:.4rem .85rem;font:inherit;font-size:.88rem;cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  #panel{min-height:9rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="mcp-server audit gate: hono 4.13.13 to 4.13.18"><meta property="og:description" content="Five moderate hono advisories failed the pre-push npm audit gate again. A lockfile refresh inside the MCP SDK's own range clears all five, with no override and no allowlist entry."><meta property="og:url" content="https://orchestkit.dev/lab/mcp-server-hono-4-13-16.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="mcp-server audit gate: hono 4.13.13 to 4.13.18"><meta name="twitter:description" content="Five moderate hono advisories failed the pre-push npm audit gate again. A lockfile refresh inside the MCP SDK's own range clears all five, with no override and no allowlist entry."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>mcp-server audit gate: <code>hono</code></h1>
+<p class="sub">Branch <code>fix/mcp-server-hono-4-13-16</code>. After the <code>@hono/node-server</code> fix landed, the audit gate stayed red on five moderate advisories in <code>hono</code> itself.</p>
+
+<section>
+<h2>Before and after</h2>
+<div class="controls" role="group" aria-label="Pick a view">
+  <button type="button" data-view="0" aria-pressed="true">Before</button>
+  <button type="button" data-view="1" aria-pressed="false">After</button>
+</div>
+<div id="panel" aria-live="polite"></div>
+</section>
+
+<section>
+<h2>Why a lockfile refresh and not an override</h2>
+<ul>
+  <li><code>hono</code> is not a direct dependency. <code>@modelcontextprotocol/sdk</code> 1.32.2 (the latest release) declares <code>^4.11.4</code> and <code>@hono/node-server</code> 2.1.8 declares <code>^4 || ^5.0.0-0</code>.</li>
+  <li>Both ranges admit 4.13.18, the latest 4.x. No <code>package.json</code> change and no allowlist entry.</li>
+</ul>
+</section>
+</main>
+<script>
+const VIEWS = [
+  {
+    rows: [
+      ["Version in the lockfile", "4.13.13", "bad"],
+      ["1246368", "mount() can forward a path that bypasses scoped middleware", "bad"],
+      ["1246369", "RegExpRouter skips wildcard middleware for some route sets", "bad"],
+      ["1246370", "css helper does not escape a split closing tag (HTML injection)", "bad"],
+      ["1246373", "csrf() does not check hyperlink auditing requests", "bad"],
+      ["1246374", "validator('form') skips multipart requests with extra parameters", "bad"],
+      ["npm audit (moderate and up)", "3 packages affected, gate red", "bad"]
+    ]
+  },
+  {
+    rows: [
+      ["Version in the lockfile", "4.13.18", "ok"],
+      ["1246368, 1246369, 1246370, 1246373, 1246374", "all gone (fixed in 4.13.16)", "ok"],
+      ["npm audit (moderate and up)", "0 vulnerabilities, gate green", "ok"]
+    ]
+  }
+];
+const panel = document.getElementById("panel");
+const buttons = document.querySelectorAll("button[data-view]");
+function render(index) {
+  while (panel.firstChild) panel.removeChild(panel.firstChild);
+  const list = document.createElement("ul");
+  VIEWS[index].rows.forEach(function (row) {
+    const item = document.createElement("li");
+    const label = document.createElement("strong");
+    label.textContent = row[0] + ": ";
+    const value = document.createElement("span");
+    value.textContent = row[1];
+    value.className = row[2];
+    item.appendChild(label);
+    item.appendChild(value);
+    list.appendChild(item);
+  });
+  panel.appendChild(list);
+  buttons.forEach(function (button) {
+    button.setAttribute("aria-pressed", String(Number(button.dataset.view) === index));
+  });
+}
+buttons.forEach(function (button) {
+  button.addEventListener("click", function () { render(Number(button.dataset.view)); });
+});
+render(0);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

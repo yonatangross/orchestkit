@@ -1,0 +1,12 @@
+{
+  "slug": "mcp-server-hono-4-13-16",
+  "source": "docs/fix--mcp-server-hono-4-13-16/index.html",
+  "title": "mcp-server audit gate: hono 4.13.13 to 4.13.18",
+  "description": "Five moderate hono advisories failed the pre-push npm audit gate again. A lockfile refresh inside the MCP SDK's own range clears all five, with no override and no allowlist entry.",
+  "tags": [
+    "security",
+    "npm-audit",
+    "mcp-server"
+  ],
+  "date": "2026-11-13"
+}
