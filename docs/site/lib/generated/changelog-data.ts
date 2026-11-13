@@ -18,6 +18,61 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.13.0",
+    "date": "2026-11-13",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**plugins:** move 26 reference skills to the opt-in ork-extras plugin ([#5220](https://github.com/yonatangross/orchestkit/issues/5220)) ([341c8ca](https://github.com/yonatangross/orchestkit/commit/341c8ca99fcaa6c841e4905ea148f1f8c32cbc31))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** make the nightly health report prove its Claude call ([#5221](https://github.com/yonatangross/orchestkit/issues/5221)) ([d02950a](https://github.com/yonatangross/orchestkit/commit/d02950ac1a96ce477a7ffeb4b62f3653d826a6f5))",
+          "**disk-cleanup:** ask before images, keep new snapshots, pin apply ([#5213](https://github.com/yonatangross/orchestkit/issues/5213)) ([7921207](https://github.com/yonatangross/orchestkit/commit/792120796c028786684690e17e56289e53057a31))",
+          "**mcp-server:** refresh hono to 4.13.18 for the audit gate ([#5226](https://github.com/yonatangross/orchestkit/issues/5226)) ([bb06530](https://github.com/yonatangross/orchestkit/commit/bb06530697a4b58de19a0688a4d4b9c39ce3ebe9))",
+          "**page-serve:** close inherited file descriptors in the daemonized server ([#5222](https://github.com/yonatangross/orchestkit/issues/5222)) ([7452dc0](https://github.com/yonatangross/orchestkit/commit/7452dc020ef387c25caeebe4ace10b3740a98579))",
+          "**skills:** hold ork-extras descriptions to the 260 B cap ([#5227](https://github.com/yonatangross/orchestkit/issues/5227)) ([d02e055](https://github.com/yonatangross/orchestkit/commit/d02e05592dd7db7b9bdb40c25e1af8327eda94d3))",
+          "**tests:** judge skill descriptions by the [#5043](https://github.com/yonatangross/orchestkit/issues/5043) standard ([#5229](https://github.com/yonatangross/orchestkit/issues/5229)) ([67ee502](https://github.com/yonatangross/orchestkit/commit/67ee502376efeee10e8959bd17fdbda9550c3ea7))",
+          "**tests:** stop the page-serve test server by its exact path ([#5228](https://github.com/yonatangross/orchestkit/issues/5228)) ([276d84e](https://github.com/yonatangross/orchestkit/commit/276d84ee8f62fa53f3d8a47937a48e5e8625b59c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump @hono/node-server in /src/mcp-server ([#5225](https://github.com/yonatangross/orchestkit/issues/5225)) ([8ba5315](https://github.com/yonatangross/orchestkit/commit/8ba53153b4b790e01662ae82881464084f605518))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "memory pages say which tiers need setup ([#5219](https://github.com/yonatangross/orchestkit/issues/5219)) ([f7c21b5](https://github.com/yonatangross/orchestkit/commit/f7c21b55b142c4e1b6f5a93e788d73fa5a05ca6c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**skills:** re-point moved skills to their ork-extras: names ([#5223](https://github.com/yonatangross/orchestkit/issues/5223)) ([9b2079a](https://github.com/yonatangross/orchestkit/commit/9b2079a562520ed9955c230b1a8dd53e64b5628c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "catch stale docs-site generated files, literal plugin oracle ([#5224](https://github.com/yonatangross/orchestkit/issues/5224)) ([2c83ff2](https://github.com/yonatangross/orchestkit/commit/2c83ff210389226d04f8fcb3998a5ee219538835))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.12.0",
     "date": "2026-11-12",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0",
