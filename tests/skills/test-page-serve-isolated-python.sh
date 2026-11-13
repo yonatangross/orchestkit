@@ -31,25 +31,31 @@ fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.pageserve.XXXXXX")"
 cleanup() {
-    local rc=$? found=0 f pid real
-    for f in "$TMP"/proj/*/state/page-serve/*.json; do
-        [[ -f "$f" ]] || continue
-        found=$((found + 1))
-        pid="$(sed -n 's/.*"pid": *\([0-9][0-9]*\).*/\1/p' "$f" | head -1)"
-        if [[ -n "$pid" ]]; then
-            # silent: post-cleanup (the server this test started may already be gone)
-            kill "$pid" 2>/dev/null || true
-        fi
-    done
-    # Diagnostic: the state file serve.sh really wrote, by its literal path.
-    real="$TMP/proj/.claude/state/page-serve/ork-ps-test.json"
-    if [[ -f "$real" ]]; then
-        echo "  state file written by serve.sh: $real pid=$(sed -n 's/.*"pid": *\([0-9][0-9]*\).*/\1/p' "$real" | head -1)"
+    local rc=$? pid="" tries=0
+    # The exact file serve.sh writes: ${CLAUDE_PROJECT_DIR}/.claude/state/page-serve/<name>.json.
+    # Not a glob: a shell star never matches the dot in ".claude".
+    local state="$TMP/proj/.claude/state/page-serve/ork-ps-test.json"
+    if [[ -f "$state" ]]; then
+        pid="$(sed -n 's/.*"pid": *\([0-9][0-9]*\).*/\1/p' "$state" | head -1)"
+        echo "  state file written by serve.sh: $state pid=$pid"
     fi
     # A cleanup that stops nothing is a failure: the server it started is still running.
-    if [[ "$found" -eq 0 ]]; then
-        echo "FAIL: cleanup found no page-serve state file, so it stopped no server (leak)" >&2
+    if [[ -z "$pid" ]]; then
+        echo "FAIL: cleanup found no page-serve state file or pid, so it stopped no server (leak)" >&2
         rc=1
+    else
+        # silent: post-cleanup (the server this test started may already be gone)
+        kill "$pid" 2>/dev/null || true
+        # silent: gating-relaxed (kill -0 is a liveness probe; a dead pid is the expected "no")
+        while kill -0 "$pid" 2>/dev/null && [[ "$tries" -lt 20 ]]; do
+            sleep 0.2
+            tries=$((tries + 1))
+        done
+        # silent: gating-relaxed (kill -0 is a liveness probe; a dead pid is the expected "no")
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "FAIL: page-serve server pid $pid is still alive after cleanup (leak)" >&2
+            rc=1
+        fi
     fi
     rm -rf "$TMP"
     exit "$rc"
