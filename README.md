@@ -664,6 +664,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.13.0](https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0)** · 2026-11-13
+
+- **plugins:** move 26 reference skills to the opt-in ork-extras plugin (#5220)
+- **ci:** make the nightly health report prove its Claude call (#5221)
+- **disk-cleanup:** ask before images, keep new snapshots, pin apply (#5213)
+- **mcp-server:** refresh hono to 4.13.18 for the audit gate (#5226)
+- **page-serve:** close inherited file descriptors in the daemonized server (#5222)
+- …and 7 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0)** · 2026-11-12
 
 - **hooks:** ship 2 hook processes per tool call, not 3 (#5214)
@@ -715,10 +724,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
 
 - **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
-
-**[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
-
-- **docs:** replay never starts without consent (#5106)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
