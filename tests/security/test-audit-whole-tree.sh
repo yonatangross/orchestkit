@@ -89,23 +89,24 @@ run_audit() {
     ORK_AUDIT_WRAPPER="$STUB" bash "$AUDIT" --summary-out "$TMP/summary.json" "$@" > "$TMP/audit.out" 2>&1 || rc=$?
     echo "$rc"
 }
-summary() { jq -r "$1" "$TMP/summary.json"; }
+# Every read of the summary spells its jq program as a literal at the call site (no wrapper
+# that takes the program as an argument: tests/security/test-jq-injection.sh forbids it).
 
 echo "Layer 1: .github/scripts/audit-whole-tree.sh with a stubbed npm audit"
 
 check "clean tree exits 0"                          "$(run_audit --dir "$TMP/trees/clean")"  "0"
-check "clean tree: 5 packages examined"             "$(summary '.examined')"                 "5"
-check "clean tree: no hits"                         "$(summary '.hits | length')"            "0"
+check "clean tree: 5 packages examined"             "$(jq -r '.examined' "$TMP/summary.json")"          "5"
+check "clean tree: no hits"                         "$(jq -r '.hits | length' "$TMP/summary.json")"     "0"
 
 check "a moderate advisory exits 1 (HIT)"           "$(run_audit --dir "$TMP/trees/hit")"    "1"
-check "the hit names advisory 111"                  "$(summary '.hits[0].id')"               "111"
-check "the hit names its lockfile directory"        "$(summary '.hits[0].dir')"              "$TMP/trees/hit"
-check "the hit carries the severity"                "$(summary '.hits[0].severity')"         "moderate"
+check "the hit names advisory 111"                  "$(jq -r '.hits[0].id' "$TMP/summary.json")"        "111"
+check "the hit names its lockfile directory"        "$(jq -r '.hits[0].dir' "$TMP/summary.json")"       "$TMP/trees/hit"
+check "the hit carries the severity"                "$(jq -r '.hits[0].severity' "$TMP/summary.json")"  "moderate"
 check "the output says ADVISORIES"                  "$(count_lines "$TMP/audit.out" 'RESULT: ADVISORIES (exit 1)')" "1"
 
 echo '{"111": {"reason": "test", "until": "2099-01-01"}}' > "$TMP/allow-live.json"
 check "an allowlisted advisory exits 0"             "$(run_audit --dir "$TMP/trees/hit" --allowlist "$TMP/allow-live.json")" "0"
-check "the allowlisted advisory is still listed"    "$(summary '.allowlisted[0].id')"        "111"
+check "the allowlisted advisory is still listed"    "$(jq -r '.allowlisted[0].id' "$TMP/summary.json")" "111"
 echo '{"111": {"reason": "test", "until": "2000-01-01"}}' > "$TMP/allow-expired.json"
 check "an EXPIRED allowlist entry exits 1"          "$(run_audit --dir "$TMP/trees/hit" --allowlist "$TMP/allow-expired.json")" "1"
 
@@ -113,16 +114,16 @@ check "a low advisory is below moderate: exits 0"   "$(run_audit --dir "$TMP/tre
 check "a low advisory is a hit at --level low"      "$(run_audit --dir "$TMP/trees/low" --level low)" "1"
 
 check "no usable report exits 2 (CANNOT AUDIT)"     "$(run_audit --dir "$TMP/trees/noreport")" "2"
-check "the error says no usable JSON report"        "$(summary '.errors[0].message | test("no usable JSON report")')" "true"
+check "the error says no usable JSON report"        "$(jq -r '.errors[0].message | test("no usable JSON report")' "$TMP/summary.json")" "true"
 check "the output says CANNOT AUDIT"                "$(count_lines "$TMP/audit.out" 'RESULT: CANNOT AUDIT (exit 2)')" "1"
 check "an npm error object exits 2"                 "$(run_audit --dir "$TMP/trees/neterr")" "2"
-check "the error names ENOTFOUND"                   "$(summary '.errors[0].message | test("ENOTFOUND")')" "true"
+check "the error names ENOTFOUND"                   "$(jq -r '.errors[0].message | test("ENOTFOUND")' "$TMP/summary.json")" "true"
 check "a missing lockfile exits 2"                  "$(run_audit --dir "$TMP/trees/nolock")" "2"
 check "zero packages examined exits 2"              "$(run_audit --dir "$TMP/trees/zero")"   "2"
-check "the zero-packages error says so"             "$(summary '.errors[0].message | test("zero packages")')" "true"
+check "the zero-packages error says so"             "$(jq -r '.errors[0].message | test("zero packages")' "$TMP/summary.json")" "true"
 check "a hit and an error together exit 2"          "$(run_audit --dir "$TMP/trees/both" --dir "$TMP/trees/noreport")" "2"
-check "...and the summary keeps the hit"            "$(summary '.hits | length')"            "1"
-check "...and the summary keeps the error"          "$(summary '.errors | length')"          "1"
+check "...and the summary keeps the hit"            "$(jq -r '.hits | length' "$TMP/summary.json")"   "1"
+check "...and the summary keeps the error"          "$(jq -r '.errors | length' "$TMP/summary.json")" "1"
 echo 'not json' > "$TMP/allow-broken.json"
 check "an unreadable allowlist exits 2"             "$(run_audit --dir "$TMP/trees/hit" --allowlist "$TMP/allow-broken.json")" "2"
 check "an unknown level is refused with 2"          "$(run_audit --dir "$TMP/trees/clean" --level nope)" "2"
@@ -130,10 +131,10 @@ check "an unknown level is refused with 2"          "$(run_audit --dir "$TMP/tre
 # Whole tree: with no --dir the script walks every tracked lockfile of this repo (default.json = all clean).
 clean_report 3 > "$STUB_REPORTS/default.json"
 check "discovery run exits 0 on all-clean stubs"    "$(run_audit)"                           "0"
-check "discovery covers the root lockfile"          "$(summary '.dirs | index("(root)") != null')"         "true"
-check "discovery covers docs/site"                  "$(summary '.dirs | index("docs/site") != null')"      "true"
-check "discovery covers src/hooks"                  "$(summary '.dirs | index("src/hooks") != null')"      "true"
-check "discovery covers src/mcp-server"             "$(summary '.dirs | index("src/mcp-server") != null')" "true"
+check "discovery covers the root lockfile"          "$(jq -r '.dirs | index("(root)") != null' "$TMP/summary.json")"         "true"
+check "discovery covers docs/site"                  "$(jq -r '.dirs | index("docs/site") != null' "$TMP/summary.json")"      "true"
+check "discovery covers src/hooks"                  "$(jq -r '.dirs | index("src/hooks") != null' "$TMP/summary.json")"      "true"
+check "discovery covers src/mcp-server"             "$(jq -r '.dirs | index("src/mcp-server") != null' "$TMP/summary.json")" "true"
 rm -f "$STUB_REPORTS/default.json"
 
 # ─── layer 2: LIVE red on a fixture pinned to a known-vulnerable version ─────
