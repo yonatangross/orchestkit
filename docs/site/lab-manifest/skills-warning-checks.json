@@ -1,0 +1,12 @@
+{
+  "slug": "skills-warning-checks",
+  "source": "docs/fix--skills-warning-checks/index.html",
+  "title": "Skill description checks follow the #5043 standard",
+  "description": "Four description checks still asked for the pre-#5043 shape and grew the skills warning count from 267 to 333. They share one rule now, each keeps a planted control, and the runner counts colour-coded warnings and refuses an undercount.",
+  "tags": [
+    "skills",
+    "tests",
+    "warnings"
+  ],
+  "date": "2026-11-13"
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill description checks follow the #5043 standard</title>
+<meta name="description" content="PR for branch fix/skills-warning-checks. Four description checks still demanded the pre-#5043 shape, so the skills warning count grew from 267 to 333. They now share one rule, each keeps a planted control, and the runner counts colour-coded warnings and refuses an undercount.">
+<style>
+  :root{--paper:#f7f4ef;--ink:#1c1916;--dim:#6a645c;--rule:#ddd6cb;--accent:#0f5c4c;--ok:#1b6b3a;--bad:#9b1c1c}
+  @media (prefers-color-scheme:dark){:root{--paper:#141513;--ink:#ece8e1;--dim:#a39e94;--rule:#2c2d29;--accent:#6fbfa8;--ok:#7fc785;--bad:#f08b84}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--paper);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Palatino,serif;line-height:1.55}
+  main{max-width:44rem;margin-inline:auto}
+  h1{font-size:1.55rem;margin:0 0 .35rem;letter-spacing:-0.02em}
+  .sub{color:var(--dim);margin:0 0 1.6rem;font-size:.95rem}
+  section{border-top:1px solid var(--rule);padding-block:1.15rem}
+  h2{font-size:.72rem;margin:0 0 .7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-family:ui-sans-serif,system-ui,sans-serif}
+  p,li{font-size:1.02rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:3px;padding:0 4px}
+  ul{padding-inline-start:1.15rem;margin:.35rem 0}
+  li{margin:.25rem 0}
+  .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:.15rem 0 1rem}
+  button{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:.4rem .85rem;font:inherit;font-size:.88rem;cursor:pointer;font-family:ui-sans-serif,system-ui,sans-serif}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  #panel{min-height:11rem}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) 4rem;gap:.75rem;align-items:center;margin:.35rem 0}
+  .bar{height:.7rem;background:color-mix(in srgb,var(--rule) 70%,transparent);border-radius:3px;overflow:hidden}
+  .fill{height:100%;background:var(--accent)}
+  .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9rem;text-align:end}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<main>
+<h1>Skill description checks follow the <code>#5043</code> standard</h1>
+<p class="sub">Branch <code>fix/skills-warning-checks</code>. The skills-category warning count grew from 267 to 333 because four checks still asked for the shape descriptions had before #5043 trimmed them.</p>
+
+<section>
+<h2>Warnings per check</h2>
+<div class="controls" role="group" aria-label="Pick a view">
+  <button type="button" data-view="0" aria-pressed="true">Before</button>
+  <button type="button" data-view="1" aria-pressed="false">After</button>
+</div>
+<div id="panel" aria-live="polite"></div>
+</section>
+
+<section>
+<h2>What changed</h2>
+<ul>
+  <li><strong>One rule.</strong> <code>tests/fixtures/description-standard.sh</code> says what a trigger phrase is: <code>Use when</code>, <code>for</code>, <code>before</code>, <code>after</code>, <code>to</code>, <code>only when</code>, <code>this</code>. The name no longer has to be repeated, because the model sees <code>name: description</code>.</li>
+  <li><strong>Still a check.</strong> A planted description with no trigger phrase and no name still warns, in each of the four checks. A skill whose name carries the query words is matched through its name.</li>
+  <li><strong>Counter.</strong> The runner strips colour codes before summing, so two tests that were never counted now are. The true count at the old baseline was 271, not 267.</li>
+  <li><strong>Floor.</strong> A skills run that ran fewer than 150 tests, or counted 0 warnings, now fails instead of passing as clean.</li>
+  <li><strong>Eight skills</strong> got a <code>Related Skills</code> section (bodies only, no description change).</li>
+</ul>
+</section>
+</main>
+<script>
+const VIEWS = [
+  {
+    max: 50,
+    rows: [
+      ["test-skill-discovery", 45],
+      ["test-description-triggers", 15],
+      ["test-skill-md (all tests)", 46],
+      ["test-skill-triggering", 13],
+      ["Skills category, runner count", 333]
+    ]
+  },
+  {
+    max: 50,
+    rows: [
+      ["test-skill-discovery", 4],
+      ["test-description-triggers", 3],
+      ["test-skill-md (all tests)", 28],
+      ["test-skill-triggering", 9],
+      ["Skills category, runner count", 267]
+    ]
+  }
+];
+const panel = document.getElementById("panel");
+const buttons = document.querySelectorAll("button[data-view]");
+function render(index) {
+  while (panel.firstChild) panel.removeChild(panel.firstChild);
+  const view = VIEWS[index];
+  view.rows.forEach(function (row) {
+    const wrap = document.createElement("div");
+    wrap.className = "row";
+    const left = document.createElement("div");
+    const label = document.createElement("div");
+    label.textContent = row[0];
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("div");
+    fill.className = "fill";
+    fill.style.width = Math.min(100, (row[1] / (row[0].indexOf("Skills category") === 0 ? 350 : view.max)) * 100) + "%";
+    bar.appendChild(fill);
+    left.appendChild(label);
+    left.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "num " + (index === 0 ? "bad" : "ok");
+    num.textContent = String(row[1]);
+    wrap.appendChild(left);
+    wrap.appendChild(num);
+    panel.appendChild(wrap);
+  });
+  buttons.forEach(function (button) {
+    button.setAttribute("aria-pressed", String(Number(button.dataset.view) === index));
+  });
+}
+buttons.forEach(function (button) {
+  button.addEventListener("click", function () { render(Number(button.dataset.view)); });
+});
+render(0);
+</script>
+</body>
+</html>

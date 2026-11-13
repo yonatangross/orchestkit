@@ -12,7 +12,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-TRIGGER_FILE="$SCRIPT_DIR/trigger-cases.yaml"
+# ORK_SKILLS_DIR and ORK_TRIGGER_CASES let tests/skills/test-description-standard-controls.sh
+# point this check at planted inputs and prove it still scores a bad description low.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+TRIGGER_FILE="${ORK_TRIGGER_CASES:-$SCRIPT_DIR/trigger-cases.yaml}"
 
 PASSED=0
 FAILED=0
@@ -57,7 +60,7 @@ echo
 for skill_name in "${skill_names[@]}"; do
     CHECKED=$((CHECKED + 1))
 
-    skill_file="$PROJECT_ROOT/src/skills/$skill_name/SKILL.md"
+    skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
     if [[ ! -f "$skill_file" ]]; then
         echo "FAIL: $skill_name - SKILL.md not found at $skill_file"
         FAILED=$((FAILED + 1))
@@ -86,7 +89,10 @@ for skill_name in "${skill_names[@]}"; do
         }
     ' "$skill_file")
 
-    desc_lower=$(echo "$description $tags" | tr '[:upper:]' '[:lower:]')
+    # What the model matches a query against is the listing line "name: description"
+    # plus tags (#5043 trimmed descriptions to 260 bytes and stopped repeating the
+    # name, so the name is part of the haystack, not something to be re-said).
+    desc_lower=$(echo "$skill_name $description $tags" | tr '[:upper:]' '[:lower:]')
 
     # Extract should_trigger queries for this skill from YAML
     # Parse the YAML: find skill section, then should_trigger entries
