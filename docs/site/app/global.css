@@ -828,6 +828,15 @@ pre code {
    SCROLLBAR
    ============================================================ */
 
+/* The standard properties, for every scroller: a thin bar, thumb then track color. Browsers
+   that support them (Chrome 121+, Firefox, Safari 18.2+) use these and ignore the
+   ::-webkit-scrollbar rules below, which stay as the fallback for older WebKit and Blink.
+   Chrome's Modern Web Guidance legacy-scan, guide customize-scrollbar-color-and-thickness. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fd-border) var(--color-fd-background);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
