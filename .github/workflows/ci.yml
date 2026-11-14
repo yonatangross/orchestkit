@@ -871,7 +871,7 @@ jobs:
       contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45  # was 20: the warnings ratchet step below runs the full suite (about 12 minutes on a runner)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -887,6 +887,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           build-plugins: 'false'
+          install-hooks-deps: 'true'  # the full-suite ratchet step runs the hook structure tests
 
       - name: Run agent tests
         shell: bash
@@ -913,6 +914,32 @@ jobs:
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/subagents --verbose
+
+      # The full run below includes tests/performance/test-token-overhead.sh, whose Test 4d compares
+      # skill-listing-ratchet.txt with the base branch and fails closed on a pull_request run when
+      # the base ref is missing. Same fetch as the Performance Tests job (row 12, #5231 first run).
+      - name: Fetch the base branch for the ratchet check
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      # Advisory-warnings ratchet gate (row 12, 2026-11-13). Every category has its own baseline
+      # in tests/warnings-baselines.txt, and the skills block keeps WARNINGS_BASELINE in
+      # tests/run-all-tests.sh; all of them only fall. Until now the ratchet printed "GREW" and
+      # exited 0, and no PR job called the script, so warnings could grow unseen (375 against a
+      # baseline of 267 on main). This step lives in the "Agents & Skills" job on purpose: that
+      # job is a required check and "CI Summary" needs it, so a category above its baseline, below
+      # it (strict: the message prints the line to write), one with no baseline, a count that cannot
+      # be read, or any failing test in any of the 25 categories blocks the merge. Do not move it to a
+      # sibling workflow, which would only report. Never set ORK_WARNINGS_BASELINE or
+      # ORK_WARNINGS_BASELINES_FILE here: that would let a workflow raise a baseline.
+      # It is the full run (the same one `npm test` does): the baselines were measured on it.
+      - name: Warnings ratchet (every category)
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/run-all-tests.sh
 
   # ============================================================================
   # STAGE 7b: Manifest, Schema & Hook Compliance
