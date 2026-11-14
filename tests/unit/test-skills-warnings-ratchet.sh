@@ -206,6 +206,20 @@ if grep --quiet --regexp='^    if:' "$TMP/job.txt"; then
 else
     ok "agent-skill-tests has no job-level if: (no path filter can skip the gate)"
 fi
+# The full run includes the Performance category, whose down-only check needs origin/<base> (#5231).
+fetch_line="$(grep --line-number --fixed-strings 'name: Fetch the base branch for the ratchet check' "$TMP/job.txt" | head -n 1 | cut -d: -f1)"
+gate_line="$(grep --line-number --fixed-strings 'name: Warnings ratchet (every category)' "$TMP/job.txt" | head -n 1 | cut -d: -f1)"
+if [[ -n "$fetch_line" && -n "$gate_line" && "$fetch_line" -lt "$gate_line" ]]; then
+    ok "agent-skill-tests fetches the base branch before the full run"
+else
+    bad "agent-skill-tests must fetch the base branch before the full run (fetch line '$fetch_line', gate line '$gate_line')"
+fi
+if grep --quiet --fixed-strings 'BASE_REF: ${{ github.base_ref }}' "$TMP/job.txt" \
+    && grep --quiet --fixed-strings 'refs/remotes/origin/${BASE_REF}' "$TMP/job.txt"; then
+    ok "the base fetch takes the ref through env BASE_REF, not inline"
+else
+    bad "the base fetch must read github.base_ref through env BASE_REF"
+fi
 
 echo "4. the baseline only falls"
 DEFAULT="$(sed -n 's/^WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-\([0-9][0-9]*\)}".*/\1/p' "$RUNNER")"
