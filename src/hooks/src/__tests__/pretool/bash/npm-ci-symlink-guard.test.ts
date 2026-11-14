@@ -269,9 +269,11 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
     expect(denied(syncBashDispatcher(bash(command, join(root, 'wt')), NOOP_CTX))).toBe(true);
   });
 
-  // Vercel Security Review, row 16 (findings 3, 4 and 5 on main). Each bypass shape was ALLOWED
-  // at 7fa39ab82 (a clean install that empties the shared tree) and is DENIED now; each has a
-  // control that the legitimate neighbour is still allowed. The cwd is always the real directory
+  // Vercel Security Review, row 16 (findings 3, 4 and 5 on main). Ten of the "denies" rows below
+  // were ALLOWED at 7fa39ab82 (a clean install that empties the shared tree): three of finding 3
+  // (the prefix, cd and brace-group shapes), one of finding 4 (the x=$(printf ")") shape) and
+  // six of finding 5. The other "denies" rows already passed at 7fa39ab82 and are kept as
+  // regression rows. Each finding has controls that the legitimate neighbour is still allowed. The cwd is always the real directory
   // (not linked), so only reading the command correctly can find the linked worktree.
   describe('the three bypasses the Vercel Security Review found', () => {
     beforeEach(() => {
@@ -347,6 +349,84 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
       ['npm ci && cd ROOT/real && npm ci'],
     ])('finding 5 control: allows %s where every install is in a real directory', (template) => {
       expect(denied(run(template))).toBe(false);
+    });
+  });
+
+  // Row 16 fix round 1 (verifier HOLD on acceptance 2: deny or ask when the command cannot be
+  // parsed with certainty). The guard reads command text with a few regexes, so a literal
+  // parenthesis inside a quote, after a backslash, in a comment, in a heredoc body or as a case
+  // pattern can still be mistaken for a subshell exit, and a later relative cd then resolves
+  // against the wrong base. Real bash runs each of these installs in the linked worktree
+  // (ROOT/parent/lw). All five were ALLOWED at 2f33f12db. When a clean install is found and the
+  // command holds a subshell paren together with a quote, a backslash, `#`, `<<` or `case`, the
+  // parse is uncertain, and the guard asks whenever a directory the command could reach has a
+  // linked node_modules. The controls below must stay allowed (verifier C1 to C15, C17).
+  describe('an uncertain parse that could reach a linked worktree asks', () => {
+    beforeEach(() => {
+      mkdirSync(join(root, 'parent', 'lw'), { recursive: true });
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'parent', 'lw', 'node_modules'));
+      mkdirSync(join(root, 'parent', 'rl'), { recursive: true });
+      mkdirSync(join(root, 'r}'));
+      mkdirSync(join(root, 'lw'));
+    });
+
+    const run = (template: string, cwd = 'real') =>
+      syncBashDispatcher(bash(template.split('ROOT').join(root), join(root, cwd)), NOOP_CTX);
+    const decision = (template: string, cwd = 'real') => run(template, cwd).hookSpecificOutput?.permissionDecision;
+
+    it.each([
+      ['H36 a quoted semicolon and parenthesis', "( cd ROOT/parent; echo 'q;q);q'; cd lw; npm ci )"],
+      ['H37 escaped parentheses', '( cd ROOT/parent; echo \\)\\); cd lw; npm ci )'],
+      ['H39 a case pattern inside a substitution', '( cd ROOT/parent; x=$(case a in a) echo;; esac); cd lw; npm ci )'],
+      ['H58b a quoted parenthesis and a comment', "( cd ROOT/parent; echo ')' # )\ncd lw; npm ci )"],
+      ['H64 a heredoc body holding a parenthesis', '( cd ROOT/parent\ncat <<EOF\n)\nEOF\ncd lw\nnpm ci )'],
+    ])('%s: asks (never allows)', (_name, template) => {
+      expect(['ask', 'deny']).toContain(decision(template));
+    });
+
+    // Where the directory the command can reach is real, the same uncertain shapes are allowed.
+    it.each([
+      ["( cd ROOT/parent; echo 'q;q);q'; cd rl; npm ci )"],
+      ['( cd ROOT/parent; echo \\)\\); cd rl; npm ci )'],
+      ['( cd ROOT/parent; x=$(case a in a) echo;; esac); cd rl; npm ci )'],
+      ["( cd ROOT/parent; echo ')' # )\ncd rl; npm ci )"],
+      ['( cd ROOT/parent\ncat <<EOF\n)\nEOF\ncd rl\nnpm ci )'],
+    ])('an uncertain shape that only reaches real directories is allowed: %s', (template) => {
+      expect(decision(template)).toBeUndefined();
+    });
+
+    // The verifier's controls C1 to C15 and C17: legitimate commands, allowed from a real cwd.
+    it.each([
+      ['C1', 'npm ci'],
+      ['C2', 'npm ci --no-audit --no-fund'],
+      ['C3', 'npm ci --prefix ROOT/lw'],
+      ['C4', 'npm ci --prefix ROOT/r}'],
+      ['C5', 'cd ROOT/r} && npm ci'],
+      ['C6', 'echo "(a)" && npm ci'],
+      ['C7', 'git commit -m "fix (scope): x)" && npm ci'],
+      ['C8', "echo ')' ; npm ci"],
+      ['C9', '( cd ROOT/parent; echo "$(printf \')\')"; cd rl; npm ci )'],
+      ['C10', 'echo "$(date)" && npm ci'],
+      ['C11', '{ npm ci; }'],
+      ['C12', 'npm ci && cd ROOT/parent/rl && npm ci'],
+      ['C13', 'env CI=1 npm ci --prefix ROOT/real && npm ci --prefix ROOT/parent/rl'],
+      ['C14', "echo '(' && npm ci"],
+      ['C15', 'x=$(( (1+2) * 3 )) && npm ci'],
+      ['C17', 'npm install'],
+    ])('control %s is allowed: %s', (_id, template) => {
+      expect(decision(template)).toBeUndefined();
+    });
+
+    it('control C16: a plain npm ci in a linked cwd is still denied', () => {
+      expect(denied(run('npm ci', 'wt'))).toBe(true);
+    });
+
+    // The shapes that were already denied before this round stay denied.
+    it.each([
+      ['( cd ROOT/parent; echo "$(printf \')\')"; cd lw; npm ci )'],
+      ['( cd ROOT/parent; x=$(printf ")"); cd lw; npm ci )'],
+    ])('a certain parse into the linked worktree is still denied: %s', (template) => {
+      expect(denied(run(template))).toBe(true);
     });
   });
 });

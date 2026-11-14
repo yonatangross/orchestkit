@@ -365,9 +365,11 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
  * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
  * directory it passed through. The whole command is scanned, never stopped at the first install.
  */
-function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[] } {
+function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[] } {
   const seen: string[] = [cwd];
   const targets: string[] = [];
+  // Every directory word the scan met (cd, env -C, --prefix), as written, for the uncertain-parse check.
+  const cdArgs: string[] = [];
   let dir = cwd;
   // A subshell runs in a copy of the shell: a cd inside it ends when it
   // closes. Each '(' saves the directory, each ')' restores it.
@@ -387,6 +389,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     segment = stripShellGrammar(segment);
     const words = shellWords(segment);
     if (words.length === 2 && words[0] === 'cd') {
+      cdArgs.push(words[1]);
       dir = resolveDir(dir, words[1], home);
       seen.push(dir);
       restore();
@@ -407,6 +410,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       while (start < words.length && words[start].startsWith('-')) {
         const option = words[start++];
         if (w === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
+          cdArgs.push(words[start]);
           cmdDir = resolveDir(cmdDir, words[start++], home);
           seen.push(cmdDir);
         } else if (valueOptions.has(option) && start < words.length) {
@@ -431,7 +435,10 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       else if (VALUE_FLAGS.has(t)) i++;
       else if (!t.startsWith('-') && sub === null) sub = t;
     }
-    if (prefix !== null) seen.push(resolveDir(cmdDir, prefix, home));
+    if (prefix !== null) {
+      cdArgs.push(prefix);
+      seen.push(resolveDir(cmdDir, prefix, home));
+    }
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
       // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
       // not be hidden by an earlier one in a directory that is safe (Vercel Security Review,
@@ -441,7 +448,34 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     }
     restore();
   }
-  return { target: targets[0] ?? null, targets, seen };
+  return { target: targets[0] ?? null, targets, seen, cdArgs };
+}
+
+/**
+ * Text the line-and-regex reader cannot place with certainty (row 16 fix round 1). A subshell
+ * parenthesis next to a quote, a backslash, a comment, a heredoc or a `case` pattern can be a
+ * literal parenthesis that the segment reader mistakes for a subshell exit (or the reverse), so
+ * a later relative cd resolves against the wrong base. The guard does not guess there.
+ */
+export function npmCiParseIsUncertain(command: string): boolean {
+  return command.includes('(') && /['"\\#]|<<|\bcase\b/.test(command);
+}
+
+/**
+ * For an uncertain parse: every directory the command could reach. The cwd, every directory any
+ * reading passed through, and every directory word the command names (cd, env -C, --prefix)
+ * taken against each of those, since the reading that resolved a relative cd against the wrong
+ * base is the one that cannot be trusted. Over-collects on purpose.
+ */
+export function npmCiUncertainDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
+  const bases = new Set<string>([cwd]);
+  for (const s of scans) for (const d of s.seen) bases.add(d);
+  const dirs = new Set<string>(bases);
+  for (const s of scans) {
+    for (const arg of s.cdArgs) for (const b of bases) dirs.add(resolveDir(b, arg, home));
+  }
+  return [...dirs];
 }
 
 /**
@@ -473,7 +507,24 @@ export function npmCiSymlinkGuard(
     );
   }
   const linked = candidates.map((d) => join(d, 'node_modules')).find((m) => deps.isSymlink(m));
-  if (linked === undefined) return outputSilentSuccess();
+  if (linked === undefined) {
+    // A clean install is in the command and no reading found a linked directory. When the text
+    // is one the reader cannot place with certainty, ask if any directory it could reach is
+    // linked, instead of trusting the reading (row 16 fix round 1).
+    if (npmCiParseIsUncertain(command)) {
+      const reachable = npmCiUncertainDirs(command, cwd)
+        .map((d) => join(d, 'node_modules'))
+        .find((m) => deps.isSymlink(m));
+      if (reachable !== undefined) {
+        ctx.log(HOOK_NAME, `asked about an uncertain parse near symlinked ${reachable}`);
+        return outputAsk(
+          `This command runs a clean install (npm ci) in a form the npm ci guard cannot read with certainty (a parenthesis next to a quote, a backslash, a comment, a heredoc or a case pattern), and ${reachable} is a symlink the command may reach. ` +
+            'If it runs npm ci there, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command so each directory change is its own plain line.',
+        );
+      }
+    }
+    return outputSilentSuccess();
+  }
   const modules = linked;
 
   ctx.log(HOOK_NAME, `denied clean install through symlinked ${modules}`);
