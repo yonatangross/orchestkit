@@ -17,16 +17,24 @@
 # Usage:
 #   .github/scripts/audit-whole-tree.sh [--root DIR] [--dir DIR]... [--allowlist FILE]
 #                                  [--level low|moderate|high|critical] [--summary-out FILE]
+#                                  [--with-fixture]
+#
+# --with-fixture ADDS the planted vulnerable fixture (tests/security/fixtures/npm-audit-planted,
+# lodash 4.17.20) to the lockfiles audited. It never skips, narrows or replaces the real tree: the
+# real tree is audited in full either way, and its package count is printed apart from the fixture's.
+# The run's own output names the fixture package and the advisory ids it found. If the real tree
+# examined zero packages the run is CANNOT AUDIT with its own message (the fixture does not count).
 #
 # Exit status (three outcomes that must never be confused):
 #   0  every lockfile was audited and no advisory at or above the level is left
 #   1  at least one advisory at or above the level is not allowlisted (a HIT)
 #   2  the audit itself could not be completed (CANNOT AUDIT): a lockfile is missing, the
 #      registry did not answer, npm returned no usable report, the allowlist is unreadable,
-#      or zero packages were examined. Fail closed: this is never a pass.
+#      or zero packages were examined in any one lockfile. Fail closed: this is never a pass.
 # When both happen, 2 wins, and the summary lists the hits and the errors.
 #
-# Summary JSON (--summary-out): {level, examined, dirs, hits, allowlisted, errors}.
+# Summary JSON (--summary-out): {level, examined, dirs, hits, allowlisted, errors, fixture}.
+# examined counts the REAL tree only. fixture is null, or {package, examined, advisories}.
 #
 # Test seam: ORK_AUDIT_WRAPPER names a replacement for .github/scripts/npm-audit-with-retry.sh,
 # so tests/security/test-audit-whole-tree.sh can feed canned reports without the network.
@@ -42,15 +50,20 @@ LEVEL="${NPM_AUDIT_LEVEL:-moderate}"
 ALLOWLIST=""
 SUMMARY_OUT=""
 DIRS=()
+WITH_FIXTURE=0
+FIXTURE_SRC="$REPO_ROOT/tests/security/fixtures/npm-audit-planted"
+FIXTURE_LABEL="fixture (lodash 4.17.20)"
+FIXTURE_PACKAGE="lodash 4.17.20"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --with-fixture) WITH_FIXTURE=1; shift ;;
     --root) ROOT="${2:?--root needs a directory}"; shift 2 ;;
     --dir) DIRS+=("${2:?--dir needs a directory}"); shift 2 ;;
     --allowlist) ALLOWLIST="${2:?--allowlist needs a file}"; shift 2 ;;
     --level) LEVEL="${2:?--level needs a severity}"; shift 2 ;;
     --summary-out) SUMMARY_OUT="${2:?--summary-out needs a file}"; shift 2 ;;
-    -h|--help) sed -n '2,32p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) sed -n '2,41p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "audit-whole-tree: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -71,7 +84,8 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-tree.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 : > "$WORK/errors.jsonl"
 : > "$WORK/via.jsonl"
-EXAMINED=0
+EXAMINED=0          # packages in the REAL tree only; the fixture is counted apart
+FIXTURE_EXAMINED=0
 AUDITED_LABELS=()
 
 # record_error <label> <message>: one CANNOT AUDIT entry, kept for the summary.
@@ -118,13 +132,33 @@ if [[ -f "$ALLOWLIST" ]]; then
   fi
 fi
 
+# ─── the planted fixture (only with --with-fixture, and only ever ADDED to the real tree) ──
+# Copied under its real file names into a temp directory, so no tracked file is a vulnerable lockfile.
+FIXTURE_DIR=""
+if [[ "$WITH_FIXTURE" -eq 1 ]]; then
+  if [[ -f "$FIXTURE_SRC/package-lock.json.fixture" && -f "$FIXTURE_SRC/package.json.fixture" ]]; then
+    FIXTURE_DIR="$WORK/planted-fixture"
+    mkdir -p "$FIXTURE_DIR"
+    cp "$FIXTURE_SRC/package-lock.json.fixture" "$FIXTURE_DIR/package-lock.json"
+    cp "$FIXTURE_SRC/package.json.fixture" "$FIXTURE_DIR/package.json"
+  else
+    record_error "$FIXTURE_LABEL" "the planted fixture files are missing under $FIXTURE_SRC, so the red proof cannot run"
+  fi
+fi
+
 # ─── audit each lockfile ───────────────────────────────────────────────────
 IDX=0
-for dir in "${DIRS[@]}"; do
+for dir in ${DIRS[@]+"${DIRS[@]}"} ${FIXTURE_DIR:+"$FIXTURE_DIR"}; do
   IDX=$((IDX + 1))
   label="${dir#"$ROOT"/}"
   [[ "$dir" == "$ROOT" ]] && label="(root)"
-  AUDITED_LABELS+=("$label")
+  is_fixture=0
+  if [[ -n "$FIXTURE_DIR" && "$dir" == "$FIXTURE_DIR" ]]; then
+    label="$FIXTURE_LABEL"
+    is_fixture=1
+  else
+    AUDITED_LABELS+=("$label")
+  fi
 
   if [[ ! -f "$dir/package-lock.json" ]]; then
     record_error "$label" "no package-lock.json in $dir"
@@ -152,7 +186,17 @@ for dir in "${DIRS[@]}"; do
   fi
 
   total="$(jq -r '.metadata.dependencies.total // 0' "$report")"
-  EXAMINED=$((EXAMINED + total))
+  # A lockfile that examined nothing next to a real one must not read clean: the tree-wide total
+  # would hide it. npm itself exits 0 on an empty lockfile, so the count is the only signal.
+  if [[ "$total" -eq 0 ]]; then
+    record_error "$label" "zero packages were examined in this lockfile, which is not a pass"
+    continue
+  fi
+  if [[ "$is_fixture" -eq 1 ]]; then
+    FIXTURE_EXAMINED=$((FIXTURE_EXAMINED + total))
+  else
+    EXAMINED=$((EXAMINED + total))
+  fi
 
   # Every advisory (a "via" object) at or above the level. npm lists lower severities in the
   # report as well, and --audit-level only changes npm's exit status, so filter here.
@@ -165,8 +209,13 @@ for dir in "${DIRS[@]}"; do
   ' "$report" >> "$WORK/via.jsonl"
 done
 
-if [[ "${#DIRS[@]}" -gt 0 && "$EXAMINED" -eq 0 && ! -s "$WORK/errors.jsonl" ]]; then
-  record_error "(tree)" "zero packages were examined across ${#DIRS[@]} lockfile(s), which is not a pass"
+if [[ "${#DIRS[@]}" -gt 0 && "$EXAMINED" -eq 0 ]]; then
+  if [[ "$WITH_FIXTURE" -eq 1 ]]; then
+    # Its own case: the fixture's packages must never stand in for the real tree's.
+    record_error "(tree)" "the real tree examined zero packages across ${#DIRS[@]} lockfile(s); the planted fixture does not count, so this run is not the red proof"
+  elif [[ ! -s "$WORK/errors.jsonl" ]]; then
+    record_error "(tree)" "zero packages were examined across ${#DIRS[@]} lockfile(s), which is not a pass"
+  fi
 fi
 
 # ─── split advisories into hits and allowlisted ────────────────────────────
@@ -178,6 +227,17 @@ jq -c --rawfile allow "$WORK/allow.txt" '
   ($allow | split("\n") | map(select(length > 0))) as $ok
   | map(select(.id as $i | $ok | index($i)))' "$WORK/via.unique.json" > "$WORK/allowlisted.json"
 
+# The fixture's own result, named in the output so a dispatched run shows what it audited. It is a
+# control that must fail: if the audit finds no advisory in lodash 4.17.20 the proof is void.
+echo null > "$WORK/fixture.json"
+if [[ -n "$FIXTURE_DIR" ]]; then
+  jq -c --arg dir "$FIXTURE_LABEL" --arg pkg "$FIXTURE_PACKAGE" --argjson n "$FIXTURE_EXAMINED" \
+    '{package: $pkg, examined: $n, advisories: ([.[] | select(.dir == $dir) | .id] | unique)}' "$WORK/via.unique.json" > "$WORK/fixture.json"
+  if [[ "$FIXTURE_EXAMINED" -gt 0 && "$(jq -r '.advisories | length' "$WORK/fixture.json")" -eq 0 ]]; then
+    record_error "$FIXTURE_LABEL" "the planted fixture ($FIXTURE_PACKAGE) produced no advisory, so this run cannot prove the audit still finds a known red"
+  fi
+fi
+
 HITS="$(jq 'length' "$WORK/hits.json")"
 ALLOWLISTED="$(jq 'length' "$WORK/allowlisted.json")"
 ERRORS="$(jq -s 'length' "$WORK/errors.jsonl")"
@@ -187,13 +247,17 @@ jq -r '.[] | "  ✗ \(.dir): \(.id) [\(.severity)] \(.name): \(.title)"' "$WORK/
 jq -r '.[] | "  ⚠ \(.dir): \(.id) [\(.severity)] \(.title) (allowlisted)"' "$WORK/allowlisted.json"
 echo ""
 echo "  examined $EXAMINED package(s) in ${#DIRS[@]} lockfile(s): $HITS hit(s), $ALLOWLISTED allowlisted, $ERRORS audit error(s)"
+if [[ -n "$FIXTURE_DIR" ]]; then
+  echo "  real tree: $EXAMINED package(s) in ${#DIRS[@]} lockfile(s)"
+  echo "  fixture: audited $FIXTURE_PACKAGE ($FIXTURE_EXAMINED package(s)), advisories: $(jq -r '.advisories | join(",")' "$WORK/fixture.json")"
+fi
 
 if [[ -n "$SUMMARY_OUT" ]]; then
   jq -n --arg level "$LEVEL" --argjson examined "$EXAMINED" \
         --argjson dirs "$(printf '%s\n' "${AUDITED_LABELS[@]-}" | jq -R . | jq -sc 'map(select(length > 0))')" \
         --slurpfile hits "$WORK/hits.json" --slurpfile allowlisted "$WORK/allowlisted.json" \
-        --slurpfile errors "$WORK/errors.jsonl" '
-    {level: $level, examined: $examined, dirs: $dirs, hits: $hits[0], allowlisted: $allowlisted[0], errors: $errors}
+        --slurpfile errors "$WORK/errors.jsonl" --slurpfile fixture "$WORK/fixture.json" '
+    {level: $level, examined: $examined, dirs: $dirs, hits: $hits[0], allowlisted: $allowlisted[0], errors: $errors, fixture: $fixture[0]}
   ' > "$SUMMARY_OUT"
 fi
 

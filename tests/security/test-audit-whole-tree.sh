@@ -83,6 +83,19 @@ clean_report 0 > "$STUB_REPORTS/zero.json"
 report 5 moderate 111 > "$STUB_REPORTS/both.json"
 echo '{"error":{"code":"ENOTFOUND","summary":"audit endpoint unreachable"}}' > "$STUB_REPORTS/neterr.raw"
 
+# The planted fixture is audited from a temp directory named planted-fixture, so the stub is keyed by that name.
+# Its report is the shape npm gives for lodash 4.17.20: a high and a moderate advisory.
+fixture_report() {
+    jq -n '{vulnerabilities: {"lodash": {name: "lodash", severity: "high",
+         via: [{source: 1106913, name: "lodash", title: "Stub high advisory in lodash", severity: "high", range: "<4.17.21"},
+               {source: 1108258, name: "lodash", title: "Stub moderate advisory in lodash", severity: "moderate", range: "<4.17.21"}]}},
+       metadata: {vulnerabilities: {info: 0, low: 0, moderate: 1, high: 1, critical: 0, total: 2}, dependencies: {total: 1}}}'
+}
+fixture_report > "$STUB_REPORTS/planted-fixture.json"
+mkdir -p "$TMP/trees/emptylock"
+echo '{}' > "$TMP/trees/emptylock/package-lock.json"
+clean_report 0 > "$STUB_REPORTS/emptylock.json"
+
 # run_audit <extra args...>: prints the exit status; the output is left in $TMP/audit.out, the summary in $TMP/summary.json
 run_audit() {
     local rc=0
@@ -137,6 +150,46 @@ check "discovery covers src/hooks"                  "$(jq -r '.dirs | index("src
 check "discovery covers src/mcp-server"             "$(jq -r '.dirs | index("src/mcp-server") != null' "$TMP/summary.json")" "true"
 rm -f "$STUB_REPORTS/default.json"
 
+# An empty lockfile next to a real one must not read clean (the tree-wide total would hide it).
+check "an empty lockfile next to a real one exits 2" "$(run_audit --dir "$TMP/trees/clean" --dir "$TMP/trees/emptylock")" "2"
+check "...and its error names the lockfile, not the tree" "$(jq -r '.errors[0].message | test("zero packages were examined in this lockfile")' "$TMP/summary.json")" "true"
+check "...and the error is for the empty lockfile only" "$(jq -r '.errors | length' "$TMP/summary.json")" "1"
+check "...and the output says CANNOT AUDIT"          "$(count_lines "$TMP/audit.out" 'RESULT: CANNOT AUDIT (exit 2)')" "1"
+
+# --with-fixture (the workflow_dispatch input). Off: the fixture is not audited. On: it is ADDED, and the real tree
+# is still audited in full. Both runs go through the same harness so the difference is the input and nothing else.
+check "input off: a clean tree exits 0"              "$(run_audit --dir "$TMP/trees/clean")" "0"
+check "input off: no fixture is in the summary"      "$(jq -r '.fixture == null' "$TMP/summary.json")" "true"
+check "input off: the output never names the fixture" "$(count_lines "$TMP/audit.out" 'fixture:')" "0"
+check "input off: a real hit shows no fixture advisory" "$(run_audit --dir "$TMP/trees/hit")" "1"
+check "...the hit list has no lodash advisory"       "$(jq -r '[.hits[].id] | index("1106913") == null' "$TMP/summary.json")" "true"
+
+check "input on: the fixture's red makes it exit 1"  "$(run_audit --dir "$TMP/trees/clean" --with-fixture)" "1"
+check "input on: the high advisory 1106913 is a hit" "$(jq -r '[.hits[].id] | index("1106913") != null' "$TMP/summary.json")" "true"
+check "input on: the moderate advisory 1108258 is a hit" "$(jq -r '[.hits[].id] | index("1108258") != null' "$TMP/summary.json")" "true"
+check "input on: the hits name the fixture, not the real tree" "$(jq -r '[.hits[].dir] | unique | join(",")' "$TMP/summary.json")" "fixture (lodash 4.17.20)"
+check "input on: the real tree is still examined (nonzero count)" "$(jq -r '.examined' "$TMP/summary.json")" "5"
+check "input on: the fixture is counted apart"       "$(jq -r '.fixture.examined' "$TMP/summary.json")" "1"
+check "input on: the summary names the fixture package" "$(jq -r '.fixture.package' "$TMP/summary.json")" "lodash 4.17.20"
+check "input on: the summary lists its advisory ids" "$(jq -r '.fixture.advisories | join(",")' "$TMP/summary.json")" "1106913,1108258"
+check "input on: the output prints the real tree count" "$(count_lines "$TMP/audit.out" 'real tree: 5 package(s) in 1 lockfile(s)')" "1"
+check "input on: the output names lodash 4.17.20 and its ids" "$(count_lines "$TMP/audit.out" 'fixture: audited lodash 4.17.20 (1 package(s)), advisories: 1106913,1108258')" "1"
+check "input on: the real tree's own hit is not hidden" "$(run_audit --dir "$TMP/trees/hit" --with-fixture)" "1"
+check "...the real advisory 111 is still a hit"      "$(jq -r '[.hits[].id] | index("111") != null' "$TMP/summary.json")" "true"
+check "...and so is the fixture's"                   "$(jq -r '[.hits[].id] | index("1106913") != null' "$TMP/summary.json")" "true"
+
+# Zero real packages with the fixture on is its own case: cannot audit, never a pass and never the red proof.
+check "input on, real tree empty: exits 2 (CANNOT AUDIT)" "$(run_audit --dir "$TMP/trees/zero" --with-fixture)" "2"
+check "...with its own message"                      "$(jq -r '[.errors[].message | test("the real tree examined zero packages")] | any' "$TMP/summary.json")" "true"
+check "...that says the fixture does not count"      "$(jq -r '[.errors[].message | test("planted fixture does not count")] | any' "$TMP/summary.json")" "true"
+check "...and the output says CANNOT AUDIT, not ADVISORIES" "$(count_lines "$TMP/audit.out" 'RESULT: CANNOT AUDIT (exit 2)')" "1"
+
+# The fixture is a control that must fail: if the audit finds nothing in lodash 4.17.20 the proof is void.
+clean_report 3 > "$STUB_REPORTS/planted-fixture.json"
+check "input on, fixture finds nothing: exits 2"     "$(run_audit --dir "$TMP/trees/clean" --with-fixture)" "2"
+check "...saying it cannot prove a known red"        "$(jq -r '[.errors[].message | test("produced no advisory")] | any' "$TMP/summary.json")" "true"
+fixture_report > "$STUB_REPORTS/planted-fixture.json"
+
 # ─── layer 2: LIVE red on a fixture pinned to a known-vulnerable version ─────
 echo "Layer 2: live red, fixture lockfile pinned to lodash 4.17.20"
 LIVE="$TMP/live"
@@ -166,6 +219,38 @@ jq -r '[.hits[].id] | map({(.): {reason: "live control", until: "2099-01-01"}}) 
 CONTROL_RC=0
 bash "$AUDIT" --dir "$LIVE" --allowlist "$TMP/allow-live-all.json" > "$TMP/live-control.out" 2>&1 || CONTROL_RC=$?
 check "live control: allowlisting what it found makes it exit 0" "$CONTROL_RC" "0"
+
+# The COMMITTED fixture (tests/security/fixtures/npm-audit-planted), through the real --with-fixture flag, next to a
+# real lockfile that is clean today (is-number 7.0.0). Off: exit 0 and no fixture. On: exit 1, the fixture's advisory
+# ids are rediscovered live and named in the output, and the real lockfile is still examined.
+CLEANLIVE="$TMP/cleanlive"
+mkdir -p "$CLEANLIVE"
+cat > "$CLEANLIVE/package.json" <<'EOF'
+{ "name": "ork-audit-clean-live", "version": "1.0.0", "private": true, "dependencies": { "is-number": "7.0.0" } }
+EOF
+cat > "$CLEANLIVE/package-lock.json" <<'EOF'
+{
+  "name": "ork-audit-clean-live", "version": "1.0.0", "lockfileVersion": 3, "requires": true,
+  "packages": {
+    "": { "name": "ork-audit-clean-live", "version": "1.0.0", "dependencies": { "is-number": "7.0.0" } },
+    "node_modules/is-number": { "version": "7.0.0", "resolved": "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz" }
+  }
+}
+EOF
+OFF_RC=0
+bash "$AUDIT" --dir "$CLEANLIVE" --summary-out "$TMP/live-off.json" > "$TMP/live-off.out" 2>&1 || OFF_RC=$?
+check "live, input off: the clean real lockfile exits 0" "$OFF_RC" "0"
+check "live, input off: the fixture is not audited"  "$(jq -r '.fixture == null' "$TMP/live-off.json")" "true"
+ON_RC=0
+bash "$AUDIT" --dir "$CLEANLIVE" --with-fixture --summary-out "$TMP/live-on.json" > "$TMP/live-on.out" 2>&1 || ON_RC=$?
+check "live, input on: the committed fixture makes it exit 1" "$ON_RC" "1"
+check "live, input on: advisory 1106913 is rediscovered" "$(jq -r '.fixture.advisories | index("1106913") != null' "$TMP/live-on.json")" "true"
+check "live, input on: the output names lodash 4.17.20"  "$(count_lines "$TMP/live-on.out" 'fixture: audited lodash 4.17.20')" "1"
+check "live, input on: the output names an advisory id"  "$(count_lines "$TMP/live-on.out" 'advisories: 1106913')" "1"
+check "live, input on: the real lockfile is still examined" "$(jq -r '.examined > 0' "$TMP/live-on.json")" "true"
+check "live, input on: the output prints the real tree count" "$(count_lines "$TMP/live-on.out" 'real tree: 1 package(s) in 1 lockfile(s)')" "1"
+check "the committed fixture lockfile exists under its .fixture name" "$([[ -f "$REPO_ROOT/tests/security/fixtures/npm-audit-planted/package-lock.json.fixture" ]] && echo yes || echo no)" "yes"
+check "...and no file in the fixture directory is named package-lock.json" "$([[ ! -e "$REPO_ROOT/tests/security/fixtures/npm-audit-planted/package-lock.json" ]] && echo yes || echo no)" "yes"
 
 # ─── layer 3: the issue step with a stubbed gh ──────────────────────────────
 echo "Layer 3: .github/scripts/open-audit-issue.sh with a stubbed gh"
@@ -204,7 +289,10 @@ check "dry run exits 0"                              "$(run_opener "$TMP/s111.js
 check "dry run runs no gh command at all"            "$(wc -l < "$GH_LOG" | tr -d ' ')" "0"
 check "dry run prints the set key for id 111"        "$(count_lines "$TMP/opener.out" 'set key: f6e0a1e2ac41 (ids: 111)')" "1"
 check "dry run prints the exact create command"      "$(count_lines "$TMP/opener.out" "issue create --repo owner/repo --label security --title 'npm audit: 1 advisories at moderate or above [set f6e0a1e2ac41]'")" "1"
-check "dry run prints the exact edit command"        "$(count_lines "$TMP/opener.out" 'issue edit N --repo owner/repo --body-file')" "1"
+check "dry run prints the exact edit command"        "$(count_lines "$TMP/opener.out" 'issue edit <N> --repo owner/repo --body-file <body file>')" "1"
+check "dry run says which values are placeholders"   "$(count_lines "$TMP/opener.out" 'placeholders: <N> is the issue number step 1 returns; <body file> is the body printed below the commands.')" "1"
+check "dry run prints the lookup the real run executes" "$(count_lines "$TMP/opener.out" "jq -r --arg key '[set f6e0a1e2ac41]' '[.[] | select(.title | contains(\$key))] | .[0].number // empty'")" "1"
+check "the real run executes that same lookup (one shared definition)" "$(count_lines "$OPENER" '-f "$WORK/lookup.jq" "$WORK/open.json"')" "1"
 
 reset_gh
 check "first real run exits 0"                       "$(run_opener "$TMP/s111.json")" "0"
@@ -247,6 +335,82 @@ check "a summary with no hits exits 0"               "$(run_opener "$TMP/s-none.
 check "...and runs no gh command"                    "$(wc -l < "$GH_LOG" | tr -d ' ')" "0"
 check "a missing summary is refused with 2"         "$(run_opener "$TMP/absent.json")" "2"
 
+# Registry text with a newline, an @mention and an HTML tag must stay inside code spans, on ONE table row.
+jq -n --arg title $'first line\n@someone ping\n<img src=x>' --arg name $'pkg\n@evil' --arg dir $'src/hooks\n@dir' '
+  {level: "moderate", examined: 9, dirs: ["(root)"], allowlisted: [], errors: [],
+   hits: [{dir: $dir, id: "333", severity: "moderate", name: $name, title: $title}]}' > "$TMP/s-newline.json"
+echo '[]' > "$GH_LIST"
+reset_gh
+check "a newline in registry text: the run exits 0"  "$(run_opener "$TMP/s-newline.json")" "0"
+sed 's/`[^`]*`//g' "$GH_BODY_COPY" > "$TMP/body-nl-outside.md"
+check "...the table row is one line, every field in a code span" "$(count_lines "$GH_BODY_COPY" '| `src/hooks @dir` | 333 | moderate | `pkg @evil` | `first line @someone ping <img src=x>` |')" "1"
+check "...no @ outside a code span"                  "$(count_lines "$TMP/body-nl-outside.md" '@')" "0"
+check "...no HTML tag outside a code span"           "$(count_lines "$TMP/body-nl-outside.md" '<img')" "0"
+jq -n '{level: "moderate", examined: 9, dirs: ["(root)"], allowlisted: [], errors: [],
+        hits: [{dir: "(root)", id: "444\n@id", severity: "high\n@sev", name: "n", title: "t"}]}' > "$TMP/s-idsev.json"
+reset_gh
+check "an @ in an id or severity field: the run exits 0" "$(run_opener "$TMP/s-idsev.json")" "0"
+sed 's/`[^`]*`//g' "$GH_BODY_COPY" > "$TMP/body-idsev-outside.md"
+check "...none of it reaches the body as a mention"  "$(count_lines "$TMP/body-idsev-outside.md" '@')" "0"
+
+# A red run that is not an advisory hit opens ONE distinct item, with its own title key.
+jq -n --arg msg $'npm audit produced no usable JSON report (exit 1): first\n@someone `tick` <img src=x>' '
+  {level: "moderate", examined: 0, dirs: [], allowlisted: [], hits: [], fixture: null,
+   errors: [{dir: "src/hooks", message: $msg}]}' > "$TMP/s-cannot.json"
+echo '[]' > "$GH_LIST"
+reset_gh
+check "cannot-audit dry run exits 0"                 "$(run_opener "$TMP/s-cannot.json" --mode cannot-audit --dry-run)" "0"
+check "...with its own key, not an advisory set"     "$(count_lines "$TMP/opener.out" 'set key: cannot-audit (ids: -)')" "1"
+check "...and the exact create command"              "$(count_lines "$TMP/opener.out" "issue create --repo owner/repo --label security --title 'npm audit: the scheduled whole-tree audit could not complete [cannot-audit]'")" "1"
+reset_gh
+check "cannot-audit real run exits 0"                "$(run_opener "$TMP/s-cannot.json" --mode cannot-audit --reason 'the audit did not complete (status 2)')" "0"
+check "...creates exactly one issue"                 "$(count_lines "$GH_LOG" 'issue create')" "1"
+check "...titled with the [cannot-audit] key"        "$(count_lines "$GH_LOG" '[cannot-audit] --body-file')" "1"
+check "...never with an advisory set key"            "$(count_lines "$GH_LOG" '[set ')" "0"
+check "...the body has the cannot-audit marker"      "$(count_lines "$GH_BODY_COPY" '<!-- npm-audit-cannot-audit -->')" "1"
+check "...the body gives the reason"                 "$(count_lines "$GH_BODY_COPY" '- Reason: the audit did not complete (status 2)')" "1"
+check "...the body has the error, on one line, in a code span" "$(count_lines "$GH_BODY_COPY" '- `src/hooks`: `npm audit produced no usable JSON report (exit 1): first @someone ’tick’ <img src=x>`')" "1"
+check "...the body never claims an advisory"         "$(count_lines "$GH_BODY_COPY" 'npm-audit-set')" "0"
+sed 's/`[^`]*`//g' "$GH_BODY_COPY" > "$TMP/body-cannot-outside.md"
+check "...no @ outside a code span"                  "$(count_lines "$TMP/body-cannot-outside.md" '@')" "0"
+check "...no HTML tag outside a code span"           "$(count_lines "$TMP/body-cannot-outside.md" '<img')" "0"
+
+echo '[{"number": 77, "title": "npm audit: the scheduled whole-tree audit could not complete [cannot-audit]"}]' > "$GH_LIST"
+reset_gh
+check "a second cannot-audit run exits 0"            "$(run_opener "$TMP/s-cannot.json" --mode cannot-audit)" "0"
+check "...edits issue 77"                            "$(count_lines "$GH_LOG" 'issue edit 77 --repo owner/repo --body-file')" "1"
+check "...and opens no second issue"                 "$(count_lines "$GH_LOG" 'issue create')" "0"
+# the two kinds of item never edit each other
+reset_gh
+check "an advisory run beside an open cannot-audit issue exits 0" "$(run_opener "$TMP/s111.json")" "0"
+check "...opens its own set issue"                   "$(count_lines "$GH_LOG" 'issue create')" "1"
+check "...and does not edit the cannot-audit issue"  "$(count_lines "$GH_LOG" 'issue edit')" "0"
+echo '[{"number": 42, "title": "npm audit: 1 advisories at moderate or above [set f6e0a1e2ac41]"}]' > "$GH_LIST"
+reset_gh
+check "a cannot-audit run beside an open set issue exits 0" "$(run_opener "$TMP/s-cannot.json" --mode cannot-audit)" "0"
+check "...opens its own item"                        "$(count_lines "$GH_LOG" 'issue create')" "1"
+check "...and does not edit the set issue"           "$(count_lines "$GH_LOG" 'issue edit')" "0"
+
+# The audit died before writing a summary: the item still opens, saying so.
+echo '[]' > "$GH_LIST"
+reset_gh
+check "cannot-audit with no summary file exits 0"    "$(run_opener "$TMP/absent.json" --mode cannot-audit --reason 'the audit did not complete (status unknown)')" "0"
+check "...creates one issue"                         "$(count_lines "$GH_LOG" 'issue create')" "1"
+check "...and says no summary was written"           "$(count_lines "$GH_BODY_COPY" 'No summary was written')" "1"
+check "an unknown mode is refused with 2"            "$(run_opener "$TMP/s-cannot.json" --mode nonsense)" "2"
+
+# A planted-fixture run's item is marked as a test, in the title and in the body.
+jq -n '{level: "moderate", examined: 5, dirs: ["(root)"], allowlisted: [], errors: [],
+        fixture: {package: "lodash 4.17.20", examined: 1, advisories: ["1106913"]},
+        hits: [{dir: "fixture (lodash 4.17.20)", id: "1106913", severity: "high", name: "lodash", title: "t"}]}' > "$TMP/s-fixture.json"
+reset_gh
+check "a fixture run opens an issue (exit 0)"        "$(run_opener "$TMP/s-fixture.json")" "0"
+check "...its title says TEST (planted fixture)"     "$(count_lines "$GH_LOG" '--title TEST (planted fixture): npm audit: 1 advisories at moderate or above')" "1"
+check "...its body says it is a test run"            "$(count_lines "$GH_BODY_COPY" 'TEST RUN: the planted fixture lodash 4.17.20 was added on purpose')" "1"
+reset_gh
+check "a real hit run exits 0"                       "$(run_opener "$TMP/s111.json")" "0"
+check "...and is not marked as a test"               "$(count_lines "$GH_LOG" 'TEST (planted fixture)')" "0"
+
 # ─── the workflow runs these same scripts ───────────────────────────────────
 echo "Workflow: .github/workflows/npm-audit-scheduled.yml"
 check "the workflow file exists"                     "$([[ -f "$WORKFLOW" ]] && echo yes || echo no)" "yes"
@@ -254,8 +418,89 @@ check "it is scheduled daily"                        "$(count_lines "$WORKFLOW" 
 check "it runs on push to main"                      "$(count_lines "$WORKFLOW" '  push:')" "1"
 check "it has workflow_dispatch"                     "$(count_lines "$WORKFLOW" '  workflow_dispatch:')" "1"
 check "it calls the audit script this test proves"   "$(count_lines "$WORKFLOW" 'bash .github/scripts/audit-whole-tree.sh')" "1"
-check "it calls the issue script this test proves"   "$(count_lines "$WORKFLOW" 'bash .github/scripts/open-audit-issue.sh')" "1"
+check "it calls the issue script this test proves (advisory item and cannot-audit item)" "$(count_lines "$WORKFLOW" 'bash .github/scripts/open-audit-issue.sh')" "2"
 check "it never uses pull_request_target"            "$(count_lines "$WORKFLOW" 'pull_request_target')" "0"
+check "the checkout pin comment names v7.0.1"        "$(count_lines "$WORKFLOW" 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1')" "1"
+check "...and no stale v6.0.3 comment is left"       "$(count_lines "$WORKFLOW" '# v6.0.3')" "0"
+
+echo "Workflow: the plant_fixture input and the cannot-audit item"
+check "plant_fixture is a boolean input"             "$(count_lines "$WORKFLOW" '        type: boolean')" "1"
+check "...default off"                               "$(count_lines "$WORKFLOW" '        default: false')" "1"
+check "...read in exactly one place, an env line"    "$(count_lines "$WORKFLOW" 'inputs.plant_fixture')" "1"
+check "...and that place is PLANT_FIXTURE in env"    "$(count_lines "$WORKFLOW" '          PLANT_FIXTURE: ${{ inputs.plant_fixture }}')" "1"
+check "the cannot-audit step exists"                 "$(count_lines "$WORKFLOW" '        id: cannot')" "1"
+check "...runs the issue script in cannot-audit mode" "$(count_lines "$WORKFLOW" '            --mode cannot-audit \')" "1"
+check "...on a non-clean audit or a failed advisory step" "$(count_lines "$WORKFLOW" "        if: always() && (steps.audit.outputs.cannot_audit != 'false' || steps.advisories.outcome == 'failure')")" "1"
+check "the final step fails the job on any red outcome" "$(count_lines "$WORKFLOW" "        if: always() && (steps.audit.outputs.status != '0' || steps.audit.outputs.hits != '0' || steps.advisories.outcome == 'failure' || steps.cannot.outcome == 'failure')")" "1"
+
+# The audit step's shell text, taken from the shipped file, run against a stub audit script. The stub writes
+# the summary and exit status it is told to, and records its argv, so the outcome logic is tested on the real text.
+STEP_DIR="$TMP/step"
+mkdir -p "$STEP_DIR/.github/scripts" "$STEP_DIR/rt"
+cat > "$STEP_DIR/.github/scripts/audit-whole-tree.sh" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" > "$STEP_ARGS"
+out=""
+for ((i = 1; i <= $#; i++)); do
+  if [[ "${!i}" == "--summary-out" ]]; then j=$((i + 1)); out="${!j}"; fi
+done
+if [[ -n "${STEP_SUMMARY:-}" && -n "$out" ]]; then cp "$STEP_SUMMARY" "$out"; fi
+exit "${STEP_STATUS:-0}"
+EOF
+STEP_SH="$STEP_DIR/audit-step.sh"
+awk '/^        id: audit$/ { on = 1; next }
+     on && /^        run: \|$/ { body = 1; next }
+     body && /^      - name:/ { exit }
+     body { sub(/^          /, ""); print }' "$WORKFLOW" > "$STEP_SH"
+check "the audit step's script was extracted (a floor, not an empty loop)" "$(awk 'END { print (NR > 20) ? "yes" : "no" }' "$STEP_SH")" "yes"
+echo '{"hits": [{"id": "1"}], "errors": []}' > "$STEP_DIR/s-hit.json"
+echo '{"hits": [], "errors": []}' > "$STEP_DIR/s-none.json"
+echo 'not json' > "$STEP_DIR/s-broken.json"
+# run_step <stub exit status> <summary the stub writes, or empty> <PLANT_FIXTURE value>: the outputs land in $STEP_DIR/out.
+# The step's own exit status is not what is asserted (the outputs are), so a failing step must not stop this test.
+run_step() {
+    rm -f "$STEP_DIR/out" "$STEP_DIR/args" "$STEP_DIR/rt/audit-summary.json"
+    : > "$STEP_DIR/out"
+    local rc=0
+    (cd "$STEP_DIR" && STEP_STATUS="$1" STEP_SUMMARY="$2" STEP_ARGS="$STEP_DIR/args" RUNNER_TEMP="$STEP_DIR/rt" \
+        GITHUB_OUTPUT="$STEP_DIR/out" PLANT_FIXTURE="$3" bash -eo pipefail "$STEP_SH" > "$STEP_DIR/log" 2>&1) || rc=$?
+    echo "$rc" > "$STEP_DIR/rc"
+}
+step_out() { awk -F= -v k="$1" '$1 == k { print $2 }' "$STEP_DIR/out"; }
+
+run_step 0 "$STEP_DIR/s-none.json" ""
+check "step: a clean run is not cannot_audit"        "$(step_out cannot_audit)" "false"
+check "step: a clean run records status 0 and no hits" "$(step_out status)/$(step_out hits)" "0/0"
+run_step 1 "$STEP_DIR/s-hit.json" ""
+check "step: a real hit (status 1, one hit) is not cannot_audit" "$(step_out cannot_audit)" "false"
+check "step: ...and records the hit"                 "$(step_out hits)" "1"
+run_step 1 "$STEP_DIR/s-none.json" ""
+check "step: status 1 with ZERO hits is cannot_audit (never an 'issue opened' claim)" "$(step_out cannot_audit)" "true"
+run_step 1 "" ""
+check "step: status 1 and no summary is cannot_audit" "$(step_out cannot_audit)" "true"
+run_step 2 "$STEP_DIR/s-hit.json" ""
+check "step: status 2 with hits is cannot_audit (and still records the hits)" "$(step_out cannot_audit)/$(step_out hits)" "true/1"
+run_step 0 "$STEP_DIR/s-hit.json" ""
+check "step: status 0 with hits is not trusted: cannot_audit" "$(step_out cannot_audit)" "true"
+run_step 0 "$STEP_DIR/s-broken.json" ""
+check "step: an unreadable summary is cannot_audit with status 2" "$(step_out cannot_audit)/$(step_out status)" "true/2"
+run_step 7 "" ""
+check "step: any other exit status is cannot_audit"  "$(step_out cannot_audit)" "true"
+
+# The input reaches the script only as the validated env value. Off and on must differ, and the real audit call is the same.
+run_step 0 "$STEP_DIR/s-none.json" ""
+check "step, input unset: the script gets no --with-fixture" "$(count_lines "$STEP_DIR/args" '--with-fixture')" "0"
+check "step, input unset: the real audit still runs"  "$(count_lines "$STEP_DIR/args" '--summary-out')" "1"
+run_step 0 "$STEP_DIR/s-none.json" "false"
+check "step, input false: the script gets no --with-fixture" "$(count_lines "$STEP_DIR/args" '--with-fixture')" "0"
+run_step 0 "$STEP_DIR/s-none.json" "true"
+check "step, input true: the script gets --with-fixture" "$(count_lines "$STEP_DIR/args" '--with-fixture')" "1"
+check "step, input true: the real audit still runs, same call" "$(count_lines "$STEP_DIR/args" '--summary-out')" "1"
+run_step 0 "$STEP_DIR/s-none.json" "banana"
+check "step, input invalid: the audit script is never called" "$([[ -e "$STEP_DIR/args" ]] && echo called || echo not-called)" "not-called"
+check "step, input invalid: cannot_audit with status 2" "$(step_out cannot_audit)/$(step_out status)" "true/2"
+run_step 0 "$STEP_DIR/s-none.json" 'true; echo pwned'
+check "step, input with a shell payload: refused, not run" "$([[ -e "$STEP_DIR/args" ]] && echo called || echo not-called)" "not-called"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
