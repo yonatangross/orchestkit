@@ -26,7 +26,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LEVEL="${NPM_AUDIT_LEVEL:-moderate}"
 ALLOWLIST="$PROJECT_ROOT/.claude/audit-allowlist.json"
-AUDIT_WRAPPER="$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh"
+AUDIT_WRAPPER="${ORK_AUDIT_WRAPPER:-$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh}"
+CHANGE_GATE="$PROJECT_ROOT/.github/scripts/audit-gate.sh"
+
+# ─── which rule: the whole tree, or the change (orchestkit row 10, part 2) ──
+# The mode is decided in ONE place, .github/scripts/audit-gate.sh, from the event: a pull_request
+# run (and the pre-push hook, which asks for it) judges the CHANGE through that script, which is
+# the same script the "Dependency Audit" row calls, so the rule cannot drift. Every other run
+# (push to main, a manual run with no event) falls through to the whole-tree walk below, unchanged.
+# A gate that cannot be read or cannot say its mode is a failure, never a skip.
+if ! AUDIT_MODE="$(bash "$CHANGE_GATE" --print-mode)"; then
+  echo "  npm audit gate: cannot decide the audit mode (is $CHANGE_GATE readable?), failing closed" >&2
+  exit 2
+fi
+if [[ "$AUDIT_MODE" == "change" ]]; then
+  exec bash "$CHANGE_GATE"
+fi
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
