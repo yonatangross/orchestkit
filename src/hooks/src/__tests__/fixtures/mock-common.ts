@@ -126,6 +126,11 @@ export function mockCommonBasic(
       stopReason: reason,
       hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: reason },
     })),
+    outputBlockContinue: vi.fn((reason: string): HookResult => ({
+      continue: true,
+      decision: 'block',
+      reason,
+    })),
     outputWithContext: vi.fn((
       ctx: string,
       hookEventName: 'PostToolUse' | 'PostToolUseFailure' = 'PostToolUse',
