@@ -186,6 +186,8 @@ key behind it. The legacy stdio transport (`npx -y @upstash/context7-mcp@4.0.2`)
 when the hosted endpoint is unreachable, but it spawns one child process per Claude Code
 session, so the fan-out scales with how many sessions you keep open.
 
+**Optional companion for web-platform questions:** Chrome's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance-src) (Apache-2.0) is a separate tool that checks a site against current web-platform guidance; pin a version when you run it, for example `npx modern-web-guidance@1.0.0`.
+
 ### Customizing skills
 
 Skills install as files on your disk, but **don't hand-edit the installed copy** — it gets overwritten on update and silently diverges from the canonical playbook. The supported ways to extend (user-level skills, project skills, upstream PRs, or disabling a bundled skill) are in [docs/extending-skills.md](docs/extending-skills.md).
