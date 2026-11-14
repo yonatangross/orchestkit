@@ -17,6 +17,7 @@ export {
   outputPermissionRequestAllow,
   outputTerminalSequence,
   outputBlock,
+  outputBlockContinue,
   outputWithContext,
   outputPromptContext,
   outputPromptContextWithTitle,

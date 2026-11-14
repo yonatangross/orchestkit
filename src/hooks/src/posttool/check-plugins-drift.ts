@@ -12,11 +12,15 @@
  * AND `plugins/` has not been touched in git since the snapshot, block
  * with a reminder to run `npm run build`.
  *
- * Why a block (not a notify):
+ * Why a soft block (not a notify, not a hard stop):
  *   The drift CI check fails the PR later; surfacing this at Write time
  *   prevents a wasted push/CI roundtrip. PostToolUse runs after the edit
- *   is applied. CC honors `continueOnBlock` on prompt hooks only, so the
- *   block is not softened (#4684).
+ *   is applied, so the edit stays. CC honors `continueOnBlock` on prompt
+ *   hooks only, and a `continue:false` result ends the turn at the Edit
+ *   result (measured on CC 2.1.322). The gate therefore returns
+ *   `decision:'block'` plus a reason with `continue:true`
+ *   (`outputBlockContinue`): the reason reaches the model, the turn goes on
+ *   (#4684, decision D1). The /goal brake stays a hard block.
  *
  * Why time-window the snapshot:
  *   A stale snapshot from a long-running session would false-positive
@@ -29,7 +33,7 @@ import { join, sep } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import {
   outputSilentSuccess,
-  outputBlock,
+  outputBlockContinue,
   getField,
 } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -201,5 +205,5 @@ export function checkPluginsDrift(
     HOOK_NAME,
     `drift detected: hooks=${hooksChanged} manifest=${manifestChanged} file=${filePath}`,
   );
-  return outputBlock(BLOCK_MESSAGE);
+  return outputBlockContinue(BLOCK_MESSAGE);
 }

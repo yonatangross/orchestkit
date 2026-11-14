@@ -106,6 +106,25 @@ export function outputBlock(reason: string): HookResult {
 }
 
 /**
+ * Output soft block: a blocking decision that does not end the turn (#4684).
+ *
+ * `outputBlock` rides on `continue:false`, which ends the whole turn: on a
+ * PostToolUse hook the stream stops at the tool result (measured live on CC
+ * 2.1.322). This helper returns `decision:'block'` plus `reason` with
+ * `continue:true` instead, so the reason reaches the model as feedback and the
+ * turn goes on. Use it where the gate should be heard, not final. CC drops the
+ * `continueOnBlock` hooks.json flag on command hooks, so this is the only way
+ * to soften a command-hook block.
+ */
+export function outputBlockContinue(reason: string): HookResult {
+  return {
+    continue: true,
+    decision: 'block',
+    reason,
+  };
+}
+
+/**
  * Where outputWithContext reads the event label from: the hook's own input
  * (preferred, it carries the event CC actually fired) or a literal event for a
  * hook that only ever runs on one event.

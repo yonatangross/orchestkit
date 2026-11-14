@@ -131,7 +131,7 @@ describe('check-plugins-drift (PostToolUse Write|Edit)', () => {
     expect(res.stopReason).toBeUndefined();
   });
 
-  it('blocks when hooks.json hash diverged AND plugins/ has not been rebuilt', () => {
+  it('soft-blocks when hooks.json hash diverged AND plugins/ has not been rebuilt (#4684)', () => {
     pluginsDriftSnapshot(makeInput(), createTestContext({ projectDir }));
     // Simulate the user editing src/hooks/hooks.json without rebuilding.
     writeFileSync(join(projectDir, HOOKS_JSON_REL), '{"hooks":{"new":true}}');
@@ -142,9 +142,14 @@ describe('check-plugins-drift (PostToolUse Write|Edit)', () => {
       ctx,
     );
 
-    expect(res.continue).toBe(false);
-    expect(res.stopReason).toContain('plugins-drift');
-    expect(res.stopReason).toContain('npm run build');
+    // Soft block (decision D1): the reason reaches the model as feedback, the
+    // turn keeps going. continue:false would end the whole turn at the Edit
+    // result, and CC drops continueOnBlock on command hooks.
+    expect(res.continue).toBe(true);
+    expect(res.decision).toBe('block');
+    expect(res.reason).toContain('plugins-drift');
+    expect(res.reason).toContain('npm run build');
+    expect(res.stopReason).toBeUndefined();
   });
 
   it('is silent when snapshot is missing', () => {

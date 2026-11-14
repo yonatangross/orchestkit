@@ -402,7 +402,7 @@ echo '{"tool_name":"Read","session_id":"test","tool_input":{}}' | \
 
 ## Adding a hook with outputBlock or an advisory
 
-`continueOnBlock` is valid on `type: "prompt"` hooks only. CC drops it on command hooks, and Claude Desktop refuses the whole plugin for it, so `tests/unit/test-hooks-json-shipped-schema.sh` fails on it (#4684). On a command hook, `outputBlock` is a full block; use `outputNotify` to warn and continue.
+`continueOnBlock` is valid on `type: "prompt"` hooks only. CC drops it on command hooks, and Claude Desktop refuses the whole plugin for it, so `tests/unit/test-hooks-json-shipped-schema.sh` fails on it (#4684). On a command hook, `outputBlock` is a full block (`continue:false` ends the turn, so a PostToolUse stream stops at the tool result); use `outputBlockContinue` to block with a reason and keep the turn going (the plugins drift gate does, #4684), or `outputNotify` to warn and continue.
 
 Hooks signal three outcomes via `HookResult`:
 
