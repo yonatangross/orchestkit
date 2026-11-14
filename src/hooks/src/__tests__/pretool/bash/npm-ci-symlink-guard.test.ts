@@ -268,4 +268,85 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
   it.each([['n\\pm ci'], ["np''m ci"], ['"np"m ci']])('denies %s in a worktree whose node_modules is a symlink', (command) => {
     expect(denied(syncBashDispatcher(bash(command, join(root, 'wt')), NOOP_CTX))).toBe(true);
   });
+
+  // Vercel Security Review, row 16 (findings 3, 4 and 5 on main). Each bypass shape was ALLOWED
+  // at 7fa39ab82 (a clean install that empties the shared tree) and is DENIED now; each has a
+  // control that the legitimate neighbour is still allowed. The cwd is always the real directory
+  // (not linked), so only reading the command correctly can find the linked worktree.
+  describe('the three bypasses the Vercel Security Review found', () => {
+    beforeEach(() => {
+      // finding 3: a linked worktree whose NAME ends in a literal closing brace; its brace-less
+      // sibling is a real directory
+      mkdirSync(join(root, 'lw}'));
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'lw}', 'node_modules'));
+      mkdirSync(join(root, 'lw'));
+      // finding 4: a parent that holds a linked worktree and a real one
+      mkdirSync(join(root, 'parent', 'lw'), { recursive: true });
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'parent', 'lw', 'node_modules'));
+      mkdirSync(join(root, 'parent', 'rl'), { recursive: true });
+    });
+
+    const run = (template: string, cwd = 'real') =>
+      syncBashDispatcher(bash(template.split('ROOT').join(root), join(root, cwd)), NOOP_CTX);
+
+    // finding 3: the grammar stripper must never remove a brace from argument text
+    it.each([
+      ['npm ci --prefix ROOT/lw}'],
+      ['npm --prefix=ROOT/lw} ci'],
+      ['npm -C ROOT/lw} ci'],
+      ['cd ROOT/lw} && npm ci'],
+      ['{ cd ROOT/lw}; } && npm ci'],
+      ['env -C ROOT/lw} npm ci'],
+    ])('finding 3: denies %s (a linked directory whose name ends in a closing brace)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      ['npm ci --prefix ROOT/lw'],
+      ['cd ROOT/lw && npm ci'],
+      ['{ npm ci; }'],
+      ['{ cd ROOT/real; } && npm ci'],
+      ['if true; then npm ci; fi'],
+    ])('finding 3 control: allows %s where no linked directory is reached', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+
+    // finding 4: a quoted closing parenthesis inside a substitution is not a subshell exit
+    it.each([
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd lw; npm ci )`],
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd lw && npm ci )`],
+      [`( cd ROOT/parent; x=$(printf ")"); cd lw; npm ci )`],
+      [`( cd ROOT/parent; echo '$(printf ")")' "$(printf '))')"; cd lw; npm ci )`],
+    ])('finding 4: denies %s (the relative cd resolves against the parent)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd rl; npm ci )`],
+      [`( cd ROOT/parent; x=$(printf ")"); cd rl; npm ci )`],
+      [`( cd ROOT/parent; echo "$(date)"; cd rl; npm ci )`],
+    ])('finding 4 control: allows %s where the directory it reaches is real', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+
+    // finding 5: recognising an earlier install must not stop the scan before a later one
+    it.each([
+      ['env CI=1 npm ci --prefix ROOT/real && cd ROOT/wt && npm ci'],
+      ['env npm ci; cd ROOT/wt; npm ci'],
+      ['command npm ci && cd ROOT/wt && npm ci'],
+      ['npm ci && cd ROOT/wt && npm ci'],
+      ['time npm ci --prefix ROOT/real && npm ci --prefix ROOT/wt'],
+      ['(env npm ci) && (cd ROOT/wt && npm ci)'],
+    ])('finding 5: denies %s (a later clean install reaches the linked worktree)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      ['env CI=1 npm ci --prefix ROOT/real && cd ROOT/parent/rl && npm ci'],
+      ['env npm ci; npm ci'],
+      ['npm ci && cd ROOT/real && npm ci'],
+    ])('finding 5 control: allows %s where every install is in a real directory', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+  });
 });

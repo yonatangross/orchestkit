@@ -140,7 +140,11 @@ function stripShellGrammar(segment: string): string {
     if (first && SHELL_KEYWORDS.has(first[1])) s = s.slice(first[0].length);
     s = s.trim();
   }
-  return s.replace(/\s*\}$/, '').trim();
+  // A closing brace is grammar only as a word of its own at command position, and the loop above
+  // already drops that (`}` is in SHELL_KEYWORDS). It is never stripped from the END of the text:
+  // there it is part of an argument, and a directory may be named `wt}` (Vercel Security Review,
+  // row 16 finding 3: stripping it probed the wrong sibling and allowed the install).
+  return s;
 }
 
 /** `~` and `~/x` against the home dir; anything else unchanged. */
@@ -149,18 +153,131 @@ function expandHome(dir: string, home: string): string {
   return dir;
 }
 
+/** One command substitution in a text: [start, end) covers the whole `$(...)` or backtick form. */
+interface SubstitutionSpan {
+  start: number;
+  end: number;
+  inner: string;
+}
+
+/**
+ * The index just past the ')' that closes the `$(` whose '(' is at `open`, or -1
+ * when it never closes. Quote- and escape-aware (Vercel Security Review, row 16
+ * finding 4): a ')' inside single or double quotes, after a backslash, inside a
+ * backtick pair or inside a nested substitution is not the terminator.
+ */
+function closeOfParen(text: string, open: number): number {
+  let depth = 0;
+  let i = open;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '\\') {
+      i += 2;
+    } else if (c === "'") {
+      const end = text.indexOf("'", i + 1);
+      if (end === -1) return -1;
+      i = end + 1;
+    } else if (c === '"') {
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\') {
+          i += 2;
+        } else if (text[i] === '$' && text[i + 1] === '(') {
+          const end = closeOfParen(text, i + 1);
+          if (end === -1) return -1;
+          i = end;
+        } else if (text[i] === '`') {
+          const end = closeOfBacktick(text, i);
+          if (end === -1) return -1;
+          i = end;
+        } else {
+          i++;
+        }
+      }
+      if (i >= text.length) return -1;
+      i++;
+    } else if (c === '`') {
+      const end = closeOfBacktick(text, i);
+      if (end === -1) return -1;
+      i = end;
+    } else if (c === '(') {
+      depth++;
+      i++;
+    } else if (c === ')') {
+      depth--;
+      i++;
+      if (depth === 0) return i;
+    } else {
+      i++;
+    }
+  }
+  return -1;
+}
+
+/** The index just past the backtick that closes the one at `open`, or -1. */
+function closeOfBacktick(text: string, open: number): number {
+  let i = open + 1;
+  while (i < text.length) {
+    if (text[i] === '\\') i += 2;
+    else if (text[i] === '`') return i + 1;
+    else i++;
+  }
+  return -1;
+}
+
+/**
+ * The outermost command substitutions of a text, read the way the shell reads
+ * quotes: `$(` and a backtick are inert inside single quotes and after a
+ * backslash, and live inside double quotes. A substitution that never closes
+ * ends the scan, so the rest of the text is left as it is (other readings of the
+ * command still see it, and the guard asks when no reading finds an install).
+ */
+function substitutionSpans(text: string): SubstitutionSpan[] {
+  const spans: SubstitutionSpan[] = [];
+  let inDouble = false;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '\\') {
+      i += 2;
+    } else if (c === "'" && !inDouble) {
+      const end = text.indexOf("'", i + 1);
+      if (end === -1) break;
+      i = end + 1;
+    } else if (c === '"') {
+      inDouble = !inDouble;
+      i++;
+    } else if (c === '$' && text[i + 1] === '(') {
+      const end = closeOfParen(text, i + 1);
+      if (end === -1) break;
+      spans.push({ start: i, end, inner: text.slice(i + 2, end - 1) });
+      i = end;
+    } else if (c === '`') {
+      const end = closeOfBacktick(text, i);
+      if (end === -1) break;
+      spans.push({ start: i, end, inner: text.slice(i + 1, end - 1) });
+      i = end;
+    } else {
+      i++;
+    }
+  }
+  return spans;
+}
+
 /**
  * Replace each command substitution ($(...), $((...)), `...`) with a plain
- * word, innermost first. Its parentheses are not subshell parentheses, and
- * its separators do not split the outer command.
+ * word, nested ones included. Its parentheses are not subshell parentheses, and
+ * its separators do not split the outer command. Quote-aware: a quoted ')' does
+ * not end a substitution early and leave a real terminator behind.
  */
 function blankSubstitutions(command: string): string {
-  let out = command.replace(/`[^`]*`/g, '_');
-  for (let prev = ''; prev !== out; ) {
-    prev = out;
-    out = out.replace(/\$\(\([^()]*\)\)/g, '_').replace(/\$\([^()]*\)/g, '_');
+  let out = '';
+  let last = 0;
+  for (const span of substitutionSpans(command)) {
+    out += command.slice(last, span.start) + '_';
+    last = span.end;
   }
-  return out;
+  return out + command.slice(last);
 }
 
 function resolveDir(base: string, dir: string, home: string): string {
@@ -190,18 +307,16 @@ function nestedShellBodies(command: string): string[] {
   return bodies;
 }
 
-/** Bodies of every $(...) and `...` in the command, innermost first. */
+/** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
 function substitutionBodies(command: string): string[] {
   const bodies: string[] = [];
-  for (const m of command.matchAll(/`([^`]*)`/g)) bodies.push(m[1]);
-  let text = command;
-  for (let prev = ''; prev !== text; ) {
-    prev = text;
-    text = text.replace(/\$\(([^()]*)\)/g, (_all, body: string) => {
-      bodies.push(body);
-      return '_';
-    });
-  }
+  const walk = (text: string): void => {
+    for (const span of substitutionSpans(text)) {
+      bodies.push(blankSubstitutions(span.inner));
+      walk(span.inner);
+    }
+  };
+  walk(command);
   return bodies;
 }
 
@@ -217,11 +332,11 @@ function substitutionBodies(command: string): string[] {
  */
 export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
   const scans = readingsOf(command).map((text) => scan(text, cwd, home));
-  if (!scans.some((s) => s.target !== null)) return [];
+  if (!scans.some((s) => s.targets.length > 0)) return [];
   const dirs = new Set<string>([cwd]);
   for (const s of scans) {
     for (const d of s.seen) dirs.add(d);
-    if (s.target !== null) dirs.add(s.target);
+    for (const t of s.targets) dirs.add(t);
   }
   return [...dirs];
 }
@@ -246,9 +361,13 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
   return [...dirs];
 }
 
-/** One reading of a command: the clean-install target (or null) and every directory it passed through. */
-function scan(command: string, cwd: string, home: string): { target: string | null; seen: string[] } {
+/**
+ * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
+ * directory it passed through. The whole command is scanned, never stopped at the first install.
+ */
+function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[] } {
   const seen: string[] = [cwd];
+  const targets: string[] = [];
   let dir = cwd;
   // A subshell runs in a copy of the shell: a cd inside it ends when it
   // closes. Each '(' saves the directory, each ')' restores it.
@@ -314,11 +433,15 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     }
     if (prefix !== null) seen.push(resolveDir(cmdDir, prefix, home));
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
-      return { target: prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home), seen };
+      // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
+      // not be hidden by an earlier one in a directory that is safe (Vercel Security Review,
+      // row 16 finding 5). Every target is collected and every directory the scan passes
+      // through is still recorded.
+      targets.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
     }
     restore();
   }
-  return { target: null, seen };
+  return { target: targets[0] ?? null, targets, seen };
 }
 
 /**
