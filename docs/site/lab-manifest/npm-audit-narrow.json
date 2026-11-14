@@ -1,0 +1,8 @@
+{
+  "slug": "npm-audit-narrow",
+  "source": "docs/fix--npm-audit-narrow/index.html",
+  "title": "The npm audit gate judges the change",
+  "description": "One gate script decides for the pre-push hook and pull requests: fail on what the change adds or changes and on high or critical anywhere, defer the rest to the scheduled audit, fail closed when it cannot decide.",
+  "tags": ["ci", "security", "npm-audit", "pre-push"],
+  "date": "2026-11-14"
+}

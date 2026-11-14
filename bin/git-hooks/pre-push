@@ -554,11 +554,18 @@ run_unit_tests_parallel() {
 # Always the checkout script. A PATH entry named run-security-tests.sh must
 # not be able to report this stage OK.
 run_security_stage() {
-  local stage_rc
+  local stage_rc audit_base
   print_pre_push_load_notice
   echo -n "  Running security tests... "
   if [[ -x "tests/security/run-security-tests.sh" ]]; then
-    ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
+    # The npm audit gate judges the CHANGE here (orchestkit row 10, part 2): advisories in packages
+    # this push adds or changes, and high or critical anywhere; an untouched moderate advisory is
+    # deferred to the scheduled whole-tree audit. The base is the merge base with origin/main. When
+    # git cannot compute it the base stays empty and the gate fails closed with its own message
+    # (CANNOT COMPUTE THE LOCKFILE DIFF), never a silent pass.
+    audit_base="$(git merge-base origin/main HEAD 2>/dev/null)" || audit_base=""
+    ORK_AUDIT_MODE=change ORK_AUDIT_BASE="$audit_base" \
+      ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
     if [[ "$stage_rc" -ne 0 ]]; then
       echo "FAILED"
       echo ""
