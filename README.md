@@ -186,7 +186,7 @@ key behind it. The legacy stdio transport (`npx -y @upstash/context7-mcp@4.0.2`)
 when the hosted endpoint is unreachable, but it spawns one child process per Claude Code
 session, so the fan-out scales with how many sessions you keep open.
 
-**Optional companion for web-platform questions:** Chrome's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance-src) (Apache-2.0) is a separate tool that checks a site against current web-platform guidance; pin a version when you run it, for example `npx modern-web-guidance@1.0.0`.
+**Optional companion for web-platform questions:** Chrome's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance) (Apache-2.0) is a separate tool that checks a site against current web-platform guidance; pin a version when you run it, for example `npx modern-web-guidance@1.0.0`.
 
 ### Customizing skills
 
