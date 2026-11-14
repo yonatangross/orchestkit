@@ -347,6 +347,28 @@ for scen in sevmiss-added sevmiss-untouched sevodd-added sevodd-untouched; do
     check "$scen: whole-tree (push) fails too"                    "$(gate_rc "$scen" GITHUB_EVENT_NAME=push)" "1"
 done
 
+echo "Layer F: the whole-tree walk of test-npm-audit.sh never drops a missing or unknown severity"
+# On every event except pull_request, test-npm-audit.sh walks the tree itself (it does not call the
+# change gate). That walk used to decide from npm's moderate, high and critical COUNTS, so an advisory
+# with no severity or an unknown word counted 0 and the lockfile passed (verifier H1 of the second
+# round). These rows drive the script itself, not the gate, on each whole-tree event.
+for evt in push schedule workflow_dispatch merge_group; do
+    for scen in sevmiss-untouched sevodd-untouched sevmiss-added sevodd-added; do
+        case "$scen" in
+            sevmiss-untouched) want_id=902 ;;
+            sevodd-untouched) want_id=904 ;;
+            sevmiss-added) want_id=901 ;;
+            *) want_id=903 ;;
+        esac
+        check "$evt: test-npm-audit.sh fails on $scen"           "$(audit_rc "$scen" "GITHUB_EVENT_NAME=$evt")" "1"
+        check "$evt: ...naming $want_id and the unknown severity" "$(count_lines "$OUT" "$want_id [unknown severity]")" "1"
+    done
+done
+check "a local run with no event fails on a missing severity"     "$(audit_rc sevmiss-untouched)" "1"
+check "...and on an unknown severity word"                        "$(audit_rc sevodd-untouched)" "1"
+check "control: push still fails a moderate advisory"             "$(audit_rc untouched GITHUB_EVENT_NAME=push)" "1"
+check "control: push still passes a clean tree"                   "$(audit_rc clean GITHUB_EVENT_NAME=push)" "0"
+
 echo "Layer D: the wiring names the one gate and the base fetch"
 CI_YML="$REPO_ROOT/.github/workflows/ci.yml"
 SCHEDULED_YML="$REPO_ROOT/.github/workflows/npm-audit-scheduled.yml"

@@ -154,7 +154,19 @@ audit_project() {
   local total
   total=$(echo "$report" | jq -r '.metadata.vulnerabilities | to_entries | map(select(.key == "moderate" or .key == "high" or .key == "critical")) | map(.value) | add // 0' 2>/dev/null || echo "0")
 
-  if [[ "$total" -eq 0 ]]; then
+  # npm's counts cover only the five severity words it knows, and only moderate and up are summed
+  # above. An advisory whose severity is missing, not a string, or a word npm does not use is in
+  # none of those counts, so a count of 0 must never end the audit on its own: the advisories are
+  # read too, and each one with a severity outside the known set is a failure (never counted as
+  # zero, never skipped). A jq failure here is a failure of the audit, not a pass.
+  local unknown
+  if ! unknown=$(echo "$report" | jq -r '[.vulnerabilities // {} | to_entries[] | .value.via[]? | select(type == "object") | (.severity | if type == "string" then . else "" end) as $s | select((["info", "low", "moderate", "high", "critical"] | index($s)) == null)] | length'); then
+    fail "$label: cannot read the advisory severities from the npm audit report"
+    echo ""
+    return 1
+  fi
+
+  if [[ "$total" -eq 0 && "$unknown" -eq 0 ]]; then
     pass "$label: 0 findings ≥ $LEVEL"
     echo ""
     return 0
@@ -167,6 +179,10 @@ audit_project() {
     local id sev title
     id=$(echo "$advisory" | jq -r '.id // .source // "unknown"')
     sev=$(echo "$advisory" | jq -r '.severity // "?"')
+    case "$sev" in
+      info|low|moderate|high|critical) ;;
+      *) sev="unknown severity" ;;
+    esac
     title=$(echo "$advisory" | jq -r '.title // "(no title)"')
     if is_allowlisted "$id"; then
       warn "$label: $id [$sev] $title — allowlisted"
