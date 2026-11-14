@@ -644,20 +644,22 @@ test_hanging_hook_timeout() {
         return
     fi
     # BSD mktemp randomizes only trailing X's, so a ".mjs" suffix after them
-    # made one fixed path that concurrent runs collided on: reserve a unique
-    # name, then add the extension by rename.
-    local hang_base hang_runner
-    hang_base=$(mktemp "${TMPDIR:-/tmp}/ork-hang.XXXXXX")
-    hang_runner="$hang_base.mjs"
-    mv "$hang_base" "$hang_runner"
+    # made one fixed path that concurrent runs collided on. Renaming a reserved
+    # file to "$base.mjs" instead left that derived path unreserved in a shared
+    # TMPDIR, where another local user could swap it before node ran it (Vercel
+    # Security Review, row 16 finding 2). The runner and the stderr capture live in
+    # a private directory (mktemp -d, mode 0700); under `set -e` a failed mktemp
+    # or write stops the test.
+    local hang_dir hang_runner
+    hang_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-hang.XXXXXX")
+    hang_runner="$hang_dir/hang-runner.mjs"
     printf 'setInterval(() => {}, 1000);\n' > "$hang_runner"
     local saved_run_hook="$RUN_HOOK"
     RUN_HOOK="$hang_runner"
     local err_file output
-    err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hang-err.XXXXXX")
+    err_file="$hang_dir/stderr.txt"
     output=$(run_hook_with_input "prompt/unified-dispatcher" '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}' 1 2>"$err_file")
     RUN_HOOK="$saved_run_hook"
-    rm -f "$hang_runner"
     if [[ "$output" == "ERROR" ]]; then
         log_pass "hanging hook answers ERROR, not a guard verdict (got [$output])"
     else
@@ -668,7 +670,7 @@ test_hanging_hook_timeout() {
     else
         log_fail "stderr names the timeout cause" "Got: $(tr '\n' ' ' <"$err_file")"
     fi
-    rm -f "$err_file"
+    rm -rf "$hang_dir"
 }
 test_hanging_hook_timeout
 
