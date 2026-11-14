@@ -241,6 +241,8 @@ else
         | $h + {title: (($h.title // "(no title)") | gsub("[\\r\\n]+"; " ")),
                 reason: (if ($h.severity == "high" or $h.severity == "critical")
                            then "high or critical, which fails anywhere in the tree"
+                         elif (["info", "low", "moderate"] | index($h.severity)) == null
+                           then "unknown severity, which fails anywhere in the tree and is never deferred"
                          elif ((($c[$h.dir] // []) | index($h.name)) != null)
                            then "in a package this change adds or changes"
                          else null end)})' "$WORK/whole.json" > "$WORK/classified.json"

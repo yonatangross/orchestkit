@@ -113,6 +113,8 @@ mk_scenario() {
     cp "$REPO_ROOT/.github/scripts/audit-gate.sh" "$REPO_ROOT/.github/scripts/audit-whole-tree.sh" \
        "$REPO_ROOT/.github/scripts/npm-audit-with-retry.sh" "$repo/.github/scripts/"
     cp "$REPO_ROOT/tests/security/test-npm-audit.sh" "$repo/tests/security/"
+    mkdir -p "$repo/tests/fixtures"
+    cp "$REPO_ROOT/tests/fixtures/test-helpers.sh" "$repo/tests/fixtures/"
     cp "$REPO_ROOT/bin/git-hooks/pre-push" "$repo/bin/git-hooks/pre-push"
     printf 'VERSION_SKIP_PATTERN=%s\n' "'^release-please'" > "$repo/scripts/ci/version-skip-pattern.sh"
     printf 'touch agents-ran\nexit 0\n' > "$repo/tests/agents/test-agent-frontmatter.sh"
@@ -177,6 +179,11 @@ mk_scenario neterr    "safe@1.0.0"                  "safe@1.0.0 newok@1.0.0"
 mk_scenario zero      "safe@1.0.0"                  "safe@1.0.0 newok@1.0.0"
 mk_scenario clean     "safe@1.0.0"                  "safe@1.0.0 newok@1.0.0"
 mk_scenario nobase    "safe@1.0.0"                  "safe@1.0.0 vuln@1.0.0" no-origin
+# severity scenarios: an advisory whose severity is missing, or a string npm does not use
+mk_scenario sevmiss-added     "safe@1.0.0"          "safe@1.0.0 vuln@1.0.0"
+mk_scenario sevmiss-untouched "$UNT"                "$UNT newok@1.0.0"
+mk_scenario sevodd-added      "safe@1.0.0"          "safe@1.0.0 vuln@1.0.0"
+mk_scenario sevodd-untouched  "$UNT"                "$UNT newok@1.0.0"
 
 adv_report 2 moderate 111 vuln     > "$STUB_REPORTS/add.json"
 adv_report 3 moderate 222 legacy   > "$STUB_REPORTS/untouched.json"
@@ -189,6 +196,18 @@ echo '{"error":{"code":"ENOTFOUND","summary":"audit endpoint unreachable"}}' > "
 clean_report 0                     > "$STUB_REPORTS/zero.json"
 clean_report 2                     > "$STUB_REPORTS/clean.json"
 adv_report 2 moderate 111 vuln     > "$STUB_REPORTS/nobase.json"
+# adv_report_nosev <packages examined> <advisory id> <package>: an advisory with NO severity field
+adv_report_nosev() {
+    jq -n --argjson total "$1" --argjson id "$2" --arg pkg "$3" '
+      {vulnerabilities: {($pkg): {name: $pkg,
+         via: [{source: $id, name: $pkg, title: "Stub advisory \($id) in \($pkg)", range: "<9.9.9"}]}},
+       metadata: {vulnerabilities: {info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 1},
+                  dependencies: {total: $total}}}'
+}
+adv_report_nosev 2 901 vuln        > "$STUB_REPORTS/sevmiss-added.json"
+adv_report_nosev 3 902 legacy      > "$STUB_REPORTS/sevmiss-untouched.json"
+adv_report 2 severe 903 vuln       > "$STUB_REPORTS/sevodd-added.json"
+adv_report 3 severe 904 legacy     > "$STUB_REPORTS/sevodd-untouched.json"
 
 OUT="$TMP/out.txt"
 # gate_rc <scenario> [NAME=value ...]: exit status of audit-gate.sh run in that scenario's repo
@@ -305,6 +324,28 @@ check "row 4: the hook refuses when the merge base cannot be computed" "$(state 
 check "row 4: ...with the diff message, not an advisory"       "$(audit_out_count nobase 'RESULT: CANNOT COMPUTE THE LOCKFILE DIFF (exit 2)')" "1"
 check "row 4: the hook refuses on an unreachable advisory source" "$(state "$(hook_rc neterr)")" "refused"
 check "row 4: ...with the audit message"                       "$(audit_out_count neterr 'RESULT: CANNOT AUDIT (exit 2)')" "1"
+
+echo "Layer E: an advisory with a missing or unknown severity is never dropped and never deferred"
+# A severity that is absent, or a word npm does not use, cannot be ranked. It must FAIL (exit 1) in
+# every mode and at every entry point, named with its id and "[unknown severity]". Dropping it (as
+# severity "low") passes a gate on an advisory nobody could rank: a fail-open (verifier H1).
+for scen in sevmiss-added sevmiss-untouched sevodd-added sevodd-untouched; do
+    case "$scen" in
+        sevmiss-added) want_id=901 ;;
+        sevmiss-untouched) want_id=902 ;;
+        sevodd-added) want_id=903 ;;
+        *) want_id=904 ;;
+    esac
+    check "$scen: the gate on a pull_request fails"              "$(gate_rc "$scen" "${PR_ENV[@]}")" "1"
+    check "$scen: ...naming the id and the unknown severity"      "$(count_lines "$OUT" "$want_id [unknown severity]")" "1"
+    check "$scen: ...as a failure, not a deferral"                "$(count_lines "$OUT" "⚠ ")" "0"
+    check "$scen: ...with the result ADVISORIES"                  "$(count_lines "$OUT" 'RESULT: ADVISORIES (exit 1)')" "1"
+    check "$scen: test-npm-audit.sh on a pull_request fails"      "$(audit_rc "$scen" "${PR_ENV[@]}")" "1"
+    check "$scen: ...naming the unknown severity"                 "$(count_lines "$OUT" "$want_id [unknown severity]")" "1"
+    check "$scen: the hook refuses the push"                      "$(state "$(hook_rc "$scen")")" "refused"
+    check "$scen: ...naming the unknown severity"                 "$(audit_out_count "$scen" "$want_id [unknown severity]")" "1"
+    check "$scen: whole-tree (push) fails too"                    "$(gate_rc "$scen" GITHUB_EVENT_NAME=push)" "1"
+done
 
 echo "Layer D: the wiring names the one gate and the base fetch"
 CI_YML="$REPO_ROOT/.github/workflows/ci.yml"

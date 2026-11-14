@@ -200,11 +200,15 @@ for dir in ${DIRS[@]+"${DIRS[@]}"} ${FIXTURE_DIR:+"$FIXTURE_DIR"}; do
 
   # Every advisory (a "via" object) at or above the level. npm lists lower severities in the
   # report as well, and --audit-level only changes npm's exit status, so filter here.
+  # An advisory whose severity is missing, not a string, or a word npm does not use cannot be
+  # ranked, so it is NEVER dropped (it used to count as "low" and vanish below moderate, a
+  # fail-open): it is kept with the severity "unknown severity", which audit-gate.sh never defers.
   jq -c --arg dir "$label" --arg level "$LEVEL" '
-    {low: 1, moderate: 2, high: 3, critical: 4} as $rank
+    {info: 1, low: 1, moderate: 2, high: 3, critical: 4} as $rank
     | .vulnerabilities // {} | to_entries[] | .value.via[]? | select(type == "object")
-    | select(($rank[.severity // "low"] // 1) >= $rank[$level])
-    | {dir: $dir, id: ((.id // .source) | tostring), severity: (.severity // "unknown"),
+    | ((.severity | if type == "string" then . else "" end) | if $rank[.] == null then null else . end) as $known
+    | select($known == null or $rank[$known] >= $rank[$level])
+    | {dir: $dir, id: ((.id // .source) | tostring), severity: ($known // "unknown severity"),
        name: (.name // "?"), title: (.title // "(no title)")}
   ' "$report" >> "$WORK/via.jsonl"
 done

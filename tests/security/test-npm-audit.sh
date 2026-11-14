@@ -29,19 +29,13 @@ ALLOWLIST="$PROJECT_ROOT/.claude/audit-allowlist.json"
 AUDIT_WRAPPER="${ORK_AUDIT_WRAPPER:-$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh}"
 CHANGE_GATE="$PROJECT_ROOT/.github/scripts/audit-gate.sh"
 
-# ─── which rule: the whole tree, or the change (orchestkit row 10, part 2) ──
-# The mode is decided in ONE place, .github/scripts/audit-gate.sh, from the event: a pull_request
-# run (and the pre-push hook, which asks for it) judges the CHANGE through that script, which is
-# the same script the "Dependency Audit" row calls, so the rule cannot drift. Every other run
-# (push to main, a manual run with no event) falls through to the whole-tree walk below, unchanged.
-# A gate that cannot be read or cannot say its mode is a failure, never a skip.
-if ! AUDIT_MODE="$(bash "$CHANGE_GATE" --print-mode)"; then
-  echo "  npm audit gate: cannot decide the audit mode (is $CHANGE_GATE readable?), failing closed" >&2
-  exit 2
-fi
-if [[ "$AUDIT_MODE" == "change" ]]; then
-  exec bash "$CHANGE_GATE"
-fi
+# expect_classification lives here. Sourcing it puts this file on the mutation protocol
+# tests/security/mutation-gate.sh reads, so the gate can prove the canary below can fail. The helper
+# turns on `set -e` and sets its own SCRIPT_DIR; this file never relied on either, so -e goes back
+# off (the walk below reads exit statuses on purpose).
+# shellcheck source=../fixtures/test-helpers.sh
+source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
+set +e
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
@@ -188,6 +182,47 @@ audit_project() {
   echo ""
   [[ "$unlisted" -eq 0 ]]
 }
+
+# ─── canary: can this audit still see a known advisory? ─────────────────────
+# A gate that reports 0 findings is only evidence if it could have reported one. This runs the real
+# audit_project against a stubbed advisory source (the ORK_AUDIT_WRAPPER seam's shape, a script that
+# prints a canned npm report) and an empty allowlist, and expects the audit to FAIL. It is the file's
+# first assertion, so the mutation gate inverts it and must see it detected, and it runs in every mode
+# (before the change-mode dispatch below). Exit 1 from audit_project is the decision (yes), exit 0 is no,
+# anything else is ERROR, which is never a pass.
+canary_audit_fails_on_known_advisory() {
+  local dir rc=0
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-canary.XXXXXX")"
+  printf '{}\n' > "$dir/package.json"
+  printf '{}\n' > "$dir/package-lock.json"
+  jq -n '{vulnerabilities: {"canary-pkg": {name: "canary-pkg", severity: "moderate",
+            via: [{source: "canary-0", name: "canary-pkg", title: "canary advisory", severity: "moderate"}]}},
+          metadata: {vulnerabilities: {info: 0, low: 0, moderate: 1, high: 0, critical: 0, total: 1}}}' > "$dir/report.json"
+  printf '#!/usr/bin/env bash\ncat "%s/report.json"\nexit 1\n' "$dir" > "$dir/stub.sh"
+  # A subshell: the canary must not move this run's counters, its audited-directory list, or its wrapper.
+  ( AUDIT_WRAPPER="$dir/stub.sh"; ACTIVE_IDS=(); audit_project "canary" "$dir" ) > "$dir/out.txt" 2>&1 || rc=$?
+  rm -rf "$dir"
+  case "$rc" in
+    1) return 0 ;;
+    0) return 1 ;;
+    *) return 2 ;;
+  esac
+}
+expect_classification yes canary_audit_fails_on_known_advisory "canary: the audit fails on a known moderate advisory"
+
+# ─── which rule: the whole tree, or the change (orchestkit row 10, part 2) ──
+# The mode is decided in ONE place, .github/scripts/audit-gate.sh, from the event: a pull_request
+# run (and the pre-push hook, which asks for it) judges the CHANGE through that script, which is
+# the same script the "Dependency Audit" row calls, so the rule cannot drift. Every other run
+# (push to main, a manual run with no event) falls through to the whole-tree walk below, unchanged.
+# A gate that cannot be read or cannot say its mode is a failure, never a skip.
+if ! AUDIT_MODE="$(bash "$CHANGE_GATE" --print-mode)"; then
+  echo "  npm audit gate: cannot decide the audit mode (is $CHANGE_GATE readable?), failing closed" >&2
+  exit 2
+fi
+if [[ "$AUDIT_MODE" == "change" ]]; then
+  exec bash "$CHANGE_GATE"
+fi
 
 AUDIT_LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-projects.XXXXXX")"
 trap 'rm -rf "$AUDIT_LOG_DIR"' EXIT
