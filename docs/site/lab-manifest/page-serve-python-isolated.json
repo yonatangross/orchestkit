@@ -1,0 +1,11 @@
+{
+  "slug": "page-serve-python-isolated",
+  "source": "docs/fix--page-serve-python-isolated-2/index.html",
+  "title": "page-serve now runs every python3 call isolated",
+  "description": "Pick a planted module and see whether serve.sh would run it before and after python3 -I.",
+  "tags": [
+    "security",
+    "skills"
+  ],
+  "date": "2026-11-11"
+}

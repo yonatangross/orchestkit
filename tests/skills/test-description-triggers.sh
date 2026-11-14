@@ -7,6 +7,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# ORK_SKILLS_DIR lets tests/skills/test-description-standard-controls.sh point this
+# check at a planted skills tree and prove it still warns on a bad description.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+# The description standard is shared with the other description checks (#5043).
+# shellcheck source=../fixtures/description-standard.sh
+source "$SCRIPT_DIR/../fixtures/description-standard.sh"
 
 FAILED=0
 CHECKED=0
@@ -47,26 +53,16 @@ while IFS= read -r skill_file; do
         continue
     fi
 
-    # Check for "Use when" or similar trigger keywords
-    # Convert to lowercase for case-insensitive matching
-    desc_lower=$(echo "$description" | tr '[:upper:]' '[:lower:]')
-
-    has_trigger=0
-    if [[ "$desc_lower" =~ "use when" ]] || \
-       [[ "$desc_lower" =~ "use for" ]] || \
-       [[ "$desc_lower" =~ "triggers on" ]] || \
-       [[ "$desc_lower" =~ "activates for" ]] || \
-       [[ "$desc_lower" =~ "use this" ]]; then
-        has_trigger=1
-    fi
-
-    if [[ $has_trigger -eq 0 ]]; then
+    # A trigger phrase is "Use when|for|before|after|to|only when ..." (the #5043
+    # description standard, shared in tests/fixtures/description-standard.sh), not
+    # only the literal "use when".
+    if ! description_has_trigger_phrase "$description"; then
         echo "WARN: $skill_name - Missing trigger keywords ('Use when...')"
         echo "      Description: ${description:0:80}..."
         MISSING_USE_WHEN=$((MISSING_USE_WHEN + 1))
     fi
 
-done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)
+done < <(find "$SKILLS_DIR" -name "SKILL.md" -type f)
 
 echo
 echo "=========================================="
@@ -75,6 +71,13 @@ echo "=========================================="
 echo "Checked: $CHECKED skills"
 echo "Failed:  $FAILED skills (description too short)"
 echo "Warnings: $MISSING_USE_WHEN skills (missing 'Use when' triggers)"
+
+# A run that looked at nothing must not read as a clean pass.
+if [[ $CHECKED -eq 0 ]]; then
+    echo
+    echo "FAIL: no SKILL.md found under $SKILLS_DIR, nothing was checked."
+    exit 1
+fi
 
 if [[ $FAILED -gt 0 ]]; then
     echo

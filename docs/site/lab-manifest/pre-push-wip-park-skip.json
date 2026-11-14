@@ -1,0 +1,11 @@
+{
+  "slug": "pre-push-wip-park-skip",
+  "source": "docs/fix--pre-push-wip-park-skip/index.html",
+  "title": "The version gate now skips wip/ park branches",
+  "description": "Type a branch name and see whether the pre-push and CI version-bump gate skips it or enforces it, before and after this change.",
+  "tags": [
+    "ci",
+    "git"
+  ],
+  "date": "2026-11-11"
+}

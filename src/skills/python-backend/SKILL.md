@@ -2,7 +2,7 @@
 name: python-backend
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: "Async Python runtime patterns: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Use when building async services. Not for the API contract (use api-design)."
+description: "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design)."
 user-invocable: false
 disable-model-invocation: false
 targets:
@@ -197,7 +197,7 @@ Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-par
 ## Related Skills
 
 - `ork:architecture-patterns` - Clean architecture and layer separation
-- `ork:async-jobs` - Celery/ARQ for background processing
+- `ork-extras:async-jobs` - Celery/ARQ for background processing
 - `ork:api-design` - Wire contract, RFC 9457 errors, SSE/WebSocket streaming
 - `ork:database-patterns` - Database schema design
 - `ork:security-patterns` - Auth, password hashing, token policy

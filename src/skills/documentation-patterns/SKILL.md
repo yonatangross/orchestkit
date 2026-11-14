@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.
 user-invocable: false
-disable-model-invocation: true
 context: inherit
 effort: low
 allowed-tools: "Read Glob Grep"
@@ -87,6 +86,6 @@ Technical writing conventions for clear, scannable documentation.
 
 - `ork:api-design` -- API design patterns (complements OpenAPI documentation)
 - `ork:architecture-decision-record` -- ADR workflow and lifecycle
-- `ork:release-management` -- Release process including changelog updates
+- `ork-extras:release-management` -- Release process including changelog updates
 
 **Version:** 1.0.0 (March 2026)

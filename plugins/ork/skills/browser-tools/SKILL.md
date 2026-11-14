@@ -33,7 +33,7 @@ These topics belong to the vendor. Read them at the source; do not copy them bac
 | Slack workspace navigation and extraction recipes | https://github.com/vercel-labs/agent-browser/blob/main/skill-data/slack/SKILL.md |
 | Running headless in a Vercel Sandbox microVM (deps, snapshots, cron) | `vercel:vercel-sandbox` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/vercel-sandbox/SKILL.md |
 | Exploratory QA sweep with repro evidence (issue taxonomy, report template) | `dogfood` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md |
-| Named `.localhost` dev URLs | `ork:portless` skill · https://github.com/vercel-labs/portless |
+| Named `.localhost` dev URLs | `ork-extras:portless` skill · https://github.com/vercel-labs/portless |
 
 **Our delta over all of the above**: `references/ork-delta.md`, covering what nothing checks any more, polite pacing across sessions, and the local-URL policy.
 

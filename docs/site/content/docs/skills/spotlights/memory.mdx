@@ -119,7 +119,7 @@ OrchestKit uses a 3-tier memory architecture:
 
 | Tier | Storage | Always Available | Use Case |
 |------|---------|-----------------|----------|
-| 1. Graph | MCP `mcp__memory__*` | Yes | Primary storage, zero-config |
+| 1. Graph | MCP `mcp__memory__*` | Only with a memory MCP server (not bundled) | Primary storage once configured |
 | 2. Local | `.claude/memory/*.jsonl` | Yes | Backup, session persistence |
 | 3. CC Native | `~/.claude/projects/*/memory/MEMORY.md` | Yes | Auto-injected into system prompt |
 

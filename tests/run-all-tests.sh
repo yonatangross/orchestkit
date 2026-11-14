@@ -123,7 +123,8 @@ TOTAL_FAILED=0
 # reported LOUDLY but stays advisory. Ratchet DOWN as sections get cleaned;
 # never raise it to quiet the summary.
 TOTAL_WARNINGS=0
-WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-267}"  # ratcheted 348->267 (#3235): two consecutive full v4 runs measured exactly 267
+TOTAL_TESTS_RUN=0
+WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-267}"  # ratcheted 348->267 (#3235): two consecutive full v4 runs measured exactly 267. 2026-11-13 row 11: old 267 (the true count then was 271, two colour-coded counts were invisible), measured 267 (colour codes now counted) after the description checks follow the #5043 standard and 8 skills got a Related Skills section. Down only.
 
 trap "rm -f $RESULTS_FILE" EXIT
 
@@ -192,13 +193,33 @@ echo -e "${BOLD}║     OrchestKit Test Suite v4.0 — one dispatch engine (#323
 echo -e "${BOLD}╚══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Sum "Warnings: N" lines from a section transcript. awk both matches and
-# sums, so an absent match is a clean 0 rather than a grep exit-1 under -e.
+# count_warnings and count_tests_run read a section transcript. They stay inline because
+# tests/ci/test-run-all-tests-no-mutation.sh runs a lone copy of this file; the markers
+# let tests/unit/test-count-warnings.sh extract and exercise exactly this code.
+#
+# Row 11 (2026-11-13): count_warnings used to match "Warnings: <digits>" on the raw
+# transcript. Two tests print the number inside colour codes, either
+# "Warnings: <ESC>[1;33m8<ESC>[0m" (test-frontend-skills) or
+# "<ESC>[1;33mWarnings:<ESC>[0m 1" (test-plugin-structure-compliance), which that
+# regex never matched. The baseline (267) was measured through the same blind spot,
+# so the true count then was 271. Colour codes are stripped first now.
+# BEGIN warnings-count
+# count_warnings <transcript>: sum of every "Warnings: N". awk both matches and sums,
+# so an absent match is a clean 0 rather than a grep exit-1 under -e.
 count_warnings() {
-    awk 'match($0, /Warnings:[[:space:]]+[0-9]+/) {
+    awk '{ gsub(/\033\[[0-9;]*m/, "") }
+         match($0, /Warnings:[[:space:]]+[0-9]+/) {
            n = substr($0, RSTART, RLENGTH); sub(/^Warnings:[[:space:]]+/, "", n); s += n
          } END {print s + 0}' "$1"
 }
+
+# count_tests_run <transcript>: tests the CI engine started (one "[RUN] <path>" line each),
+# so a run that executed nothing is visible to the floor in the skills block below.
+count_tests_run() {
+    awk '{ gsub(/\033\[[0-9;]*m/, "") }
+         /^\[RUN\] / { n++ } END {print n + 0}' "$1"
+}
+# END warnings-count
 
 # run_dir <label> <dir> — glob-execute one tests/ subdirectory through the CI
 # engine. Failures tally into TOTAL_FAILED and fail the run at the summary.
@@ -226,9 +247,11 @@ run_dir() {
     # tripping set -e; the code is recorded below, never swallowed.
     bash "$RUNNER" "$SCRIPT_DIR/$dir" --verbose 2>&1 | tee "$section_out" || exit_code=$?
 
-    local section_warnings
+    local section_warnings section_tests
     section_warnings=$(count_warnings "$section_out")
+    section_tests=$(count_tests_run "$section_out")
     TOTAL_WARNINGS=$((TOTAL_WARNINGS + section_warnings))
+    TOTAL_TESTS_RUN=$((TOTAL_TESTS_RUN + section_tests))
     rm -f "$section_out"
     echo ""
 
@@ -374,6 +397,8 @@ fi
 # ============================================================
 if [[ "$RUN_SKILLS" == "true" ]]; then
     echo -e "${BOLD}${CYAN}SKILL / AGENT / PLUGIN TESTS${NC}"
+    skills_warnings_before=$TOTAL_WARNINGS
+    skills_tests_before=$TOTAL_TESTS_RUN
     run_dir "Skills" "skills"
     run_dir "Agents" "agents"
     run_dir "Subagents" "subagents"
@@ -384,6 +409,27 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
     # Detector-vs-ratchet split: see header. Same env CI uses (#3245).
     ORK_UNREACHABLE_SKILLS_ADVISORY=1 run_dir "Orphans" "orphans"
     run_script "Skill Efficiency Scorecard (advisory)" "$SCRIPT_DIR/skills/functional/skill-efficiency-scorecard.sh" "true"
+
+    # Undercount floor (row 11): the warning ratchet only means something if the run
+    # really looked at the skills. A transcript that reports no warnings, or far fewer
+    # tests than a normal run, is an undercount (a skipped or crashed section, a
+    # changed output format), and an undercount must never lower the baseline.
+    # ORK_SKILLS_MIN_TESTS: measured 163 tests on 2026-11-13; raise it as tests are
+    # added, never lower it to quiet a failing run.
+    skills_warnings=$((TOTAL_WARNINGS - skills_warnings_before))
+    skills_tests=$((TOTAL_TESTS_RUN - skills_tests_before))
+    SKILLS_MIN_TESTS="${ORK_SKILLS_MIN_TESTS:-150}"
+    if [[ $skills_tests -lt $SKILLS_MIN_TESTS ]]; then
+        echo -e "${RED}Skills run floor: only $skills_tests tests ran (expected at least $SKILLS_MIN_TESTS). The warning count cannot be trusted.${NC}"
+        echo "Skills undercount floor:FAIL" >> "$RESULTS_FILE"
+        TOTAL_FAILED=$((TOTAL_FAILED + 1))
+    elif [[ $skills_warnings -eq 0 ]]; then
+        echo -e "${RED}Skills run floor: $skills_tests tests ran but 0 warnings were counted. The count is an undercount, not a clean run.${NC}"
+        echo "Skills undercount floor:FAIL" >> "$RESULTS_FILE"
+        TOTAL_FAILED=$((TOTAL_FAILED + 1))
+    else
+        echo -e "${GREEN}Skills run floor ok: $skills_tests tests (min $SKILLS_MIN_TESTS), $skills_warnings warnings counted.${NC}"
+    fi
 fi
 
 # ============================================================

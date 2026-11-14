@@ -1,0 +1,13 @@
+{
+  "slug": "fix--ork-split-followups",
+  "source": "docs/fix--ork-split-followups/index.html",
+  "title": "Docs-site drift follow-ups: stale search and link data, now checked",
+  "description": "Search suggestions and Related links had gone stale on main (161 hooks where the count is 163, no ork-extras page). This PR regenerates them and adds the CI step that catches the next one.",
+  "tags": [
+    "docs",
+    "ci",
+    "drift",
+    "search"
+  ],
+  "date": "2026-11-13"
+}

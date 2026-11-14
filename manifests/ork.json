@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "10.10.8",
-  "description": "A Claude Code plugin library: 115 skills, 36 agents and 163 hooks for planning, building, reviewing and shipping software. Open source, MIT.",
+  "version": "10.12.0",
+  "description": "A Claude Code plugin library: 116 skills, 36 agents and 163 hooks for planning, building, reviewing and shipping software. Open source, MIT.",
   "author": {
     "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross"
@@ -20,6 +20,34 @@
     "plugin"
   ],
   "skills": "all",
+  "skillsExclude": [
+    "ai-ui-generation",
+    "animation-motion-design",
+    "async-jobs",
+    "figma-design-handoff",
+    "i18n-date-patterns",
+    "langgraph",
+    "llm-integration",
+    "mcp-patterns",
+    "monitoring-observability",
+    "multimodal-llm",
+    "portless",
+    "rag-retrieval",
+    "storybook-testing",
+    "ui-components",
+    "vite-advanced",
+    "zustand-patterns",
+    "accessibility",
+    "agent-orchestration",
+    "design-stylecards",
+    "distributed-systems",
+    "documentation-patterns",
+    "domain-driven-design",
+    "golden-dataset",
+    "interaction-patterns",
+    "release-management",
+    "responsive-patterns"
+  ],
   "agents": "all",
   "hooks": "all",
   "workflows": [

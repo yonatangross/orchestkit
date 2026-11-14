@@ -2,7 +2,7 @@
 name: storybook-mcp-integration
 license: MIT
 compatibility: "Claude Code 2.1.277+. Optional: @storybook/addon-mcp (Storybook 10.3+, Vite-based only)."
-description: "Reference for the Storybook MCP server (@storybook/addon-mcp): its tools, toolsets and availability. Use when calling those tools on existing components. To build a component from a mockup, use design-to-code."
+description: "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code."
 user-invocable: false
 disable-model-invocation: false
 targets:

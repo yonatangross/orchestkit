@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
+**<!--ork:skills-->116<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -121,7 +121,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->115<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->116<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
@@ -664,6 +664,24 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0)** · 2026-11-12
+
+- **hooks:** ship 2 hook processes per tool call, not 3 (#5214)
+- **skills:** add /ork:disk-cleanup (#5211)
+- **cursor:** commands run skill scripts only from the installed plugin (#5216)
+- **docs:** hook pages say when the shipped plugin skips an event (#5215)
+- **docs:** try Chromium before apt, so the mirror is not on every build (#5212)
+- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
+
+**[v10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0)** · 2026-11-10
+
+- **cc:** adopt Claude Code 2.1.310 through 2.1.322 (#5181)
+- **demo-producer:** add code-drawn mode, storyboard renders the film (#5185)
+- **docs-site:** count page views cookieless before consent (#5180)
+- **docs-site:** make the consent banner easier to notice (#5179)
+- **agents:** raise builder maxTurns above documented workload (#5192)
+- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8)** · 2026-11-09
 
 - **release:** fetch mcp-publisher through the authenticated API (#5162)
@@ -701,23 +719,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
 
 - **docs:** replay never starts without consent (#5106)
-
-**[v10.10.2](https://github.com/yonatangross/orchestkit/compare/v10.10.1...v10.10.2)** · 2026-11-07
-
-- **docs:** load PostHog only after consent (#5098)
-- **docs:** stamp and check the CLAUDE.md agents count line (#5102)
-- **skills:** one emulate port table, checked against upstream (#5100)
-- **skills:** fit review-pr, verify, auto descriptions and fix skill-fitness floor (#5096)
-- **skills:** skill quality round 3, fit descriptions and deterministic checklist (#5099)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.10.1](https://github.com/yonatangross/orchestkit/compare/v10.10.0...v10.10.1)** · 2026-11-06
-
-- **ci:** let install-deps outlast a slow apt mirror (#5091)
-- **docs-site:** remove dead memory hooks and correct the hook count (#5085)
-- **release:** cap entries per dist tree request (#5088)
-- **release:** refuse an invalid dist entry cap
-- **memory:** remove the false scored-promotion story and dead hooks (#5089)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

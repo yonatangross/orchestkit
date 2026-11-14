@@ -41,7 +41,11 @@ export const BRAND = {
 } as const;
 
 export const COUNTS = {
+  // Every skill OrchestKit publishes, core ork plus the opt-in ork-extras.
   skills: TOTALS.skills,
+  // What installing ork alone gives you, and what ork-extras adds (#4936).
+  coreSkills: TOTALS.coreSkills,
+  extrasSkills: TOTALS.extrasSkills,
   agents: TOTALS.agents,
   hooks: TOTALS.hooks,
   commands: TOTALS.commands,
@@ -68,7 +72,7 @@ export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length
 // alt text of that card image, because the image shows that text.
 // Title, meta description (PAGE_SUMMARY.site) and the H1 all start with the
 // brand phrase "OrchestKit, Claude Code plugin" so a brand search matches it.
-export const HOME_TITLE = `${SITE.name}, Claude Code plugin: ${COUNTS.skills} skills and ${COUNTS.agents} agents`;
+export const HOME_TITLE = `${SITE.name}, Claude Code plugin: ${COUNTS.coreSkills} skills and ${COUNTS.agents} agents, plus ${COUNTS.extrasSkills} opt-in`;
 
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
@@ -79,7 +83,7 @@ export const PAGE_SUMMARY = {
   // override, so this is the description of "/" itself. Counts match
   // opengraph-image.tsx (COUNTS from generated shared-data).
   // Keep it 140 to 160 characters: a search result cuts a longer one.
-  site: `${SITE.name}, Claude Code plugin: ${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory. Free, open source, also in Cursor and Codex.`,
+  site: `${SITE.name}, Claude Code plugin: ${COUNTS.coreSkills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory, plus ${COUNTS.extrasSkills} opt-in. Free and open source.`,
   // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
   pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
 } as const;
@@ -157,7 +161,7 @@ export const SAME_AS = [
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
-export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.coreSkills} skills (+${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
 
 // Providers OrchestKit or this docs site genuinely integrates with — each entry
 // below is backed by a real dependency or documented integration, not a

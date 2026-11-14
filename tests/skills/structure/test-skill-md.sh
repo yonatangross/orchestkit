@@ -25,7 +25,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
-SKILLS_DIR="$PROJECT_ROOT/src/skills"
+# ORK_SKILLS_DIR lets tests/skills/test-description-standard-controls.sh point Test 5
+# at a planted skills tree and prove it still warns on a bad description.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+# The description standard is shared with the other description checks (#5043).
+# shellcheck source=../../fixtures/description-standard.sh
+source "$SCRIPT_DIR/../../fixtures/description-standard.sh"
 
 VERBOSE="${1:-}"
 
@@ -137,9 +142,10 @@ has_overview_section() {
 }
 
 has_trigger_in_description() {
-    local file="$1"
-    # Check if description field has trigger phrases
-    grep -qiE "description:.*use\s+(when|for|this)" "$file"
+    local file="$1" desc
+    # The description standard (#5043) is shared: "Use when|for|before|after|to|only when ..."
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$file" | head -n 1)"
+    description_has_trigger_phrase "$desc"
 }
 
 has_code_block() {
@@ -541,7 +547,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=43  # +5 2026-10-24: create-plan, iterate-plan, create-research, iterate-research, review-artifact-comments, the artifact-pair commands an operator types with an argument (L6); prompt-focus (2026-10-07) is model-invocable but NOT slash-invocable, like paired-probe, to hold the slash-sprawl budget; careful + freeze added 2026-10-01 (skill-scoped guard hooks, disable-model-invocation, zero index tokens); page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
+EXPECTED_USER_INVOCABLE=44  # +1 2026-11-11: disk-cleanup, an operator types it when the disk fills (dry run first, --apply after a yes); +5 2026-10-24: create-plan, iterate-plan, create-research, iterate-research, review-artifact-comments, the artifact-pair commands an operator types with an argument (L6); prompt-focus (2026-10-07) is model-invocable but NOT slash-invocable, like paired-probe, to hold the slash-sprawl budget; careful + freeze added 2026-10-01 (skill-scoped guard hooks, disable-model-invocation, zero index tokens); page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
 EXPECTED_INTERNAL=72  # +1: prompt-focus 2026-10-07, model-invocable local report kept off the slash menu; +1: error-analysis, model-invocable workflow kept off the /ork: menu cap (36) 2026-09-24; paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types); -1: testing-patterns redirect stub retired 2026-09-25
 
 missing_user_invocable=()

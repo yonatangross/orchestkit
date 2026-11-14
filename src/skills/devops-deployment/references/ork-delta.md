@@ -115,4 +115,4 @@ point-in-time recovery enabled, and multi-AZ deployment. Circuit breakers, retri
 timeouts are owned by the in-repo `distributed-systems` skill; the rest are checks this
 skill still expects before a release goes out.
 Upstream: the in-repo `ork:testing-perf`, `ork:security-patterns` and
-`ork:distributed-systems` skills
+`ork-extras:distributed-systems` skills

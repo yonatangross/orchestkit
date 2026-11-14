@@ -85,8 +85,7 @@ def test_rewrite_skill_dir_covers_every_spelling() -> None:
         "demo",
     )
     assert got == (
-        "skills/demo/a.py skills/demo/b.py "
-        "skills/demo/c.py skills/demo/d.sh skills/demo/e.sh"
+        "skills/demo/a.py skills/demo/b.py skills/demo/c.py skills/demo/d.sh skills/demo/e.sh"
     ), got
 
 
@@ -211,9 +210,7 @@ def test_plugin_root_strip_runs_before_the_bare_ref_pass() -> None:
     """
     with tempfile.TemporaryDirectory() as td:
         skill = make_skill(Path(td))
-        got = CE.rewrite_command(
-            'Read("${CLAUDE_PLUGIN_ROOT}/references/guide.md")', "demo", skill
-        )
+        got = CE.rewrite_command('Read("${CLAUDE_PLUGIN_ROOT}/references/guide.md")', "demo", skill)
         assert got == 'Read("skills/demo/references/guide.md")', got
 
 
@@ -240,7 +237,7 @@ def test_description_precedence_prefers_impact_description() -> None:
         src = write_rule(
             Path(td),
             "gate.md",
-            'title: Verification Gate\nimpactDescription: Prevents premature completion claims',
+            "title: Verification Gate\nimpactDescription: Prevents premature completion claims",
             "## HEADING\n\nBefore any claim of success:",
         )
         slug, text = CE.render_rule(src, "src/shared/rules/gate.md")
@@ -332,6 +329,36 @@ def test_export_commands_refuses_a_wrapper_with_no_skill() -> None:
             assert "no skill at" in str(exc), exc
         else:
             raise AssertionError("a wrapper with no skill was accepted")
+
+
+def _plugin_and_src(tmp: Path) -> tuple[Path, Path]:
+    plugin = tmp / "plugin"
+    (plugin / ".cursor-plugin" / "commands").mkdir(parents=True)
+    src = tmp / "src"
+    (src / "rules").mkdir(parents=True)
+    write_rule(src / "rules", "quality.md", "title: Code Quality", "Keep functions short.")
+    return plugin, src
+
+
+def test_no_rules_flag_emits_no_rules_and_clears_stale_ones() -> None:
+    """#4936: a skills-only add-on must not ship the rules ork already ships."""
+    with tempfile.TemporaryDirectory() as td:
+        plugin, src = _plugin_and_src(Path(td))
+        stale = plugin / ".cursor-plugin" / "rules"
+        stale.mkdir()
+        (stale / "old.mdc").write_text("x", encoding="utf-8")
+        rc = CE.main(["_cursor-export.py", "--no-rules", str(plugin), str(src)])
+        assert rc == 0, rc
+        assert not stale.exists(), "rules dir survived --no-rules"
+
+
+def test_without_no_rules_flag_rules_are_emitted() -> None:
+    """Control for the case above: the same fixture without the flag emits the rule."""
+    with tempfile.TemporaryDirectory() as td:
+        plugin, src = _plugin_and_src(Path(td))
+        rc = CE.main(["_cursor-export.py", str(plugin), str(src)])
+        assert rc == 0, rc
+        assert (plugin / ".cursor-plugin" / "rules" / "quality.mdc").is_file(), "rule not emitted"
 
 
 TESTS = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

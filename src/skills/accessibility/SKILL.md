@@ -2,9 +2,8 @@
 name: accessibility
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility.
+description: "WCAG 2.2 accessibility patterns: keyboard focus management, React Aria, cognitive inclusion, native HTML-first. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible components, or reduced motion."
 user-invocable: false
-disable-model-invocation: true
 metadata:
   owner-agent: "accessibility-specialist"
   category: document-asset-creation
@@ -167,5 +166,5 @@ Vendor tutorials, API references, and criterion walkthroughs removed in the 2026
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing
 - `design-system-starter` - Accessible component library patterns
-- `ork:i18n-date-patterns` - RTL layout and locale-aware formatting
+- `ork-extras:i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility

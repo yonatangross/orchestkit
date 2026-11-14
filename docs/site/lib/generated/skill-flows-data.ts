@@ -2056,38 +2056,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
-  "create-plan": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "Steps",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Rules",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Related",
-            "does": "",
-            "out": null,
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
   "create-pr": {
     "tier": "headings",
     "lanes": [
@@ -2167,38 +2135,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "5",
             "label": "Verify",
-            "does": "",
-            "out": null,
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
-  "create-research": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "Steps",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Rules",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Related",
             "does": "",
             "out": null,
             "tag": null
@@ -2903,6 +2839,73 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Capability Details",
+            "does": "",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
+  "disk-cleanup": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "Critical rules",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Instructions",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "What counts as what",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Example output",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Examples",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Troubleshooting",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Audit trail",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Scope",
             "does": "",
             "out": null,
             "tag": null
@@ -4425,70 +4428,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "4",
             "label": "Complete Work",
             "does": "Create the PR and update labels:",
-            "out": null,
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
-  "iterate-plan": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "Steps",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Rules",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Related",
-            "does": "",
-            "out": null,
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
-  "iterate-research": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "Steps",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Rules",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Related",
-            "does": "",
             "out": null,
             "tag": null
           }

@@ -471,7 +471,7 @@ CC 2.1.128 extends `--channels` (the MCP-server-pushes-into-session feature, ori
 
 Place in the org's managed settings file (typically `/etc/claude-code/managed-settings.json` or the path your enterprise installer writes to). Without this flag, console-auth users on managed orgs see a "channels disabled by managed policy" message when invoking `--channels`.
 
-**Action for OrchestKit**: None for personal use. Enterprise admins shipping OrchestKit alongside `claude` for API-key-auth teams should add `channelsEnabled: true` to the managed-settings bundle if channel-relayed permission prompts (the `ork:portless` + channels combo, the brainstorm-on-mobile flow) are part of the rollout.
+**Action for OrchestKit**: None for personal use. Enterprise admins shipping OrchestKit alongside `claude` for API-key-auth teams should add `channelsEnabled: true` to the managed-settings bundle if channel-relayed permission prompts (the `ork-extras:portless` + channels combo, the brainstorm-on-mobile flow) are part of the rollout.
 
 ## CC 2.1.129 Settings
 
@@ -490,7 +490,7 @@ Before 2.1.129, `Bash(mkdir *)` and `Bash(touch *)` allow rules in `.claude/sett
 }
 ```
 
-**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant, the canonical glob form works.
+**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork-extras:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant, the canonical glob form works.
 
 ### `--plugin-url <url>` for One-Off `.zip` Plugin Loading
 
@@ -531,7 +531,7 @@ claude
 
 **Breaking for**: Anyone who relied on `/model` listing custom gateway models in 2.1.126-2.1.128, the picker now shows only the static built-in list unless the env var is set.
 
-**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/references/model-selection.md`.
+**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork-extras:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/references/model-selection.md`.
 
 ### claude_code.pull_request.count Now Counts MCP-Filed PRs
 

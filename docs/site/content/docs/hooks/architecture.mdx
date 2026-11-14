@@ -15,7 +15,7 @@ OrchestKit compiles 163 hooks into **11 event-specific bundles** using esbuild. 
 
 ```
 hooks.json entry
-    |  "node run-hook.mjs pretool/bash/dangerous-command-blocker"
+    |  "node run-hook.mjs pretool/bash/sync-bash-dispatcher"
     v
 run-hook.mjs parses prefix "pretool"
     |
@@ -26,7 +26,7 @@ bundleMap["pretool"] -> "pretool.mjs" (48 KB)
 dynamic import("../dist/pretool.mjs")
     |
     v
-hooks["pretool/bash/dangerous-command-blocker"](input) -> HookResult
+hooks["pretool/bash/sync-bash-dispatcher"](input) -> HookResult
 ```
 
 ### Bundle Map
@@ -59,13 +59,13 @@ Note that `subagent-start` and `subagent-stop` share the `subagent.mjs` bundle. 
 | Bundle | Size | Hook Count | Events | Key Contents |
 |--------|------|------------|--------|--------------|
 | `permission.mjs` | 8 KB | 3 | PermissionRequest | auto-approve-safe-bash, auto-approve-project-writes, learning-tracker |
-| `pretool.mjs` | 48 KB | 33 | PreToolUse | dangerous-command-blocker, file-guard, 3 unified dispatchers, git-validator |
-| `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | unified-dispatcher, error-handler, audit-logger |
+| `pretool.mjs` | 48 KB | 33 | PreToolUse | sync-bash-dispatcher, sync-write-edit-dispatcher, sync-task-dispatcher, network-egress-guard |
+| `posttool.mjs` | 58 KB | 23 | PostToolUse, PostToolUseFailure | metrics-dispatcher, tool-dispatcher, commit-nudge |
 | `prompt.mjs` | 57 KB | 13 | UserPromptSubmit | unified-dispatcher (9 consolidated hooks), profile-injector |
 | `lifecycle.mjs` | 31 KB | 17 | SessionStart, SessionEnd, PreCompact, TeammateIdle, TaskCompleted | context-loader, metrics-summary, progress-reporter |
 | `stop.mjs` | 33 KB | 12 | Stop | unified-stop-dispatcher (fans out to 7 hooks internally) |
 | `subagent.mjs` | 56 KB | 18 | SubagentStart, SubagentStop | context-stager, output-validator, retry-handler |
-| `notification.mjs` | 5 KB | 3 | Notification | desktop, sound, unified-dispatcher |
+| `notification.mjs` | 5 KB | 3 | Notification | desktop, sound, message-display-observer |
 | `setup.mjs` | 24 KB | 6 | Setup | first-run-setup, monorepo-detector, setup-repair |
 | `skill.mjs` | 52 KB | 22 | Skill operations, Stop (via dispatcher) | coverage-check, test-runner, redact-secrets |
 | `agent.mjs` | 8 KB | 5 | Agent operations | block-writes, ci-safety-check, deployment-safety-check |
@@ -79,13 +79,13 @@ Each bundle has a corresponding entry point at `src/hooks/src/entries/<bundle>.t
 
 ```typescript
 // src/entries/pretool.ts (simplified)
-import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
-import { fileGuard } from '../pretool/write-edit/file-guard.js';
+import { syncBashDispatcher } from '../pretool/bash/sync-bash-dispatcher.js';
+import { syncTaskDispatcher } from '../pretool/task/sync-task-dispatcher.js';
 // ... 31 more imports
 
 export const hooks: Record<string, HookFn> = {
-  'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
-  'pretool/write-edit/file-guard': fileGuard,
+  'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
+  'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
   // ... all hooks for this event
 };
 ```
@@ -193,10 +193,7 @@ Seven hooks.json entries use `run-hook-silent.mjs` to fan out to multiple intern
 
 | Dispatcher | Event | Internal Hooks | What It Does |
 |------------|-------|----------------|-------------|
-| `lifecycle/unified-dispatcher` | SessionStart | 4 | Pattern sync pull, coordination init, decision sync, dependency check |
-| `posttool/unified-dispatcher` | PostToolUse | 7+ | Audit logger, session metrics, calibration tracker, style/naming learners |
 | `subagent-stop/unified-dispatcher` | SubagentStop | 5+ | Memory store, context publisher, feedback loop, handoff preparer |
-| `notification/unified-dispatcher` | Notification | 1+ | Desktop notification routing |
 | `setup/unified-dispatcher` | Setup | varies | Background setup initialization tasks |
 | `stop-fire-and-forget.mjs` | Stop | 7 | All stop hooks via background worker (see below) |
 
@@ -298,7 +295,7 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher"
           }
         ]
       }
@@ -307,7 +304,7 @@ Defined in `hooks.json` at the top level. Fire on every matching event in every 
 }
 ```
 
-Global hooks cover the core safety layer (dangerous command blocker, file guard), analytics (audit logger, session metrics), and lifecycle management (context loader, cleanup).
+Global hooks cover the core safety layer (the synchronous Bash, Write/Edit and Task dispatchers), analytics (audit logger, session metrics), and lifecycle management (context loader, cleanup).
 
 </Tab>
 <Tab value="Agent-Scoped (0)">

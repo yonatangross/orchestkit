@@ -1,0 +1,11 @@
+{
+  "slug": "cursor-commands-no-workspace-scripts",
+  "source": "docs/fix--cursor-commands-no-workspace-scripts/index.html",
+  "title": "Cursor commands run skill scripts only from the installed plugin",
+  "description": "Pick what is installed and see what the Cursor command's plugin lookup answers.",
+  "tags": [
+    "cursor",
+    "plugins"
+  ],
+  "date": "2026-11-11"
+}

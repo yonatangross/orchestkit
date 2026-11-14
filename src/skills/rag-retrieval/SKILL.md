@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.
 user-invocable: false
-disable-model-invocation: true
 effort: high
 metadata:
   owner-agent: "data-pipeline-engineer"
@@ -216,10 +215,10 @@ The one budget this skill does assert is latency, in [House delta](#house-delta)
 
 ## Related Skills
 
-- `ork:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
-- `ork:golden-dataset` - Evaluate retrieval quality
-- `ork:llm-integration` - Local embeddings with nomic-embed-text
-- `ork:multimodal-llm` - Image analysis for multimodal RAG
+- `ork-extras:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
+- `ork-extras:golden-dataset` - Evaluate retrieval quality
+- `ork-extras:llm-integration` - Local embeddings with nomic-embed-text
+- `ork-extras:multimodal-llm` - Image analysis for multimodal RAG
 - `ork:database-patterns` - Schema design for vector search
 - `ork:performance` - Caching repeated RAG responses
 
