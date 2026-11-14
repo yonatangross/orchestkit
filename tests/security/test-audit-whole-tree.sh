@@ -20,6 +20,13 @@ AUDIT="$REPO_ROOT/.github/scripts/audit-whole-tree.sh"
 OPENER="$REPO_ROOT/.github/scripts/open-audit-issue.sh"
 WORKFLOW="$REPO_ROOT/.github/workflows/npm-audit-scheduled.yml"
 
+# expect_classification lives here. Sourcing it also puts this file on the mutation protocol
+# tests/security/mutation-gate.sh reads, so the gate can prove the first assertion below can fail.
+# The helper sets its own SCRIPT_DIR and EXIT trap; nothing below uses SCRIPT_DIR, and this
+# file installs its own EXIT trap after the source.
+# shellcheck source=../fixtures/test-helpers.sh
+source "$REPO_ROOT/tests/fixtures/test-helpers.sh"
+
 PASS=0
 FAIL=0
 ok() { echo "  ✓ $1"; PASS=$((PASS + 1)); }
@@ -107,7 +114,13 @@ run_audit() {
 
 echo "Layer 1: .github/scripts/audit-whole-tree.sh with a stubbed npm audit"
 
-check "clean tree exits 0"                          "$(run_audit --dir "$TMP/trees/clean")"  "0"
+# The real decision under test: does audit-whole-tree.sh let a clean tree through (exit 0 = yes,
+# exit 1 = no, exit 2 = cannot audit, which the helper reports as ERROR, never a pass). This is the
+# file's first assertion, so the mutation gate inverts it and must see it fail.
+audit_passes_tree() {
+    ORK_AUDIT_WRAPPER="$STUB" bash "$AUDIT" --summary-out "$TMP/summary.json" --dir "$1" > "$TMP/audit.out" 2>&1
+}
+expect_classification yes audit_passes_tree "clean tree exits 0" "$TMP/trees/clean"
 check "clean tree: 5 packages examined"             "$(jq -r '.examined' "$TMP/summary.json")"          "5"
 check "clean tree: no hits"                         "$(jq -r '.hits | length' "$TMP/summary.json")"     "0"
 
