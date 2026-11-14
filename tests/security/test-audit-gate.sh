@@ -369,6 +369,15 @@ check "...and on an unknown severity word"                        "$(audit_rc se
 check "control: push still fails a moderate advisory"             "$(audit_rc untouched GITHUB_EVENT_NAME=push)" "1"
 check "control: push still passes a clean tree"                   "$(audit_rc clean GITHUB_EVENT_NAME=push)" "0"
 
+echo "Layer G: a failing canary is not swallowed by the change gate (#5233)"
+# Under the mutation gate, tests/security/test-npm-audit.sh runs on a pull_request with its first
+# assertion (the canary) inverted and ORK_MUTATE_NOEXIT set, and must then exit non-zero. It used to
+# `exec` into the change gate right after the canary, so the file exited on the gate's status alone
+# (0 on a clean change) and the gate read SWALLOWED.
+check "pull_request, canary inverted: the file exits non-zero even when the change is clean" "$(state "$(audit_rc clean "${PR_ENV[@]}" ORK_MUTATE_INDEX=1 ORK_MUTATE_NOEXIT=1)")" "refused"
+check "pull_request, canary not inverted: a clean change still exits 0"                    "$(audit_rc clean "${PR_ENV[@]}")" "0"
+check "push, canary inverted: the walk exits non-zero too"                                 "$(state "$(audit_rc clean GITHUB_EVENT_NAME=push ORK_MUTATE_INDEX=1 ORK_MUTATE_NOEXIT=1)")" "refused"
+
 echo "Layer D: the wiring names the one gate and the base fetch"
 CI_YML="$REPO_ROOT/.github/workflows/ci.yml"
 SCHEDULED_YML="$REPO_ROOT/.github/workflows/npm-audit-scheduled.yml"

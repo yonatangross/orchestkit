@@ -237,7 +237,17 @@ if ! AUDIT_MODE="$(bash "$CHANGE_GATE" --print-mode)"; then
   exit 2
 fi
 if [[ "$AUDIT_MODE" == "change" ]]; then
-  exec bash "$CHANGE_GATE"
+  # Not `exec`: that replaced this process, so a canary that had already failed (FAIL, or the
+  # sourced helper's TESTS_FAILED) was thrown away and the file exited on the gate's status alone.
+  # Under the mutation gate, which runs this file on pull_request with the canary inverted, that
+  # read as SWALLOWED. The gate's own status passes through unless the canary failed.
+  change_gate_rc=0
+  bash "$CHANGE_GATE" || change_gate_rc=$?
+  if [[ "$FAIL" -gt 0 || "${TESTS_FAILED:-0}" -gt 0 ]]; then
+    echo "  npm audit gate: the canary failed, so this run cannot vouch for the change audit above" >&2
+    exit 1
+  fi
+  exit "$change_gate_rc"
 fi
 
 AUDIT_LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-projects.XXXXXX")"
@@ -329,5 +339,5 @@ echo "════════════════════════�
 echo "  Total: $((PASS + FAIL))  |  Passed: ${GREEN}${PASS}${NC}  |  Failed: ${RED}${FAIL}${NC}"
 echo "════════════════════════════════════════════════════════════════"
 
-[[ $FAIL -eq 0 ]] || exit 1
+[[ $FAIL -eq 0 && "${TESTS_FAILED:-0}" -eq 0 ]] || exit 1
 exit 0
