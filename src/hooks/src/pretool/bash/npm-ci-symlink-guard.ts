@@ -22,7 +22,7 @@ import { isAbsolute, join, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
-import { isSymlinkPath } from '../../lib/fs-probe.js';
+import { isSymlinkPath, listSubdirs } from '../../lib/fs-probe.js';
 
 const HOOK_NAME = 'npm-ci-symlink-guard';
 
@@ -32,9 +32,11 @@ const CLEAN_INSTALL = new Set(['ci', 'clean-install', 'ic', 'install-clean', 'is
 export interface NpmCiSymlinkGuardDeps {
   /** True when the path is a symbolic link. */
   isSymlink: (path: string) => boolean;
+  /** The real subdirectory names of a path; used only to search for a link when the parse is uncertain. */
+  listSubdirs?: (path: string) => string[];
 }
 
-const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath };
+const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath, listSubdirs };
 
 /** npm options that take their value as the next word (`--prefix` and `-C` are handled apart). */
 const VALUE_FLAGS = new Set([
@@ -478,6 +480,66 @@ export function npmCiUncertainDirs(command: string, cwd: string, home: string = 
   return [...dirs];
 }
 
+/** True when any reading of the command has a directory word (cd, env -C, --prefix) that is not absolute. */
+export function npmCiHasRelativeCd(command: string, cwd: string, home: string = process.env.HOME ?? ''): boolean {
+  return readingsOf(command)
+    .map((text) => scan(text, cwd, home))
+    .some((s) => s.cdArgs.some((arg) => !isAbsolute(expandHome(arg, home))));
+}
+
+/** Where the search for a reachable link starts: the cwd, every directory a reading saw, and the repo's .worktrees. */
+function uncertainSearchRoots(command: string, cwd: string, deps: NpmCiSymlinkGuardDeps, home: string): string[] {
+  const roots = new Set<string>(npmCiUncertainDirs(command, cwd, home));
+  const list = deps.listSubdirs;
+  if (list !== undefined) {
+    // The repo's .worktrees directory: the nearest one above the cwd (a worktree sits inside it).
+    let dir = cwd;
+    for (let up = 0; up < 8; up++) {
+      const candidate = join(dir, '.worktrees');
+      if (list(candidate).length > 0) {
+        roots.add(candidate);
+        break;
+      }
+      const parent = resolve(dir, '..');
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return [...roots];
+}
+
+/** The search is bounded so a huge tree cannot stall the hook; when the bound is hit the guard asks. */
+const SEARCH_MAX_DEPTH = 6;
+const SEARCH_MAX_DIRS = 6000;
+const SEARCH_SKIP = new Set(['node_modules', '.git']);
+
+/**
+ * Breadth-first search below `roots` for a directory whose node_modules is a symlink. Never enters
+ * node_modules or .git. Reports whether it hit its bound before it finished.
+ */
+function findLinkedBelow(roots: string[], deps: NpmCiSymlinkGuardDeps): { found: string | undefined; truncated: boolean } {
+  const list = deps.listSubdirs;
+  const queue: Array<{ dir: string; depth: number }> = roots.map((dir) => ({ dir, depth: 0 }));
+  const visited = new Set<string>();
+  while (queue.length > 0) {
+    const { dir, depth } = queue.shift() as { dir: string; depth: number };
+    if (visited.has(dir)) continue;
+    if (visited.size >= SEARCH_MAX_DIRS) return { found: undefined, truncated: true };
+    visited.add(dir);
+    const modules = join(dir, 'node_modules');
+    if (deps.isSymlink(modules)) return { found: modules, truncated: false };
+    if (list === undefined) continue;
+    if (depth >= SEARCH_MAX_DEPTH) {
+      if (list(dir).some((name) => !SEARCH_SKIP.has(name))) return { found: undefined, truncated: true };
+      continue;
+    }
+    for (const name of list(dir)) {
+      if (!SEARCH_SKIP.has(name)) queue.push({ dir: join(dir, name), depth: depth + 1 });
+    }
+  }
+  return { found: undefined, truncated: false };
+}
+
 /**
  * Deny a clean install whose node_modules is a symlink; silent otherwise.
  */
@@ -521,6 +583,20 @@ export function npmCiSymlinkGuard(
           `This command runs a clean install (npm ci) in a form the npm ci guard cannot read with certainty (a parenthesis next to a quote, a backslash, a comment, a heredoc or a case pattern), and ${reachable} is a symlink the command may reach. ` +
             'If it runs npm ci there, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command so each directory change is its own plain line.',
         );
+      }
+      // Ruling B (row 16 fix round 2): with a relative cd in an uncertain parse, no resolution of
+      // the cd chain is trusted, so ask whenever ANY link is reachable: below the repo's
+      // .worktrees, the cwd or any directory a reading saw. No depth to get wrong.
+      if (npmCiHasRelativeCd(command, cwd)) {
+        const { found, truncated } = findLinkedBelow(uncertainSearchRoots(command, cwd, deps, process.env.HOME ?? ''), deps);
+        if (found !== undefined || truncated) {
+          const where = found !== undefined ? `${found} is a symlink the command may reach` : 'the search for a linked node_modules was cut short';
+          ctx.log(HOOK_NAME, `asked about an uncertain parse with a relative cd: ${where}`);
+          return outputAsk(
+            `This command runs a clean install (npm ci) after relative directory changes in a form the npm ci guard cannot read with certainty (a parenthesis next to a quote, a backslash, a comment, a heredoc or a case pattern), and ${where}. ` +
+              'If it runs npm ci there, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command so each directory change is its own plain line.',
+          );
+        }
       }
     }
     return outputSilentSuccess();
