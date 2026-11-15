@@ -1,0 +1,8 @@
+{
+  "slug": "seo-robots-sitemap",
+  "source": "docs/fix--seo-robots-sitemap/index.html",
+  "title": "robots.txt signal in the right group, real sitemap dates",
+  "description": "The site-wide Content-Signal moved into the User-agent * group, sitemap lastmod comes from each page's last commit, and non-HTML files left the sitemap. Switch between before and after.",
+  "tags": ["docs-site", "seo"],
+  "date": "2026-11-15"
+}
