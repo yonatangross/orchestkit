@@ -7,7 +7,8 @@ Four gates, each one a way the split can be half done:
 2. Extras: the built plugins/ork-extras/skills holds exactly the moved skills,
    no more and no fewer.
 3. Marketplace: .claude-plugin/marketplace.json lists an ork-extras entry whose
-   source path is plugins/ork-extras.
+   source path is plugins/ork-extras, pinned to the same tag as ork with an
+   agreeing version: the two form the stable set that bump-stable-pin moves.
 4. Reference sweep: no file outside a moved skill's own directory (in src or in
    the built extras plugin) still invokes a moved skill as `ork:<name>`, which
    would point a reader at a command core ork no longer ships. Files are found
@@ -149,9 +150,40 @@ def check_extras() -> None:
         )
 
 
+def stable_pin_problems(plugins: list[dict[str, object]]) -> list[str]:
+    """Problems with ork-extras as a member of the pinned stable set.
+
+    ork-extras tracked main (#5220) only until a tag contained it; v10.13.0 is
+    the first. Since then it is pinned to the same tag as ork, both moved by
+    scripts/bump-stable-pin.sh, and its version must be the version of that tag.
+    """
+
+    def ref_of(name: str) -> object:
+        for p in plugins:
+            if p.get("name") == name:
+                src = p.get("source")
+                return src.get("ref") if isinstance(src, dict) else None
+        return None
+
+    extras = [p for p in plugins if p.get("name") == "ork-extras"]
+    if len(extras) != 1:
+        return [f"expected one ork-extras entry, found {len(extras)}"]
+    eref, oref = ref_of("ork-extras"), ref_of("ork")
+    if not isinstance(eref, str) or eref in ("", "main", "HEAD"):
+        return [f"ork-extras ref is {eref!r}, not a pin; it belongs to the stable set with ork"]
+    if eref != oref:
+        return [
+            f"ork-extras is pinned to {eref!r} but ork to {oref!r}; the stable set moves together"
+        ]
+    if eref != f"v{extras[0].get('version')}":
+        return [f"ork-extras version {extras[0].get('version')!r} does not match its pin {eref!r}"]
+    return []
+
+
 def check_marketplace() -> None:
     data = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
-    entries = [p for p in data.get("plugins", []) if p.get("name") == "ork-extras"]
+    plugins = data.get("plugins", [])
+    entries = [p for p in plugins if p.get("name") == "ork-extras"]
     if len(entries) != 1:
         failures.append(f"marketplace: expected one ork-extras entry, found {len(entries)}")
         return
@@ -159,6 +191,16 @@ def check_marketplace() -> None:
     path = source.get("path") if isinstance(source, dict) else source
     if not isinstance(path, str) or path.strip("./") != "plugins/ork-extras":
         failures.append(f"marketplace: ork-extras source path is {path!r}, want plugins/ork-extras")
+    failures.extend(f"marketplace: {p}" for p in stable_pin_problems(plugins))
+    # Control: the #5220 state, ork-extras tracking main, must be refused.
+    floating = [
+        {**p, "source": {"path": "plugins/ork-extras", "ref": "main"}}
+        if p.get("name") == "ork-extras"
+        else p
+        for p in plugins
+    ]
+    if not stable_pin_problems(floating):
+        failures.append("marketplace: control failed, a main-tracking ork-extras was not refused")
 
 
 CORE_PLUGIN = ROOT / "plugins" / "ork"
@@ -325,9 +367,10 @@ def check_release_please() -> None:
             "release-please: control failed, manifests/ork.json not seen in extra-files"
         )
     # release-please may stamp a marketplace entry by index only while that
-    # entry tracks main (ork-alpha and ork-extras today): its plugin.json moves
-    # on main at release, so the entry must move with it. A pinned entry (ork)
-    # is owned by bump-stable-pin, so release-please must not write it.
+    # entry tracks main (ork-alpha today): its plugin.json moves on main at
+    # release, so the entry must move with it. A pinned entry (ork and
+    # ork-extras, the stable set) is owned by bump-stable-pin, so release-please
+    # must not write it. #5240 went red on a stamp left on ork-extras.
     mkt = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
     plugins = mkt.get("plugins", [])
     failures.extend(f"release-please: {p}" for p in stamp_problems(entries, plugins))

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork-extras goes back to a pinned stable entry</title>
+<meta name="description" content="The stable-pin PR for v10.13.0 went red because release-please still stamped the ork-extras marketplace entry by index after the pin moved it to a tag. Step through the release with the old and the new ownership.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --good:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --good:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.8rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.1rem; margin:30px 0 10px; }
+  p.lead { color:var(--muted); margin:0; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+  .controls button { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .controls button[aria-pressed="true"] { border-color:var(--ink); font-weight:600; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--rule); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--rule); font-size:.92rem; }
+  td.bad { color:var(--bad); font-weight:600; }
+  td.good { color:var(--good); font-weight:600; }
+  code { font:.85rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .verdict { margin-top:14px; padding:12px 14px; border-radius:8px; border:1px solid var(--rule); border-left:5px solid var(--bad); background:var(--card); }
+  .verdict.ok { border-left-color:var(--good); }
+  footer { margin-top:36px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ork-extras goes back to a pinned stable entry</h1>
+  <p class="lead">The stable channel is two entries, <code>ork</code> and <code>ork-extras</code>, pinned to the same tag by <code>scripts/bump-stable-pin.sh</code>. ork-extras tracked main for a while (#5220) because tag v10.12.0 had no <code>plugins/ork-extras</code>. v10.13.0 does, so the pin PR moved it to the tag, and the release-please stamp on <code>$.plugins[2].version</code> left over from the floating period turned the PR red.</p>
+
+  <div class="controls" role="group" aria-label="Ownership">
+    <button type="button" data-mode="before" aria-pressed="true">Before: release-please stamps ork-extras</button>
+    <button type="button" data-mode="after" aria-pressed="false">After: bump-stable-pin owns it</button>
+    <button type="button" id="theme" aria-pressed="false">Dark</button>
+  </div>
+
+  <table>
+    <thead><tr><th>Entry</th><th>source.ref</th><th>Who writes its version</th><th>Check</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <h2>What changed</h2>
+  <p><code>.release-please-config.json</code> no longer stamps <code>$.plugins[2].version</code> in the marketplace; it still bumps the ork-extras plugin.json files and manifest, which ship inside the tag. The marketplace pins <code>ork</code> and <code>ork-extras</code> to v10.13.0 (the change the bot PR carried). <code>tests/schemas/test-alpha-channel.sh</code> and <code>tests/plugins/test-ork-extras-split.py</code> now require ork-extras to be pinned next to ork, and each carries a control: a floating ork-extras is refused, and a stamp replayed onto the pinned entry is refused.</p>
+  <footer>OrchestKit release channels, after v10.13.0.</footer>
+</main>
+<script>
+  const STATES = {
+    before: {
+      rows: [
+        ["ork", "v10.13.0", "bump-stable-pin", "ok", "good"],
+        ["ork-alpha", "main", "release-please $.plugins[1]", "ok", "good"],
+        ["ork-extras", "v10.13.0", "bump-stable-pin AND release-please $.plugins[2]", "stamp on a pinned entry", "bad"],
+      ],
+      verdict: "Red: the next release would move the ork-extras version off its tag, and CC rejects a pinned entry whose version disagrees with the tag.",
+      ok: false,
+    },
+    after: {
+      rows: [
+        ["ork", "v10.13.0", "bump-stable-pin", "ok", "good"],
+        ["ork-alpha", "main", "release-please $.plugins[1]", "ok", "good"],
+        ["ork-extras", "v10.13.0", "bump-stable-pin", "ok", "good"],
+      ],
+      verdict: "Green: one writer per entry. ork-alpha is the only main-tracking plugin entry and the only one release-please stamps.",
+      ok: true,
+    },
+  };
+  const rows = document.getElementById("rows");
+  const verdict = document.getElementById("verdict");
+  function show(mode) {
+    const s = STATES[mode];
+    rows.replaceChildren(...s.rows.map(([name, ref, writer, check, cls]) => {
+      const tr = document.createElement("tr");
+      [name, ref, writer, check].forEach((text, i) => {
+        const td = document.createElement("td");
+        td.textContent = text;
+        if (i === 3) td.className = cls;
+        tr.appendChild(td);
+      });
+      return tr;
+    }));
+    verdict.textContent = s.verdict;
+    verdict.classList.toggle("ok", s.ok);
+    document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  }
+  document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => show(b.dataset.mode)));
+  const theme = document.getElementById("theme");
+  theme.addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    theme.setAttribute("aria-pressed", String(dark));
+  });
+  show("before");
+</script>
+</body>
+</html>
