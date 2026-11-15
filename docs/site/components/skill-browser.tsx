@@ -386,7 +386,7 @@ export function SkillBrowser() {
                   "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium [&_svg]:block",
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-fd-border text-fd-muted-foreground hover:bg-fd-muted",
+                    : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
                 )}
               >
                 <CategoryMark category={cat} className="h-3.5 w-3.5" />
@@ -431,7 +431,7 @@ export function SkillBrowser() {
                     "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
                     active
                       ? `${opt.activeClass} border-current shadow-sm`
-                      : "border-fd-border text-fd-muted-foreground hover:bg-fd-muted",
+                      : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
                   )}
                 >
                   {opt.label}
@@ -463,7 +463,7 @@ export function SkillBrowser() {
                     "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
                     active
                       ? `${COMPLEXITY_STYLE[cplx] ?? COMPLEXITY_STYLE.medium} border-current shadow-sm`
-                      : "border-fd-border text-fd-muted-foreground hover:bg-fd-muted",
+                      : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
                   )}
                 >
                   {cplx}
@@ -518,7 +518,7 @@ export function SkillBrowser() {
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 rounded-md border border-fd-border px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+            className="mt-3 rounded-md border border-fd-border bg-fd-background px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
           >
             Clear all filters
           </button>
@@ -600,7 +600,7 @@ function SkillCard({
       className={cn(
         "rounded-lg border border-fd-border border-l-[3px] transition-all duration-200",
         catMeta.border,
-        expanded ? `${catMeta.bg} shadow-sm` : "hover:bg-fd-muted",
+        expanded ? `${catMeta.bg} shadow-sm` : "bg-fd-background hover:bg-fd-muted",
         className,
       )}
     >
