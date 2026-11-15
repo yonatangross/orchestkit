@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "10.12.0",
+  "version": "10.13.0",
   "description": "The Complete AI Development Toolkit - 116 skills, 36 agents, 44 commands, 163 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
@@ -30,7 +30,7 @@
     },
     {
       "name": "ork-alpha",
-      "version": "10.12.0",
+      "version": "10.13.0",
       "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
       "author": {
         "name": "Yonatan Gross",
@@ -46,7 +46,7 @@
     },
     {
       "name": "ork-extras",
-      "version": "10.12.0",
+      "version": "10.13.0",
       "description": "Opt-in reference skills split out of ork: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork; invoke as /ork-extras:<skill>.",
       "author": {
         "name": "Yonatan Gross",
