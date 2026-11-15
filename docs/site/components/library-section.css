@@ -1,0 +1,228 @@
+/* The home page library section. Tokens are scoped to #library (yonyon.ai
+   TOKENS.md), never the global theme. Everything below starts with #library. */
+#library {
+  --lib-bg: #221b22;
+  --lib-card: #2b222b;
+  --lib-quiet: #271a26;
+  --lib-fg: #fef8fd;
+  --lib-muted: #ad96aa;
+  --lib-border: rgb(255 255 255 / 0.08);
+  --lib-input: rgb(255 255 255 / 0.12);
+  --lib-gold: #c8962f;
+  --lib-eyebrow: #d9a948;
+  --lib-ink-gold: #e8c365;
+  --lib-glass: rgb(255 255 255 / 0.03);
+  --lib-glow: 0 0 20px color-mix(in oklch, #c8962f 30%, transparent);
+  position: relative;
+  background: var(--lib-bg);
+  color: var(--lib-fg);
+  border-bottom: 1px solid var(--lib-border);
+  font-family: var(--font-geist-sans, Geist, ui-sans-serif, system-ui, sans-serif);
+}
+#library .lib-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 72px 28px;
+}
+#library .lib-target {
+  display: block;
+  height: 0;
+  scroll-margin-top: 96px;
+}
+#library .lib-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#library .lib-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lib-eyebrow);
+  font-weight: 500;
+}
+#library .lib-h2 {
+  margin-top: 8px;
+  font-size: 30px;
+  line-height: 36px;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  max-width: 28ch;
+}
+#library .lib-h2 code {
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  color: var(--lib-ink-gold);
+  font-weight: 500;
+}
+#library .lib-sub {
+  margin-top: 12px;
+  max-width: 62ch;
+  color: var(--lib-muted);
+  font-size: 16px;
+  line-height: 24px;
+}
+#library .lib-skips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-top: 8px;
+}
+#library .lib-skips a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--lib-ink-gold);
+  font-size: 14px;
+}
+@media (min-width: 720px) {
+  #library .lib-h2 { font-size: 40px; line-height: 48px; max-width: 36ch; }
+  #library .lib-sub { font-size: 18px; line-height: 28px; }
+  #library .lib-skips { display: none; }
+}
+
+/* Station rail: 4 + 3 at 390, one row of 7 from 720 px. */
+#library .lib-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 24px;
+}
+@media (min-width: 720px) {
+  #library .lib-rail { grid-template-columns: repeat(7, 72px); }
+}
+#library .lib-rail-btn,
+#library .lib-chip,
+#library .lib-seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--lib-border);
+  border-radius: 10px;
+  background: var(--lib-quiet);
+  color: var(--lib-fg);
+  font-size: 14px;
+  text-decoration: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#library .lib-rail-btn { flex-direction: column; gap: 2px; padding: 6px 4px; font-size: 12px; }
+#library .lib-rail-btn:hover,
+#library .lib-chip:hover,
+#library .lib-seg:hover { border-color: var(--lib-gold); }
+#library a:focus-visible,
+#library input:focus-visible {
+  outline: 2px solid var(--lib-gold);
+  outline-offset: 2px;
+}
+#library [aria-pressed="true"],
+#library [aria-current="true"] {
+  border-color: var(--lib-gold);
+  box-shadow: var(--lib-glow);
+}
+#library .lib-ico { width: 16px; height: 16px; flex: none; }
+
+/* Scene slot and side panel. */
+#library .lib-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  #library .lib-grid:has(.lib-scene) { grid-template-columns: minmax(0, 1fr) 440px; }
+  #library .lib-grid:has(.lib-scene) .lib-panel {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 112px);
+    overflow: auto;
+  }
+}
+#library .lib-panel {
+  border: 1px solid var(--lib-border);
+  border-radius: 14px;
+  background: var(--lib-glass);
+  padding: 16px;
+}
+#library .lib-panel-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--lib-muted);
+}
+#library .lib-search[hidden] { display: none; }
+.lib-js#library .lib-search[hidden] { display: block; }
+#library .lib-search { margin-top: 12px; }
+#library .lib-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--lib-input);
+  border-radius: 10px;
+  background: var(--lib-bg);
+  color: var(--lib-fg);
+  font-size: 16px;
+}
+#library .lib-kinds,
+#library .lib-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+#library .lib-kinds .lib-seg { flex: 1 1 0; }
+#library .lib-seg small,
+#library .lib-chip-all {
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--lib-muted);
+}
+#library .lib-chip-all { align-self: center; padding-right: 4px; }
+#library .lib-empty { margin-top: 16px; color: var(--lib-muted); }
+#library .lib-empty[hidden] { display: none; }
+
+/* The flat list: 303 rows. */
+#library .lib-list { list-style: none; margin: 12px 0 0; padding: 0; }
+#library .lib-row { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+#library .lib-row[hidden] { display: none; }
+#library .lib-row a {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+#library .lib-row a:hover { background: var(--lib-glass); }
+#library .lib-row a:hover .lib-name { color: var(--lib-ink-gold); }
+#library .lib-main { display: grid; min-width: 0; flex: 1; }
+#library .lib-name {
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#library .lib-note {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--lib-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#library .lib-st { color: var(--lib-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  #library * { transition: none !important; animation: none !important; }
+}

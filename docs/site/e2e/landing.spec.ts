@@ -7,7 +7,7 @@ import { CHANGELOG_ENTRIES } from '../lib/generated/changelog-data';
  *
  * Coverage scope:
  *   - Hero structure + brand copy
- *   - Library catalog tabs (Skills/Agents/Hooks)
+ *   - Library section (303 links, kind segment, station filters)
  *   - Eight recipe cards
  *   - Changelog What's new strip
  *   - Mobile viewport stacks correctly
@@ -23,7 +23,7 @@ test.describe('Landing hero', () => {
     await expect(page.locator('h1', { hasText: 'Stop explaining your stack.' })).toBeVisible();
 
     await expect(page.getByRole('link', { name: /get started/i }).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'The library' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /One request, \/ork:implement/ })).toBeVisible();
     await expect(page.getByRole('link', { name: /join the whatsapp community/i })).toHaveAttribute(
       'href',
       '/community',
@@ -213,31 +213,22 @@ test.describe('Landing hero', () => {
 });
 
 test.describe('Landing library catalog', () => {
-  test('skills/agents/hooks tabs render with counts', async ({ page }) => {
+  test('every item is a link and the counts show', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'The library' })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Skills/ })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Agents/ })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Hooks/ })).toBeVisible();
-
-    const counts = page.locator('.tabular-nums').first();
-    await expect(counts).toBeVisible();
+    await expect(page.getByRole('heading', { name: /One request, \/ork:implement/ })).toBeVisible();
+    await expect(page.locator('#library #library-list li a')).toHaveCount(303);
+    await expect(page.locator('#library [data-lib-count]')).toHaveText('303 of 303');
+    await expect(page.getByRole('group', { name: 'Kind' })).toBeVisible();
   });
 
-  test('agents tab shows the agents catalog', async ({ page }) => {
+  test('the Agents segment shows only agents', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('tab', { name: /Agents/ }).click();
-    await expect(page.getByRole('tab', { name: /Agents/ })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-    // Scope to the library tabpanel: the hero CopyInstallButton also owns a
-    // live region (role=status, sr-only), so a page-wide getByRole('status')
-    // is ambiguous (strict mode: 2 matches).
-    const panel = page.getByRole('tabpanel');
-    await expect(panel.getByRole('status')).toContainText(/agents/i);
-    await expect(panel).toBeVisible();
+    const agents = page.getByRole('group', { name: 'Kind' }).getByRole('link', { name: /Agents/ });
+    await agents.click();
+    await expect(agents).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#library .lib-row:visible')).toHaveCount(36);
+    await expect(page.locator('#library [data-lib-count]')).toHaveText('36 of 303');
   });
 });
 
