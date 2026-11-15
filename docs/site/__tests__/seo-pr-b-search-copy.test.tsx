@@ -114,8 +114,12 @@ describe("row 10: Organization JSON-LD", () => {
 		const full = graph().filter((n) => n["@id"] === id && n["@type"] === "Organization");
 		expect(full).toHaveLength(1);
 		const sameAs = full[0].sameAs as string[];
-		expect(sameAs.some((s) => s.includes("github.com/yonatangross"))).toBe(true);
-		expect(sameAs.some((s) => s.includes("wikidata.org"))).toBe(true);
+		// Parsed hosts compared exactly, never a substring of the whole URL.
+		const urls = sameAs.map((s) => new URL(s));
+		expect(
+			urls.some((u) => u.hostname === "github.com" && u.pathname.split("/")[1] === "yonatangross"),
+		).toBe(true);
+		expect(urls.some((u) => u.hostname === "www.wikidata.org")).toBe(true);
 		expect(sameAs.map((s) => s.replace(/\/$/, ""))).not.toContain("https://orchestkit.dev");
 	});
 	it("restates the Yonyon studio with the apex site's own logo", () => {
