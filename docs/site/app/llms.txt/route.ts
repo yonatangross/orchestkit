@@ -1,5 +1,6 @@
 import { COUNTS, SITE, YONYON } from "@/lib/constants";
 import { developerResourceLines } from "@/lib/developer-resources";
+import { HOOKS_LIMIT, HOST_SUPPORT, hostSummary } from "@/lib/host-support";
 import { SECTION_ORDER, orderedPages } from "@/lib/docs-content";
 
 // /llms.txt — lean navigation index (kept well under the 30,000-char
@@ -58,25 +59,30 @@ export function GET() {
 	const lines = [
 		`# ${SITE.name}`,
 		"",
-		`> Free, open-source plugin for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks. Install with \`${SITE.installCommand}\`.`,
+		`> Free, open-source skill and agent library for ${hostSummary()}: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 		"",
 		"## What it is",
 		"",
-		`${SITE.name} is a plugin for Claude Code (Anthropic's agentic CLI). It packages ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks, encoding auth/migration/API/testing patterns, security gates, and quality checks so the agent works to your standards out of the box. It is not a hosted service and not an editor assistant.`,
+		`${SITE.name} is a library for AI coding agents. On Claude Code it is one plugin with ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks, encoding auth/migration/API/testing patterns, security gates, and quality checks so the agent works to your standards out of the box. Cursor, Codex, Devin, OpenCode, Muse Code, Pi and Antigravity load the parts their formats support (see Where it runs). It is not a hosted service and not an editor assistant.`,
 		`Publisher: ${SITE.name} is built by Yonyon, an independent software studio (${YONYON.apex}, brand page ${YONYON.apexPage}). The studio name "Yonyon" is unrelated to the musician of the same name; the product and docs live at ${SITE.domain}; see ${SITE.domain}/yonyon.`,
+		"",
+		"## Where it runs",
+		"",
+		...HOST_SUPPORT.map((h) => `- ${h.name}: ${h.gets}. Install: \`${h.install}\``),
+		`- ${HOOKS_LIMIT}`,
 		"",
 		"## Use cases",
 		"",
 		"- Implement a feature end-to-end with parallel specialist agents (`/ork:implement`).",
 		"- Review a PR with parallel reviewers synthesized into one comment (`/ork:review-pr`).",
 		"- Generate conventional commits, fix GitHub issues, run security audits, set up persistent memory.",
-		"- Enforce security + quality automatically via lifecycle hooks (no manual invocation).",
+		"- Enforce security + quality automatically via lifecycle hooks on Claude Code (no manual invocation).",
 		"",
 		"## Constraints",
 		"",
-		"- Requires Claude Code " + `${SITE.ccVersion}` + "; runs locally inside it.",
+		`- Runs locally inside the agent host; on Claude Code it needs version ${SITE.ccVersion}.`,
 		"- Free (MIT), no paid tiers, no account. The public docs/search API is read-only and unauthenticated.",
-		"- Not a standalone CLI or editor; it extends the Claude Code agent.",
+		"- Not a standalone editor or a hosted service; it extends the agent you already run. A separate scripting CLI is listed below.",
 		"",
 		"## For AI agents",
 		"",

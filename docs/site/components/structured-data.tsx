@@ -19,7 +19,9 @@ const PERSON_ID = `${PERSON.url}#person`;
 // rather than a second Organization that competes with the apex (#4144).
 const YONYON_ORG_ID = `${YONYON.apex}/#organization`;
 
-const SUMMARY = `OrchestKit is a free, open-source plugin for Claude Code. It bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
+// Cross-harness, from lib/host-support.ts: the full plugin with hooks is Claude
+// Code; Cursor, Codex and five more hosts load the parts their formats support.
+const SUMMARY = `OrchestKit is a free, open-source library of skills and agents for AI coding agents: Claude Code, Cursor, Codex and five more hosts. On Claude Code it is one plugin with ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
 
 type JsonLdNode = Record<string, unknown>;
 
@@ -313,7 +315,7 @@ export const HOME_FAQS: Faq[] = [
 	{
 		question: "How does OrchestKit compare to GitHub Copilot or Cursor?",
 		answer:
-			"OrchestKit operates at a different layer. Copilot and Cursor are general-purpose AI coding assistants in the editor; OrchestKit is a curated toolkit of skills, agents, and quality-gate hooks built specifically for the Claude Code agent.",
+			"Cursor is one of the hosts OrchestKit installs into: Cursor loads the same ork plugin as Claude Code, without the Claude hook scripts. GitHub Copilot is not one of its hosts today. OrchestKit is not an editor or an autocomplete; it is a library of skills, agents and quality-gate hooks that runs inside the agent you already use.",
 	},
 ];
 

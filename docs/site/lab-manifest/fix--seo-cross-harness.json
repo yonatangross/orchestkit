@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-cross-harness",
+  "source": "docs/fix--seo-cross-harness/index.html",
+  "title": "What OrchestKit gives on each agent host",
+  "description": "The per-host table behind llms.txt and the home page: what Claude Code, Cursor, Codex and five more hosts load, and that hooks run on Claude Code only.",
+  "tags": [
+    "seo",
+    "hosts",
+    "llms-txt"
+  ],
+  "date": "2026-11-15"
+}
