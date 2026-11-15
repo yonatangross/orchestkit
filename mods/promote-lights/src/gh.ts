@@ -3,8 +3,8 @@
  * Read-only calls only, using the operator's own auth.
  *
  * Commands used:
- * - gh pr list --base main --state open --json number,headRefName,headRefOid,title,labels
- * - gh pr list with a head filter for the promote branch
+ * - gh pr list --base <base> --state open --json number,headRefName,headRefOid,title,labels,baseRefName
+ * - gh pr list with a head filter for the promote branch (none for a head pattern ending in *)
  * - gh pr list with a label filter for the promote label
  * - gh api repos/{owner}/{repo}/branches/main/protection
  * - gh api repos/{owner}/{repo}/rules/branches/main
@@ -20,15 +20,18 @@ export interface PRInfo {
   headRefOid: string;
   title: string;
   headRefName?: string;
+  /** The PR's own base; discovery tracks THIS base, not the one it queried. */
+  baseRefName?: string;
   labels?: Array<{ name: string } | string>;
 }
 
 /**
  * Promote PR matching.
  *
- * A real promote PR is an open PR with base main whose head is the
- * promote branch (dev by default, PROMOTE_HEAD when configured) or
- * which carries the promote label. Any other PR with base main is
+ * A real promote PR is an open PR into a promote base (main by default,
+ * PROMOTE_BASE when configured) whose head is the promote branch (dev by
+ * default, PROMOTE_HEAD when configured, a trailing * is a prefix) or
+ * which carries the promote label. Any other PR into that base is
  * ordinary work and must never match.
  */
 export const DEFAULT_PROMOTE_HEAD = "dev";
@@ -37,9 +40,23 @@ export const DEFAULT_PROMOTE_BASE = "main";
 export const PROMOTE_LABEL = "promote";
 
 /**
+ * PROMOTE_BASE may list several bases ("qa,main"), tried in order.
+ * Empty or missing falls back to the default.
+ */
+export function parseBases(raw: string | undefined): string[] {
+  const bases = (raw ?? "").split(",").map((b) => b.trim()).filter((b) => b !== "");
+  return bases.length > 0 ? bases : [DEFAULT_PROMOTE_BASE];
+}
+
+/** A trailing * makes the pattern a prefix ("release/*"); anything else is exact. */
+export function headMatches(headRefName: string, pattern: string): boolean {
+  return pattern.endsWith("*") ? headRefName.startsWith(pattern.slice(0, -1)) : headRefName === pattern;
+}
+
+/**
  * Fields requested from the PR list endpoint.
  */
-export const PR_LIST_FIELDS = "number,headRefName,headRefOid,title,labels";
+export const PR_LIST_FIELDS = "number,headRefName,headRefOid,title,labels,baseRefName";
 
 /**
  * Page size for the filtered PR list queries. Each query is narrowed
@@ -52,6 +69,8 @@ export const PR_LIST_LIMIT = "100";
 
 /**
  * Query argv listing open PRs into the promote base from the promote branch.
+ * gh --head is an exact name, so a pattern ending in * drops it and lists
+ * the base's open PRs; the caller matches the prefix client side.
  */
 export function buildHeadQueryArgs(
   promoteHead: string = DEFAULT_PROMOTE_HEAD,
@@ -63,8 +82,7 @@ export function buildHeadQueryArgs(
     "list",
     "--base",
     promoteBase,
-    "--head",
-    promoteHead,
+    ...(promoteHead.endsWith("*") ? [] : ["--head", promoteHead]),
     "--state",
     "open",
     "--json",
@@ -113,7 +131,7 @@ export function mergePRLists(...lists: PRInfo[][]): PRInfo[] {
 }
 
 export function isPromotePR(pr: PRInfo, promoteHead: string = DEFAULT_PROMOTE_HEAD): boolean {
-  if (pr.headRefName !== undefined && pr.headRefName === promoteHead) return true;
+  if (pr.headRefName !== undefined && headMatches(pr.headRefName, promoteHead)) return true;
   const labels = pr.labels ?? [];
   return labels.some((label) => {
     const name = typeof label === "string" ? label : label.name;

@@ -603,6 +603,49 @@ describe("register behavior (mutant-killing)", () => {
     expect(paths.some((p) => p.includes("/branches/main/"))).toBe(false);
   });
 
+  test("session.start matches a release/* head prefix into a second configured base (orchestkit#4623)", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const env: Record<string, string> = { PROMOTE_HEAD: "release/*", PROMOTE_BASE: "qa,main" };
+    const release = {
+      number: 4430,
+      headRefName: "release/v2026.11.10",
+      headRefOid: "abc123def4567",
+      title: "release v2026.11.10",
+      baseRefName: "main",
+      labels: [],
+    };
+    const fallback = makeDispatchingRun();
+    // Argv-aware: the release PR exists only in main. createFake$'s default
+    // prList answers every `pr list` the same, whatever --base says.
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") {
+        const base = argv[argv.indexOf("--base") + 1];
+        return { exitCode: 0, stdout: JSON.stringify(base === "main" ? [release] : []), stderr: "" };
+      }
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => env[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 4430 }));
+    const argvs = run.mock.calls.map((c) => c[0] as readonly string[]);
+    const lists = argvs.filter((argv) => argv[1] === "pr" && argv[2] === "list");
+    const bases = lists.map((argv) => argv[argv.indexOf("--base") + 1]);
+    // Both bases are queried, and the literal "qa,main" never reaches gh.
+    expect(new Set(bases)).toEqual(new Set(["qa", "main"]));
+    // A glob is matched client side, never handed to gh as a head filter.
+    for (const argv of lists) {
+      expect(argv).not.toContain("release/*");
+      expect(argv).not.toContain("qa,main");
+    }
+    // Required checks come from the base of the PR that matched.
+    const paths = argvs.filter((argv) => argv[1] === "api").map((argv) => argv[2]);
+    expect(paths.some((p) => p.endsWith("/branches/main/protection"))).toBe(true);
+    expect(paths.some((p) => p.includes("/branches/qa/"))).toBe(false);
+  });
+
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers(await import("../hooks/register.ts"));
@@ -615,11 +658,11 @@ describe("register behavior (mutant-killing)", () => {
     // Both list queries are filtered server side with an explicit limit
     // so a promote PR past position 30 is still returned.
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels,baseRefName", "--limit", "100"],
       { timeoutMs: 15000 }
     );
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels,baseRefName", "--limit", "100"],
       { timeoutMs: 15000 }
     );
 

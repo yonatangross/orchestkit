@@ -34,6 +34,7 @@ The band is built from the `Box` and `Text` elements that `$.ui.resolve(e)` hand
 - a watched repo that protects nothing falls back to every check run on the head, worst non-skipped run per name wins
 - a new push to a watched PR is followed, not stopped (a promote PR still stops on a moved head)
 - `PROMOTE_HEAD=development PROMOTE_BASE=qa` finds the promote PR in a dev, qa, main flow; the required checks are read from that base
+- `PROMOTE_HEAD='release/*' PROMOTE_BASE=qa,main` also finds a release branch PR: a head ending in `*` is a prefix, `PROMOTE_BASE` lists bases tried in order, and the required checks come from the base of the PR that matched
 - `PROMOTE_LIGHTS_WATCH=owner/repo#123` starts watching at session start with no typing, for recorded demos
 
 A real promote PR keeps its stricter rule: an empty required-context union refuses green instead of falling back.

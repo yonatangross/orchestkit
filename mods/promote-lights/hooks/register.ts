@@ -18,8 +18,8 @@
  * - $.env.get (PROMOTE_HEAD and PROMOTE_BASE overrides, PROMOTE_LIGHTS_WATCH demo target)
  *
  * Two tracking modes share one tick:
- * - promote: the open promote PR (base main, dev head or promote label) in
- *   the session repo. An empty required-context union refuses green.
+ * - promote: the open promote PR (into PROMOTE_BASE, main by default; dev
+ *   head, PROMOTE_HEAD or promote label) in the session repo. An empty required-context union refuses green.
  * - watch: any open PR in any repo, named with `/lights watch owner/repo#N`
  *   or PROMOTE_LIGHTS_WATCH. An unprotected repo falls back to every check
  *   run on the head, so the lights can be shown without a live promote PR.
@@ -27,7 +27,7 @@
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, DEFAULT_PROMOTE_BASE, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, parseBases, DEFAULT_PROMOTE_HEAD, DEFAULT_PROMOTE_BASE, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists, type PRInfo } from "../src/gh.js";
 import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
 import {
   parseWatchTarget,
@@ -275,49 +275,67 @@ async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["s
   const { owner, name } = repo;
 
   // Only a real promote PR matches: dev head (or the configured
-  // promote head) with base main, or the promote label. An ordinary
-  // PR with base main must never match.
+  // promote head, a trailing * being a prefix) into a promote base, or
+  // the promote label. An ordinary PR into that base must never match.
   let promoteHead = DEFAULT_PROMOTE_HEAD;
   const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
   if (configured) promoteHead = configured;
   // A dev, qa, main flow promotes into qa, so the base is configurable too
   // (orchestkit#4623). The required checks below read this same base.
-  const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
+  // PROMOTE_BASE may list several bases ("qa,main"); they are tried in order
+  // and the first promote PR wins.
+  const promoteBases = parseBases(await $.env.get("PROMOTE_BASE").catch(() => undefined));
 
   // Both queries are filtered server side so the result is complete
   // no matter how many ordinary open PRs the repo has. A single
   // unfiltered list returns at most 30 PRs by default, which misses
   // a promote PR sitting past position 30. Settled, never all: one
   // rejected query degrades the search instead of aborting the start.
-  const [headSettled, labelSettled] = await Promise.allSettled([
-    $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
-    $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
-  ]);
-  const byHead = headSettled.status === "fulfilled"
-    ? headSettled.value
-    : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
-  const byLabel = labelSettled.status === "fulfilled"
-    ? labelSettled.value
-    : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+  let promotePR: PRInfo | undefined;
+  let promoteBase = promoteBases[0] ?? DEFAULT_PROMOTE_BASE;
+  let degraded = false;
+  let anyOk = false;
+  for (const base of promoteBases) {
+    const [headSettled, labelSettled] = await Promise.allSettled([
+      $.process.run(buildHeadQueryArgs(promoteHead, base), { timeoutMs: 15000 }),
+      $.process.run(buildLabelQueryArgs(base), { timeoutMs: 15000 }),
+    ]);
+    const byHead = headSettled.status === "fulfilled"
+      ? headSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
+    const byLabel = labelSettled.status === "fulfilled"
+      ? labelSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
 
-  if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+    if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) continue;
+    anyOk = true;
+
+    // One failed query must never pass silently: the search is degraded,
+    // the snapshot records it, and the band keeps saying DEGRADED.
+    if (byHead.exitCode !== 0 || byLabel.exitCode !== 0) {
+      degraded = true;
+      const failed = byHead.exitCode !== 0 ? "head" : "label";
+      await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
+    }
+
+    const prs = mergePRLists(
+      byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
+      byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
+    );
+    const found = prs.find((pr) => isPromotePR(pr, promoteHead));
+    if (found) {
+      promotePR = found;
+      // The PR's own base, never the one that was queried: the required
+      // checks must come from the branch the PR actually merges into.
+      promoteBase = found.baseRefName || base;
+      break;
+    }
+  }
+
+  if (!anyOk) {
     await storeSet($, key, stamp({ error: "gh: not found" }));
     return;
   }
-
-  // One failed query must never pass silently: the search is degraded,
-  // the snapshot records it, and the band keeps saying DEGRADED.
-  const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
-  if (degraded) {
-    const failed = byHead.exitCode !== 0 ? "head" : "label";
-    await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
-  }
-
-  const prs = mergePRLists(
-    byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
-    byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
-  );
-  const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
   if (!promotePR) {
     await storeDelete($, key);
