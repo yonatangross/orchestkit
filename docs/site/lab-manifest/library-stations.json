@@ -1,0 +1,11 @@
+{
+  "slug": "library-stations",
+  "source": "docs/feat--library-first-page/index.html",
+  "title": "Where every skill, agent and hook acts",
+  "description": "Filter the library's 303 items by workflow station and kind, and see why the site counts 163 hooks while the library lists 151.",
+  "tags": [
+    "library",
+    "hooks"
+  ],
+  "date": "2026-11-15"
+}
