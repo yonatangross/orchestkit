@@ -44,6 +44,9 @@ export const HOST_SUPPORT: readonly HostSupport[] = HOST_INSTALLS.map((spec) => 
 	install: spec.copy ?? spec.commands.join(" && "),
 }));
 
+/** One phrase for every surface that says what OrchestKit is (SEO PR-G). */
+export const PRODUCT_LINE = `a free, open-source library of skills and agents for ${hostSummary()}`;
+
 /** The single statement of the hooks limit. */
 export const HOOKS_LIMIT = "Hooks run on Claude Code only; the other hosts get skills, and Cursor, Codex and Devin also get the plugin or pack named above.";
 

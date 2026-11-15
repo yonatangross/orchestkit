@@ -118,7 +118,7 @@ export const ORG = {
 export const YONYON = {
   name: "Yonyon",
   description:
-    "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source plugin for Claude Code.",
+    "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source library of skills and agents for Claude Code, Cursor, Codex and other agent hosts.",
   // Plain-language collision note, surfaced as schema.org disambiguatingDescription.
   disambiguation:
     "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
