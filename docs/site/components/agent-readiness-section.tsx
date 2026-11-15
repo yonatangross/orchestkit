@@ -174,6 +174,29 @@ export function AgentReadinessSection() {
 					))}
 				</ol>
 
+				{/* Crawl paths from the earlier prose block, kept as one plain line (oc20
+				    ruling 15.11.2026, orank Discovery): agents and indexers follow these. */}
+				<p className="mt-3 text-[13px] leading-6 text-fd-muted-foreground">
+					Also for agents:{" "}
+					<a href="/docs/sdk" className="text-fd-primary underline underline-offset-2">SDK packages</a>
+					{" · listed on "}
+					<a href="https://smithery.ai/servers/yonaigross/orchestkit" className="text-fd-primary underline underline-offset-2">
+						Smithery
+					</a>
+					{" and "}
+					<a href="https://mcp.so/server/orchestkit/yonaigross" className="text-fd-primary underline underline-offset-2">
+						mcp.so
+					</a>
+					{" · auth posture (none needed): "}
+					<a href="/auth.md" className="text-fd-primary underline underline-offset-2">/auth.md</a>
+					{" · "}
+					<a href="/docs/guides/ask-fallback" className="text-fd-primary underline underline-offset-2">
+						ask-fallback guide
+					</a>
+					{" · WebMCP: the home page carries a declarative "}
+					<code>&lt;form toolname=&quot;search_docs&quot;&gt;</code>.
+				</p>
+
 				<p className="mt-2.5 text-xs text-fd-muted-foreground">
 					<span className={TAG}>{CHECKED}</span> seen live or on main on that date.
 				</p>

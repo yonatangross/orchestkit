@@ -77,6 +77,21 @@ describe("agents block, look 05 scoreboard", () => {
 		}
 	});
 
+	it("keeps the old block's crawl paths as one plain link line under the scoreboard (oc20 ruling)", () => {
+		const h = html();
+		const after = h.slice(h.indexOf("</ol>"));
+		for (const href of [
+			'href="/docs/sdk"',
+			'href="https://smithery.ai/servers/yonaigross/orchestkit"',
+			'href="https://mcp.so/server/orchestkit/yonaigross"',
+			'href="/auth.md"',
+			'href="/docs/guides/ask-fallback"',
+		]) {
+			expect(after, href).toContain(href);
+		}
+		expect(after).toContain("toolname=&quot;search_docs&quot;");
+	});
+
 	it("hides nothing and marks the drawing as decoration", () => {
 		const h = html();
 		expect(h).not.toMatch(/<details|\shidden[\s>=]|role="tab"/);
