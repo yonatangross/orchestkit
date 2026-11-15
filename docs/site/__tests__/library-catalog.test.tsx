@@ -64,6 +64,15 @@ describe("LibraryCatalog (server component)", () => {
     expect(style).not.toMatch(/(^|\s)body:has|:root:has|html:has/);
   });
 
+  it("holds one closed drawer dialog that is named by its title", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const drawers = doc.querySelectorAll("dialog[data-lib-drawer]");
+    expect(drawers).toHaveLength(1);
+    expect(drawers[0].hasAttribute("open")).toBe(false);
+    expect(drawers[0].getAttribute("aria-labelledby")).toBe("lib-drawer-title");
+    expect(doc.getElementById("lib-drawer-title")).toBeTruthy();
+  });
+
   it("keeps the search hidden until the client layer runs", () => {
     const doc = new DOMParser().parseFromString(html, "text/html");
     expect(doc.querySelector("search[hidden] input[type=search]")).toBeTruthy();

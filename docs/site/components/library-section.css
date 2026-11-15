@@ -226,3 +226,69 @@
 @media (prefers-reduced-motion: reduce) {
   #library * { transition: none !important; animation: none !important; }
 }
+
+/* The drawer: 480 px from the right at 1440, a bottom sheet (max 86vh) at 390. */
+#library .lib-drawer {
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  max-height: 86vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--lib-border);
+  border-radius: 14px 14px 0 0;
+  background: var(--lib-card);
+  color: var(--lib-fg);
+}
+#library .lib-drawer::backdrop { background: rgb(0 0 0 / 0.5); }
+@media (min-width: 720px) {
+  #library .lib-drawer {
+    inset: 0 0 0 auto;
+    width: 480px;
+    height: 100%;
+    max-height: none;
+    border-radius: 14px 0 0 14px;
+  }
+}
+#library .lib-drawer-head { display: flex; justify-content: space-between; align-items: center; }
+#library .lib-drawer-close,
+#library .lib-drawer-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--lib-border);
+  border-radius: 10px;
+  background: var(--lib-quiet);
+  color: var(--lib-fg);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+#library .lib-drawer-open { margin-top: 16px; color: var(--lib-ink-gold); }
+#library .lib-drawer-title {
+  margin-top: 8px;
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 20px;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+#library .lib-drawer-desc { margin-top: 12px; color: var(--lib-muted); font-size: 14px; line-height: 20px; }
+#library .lib-drawer-station { margin-top: 8px; font-size: 12px; color: var(--lib-muted); }
+#library .lib-drawer-call {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--lib-muted);
+}
+#library .lib-drawer-call[hidden] { display: none; }
+#library .lib-drawer-call code {
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 14px;
+  color: var(--lib-ink-gold);
+}

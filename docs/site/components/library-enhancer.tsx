@@ -73,11 +73,61 @@ export function LibraryEnhancer() {
       );
     };
 
+    // The drawer: native <dialog>, so Esc closes it and the browser returns
+    // focus to the opener; we also restore it ourselves for engines that do not.
+    const drawer = root.querySelector<HTMLDialogElement>("[data-lib-drawer]");
+    let opener: HTMLElement | null = null;
+    const fill = (selector: string, text: string) => {
+      const el = drawer?.querySelector<HTMLElement>(selector);
+      if (el) el.textContent = text;
+    };
+    const openDrawer = (link: HTMLAnchorElement) => {
+      if (!drawer) return;
+      const row = link.closest<HTMLElement>(".lib-row");
+      const name = link.querySelector(".lib-name")?.textContent ?? "";
+      const note = link.querySelector(".lib-note")?.textContent ?? "";
+      const kind = row?.dataset.kind ?? link.dataset.libKindOf ?? "";
+      const station = link.querySelector(".lib-st .lib-sr")?.textContent ?? "";
+      fill("[data-lib-drawer-title]", name);
+      fill("[data-lib-drawer-desc]", note);
+      fill("[data-lib-drawer-kind]", kind ? kind : "item");
+      fill("[data-lib-drawer-station]", station ? `Station: ${station}` : "");
+      const call = drawer.querySelector<HTMLElement>("[data-lib-drawer-call]");
+      const callText = link.dataset.libCall ?? "";
+      if (call) call.hidden = callText === "";
+      fill("[data-lib-drawer-call-text]", callText);
+      drawer
+        .querySelector<HTMLAnchorElement>("[data-lib-drawer-open]")
+        ?.setAttribute("href", link.getAttribute("href") ?? "/docs");
+      opener = link;
+      root.dispatchEvent(new CustomEvent("lib-drawer", { detail: { open: true } }));
+      drawer.showModal();
+    };
+    const onDrawerClose = () => {
+      root.dispatchEvent(new CustomEvent("lib-drawer", { detail: { open: false } }));
+      opener?.focus({ preventScroll: true });
+      opener = null;
+    };
+    const onDrawerClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      // The backdrop is the dialog element itself.
+      if (target === drawer || target.closest("[data-lib-drawer-close]")) drawer?.close();
+    };
+    drawer?.addEventListener("close", onDrawerClose);
+    drawer?.addEventListener("click", onDrawerClick);
+
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const itemLink = target.closest<HTMLAnchorElement>("a[data-lib-item]");
+      if (itemLink && drawer) {
+        event.preventDefault();
+        openDrawer(itemLink);
+        return;
+      }
       const chip = target.closest<HTMLElement>("[data-lib-station]");
       const seg = target.closest<HTMLElement>("[data-lib-kind]");
       if (chip) {
@@ -107,6 +157,8 @@ export function LibraryEnhancer() {
     apply();
     return () => {
       root.removeEventListener("click", onClick);
+      drawer?.removeEventListener("close", onDrawerClose);
+      drawer?.removeEventListener("click", onDrawerClick);
       input?.removeEventListener("input", onInput);
       root.classList.remove("lib-js");
       if (search) search.hidden = true;

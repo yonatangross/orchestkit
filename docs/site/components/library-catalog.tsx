@@ -183,7 +183,15 @@ export function LibraryCatalog({ scene }: { scene?: ReactNode }) {
                     data-station={item.station}
                     data-text={libraryItemSearchText(item)}
                   >
-                    <a href={libraryItemHref(item)} data-lib-item={item.id}>
+                    <a
+                      href={libraryItemHref(item)}
+                      data-lib-item={item.id}
+                      data-lib-call={
+                        item.kind === "skill" && item.command
+                          ? `/ork:${item.name}`
+                          : undefined
+                      }
+                    >
                       <KindIcon aria-hidden="true" className="lib-ico" />
                       <span className="lib-main">
                         <span className="lib-name">{item.name}</span>
@@ -203,6 +211,30 @@ export function LibraryCatalog({ scene }: { scene?: ReactNode }) {
           </div>
         </div>
       </div>
+      {/* The drawer: filled from the clicked row, so it needs no data bundle.
+          Without JS the row link simply navigates to the page. */}
+      <dialog
+        className="lib-drawer"
+        aria-labelledby="lib-drawer-title"
+        data-lib-drawer
+      >
+        <div className="lib-drawer-head">
+          <p className="lib-eyebrow" data-lib-drawer-kind />
+          <button type="button" className="lib-drawer-close" data-lib-drawer-close>
+            Close
+          </button>
+        </div>
+        <h3 id="lib-drawer-title" className="lib-drawer-title" data-lib-drawer-title />
+        <p className="lib-drawer-desc" data-lib-drawer-desc />
+        <p className="lib-drawer-station" data-lib-drawer-station />
+        <div className="lib-drawer-call" data-lib-drawer-call hidden>
+          <span>Call it</span>
+          <code data-lib-drawer-call-text />
+        </div>
+        <a className="lib-drawer-open" href="/docs" data-lib-drawer-open>
+          Open the page &rarr;
+        </a>
+      </dialog>
       <LibraryEnhancer />
       <span id="after-library" />
     </section>
