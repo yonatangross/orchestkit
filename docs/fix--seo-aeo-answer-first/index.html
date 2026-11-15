@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Answer-first openers and one cross-harness summary: before and after</title>
+<meta name="description" content="The plugins roundup and the hooks docs now open with a short answer, and the home description, the Yonyon FAQ and the banner name Claude Code, Cursor and Codex with one skill total.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--old:#9aa3b2;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 10px}
+.row h2{font-size:13px;color:var(--mute);margin:0 0 6px;font-weight:600}.mark{font-weight:700}
+.ok{color:var(--ok)}.old{color:var(--old)}.meta{color:var(--mute);font-size:12px;margin-top:6px}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Answer-first openers and one cross-harness summary</h1>
+<p class="lead">Branch fix/seo-aeo-answer-first. Pages that match common developer questions open with the answer in under 60 words; every summary line names the same hosts and one skill total.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before</button>
+ <button id="b1" aria-pressed="true">After</button>
+</div>
+<div id="rows"></div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-aeo-answer-first on orchestkit: lib/aeo-answers.ts holds BEST_PLUGINS_ANSWER (rendered first on /best-claude-code-plugins) and HOOKS_ANSWER (the first paragraph of content/docs/hooks/index.mdx, kept word for word); PAGE_SUMMARY.site and BANNER_TEXT in lib/constants.ts and the first two YONYON_FAQS answers name Claude Code, Cursor and Codex and give one skill total. Test: docs/site/__tests__/seo-aeo-answer-first.test.ts.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const R=[
+ ["/best-claude-code-plugins, first paragraph",
+  "Disclosure: this page lives on the OrchestKit docs site and we maintain OrchestKit, one of the entries below...",
+  "Short answer: start with Anthropic's official catalog, claude-plugins-official. For engineering depth, add a pack that ships hooks and tests. OrchestKit, which we maintain, is one such pack: 116 skills and 36 agents that also load in Cursor and Codex, and 163 hooks run in Claude Code.",
+  "Then the disclosure and the lists, unchanged."],
+ ["/docs/hooks, first paragraph",
+  "Hooks are the deterministic layer. They fire on lifecycle events rather than being invoked...",
+  "OrchestKit's hooks are a library of deterministic TypeScript checks that fire on Claude Code lifecycle events, from session start to every tool call. They block unsafe commands, gate quality and save memory without the model choosing to run them. Hooks run in Claude Code; the skills and agents also load in Cursor and Codex.",
+  "The old opening stays as the second paragraph."],
+ ["Home description (meta and Markdown frontmatter)",
+  "OrchestKit, Claude Code plugin: 90 skills, 36 agents and 163 hooks for code review, testing, security and memory, plus 26 opt-in. Free and open source.",
+  "OrchestKit: 116 skills and 36 agents for Claude Code, Cursor and Codex, plus 163 Claude Code hooks for review, testing, security, memory. Free and open source.",
+  "155 characters, inside the 140 to 160 range."],
+ ["Site banner",
+  "OrchestKit v... · 90 skills (+26 opt-in), 36 agents, 163 hooks",
+  "OrchestKit v... · 116 skills (26 opt-in), 36 agents, 163 hooks",
+  "The same skill total as the hero, llms.txt and the description."],
+ ["Yonyon FAQ, first two answers",
+  "...the publisher of OrchestKit, a free, open-source plugin for Claude Code. / ...116 skills, 36 agents, and 163 lifecycle hooks for Claude Code, MIT-licensed and free.",
+  "...the publisher of OrchestKit, a free, open-source library of skills and agents for Claude Code, Cursor, Codex and 5 more agent hosts. / ...116 skills and 36 agents for Claude Code, Cursor, Codex and 5 more agent hosts, plus 163 lifecycle hooks that run in Claude Code. MIT-licensed and free.",
+  "Built from PRODUCT_LINE and hostSummary() in lib/host-support.ts."]
+];
+let s="after";
+function draw(){const h=document.getElementById("rows");h.textContent="";
+ for(const r of R){const d=document.createElement("div");d.className="row";const t=document.createElement("h2");t.textContent=r[0];d.appendChild(t);
+  const m=document.createElement("span");m.className="mark "+(s==="after"?"ok":"old");m.textContent=(s==="after"?"answer first: ":"before: ");d.appendChild(m);
+  d.appendChild(document.createTextNode(s==="after"?r[2]:r[1]));
+  if(s==="after"){const n=document.createElement("div");n.className="meta";n.textContent=r[3];d.appendChild(n)}
+  h.appendChild(d)}
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>
