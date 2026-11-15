@@ -14,7 +14,8 @@
 //   purpose. This test pins that sum, so the two numbers can never drift apart unexplained.
 //
 //   Checks: the committed file is complete and consistent; the sum against TOTALS; a new hook
-//   event with no station fails the build; a placed skill that does not exist fails the build.
+//   event with no station fails the build; no station rule names a skill or agent that is gone;
+//   the generator still builds on a partial fixture tree.
 
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -24,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
-const { buildLibrary, listHooks, STATIONS } = require(join(root, 'scripts/lib/library-stations.js'));
+const { buildLibrary, listHooks, stalePlacements, STATIONS } = require(join(root, 'scripts/lib/library-stations.js'));
 let failed = 0;
 
 function check(name, fn) {
@@ -93,8 +94,16 @@ check('a hook event with no station fails the build (never a silent default)', (
   );
 });
 
-check('a placed skill that does not exist fails the build', () => {
-  assert.throws(() => buildLibrary({ skills: {}, agents: {}, hooks: [] }), /is placed but does not exist/);
+check('every skill and agent named in a station rule exists in the real tree', () => {
+  const names = (k) => items.filter((i) => i.kind === k).map((i) => i.name);
+  assert.deepEqual(stalePlacements(names('skill'), names('agent')), []);
+  assert.deepEqual(stalePlacements([], []).length > 0, true, 'the stale check must be able to fail');
+});
+
+check('the generator still builds on a partial tree (fixture tests run it on one skill)', () => {
+  const lib = buildLibrary({ skills: { commit: { description: 'x' } }, agents: {}, hooks: [] });
+  assert.equal(lib.items.length, 1);
+  assert.equal(lib.items[0].station, 'ship');
 });
 
 if (failed) {

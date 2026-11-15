@@ -10,6 +10,8 @@
  *   pattern or knowledge item loaded by the agents that build, so it goes to "build".
  * - A hook goes to the station of its event. An event with no station is an error: a new hook
  *   event must be placed on purpose, never fall into a default.
+ * - A rule that names a skill or agent that no longer exists is caught by stalePlacements(), which
+ *   tests/unit/test-library-stations.mjs runs on the real tree.
  */
 
 const STATIONS = [
@@ -139,12 +141,6 @@ function buildLibrary({ skills, agents, hooks, skillScopedHooks = {} }) {
     items.push({ id, kind: 'hook', name: h.name, station, event: h.event, matcher: h.matcher, script: h.script });
   }
 
-  for (const [map, kind, pool] of [[SKILL_STATION, 'skill', skills], [AGENT_STATION, 'agent', agents]]) {
-    for (const name of Object.keys(map)) {
-      if (!pool[name]) throw new Error(`library-stations: ${kind} ${name} is placed but does not exist`);
-    }
-  }
-
   const stations = STATIONS.map((s) => {
     const mine = items.filter((i) => i.station === s.key);
     return {
@@ -166,4 +162,19 @@ function buildLibrary({ skills, agents, hooks, skillScopedHooks = {} }) {
   return { stations, items, counts };
 }
 
-module.exports = { STATIONS, DEFAULT_STATION, SKILL_STATION, AGENT_STATION, HOOK_EVENT_STATION, hookScript, listHooks, buildLibrary };
+/**
+ * Names placed at a station that the given skills or agents do not contain (a renamed or removed item
+ * whose rule went stale). Not checked inside buildLibrary: the generator also runs on partial fixture
+ * trees (tests/unit/test-docs-gen-skip-pycache.sh), where most placed names are absent by design. The
+ * unit test calls this against the real tree.
+ */
+function stalePlacements(skillNames, agentNames) {
+  const skills = new Set(skillNames);
+  const agents = new Set(agentNames);
+  return [
+    ...Object.keys(SKILL_STATION).filter((n) => !skills.has(n)).map((n) => `skill ${n}`),
+    ...Object.keys(AGENT_STATION).filter((n) => !agents.has(n)).map((n) => `agent ${n}`),
+  ];
+}
+
+module.exports = { STATIONS, DEFAULT_STATION, SKILL_STATION, AGENT_STATION, HOOK_EVENT_STATION, hookScript, listHooks, buildLibrary, stalePlacements };
