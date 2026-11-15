@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit CLI page and docs MCP output schemas: before and after</title>
+<meta name="description" content="A /cli page for the orchestkit npm CLI, linked from the home page, and output schemas plus longer server instructions on the docs MCP server.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:960px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--mute);font-weight:600}
+.pass{color:var(--ok)}.fail{color:var(--bad)}.wait{color:var(--acc)}pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>CLI page and MCP output schemas</h1>
+<p class="lead">Branch fix/seo-orank-surfaces. Each row is one orank item, measured live on 15.11 (before) and in this branch's tests (after).</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before (live, 15.11)</button>
+ <button id="b1" aria-pressed="true">After (this branch)</button>
+</div>
+<table><thead><tr><th>Item</th><th>State</th><th>Value</th></tr></thead><tbody id="t"></tbody></table>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-orank-surfaces on orchestkit (SEO gaps rows 11 and 12): app/(home)/cli/page.tsx (commands checked against packages/cli/src/cli-core.ts), /cli in lib/static-pages.ts and linked from the home page; app/api/mcp/route.ts outputSchema on both tools, structuredContent on orchestkit_docs_get, server instructions over 100 characters. Tests: seo-pr-e-cli-page and seo-pr-e-mcp-usability. Row 13 (session-end page main content first) is not in this branch: it needs the docs layout changed and checked in a browser.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const R=[
+ ["/cli page","404","200, title and H1 'OrchestKit CLI', self canonical, in the sitemap list"],
+ ["Home link to /cli","0 links","1 link in the server HTML"],
+ ["MCP outputSchema","0 of 2 tools","2 of 2 tools, with matching structuredContent"],
+ ["MCP read-only hints","2 of 2 tools (already)","2 of 2 tools"],
+ ["MCP server instructions","98 characters","over 100 characters"],
+ ["Session-end hook page, main content first","article starts at about 18 to 24 % of markup","not in this branch (needs a browser seat)"]
+];
+let s="after";
+function draw(){const t=document.getElementById("t");t.textContent="";
+ R.forEach((r,i)=>{const tr=document.createElement("tr");const v=s==="after"?r[2]:r[1];
+  const st=s==="before"?(i===3?"pass":"fail"):(i===5?"wait":"pass");
+  for(const [c,cls] of [[r[0],""],[st==="pass"?"pass":st==="fail"?"fail":"open",st],[v,""]]){const td=document.createElement("td");td.textContent=c;if(cls)td.className=cls;tr.appendChild(td)}
+  t.appendChild(tr)});
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

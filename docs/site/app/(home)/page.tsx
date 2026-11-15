@@ -214,6 +214,12 @@ export default async function HomePage() {
               >
                 OrchestKit SDK packages
               </Link>
+              <Link
+                href="/cli"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit CLI
+              </Link>
             </div>
 
             {/* Spacing, not divider glyphs: a divider in a wrapping row ends a line
