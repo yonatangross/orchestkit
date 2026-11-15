@@ -111,6 +111,15 @@ describe("createRunPlayer", () => {
     expect(shown.length).toBeGreaterThan(frozen);
   });
 
+  it("first run types only lines 10 to 20 and clears nothing", () => {
+    const { player, shown, run, finishes } = setup();
+    player.startFrom(9);
+    for (let i = 0; i < 30; i += 1) run();
+    expect(shown).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+    expect(player.state).toBe("finished");
+    expect(finishes()).toBe(1);
+  });
+
   it("shows the finished state at once without announcing (reduced motion)", () => {
     const { player, shown, finishes } = setup();
     player.showFinished();

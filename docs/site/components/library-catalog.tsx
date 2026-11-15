@@ -128,14 +128,17 @@ export function LibraryCatalog({
           <a href="#after-library">Skip past the library &rarr;</a>
         </p>
 
-        <nav aria-label="Stations" className="lib-rail">
-          {LIBRARY_STATION_ORDER.map((key) => (
-            <StationChip key={key} station={key} className="lib-rail-btn" />
-          ))}
-        </nav>
-
         <div className="lib-grid">
-          {scene ? <div className="lib-scene">{scene}</div> : null}
+          {/* Rail and scene share the left column, so at 1100 px and up the
+              side panel starts level with the rail (mockup M13). */}
+          <div className="lib-left">
+            <nav aria-label="Stations" className="lib-rail">
+              {LIBRARY_STATION_ORDER.map((key) => (
+                <StationChip key={key} station={key} className="lib-rail-btn" />
+              ))}
+            </nav>
+            {scene ? <div className="lib-scene">{scene}</div> : null}
+          </div>
           <div className="lib-panel">
             <div className="lib-panel-head">
               <span>All {LIBRARY_COUNTS.items}</span>

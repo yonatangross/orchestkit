@@ -168,6 +168,8 @@ export function LibraryEnhancer() {
     const live = root.querySelector<HTMLElement>("[data-term-live]");
     const pauseBtn = root.querySelector<HTMLButtonElement>('[data-term="pause"]');
     const ctl = root.querySelector<HTMLElement>("[data-term-ctl]");
+    // The lines the server marks data-late are the ones typed on the first run.
+    const staticCount = termLines.filter((l) => !l.hasAttribute("data-late")).length;
     const doneText = termDone?.textContent?.replace("✓", "").trim() ?? "";
     const rail = Array.from(
       root.querySelectorAll<HTMLElement>(".lib-rail-btn[data-lib-station]"),
@@ -232,7 +234,8 @@ export function LibraryEnhancer() {
     const sync = () => {
       if (reduced || !termBox) return;
       if (wantPlaying()) {
-        if (player.state === "idle") player.replay();
+        // First run: lines 1 to 9 are already on screen, type only the rest.
+        if (player.state === "idle") player.startFrom(staticCount);
         else player.start();
       } else if (player.state === "playing") {
         player.pause();

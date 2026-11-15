@@ -413,3 +413,14 @@ html:not(.term-anim) #library .term-caret { animation: none; }
   overflow-wrap: anywhere;
 }
 #library .term-hosts [hidden] { display: none; }
+
+/* Rail and scene in one left column; the panel starts level with the rail. */
+#library .lib-left { display: grid; gap: 24px; min-width: 0; }
+#library .lib-left .lib-rail { margin-top: 0; }
+/* The h2 command is a chip of the section's own, not the site's code style
+   (which turns grey when the theme script has not run, e.g. with JS off). */
+#library .lib-h2 code {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgb(200 150 47 / 0.12);
+}

@@ -14,6 +14,22 @@ test.describe("library terminal", () => {
     await context.close();
   });
 
+  test("first paint: lines 1 to 9 are shown at load, lines 10 to 20 and the done line are not", async ({ page }) => {
+    // A short viewport keeps the terminal under half visible, so nothing types yet.
+    await page.setViewportSize({ width: 1440, height: 500 });
+    await page.goto("/");
+    await expect(page.locator("#library .lib-js, #library.lib-js")).toHaveCount(1);
+    const state = await page.locator("#library [data-term-line]").evaluateAll((els) =>
+      els.map((el) => getComputedStyle(el).visibility),
+    );
+    expect(state.slice(0, 9)).toEqual(Array(9).fill("visible"));
+    expect(state.slice(9)).toEqual(Array(11).fill("hidden"));
+    await expect(page.locator("#library [data-term-done]")).toHaveCSS("visibility", "hidden");
+    // The space of the hidden lines is kept: no layout jump when they type in.
+    const box = await page.locator("#library .term-lines").boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThan(20 * 40);
+  });
+
   test("a full run announces the done line once", async ({ page }) => {
     await page.goto("/");
     await page.locator("#library .term-box").scrollIntoViewIfNeeded();

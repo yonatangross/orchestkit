@@ -64,6 +64,16 @@ export function createRunPlayer(opts: PlayerOptions) {
       cancel = null;
       set("paused");
     },
+    /**
+     * First run: lines before `index` are already on screen (the static ones),
+     * so typing continues from `index` and nothing is cleared.
+     */
+    startFrom(index: number) {
+      if (state !== "idle") return;
+      next = Math.min(Math.max(index, 0), opts.total);
+      set("playing");
+      step();
+    },
     replay() {
       cancel?.();
       cancel = null;
