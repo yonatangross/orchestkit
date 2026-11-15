@@ -1,0 +1,148 @@
+<!doctype html>
+<!-- APPROVED DESIGN, look 05 'Scoreboard with proof' (agents block), picked by Yonatan 15.11.2026
+     (desks/conductor346/PICKS-ork-options-round2-1115.md, KB 3a1198ac). Verbatim excerpts of
+     desks/conductor-orchestkit-15/library-options/round2.html: :root tokens (lines 9 to its first close brace),
+     agents-block CSS (316 to 340), the option section (557 to 574), and the data plus renderer (1185 to 1249).
+     The reference for every compare; never edit it. A changed design is a new approval and a new file. -->
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Approved: agents block look 05</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg: light-dark(#f4f5f8, #0c0e13);
+  --surface: light-dark(#ffffff, #161a22);
+  --surface-2: light-dark(#eff1f5, #1d222c);
+  --surface-3: light-dark(#e3e7ee, #272d39);
+  --text: light-dark(#14161b, #eceef4);
+  --muted: light-dark(#4a5162, #a6aebd);
+  --border: light-dark(#d2d7e0, #2e3442);
+  --accent: light-dark(#4338ca, #a5b4fc);
+  --accent-bg: light-dark(#e7e8fd, #262b52);
+  --accent-solid: light-dark(#4338ca, #a5b4fc);
+  --accent-ink: light-dark(#ffffff, #10122a);
+  --focus: light-dark(#2563eb, #93c5fd);
+  --chrome: light-dark(#7a5300, #e3b341); --chrome-ink: light-dark(#ffffff, #1a1300); --chrome-link: light-dark(#7a5300, #f0c75e);
+  --skill: light-dark(#6d28d9, #c4b5fd); --skill-bg: light-dark(#f1ecff, #2a2342);
+  --agent: light-dark(#0f766e, #5eead4); --agent-bg: light-dark(#e2f5f2, #142f2c);
+  --hook: light-dark(#a8460a, #fcd34d); --hook-bg: light-dark(#fdf0e1, #332714);
+  --ok: light-dark(#166534, #86efac); --ok-bg: light-dark(#dcfce7, #14301f);
+  --warn: light-dark(#92400e, #fcd34d); --warn-bg: light-dark(#fef3c7, #33270f);
+  --unk: light-dark(#475569, #cbd5e1); --unk-bg: light-dark(#e2e8f0, #262c36);
+  --shadow: light-dark(rgb(15 20 35 / .10), rgb(0 0 0 / .55));
+  --win-dot: light-dark(#8d95a3, #7b8496);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+.agb{padding:22px 28px 30px}
+.agb h2{margin:0; font-size:24px; letter-spacing:-.01em}
+.agb .lead{margin:6px 0 14px; color:var(--muted); max-inline-size:72ch}
+.agb a{color:var(--accent)}
+.agb code{font-family:var(--mono); font-size:12.5px; overflow-wrap:anywhere}
+.tg{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.04em; padding:1px 6px; border-radius:5px; vertical-align:1px; background:var(--ok-bg); color:var(--ok); white-space:nowrap}
+.tg.c{background:var(--warn-bg); color:var(--warn)}
+.tg.u{background:var(--unk-bg); color:var(--unk)}
+.legendt{font-size:12px; color:var(--muted); margin:10px 0 0}
+/* A1 scoreboard */
+.a1-top{display:flex; gap:18px; align-items:center; margin-block-end:12px}
+.a1-score{margin:0; font-size:15px}
+.a1-score strong{font-size:22px}
+.a1-ring{flex:none; inline-size:84px; block-size:84px}
+.a1-ring circle{fill:none; stroke-width:9}
+.a1-list{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 26px}
+.a1-list li{display:grid; grid-template-columns:22px minmax(0,1fr); gap:4px 8px; padding:9px 0; border-block-end:1px solid var(--border)}
+.a1-list .ck{grid-row:span 2; inline-size:20px; block-size:20px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700; background:var(--ok-bg); color:var(--ok)}
+.a1-list .ck.c{background:var(--warn-bg); color:var(--warn)}
+.a1-list .ck.u{background:var(--unk-bg); color:var(--unk)}
+.a1-list .nm{font-weight:600}
+.a1-list .pf{color:var(--muted); font-size:13px}
+.a1-list.go li{animation:tick .45s var(--ease) both; animation-delay:calc(var(--i) * 45ms)}
+@keyframes tick{from{opacity:.25; transform:translateX(-6px)}}
+.a1-meas{margin:14px 0 0; padding:10px 12px; border-radius:10px; background:var(--surface-2); font-size:13.5px}
+</style></head><body>
+    <!-- AGENTS 1 -->
+    <section class="opt" id="ag1" aria-labelledby="h-ag1">
+      <div class="opt-head"><span class="num">05</span><h2 id="h-ag1">בלוק הסוכנים, מראה 1: לוח תוצאות עם הוכחה</h2><button type="button" class="chip pick-me" data-pick="ag:1">בחר בזה</button></div>
+      <p class="opt-sub">ההמשך של B. כל משטח לסוכנים הוא שורה עם קישור, ההוכחה שלו, והתג שלו. מעל, ציור טבעת שסופרת את המשטחים לפי התג. הטבעת והטיקים הם השכבה המצוירת, הטקסט כולו כבר ב-HTML.</p>
+      <div class="stage"><div class="frame" data-auto="1">
+        <div class="win auto" dir="ltr" lang="en">
+          <div class="win-bar"><i></i><i></i><i></i><span class="win-url">orchestkit.dev/#agents-heading</span></div>
+          <div class="site"><b>OrchestKit</b><nav><span>Docs</span><span>Library</span><span>Changelog</span></nav></div>
+          <div class="home-ctx"><h3>What is OrchestKit?</h3><p>A free, open-source library of skills, agents and hooks for AI coding agents.</p></div>
+          <div id="A1"></div>
+        </div>
+      </div></div>
+      <div class="pair">
+        <details class="rawbox"><summary>מה זחלן קורא: אותו בלוק בלי JS ובלי CSS (לחיצה פותחת)</summary><div class="raw" id="A1raw" dir="ltr" lang="en"></div></details>
+        <div class="note"><h3>למה זה עובד</h3><ul><li>הכל טקסט: שם, נתיב, הוכחה ותג בכל שורה. שום דבר לא בתוך אקורדיון או לשונית.</li><li>הציור הוא SVG אחד קטן (טבעת) ו-CSS לטיקים. בלי JS הרשימה זהה.</li><li>התגים כאן לבדיקה שלך. במוצר <span class="tagh">VERIFIED</span> הופך ל-"checked 15 Nov 2026", ו-<span class="tagh c">CLAIMED</span> נבדק לפני שעולה, או יורד.</li></ul></div>
+      </div>
+    </section>
+
+<script>
+/* excerpt, not runnable alone */
+const FACTS = [
+  {g:"read", name:"llms.txt", path:"/llms.txt", proof:"Navigation index, 89 lines, live 200", tag:"V"},
+  {g:"read", name:"llms-full.txt", path:"/llms-full.txt", proof:"Every doc in one file, 4,155 lines", tag:"V"},
+  {g:"read", name:"Markdown for every page", path:"/docs/getting-started.md", proof:"Append .md or send Accept: text/markdown", tag:"V"},
+  {g:"search", name:"NLWeb questions", path:"/ask?query=...", proof:"Ranked answers, ?streaming=true for SSE", tag:"V"},
+  {g:"search", name:"Sitemap", path:"/sitemap.xml", proof:"352 URLs (one GET, 15 Nov 2026 12:13), 153 of them under /docs/reference/skills/", tag:"V"},
+  {g:"search", name:"Structured data", path:"/", proof:"SoftwareApplication, Organization, WebSite with SearchAction, FAQPage", tag:"V"},
+  {g:"call", name:"MCP server", path:"/api/mcp", proof:"Streamable HTTP, two read-only tools", tag:"V"},
+  {g:"call", name:"Actions MCP", path:"/api/mcp/actions", proof:"Second MCP endpoint for actions", tag:"V"},
+  {g:"call", name:"WebMCP in the browser", path:"/", proof:"search_docs and get_page registered on every page", tag:"V"},
+  {g:"call", name:"OpenAPI spec", path:"/api/openapi", proof:"Read-only API description", tag:"V"},
+  {g:"find", name:"robots.txt AI rules", path:"/robots.txt", proof:"11 named AI bots allowed, CCBot and Bytespider blocked", tag:"V"},
+  {g:"find", name:"Agent card and catalogs", path:"/.well-known/agent-card.json", proof:"Plus agent-skills, api-catalog and MCP server cards, linked from a Link header", tag:"V"},
+  {g:"find", name:"MCP registry listing", path:"io.github.yonatangross/orchestkit", proof:"Stated in the current block, not re-checked", tag:"C"},
+  {g:"find", name:"skills.sh", path:"npx skills add yonatangross/orchestkit", proof:"Stated in the current block, not re-checked", tag:"C"},
+];
+const MEAS = [
+  {name:"orank score", val:"91/100, grade A (11 Nov 2026)", tag:"C"},
+  {name:"AI citations (ChatGPT, Perplexity, Claude)", val:"?", tag:"U"},
+  {name:"Search Console clicks", val:"?", tag:"U"},
+];
+const GROUPS = [
+  {g:"read", h:"Read", verb:"Get any page as plain text."},
+  {g:"search", h:"Search", verb:"Find the right page or skill."},
+  {g:"call", h:"Call", verb:"Use OrchestKit as a tool."},
+  {g:"find", h:"Discover", verb:"Know the site exists and what it allows."},
+];
+const TAGW = {V:"VERIFIED", C:"CLAIMED", U:"?"};
+const tag = (t) => '<span class="tg ' + (t === "C" ? "c" : t === "U" ? "u" : "") + '">' + TAGW[t] + "</span>";
+const path = (p) => esc(p).replace(/([/.])(?=[^/.])/g, "$1<wbr>");
+const link = (p) => /^\//.test(p) ? '<a href="' + esc(p.replace("?query=...", "")) + '"><code>' + path(p) + "</code></a>" : "<code>" + path(p) + "</code>";
+const nV = FACTS.filter((f) => f.tag === "V").length, nC = FACTS.filter((f) => f.tag === "C").length;
+const H2 = '<h2 id="agents-heading">Built for AI agents, too</h2>';
+const LEAD = '<p class="lead">OrchestKit is a free, open-source library of ' + T.skills + " skills, " + T.agents + " agents and " + T.hooks + " hooks. Skills and agents work in Claude Code, Codex, Cursor and other harnesses; hooks currently need Claude Code. Everything below is how an agent reads, searches and calls this site, with how we know it is live.</p>";
+const LEGEND = '<p class="legendt">' + tag("V") + " seen live or on main on 15 Nov 2026. " + tag("C") + " stated, not re-checked. " + tag("U") + " not measured yet.</p>";
+const QA = [
+  {q:"What is OrchestKit?", a:"A free, open-source library of " + T.skills + " skills, " + T.agents + " agents and " + T.hooks + " hooks for AI coding agents. It works across Claude Code, Codex, Cursor and other harnesses.", cmd:"npx skills add yonatangross/orchestkit", rel:["skills.sh"], tag:"V"},
+  {q:"How does an agent read this site?", a:'Start at <a href="/llms.txt"><code>/llms.txt</code></a> (89 lines) or take everything from <a href="/llms-full.txt"><code>/llms-full.txt</code></a> (4,155 lines). Any page comes back as Markdown if you append .md or send Accept: text/markdown.', cmd:'curl -H "Accept: text/markdown" https://orchestkit.dev/docs/getting-started', rel:["llms.txt", "llms-full.txt", "Markdown for every page"], tag:"V"},
+  {q:"Can an agent search it?", a:'Ask in plain language at <a href="/ask"><code>/ask</code></a> (NLWeb, add ?streaming=true for SSE), or walk the <a href="/sitemap.xml"><code>sitemap</code></a>: 352 URLs on 15 Nov 2026, with a page per skill and per agent.', cmd:'curl "https://orchestkit.dev/ask?query=review+a+pull+request"', rel:["NLWeb questions", "Sitemap"], tag:"V"},
+  {q:"Can an agent call it as a tool?", a:'Yes. <a href="/api/mcp"><code>/api/mcp</code></a> is an MCP server over Streamable HTTP with two read-only tools, there is an Actions MCP at <code>/api/mcp/actions</code>, a read-only <a href="/api/openapi">OpenAPI spec</a>, and WebMCP tools search_docs and get_page on every page.', cmd:'{ "mcpServers": { "orchestkit": { "url": "https://orchestkit.dev/api/mcp" } } }', rel:["MCP server", "Actions MCP", "OpenAPI spec", "WebMCP in the browser"], tag:"V"},
+  {q:"How do crawlers and agents find it?", a:'<a href="/robots.txt"><code>robots.txt</code></a> allows 11 named AI bots and blocks CCBot and Bytespider. An agent card lives at <a href="/.well-known/agent-card.json"><code>/.well-known/agent-card.json</code></a>, and every page carries JSON-LD.', cmd:"curl https://orchestkit.dev/.well-known/agent-card.json", rel:["robots.txt AI rules", "Agent card and catalogs", "Structured data"], tag:"V"},
+  {q:"Is it listed in the MCP registry?", a:"The current block says it is published as io.github.yonatangross/orchestkit. Not re-checked for this mockup.", cmd:"curl \"https://registry.modelcontextprotocol.io/v0/servers?search=orchestkit\"", rel:["MCP registry listing"], tag:"C"},
+];
+function factsList(cls) { return "<ol class=\"" + cls + '">' + FACTS.map((f, i) => '<li style="--i:' + i + '"><span class="ck ' + (f.tag === "C" ? "c" : "") + '" aria-hidden="true">' + (f.tag === "V" ? "&#10003;" : "!") + '</span><span class="nm">' + esc(f.name) + " " + tag(f.tag) + '</span><span class="pf">' + link(f.path) + ". " + esc(f.proof) + ".</span></li>").join("") + "</ol>"; }
+const measHTML = () => "<p class=\"a1-meas\"><strong>Measured elsewhere, or not measured yet:</strong> " + MEAS.map((m) => esc(m.name) + ": " + esc(m.val) + " " + tag(m.tag)).join("; ") + ".</p>";
+const BASE = {
+  1:() => '<section class="agb a1" aria-labelledby="agents-heading">' + H2 + LEAD + '<div class="a1-top"><p class="a1-score"><strong>' + FACTS.length + " agent surfaces.</strong> " + nV + " verified live, " + nC + " claimed.</p></div>" + factsList("a1-list") + measHTML() + LEGEND + "</section>",
+  2:() => '<section class="agb a2" aria-labelledby="agents-heading">' + H2 + LEAD + '<div class="a2-wrap"><p class="a2-agent">Your agent</p><div class="a2-cols">' +
+    GROUPS.map((G) => '<section class="a2-col" data-g="' + G.g + '"><h3>' + G.h + '</h3><p class="verb">' + G.verb + "</p><ul>" + FACTS.filter((f) => f.g === G.g).map((f) => "<li><strong>" + esc(f.name) + "</strong> " + tag(f.tag) + '<span class="pf">' + link(f.path) + ". " + esc(f.proof) + ".</span></li>").join("") + "</ul></section>").join("") +
+    "</div></div>" + measHTML() + LEGEND + "</section>",
+  3:() => '<section class="agb a3" aria-labelledby="agents-heading">' + H2 + LEAD + '<div class="a3-list">' + QA.map((x) => "<article><h3>" + esc(x.q) + "</h3><p>" + x.a + " " + tag(x.tag) + "</p><pre><code>" + esc(x.cmd) + "</code></pre></article>").join("") + "</div>" +
+    '<p class="a1-meas"><strong>All ' + FACTS.length + " surfaces:</strong> " + FACTS.map((f) => esc(f.name) + " " + tag(f.tag)).join(", ") + ".</p>" + measHTML() + LEGEND + "</section>",
+  4:() => '<section class="agb a4" aria-labelledby="agents-heading">' + H2 + LEAD + '<div class="a4-grid"><div class="a4-qa">' + QA.map((x, i) => '<article tabindex="0" data-q="' + i + '"><h3>' + esc(x.q) + "</h3><p>" + x.a + " " + tag(x.tag) + "</p></article>").join("") + "</div>" +
+    '<aside class="a4-side" aria-label="Agent surfaces"><h3>' + FACTS.length + " surfaces: " + nV + " verified, " + nC + " claimed</h3><ul>" + FACTS.map((f) => '<li data-n="' + esc(f.name) + '"><span>' + esc(f.name) + "</span>" + tag(f.tag) + "</li>").join("") + "</ul><h3>Measured elsewhere, or not measured yet</h3><ul>" + MEAS.map((m) => "<li><span>" + esc(m.name) + ": " + esc(m.val) + "</span>" + tag(m.tag) + "</li>").join("") + "</ul></aside></div>" + LEGEND + "</section>",
+};
+/* drawings, layered on top; all aria-hidden */
+const ENH = {
+  1:(el) => {
+    const top = el.querySelector(".a1-top"); const C = 2 * Math.PI * 34; let off = 0;
+    const seg = (n, col) => { const len = C * n / FACTS.length; const s = '<circle cx="42" cy="42" r="34" stroke="' + col + '" stroke-dasharray="' + (len - 3).toFixed(1) + " " + (C - len + 3).toFixed(1) + '" stroke-dashoffset="' + (-off).toFixed(1) + '" transform="rotate(-90 42 42)"><animate attributeName="stroke-dasharray" from="0 ' + C.toFixed(1) + '" to="' + (len - 3).toFixed(1) + " " + (C - len + 3).toFixed(1) + '" dur="0.9s" fill="freeze"/></circle>'; off += len; return s; };
+    let svg = '<svg class="a1-ring" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="34" stroke="var(--surface-3)"/>' + seg(nV, "var(--ok)") + seg(nC, "var(--warn)") + '<text x="42" y="47" text-anchor="middle" font-size="17" font-weight="700" fill="var(--text)">' + nV + "/" + FACTS.length + "</text></svg>";
+    if (R.RM) svg = svg.replace(/<animate[^>]*\/>/g, "");
+    top.insertAdjacentHTML("afterbegin", svg);
+    if (!R.RM) el.querySelector(".a1-list").classList.add("go");
+  },
+</script>
+</body></html>
