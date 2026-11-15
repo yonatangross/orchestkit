@@ -175,11 +175,10 @@ jobs:
   # and there is no bypass allowance), so a direct push would 403. That is also
   # why release-please-guard matters here, and it clears twice over — the PR
   # author is orchestkit-release-bot[bot], which the guard exempts at its bot
-  # check. That exemption is the only thing that clears it now: release-please
-  # governs three jsonpaths on this file ($.version, $.plugins[1].version and
-  # $.plugins[2].version, see .release-please-config.json), and the pin writes
-  # the `ork-extras` entry, which is $.plugins[2]. Only $.plugins[0] (`ork`) and
-  # source.ref stay outside the governed set.
+  # check, and the pin writes nothing release-please governs. release-please
+  # governs two jsonpaths on this file ($.version and $.plugins[1].version, the
+  # `ork-alpha` entry, see .release-please-config.json). The pin writes `ork` and
+  # `ork-extras`, both pinned, which release-please must not stamp.
   bump-stable-pin:
     needs: create-release
     if: github.event_name == 'push'

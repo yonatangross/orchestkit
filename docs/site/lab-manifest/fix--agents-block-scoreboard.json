@@ -1,0 +1,12 @@
+{
+  "slug": "fix--agents-block-scoreboard",
+  "source": "docs/fix--agents-block-scoreboard/index.html",
+  "title": "Agents block, Scoreboard with proof",
+  "description": "The home agents block rebuilt as a scoreboard: 14 agent surfaces, each with a link, a proof and its check date, all in the server HTML.",
+  "tags": [
+    "agents",
+    "seo",
+    "home"
+  ],
+  "date": "2026-11-15"
+}

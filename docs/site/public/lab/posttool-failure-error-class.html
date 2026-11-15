@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool failures are recorded as a fixed class, never as text</title>
+<meta name="description" content="Paste a tool error and see the one class the hook forwarder records for it, and the record it writes without the error text, command or path.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button,textarea{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select,textarea{width:100%}
+  textarea{min-height:5rem;resize:vertical}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.8rem;min-height:5rem;white-space:pre-wrap;word-break:break-word}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  .cls{font-size:1.1rem;color:var(--pg-accent)}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Tool failures are recorded as a fixed class, never as text"><meta property="og:description" content="Paste a tool error and see the one class the hook forwarder records for it, and the record it writes without the error text, command or path."><meta property="og:url" content="https://orchestkit.dev/lab/posttool-failure-error-class.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Tool failures are recorded as a fixed class, never as text"><meta name="twitter:description" content="Paste a tool error and see the one class the hook forwarder records for it, and the record it writes without the error text, command or path."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Tool failures are recorded as a fixed class, never as text</h1>
+<p class="sub">Branch feat/posttool-failure-error-class. Each PostToolUseFailure record from the hook forwarder now carries error_class, one value from a closed list. The error text is read in memory to choose it and is never written. Rules mirror src/hooks/src/lib/failure-class.ts.</p>
+<section><h2>Try an error</h2>
+<label for="pick">Example</label>
+<select id="pick"></select>
+<label for="err">Error text (stays in this page)</label>
+<textarea id="err"></textarea>
+<label><input type="checkbox" id="intr"> is_interrupt is true</label>
+<div class="grid">
+  <div><h3>Before: record field tool_error</h3><div class="out bad" id="before"></div></div>
+  <div><h3>Now: what the record holds</h3><div class="out ok" id="after"></div></div>
+</div>
+<p>Class: <span class="cls" id="cls"></span></p>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+<script>
+const RULES = [
+  ['user_rejected', /user doesn't want to (?:proceed|take this action)|user (?:rejected|declined|denied) (?:this|the) tool|tool use was rejected|request interrupted by user/i],
+  ['guard_refusal', /\bhook (?:error|denied|blocked)|hook error:|blocked by (?:a )?hook|PreToolUse:\w+ hook|^Blocked:|withheld its result|returned updatedInput that the tool refused|\bguard\b.*\b(?:refus|den|block)|(?:refus|den|block)\w*\b.*\bguard\b/i],
+  ['sandbox_denied', /sandbox|operation not permitted|seatbelt/i],
+  ['rate_limit', /rate.?limit|\b429\b|too many requests|quota exceeded|overloaded/i],
+  ['permission_denied', /permission (?:to use \S+ )?(?:has been |was )?denied|permission denied|EACCES|EPERM|not allowed by (?:the )?permission|auto mode classifier|\b403\b|forbidden/i],
+  ['timeout', /timed? ?out|timeout|ETIMEDOUT|deadline exceeded/i],
+  ['network', /ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|network (?:error|unreachable)|could not resolve host|fetch failed|ConnectError|ConnectTimeout|socket hang up|connection (?:refused|reset)/i],
+  ['edit_conflict', /string to replace not found|found \d+ matches of the string to replace|file has not been read yet|file has been (?:modified|changed) since (?:it was )?read|old_string and new_string are (?:exactly )?the same|must read (?:the )?file before/i],
+  ['not_found', /ENOENT|no such file|does not exist|not found|cannot find|could not find|unknown (?:command|agent|skill|tool)|no such tool|no matches/i],
+  ['invalid_input', /InputValidationError|invalid (?:input|argument|parameter|params|uuid)|category: validation|missing required|is required|must be (?:a|an|one of)|unexpected (?:argument|option)|unknown option/i],
+  ['parse_error', /syntax ?error|parse error|unexpected token|unexpected end of|invalid json|JSON\.parse|malformed/i],
+  ['nonzero_exit', /exit (?:code|status) [1-9]\d*|exited with (?:code )?[1-9]|command failed|non-?zero exit/i],
+];
+function classify(error, isInterrupt) {
+  if (isInterrupt === true) return 'interrupted';
+  if (typeof error !== 'string' || error.length === 0) return 'other';
+  for (const [c, re] of RULES) if (re.test(error)) return c;
+  return 'other';
+}
+const EXAMPLES = [
+  ['Hook refusal', 'PreToolUse:Bash hook error: [run-hook-wrapper.sh --strict tool-dispatch-sync]: {"result":"deny"}'],
+  ['Missing file', 'Exit code 1\ncat: /Users/me/clients/acme/notes.txt: No such file or directory'],
+  ['Test run failed', 'Exit code 2\nFAIL  src/foo.test.ts > adds numbers'],
+  ['Edit mismatch', 'String to replace not found in file.\nString: const apiKey = process.env.KEY'],
+  ['Sandbox', 'mkdir: /opt/cache: Operation not permitted'],
+  ['Rate limit', 'gh: API rate limit exceeded (HTTP 403 secondary)'],
+  ['Timeout', 'Command timed out after 2m 0.0s'],
+  ['Unknown', 'something odd happened that no rule knows'],
+];
+const pick = document.getElementById('pick');
+const err = document.getElementById('err');
+const intr = document.getElementById('intr');
+pick.replaceChildren(...EXAMPLES.map((c, i) => new Option(c[0], String(i))));
+function render() {
+  const cls = classify(err.value, intr.checked);
+  document.getElementById('cls').textContent = cls;
+  document.getElementById('before').textContent = '"tool_input": {"command": ...}\n"tool_error": ' + JSON.stringify(err.value) + '\n(in practice tool_error was never filled, so 0 of 3,952 failures in 7 days had any signal)';
+  document.getElementById('after').textContent = JSON.stringify({ event: 'PostToolUseFailure', data: { tool_name: 'Bash', error_class: cls, error_class_version: 1 } }, null, 2);
+}
+pick.addEventListener('change', () => { err.value = EXAMPLES[Number(pick.value)][1]; render(); });
+err.addEventListener('input', render);
+intr.addEventListener('change', render);
+document.getElementById('copy').addEventListener('click', () => {
+  navigator.clipboard.writeText('OrchestKit failure classifier: an error of kind "' + EXAMPLES[Number(pick.value)][0] + '" is recorded as error_class=' + classify(err.value, intr.checked) + '. Check src/hooks/src/lib/failure-class.ts if this class looks wrong.');
+});
+err.value = EXAMPLES[0][1];
+render();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

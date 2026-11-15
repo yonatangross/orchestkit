@@ -1,0 +1,11 @@
+{
+  "slug": "posttool-failure-error-class",
+  "source": "docs/feat--posttool-failure-error-class/index.html",
+  "title": "Tool failures are recorded as a fixed class, never as text",
+  "description": "Paste a tool error and see the one class the hook forwarder records for it, and the record it writes without the error text, command or path.",
+  "tags": [
+    "hooks",
+    "telemetry"
+  ],
+  "date": "2026-11-15"
+}

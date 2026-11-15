@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agents block, Scoreboard with proof: what an agent reads</title>
+<meta name="description" content="The orchestkit.dev agents block rebuilt as a scoreboard: 14 agent surfaces, each with a link, a proof and its check date, all in the server HTML.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#86efac;--okbg:#14301f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:#d29922;color:#d29922}
+.top{display:flex;gap:18px;align-items:center;margin:0 0 10px}.top strong{font-size:22px}
+ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 26px}
+@media(max-width:700px){ol{grid-template-columns:1fr}}
+li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.ck{grid-row:span 2;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--okbg);color:var(--ok)}
+.nm{font-weight:600}.pf{color:var(--mute);font-size:13px}code{font:12.5px ui-monospace,monospace;overflow-wrap:anywhere}
+.tg{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--okbg);color:var(--ok)}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+.raw{font:13px ui-monospace,monospace;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<h1>Agents block: Scoreboard with proof</h1>
+<p class="lead">Branch fix/agents-block-scoreboard. Look 05 as approved (components/approved-design/agents-block-look05.html). Toggle between the block and what a crawler with no JS reads from the same server HTML.</p>
+<div class="controls" role="group" aria-label="View">
+ <button id="v0" aria-pressed="true">The block</button>
+ <button id="v1" aria-pressed="false">What a crawler reads</button>
+</div>
+<div id="out"></div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/agents-block-scoreboard on orchestkit: components/agent-readiness-section.tsx rebuilt as look 05 (14 surfaces, each with link, proof and "checked 15 Nov 2026"; static ring SVG with aria-hidden). Approved design beside it in components/approved-design/agents-block-look05.html. Test: __tests__/agents-block-scoreboard.test.tsx. After deploy, a browser seat compares the live block at orchestkit.dev/#agents-heading with the approved design at 1440 and 390 widths.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const S=[["llms.txt","/llms.txt","Navigation index, 89 lines, live 200"],["llms-full.txt","/llms-full.txt","Every doc in one file, 4,155 lines"],["Markdown for every page","/docs/getting-started.md","Append .md or send Accept: text/markdown"],["NLWeb questions","/ask?query=...","Ranked answers, ?streaming=true for SSE"],["Sitemap","/sitemap.xml","352 URLs (one GET, 15 Nov 2026 12:13), 153 of them under /docs/reference/skills/"],["Structured data","/","SoftwareApplication, Organization, WebSite with SearchAction, FAQPage"],["MCP server","/api/mcp","Streamable HTTP, two read-only tools"],["Actions MCP","/api/mcp/actions","Second MCP endpoint for actions"],["WebMCP in the browser","/","search_docs and get_page registered on every page"],["OpenAPI spec","/api/openapi","Read-only API description"],["robots.txt AI rules","/robots.txt","11 named AI bots allowed, CCBot and Bytespider blocked"],["Agent card and catalogs","/.well-known/agent-card.json","Plus agent-skills, api-catalog and MCP server cards, linked from a Link header"],["MCP registry listing","io.github.yonatangross/orchestkit","Listed in the official MCP registry"],["skills.sh","npx skills add yonatangross/orchestkit","Self-published from this repository"]];
+const T="checked 15 Nov 2026";
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function ring(n){const ns="http://www.w3.org/2000/svg",s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 84 84");s.setAttribute("width","84");s.setAttribute("height","84");s.setAttribute("aria-hidden","true");
+ const a=document.createElementNS(ns,"circle");a.setAttribute("cx","42");a.setAttribute("cy","42");a.setAttribute("r","34");a.setAttribute("fill","none");a.setAttribute("stroke","#272d39");a.setAttribute("stroke-width","9");s.appendChild(a);
+ const b=a.cloneNode();b.setAttribute("stroke","#86efac");s.appendChild(b);const t=document.createElementNS(ns,"text");t.setAttribute("x","42");t.setAttribute("y","47");t.setAttribute("text-anchor","middle");t.setAttribute("font-size","17");t.setAttribute("font-weight","700");t.setAttribute("fill","#e8eaf0");t.textContent=n+"/"+n;s.appendChild(t);return s}
+let v=0;
+function draw(){const o=document.getElementById("out");o.textContent="";
+ if(v===0){const top=el("div","top");top.appendChild(ring(S.length));const p=el("p");const b=el("strong",null,S.length+" agent surfaces.");p.appendChild(b);p.appendChild(document.createTextNode(" "+S.length+" checked live or on main on 15 Nov 2026."));top.appendChild(p);o.appendChild(top);
+  const ol=el("ol");for(const[n,p,f]of S){const li=el("li");li.appendChild(el("span","ck","✓"));const nm=el("span","nm",n+" ");nm.appendChild(el("span","tg",T));li.appendChild(nm);const pf=el("span","pf");pf.appendChild(el("code",null,p));pf.appendChild(document.createTextNode(". "+f+"."));li.appendChild(pf);ol.appendChild(li)}o.appendChild(ol)}
+ else{o.appendChild(el("div","raw","Built for AI agents, too\n"+S.length+" agent surfaces. "+S.length+" checked live or on main on 15 Nov 2026.\n\n"+S.map((s,i)=>(i+1)+". "+s[0]+" "+T+"\n   "+s[1]+". "+s[2]+".").join("\n")))}
+ document.getElementById("v0").setAttribute("aria-pressed",String(v===0));document.getElementById("v1").setAttribute("aria-pressed",String(v===1))}
+document.getElementById("v0").onclick=()=>{v=0;draw()};document.getElementById("v1").onclick=()=>{v=1;draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

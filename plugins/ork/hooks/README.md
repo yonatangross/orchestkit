@@ -967,6 +967,12 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ---
 
+## Tool failure records carry a class, never text
+
+For each `PostToolUseFailure`, the webhook forwarder (`lib/telemetry.ts`, written to `telemetry/events.jsonl` and any configured HTTP sink) records `data.error_class`, one value from the closed list in `lib/failure-class.ts` (`interrupted`, `user_rejected`, `guard_refusal`, `sandbox_denied`, `rate_limit`, `permission_denied`, `timeout`, `network`, `edit_conflict`, `not_found`, `invalid_input`, `parse_error`, `nonzero_exit`, `other`), plus `error_class_version: 1`. The error string is read in memory only to choose the class. The record never holds the error text, `tool_input`, `tool_output`, file paths or the command; it keeps `tool_name`, the session id and the project slug that every record has. Empty or unknown input is recorded as `other`, never dropped.
+
+---
+
 ## Logging
 
 ### Hook Logging
@@ -1415,6 +1421,8 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count unchanged, 2026-11-15, session stamp): `lifecycle/session-registrar` now stamps every session with the plugin version and the rule version it ran under. `ork_version` was NULL in 11534 of 11534 rows of the local `sessions.db` (2026-05-27 to 2026-11-15): `getOrkVersion()` read `package.json` three levels above the bundle, the installed plugin root has none there (only `hooks/package.json`, version 1.0.0, which is not the plugin version), and the error was swallowed into NULL. It now walks up from the bundle to `.claude-plugin/plugin.json`, then `plugin.json`. New migration `006-rules-hash.sql` adds `sessions.rules_hash`, a sha256 from the new `lib/rules-hash.ts` over the user-level `CLAUDE.md`, its `@` imports, `rules/**/*.md` and the active output style, in a fixed order. Both fail loud: an unresolved manifest or an empty rule set is stored as the token `ork_version_unresolved` / `rules_hash_empty` and logged as one line, never NULL, never the hash of nothing; NULL now means only a row written before 006. New read-only `bin/sessions-under.mjs <rules_hash | 8+ hex prefix | ork_version>` lists repo, branch, worktree, start and end per session, exits 1 with a stderr line on zero matches and 2 on a DB before 006. Tests: `__tests__/lifecycle/session-stamp.test.ts` (one case reads the real installed layout under `~/.claude/plugins/cache/orchestkit/ork`, skipped where none is installed) and `__tests__/bin/sessions-under.test.ts`; the resolver cases ran red against the old resolver before the fix, and every new case was shown red by reverting the fix it guards.
 
 (count unchanged, 2026-11-10, #5166 review follow-up): `pretool/bash/npm-ci-symlink-guard` now resolves the shapes the first version let through: a value option before the subcommand (`npm --loglevel warn ci`, `npm -w api ci`), `-C` as the prefix, subshells (a `cd` inside one ends when it closes, so `(cd /other) && npm ci` is checked in the original directory, and the `)` of a `$(...)` command substitution does not count as a subshell end; both found by Vercel Security Review; the guard now also fails closed: it reads the command several ways, with substitutions blanked, as raw text and each substitution body alone, and if any reading finds a clean install it checks the cwd and every `cd`, prefix and target directory, denying when any has a linked `node_modules`), a `~` path, a quoted `cd` path with a space, wrappers (`env`, `time`, `command`, `exec`, `nohup`, `nice`) and a backgrounding `&`. `lib/fs-probe.ts` `isSymlinkPath` now fails closed: only ENOENT and ENOTDIR read as not-a-link; any other `lstat` error answers true. Tests committed red first.
 
