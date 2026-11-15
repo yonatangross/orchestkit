@@ -21,7 +21,7 @@ Upstream version reference: `@json-render/mcp` 0.21.3 (2026-10-24).
 
 Upgrade plain MCP tool responses to interactive dashboards rendered inside AI conversations. Built on `@json-render/mcp`, which bridges the json-render spec system with MCP's tool/resource model -- the AI generates a typed JSON spec, and a sandboxed iframe renders it as an interactive UI.
 
-> **Building an MCP server from scratch?** Use `ork:mcp-patterns` for server setup, transport, and security. This skill focuses on the **visual output layer** after your server is running.
+> **Building an MCP server from scratch?** Use `ork-extras:mcp-patterns` for server setup, transport, and security. This skill focuses on the **visual output layer** after your server is running.
 >
 > **Need the full component catalog?** See `ork:json-render-catalog` for all available components, props, and composition patterns.
 
@@ -264,7 +264,7 @@ The AI generates a spec like this -- flat element map, no nesting beyond 2 level
 
 ## Related Skills
 
-- `ork:mcp-patterns` -- MCP server building, transport, security
+- `ork-extras:mcp-patterns` -- MCP server building, transport, security
 - `ork:json-render-catalog` -- Full component catalog and composition patterns
 - `ork:multi-surface-render` -- Rendering across Claude, Cursor, ChatGPT, web
-- `ork:ai-ui-generation` -- GenUI patterns for AI-generated interfaces
+- `ork-extras:ai-ui-generation` -- GenUI patterns for AI-generated interfaces

@@ -1,15 +1,15 @@
 ---
 title: "Langgraph"
-description: "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
+description: "LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="langgraph" />
 
-> **Langgraph** LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
+> **Langgraph** LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
 
 
 # LangGraph Workflow Patterns
@@ -326,9 +326,9 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Related Skills
 
-- `ork:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
+- `ork-extras:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
 - `temporal-io` - Durable execution alternative
-- `ork:llm-integration` - General LLM function calling
+- `ork-extras:llm-integration` - General LLM function calling
 - `type-safety-validation` - Pydantic model patterns
 
 

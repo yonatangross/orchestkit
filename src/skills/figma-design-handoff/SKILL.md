@@ -2,9 +2,8 @@
 name: figma-design-handoff
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.
+description: "Figma-to-code handoff: Variables to design tokens, component specs, Dev Mode, Auto Layout to Flexbox/Grid, Applitools visual regression. Use when converting Figma designs to code, documenting component specs, or comparing production UI against Figma."
 user-invocable: false
-disable-model-invocation: true
 targets:
   - library: "style-dictionary"
     version: ">=5.5.5"
@@ -249,5 +248,5 @@ The Applitools Figma Plugin overlays production screenshots on Figma frames to c
 ## Related Skills
 
 - `ork:design-system-tokens` — W3C token architecture and Style Dictionary transforms
-- `ork:ui-components` — shadcn/ui and Radix component patterns
-- `ork:accessibility` — WCAG compliance for components extracted from Figma
+- `ork-extras:ui-components` — shadcn/ui and Radix component patterns
+- `ork-extras:accessibility` — WCAG compliance for components extracted from Figma

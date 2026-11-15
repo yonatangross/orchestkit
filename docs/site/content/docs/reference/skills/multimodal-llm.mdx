@@ -1,15 +1,15 @@
 ---
 title: "Multimodal LLM"
-description: "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines."
+description: "Vision, audio, video generation, and multimodal LLM patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1, Runway Gen-4.5), or building multimodal AI pipelines."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="multimodal-llm" />
 
-> **Multimodal LLM** Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.
+> **Multimodal LLM** Vision, audio, video generation, and multimodal LLM patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1, Runway Gen-4.5), or building multimodal AI pipelines.
 
 
 # Multimodal LLM Patterns
@@ -172,8 +172,8 @@ response = client.messages.create(
 
 ## Related Skills
 
-- `ork:rag-retrieval` - Multimodal RAG with image + text retrieval
-- `ork:llm-integration` - General LLM function calling patterns
+- `ork-extras:rag-retrieval` - Multimodal RAG with image + text retrieval
+- `ork-extras:llm-integration` - General LLM function calling patterns
 - `streaming-api-patterns` - WebSocket patterns for real-time audio
 - `ork:demo-producer` - Terminal demo videos (VHS, asciinema), not AI video gen
 

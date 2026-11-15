@@ -4,8 +4,10 @@
 import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
-  "plugins": 1,
+  "plugins": 2,
   "skills": 116,
+  "coreSkills": 90,
+  "extrasSkills": 26,
   "agents": 36,
   "hooks": 163,
   "commands": 44,
@@ -414,34 +416,27 @@ export const SKILLS_SUMMARY = {
       "write-prd"
     ],
     "git": [
-      "ai-ui-generation",
-      "animation-motion-design",
       "api-design",
       "assess",
       "careful",
       "ci-debug",
       "ci-sentinel",
-      "code-review-playbook"
+      "code-review-playbook",
+      "commit",
+      "create-pr"
     ],
     "video": [
       "demo-producer",
-      "multi-surface-render",
-      "multimodal-llm"
+      "multi-surface-render"
     ],
     "accessibility": [
-      "accessibility",
       "design-system-tokens",
       "expect",
-      "figma-design-handoff",
       "storybook-mcp-integration",
-      "storybook-testing",
       "testing-e2e"
     ],
     "devops": [
       "devops-deployment",
-      "documentation-patterns",
-      "monitoring-observability",
-      "portless",
       "web-research-workflow"
     ],
     "testing": [
@@ -452,46 +447,38 @@ export const SKILLS_SUMMARY = {
       "emulate-seed",
       "error-analysis",
       "expect",
-      "golden-dataset"
+      "product-analytics"
     ],
     "security": [
       "audit-full",
       "browser-tools",
-      "mcp-patterns",
       "review-pr",
       "security-patterns"
     ],
     "python": [
-      "async-jobs",
-      "domain-driven-design",
-      "langgraph",
       "python-backend",
       "testing-perf"
     ],
     "react": [
-      "accessibility",
       "component-search",
       "design-import",
       "design-ship",
       "design-to-code",
-      "i18n-date-patterns",
       "multi-surface-render",
-      "performance"
+      "performance",
+      "react-server-components-framework",
+      "storybook-mcp-integration"
     ],
     "llm": [
-      "ai-ui-generation",
       "error-analysis",
-      "golden-dataset",
-      "langgraph",
-      "llm-integration",
-      "mcp-patterns",
-      "multimodal-llm",
-      "performance"
+      "performance",
+      "prompt-focus",
+      "react-server-components-framework",
+      "security-patterns",
+      "testing-llm"
     ],
     "rag": [
       "cover",
-      "interaction-patterns",
-      "rag-retrieval",
       "testing-llm"
     ],
     "backend": [
@@ -500,9 +487,9 @@ export const SKILLS_SUMMARY = {
       "architecture-patterns",
       "audit-full",
       "browser-tools",
-      "distributed-systems",
-      "documentation-patterns",
-      "domain-driven-design"
+      "emulate-seed",
+      "explore",
+      "github-operations"
     ]
   }
 };

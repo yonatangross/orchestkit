@@ -108,3 +108,8 @@ node "<ORK_PLUGIN_DIR>/skills/review-artifact-comments/scripts/artifact.mjs" com
 
 - Never resolve or approve on your own initiative; those are the reviewer's calls.
 - Never edit the comment block with Write or Edit.
+
+## Related Skills
+
+- `/ork:create-plan` and `/ork:create-research`: write the artifacts whose comments this skill works through.
+- `/ork:iterate-plan` and `/ork:iterate-research`: revise the body from comments, which this skill does not do.

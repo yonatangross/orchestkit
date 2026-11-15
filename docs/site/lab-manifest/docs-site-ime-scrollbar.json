@@ -1,0 +1,8 @@
+{
+  "slug": "docs-site-ime-scrollbar",
+  "source": "docs/fix--docs-site-ime-scrollbar/index.html",
+  "title": "Docs site: Enter in an IME, and standard scrollbars",
+  "description": "The Enter that confirms an IME composition no longer sends the Prompt Enhancer demo, and the docs site uses the standard scrollbar properties with the WebKit rules as the fallback.",
+  "tags": ["docs-site", "accessibility", "css"],
+  "date": "2026-11-14"
+}

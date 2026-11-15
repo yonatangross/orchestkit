@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.277+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: inherit
 user-invocable: false
-disable-model-invocation: true
 effort: low
 targets:
   - library: react-i18next
@@ -241,7 +240,7 @@ Load `Read("checklists/i18n-checklist.md")` for complete implementation and revi
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
-- `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
+- `ork-extras:accessibility` - RTL-aware focus management for bidirectional UI navigation
 
 ## Key Decisions
 

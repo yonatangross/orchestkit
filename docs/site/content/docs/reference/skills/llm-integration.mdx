@@ -5,7 +5,7 @@ description: "LLM integration patterns for function calling, streaming responses
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="llm-integration" />
 
@@ -186,7 +186,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval`: Embedding patterns, when RAG is better than fine-tuning
+- `ork-extras:rag-retrieval`: Embedding patterns, when RAG is better than fine-tuning
 - `agent-loops`: Multi-step tool use with reasoning
 - `llm-evaluation`: Evaluate fine-tuned and local models
 - `langfuse-observability`: Track training experiments

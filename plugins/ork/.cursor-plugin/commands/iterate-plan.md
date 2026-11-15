@@ -97,7 +97,7 @@ review record must outlive every revision. Layout: the create-plan skill's
 - Never delete or rewrite a comment, even a wrong one. Reply to it.
 - Iterating an approved plan moves it back to `in-review`; it needs a new approval.
 
-## Related
+## Related Skills
 
 - `/ork:create-plan` writes the first revision. `/ork:review-artifact-comments` works through comments
   without rewriting the body.

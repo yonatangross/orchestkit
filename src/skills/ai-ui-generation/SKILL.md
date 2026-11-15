@@ -2,9 +2,8 @@
 name: ai-ui-generation
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
+description: "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
 user-invocable: false
-disable-model-invocation: true
 metadata:
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
@@ -161,8 +160,8 @@ Choosing the right AI tool and iterating effectively.
 - `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
 - `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
 - `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:animation-motion-design` — Motion library animation patterns
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:animation-motion-design` — Motion library animation patterns
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:design-system-tokens` — Design token architecture and theming

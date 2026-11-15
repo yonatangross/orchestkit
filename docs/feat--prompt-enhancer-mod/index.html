@@ -27,5 +27,5 @@ function enhance(){if(original===null)original=draft.value;draft.value="Add a lo
 function send(){if(draft.value.endsWith('++')){enhance();return}status.textContent='Mock sent: '+draft.value;original=null}
 document.getElementById('enhance').onclick=enhance;document.getElementById('undo').onclick=()=>{if(original!==null){draft.value=original;original=null;status.textContent='Original restored. Nothing sent.'}};document.getElementById('send').onclick=send;
 document.getElementById('collapse').onclick=event=>{const controls=document.getElementById('controls');controls.hidden=!controls.hidden;event.target.textContent=controls.hidden?'+':'-';event.target.setAttribute('aria-expanded',String(!controls.hidden));event.target.setAttribute('aria-label',controls.hidden?'Expand band':'Collapse band')};
-draft.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}});
+draft.addEventListener('keydown',event=>{if(event.isComposing||event.keyCode===229)return;if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}});
 </script></body></html>

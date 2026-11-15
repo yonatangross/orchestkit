@@ -96,6 +96,20 @@ jobs:
       # (release-please.yml "Rebuild hook bundles on the release PR"), so
       # feature PRs never touch them and never conflict on them. The next step
       # enforces the other half: a feature PR must not carry a dist change.
+      #
+      # docs/site/lib/generated/related-graph.ts and search-suggest-index.ts are
+      # written by docs/site's prebuild (gen-related-graph, gen-search-suggest-index),
+      # not by the root `npm run build`, so they sat inside the GENERATED roster
+      # below while nothing in this job ever regenerated them: they went stale
+      # on main ("161 Hooks" where the count was 163, no ork-extras page) and the
+      # diff stayed green. Both scripts import only node builtins and repo
+      # scripts, so they run here without a docs/site install. They must run
+      # before the drift diff.
+      - name: Regenerate docs-site link graph and search index
+        run: |
+          node docs/site/scripts/gen-related-graph.mjs
+          node docs/site/scripts/gen-search-suggest-index.mjs
+
       - name: Check for uncommitted build changes
         run: |
           # docs/site/public/lab/ joined 2026-09-11 (#4049): lab-manifest.mjs now
@@ -136,6 +150,9 @@ jobs:
               case "$f" in
                 plugins/ork/skills/*)
                   echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+                docs/site/lib/generated/related-graph.ts|docs/site/lib/generated/search-suggest-index.ts)
+                  # Written by docs/site prebuild, not by the root npm run build.
+                  echo "::error::$f is not written by 'npm run build'. Run: node docs/site/scripts/gen-related-graph.mjs && node docs/site/scripts/gen-search-suggest-index.mjs" ;;
               esac
             done
             exit 1
@@ -394,10 +411,27 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      # On a pull request this row judges the CHANGE through the one gate script the pre-push hook and
+      # "Security Tests" use (orchestkit row 10, part 2): advisories in packages the PR adds or changes,
+      # and high or critical anywhere in any lockfile. It diffs against the base tip, so the base must
+      # be fetched (the Performance job's step is the model); a missing base fails closed. On push to
+      # main the two whole-tree steps below run exactly as before, and the scheduled workflow owns the rest.
+      - name: Fetch the base branch for the change audit
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Audit the change (pull request)
+        if: github.event_name == 'pull_request'
+        run: bash .github/scripts/audit-gate.sh
+
       - name: Audit root dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh .
 
       - name: Audit hooks dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh src/hooks
 
   # ============================================================================
@@ -696,6 +730,17 @@ jobs:
       # An install-based fix was tried first and is wrong here — docs/site pulls
       # @yonatan-hq/analytics from GitHub Packages and NPM_TOKEN is deliberately
       # withheld on pull_request runs (#2536), so `npm ci` 401s on every PR.
+      #
+      # On a pull request the npm audit gate judges the CHANGE (orchestkit row 10, part 2), through
+      # .github/scripts/audit-gate.sh, by diffing every lockfile against the base tip. That needs the
+      # base branch, so it is fetched here (the Performance job's step is the model); a missing base
+      # fails closed with its own message. On push to main the gate stays whole-tree.
+      - name: Fetch the base branch for the npm audit gate
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
       - name: Run security tests
         shell: bash
         run: |
@@ -854,7 +899,7 @@ jobs:
       contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45  # was 20: the warnings ratchet step below runs the full suite (about 12 minutes on a runner)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -870,6 +915,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           build-plugins: 'false'
+          install-hooks-deps: 'true'  # the full-suite ratchet step runs the hook structure tests
 
       - name: Run agent tests
         shell: bash
@@ -896,6 +942,32 @@ jobs:
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/subagents --verbose
+
+      # The full run below includes tests/performance/test-token-overhead.sh, whose Test 4d compares
+      # skill-listing-ratchet.txt with the base branch and fails closed on a pull_request run when
+      # the base ref is missing. Same fetch as the Performance Tests job (row 12, #5231 first run).
+      - name: Fetch the base branch for the ratchet check
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      # Advisory-warnings ratchet gate (row 12, 2026-11-13). Every category has its own baseline
+      # in tests/warnings-baselines.txt, and the skills block keeps WARNINGS_BASELINE in
+      # tests/run-all-tests.sh; all of them only fall. Until now the ratchet printed "GREW" and
+      # exited 0, and no PR job called the script, so warnings could grow unseen (375 against a
+      # baseline of 267 on main). This step lives in the "Agents & Skills" job on purpose: that
+      # job is a required check and "CI Summary" needs it, so a category above its baseline, below
+      # it (strict: the message prints the line to write), one with no baseline, a count that cannot
+      # be read, or any failing test in any of the 25 categories blocks the merge. Do not move it to a
+      # sibling workflow, which would only report. Never set ORK_WARNINGS_BASELINE or
+      # ORK_WARNINGS_BASELINES_FILE here: that would let a workflow raise a baseline.
+      # It is the full run (the same one `npm test` does): the baselines were measured on it.
+      - name: Warnings ratchet (every category)
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/run-all-tests.sh
 
   # ============================================================================
   # STAGE 7b: Manifest, Schema & Hook Compliance

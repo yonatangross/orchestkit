@@ -1,15 +1,15 @@
 ---
 title: "MCP Patterns"
-description: "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations."
+description: "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="mcp-patterns" />
 
-> **MCP Patterns** MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
+> **MCP Patterns** MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
 
 
 # MCP Patterns
@@ -195,7 +195,7 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `ork:llm-integration`: LLM function calling patterns
+- `ork-extras:llm-integration`: LLM function calling patterns
 - `ork:security-patterns`: General input sanitization and layered security
 - `ork:api-design`: REST/GraphQL API design patterns
 

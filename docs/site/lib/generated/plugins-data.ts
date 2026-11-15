@@ -6,11 +6,11 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "ork",
-    "description": "The complete AI development toolkit — 116 skills, 36 agents, 163 hooks.",
+    "description": "The complete AI development toolkit — 90 skills, 36 agents, 163 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
     "version": "10.12.0", // x-release-please-version
-    "skillCount": 116,
+    "skillCount": 90,
     "agentCount": 36,
     "hooks": 163,
     "commandCount": 44,
@@ -18,16 +18,11 @@ export const PLUGINS: Plugin[] = [
     "required": false,
     "recommended": true,
     "skills": [
-      "accessibility",
-      "agent-orchestration",
-      "ai-ui-generation",
       "analytics",
-      "animation-motion-design",
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
       "assess",
-      "async-jobs",
       "audit-activation",
       "audit-full",
       "auto",
@@ -41,7 +36,12 @@ export const PLUGINS: Plugin[] = [
       "ci-sentinel",
       "code-review-playbook",
       "commit",
-      "competitive-analysis"
+      "competitive-analysis",
+      "component-search",
+      "configure",
+      "cover",
+      "create-plan",
+      "create-pr"
     ],
     "agents": [
       "accessibility-specialist",
@@ -98,7 +98,6 @@ export const PLUGINS: Plugin[] = [
       "design-context-extract",
       "design-import",
       "design-ship",
-      "design-stylecards",
       "design-to-code",
       "dev",
       "disk-cleanup",
@@ -126,6 +125,50 @@ export const PLUGINS: Plugin[] = [
       "verify",
       "visualize-plan",
       "write-prd"
+    ]
+  },
+  {
+    "name": "ork-extras",
+    "description": "Opt-in reference skills split out of ork: 26 skills, no agents or hooks.",
+    "fullDescription": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork.",
+    "category": "development",
+    "version": "10.12.0",
+    "skillCount": 26,
+    "agentCount": 0,
+    "hooks": 0,
+    "commandCount": 1,
+    "color": "#a78bfa",
+    "required": false,
+    "recommended": false,
+    "skills": [
+      "ai-ui-generation",
+      "animation-motion-design",
+      "async-jobs",
+      "figma-design-handoff",
+      "i18n-date-patterns",
+      "langgraph",
+      "llm-integration",
+      "mcp-patterns",
+      "monitoring-observability",
+      "multimodal-llm",
+      "portless",
+      "rag-retrieval",
+      "storybook-testing",
+      "ui-components",
+      "vite-advanced",
+      "zustand-patterns",
+      "accessibility",
+      "agent-orchestration",
+      "design-stylecards",
+      "distributed-systems",
+      "documentation-patterns",
+      "domain-driven-design",
+      "golden-dataset",
+      "interaction-patterns"
+    ],
+    "agents": [],
+    "commands": [
+      "design-stylecards"
     ]
   }
 ];

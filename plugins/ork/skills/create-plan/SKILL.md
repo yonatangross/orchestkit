@@ -57,7 +57,7 @@ the front matter.
 - A second plan for the same task is a new artifact (new NN), not an edit of the old one. Revising
   the same plan is `iterate-plan`.
 
-## Related
+## Related Skills
 
 - `/ork:iterate-plan`: revise this plan from review comments, keeping every comment.
 - `/ork:create-research`: the research artifact this plan should read first.

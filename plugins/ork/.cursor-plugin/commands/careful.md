@@ -117,3 +117,9 @@ sandbox. It does NOT see:
 
 The guard is `<ORK_PLUGIN_DIR>/skills/careful/scripts/careful-guard.mjs` (Node, no dependencies); its matcher
 cases live in `tests/unit/test-careful-guard.mjs`.
+
+## Related Skills
+
+- `ork:freeze`: fence file edits to one directory; careful covers shell commands, freeze covers the edit tools.
+- `ork:security-patterns`: defense in depth, the wider picture a text matcher is one layer of.
+- `ork:commit`: history hygiene and branch protection for the force pushes careful asks about.

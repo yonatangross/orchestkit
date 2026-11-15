@@ -1376,7 +1376,7 @@ Probe MCP server availability before using any MCP tool. This prevents hard cras
 
 ```python
 # CC 2.1.121+ with alwaysLoad: skip probe entirely
-mcp__memory__search_nodes(query="past auth fixes")  # always available
+mcp__memory__search_nodes(query="past auth fixes")  # only if a memory MCP server is configured
 ```
 
 If a downstream skill is unsure whether the user adopted `alwaysLoad`, it MAY still probe, the cost is one ToolSearch call and the result is the same. The recommendation: project skills assume `alwaysLoad` for the T2 trio; user-facing one-off scripts probe defensively.

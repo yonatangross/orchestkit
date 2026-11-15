@@ -34,12 +34,27 @@ fail() { echo "FAIL: $*"; exit 1; }
 python3 "$HELPERS/check-manifest.py" "$PROJECT_ROOT"
 
 # ── 2. The expected count, taken from the tree ─────────────────────────────
-EXPECTED="$(find "$PROJECT_ROOT/src/skills" -name SKILL.md -type f | wc -l | tr -d ' ')"
-[[ "$EXPECTED" -gt 0 ]] || fail "no SKILL.md under src/skills; the expectation itself is broken"
+# pi resolves ./plugins/ork/skills, which ships src/skills minus the core
+# manifest's skillsExclude (#4936). Compare skill NAMES so equal counts cannot
+# hide wrong membership, and fail when an input comes back empty.
+skill_names() {
+  local d
+  for d in "$1"/*/; do
+    [[ -f "${d}SKILL.md" ]] && basename "$d"
+  done | LC_ALL=C sort
+}
+SRC_NAMES="$(skill_names "$PROJECT_ROOT/src/skills")"
+EXCLUDED_NAMES="$(jq -r '.skillsExclude[]?' "$PROJECT_ROOT/manifests/ork.json" | LC_ALL=C sort)"
+[[ -n "$SRC_NAMES" ]] || fail "no SKILL.md under src/skills; the expectation itself is broken"
+[[ -n "$EXCLUDED_NAMES" ]] || fail "manifests/ork.json skillsExclude is empty or unreadable; the expectation itself is broken"
+EXPECTED_NAMES="$(comm -23 <(printf '%s\n' "$SRC_NAMES") <(printf '%s\n' "$EXCLUDED_NAMES"))"
+EXPECTED="$(printf '%s\n' "$EXPECTED_NAMES" | sed '/^$/d' | wc -l | tr -d ' ')"
+[[ "$EXPECTED" -gt 0 ]] || fail "src minus skillsExclude is empty; the expectation itself is broken"
 
-BUILT="$(find "$PROJECT_ROOT/plugins/ork/skills" -name SKILL.md -type f | wc -l | tr -d ' ')"
-[[ "$BUILT" == "$EXPECTED" ]] \
-  || fail "plugins/ork/skills has $BUILT skills, src/skills has $EXPECTED; run npm run build"
+BUILT_NAMES="$(skill_names "$PROJECT_ROOT/plugins/ork/skills")"
+BUILT="$(printf '%s\n' "$BUILT_NAMES" | sed '/^$/d' | wc -l | tr -d ' ')"
+[[ "$BUILT_NAMES" == "$EXPECTED_NAMES" ]] \
+  || fail "plugins/ork/skills has $BUILT skills, src minus skillsExclude is $EXPECTED; only in built: [$(comm -23 <(printf '%s\n' "$BUILT_NAMES") <(printf '%s\n' "$EXPECTED_NAMES") | tr '\n' ' ')] only in expected: [$(comm -13 <(printf '%s\n' "$BUILT_NAMES") <(printf '%s\n' "$EXPECTED_NAMES") | tr '\n' ' ')]; run npm run build"
 
 # ── 3. Resolution, through pi where possible ───────────────────────────────
 # find-pi-root.py prints the package root or nothing, always exiting 0: an

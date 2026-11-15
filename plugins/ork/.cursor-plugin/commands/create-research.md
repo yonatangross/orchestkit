@@ -87,6 +87,7 @@ a map, not a proposal: no recommendations, no fixes, no critique. Layout: the cr
 - Say when a list is complete and when it is a sample.
 - Open questions are about what was not traced ("how does X reach Y?"), not about what to build.
 
-## Related
+## Related Skills
 
 - `/ork:iterate-research` revises it from comments. `/ork:create-plan` reads it next.
+- `/ork:explore`: map an unfamiliar repo first; create-research documents how code works for one task.

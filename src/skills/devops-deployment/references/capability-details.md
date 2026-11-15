@@ -49,5 +49,5 @@
 **Solves:**
 - Which alert thresholds and dwell windows do we page on? (`references/ork-delta.md`)
 - How request ids get bound into log context and echoed back (`references/ork-delta.md`)
-- Full monitoring and alerting design: `ork:monitoring-observability`
+- Full monitoring and alerting design: `ork-extras:monitoring-observability`
 - Prometheus client, PromQL and OpenTelemetry docs: fetch upstream (see `SKILL.md`)

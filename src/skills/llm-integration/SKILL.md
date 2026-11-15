@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.
 user-invocable: false
-disable-model-invocation: true
 metadata:
   owner-agent: "llm-integrator"
   category: mcp-enhancement
@@ -189,7 +188,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
+- `ork-extras:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
 - `agent-loops` -- Multi-step tool use with reasoning
 - `llm-evaluation` -- Evaluate fine-tuned and local models
 - `langfuse-observability` -- Track training experiments

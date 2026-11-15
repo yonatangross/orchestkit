@@ -79,3 +79,9 @@ defeats the reason it was turned on.
 
 The fence is `scripts/freeze-guard.mjs` (Node, no dependencies); its cases live in
 `tests/unit/test-freeze-guard.mjs`.
+
+## Related Skills
+
+- `ork:careful`: block destructive shell commands; freeze covers the edit tools, careful covers Bash.
+- `ork:implement`: parallel feature work in worktrees, the real isolation freeze points to.
+- `ork:fix-issue`: a bug fix that should stay inside one package or module.

@@ -2,9 +2,8 @@
 name: mcp-patterns
 license: MIT
 compatibility: "Claude Code 2.1.277+."
-description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
+description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
 user-invocable: false
-disable-model-invocation: true
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"
@@ -212,6 +211,6 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `ork:llm-integration` — LLM function calling patterns
+- `ork-extras:llm-integration` — LLM function calling patterns
 - `ork:security-patterns` — General input sanitization and layered security
 - `ork:api-design` — REST/GraphQL API design patterns
