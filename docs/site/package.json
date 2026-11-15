@@ -6,7 +6,7 @@
 		"predev": "node ../../scripts/generate-docs-data.js && node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",
 		"dev": "next dev",
 		"prebuild": "node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",
-		"build": "git fetch --unshallow 2>/dev/null || true; next build --webpack",
+		"build": "node scripts/git-unshallow.mjs && next build --webpack",
 		"start": "next start",
 		"postinstall": "fumadocs-mdx",
 		"pretest": "node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",

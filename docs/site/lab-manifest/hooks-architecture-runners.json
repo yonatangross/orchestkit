@@ -1,0 +1,11 @@
+{
+  "slug": "hooks-architecture-runners",
+  "source": "docs/docs--5128-hooks-architecture-runners/index.html",
+  "title": "The hooks architecture page now matches the runners hooks.json really uses",
+  "description": "Pick a topic and compare what the architecture page said before with what the source hooks.json registers today.",
+  "tags": [
+    "docs",
+    "hooks"
+  ],
+  "date": "2026-11-11"
+}
