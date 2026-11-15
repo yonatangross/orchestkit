@@ -1,0 +1,11 @@
+{
+  "slug": "session-stamp",
+  "source": "docs/fix--session-stamp-ork-version/index.html",
+  "title": "Every session records the plugin version and the rules it ran under",
+  "description": "Edit a rule file and watch the session's rules_hash change, see the two fail tokens, and list the sessions that ran under one rule version.",
+  "tags": [
+    "hooks",
+    "telemetry"
+  ],
+  "date": "2026-11-15"
+}
