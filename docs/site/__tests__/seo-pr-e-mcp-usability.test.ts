@@ -44,6 +44,15 @@ describe("row 12: docs MCP usability", () => {
 		expect(Array.isArray(r.structuredContent.results)).toBe(true);
 	});
 
+	it("an error result is isError with text only, no structuredContent to validate (b168 LOW note)", async () => {
+		const miss = await rpc("tools/call", { name: "orchestkit_docs_get", arguments: { path: "/docs/nope" } });
+		expect(miss.isError).toBe(true);
+		expect(miss.structuredContent).toBeUndefined();
+		const empty = await rpc("tools/call", { name: "orchestkit_docs_search", arguments: { query: "" } });
+		expect(empty.isError).toBe(true);
+		expect(empty.structuredContent).toBeUndefined();
+	});
+
 	it("get returns structuredContent with the path and the Markdown", async () => {
 		const r = await rpc("tools/call", { name: "orchestkit_docs_get", arguments: { path: "/docs/x" } });
 		expect(r.structuredContent).toEqual({ path: "/docs/x", markdown: "# X\n\nBody." });

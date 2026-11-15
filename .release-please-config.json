@@ -44,11 +44,6 @@
         },
         {
           "type": "json",
-          "path": ".claude-plugin/marketplace.json",
-          "jsonpath": "$.plugins[2].version"
-        },
-        {
-          "type": "json",
           "path": "manifests/ork.json",
           "jsonpath": "$.version"
         },

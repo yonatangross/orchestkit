@@ -219,8 +219,10 @@ describe("landing page content", () => {
     // Hero proof line renders each count in its own span (mock COUNTS:
     // 69 skills / 38 agents / 96 hooks). Match the paragraph that contains
     // all three fragments via its combined textContent.
+    // getAllByText: the agents block lead (look 05) also states all three
+    // counts in one paragraph, so more than one P matches.
     expect(
-      screen.getByText(
+      screen.getAllByText(
         (_content, el) => {
           const text = el?.textContent ?? "";
           return (
