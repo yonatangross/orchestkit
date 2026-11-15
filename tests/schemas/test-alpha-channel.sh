@@ -19,6 +19,12 @@
 # `ref`. `ork` pins the last stable tag; `ork-alpha` tracks main. Opting in is
 # an install, not a config edit.
 #
+# Since the ork-extras split (#4936) the stable channel is TWO pinned entries,
+# `ork` and `ork-extras`, moved together by scripts/bump-stable-pin.sh after
+# each GA tag. ork-extras tracked main for a while (#5220) only because no tag
+# contained plugins/ork-extras yet; v10.13.0 is the first that does, so it is
+# pinned again and `ork-alpha` is the only plugins/ entry that tracks main.
+#
 # WHAT MAKES THIS FRAGILE, AND WHY THE TEST IS INDEX-AWARE
 # --------------------------------------------------------
 # release-please addresses the entry to stamp by ARRAY INDEX
@@ -160,6 +166,63 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
+# 2b. ork-extras is part of the pinned stable set (#4936).
+# ---------------------------------------------------------------------------
+# bump-stable-pin.sh moves ork and ork-extras to the same tag in one write, and
+# release-please must not stamp either. A floating ork-extras would read the
+# plugin.json release-please bumps on main while no stamp moves its entry, so
+# CC would reject the install after the next release. A pin to a tag that does
+# not contain plugins/ork-extras (anything before v10.13.0) is a broken install
+# too, so the tag must carry the plugin.
+echo "▶ ork-extras is pinned next to ork"
+echo "──────────────────────────────────────"
+
+# Prints the problem with the ork-extras entry of marketplace file $1, or
+# nothing when it is pinned to the same tag as ork with an agreeing version.
+extras_pin_problem() {
+    local mk="$1" eref ever oref
+    if [[ "$(jq '[.plugins[] | select(.name == "ork-extras")] | length' "$mk")" != "1" ]]; then
+        echo "expected exactly one 'ork-extras' entry"
+        return
+    fi
+    eref=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].source.ref // ""' "$mk")
+    ever=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].version // ""' "$mk")
+    oref=$(jq -r '[.plugins[] | select(.name == "ork")][0].source.ref // ""' "$mk")
+    if [[ -z "$eref" || "$eref" == "main" || "$eref" == "HEAD" ]]; then
+        echo "'ork-extras' ref is '$eref', not a pin; it belongs to the stable set"
+    elif [[ "$eref" != "$oref" ]]; then
+        echo "'ork-extras' is pinned to '$eref' but 'ork' to '$oref'; the stable set moves together"
+    elif [[ "$eref" != "v$ever" ]]; then
+        echo "'ork-extras' version '$ever' does not match its pin '$eref'"
+    fi
+}
+
+extras_problem=$(extras_pin_problem "$MARKETPLACE")
+if [[ -n "$extras_problem" ]]; then
+    bad "$extras_problem"
+else
+    extras_ref=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].source.ref' "$MARKETPLACE")
+    ok "'ork-extras' pinned to '$extras_ref', the same tag as 'ork'"
+    # Same tag as ork, so section 2 already fetched it when it could.
+    if git -C "$ROOT_DIR" rev-parse --verify --quiet "${extras_ref}:plugins/ork-extras/.claude-plugin/plugin.json" >/dev/null; then
+        ok "tag $extras_ref contains plugins/ork-extras"
+    else
+        bad "tag $extras_ref has no plugins/ork-extras/.claude-plugin/plugin.json; the pin installs nothing"
+    fi
+fi
+
+# Control: the same check must refuse a floating ork-extras (the #5220 state).
+ctl_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-ctl.XXXXXX")
+jq '(.plugins[] | select(.name == "ork-extras") | .source.ref) = "main"' "$MARKETPLACE" > "$ctl_dir/marketplace.json"
+if [[ -n "$(extras_pin_problem "$ctl_dir/marketplace.json")" ]]; then
+    ok "control: a main-tracking ork-extras is refused"
+else
+    bad "control failed: a main-tracking ork-extras passed the stable-set check"
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
 # 3. release-please stamps the ALPHA entry, never the pinned one.
 # ---------------------------------------------------------------------------
 echo "▶ release-please stamps every main-tracking entry"
@@ -169,8 +232,10 @@ echo "────────────────────────�
 # plugin.json that release-please bumps on main, so its marketplace version
 # must be bumped in the same release or CC refuses the install at load
 # (plugin.json and the entry must agree). Every such entry needs a stamp at
-# its OWN index, found by name. ork-extras (#4936) was missed once because
-# this check only knew about ork-alpha.
+# its OWN index, found by name. Today that is ork-alpha alone: ork-extras
+# tracked main from #5220 until v10.13.0 existed, and is pinned again (2b).
+# The reverse check below refuses any stamp on a pinned entry, so a stamp
+# left behind on ork-extras (#5240 went red on exactly that) cannot ship.
 #
 # Scope: entries under plugins/ only. The mods/* entries (promote-lights,
 # secrets-veil, memory-lens, prompt-enhancer) also track main but version
@@ -181,7 +246,7 @@ stamp_count=$(jq '[.packages["."]["extra-files"][]
   | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("plugins")))] | length' "$RP_CONFIG")
 
 if [[ "$tracking_count" -eq 0 ]]; then
-    bad "no marketplace entry tracks main, so there is nothing to check (expected ork-alpha and ork-extras)"
+    bad "no marketplace entry tracks main, so there is nothing to check (expected ork-alpha)"
 elif [[ "$stamp_count" -eq 0 ]]; then
     bad "release-please stamps no plugin entry at all ($tracking_count entries track main)"
 else
@@ -200,22 +265,60 @@ else
         fi
     done < <(jq -r '.plugins[] | select(.source.ref == "main" and (.source.path | startswith("plugins/"))) | .name' "$MARKETPLACE")
 
-    # The reverse direction: a stamp that lands on a pinned entry (reorder bug).
-    while IFS= read -r sidx; do
-        sname=$(jq -r --argjson i "$sidx" '.plugins[$i].name // "none"' "$MARKETPLACE")
-        sref=$(jq -r --argjson i "$sidx" '.plugins[$i].source.ref // ""' "$MARKETPLACE")
-        spath=$(jq -r --argjson i "$sidx" '.plugins[$i].source.path // ""' "$MARKETPLACE")
-        if [[ "$sref" == "main" && "$spath" == plugins/* ]]; then
-            ok "stamp \$.plugins[$sidx].version targets '$sname', which tracks main"
+    # The reverse direction: a stamp that lands on a pinned entry (a reorder
+    # bug, or a stamp left on an entry that went back to a pin). One line per
+    # stamp of release-please config $2 on marketplace $1: "ok <msg>" or
+    # "bad <msg>".
+    stamp_verdicts() {
+        local mk="$1" rp="$2" sidx sname sref spath
+        while IFS= read -r sidx; do
+            sname=$(jq -r --argjson i "$sidx" '.plugins[$i].name // "none"' "$mk")
+            sref=$(jq -r --argjson i "$sidx" '.plugins[$i].source.ref // ""' "$mk")
+            spath=$(jq -r --argjson i "$sidx" '.plugins[$i].source.path // ""' "$mk")
+            if [[ "$sref" == "main" && "$spath" == plugins/* ]]; then
+                echo "ok stamp \$.plugins[$sidx].version targets '$sname', which tracks main"
+            else
+                echo "bad stamp \$.plugins[$sidx].version targets '$sname' (ref '$sref'), which is not main-tracking"
+            fi
+        done < <(jq -r '.packages["."]["extra-files"][]
+            | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("^\\$\\.plugins\\[[0-9]+\\]\\.version$")))
+            | .jsonpath | capture("\\[(?<i>[0-9]+)\\]").i' "$rp")
+    }
+
+    while IFS= read -r verdict; do
+        if [[ "$verdict" == ok\ * ]]; then
+            ok "${verdict#ok }"
         else
-            bad "stamp \$.plugins[$sidx].version targets '$sname' (ref '$sref'), which is not main-tracking"
-            echo "      Reordering the plugins array silently redirects the version"
-            echo "      stamp onto a pinned channel. Fix the jsonpath."
+            bad "${verdict#bad }"
+            echo "      release-please may stamp only an entry that tracks main; a pinned"
+            echo "      entry is owned by scripts/bump-stable-pin.sh. Fix the jsonpath."
         fi
-    done < <(jq -r '.packages["."]["extra-files"][]
-        | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("^\\$\\.plugins\\[[0-9]+\\]\\.version$")))
-        | .jsonpath | capture("\\[(?<i>[0-9]+)\\]").i' "$RP_CONFIG")
+    done < <(stamp_verdicts "$MARKETPLACE" "$RP_CONFIG")
+
+    # Control: replay the #5240 shape, a stamp on the pinned ork-extras entry.
+    # The check above must refuse it, or it could pass on anything.
+    ctl_extras_idx=$(jq -r '[.plugins[].name] | index("ork-extras") // "none"' "$MARKETPLACE")
+    if [[ "$ctl_extras_idx" == "none" ]]; then
+        bad "control: no ork-extras entry to replay a stamp onto"
+    else
+        jq --arg jp "\$.plugins[${ctl_extras_idx}].version" \
+            '.packages["."]["extra-files"] += [{"type": "json", "path": ".claude-plugin/marketplace.json", "jsonpath": $jp}]' \
+            "$RP_CONFIG" > "$ctl_dir/rp.json"
+        jq '(.plugins[] | select(.name == "ork-extras") | .source.ref) = "v1.0.0"' "$MARKETPLACE" > "$ctl_dir/pinned.json"
+        ctl_refused=0
+        while IFS= read -r verdict; do
+            if [[ "$verdict" == "bad "*"'ork-extras'"* ]]; then
+                ctl_refused=1
+            fi
+        done < <(stamp_verdicts "$ctl_dir/pinned.json" "$ctl_dir/rp.json")
+        if [[ "$ctl_refused" -eq 1 ]]; then
+            ok "control: a stamp on the pinned 'ork-extras' entry is refused"
+        else
+            bad "control failed: a stamp on the pinned 'ork-extras' entry was not refused"
+        fi
+    fi
 fi
+rm -rf "$ctl_dir"
 
 echo ""
 

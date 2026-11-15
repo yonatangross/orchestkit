@@ -159,4 +159,17 @@ describe("LibraryCatalog", () => {
       expect(screen.getByRole("tab", { name: /skills/i })).toHaveFocus();
     });
   });
+
+  // The home page draws a moving grid canvas behind the library (home-shell.tsx);
+  // an agent card without its own background lets the grid lines run through it.
+  it("gives every agent card an opaque background", async () => {
+    search = new URLSearchParams("lib=agents");
+    render(<LibraryCatalog />);
+    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
+    const links = Array.from(screen.getByRole("tabpanel").querySelectorAll("a"));
+    expect(links.length).toBeGreaterThan(8);
+    for (const link of links) {
+      expect(link.className.split(" ")).toContain("bg-fd-background");
+    }
+  });
 });

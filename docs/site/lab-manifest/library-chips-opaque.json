@@ -1,0 +1,8 @@
+{
+  "slug": "library-chips-opaque",
+  "source": "docs/fix--library-chips-opaque/index.html",
+  "title": "Library chips and cards get their own background",
+  "description": "The home page draws a moving grid behind the library. Filter chips and cards had no background, so its lines ran through them. Switch between before and after with the pointer over the chips.",
+  "tags": ["docs-site", "css"],
+  "date": "2026-11-15"
+}

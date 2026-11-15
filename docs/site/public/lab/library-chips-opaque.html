@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library chips and cards get their own background</title>
+<meta name="description" content="On the home page a moving grid is drawn behind the library. Filter chips and cards had no background, so the grid lines ran through them. Move the pointer over the chips and switch between before and after.">
+<style>
+  :root { --bg:#fbfbfe; --ink:#1b1c2b; --muted:#5d6077; --rule:#dcdeea; --card:#ffffff; --line:180,184,220; --hot:99,102,241; --pressed:#dbeafe; --pressed-ink:#1d4ed8; }
+  [data-theme="dark"] { --bg:#0f1020; --ink:#e7e8f3; --muted:#a3a6bd; --rule:#2e3150; --card:#15172b; --line:120,124,170; --hot:129,140,248; --pressed:rgba(59,130,246,.2); --pressed-ink:#93c5fd; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.8rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.1rem; margin:32px 0 10px; }
+  p.lead { color:var(--muted); margin:0; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 12px; }
+  .controls button { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .controls button[aria-pressed="true"] { border-color:var(--pressed-ink); color:var(--pressed-ink); font-weight:600; }
+  .stage { position:relative; border:1px solid var(--rule); border-radius:12px; overflow:hidden; min-height:320px; }
+  .stage canvas { position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+  .content { position:relative; z-index:1; padding:24px; }
+  .legend { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 6px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .chip { border:1px solid var(--rule); border-radius:999px; padding:4px 10px; font-size:12px; font-weight:500; color:var(--muted); }
+  .chip.on { background:var(--pressed); color:var(--pressed-ink); border-color:currentColor; }
+  .card { max-width:420px; border:1px solid var(--rule); border-left:3px solid #3b82f6; border-radius:8px; padding:14px 16px; }
+  .card b { display:block; }
+  .card span { font-size:.9rem; color:var(--muted); }
+  .after .chip:not(.on), .after .card { background:var(--card); }
+  .note { margin-top:14px; font-size:.9rem; color:var(--muted); }
+  code { font:.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  footer { margin-top:36px; color:var(--muted); font-size:.85rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Library chips and cards get their own background"><meta property="og:description" content="The home page draws a moving grid behind the library. Filter chips and cards had no background, so its lines ran through them. Switch between before and after with the pointer over the chips."><meta property="og:url" content="https://orchestkit.dev/lab/library-chips-opaque.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Library chips and cards get their own background"><meta name="twitter:description" content="The home page draws a moving grid behind the library. Filter chips and cards had no background, so its lines ran through them. Switch between before and after with the pointer over the chips."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Library chips and cards get their own background</h1>
+  <p class="lead">The home page draws a moving grid behind all of its content, and the lines brighten around the pointer. In the library, the filter chips and the result cards had no background of their own, so those lines ran straight through them. Move the pointer over the chips below and switch between before and after.</p>
+
+  <div class="controls" role="group" aria-label="Version">
+    <button type="button" data-mode="before" aria-pressed="true">Before</button>
+    <button type="button" data-mode="after" aria-pressed="false">After</button>
+    <button type="button" id="theme" aria-pressed="false">Dark theme</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="grid" aria-hidden="true"></canvas>
+    <div class="content" id="content">
+      <p class="legend">Category</p>
+      <div class="chips">
+        <span class="chip">Development 29</span><span class="chip">AI 8</span><span class="chip">Backend 10</span>
+        <span class="chip on">Frontend 24</span><span class="chip">Testing 16</span><span class="chip">Security 2</span>
+        <span class="chip">DevOps 9</span><span class="chip">Product 10</span>
+      </div>
+      <p class="legend">Complexity</p>
+      <div class="chips">
+        <span class="chip">low 30</span><span class="chip">medium 65</span><span class="chip">high 16</span><span class="chip">max 2</span>
+      </div>
+      <div class="card"><b>component-search</b><span>Searches the 21st.dev registry for production React components, ranked with install steps.</span></div>
+    </div>
+  </div>
+  <p class="note" id="note">Before: an unpressed chip and a closed card are see-through, so the grid shows inside them.</p>
+
+  <h2>What changed</h2>
+  <p>Unpressed filter chips, closed skill cards, agent cards and the empty-state "Clear all filters" button now carry <code>bg-fd-background</code>, in <code>components/skill-browser.tsx</code> and <code>components/library-catalog.tsx</code>. Hover and pressed styles are unchanged. Two new tests fail without the change and pass with it.</p>
+
+  <footer>OrchestKit docs site. The canvas here imitates the home page grid; it is a demo, not the site's own component.</footer>
+</main>
+<script>
+  const stage = document.getElementById("stage");
+  const content = document.getElementById("content");
+  const canvas = document.getElementById("grid");
+  const ctx = canvas.getContext("2d");
+  const note = document.getElementById("note");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let mouse = { x: 260, y: 90 };
+  const CELL = 40;
+
+  function draw() {
+    const r = stage.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, r.width, r.height);
+    const css = getComputedStyle(document.body);
+    const line = css.getPropertyValue("--line").trim();
+    const hot = css.getPropertyValue("--hot").trim();
+    const warp = (x, y) => {
+      const dx = x - mouse.x, dy = y - mouse.y, d = Math.hypot(dx, dy), k = Math.max(0, 1 - d / 160);
+      return { x: x - dx * k * 0.25, y: y - dy * k * 0.25, k };
+    };
+    for (let y = 0; y <= r.height + CELL; y += CELL) {
+      for (let x = 0; x <= r.width + CELL; x += CELL) {
+        const p = warp(x, y), right = warp(x + CELL, y), down = warp(x, y + CELL);
+        const k = Math.max(p.k, right.k, down.k);
+        ctx.strokeStyle = k > 0 ? `rgba(${hot},${0.35 + k * 0.6})` : `rgba(${line},0.35)`;
+        ctx.lineWidth = k > 0 ? 1.2 : 1;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(right.x, right.y);
+        ctx.moveTo(p.x, p.y); ctx.lineTo(down.x, down.y); ctx.stroke();
+      }
+    }
+  }
+  stage.addEventListener("pointermove", (e) => {
+    const r = stage.getBoundingClientRect();
+    mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (!reduce) requestAnimationFrame(draw);
+  });
+  window.addEventListener("resize", draw);
+
+  document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => {
+    const after = b.dataset.mode === "after";
+    content.classList.toggle("after", after);
+    document.querySelectorAll("[data-mode]").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+    note.textContent = after
+      ? "After: each chip and card sits on the page background, so the grid stays behind them."
+      : "Before: an unpressed chip and a closed card are see-through, so the grid shows inside them.";
+  }));
+  const theme = document.getElementById("theme");
+  theme.addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    theme.setAttribute("aria-pressed", String(dark));
+    draw();
+  });
+  draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

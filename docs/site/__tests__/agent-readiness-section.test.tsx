@@ -33,7 +33,9 @@ describe("AgentReadinessSection", () => {
 		expect(screen.getByRole("heading", { name: "Built for AI agents, too" })).toBeTruthy();
 		const codes = [...container.querySelectorAll("code")].filter((c) => c.querySelector("wbr"));
 		const texts = codes.map((c) => c.textContent);
-		expect(texts).toContain("github.com/yonatangross/orchestkit/sdk");
+		// Look 05 (approved 15.11.2026) lists 14 surfaces; the SDK packages row of
+		// the old prose block is not one of them (the hero links /docs/sdk).
+		expect(texts).toContain("/.well-known/agent-card.json");
 		expect(texts).toContain("io.github.yonatangross/orchestkit");
 		expect(texts.some((t) => t?.endsWith("/api/mcp"))).toBe(true);
 	});

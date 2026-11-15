@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "10.12.0",
+      "version": "10.13.0",
       "description": "Complete AI development toolkit covering AI/LLM, backend, frontend, security, and testing patterns, with specialized agents, commands, and lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
@@ -25,7 +25,7 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
-        "ref": "v10.12.0"
+        "ref": "v10.13.0"
       }
     },
     {
@@ -57,7 +57,7 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork-extras",
-        "ref": "main"
+        "ref": "v10.13.0"
       }
     },
     {

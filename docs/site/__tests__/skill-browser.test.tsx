@@ -431,4 +431,19 @@ describe("SkillBrowser", () => {
     fireEvent.click(screen.getByLabelText("Clear all filters"));
     await expectCount(5);
   });
+
+  // The home page draws a moving grid canvas behind the library (home-shell.tsx).
+  // A chip or card without its own background lets the grid lines run through it.
+  it("gives every unpressed filter chip and every closed skill card an opaque background", async () => {
+    const { container } = render(<SkillBrowser />);
+    await expectCount(5);
+    const unpressed = container.querySelectorAll('button[aria-pressed="false"]');
+    expect(unpressed.length).toBeGreaterThan(5);
+    for (const chip of unpressed) {
+      expect(chip.className.split(" ")).toContain("bg-fd-background");
+    }
+    const card = screen.getByText("implement").closest('div[class*="border-l-[3px]"]');
+    expect(card).not.toBeNull();
+    expect(card!.className.split(" ")).toContain("bg-fd-background");
+  });
 });
