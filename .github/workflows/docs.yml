@@ -373,6 +373,6 @@ jobs:
       - name: Run docs-site Playwright e2e
         if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
-        run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts e2e/site-qa.spec.ts --project=chromium-desktop --grep "Landing|View transition abort guard|Site QA"
+        run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts e2e/site-qa.spec.ts e2e/library-no-js.spec.ts e2e/library-drawer.spec.ts e2e/library-terminal.spec.ts --project=chromium-desktop --grep "Landing|View transition abort guard|Site QA|library"
         env:
           CI: true
