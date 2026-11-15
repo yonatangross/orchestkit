@@ -24,6 +24,7 @@ import type { HookInput } from '../types.js';
 import { getSessionId, getCachedBranch, logHook } from './common.js';
 import { sanitizePayload } from './crypto.js';
 import { getProjectSlug } from '../lifecycle/usage-summary-reporter.js';
+import { classifyToolFailure, ERROR_CLASS_SCHEMA_VERSION, type FailureClass } from './failure-class.js';
 
 const HOOK_NAME = 'telemetry';
 
@@ -48,6 +49,14 @@ export interface TelemetryEvent {
     agent_type?: string;
     agent_id?: string;
     parent_agent_id?: string;
+    /**
+     * PostToolUseFailure only (error_class_version 1): one value from the
+     * closed FAILURE_CLASSES list. The failure record never carries the error
+     * text, tool_input, tool_output, paths or cwd; tool_name stays because it
+     * is a fixed tool name, not user text.
+     */
+    error_class?: FailureClass;
+    error_class_version?: number;
   };
   metadata: {
     branch: string;
@@ -103,11 +112,51 @@ export function _resetSinksForTesting(): void {
 // Emit
 // ---------------------------------------------------------------------------
 
+const FAILURE_EVENT = 'PostToolUseFailure';
+
+/** Causes already warned about in this process: warn once per cause, never per call. */
+const warnedFailureCauses = new Set<string>();
+
+function warnFailureOnce(cause: string): void {
+  if (warnedFailureCauses.has(cause)) return;
+  warnedFailureCauses.add(cause);
+  logHook(HOOK_NAME, `error_class: ${cause}; recorded as "other"`, 'warn');
+}
+
+/** Clear the once-per-cause warning set (for testing only). */
+export function _resetFailureWarningsForTesting(): void {
+  warnedFailureCauses.clear();
+}
+
+/**
+ * Failure record: a fixed class, never text. The error string is read in
+ * memory by the classifier only; nothing derived from it but the class name
+ * is kept. tool_input, tool_output and tool_error are dropped because a
+ * failed command or path is exactly the text this record must not carry.
+ */
+function buildFailureEvent(input: HookInput, base: TelemetryEvent): TelemetryEvent {
+  if (input.is_interrupt !== true && typeof input.error !== 'string') {
+    warnFailureOnce('payload has no string error field');
+  }
+  const errorClass = classifyToolFailure({ error: input.error, is_interrupt: input.is_interrupt });
+  const { tool_input: _ti, tool_output: _to, tool_error: _te, ...kept } = base.data;
+  return {
+    ...base,
+    data: { ...kept, error_class: errorClass, error_class_version: ERROR_CLASS_SCHEMA_VERSION },
+  };
+}
+
 /**
  * Build a normalized TelemetryEvent from raw hook input.
  * Applies sanitization to tool_input and tool_output.
+ * PostToolUseFailure records get error_class instead of any input or error text.
  */
 export function buildEvent(input: HookInput): TelemetryEvent {
+  const base = buildBaseEvent(input);
+  return base.event === FAILURE_EVENT ? buildFailureEvent(input, base) : base;
+}
+
+function buildBaseEvent(input: HookInput): TelemetryEvent {
   return {
     // `||` not `??`: normalizeInput() guarantees a non-empty string today,
     // but this must independently guard '' too — a caller that bypasses

@@ -967,6 +967,12 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ---
 
+## Tool failure records carry a class, never text
+
+For each `PostToolUseFailure`, the webhook forwarder (`lib/telemetry.ts`, written to `telemetry/events.jsonl` and any configured HTTP sink) records `data.error_class`, one value from the closed list in `lib/failure-class.ts` (`interrupted`, `user_rejected`, `guard_refusal`, `sandbox_denied`, `rate_limit`, `permission_denied`, `timeout`, `network`, `edit_conflict`, `not_found`, `invalid_input`, `parse_error`, `nonzero_exit`, `other`), plus `error_class_version: 1`. The error string is read in memory only to choose the class. The record never holds the error text, `tool_input`, `tool_output`, file paths or the command; it keeps `tool_name`, the session id and the project slug that every record has. Empty or unknown input is recorded as `other`, never dropped.
+
+---
+
 ## Logging
 
 ### Hook Logging
