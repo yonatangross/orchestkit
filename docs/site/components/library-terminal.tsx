@@ -41,6 +41,9 @@ export function LibraryTerminal() {
             <i />
             <i />
           </span>
+          <span className="term-mark" aria-hidden="true">
+            &gt;_
+          </span>
           <span className="term-title">orchestkit run · Claude Code</span>
           <span className="term-ctl" data-term-ctl hidden>
             <button type="button" data-term="pause" aria-pressed="false">

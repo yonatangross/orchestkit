@@ -424,3 +424,32 @@ html:not(.term-anim) #library .term-caret { animation: none; }
   border-radius: 6px;
   background: rgb(200 150 47 / 0.12);
 }
+
+/* Round 2 look review. */
+/* 2: "All stations" is a chip; gold border when no station is picked (no JS: no :target). */
+#library .lib-chip-all {
+  align-self: auto;
+  padding-right: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--lib-fg);
+}
+#library:not(.lib-js):not(:has(.lib-target[id^="station-"]:target)) .lib-chip-all {
+  border-color: var(--lib-gold);
+  box-shadow: var(--lib-glow);
+}
+/* 3: no border fade on the rail, so only the lit station reads as lit. */
+#library .lib-rail-btn { transition: none; }
+/* 4: the terminal mark of frame 07. */
+#library .term-mark { font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace); color: var(--lib-ink-gold); }
+/* 5: the drawer's "Call it" chip is the h2 chip. */
+#library .lib-drawer-call code {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgb(200 150 47 / 0.12);
+}
+/* 6 and 7: matcher on the name line, "has hooks" mark, and the hooks count line. */
+#library .lib-m,
+#library .lib-has { color: var(--lib-muted); font-size: 12px; }
+#library .lib-has { margin-left: 4px; padding: 0 6px; border: 1px solid var(--lib-border); border-radius: 6px; }
+#library .lib-hooks-note { margin: 8px 0 0; font-size: 12px; line-height: 18px; color: var(--lib-muted); }

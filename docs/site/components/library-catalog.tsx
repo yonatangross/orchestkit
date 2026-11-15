@@ -27,6 +27,7 @@ import {
   libraryItemHref,
   libraryItemNote,
   libraryItemSearchText,
+  hooksNote,
   type LibraryKind,
 } from "@/lib/library-view";
 import { onHosts } from "@/lib/library-hosts-view";
@@ -171,8 +172,13 @@ export function LibraryCatalog({
                 </a>
               ))}
             </div>
+            <p className="lib-hooks-note" data-lib-hooks-note>
+              {hooksNote(LIBRARY_COUNTS)}
+            </p>
             <div className="lib-chips" role="group" aria-label="Station">
-              <span className="lib-chip-all">All stations</span>
+              <a href="#library-list" data-lib-station-all className="lib-chip lib-chip-all">
+                All stations
+              </a>
               {LIBRARY_STATION_ORDER.map((key) => (
                 <StationChip key={key} station={key} className="lib-chip" />
               ))}
@@ -203,7 +209,15 @@ export function LibraryCatalog({
                     >
                       <KindIcon aria-hidden="true" className="lib-ico" />
                       <span className="lib-main">
-                        <span className="lib-name">{item.name}</span>
+                        <span className="lib-name">
+                          {item.name}
+                          {item.kind === "hook" && item.matcher && item.matcher !== "*" ? (
+                            <span className="lib-m"> · {item.matcher}</span>
+                          ) : null}
+                          {item.kind === "skill" && item.scopedHooks > 0 ? (
+                            <span className="lib-has"> has hooks</span>
+                          ) : null}
+                        </span>
                         <span className="lib-note">{libraryItemNote(item)}</span>
                         <span className="lib-on">on: {onHosts(item).join(", ")}</span>
                       </span>

@@ -59,6 +59,9 @@ export function LibraryEnhancer() {
         const on = el.dataset.libStation === filter.station;
         el.setAttribute("aria-pressed", String(on));
       }
+      root
+        .querySelector("[data-lib-station-all]")
+        ?.setAttribute("aria-pressed", String(filter.station === null));
       for (const el of root.querySelectorAll<HTMLElement>("[data-lib-kind]")) {
         const on = el.dataset.libKind === filter.kind;
         el.setAttribute("aria-pressed", String(on));
@@ -90,7 +93,8 @@ export function LibraryEnhancer() {
     const openDrawer = (link: HTMLAnchorElement) => {
       if (!drawer) return;
       const row = link.closest<HTMLElement>(".lib-row");
-      const name = link.querySelector(".lib-name")?.textContent ?? "";
+      // The first text node is the bare name (matcher and "has hooks" follow it).
+      const name = link.querySelector(".lib-name")?.firstChild?.textContent ?? "";
       const note = link.querySelector(".lib-note")?.textContent ?? "";
       const kind = row?.dataset.kind ?? link.dataset.libKindOf ?? "";
       const station =
@@ -138,8 +142,12 @@ export function LibraryEnhancer() {
         return;
       }
       const chip = target.closest<HTMLElement>("[data-lib-station]");
+      const allStations = target.closest<HTMLElement>("[data-lib-station-all]");
       const seg = target.closest<HTMLElement>("[data-lib-kind]");
-      if (chip) {
+      if (allStations) {
+        event.preventDefault();
+        filter.station = null;
+      } else if (chip) {
         event.preventDefault();
         const key = parseStationParam(chip.dataset.libStation);
         filter.station = filter.station === key ? null : key;

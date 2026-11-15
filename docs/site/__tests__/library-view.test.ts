@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LIBRARY_ITEMS } from "@/lib/generated/library-data";
+import { LIBRARY_COUNTS, LIBRARY_ITEMS } from "@/lib/generated/library-data";
 import {
+  hooksNote,
   hookEventSlug,
   libraryItemHref,
   libraryItemSearchText,
@@ -29,6 +30,15 @@ describe("library-view", () => {
   it("gives all 303 items a unique href", () => {
     const hrefs = LIBRARY_ITEMS.map(libraryItemHref);
     expect(new Set(hrefs).size).toBe(303);
+  });
+
+  it("the hooks note carries LIBRARY_COUNTS numbers, never typed ones", () => {
+    expect(hooksNote(LIBRARY_COUNTS)).toBe(
+      `${LIBRARY_COUNTS.hooks} hooks, plus ${LIBRARY_COUNTS.skillScopedHooks} that run inside ${LIBRARY_COUNTS.skillsWithHooks} skills.`,
+    );
+    expect(hooksNote({ hooks: 151, skillScopedHooks: 12, skillsWithHooks: 10 })).toBe(
+      "151 hooks, plus 12 that run inside 10 skills.",
+    );
   });
 
   it("ignores unknown station and kind params", () => {

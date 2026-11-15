@@ -73,6 +73,31 @@ describe("LibraryCatalog (server component)", () => {
     expect(doc.getElementById("lib-drawer-title")).toBeTruthy();
   });
 
+  it("explains the hooks count next to it, from LIBRARY_COUNTS", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("[data-lib-hooks-note]")?.textContent).toBe(
+      `${LIBRARY_COUNTS.hooks} hooks, plus ${LIBRARY_COUNTS.skillScopedHooks} that run inside ${LIBRARY_COUNTS.skillsWithHooks} skills.`,
+    );
+  });
+
+  it("marks exactly the skills that hold hooks, and names the matcher on hook rows", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelectorAll("#library-list .lib-has")).toHaveLength(
+      LIBRARY_COUNTS.skillsWithHooks,
+    );
+    const names = Array.from(doc.querySelectorAll("#library-list .lib-name")).map(
+      (el) => el.textContent ?? "",
+    );
+    expect(names.filter((n) => n.startsWith("webhook-forwarder · "))).not.toHaveLength(0);
+  });
+
+  it("draws All stations as a chip and puts the terminal mark in the title bar", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const all = doc.querySelector("a[data-lib-station-all]");
+    expect(all?.classList.contains("lib-chip")).toBe(true);
+    expect(doc.querySelector(".term-mark")?.textContent).toBe(">_");
+  });
+
   it("keeps the search hidden until the client layer runs", () => {
     const doc = new DOMParser().parseFromString(html, "text/html");
     expect(doc.querySelector("search[hidden] input[type=search]")).toBeTruthy();

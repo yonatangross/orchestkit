@@ -83,7 +83,11 @@ export default function Layout({ children }: { children: ReactNode }) {
 		<html
 			lang="en"
 			suppressHydrationWarning
-			className={`${geist.variable} ${geistMono.variable}`}
+			// "dark" is the site's default theme (RootProvider defaultTheme below). The
+			// theme script only runs with JS, so without it the page drew light under a
+			// dark section. next-themes swaps this class before paint when the visitor
+			// chose another theme.
+			className={`dark ${geist.variable} ${geistMono.variable}`}
 		>
 			<body className="flex min-h-screen flex-col font-[family-name:var(--font-geist)]">
 				<a

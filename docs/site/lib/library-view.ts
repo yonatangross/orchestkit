@@ -101,6 +101,20 @@ export function libraryItemSearchText(item: LibraryItem): string {
   return `${item.name} ${libraryItemNote(item)}`.toLowerCase();
 }
 
+/**
+ * The line that explains the hooks count next to it. The site's own total
+ * (163) also counts the handlers declared inside skills; the library lists the
+ * hooks.json ones and says how many more run inside skills. Never typed: the
+ * numbers come from LIBRARY_COUNTS.
+ */
+export function hooksNote(counts: {
+  hooks: number;
+  skillScopedHooks: number;
+  skillsWithHooks: number;
+}): string {
+  return `${counts.hooks} hooks, plus ${counts.skillScopedHooks} that run inside ${counts.skillsWithHooks} skills.`;
+}
+
 export type LibraryFilter = {
   kind: LibraryKind;
   station: LibraryStationKey | null;
