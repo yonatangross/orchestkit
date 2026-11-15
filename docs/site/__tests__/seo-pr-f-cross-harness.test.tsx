@@ -82,3 +82,20 @@ describe("home answer-first section", () => {
 		expect(what).not.toContain("plugin for{\" \"}");
 	});
 });
+
+describe("home FAQ answers match the host table", () => {
+	it("the Cursor comparison answer says Cursor is a host", async () => {
+		const { HOME_FAQS } = await import("@/components/structured-data");
+		const f = HOME_FAQS.find((q) => q.question.includes("Cursor"));
+		expect(f).toBeTruthy();
+		expect(f?.answer).not.toContain("built specifically for the Claude Code agent");
+		expect(f?.answer).toContain("Cursor loads the same ork plugin");
+		expect(f?.answer).toContain("GitHub Copilot is not one of its hosts");
+	});
+	it("the What is OrchestKit answer names Claude Code, Cursor and Codex", async () => {
+		const { HOME_FAQS } = await import("@/components/structured-data");
+		const a = HOME_FAQS.find((q) => q.question === "What is OrchestKit?")?.answer ?? "";
+		for (const name of ["Claude Code", "Cursor", "Codex"]) expect(a).toContain(name);
+		expect(a).not.toContain("plugin for Claude Code.");
+	});
+});
