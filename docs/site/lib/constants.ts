@@ -84,7 +84,9 @@ export const PAGE_SUMMARY = {
   // override, so this is the description of "/" itself. Counts match
   // opengraph-image.tsx (COUNTS from generated shared-data).
   // Keep it 140 to 160 characters: a search result cuts a longer one.
-  site: `${SITE.name}, Claude Code plugin: ${COUNTS.coreSkills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks for code review, testing, security and memory, plus ${COUNTS.extrasSkills} opt-in. Free and open source.`,
+  // Cross-harness and one skill total (AEO fix list, 15.11.2026): skills and
+  // agents load in Cursor and Codex too, hooks run in Claude Code only.
+  site: `${SITE.name}: ${COUNTS.skills} skills and ${COUNTS.agents} agents for Claude Code, Cursor and Codex, plus ${COUNTS.hooks} Claude Code hooks for review, testing, security, memory. Free and open source.`,
   // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
   pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
 } as const;
@@ -166,7 +168,7 @@ export const SAME_AS = [
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
-export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.coreSkills} skills (+${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills (${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
 
 // Providers OrchestKit or this docs site genuinely integrates with — each entry
 // below is backed by a real dependency or documented integration, not a
