@@ -1,0 +1,8 @@
+{
+  "slug": "release-marker-all-plugins",
+  "source": "docs/fix--release-marker-all-plugins/index.html",
+  "title": "Release PRs bump every plugin's version, not only the first",
+  "description": "The 10.13.0 release PR failed its build because release-please bumped ork and left ork-extras behind in plugins-data.ts. Step through the release before and after the fix.",
+  "tags": ["release", "ci"],
+  "date": "2026-11-15"
+}
