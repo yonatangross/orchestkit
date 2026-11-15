@@ -66,7 +66,14 @@ function slugPart(value: string): string {
 export function hookAnchorId(
   item: Extract<LibraryItem, { kind: "hook" }>,
 ): string {
-  return `hook-${slugPart(item.matcher)}-${slugPart(item.script)}`;
+  // The generator's two edge cases: an empty matcher is shown as `*`, and a
+  // command that is not a run-hook id (it holds a space, e.g. `node ${...}/x.mjs`)
+  // is named by its last path segment (hook_name_from_command).
+  const matcher = item.matcher === "" ? "*" : item.matcher;
+  const script = /\s/.test(item.script)
+    ? (item.script.split("/").pop() ?? item.script)
+    : item.script;
+  return `hook-${slugPart(matcher)}-${slugPart(script)}`;
 }
 
 /** Every item has a page to open; hooks land on their row of the event page. */
