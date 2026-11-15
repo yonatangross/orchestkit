@@ -402,3 +402,14 @@ html:not(.term-anim) #library .term-caret { animation: none; }
   #library .term-caret { animation: none; }
   #library .term-typing { animation: none; }
 }
+
+/* "on: <hosts>" under each row, and the per-host line under the terminal. */
+#library .lib-on {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--lib-muted);
+  overflow-wrap: anywhere;
+}
+#library .term-hosts [hidden] { display: none; }

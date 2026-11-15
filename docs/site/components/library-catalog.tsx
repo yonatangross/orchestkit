@@ -29,6 +29,7 @@ import {
   libraryItemSearchText,
   type LibraryKind,
 } from "@/lib/library-view";
+import { onHosts } from "@/lib/library-hosts-view";
 import "./library-section.css";
 
 const STATION_ICON: Record<LibraryStationKey, LucideIcon> = {
@@ -201,6 +202,7 @@ export function LibraryCatalog({
                       <span className="lib-main">
                         <span className="lib-name">{item.name}</span>
                         <span className="lib-note">{libraryItemNote(item)}</span>
+                        <span className="lib-on">on: {onHosts(item).join(", ")}</span>
                       </span>
                       <span className="lib-st" title={STATION_BY_KEY[item.station].label}>
                         <StationIcon aria-hidden="true" className="lib-ico" />

@@ -3,6 +3,7 @@ import { HOST_INSTALLS } from "@/lib/host-installs";
 import { LIBRARY_STATIONS, type LibraryStationKey } from "@/lib/generated/library-data";
 import { libraryItemHref } from "@/lib/library-view";
 import { RUN, RUN_DONE, RUN_PROMPT, resolveRunLine } from "@/lib/library-run";
+import { HOST_LINES } from "@/lib/library-hosts-view";
 
 const KIND_ICON: Record<"skill" | "agent" | "hook", LucideIcon> = {
   skill: FileText,
@@ -111,6 +112,15 @@ export function LibraryTerminal() {
         A replay drawn from the library data: every line is a real skill, agent
         or hook, placed where it acts in a run.
       </p>
+      {/* One line per host, every number generated from the pack manifests.
+          The client shows the one for ?host=; Claude Code has none. */}
+      <div className="term-hosts" data-term-hosts>
+        {HOST_LINES.map((host) => (
+          <p key={host.id} className="term-note" data-host-line={host.id} hidden>
+            {host.line}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }

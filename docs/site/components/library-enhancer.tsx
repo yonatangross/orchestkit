@@ -35,6 +35,11 @@ export function LibraryEnhancer() {
     const search = root.querySelector<HTMLElement>(".lib-search");
 
     const params = new URLSearchParams(window.location.search);
+    // The per-host line for ?host= (Claude Code and unknown values show none).
+    const hostParam = params.get("host");
+    for (const line of root.querySelectorAll<HTMLElement>("[data-host-line]")) {
+      line.hidden = line.dataset.hostLine !== hostParam;
+    }
     const filter: LibraryFilter = {
       kind: parseKindParam(params.get("kind")),
       station: parseStationParam(params.get("station")),
