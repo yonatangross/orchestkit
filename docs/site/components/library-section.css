@@ -292,3 +292,113 @@
   font-size: 14px;
   color: var(--lib-ink-gold);
 }
+
+/* The live terminal (frame 07 look, one scene slot above the list). */
+#library .term-box {
+  border: 1px solid var(--lib-border);
+  border-radius: 14px;
+  background: var(--lib-card);
+  overflow: hidden;
+}
+#library .term-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--lib-border);
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--lib-muted);
+}
+#library .term-dots { display: inline-flex; gap: 6px; }
+#library .term-dots i { width: 10px; height: 10px; border-radius: 50%; background: rgb(255 255 255 / 0.18); }
+#library .term-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#library .term-ctl { display: none; gap: 8px; flex-wrap: wrap; }
+.lib-js#library .term-ctl { display: inline-flex; }
+#library .term-ctl button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--lib-border);
+  border-radius: 10px;
+  background: var(--lib-quiet);
+  color: var(--lib-fg);
+  font-size: 12px;
+  cursor: pointer;
+}
+#library .term-ctl button:disabled { opacity: 0.45; cursor: default; }
+#library .term-ctl button[aria-pressed="true"] { border-color: var(--lib-gold); }
+#library .term-prompt {
+  margin: 0;
+  padding: 14px 16px 6px;
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--lib-ink-gold);
+  overflow-wrap: anywhere;
+}
+#library .term-caret {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--lib-ink-gold);
+  animation: term-blink 1s steps(2, start) infinite;
+}
+@keyframes term-blink { to { visibility: hidden; } }
+#library .term-lines { list-style: none; margin: 0; padding: 0 8px 4px; }
+#library .term-line a {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 20px;
+}
+#library .term-line a:hover { background: var(--lib-glass); }
+#library .term-line a:hover .lib-name { color: var(--lib-ink-gold); }
+#library .term-label { display: inline-flex; align-items: center; gap: 6px; color: var(--lib-muted); font-size: 12px; }
+#library .term-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#library .term-text .lib-note { display: inline; font-size: 14px; }
+#library .term-st { color: var(--lib-muted); font-size: 12px; }
+/* Under 720 px: label row, then name, then note; the station is dropped. */
+@media (max-width: 719px) {
+  #library .term-line a { grid-template-columns: minmax(0, 1fr); }
+  #library .term-text { white-space: normal; }
+  #library .term-text .lib-name,
+  #library .term-text .lib-note { display: block; }
+  #library .term-text > [aria-hidden] { display: none; }
+  #library .term-st { display: none; }
+}
+#library .term-done {
+  margin: 0;
+  padding: 12px 16px;
+  border-top: 1px dashed var(--lib-border);
+  font-family: var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
+  font-size: 14px;
+  color: var(--lib-ink-gold);
+}
+#library .term-works,
+#library .term-note { margin: 12px 0 0; font-size: 14px; line-height: 20px; color: var(--lib-muted); }
+#library .term-works span { color: var(--lib-fg); }
+
+/* No flash: html.term-anim is set before paint, only when motion is allowed.
+   Lines 10 to 20 and the done line keep their space but are not drawn. */
+html.term-anim #library [data-late]:not([data-shown]) { visibility: hidden; }
+#library [data-term-line][data-hide],
+#library [data-term-done][data-hide] { visibility: hidden; }
+#library .term-typing { animation: term-type 0.45s steps(24, end) both; }
+@keyframes term-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+#library .lib-rail-btn[data-active] { border-color: var(--lib-gold); box-shadow: var(--lib-glow); }
+html:not(.term-anim) #library .term-caret { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  #library .term-caret { animation: none; }
+  #library .term-typing { animation: none; }
+}

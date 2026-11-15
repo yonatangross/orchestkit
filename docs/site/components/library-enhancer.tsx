@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createRunPlayer } from "@/lib/library-player";
 import {
   parseKindParam,
   parseStationParam,
@@ -87,7 +88,10 @@ export function LibraryEnhancer() {
       const name = link.querySelector(".lib-name")?.textContent ?? "";
       const note = link.querySelector(".lib-note")?.textContent ?? "";
       const kind = row?.dataset.kind ?? link.dataset.libKindOf ?? "";
-      const station = link.querySelector(".lib-st .lib-sr")?.textContent ?? "";
+      const station =
+        link.querySelector(".lib-st .lib-sr")?.textContent ??
+        link.querySelector(".term-st")?.textContent ??
+        "";
       fill("[data-lib-drawer-title]", name);
       fill("[data-lib-drawer-desc]", note);
       fill("[data-lib-drawer-kind]", kind ? kind : "item");
@@ -149,6 +153,129 @@ export function LibraryEnhancer() {
       apply();
     };
 
+    // The terminal replay. The 20 lines are server links; this only hides
+    // and shows them, and announces the done line once per run.
+    const termBox = root.querySelector<HTMLElement>(".term-box");
+    const termLines = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-term-line]"),
+    );
+    const termDone = root.querySelector<HTMLElement>("[data-term-done]");
+    const live = root.querySelector<HTMLElement>("[data-term-live]");
+    const pauseBtn = root.querySelector<HTMLButtonElement>('[data-term="pause"]');
+    const ctl = root.querySelector<HTMLElement>("[data-term-ctl]");
+    const doneText = termDone?.textContent?.replace("✓", "").trim() ?? "";
+    const rail = Array.from(
+      root.querySelectorAll<HTMLElement>(".lib-rail-btn[data-lib-station]"),
+    );
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let userPaused = false;
+    let drawerOpen = false;
+    let visible = false;
+
+    const light = (station: string | null) => {
+      for (const btn of rail) {
+        if (station && btn.dataset.libStation === station) btn.setAttribute("data-active", "");
+        else btn.removeAttribute("data-active");
+      }
+    };
+    const player = createRunPlayer({
+      total: termLines.length,
+      lineDelayMs: 450,
+      later: (fn, ms) => {
+        const id = window.setTimeout(fn, ms);
+        return () => window.clearTimeout(id);
+      },
+      show: (i, typed) => {
+        const line = termLines[i];
+        if (!line) return;
+        line.removeAttribute("data-hide");
+        line.setAttribute("data-shown", "");
+        const text = line.querySelector<HTMLElement>(".term-text");
+        text?.classList.remove("term-typing");
+        if (typed && text) {
+          void text.offsetWidth;
+          text.classList.add("term-typing");
+          light(line.dataset.station ?? null);
+        }
+      },
+      reset: () => {
+        for (const line of termLines) {
+          line.setAttribute("data-hide", "");
+          line.removeAttribute("data-shown");
+        }
+        termDone?.setAttribute("data-hide", "");
+        termDone?.removeAttribute("data-shown");
+        if (live) live.textContent = "";
+        light(null);
+      },
+      onFinish: () => {
+        termDone?.removeAttribute("data-hide");
+        termDone?.setAttribute("data-shown", "");
+        light(null);
+        // One announcement per run, the done line itself.
+        if (live) live.textContent = doneText;
+      },
+      onState: (state) => {
+        if (pauseBtn) {
+          pauseBtn.textContent = state === "paused" ? "Play" : "Pause";
+          pauseBtn.setAttribute("aria-pressed", String(state === "paused"));
+          pauseBtn.disabled = state === "finished";
+        }
+      },
+    });
+    const wantPlaying = () => visible && !drawerOpen && !userPaused;
+    const sync = () => {
+      if (reduced || !termBox) return;
+      if (wantPlaying()) {
+        if (player.state === "idle") player.replay();
+        else player.start();
+      } else if (player.state === "playing") {
+        player.pause();
+      }
+    };
+    const onTermClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest<HTMLElement>("[data-term]");
+      if (!button) return;
+      const action = button.dataset.term;
+      if (action === "pause") {
+        userPaused = player.state === "playing";
+        if (userPaused) player.pause();
+        else if (player.state === "paused") player.start();
+      } else if (action === "replay") {
+        userPaused = false;
+        player.replay();
+      } else if (action === "skip") {
+        player.skip();
+      }
+    };
+    const onDrawerEvent = (event: Event) => {
+      drawerOpen = (event as CustomEvent<{ open: boolean }>).detail.open;
+      sync();
+    };
+    let observer: IntersectionObserver | null = null;
+    if (termBox && termLines.length > 0) {
+      if (reduced) {
+        // Reduced motion: the finished state at once, no typing, no caret.
+        player.showFinished();
+      } else {
+        observer = new IntersectionObserver(
+          (entries) => {
+            visible = entries.some((e) => e.intersectionRatio >= 0.5);
+            sync();
+          },
+          { threshold: [0, 0.5, 1] },
+        );
+        observer.observe(termBox);
+      }
+      ctl?.removeAttribute("hidden");
+      root.addEventListener("click", onTermClick);
+      root.addEventListener("lib-drawer", onDrawerEvent);
+    }
+    // Tells the no-flash fallback that the client started.
+    document.documentElement.setAttribute("data-term-ready", "");
+
     root.classList.add("lib-js");
     if (search) search.hidden = false;
     // A hash left over from a no-JS chip tap must not hide rows twice.
@@ -157,6 +284,10 @@ export function LibraryEnhancer() {
     apply();
     return () => {
       root.removeEventListener("click", onClick);
+      root.removeEventListener("click", onTermClick);
+      root.removeEventListener("lib-drawer", onDrawerEvent);
+      observer?.disconnect();
+      document.documentElement.removeAttribute("data-term-ready");
       drawer?.removeEventListener("close", onDrawerClose);
       drawer?.removeEventListener("click", onDrawerClick);
       input?.removeEventListener("input", onInput);

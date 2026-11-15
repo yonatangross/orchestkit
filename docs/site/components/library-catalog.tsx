@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { LibraryEnhancer } from "@/components/library-enhancer";
+import { LibraryTerminal } from "@/components/library-terminal";
 import {
   LIBRARY_COUNTS,
   LIBRARY_ITEMS,
@@ -98,7 +99,11 @@ function StationChip({
  * plain `<a href>` in one flat list. `LibraryEnhancer` (client) only hides
  * rows; it never renders them. `scene` is the one slot above the list.
  */
-export function LibraryCatalog({ scene }: { scene?: ReactNode }) {
+export function LibraryCatalog({
+  scene = <LibraryTerminal />,
+}: {
+  scene?: ReactNode;
+}) {
   return (
     <section id="library" aria-labelledby="library-heading" className="lib">
       <style dangerouslySetInnerHTML={{ __html: NO_JS_RULES }} />
