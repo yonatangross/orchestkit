@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What OrchestKit gives on each agent host</title>
+<meta name="description" content="Per-host truth for llms.txt and the orchestkit.dev home page: what Claude Code, Cursor, Codex and five more hosts load, and that hooks run on Claude Code only.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.host{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer}
+.host[aria-pressed=true]{border-color:var(--acc)}.host h2{font-size:15px;margin:0 0 8px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:12px;border-radius:999px;padding:2px 9px;border:1px solid var(--line)}
+.yes{color:var(--ok);border-color:rgba(63,185,80,.5)}.no{color:var(--mute)}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0}
+code{font:13px ui-monospace,monospace;word-break:break-all}.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+@media(max-width:760px){.cmp{grid-template-columns:1fr}}.cmp div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:14px}
+.cmp h3{font-size:13px;color:var(--mute);margin:0 0 6px}pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="What OrchestKit gives on each agent host"><meta property="og:description" content="The per-host table behind llms.txt and the home page: what Claude Code, Cursor, Codex and five more hosts load, and that hooks run on Claude Code only."><meta property="og:url" content="https://orchestkit.dev/lab/fix--seo-cross-harness.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What OrchestKit gives on each agent host"><meta name="twitter:description" content="The per-host table behind llms.txt and the home page: what Claude Code, Cursor, Codex and five more hosts load, and that hooks run on Claude Code only."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>What OrchestKit gives on each agent host</h1>
+<p class="lead">Branch fix/seo-cross-harness. The table that llms.txt and the home page now read (lib/host-support.ts), built from lib/host-installs.ts and the install pages. Pick a host.</p>
+<div class="grid" id="grid"></div>
+<div class="detail" id="detail"></div>
+<div class="cmp">
+ <div><h3>llms.txt before (live, 15.11)</h3>Requires Claude Code 2.1.277+; runs locally inside it.<br>Not a standalone CLI or editor; it extends the Claude Code agent.</div>
+ <div><h3>llms.txt after</h3>A "Where it runs" section: one line per host with what it loads and its install command, then one line: hooks run on Claude Code only.</div>
+</div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt"></pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const H=[
+ ["Claude Code","the full ork plugin: 116 skills, 36 agents and 163 hooks",1,1,1,"claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit"],
+ ["Cursor","the same ork plugin, without the Claude hook scripts",1,1,0,"Settings, Plugins: yonatangross/orchestkit"],
+ ["Codex","the portable ork-codex pack: workflows such as $ork-implement, plus Codex roles",1,1,0,"codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex && codex plugin add ork-codex@orchestkit-codex"],
+ ["Devin","the ork plugin from git; skills load, hooks do not",1,0,0,"devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork"],
+ ["OpenCode","Agent Skills through skills.sh (a starter set of 12)",1,0,0,"npx skills add yonatangross/orchestkit -s ... (starter 12)"],
+ ["Muse Code","skills through .agents/skills",1,0,0,"npx skills add yonatangross/orchestkit -s ... (starter 12)"],
+ ["Pi","skills through the shipped pi manifest",1,0,0,"pi install git:github.com/yonatangross/orchestkit"],
+ ["Antigravity","skills through workspace .agents/skills",1,0,0,"npx skills add yonatangross/orchestkit -s ... (starter 12)"]
+];
+const AG={"Cursor":"in the same plugin (install page does not list agents separately)","Codex":"Codex roles, installed by a script","Claude Code":"36 agents"};
+let sel=0;
+function pill(t,on){const s=document.createElement("span");s.className="pill "+(on?"yes":"no");s.textContent=t+(on?" yes":" no");return s}
+function draw(){
+ const g=document.getElementById("grid");g.textContent="";
+ H.forEach((h,i)=>{const b=document.createElement("div");b.className="host";b.tabIndex=0;b.setAttribute("role","button");b.setAttribute("aria-pressed",String(i===sel));
+  const t=document.createElement("h2");t.textContent=h[0];b.appendChild(t);const p=document.createElement("div");p.className="pills";
+  p.appendChild(pill("skills",h[2]));p.appendChild(pill("agents",h[3]));p.appendChild(pill("hooks",h[4]));b.appendChild(p);
+  b.onclick=()=>{sel=i;draw()};b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();sel=i;draw()}};g.appendChild(b)});
+ const h=H[sel],d=document.getElementById("detail");d.textContent="";
+ const a=document.createElement("div");a.textContent=h[0]+" gets "+h[1]+".";d.appendChild(a);
+ if(AG[h[0]]){const x=document.createElement("div");x.style.color="var(--mute)";x.textContent="Agents: "+AG[h[0]];d.appendChild(x)}
+ const c=document.createElement("code");c.textContent=h[5];const w=document.createElement("div");w.style.marginTop="8px";w.appendChild(c);d.appendChild(w);
+ document.getElementById("prompt").textContent="Review fix/seo-cross-harness on orchestkit: lib/host-support.ts is the per-host table (from lib/host-installs.ts and the getting-started pages). llms.txt gains a Where it runs section and drops the Claude Code only lines; the home page gains a question-shaped section (components/host-answer.tsx) and a cross-harness What is OrchestKit lede. Check the "+h[0]+" line: "+h[1]+".";
+}
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
