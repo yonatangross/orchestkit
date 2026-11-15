@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-metadata-jsonld",
+  "source": "docs/fix--seo-metadata-jsonld/index.html",
+  "title": "Search copy and Organization JSON-LD, before and after",
+  "description": "Titles at 30 to 60 characters, meta descriptions at 140 to 160 with a number, and one Organization graph where every top-level node carries a logo.",
+  "tags": [
+    "seo",
+    "metadata",
+    "json-ld"
+  ],
+  "date": "2026-11-15"
+}

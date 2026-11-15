@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { SITE } from "@/lib/constants";
 import { docsHtmlCanonical } from "@/lib/docs-canonical";
+import { docsSearchDescription, docsSearchTitle } from "@/lib/search-copy";
 import {
   breadcrumbNode,
   organizationNode,
@@ -242,15 +243,21 @@ export async function generateMetadata(props: {
   // A page with `seoTitle` sets the full search result title. It already
   // names OrchestKit, so it skips the "%s | OrchestKit" template. A page
   // without it keeps the short `title` plus the template.
-  const seoTitle = page.data.seoTitle;
-  const socialTitle = seoTitle ?? page.data.title;
+  // Every docs title is now built whole by docsSearchTitle (30 to 60
+  // characters, says what the page is), so it is absolute, and the meta
+  // description is fitted to 140 to 160 characters with a number. The page's
+  // own frontmatter description stays the Markdown twin's text.
+  const slug = params.slug ?? [];
+  const searchTitle = docsSearchTitle(slug, page.data.title, page.data.seoTitle);
+  const searchDescription = docsSearchDescription(slug, page.data.description);
+  const socialTitle = page.data.seoTitle ?? page.data.title;
 
   return {
-    title: seoTitle ? { absolute: seoTitle } : page.data.title,
-    description: page.data.description,
+    title: { absolute: searchTitle },
+    description: searchDescription,
     openGraph: {
       title: socialTitle,
-      description: page.data.description,
+      description: searchDescription,
       url,
       siteName: SITE.name,
       type: "article",
@@ -259,7 +266,7 @@ export async function generateMetadata(props: {
     twitter: {
       card: "summary_large_image",
       title: socialTitle,
-      description: page.data.description,
+      description: searchDescription,
     },
     alternates: {
       canonical: url,

@@ -94,6 +94,7 @@ export function yonyonOrganizationNode(): JsonLdNode {
 		description: YONYON.description,
 		disambiguatingDescription: YONYON.disambiguation,
 		url: YONYON.apex,
+		logo: { "@type": "ImageObject", ...YONYON.logo },
 		mainEntityOfPage: YONYON.url,
 		sameAs: [YONYON.apex, YONYON.apexPage, YONYON.wikidata],
 		identifier: [
