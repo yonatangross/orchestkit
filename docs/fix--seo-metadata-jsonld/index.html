@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search copy and Organization JSON-LD: before and after</title>
+<meta name="description" content="How orchestkit.dev titles, meta descriptions and Organization JSON-LD changed: 30 to 60 character titles, 140 to 160 character descriptions with a number.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 24px}
+.controls{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 10px}
+.row h2{font-size:14px;margin:0 0 6px;color:var(--mute);font-weight:600}
+.txt{font-size:15px}.meter{height:8px;background:#222833;border-radius:4px;position:relative;margin:8px 0 4px}
+.band{position:absolute;top:0;bottom:0;background:rgba(63,185,80,.18);border-left:1px dashed var(--ok);border-right:1px dashed var(--ok)}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.n{font-size:13px;color:var(--mute)}.pass{color:var(--ok)}.fail{color:var(--bad)}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Search copy and Organization JSON-LD</h1>
+<p class="lead">Branch fix/seo-metadata-jsonld. Each row is a page the live probe reads. The green band is the target range (titles 30 to 60 characters, descriptions 140 to 160 with a number). Toggle before and after.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b-before" aria-pressed="false">Before (live, 15.11)</button>
+ <button id="b-after" aria-pressed="true">After (this branch)</button>
+</div>
+<div id="rows"></div>
+<h2 style="font-size:16px;margin:24px 0 8px">Organization JSON-LD on the home page</h2>
+<div id="org" class="row"></div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt"></pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const ROWS=[
+ {k:"Home title",kind:"t",before:"OrchestKit, Claude Code plugin: 90 skills and 36 agents, plus 26 opt-in",after:"OrchestKit: 116 skills for Claude Code, Cursor and Codex"},
+ {k:"Brainstorm skill title",kind:"t",before:"Brainstorm | OrchestKit",after:"Brainstorm skill for AI coding agents | OrchestKit"},
+ {k:"Alternatives title",kind:"t",before:"Alternatives | OrchestKit",after:"Alternatives to OrchestKit for coding agents | OrchestKit"},
+ {k:"Brainstorm skill description",kind:"d",before:"Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",after:"Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. One of 116 OrchestKit skills. Free and open source."},
+ {k:"Skills reference description",kind:"d",before:"Complete reference for all 116 OrchestKit skills.",after:"Complete reference for all 116 OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."},
+ {k:"Agents reference description",kind:"d",before:"Complete reference for all 36 OrchestKit agents.",after:"Complete reference for all 36 OrchestKit agents: specialist subagents for code review, testing, security and architecture, with the tools each one uses."},
+ {k:"Compare description",kind:"d",before:"How OrchestKit compares to Claude Code's built-in features, other Claude Code plugins, and GitHub Copilot. Cursor and Muse Code are supported hosts. 116 skills, 36 agents, 163 hooks. MIT, dependency-free.",after:"How OrchestKit compares to Claude Code's built-in features, other plugins and GitHub Copilot: 116 skills, 36 agents, 163 hooks. MIT, no dependencies."},
+ {k:"Alternatives description",kind:"d",before:"Alternatives to OrchestKit and how they differ. OrchestKit is the curated skill/agent/hook toolkit purpose-built for Claude Code: 116 skills, 36 agents, 163 hooks, MIT.",after:"Alternatives to OrchestKit and how they differ. OrchestKit is a curated toolkit for Claude Code and other agents: 116 skills, 36 agents, 163 hooks."}
+];
+const ORG={before:"Two top-level Organization nodes. OrchestKit: logo, url, sameAs (GitHub, Wikidata). Yonyon studio: no logo (the probe fails it).",after:"OrchestKit Organization declared once (@id https://orchestkit.dev/#organization), every other node points to it by @id. The Yonyon studio node restates the apex entity with the apex site's own logo (https://yonyon.ai/logo.png, 512 by 512), so both top-level Organizations carry a logo."};
+let state="after";
+function ok(r,t){const n=t.length;return r.kind==="t"?n>=30&&n<=60:n>=140&&n<=160&&/[0-9]/.test(t)}
+function draw(){
+ const host=document.getElementById("rows");host.textContent="";
+ for(const r of ROWS){
+  const t=r[state],n=t.length,max=r.kind==="t"?90:260,lo=r.kind==="t"?30:140,hi=r.kind==="t"?60:160,good=ok(r,t);
+  const d=document.createElement("div");d.className="row";
+  const h=document.createElement("h2");h.textContent=r.k;d.appendChild(h);
+  const p=document.createElement("div");p.className="txt";p.textContent=t;d.appendChild(p);
+  const m=document.createElement("div");m.className="meter";
+  const b=document.createElement("div");b.className="band";b.style.left=(lo/max*100)+"%";b.style.width=((hi-lo)/max*100)+"%";m.appendChild(b);
+  const f=document.createElement("div");f.className="fill";f.style.width=Math.min(100,n/max*100)+"%";f.style.background=good?"var(--ok)":"var(--bad)";f.style.opacity=".75";m.appendChild(f);
+  d.appendChild(m);
+  const s=document.createElement("div");s.className="n "+(good?"pass":"fail");s.textContent=n+" characters, "+(good?"in range":"out of range");d.appendChild(s);
+  host.appendChild(d);
+ }
+ document.getElementById("org").textContent=ORG[state];
+ document.getElementById("b-before").setAttribute("aria-pressed",String(state==="before"));
+ document.getElementById("b-after").setAttribute("aria-pressed",String(state==="after"));
+ const pass=ROWS.filter(r=>ok(r,r.after)).length;
+ document.getElementById("prompt").textContent="Review fix/seo-metadata-jsonld on orchestkit (SEO gaps rows 1, 8, 9, 10). After this branch "+pass+" of "+ROWS.length+" probed titles and descriptions are in range. Check: lib/search-copy.ts (docs title and description rules), lib/constants.ts HOME_TITLE, components/structured-data.tsx (Yonyon logo), __tests__/seo-pr-b-search-copy.test.tsx. After deploy, rerun seo-probe.py and compare with probe-before-0915.tsv.";
+}
+document.getElementById("b-before").onclick=()=>{state="before";draw()};
+document.getElementById("b-after").onclick=()=>{state="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

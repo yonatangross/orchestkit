@@ -11,7 +11,7 @@ import { COUNTS, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
 	title: "Compare: best Claude Code plugin",
-	description: `How ${SITE.name} compares to Claude Code's built-in features, other Claude Code plugins, and GitHub Copilot. Cursor and Muse Code are supported hosts. ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks. MIT, dependency-free.`,
+	description: `How ${SITE.name} compares to Claude Code's built-in features, other plugins and GitHub Copilot: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks. MIT, no dependencies.`,
 	alternates: { canonical: `${SITE.domain}/compare` },
 };
 

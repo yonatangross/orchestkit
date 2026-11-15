@@ -987,7 +987,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_lines = [
         "---",
         "title: OrchestKit Skills Reference",
-        f'description: "Complete reference for all {count} OrchestKit skills."',
+        f'description: "Complete reference for all {count} OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."',
         "---",
         "",
         "import { SkillAtlas } from '@/components/world/skill-atlas';",
@@ -1215,7 +1215,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     index_lines = [
         "---",
         "title: OrchestKit Agents Reference",
-        f'description: "Complete reference for all {count} OrchestKit agents."',
+        f'description: "Complete reference for all {count} OrchestKit agents: specialist subagents for code review, testing, security and architecture, with the tools each one uses."',
         "---",
         "",
         "# OrchestKit Agents Reference",

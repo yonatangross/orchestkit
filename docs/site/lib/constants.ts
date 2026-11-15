@@ -70,9 +70,10 @@ export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length
 // The homepage search result title (<title>, og:title, twitter:title). It
 // names what the reader gets. SITE_TITLE stays the OG card tagline and the
 // alt text of that card image, because the image shows that text.
-// Title, meta description (PAGE_SUMMARY.site) and the H1 all start with the
-// brand phrase "OrchestKit, Claude Code plugin" so a brand search matches it.
-export const HOME_TITLE = `${SITE.name}, Claude Code plugin: ${COUNTS.coreSkills} skills and ${COUNTS.agents} agents, plus ${COUNTS.extrasSkills} opt-in`;
+// 30 to 60 characters, brand first, and it names more than one agent host:
+// the plugin runs in Claude Code and the other SITE_HOSTS, so a title that
+// says "Claude Code plugin" alone undersells it (SEO gaps row 1, 15.11.2026).
+export const HOME_TITLE = `${SITE.name}: ${COUNTS.skills} skills for Claude Code, Cursor and Codex`;
 
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
@@ -133,6 +134,10 @@ export const YONYON = {
   // Organization's official website.
   url: `${SITE.domain}/yonyon`,
   wikidata: "https://www.wikidata.org/wiki/Q141457913",
+  // The logo the apex site declares for this same entity (@id
+  // https://yonyon.ai/#organization), restated verbatim so the two
+  // declarations agree. Read from yonyon.ai's own JSON-LD on 15.11.2026.
+  logo: { url: "https://yonyon.ai/logo.png", width: 512, height: 512 },
 } as const;
 
 // Authoritative external references for the OrchestKit entity. Reused verbatim
