@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>robots.txt signal in the right group, real sitemap dates</title>
+<meta name="description" content="The site-wide Content-Signal moved into the User-agent * group, sitemap lastmod now comes from each page's last commit instead of the build or a shallow clone boundary, and non-HTML files left the sitemap. Switch between before and after.">
+<style>
+  :root { --bg:#fbfbfe; --ink:#1b1c2b; --muted:#5d6077; --rule:#dcdeea; --card:#ffffff; --hot:#4f46e5; --bad:#c2410c; --good:#15803d; --bar:#c7d2fe; }
+  [data-theme="dark"] { --bg:#0f1020; --ink:#e7e8f3; --muted:#a3a6bd; --rule:#2e3150; --card:#15172b; --hot:#818cf8; --bad:#fb923c; --good:#4ade80; --bar:#3730a3; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.8rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.1rem; margin:32px 0 10px; }
+  p.lead, .note { color:var(--muted); }
+  p.lead { margin:0; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 12px; }
+  .controls button { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .controls button[aria-pressed="true"] { border-color:var(--hot); color:var(--hot); font-weight:600; }
+  pre { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px 16px; margin:0; overflow:auto; font:13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre .grp { display:block; border-left:3px solid transparent; padding-left:8px; margin-left:-11px; }
+  pre .grp.star { border-color:var(--good); }
+  pre .grp.bytespider { border-color:var(--bad); }
+  pre .sig { font-weight:700; }
+  .grp.star .sig { color:var(--good); }
+  .grp.bytespider .sig.yes { color:var(--bad); }
+  .rows { display:grid; gap:6px; }
+  .row { display:grid; grid-template-columns:200px 1fr 70px; gap:10px; align-items:center; font-size:.9rem; }
+  .track { background:var(--rule); border-radius:4px; height:12px; overflow:hidden; }
+  .fill { background:var(--bar); height:100%; }
+  .row.bad .fill { background:var(--bad); }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  ul { padding-left:1.2rem; }
+  code { font:.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  footer { margin-top:36px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>robots.txt signal in the right group, real sitemap dates</h1>
+  <p class="lead">Three crawler-facing fixes for orchestkit.dev. Switch between before and after to see each one.</p>
+
+  <div class="controls" role="group" aria-label="Version">
+    <button type="button" data-mode="before" aria-pressed="true">Before</button>
+    <button type="button" data-mode="after" aria-pressed="false">After</button>
+    <button type="button" id="theme" aria-pressed="false">Dark theme</button>
+  </div>
+
+  <h2>1. robots.txt: who gets the Content-Signal</h2>
+  <pre id="robots"></pre>
+  <p class="note" id="robots-note"></p>
+
+  <h2>2. Sitemap lastmod: how many URLs share one date</h2>
+  <div class="rows" id="dates"></div>
+  <p class="note" id="dates-note"></p>
+
+  <h2>3. Sitemap entries that are not HTML pages</h2>
+  <ul id="nonhtml"></ul>
+
+  <footer>Source: <code>docs/site/app/robots.txt/route.ts</code>, <code>docs/site/app/sitemap.ts</code>, <code>docs/site/lib/git-last-modified.ts</code>, <code>docs/site/scripts/git-unshallow.mjs</code>.</footer>
+</main>
+<script>
+  const STAR = '<span class="grp star">User-agent: *\nAllow: /\n';
+  const ROBOTS = {
+    before:
+      STAR + '</span>\n# ... 11 named AI crawler groups, Allow: / ...\n\n' +
+      'User-agent: CCBot\nDisallow: /\n<span class="sig">Content-Signal: ai-train=no, search=no, ai-input=no</span>\n\n' +
+      '<span class="grp bytespider">User-agent: Bytespider\nDisallow: /\n<span class="sig">Content-Signal: ai-train=no, search=no, ai-input=no</span>\n\n' +
+      '# Content Signals: https://contentsignals.org/\n<span class="sig yes">Content-Signal: ai-train=yes, search=yes, ai-input=yes</span>\n</span>\n' +
+      'Sitemap: https://orchestkit.dev/sitemap.xml',
+    after:
+      STAR + '# Content Signals: https://contentsignals.org/\n<span class="sig">Content-Signal: ai-train=yes, search=yes, ai-input=yes</span>\n</span>\n' +
+      '# ... 11 named AI crawler groups, Allow: / ...\n\n' +
+      'User-agent: CCBot\nDisallow: /\n<span class="sig">Content-Signal: ai-train=no, search=no, ai-input=no</span>\n\n' +
+      'User-agent: Bytespider\nDisallow: /\n<span class="sig">Content-Signal: ai-train=no, search=no, ai-input=no</span>\n\n' +
+      'Sitemap: https://orchestkit.dev/sitemap.xml',
+  };
+  const ROBOTS_NOTE = {
+    before: 'A rule belongs to the group above it until the next User-agent line. The site-wide yes signal came after the Bytespider group, so parsers gave it to Bytespider (which then had two conflicting signals) and the * group had none.',
+    after: 'The yes signal sits inside the * group. Each blocked crawler keeps only its own no signal.',
+  };
+  // Before: live sitemap read on 2026-11-15. After: the generator over full git history.
+  const DATES = {
+    before: { total: 359, rows: [["2026-11-12T07:24:17Z", 264, true], ["build time", 29, true], ["all other dates", 66, false]] },
+    after: { total: 352, rows: [["2026-09-26 (#4414)", 85, false]] },
+  };
+  const DATES_NOTE = {
+    before: '264 URLs carried the date of commit 56f73ec, the oldest commit in the shallow deploy clone, not their real change. Home, static and machine pages carried the build time.',
+    after: 'Each URL carries the last commit date of its own source file or route folder. The most shared date is commit #4414, which really changed those 85 pages. If the deploy clone is still shallow, a page whose last change is beyond the clone gets no lastmod rather than a false one.',
+  };
+  const NONHTML = {
+    before: ['/openapi.json', '/api/openapi.yaml', '/.well-known/mcp/server-card.json', '/.well-known/mcp/actions-server-card.json', '/.well-known/api-catalog', '/llms.txt', '/llms-full.txt'],
+    after: [],
+  };
+
+  function render(mode) {
+    document.getElementById('robots').innerHTML = ROBOTS[mode];
+    document.getElementById('robots-note').textContent = ROBOTS_NOTE[mode];
+    const d = DATES[mode];
+    const box = document.getElementById('dates');
+    box.innerHTML = '';
+    for (const [label, n, bad] of d.rows) {
+      const row = document.createElement('div');
+      row.className = 'row' + (bad ? ' bad' : '');
+      const pct = Math.round((n / d.total) * 100);
+      row.innerHTML = `<span>${label}</span><span class="track"><span class="fill" style="width:${pct}%;display:block"></span></span><span class="num">${n} (${pct} %)</span>`;
+      box.appendChild(row);
+    }
+    document.getElementById('dates-note').textContent = DATES_NOTE[mode];
+    const ul = document.getElementById('nonhtml');
+    ul.innerHTML = '';
+    const list = NONHTML[mode];
+    if (!list.length) {
+      const li = document.createElement('li');
+      li.textContent = 'None. /llms.txt and the api-catalog link relation still point crawlers and agents at these files.';
+      ul.appendChild(li);
+    }
+    for (const u of list) {
+      const li = document.createElement('li');
+      li.innerHTML = `<code>${u}</code>`;
+      ul.appendChild(li);
+    }
+    for (const b of document.querySelectorAll('[data-mode]')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  }
+  for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => render(b.dataset.mode));
+  document.getElementById('theme').addEventListener('click', (e) => {
+    const dark = document.documentElement.dataset.theme !== 'dark';
+    document.documentElement.dataset.theme = dark ? 'dark' : '';
+    e.currentTarget.setAttribute('aria-pressed', String(dark));
+  });
+  render('before');
+</script>
+</body>
+</html>

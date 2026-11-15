@@ -35,9 +35,15 @@ const AI_BOTS = [
 const BLOCKED_BOTS = ["CCBot", "Bytespider"];
 
 export function GET() {
+	// The site-wide Content-Signal sits inside the `*` group. A robots.txt rule
+	// belongs to the group above it until the next User-agent line, so the
+	// signal placed at the end of the file used to land in the Bytespider
+	// group and left `*` with none.
 	const lines: string[] = [
 		"User-agent: *",
 		"Allow: /",
+		"# Content Signals: https://contentsignals.org/",
+		"Content-Signal: ai-train=yes, search=yes, ai-input=yes",
 		"",
 		"# OrchestKit is open source (MIT) and welcomes named AI crawlers explicitly.",
 	];
@@ -60,9 +66,6 @@ export function GET() {
 	}
 
 	lines.push(
-		"",
-		"# Content Signals: https://contentsignals.org/",
-		"Content-Signal: ai-train=yes, search=yes, ai-input=yes",
 		"",
 		`Sitemap: ${SITE.domain}/sitemap.xml`,
 		`schemamap: ${SITE.domain}/schema-map.xml`,
