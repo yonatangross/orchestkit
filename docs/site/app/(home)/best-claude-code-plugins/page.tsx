@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
+import { BEST_PLUGINS_ANSWER } from "@/lib/aeo-answers";
 import { COUNTS, SITE } from "@/lib/constants";
 import {
 	StructuredData,
@@ -142,6 +143,7 @@ export default function BestPluginsPage() {
 					]),
 				]}
 			/>
+			<p>{BEST_PLUGINS_ANSWER}</p>
 			<p>
 				<strong>Disclosure:</strong> this page lives on the {SITE.name} docs
 				site and we maintain {SITE.name}, one of the entries below. Every other
