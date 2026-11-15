@@ -15,6 +15,7 @@ import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 import { HomeHeroArt } from "@/components/home-hero-art";
+import { HomeFaq } from "@/components/home-faq";
 
 // Homepage-only social fields. Kept off the root layout so marketing pages that
 // only set `title` do not inherit this og/twitter title and description.
@@ -312,6 +313,8 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+
+      <HomeFaq />
 
       <AgentReadinessSection />
 

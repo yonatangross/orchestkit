@@ -284,7 +284,8 @@ function homeWebPageNode(): JsonLdNode {
 }
 
 // The default homepage FAQ — accurate, fact-dense answers (chunk-friendly for
-// LLM retrieval). Kept here so the WebMCP/agent surfaces can reuse it later.
+// LLM retrieval). Plain text, no Markdown: components/home-faq.tsx renders the
+// same strings in the page, and the visible text must match the JSON-LD.
 export const HOME_FAQS: Faq[] = [
 	{
 		question: "What is OrchestKit?",
@@ -297,7 +298,7 @@ export const HOME_FAQS: Faq[] = [
 	},
 	{
 		question: "How do I install OrchestKit?",
-		answer: `Inside Claude Code ${SITE.ccVersion}, run \`${SITE.installSlashCommands[0]}\` then \`${SITE.installSlashCommands[1]}\`. From a terminal, run \`${SITE.installCommand}\`. The plugin installs all skills, agents, and hooks together.`,
+		answer: `Inside Claude Code ${SITE.ccVersion}, run ${SITE.installSlashCommands[0]} then ${SITE.installSlashCommands[1]}. From a terminal, run ${SITE.installCommand}. The plugin installs all skills, agents, and hooks together.`,
 	},
 	{
 		question: "What is Claude Code?",
