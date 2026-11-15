@@ -16,6 +16,7 @@ import { COUNTS, SITE, YONYON } from "@/lib/constants";
 import { withFrontmatter } from "@/lib/md-frontmatter";
 import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
 import { YONYON_FAQS } from "@/lib/yonyon-faqs";
+import { PRODUCT_LINE } from "@/lib/host-support";
 
 /** Slugs with a Markdown twin. Kept in sync with app/(home)/* by a unit test. */
 export const MARKDOWN_TWIN_SLUGS = ["developers", "yonyon"] as const;
@@ -58,7 +59,7 @@ function developersMarkdown(): string {
 }
 
 const YONYON_TITLE = "Yonyon: the software studio behind OrchestKit";
-const YONYON_LEAD = `Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It publishes ${SITE.name}, a free, open-source plugin for Claude Code. It is not the musician of the same name.`;
+const YONYON_LEAD = `Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It publishes ${SITE.name}, ${PRODUCT_LINE}. It is not the musician of the same name.`;
 
 function yonyonMarkdown(): string {
 	return [

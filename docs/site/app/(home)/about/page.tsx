@@ -3,11 +3,12 @@ import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
 import { StructuredData, personNode } from "@/components/structured-data";
 import { COUNTS, PERSON, SITE } from "@/lib/constants";
+import { PRODUCT_LINE } from "@/lib/host-support";
 import contributorsData from "@/lib/contributors-data.json";
 
 export const metadata: Metadata = {
 	title: "About",
-	description: `${SITE.name} is a free, open-source plugin for Claude Code with ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks.`,
+	description: `${SITE.name} is ${PRODUCT_LINE}: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks on Claude Code.`,
 	alternates: { canonical: `${SITE.domain}/about` },
 };
 
@@ -43,7 +44,7 @@ export default function AboutPage() {
 		<ContentPage
 			title={`About ${SITE.name}`}
 			path="/about"
-			lead={`${SITE.name} is a free, open-source plugin for Claude Code: a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`}
+			lead={`${SITE.name} is ${PRODUCT_LINE}: a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`}
 		>
 			<StructuredData nodes={[personNode()]} />
 			<h2>What OrchestKit is</h2>

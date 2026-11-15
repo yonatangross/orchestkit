@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five surfaces that said Claude Code only: before and after</title>
+<meta name="description" content="The agent card, the About page, llms-full.txt and both Yonyon texts now describe OrchestKit as a library for Claude Code, Cursor, Codex and five more hosts.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 10px}
+.row h2{font-size:13px;color:var(--mute);margin:0 0 6px;font-weight:600}.mark{font-weight:700}
+.bad{color:var(--bad)}.ok{color:var(--ok)}pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Five surfaces that said Claude Code only</h1>
+<p class="lead">Branch fix/seo-cross-harness-copy. Each now reads PRODUCT_LINE from lib/host-support.ts, the same per-host table llms.txt and the home page use.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before</button>
+ <button id="b1" aria-pressed="true">After</button>
+</div>
+<div id="rows"></div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-cross-harness-copy on orchestkit (SEO PR-G): PRODUCT_LINE in lib/host-support.ts, used by the agent card, the About page, llms-full.txt and the Yonyon Markdown lead; YONYON.description in lib/constants.ts written out (constants cannot import host-support). Test: __tests__/seo-pr-g-cross-harness-copy.test.ts.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const P="a free, open-source library of skills and agents for Claude Code, Cursor, Codex and 5 more agent hosts";
+const R=[
+ ["Agent card (/.well-known/agent-card.json)","Documentation and capability discovery for OrchestKit, a free, open-source plugin for Claude Code (116 skills, 36 agents, 163 hooks).","Documentation and capability discovery for OrchestKit, "+P+" (116 skills, 36 agents, and 163 hooks on Claude Code)."],
+ ["About page description","OrchestKit is a free, open-source plugin for Claude Code with 116 skills, 36 agents, and 163 lifecycle hooks.","OrchestKit is "+P+": 116 skills, 36 agents, and 163 lifecycle hooks on Claude Code."],
+ ["llms-full.txt header","OrchestKit is a free, open-source plugin for Claude Code: 116 skills, 36 agents, and 163 lifecycle hooks...","OrchestKit is "+P+". On Claude Code: 116 skills, 36 agents, and 163 lifecycle hooks... Quickstart is labelled Claude Code, with a link for the other hosts."],
+ ["Yonyon description (JSON-LD)","...It is the publisher of OrchestKit, a free, open-source plugin for Claude Code.","...It is the publisher of OrchestKit, a free, open-source library of skills and agents for Claude Code, Cursor, Codex and other agent hosts."],
+ ["Yonyon Markdown lead","It publishes OrchestKit, a free, open-source plugin for Claude Code.","It publishes OrchestKit, "+P+"."]
+];
+let s="after";
+function draw(){const h=document.getElementById("rows");h.textContent="";
+ for(const r of R){const d=document.createElement("div");d.className="row";const t=document.createElement("h2");t.textContent=r[0];d.appendChild(t);
+  const m=document.createElement("span");m.className="mark "+(s==="after"?"ok":"bad");m.textContent=(s==="after"?"names the hosts: ":"Claude Code only: ");d.appendChild(m);
+  d.appendChild(document.createTextNode(s==="after"?r[2]:r[1]));h.appendChild(d)}
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-cross-harness-copy",
+  "source": "docs/fix--seo-cross-harness-copy/index.html",
+  "title": "Five surfaces that said Claude Code only, before and after",
+  "description": "The agent card, the About page, llms-full.txt and both Yonyon texts now describe OrchestKit as a library for Claude Code, Cursor, Codex and five more hosts.",
+  "tags": [
+    "seo",
+    "hosts",
+    "copy"
+  ],
+  "date": "2026-11-15"
+}
