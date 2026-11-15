@@ -13,8 +13,7 @@
 # entries: `ork` pinned to the last stable tag, and `ork-alpha` tracking main.
 # Three things write that file today and NONE of them moves the pin:
 #
-#   .release-please-config.json  ->  $.plugins[1].version (alpha) and
-#                                    $.plugins[2].version (ork-extras), by index
+#   .release-please-config.json  ->  $.plugins[1].version (alpha), by index
 #   scripts/stamp-counts.sh      ->  the entry whose source.ref == "main"
 #   scripts/stamp-counts.sh      ->  descriptions
 #
@@ -95,9 +94,9 @@ fi
 # entries, ork and ork-extras, and a GA release pins BOTH to the same tag in
 # one write; pinning only ork would leave stable users with a core and an
 # extras plugin from different releases. The set is explicit (passed as data
-# with --argjson, never as program text). ork-extras starts out tracking main,
-# because the tag it would pin to did not contain it yet; the first GA release
-# that runs this pins it next to ork.
+# with --argjson, never as program text). ork-extras tracked main for a while
+# (#5220) because no tag contained it yet; v10.13.0 is the first that does, and
+# from then on it is pinned next to ork. release-please does not stamp it.
 #
 # Refusals, each exit 1 with the file untouched:
 #   - a stable-set entry is missing from the marketplace (a half pin is skew);
