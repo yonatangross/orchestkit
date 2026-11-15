@@ -24,6 +24,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/alternatives",
 	"/best-claude-code-plugins",
 	"/changelog",
+	"/cli",
 	"/community",
 	"/claude-agent-sdk-vs-claude-code-plugins",
 	"/compare",
