@@ -26,14 +26,17 @@ const SURFACES = [
 ];
 
 const html = () => renderToStaticMarkup(<AgentReadinessSection />);
-const text = () =>
-	html()
-		.replace(/<svg[\s\S]*?<\/svg>/g, " ")
-		// Path wraps segments in spans with <wbr>: inline, so no space.
-		.replace(/<\/?(span|wbr|code|a|strong)\b[^>]*>/g, "")
-		.replace(/<[^>]+>/g, " ")
-		.replace(/&amp;/g, "&")
-		.replace(/\s+/g, " ");
+
+// Parse the server markup with the DOM instead of stripping tags with a regex
+// (CodeQL js/incomplete-multi-character-sanitization, alert 438): the text a
+// crawler reads is the parsed document's textContent, drawing removed.
+function dom(): HTMLElement {
+	// DOMParser builds an inert document (no script runs, no live DOM sink).
+	const root = new DOMParser().parseFromString(html(), "text/html").body;
+	for (const svg of root.querySelectorAll("svg")) svg.remove();
+	return root;
+}
+const text = () => (dom().textContent ?? "").replace(/\s+/g, " ");
 
 describe("agents block, look 05 scoreboard", () => {
 	it("keeps the heading and the cross-harness lead", () => {
@@ -51,15 +54,13 @@ describe("agents block, look 05 scoreboard", () => {
 	});
 
 	it("lists every surface in an ordered list, each with proof and its check date", () => {
-		const h = html();
-		const items = h.match(/<li\b[\s\S]*?<\/li>/g) ?? [];
+		const items = [...dom().querySelectorAll("ol > li")];
 		expect(items).toHaveLength(SURFACES.length);
 		SURFACES.forEach((name, i) => {
-			const li = items[i].replace(/<[^>]+>/g, "");
+			const li = items[i].textContent ?? "";
 			expect(li, name).toContain(name);
 			expect(li, name).toContain("checked 15 Nov 2026");
 		});
-		expect(h).toMatch(/<ol\b/);
 	});
 
 	it("carries the proof facts from the status file", () => {
