@@ -10,6 +10,7 @@ import {
 } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
+import { ContentH1 } from "@/components/content-h1";
 import { SITE } from "@/lib/constants";
 import { docsHtmlCanonical } from "@/lib/docs-canonical";
 import { docsSearchDescription, docsSearchTitle } from "@/lib/search-copy";
@@ -204,6 +205,8 @@ export default async function Page(props: {
         <MDX
           components={{
             ...defaultMdxComponents,
+            // DocsTitle above is the page's one H1; a body "# " renders as H2.
+            h1: ContentH1,
             pre: TrackedCodeBlock,
             table: DocsTable,
             HookEventTable,
