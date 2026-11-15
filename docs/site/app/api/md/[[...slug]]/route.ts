@@ -3,6 +3,7 @@
 
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 import { readDocBody } from "@/lib/docs-content";
+import { homeFactsMarkdown } from "@/lib/home-facts";
 import { docsLandingMarkdown, isDocsLandingSlug } from "@/lib/docs-landing-markdown";
 import {
 	MARKDOWN_NEGOTIATED_HEADERS,
@@ -35,6 +36,8 @@ function homepageMarkdown(): string {
 		"",
 		`> AI development toolkit for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 		"",
+		// The facts the HTML carries in JSON-LD, for crawlers that get this body.
+		homeFactsMarkdown(),
 		"## Documentation",
 		"",
 		...pages.map(

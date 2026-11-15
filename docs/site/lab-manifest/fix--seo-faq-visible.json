@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-faq-visible",
+  "source": "docs/fix--seo-faq-visible/index.html",
+  "title": "Home FAQ in the page and facts in the Markdown",
+  "description": "The home FAQ moves from JSON-LD only into the server HTML, open, and AI crawlers that get Markdown at the root now get the key facts and the same FAQ.",
+  "tags": [
+    "seo",
+    "faq",
+    "agents"
+  ],
+  "date": "2026-11-15"
+}
