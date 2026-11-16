@@ -181,6 +181,8 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
     "skills": [
       "assess",
       "brainstorm",
+      "commit",
+      "create-pr",
       "explore",
       "glyph",
       "implement",
