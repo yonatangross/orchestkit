@@ -1,0 +1,12 @@
+{
+  "slug": "docs-site-next-advisory",
+  "source": "docs/fix--docs-site-next-advisory/index.html",
+  "title": "docs-site audit gate: next 16.4.3 to 16.4.6",
+  "description": "A new moderate next advisory turned the npm audit gate red for the docs site. A lockfile refresh inside the existing range clears it, with no override and no allowlist entry.",
+  "tags": [
+    "security",
+    "npm-audit",
+    "docs-site"
+  ],
+  "date": "2026-11-16"
+}
