@@ -40,7 +40,8 @@ function hooks(r: CompatRow) {
 						{", tracked in "}
 						<a
 							href={`${ISSUES}/${r.hooksIssue}`}
-							className="inline-flex min-h-11 items-center underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary sm:min-h-0"
+							// A 44 px tap target from an invisible hit area, so the line keeps the card's rhythm.
+							className="relative underline underline-offset-2 before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
 						>
 							#{r.hooksIssue}
 						</a>
