@@ -1,175 +1,105 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import { LibraryCatalog } from "@/components/library-catalog";
-import { CATEGORY_BADGE_CLASS, categoryLabel } from "@/lib/category-colors";
+import {
+  LIBRARY_COUNTS,
+  LIBRARY_ITEMS,
+  LIBRARY_STATIONS,
+} from "@/lib/generated/library-data";
+import { libraryItemHref } from "@/lib/library-view";
 
-vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+function listHrefs(html: string): string[] {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return Array.from(
+    doc.querySelectorAll<HTMLAnchorElement>("#library-list li a[href]"),
+  ).map((a) => a.getAttribute("href") ?? "");
+}
 
-const replace = vi.fn();
-let search = new URLSearchParams();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace, push: vi.fn() }),
-  useSearchParams: () => search,
-}));
+describe("LibraryCatalog (server component)", () => {
+  const html = renderToStaticMarkup(<LibraryCatalog />);
 
-vi.mock("@/components/lazy", () => ({
-  LazySkillBrowser: () => <div>skill browser</div>,
-}));
-
-describe("LibraryCatalog", () => {
-  beforeEach(() => {
-    search = new URLSearchParams();
-    replace.mockClear();
+  it("renders every item as one plain link in one flat list", () => {
+    const hrefs = listHrefs(html);
+    expect(hrefs).toHaveLength(LIBRARY_COUNTS.items);
+    expect(new Set(hrefs).size).toBe(LIBRARY_COUNTS.items);
+    expect(hrefs).toEqual(LIBRARY_ITEMS.map(libraryItemHref));
   });
 
-  it("keeps Skills/Agents/Hooks as real tab links", () => {
-    render(<LibraryCatalog />);
-    expect(
-      screen.getByRole("tab", { name: /skills/i }).getAttribute("href"),
-    ).toBe("/#library");
-    expect(
-      screen.getByRole("tab", { name: /agents/i }).getAttribute("href"),
-    ).toBe("/?lib=agents#library");
-    expect(
-      screen.getByRole("tab", { name: /hooks/i }).getAttribute("href"),
-    ).toBe("/?lib=hooks#library");
-    expect(
-      screen.getByRole("tab", { name: /skills/i }).querySelector("svg"),
-    ).toBeTruthy();
+  it("links skills, agents and hooks to the pages that exist", () => {
+    const hrefs = listHrefs(html);
+    expect(hrefs.filter((h) => h.startsWith("/docs/reference/skills/"))).toHaveLength(
+      LIBRARY_COUNTS.skills,
+    );
+    expect(hrefs.filter((h) => h.startsWith("/docs/reference/agents/"))).toHaveLength(
+      LIBRARY_COUNTS.agents,
+    );
+    const hooks = hrefs.filter((h) => h.startsWith("/docs/reference/hooks/"));
+    expect(hooks).toHaveLength(LIBRARY_COUNTS.hooks);
+    expect(hooks.every((h) => /#hook-[a-z0-9-]+$/.test(h))).toBe(true);
   });
 
-  it("adopts a ?lib=agents deep link from the URL", async () => {
-    search = new URLSearchParams("lib=agents");
-    render(<LibraryCatalog />);
-    await waitFor(() =>
-      expect(
-        screen.getByRole("tab", { name: /agents/i }).getAttribute("aria-selected"),
-      ).toBe("true"),
+  it("has no group headers inside the list", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelectorAll("#library-list h3, #library-list h4")).toHaveLength(0);
+  });
+
+  it("renders the seven stations as hash links for no-JS visitors", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    for (const station of LIBRARY_STATIONS) {
+      const chips = doc.querySelectorAll(`a[href="#station-${station.key}"]`);
+      // one in the rail, one in the chip row
+      expect(chips).toHaveLength(2);
+      expect(doc.getElementById(`station-${station.key}`)).toBeTruthy();
+    }
+  });
+
+  it("scopes the no-JS :has() rules to the library section, never body", () => {
+    const style = new DOMParser()
+      .parseFromString(html, "text/html")
+      .querySelector("#library style")?.textContent;
+    expect(style).toBeTruthy();
+    const rules = (style ?? "").split("\n").filter(Boolean);
+    expect(rules.length).toBeGreaterThan(0);
+    for (const rule of rules) expect(rule.startsWith("#library:not(.lib-js)")).toBe(true);
+    expect(style).not.toMatch(/(^|\s)body:has|:root:has|html:has/);
+  });
+
+  it("holds one closed drawer dialog that is named by its title", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const drawers = doc.querySelectorAll("dialog[data-lib-drawer]");
+    expect(drawers).toHaveLength(1);
+    expect(drawers[0].hasAttribute("open")).toBe(false);
+    expect(drawers[0].getAttribute("aria-labelledby")).toBe("lib-drawer-title");
+    expect(doc.getElementById("lib-drawer-title")).toBeTruthy();
+  });
+
+  it("explains the hooks count next to it, from LIBRARY_COUNTS", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("[data-lib-hooks-note]")?.textContent).toBe(
+      `${LIBRARY_COUNTS.hooks} hooks, plus ${LIBRARY_COUNTS.skillScopedHooks} that run inside ${LIBRARY_COUNTS.skillsWithHooks} skills.`,
     );
   });
 
-  it("preserves host when switching tabs", async () => {
-    search = new URLSearchParams("host=cursor");
-    render(<LibraryCatalog />);
-    fireEvent.click(screen.getByRole("tab", { name: /hooks/i }));
-    expect(replace).toHaveBeenCalledWith("/?host=cursor&lib=hooks#library", {
-      scroll: false,
-      transitionTypes: ["catalog"],
-    });
-    expect(
-      await screen.findByRole("heading", { name: /session/i }),
-    ).toBeTruthy();
-    expect(screen.getByTestId("hook-flow-compact").textContent).toMatch(
-      /Session.*Prompt/,
+  it("marks exactly the skills that hold hooks, and names the matcher on hook rows", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelectorAll("#library-list .lib-has")).toHaveLength(
+      LIBRARY_COUNTS.skillsWithHooks,
     );
+    const names = Array.from(doc.querySelectorAll("#library-list .lib-name")).map(
+      (el) => el.textContent ?? "",
+    );
+    expect(names.filter((n) => n.startsWith("webhook-forwarder · "))).not.toHaveLength(0);
   });
 
-  it("shows a first page of agents below lg, named by the agent", async () => {
-    search = new URLSearchParams("lib=agents");
-    render(<LibraryCatalog />);
-    const showAll = await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
-    const panel = screen.getByRole("tabpanel");
-    const links = Array.from(panel.querySelectorAll("a"));
-    expect(links.length).toBeGreaterThan(8);
-    links.forEach((link, i) => {
-      expect(link.className.includes("max-lg:hidden")).toBe(i >= 8);
-    });
-    // Every agent card carries the skill card's category left border (follow-up to #4414).
-    for (const link of links) {
-      expect(link.className).toContain("border-l-[3px]");
-      expect(link.className).toMatch(/\bborder-l-(?!\[)[a-z]+-\d+|border-l-fd-border/);
-    }
-    // Named by the agent alone, not the whole card text run together (QA #20).
-    const first = links[0];
-    expect(first).toHaveAccessibleName(first.querySelector("h3")?.textContent ?? "");
-    fireEvent.click(showAll);
-    expect(screen.queryByRole("button", { name: /show all/i })).toBeNull();
-    for (const link of panel.querySelectorAll("a")) {
-      expect(link.className).not.toContain("max-lg:hidden");
-    }
+  it("draws All stations as a chip and puts the terminal mark in the title bar", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const all = doc.querySelector("a[data-lib-station-all]");
+    expect(all?.classList.contains("lib-chip")).toBe(true);
+    expect(doc.querySelector(".term-mark")?.textContent).toBe(">_");
   });
 
-  it("caps the phone agent column at the page, so Show all cannot widen it", async () => {
-    // emulate-engineer's 13-provider slash list made every card 588px at 390 (dogfood ISSUE-001).
-    search = new URLSearchParams("lib=agents");
-    render(<LibraryCatalog />);
-    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
-    const grid = screen.getByRole("tabpanel").querySelector("a")?.parentElement as HTMLElement;
-    expect(grid.className.split(" ")).toContain("grid-cols-1");
-    const desc = document.getElementById("agent-card-emulate-engineer-desc");
-    expect(desc?.textContent).toMatch(/\w+\/\w+\/\w+/);
-    expect(desc?.className.split(" ")).toContain("wrap-anywhere");
-  });
-
-  it("labels agent categories like skill badges, inside the clamped description", async () => {
-    // Gate 2026-09-25: agent tags read "testing" / "frontend" while skill
-    // badges read "Testing" / "Frontend".
-    search = new URLSearchParams("lib=agents");
-    render(<LibraryCatalog />);
-    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
-    const panel = screen.getByRole("tabpanel");
-    for (const link of panel.querySelectorAll("a")) {
-      const desc = link.querySelector("[id^='agent-card-']") as HTMLElement;
-      expect(desc.className.split(" ")).toContain("line-clamp-2");
-      const badge = desc.firstElementChild as HTMLElement;
-      expect(badge.className).toContain(CATEGORY_BADGE_CLASS);
-      const label = badge.textContent ?? "";
-      expect(label.charAt(0)).toBe(label.charAt(0).toUpperCase());
-    }
-    const testing = document.getElementById("agent-card-test-generator-desc");
-    expect(testing?.firstElementChild?.textContent).toBe(categoryLabel("testing"));
-    expect(categoryLabel("testing")).toBe("Testing");
-    expect(categoryLabel("llm")).toBe("LLM");
-  });
-
-  it("draws the hook flow as one HTML flow at every width, never the SVG", async () => {
-    // The SVG drew 8px labels on phones and default grey boxes at desktop.
-    search = new URLSearchParams("lib=hooks");
-    render(<LibraryCatalog />);
-    const compact = await screen.findByTestId("hook-flow-compact");
-    expect(compact.className.split(" ")).not.toContain("md:hidden");
-    expect(compact.textContent).toMatch(/Session.*Prompt.*Tools.*Files.*Agents.*Tasks.*Model/);
-    for (const node of compact.querySelectorAll("li")) {
-      if (node.children.length === 0) expect(node.className).toContain("text-xs");
-    }
-    expect(compact.parentElement?.querySelector("svg")).toBeNull();
-  });
-
-  it("moves focus to the newly selected tab on arrow keys", async () => {
-    render(<LibraryCatalog />);
-    fireEvent.keyDown(screen.getByRole("tablist"), { key: "ArrowRight" });
-    await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /agents/i })).toHaveFocus();
-    });
-    fireEvent.keyDown(screen.getByRole("tablist"), { key: "ArrowLeft" });
-    await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /skills/i })).toHaveFocus();
-    });
-  });
-
-  // The home page draws a moving grid canvas behind the library (home-shell.tsx);
-  // an agent card without its own background lets the grid lines run through it.
-  it("gives every agent card an opaque background", async () => {
-    search = new URLSearchParams("lib=agents");
-    render(<LibraryCatalog />);
-    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
-    const links = Array.from(screen.getByRole("tabpanel").querySelectorAll("a"));
-    expect(links.length).toBeGreaterThan(8);
-    for (const link of links) {
-      expect(link.className.split(" ")).toContain("bg-fd-background");
-    }
+  it("keeps the search hidden until the client layer runs", () => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("search[hidden] input[type=search]")).toBeTruthy();
   });
 });

@@ -1,0 +1,43 @@
+CONSENT BANNER, SLIM ON A FIRST VISIT · orchestkit.dev · mockup v2 (AWAITS YONATAN'S APPROVAL)
+supersedes the LAYOUT of consent-banner-visibility-mockup.txt (v1); its look, wording and behaviour stay
+why: 16.11.2026 he asked to fix the banner before the library page goes live; v1 took 152 px (17 %) of
+the first screen at 1440 and 212 px (25 %) at 390, over the lower terminal lines
+
+01 / 1440 (from 640 px up): ONE ROW, about 70 px tall
+┌──────────────────────────────────────────────────────────────────────────┐
+│ page stays readable and clickable above and around the card              │
+│ ┏ analytics consent ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ <the same sentence, 13 px, two lines> Privacy notice ┌───────┐┌─────┐┃ │
+│ ┃ <...>                                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾ │Decline││Allow┃ │
+│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
+└──────────────────────────────────────────────────────────────────────────┘
+
+02 / 390: A TIGHT CARD, about 160 px (19 %)
+┌──────────────────────────────┐
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ <the same sentence, 12 px┃ │
+│ ┃  four or five lines>     ┃ │
+│ ┃  Privacy notice          ┃ │
+│ ┃       ┌───────┐┌───────┐ ┃ │   buttons 44 px tall on a phone
+│ ┃       │Decline││Allow  │ ┃ │
+│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
+└──────────────────────────────┘
+
+03 / WHAT CHANGES (layout only)
+  1440      text, link and buttons in one row; card up to 1152 px wide, padding 12 px
+  390       text 12 px, padding 12 px, link at the end of the sentence
+  link      "Privacy notice" follows the sentence on the same line (v1: its own line)
+  buttons   44 px on a phone (v1: 40), 40 px from 640 px up; still one class for both
+
+04 / WHAT STAYS (from v1, unchanged)
+  solid bg-fd-card, 2 px primary border, shadow; text-fd-card-foreground contrast
+  Decline and Allow analytics: same size, same weight, same fill
+  non-modal: no overlay, no focus trap, no aria-modal; role region "Analytics consent"
+  the sentence word for word; the consent logic; nothing is tracked before a choice
+
+◆ YONATAN APPROVES THIS LAYOUT before the PR leaves draft
+
+APPROVAL: approved by Yonatan on 16.11.2026 about 09:24 Israel time, "Yes, slim row", in a dialog relayed
+by conductor355, with the before and after captures open (1440: 152 px to 68 px; 390: 212 px to 144 px).
+It replaces the 09.11 card rule of consent-banner-visibility-mockup.txt (v1) for the layout from 640 px up;
+v1's look, wording and behaviour stay as approved. The header line above keeps its original wording.

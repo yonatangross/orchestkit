@@ -73,7 +73,7 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 		id: "devin",
 		name: "Devin",
 		href: "/docs/getting-started/devin",
-		what: "The ork plugin from git. 76 skills list; hooks do not load.",
+		what: "The ork plugin from git. Hooks do not load.",
 		where:
 			"Paste in a terminal with the Devin CLI signed in. The #plugins/ork fragment installs the plugin tree directly; a bare install also resolves it via .devin-plugin.",
 		commands: [

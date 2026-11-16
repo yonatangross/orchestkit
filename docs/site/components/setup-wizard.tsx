@@ -46,7 +46,7 @@ function honesty(host: HostId): string | null {
 		case "opencode":
 			return "No OpenCode marketplace pack. Same skills.sh starter as Muse.";
 		case "devin":
-			return "76 of the skills list today; hooks and rules do not load yet.";
+			return "Hooks and rules do not load yet.";
 		case "agy":
 			return "Skills via workspace .agents/skills. Hooks and MCP config are a different contract.";
 		default:
