@@ -36,3 +36,8 @@ the first screen at 1440 and 212 px (25 %) at 390, over the lower terminal lines
   the sentence word for word; the consent logic; nothing is tracked before a choice
 
 ◆ YONATAN APPROVES THIS LAYOUT before the PR leaves draft
+
+APPROVAL: approved by Yonatan on 16.11.2026 about 09:24 Israel time, "Yes, slim row", in a dialog relayed
+by conductor355, with the before and after captures open (1440: 152 px to 68 px; 390: 212 px to 144 px).
+It replaces the 09.11 card rule of consent-banner-visibility-mockup.txt (v1) for the layout from 640 px up;
+v1's look, wording and behaviour stay as approved. The header line above keeps its original wording.
