@@ -57,7 +57,8 @@ describe("CompatTable", () => {
 		const list = screen.getByRole("list", { name: /compatibility by host/i });
 		const items = within(list).getAllByRole("listitem");
 		expect(items).toHaveLength(COMPAT_ROWS.length);
-		expect(items[0].textContent).toMatch(/Claude Code.*skills.*agents.*hooks.*plugin \(CLI\).*open issues/s);
+		expect(items[0].textContent).toMatch(/Claude Code.*Skills 116.*Agents 36.*Hooks 163.*Install: plugin \(CLI\).*Open issues/s);
+		expect(items[2].textContent).toContain("Agents 4 roles");
 	});
 
 	it("explains the open issues column instead of leaving bare ?", () => {

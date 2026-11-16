@@ -70,7 +70,7 @@ export function CompatTable() {
 		<div>
 			<p className="text-sm text-fd-muted-foreground">{CAPTION}</p>
 
-			<ul aria-label="Compatibility by host" className="my-4 grid gap-3 sm:hidden">
+			<ul aria-label="Compatibility by host" className="not-prose my-4 grid list-none gap-3 p-0 sm:hidden">
 				{COMPAT_ROWS.map((r) => (
 					<li key={r.id} className="rounded-lg border border-fd-border bg-fd-card p-3 text-sm">
 						<p className="font-semibold">
@@ -82,10 +82,11 @@ export function CompatTable() {
 							</p>
 						) : null}
 						<p className="mt-1">
-							{count(r.skills)} skills · {agents(r)} agents · {hooks(r)} hooks
+							Skills {count(r.skills)} · Agents {agents(r)}
 						</p>
+						<p>Hooks {hooks(r)}</p>
 						<p className="text-fd-muted-foreground">
-							{r.route} · open issues {issues(r)}
+							Install: {r.route} · Open issues {issues(r)}
 						</p>
 					</li>
 				))}
