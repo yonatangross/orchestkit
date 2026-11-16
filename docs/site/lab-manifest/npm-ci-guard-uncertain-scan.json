@@ -1,0 +1,8 @@
+{
+  "slug": "npm-ci-guard-uncertain-scan",
+  "source": "docs/fix--npm-ci-guard-uncertain-scan/index.html",
+  "title": "npm ci guard: comments and sh -c scripts",
+  "description": "The npm ci symlink guard now reads past comments and unclosed quotes, and reads single-quoted sh -c scripts as commands. Pick a command to see what it did before and does now.",
+  "tags": ["hooks", "security", "npm-ci"],
+  "date": "2026-11-16"
+}

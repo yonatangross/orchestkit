@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>npm ci guard: comments and sh -c scripts</title>
+<meta name="description" content="The npm ci symlink guard now reads past comments and unclosed quotes, and reads single-quoted sh -c scripts as commands. Pick a command to see what the guard did before and does now.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, select { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; min-height:44px; }
+  button { cursor:pointer; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:0 0 4px; }
+  .result { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .result[data-now="blocked"] { border-left-color:var(--accent); }
+  .result[data-now="allowed"] { border-left-color:var(--muted); }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; word-break:break-all; white-space:pre-wrap; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>npm ci guard: comments and sh -c scripts</h1>
+      <p class="lead">Running <code>npm ci</code> where <code>node_modules</code> is a symlink empties the tree the link points at. The guard stops that. It now reads two more shapes: a command with a comment that holds a lone backtick or quote, and a script passed to <code>sh -c</code> in single quotes.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>Pick a command</h2>
+  <p class="lead">The working directory is <code>/wt</code> (a normal directory). <code>/lw</code> is a linked worktree: its <code>node_modules</code> is a symlink.</p>
+  <div class="row">
+    <div>
+      <label for="pick">Command</label>
+      <select id="pick"></select>
+    </div>
+  </div>
+  <div class="result" id="out" aria-live="polite"></div>
+
+  <h2>All cases</h2>
+  <table>
+    <thead><tr><th scope="col">Command</th><th scope="col">Before</th><th scope="col">Now</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>What changed</h2>
+  <p>The guard reads a command several ways: with substitutions blanked out, as raw text, and each <code>$(...)</code> or backtick body on its own. Two gaps are closed:</p>
+  <p><b>Comments and unclosed openers.</b> The reader used to stop at the first quote, <code>$(</code> or backtick that never closed, so everything after it went unread. It now skips a comment to the end of its line, as the shell does, and steps over an unclosed opener instead of stopping.</p>
+  <p><b>Scripts in single quotes.</b> To the outer shell, <code>sh -c '...'</code> is inert text. The script still runs, so the guard now reads it with the same readings as the outer command, three levels deep.</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const CASES = [
+    { cmd: '# don`t run this\necho "$(npm ci --prefix /lw)"', before: 'allowed', now: 'blocked', why: 'A lone backtick in the comment stopped the reader; the substitution after it went unread.' },
+    { cmd: 'true # `\necho "$(npm ci --prefix /lw)"', before: 'allowed', now: 'blocked', why: 'Same, with the comment after a command on the line.' },
+    { cmd: "sh -c 'echo \"$(npm ci --prefix /lw)\"'", before: 'allowed', now: 'blocked', why: 'The script in single quotes was read only as raw text, never as a command with its own substitutions.' },
+    { cmd: "sh -c 'echo `npm ci --prefix /lw`'", before: 'allowed', now: 'blocked', why: 'Same, with a backtick substitution inside the script.' },
+    { cmd: 'echo "$(npm ci --prefix /lw)"', before: 'blocked', now: 'blocked', why: 'No trick: the guard denied this before and still does.' },
+    { cmd: "sh -c 'npm ci'", before: 'allowed', now: 'allowed', why: 'Runs in /wt, whose node_modules is a real directory: nothing to protect, so the guard stays quiet.' },
+  ];
+  const label = (v) => (v === 'blocked' ? 'denied or asked' : 'allowed');
+  const pick = document.getElementById('pick');
+  const out = document.getElementById('out');
+  CASES.forEach((c, i) => {
+    const o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = c.cmd.replace(/\n/g, ' ↵ ');
+    pick.appendChild(o);
+    const tr = document.createElement('tr');
+    const td = (t, isCode) => { const d = document.createElement('td'); if (isCode) { const k = document.createElement('code'); k.textContent = t; d.appendChild(k); } else { d.textContent = t; } return d; };
+    tr.append(td(c.cmd, true), td(label(c.before)), td(label(c.now)));
+    document.getElementById('rows').appendChild(tr);
+  });
+  function show() {
+    const c = CASES[Number(pick.value)];
+    out.dataset.now = c.now;
+    out.replaceChildren();
+    const b = document.createElement('b');
+    b.textContent = `Before: ${label(c.before)}. Now: ${label(c.now)}.`;
+    const p = document.createElement('p');
+    p.textContent = c.why;
+    out.append(b, p);
+  }
+  pick.addEventListener('change', show);
+  show();
+  document.getElementById('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    document.getElementById('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  document.getElementById('copy').addEventListener('click', async () => {
+    const c = CASES[Number(pick.value)];
+    const text = `In orchestkit, check how the npm ci symlink guard handles this command from cwd /wt with /lw linked:\n${c.cmd}\nExpected now: ${label(c.now)}.`;
+    try { await navigator.clipboard.writeText(text); document.getElementById('copy').textContent = 'Copied'; } catch { document.getElementById('copy').textContent = 'Copy failed'; }
+  });
+</script>
+</body>
+</html>

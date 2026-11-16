@@ -156,6 +156,17 @@ function expandHome(dir: string, home: string): string {
 }
 
 /** One command substitution in a text: [start, end) covers the whole `$(...)` or backtick form. */
+/**
+ * Work budget for reading one command. A command past it is not read further: the guard asks
+ * when the text mentions a clean install (fails closed), instead of stopping quietly, running out
+ * of stack (the dispatcher's catch would let the command through) or stalling the hook.
+ */
+const PARSE_MAX_SPANS = 4000;
+const PARSE_MAX_CHARS = 200_000;
+const PARSE_MAX_WORK = 2_000_000;
+const PARSE_MAX_UNCLOSED = 64;
+class ParseBudgetExceeded extends Error {}
+
 interface SubstitutionSpan {
   start: number;
   end: number;
@@ -229,34 +240,56 @@ function closeOfBacktick(text: string, open: number): number {
 
 /**
  * The outermost command substitutions of a text, read the way the shell reads
- * quotes: `$(` and a backtick are inert inside single quotes and after a
- * backslash, and live inside double quotes. A substitution that never closes
- * ends the scan, so the rest of the text is left as it is (other readings of the
- * command still see it, and the guard asks when no reading finds an install).
+ * quotes: `$(` and a backtick are inert inside single quotes, after a backslash
+ * and in a comment, and live inside double quotes. An opener that never closes
+ * (a quote, `$(` or a backtick) is stepped over, not taken as the end of the
+ * text: stopping there would leave every later substitution unread, and an
+ * unread clean install is an allowed one.
+ *
+ * `skipComments` is one of two readings, never the only one: a `#` the shell does not
+ * take as a comment (right after a substitution, in a heredoc body, after `$'\''`)
+ * would hide what follows it. readingsOf() reads both ways, so a misread comment can
+ * only add candidates, never remove them.
  */
-function substitutionSpans(text: string): SubstitutionSpan[] {
+function substitutionSpans(text: string, skipComments = false): SubstitutionSpan[] {
   const spans: SubstitutionSpan[] = [];
   let inDouble = false;
   let i = 0;
+  // Each unclosed opener is a scan to the end of the text; many of them cost length squared.
+  let unclosed = 0;
+  const stepOverUnclosed = (): void => {
+    if (++unclosed > PARSE_MAX_UNCLOSED) throw new ParseBudgetExceeded();
+  };
   while (i < text.length) {
     const c = text[i];
     if (c === '\\') {
       i += 2;
+    } else if (skipComments && c === '#' && !inDouble && (i === 0 || /[\s;&|()]/.test(text[i - 1] ?? ''))) {
+      // A comment runs to the end of its line; nothing in it is a substitution.
+      const end = text.indexOf('\n', i + 1);
+      i = end === -1 ? text.length : end + 1;
     } else if (c === "'" && !inDouble) {
       const end = text.indexOf("'", i + 1);
-      if (end === -1) break;
-      i = end + 1;
+      i = end === -1 ? i + 1 : end + 1;
     } else if (c === '"') {
       inDouble = !inDouble;
       i++;
     } else if (c === '$' && text[i + 1] === '(') {
       const end = closeOfParen(text, i + 1);
-      if (end === -1) break;
+      if (end === -1) {
+        stepOverUnclosed();
+        i += 2;
+        continue;
+      }
       spans.push({ start: i, end, inner: text.slice(i + 2, end - 1) });
       i = end;
     } else if (c === '`') {
       const end = closeOfBacktick(text, i);
-      if (end === -1) break;
+      if (end === -1) {
+        stepOverUnclosed();
+        i++;
+        continue;
+      }
       spans.push({ start: i, end, inner: text.slice(i + 1, end - 1) });
       i = end;
     } else {
@@ -272,10 +305,10 @@ function substitutionSpans(text: string): SubstitutionSpan[] {
  * its separators do not split the outer command. Quote-aware: a quoted ')' does
  * not end a substitution early and leave a real terminator behind.
  */
-function blankSubstitutions(command: string): string {
+function blankSubstitutions(command: string, skipComments = false): string {
   let out = '';
   let last = 0;
-  for (const span of substitutionSpans(command)) {
+  for (const span of substitutionSpans(command, skipComments)) {
     out += `${command.slice(last, span.start)}_`;
     last = span.end;
   }
@@ -311,15 +344,32 @@ function nestedShellBodies(command: string): string[] {
 
 /** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
 function substitutionBodies(command: string): string[] {
-  const bodies: string[] = [];
-  const walk = (text: string): void => {
-    for (const span of substitutionSpans(text)) {
-      bodies.push(blankSubstitutions(span.inner));
-      walk(span.inner);
+  const bodies = new Set<string>();
+  // No depth cap (a cap that stops quietly fails open): every body is strictly shorter than the
+  // text it came from, so the walk ends; the set keeps repeated bodies from being walked twice.
+  // Dedup on the RAW inner text: blanked bodies of different nesting levels can be equal ("_"),
+  // and skipping on those would stop the walk before the innermost body. Iterative, under a work
+  // budget: past it the command is too complex to read and the guard fails closed (ParseBudgetExceeded).
+  const walked = new Set<string>();
+  const stack = [command];
+  let work = 0;
+  while (stack.length > 0) {
+    const text = stack.pop() as string;
+    // Each body is rescanned on its own, so nesting costs about depth x length: bound the total.
+    work += text.length;
+    if (work > PARSE_MAX_WORK) throw new ParseBudgetExceeded();
+    // Both readings: with comments skipped and without (see substitutionSpans).
+    for (const skip of [false, true]) {
+      for (const span of substitutionSpans(text, skip)) {
+        if (walked.has(span.inner)) continue;
+        if (walked.size >= PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
+        walked.add(span.inner);
+        bodies.add(blankSubstitutions(span.inner));
+        stack.push(span.inner);
+      }
     }
-  };
-  walk(command);
-  return bodies;
+  }
+  return [...bodies];
 }
 
 /**
@@ -343,9 +393,27 @@ export function npmCiCandidateDirs(command: string, cwd: string, home: string = 
   return [...dirs];
 }
 
-/** Every reading of a command: substitutions blanked, raw, each substitution body, each nested shell script. */
+/**
+ * Every reading of a command: substitutions blanked, raw, each substitution body, and every nested
+ * shell script read the same way. A script in single quotes is inert text to the outer shell, so its
+ * substitutions only come out when the script itself is read as a command. No depth cap: a nested
+ * script is a strict substring of its parent, so the recursion ends.
+ */
 function readingsOf(command: string): string[] {
-  return [blankSubstitutions(command), command, ...substitutionBodies(command), ...nestedShellBodies(command)];
+  if (command.length > PARSE_MAX_CHARS) throw new ParseBudgetExceeded();
+  const readings: string[] = [];
+  const stack = [command];
+  let scripts = 0;
+  while (stack.length > 0) {
+    const text = stack.pop() as string;
+    readings.push(blankSubstitutions(text), blankSubstitutions(text, true), text, ...substitutionBodies(text));
+    for (const body of nestedShellBodies(text)) {
+      if (body.length >= text.length) continue;
+      if (++scripts > PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
+      stack.push(body);
+    }
+  }
+  return readings;
 }
 
 /**
@@ -553,6 +621,24 @@ export function npmCiSymlinkGuard(
   if (typeof command !== 'string' || !shellWord(command).includes('npm')) return outputSilentSuccess();
 
   const cwd = input.cwd || ctx.projectDir;
+  try {
+    return decide(command, cwd, ctx, deps);
+  } catch (err) {
+    // Too complex to read (the work budget, or a stack overflow in the quote-aware reader): never
+    // let it through quietly. Ask when the text mentions a clean install; the check below reads
+    // the words only, with no recursion.
+    const words = shellWord(command).split(/[\s;&|()$`"']+/).filter(Boolean);
+    const npmAt = words.indexOf('npm');
+    if (npmAt === -1 || !words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w))) return outputSilentSuccess();
+    ctx.log(HOOK_NAME, `asked: command too complex to read (${err instanceof ParseBudgetExceeded ? 'work budget' : String(err)})`);
+    return outputAsk(
+      'This command mentions npm ci (or another clean install) in a form too complex for the npm ci guard to read. ' +
+        'If it runs npm ci where node_modules is a symlink, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command.',
+    );
+  }
+}
+
+function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymlinkGuardDeps): HookResult {
   const candidates = npmCiCandidateDirs(command, cwd);
   if (candidates.length === 0) {
     // No reading found a clean install, yet the text names one: a shape the
