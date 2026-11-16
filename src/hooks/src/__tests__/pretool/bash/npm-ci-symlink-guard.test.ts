@@ -569,7 +569,9 @@ describe('substitutions the scanner must not lose', () => {
   ])('%s: fails closed (never allowed, never throws) and stays fast', (_name, command) => {
     const started = Date.now();
     expect(blocked(command, linked)).toBe(true);
-    expect(Date.now() - started).toBeLessThan(500);
+    // The bound catches the quadratic scan (seconds), not normal speed: under
+    // vitest --coverage the linear scan takes about 0.8 s, so the bound has room for it.
+    expect(Date.now() - started).toBeLessThan(2000);
   });
 
   it("control: sh -c 'npm ci' in a cwd whose node_modules is real stays quiet when another dir is linked", () => {
