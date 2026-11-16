@@ -762,6 +762,86 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  describe('a comment after the directory', () => {
+    it.each([
+      ['on the same line, then a newline', 'cd /lw # reclaimed worktree\nnpm ci'],
+      ['on the same line, then &&', 'cd /lw # reclaimed worktree && npm ci\nnpm ci'],
+      ['after pushd', 'pushd /lw # here\nnpm ci'],
+      ['after the install', 'npm ci --prefix /lw # fresh install'],
+      ['after a tab, with several words in the comment', 'cd /lw\t# one two three\nnpm ci'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['cd /wt # reclaimed worktree\nnpm ci'],
+      ['cd /lw # reclaimed worktree\nnpm install'],
+      ['echo "cd /lw # x"; npm ci'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('the other spellings npm accepts for a clean install', () => {
+    it.each([
+      ['install-ci-test'],
+      ['install-ci'],
+      ['install-cl'],
+      ['isntall-c'],
+      ['clean-install-t'],
+      ['cleanInstall'],
+      ['installClean'],
+      ['isntallClean'],
+      ['installCiTest'],
+      ['cleanInstallTest'],
+    ])('npm %s: denied', (spelling) => {
+      expect(decision(`npm ${spelling} --prefix /lw`, linked)).toBe('deny');
+    });
+
+    it.each([['install-test'], ['install-foo'], ['run-script'], ['cleanup']])('control: npm %s is quiet', (spelling) => {
+      expect(decision(`npm ${spelling} --prefix /lw`, linked)).toBeUndefined();
+    });
+  });
+
+  // A command past the parse budget falls back to a word test. A backslash before a newline joins
+  // the two lines for the shell, so the test must read it the same way.
+  describe('past the parse budget, a line continuation does not hide the install', () => {
+    const unclosed = (n: number) => Array.from({ length: n }, (_, k) => `# step ${k}: type $( to open`).join('\n');
+    const padded = unclosed(70);
+    const overLength = `# ${'x'.repeat(200_001)}`;
+
+    it.each([
+      ['a continuation after npm', 'npm \\\nci --prefix /lw'],
+      ['a continuation and a blank after it', 'npm \\\n ci --prefix /lw'],
+      ['a continuation inside the subcommand', 'npm c\\\ni --prefix /lw'],
+      ['a continuation inside the command word', 'n\\\npm ci --prefix /lw'],
+      ['two continuations in a row', 'npm \\\n\\\nci --prefix /lw'],
+      ['a continuation after the subcommand', 'npm ci \\\n --prefix /lw'],
+      ['a continuation before a spelled-out alias', 'npm \\\nclean-install --prefix /lw'],
+    ])('too many unclosed openers, %s: asked', (_name, tail) => {
+      expect(decision(`${padded}\n${tail}`, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['a continuation after npm', 'npm \\\nci --prefix /lw'],
+      ['a continuation inside the subcommand', 'npm c\\\ni --prefix /lw'],
+    ])('too long, %s: asked', (_name, tail) => {
+      expect(decision(`${overLength}\n${tail}`, linked)).toBe('ask');
+    });
+
+    it('control: the plain form is asked, so the harness does reach the fallback', () => {
+      expect(decision(`${padded}\nnpm ci --prefix /lw`, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['a continued npm install', 'npm \\\ninstall --prefix /lw'],
+      ['npm and ci joined into one word', 'npm\\\nci --prefix /lw'],
+      ['no npm at all', 'echo \\\nci --prefix /lw'],
+    ])('control: %s stays quiet past the budget', (_name, tail) => {
+      expect(decision(`${padded}\n${tail}`, linked)).toBeUndefined();
+    });
+  });
+
   describe('process substitution runs its body', () => {
     it.each([
       ['cat <(npm ci --prefix /lw)'],
@@ -781,6 +861,9 @@ describe('command shapes the reader must follow to the install', () => {
     ['four thousand sibling here-documents', `${"cat <<'E'\nx\nE\n".repeat(4000)}npm ci --prefix /lw`],
     ['a chain of sh -c scripts, each one word shorter', `${'sh -c '.repeat(20000)}'npm ci --prefix /lw'`],
     ['a long run of line continuations', `${'x \\\n'.repeat(40000)}; npm ci --prefix /lw`],
+    ['a run of unclosed braced IFS words', `npm ci --prefix /lw ${`$${'{IFS'}`.repeat(30000)}`],
+    ['a run of closing parentheses before a word', `npm ci --prefix /lw; echo x ${')'.repeat(150000)}x`],
+    ['a run of hash words', `npm ci --prefix /lw ${'# '.repeat(90000)}`],
   ])('%s: blocked and fast', (_name, command) => {
     const started = Date.now();
     expect(['deny', 'ask']).toContain(decision(command, linked));

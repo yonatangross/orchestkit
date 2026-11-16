@@ -27,7 +27,12 @@ import { isSymlinkPath, listSubdirs } from '../../lib/fs-probe.js';
 const HOOK_NAME = 'npm-ci-symlink-guard';
 
 /** npm subcommands that run a clean install (npm's own aliases for ci and cit). */
-const CLEAN_INSTALL = new Set(['ci', 'clean-install', 'ic', 'install-clean', 'isntall-clean', 'cit', 'clean-install-test', 'sit']);
+const CLEAN_INSTALL = new Set([
+  'ci', 'clean-install', 'ic', 'install-clean', 'isntall-clean', 'cit', 'clean-install-test', 'sit',
+  // Spellings npm also resolves to those commands (checked against npm's own help output).
+  'install-ci-test', 'install-ci', 'install-cl', 'isntall-c', 'clean-install-t',
+  'cleanInstall', 'installClean', 'isntallClean', 'installCiTest', 'cleanInstallTest',
+]);
 
 export interface NpmCiSymlinkGuardDeps {
   /** True when the path is a symbolic link. */
@@ -189,7 +194,8 @@ function readWord(text: string, start: number, stops: string): { value: string; 
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
-const IFS_BLANK = /\$\{IFS[^}]*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+// The text inside the braces is short and holds no `$` or `{`, so a run of unclosed openers is linear.
+const IFS_BLANK = /\$\{IFS[^}${]{0,16}\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
 
 /** Characters a backslash escapes inside double quotes. */
 const DQ_ESCAPABLE = '$`"\\\n';
@@ -221,6 +227,8 @@ function shellWords(segment: string): string[] {
       dropNext = true;
       continue;
     }
+    // A `#` that starts a word starts a comment: nothing after it on the line is a word.
+    if (c === '#' && !dropNext) break;
     const word = readWord(segment, i, '');
     i = word.end;
     if (dropNext) dropNext = false;
@@ -808,7 +816,9 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     let segment = raw.trim();
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
-    const closes = /\)+$/.exec(segment)?.[0].length ?? 0;
+    // Counted from the end: a regex for a trailing run rescans the whole run from each of its starts.
+    let closes = 0;
+    while (closes < segment.length && segment[segment.length - 1 - closes] === ')') closes++;
     segment = segment.slice(0, segment.length - closes).trim();
     for (let n = 0; n < opens; n++) saved.push(dir);
     const restore = () => {
