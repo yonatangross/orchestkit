@@ -63,7 +63,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Surface | Claude Code | Cursor | Codex | pi | Devin | Antigravity |
 |---|---|---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 | all via workspace `.agents/skills` (skills.sh); `ork:<name>` via `agy plugin install` |
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 9 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 | all via workspace `.agents/skills` (skills.sh); `ork:<name>` via `agy plugin install` |
 | Agents | all | all | 4 role templates | none | not reported by `info` | 36 via `agy plugin install` (validated); none via `.agents/skills` |
 | Hooks | all | none | none | none | none | none of ork's; agy `hooks.json` is a different schema |
 | Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on | `AGENTS.md`, per-directory |

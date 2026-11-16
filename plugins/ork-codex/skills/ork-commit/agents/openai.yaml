@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Commit"
+  short_description: "Make one conventional commit of the intended change."
+  default_prompt: "Use $ork-commit to commit $ARGUMENTS."
