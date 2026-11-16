@@ -19,9 +19,9 @@ describe("per-host line (generated from the manifests)", () => {
     );
   });
 
-  it("Codex: 3 of 7 skills with their $ork- names, 4 roles, and the 9 hooks do not load", () => {
+  it("Codex: 4 of 7 skills with their $ork- names, 4 roles, and the 9 hooks do not load", () => {
     const line = hostLine("codex") ?? "";
-    expect(line).toContain("3 of this run's 7 skills ship ($ork-implement, $ork-explore, $ork-verify)");
+    expect(line).toContain("4 of this run's 7 skills ship ($ork-implement, $ork-explore, $ork-verify, $ork-commit)");
     expect(line).toContain("agents run as 4 roles");
     expect(line).toContain("this run's 9 hooks do not load on Codex");
     expect(line).not.toContain("Claude Code only");
