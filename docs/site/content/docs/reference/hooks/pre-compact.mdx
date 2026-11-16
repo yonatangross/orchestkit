@@ -9,7 +9,7 @@ description: "Hooks triggered on PreCompact events (4 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `pre-compact-guard` | `*` | Blocks | PreCompact Guard (CC 2.1.105) |
-| `pre-compact-task-done-prompt` | `*` | Silent | PreCompact Task-Done Prompt, Issue #1469 (extended by M119 dogfood cluster) |
-| `pre-compact-saver` | `*` | Silent | PreCompact Saver, Compaction-Aware Memory Architecture CC 2.1.25+: Preserves critical context before context compaction. |
-| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| <span id="hook--lifecycle-pre-compact-guard"></span>`pre-compact-guard` | `*` | Blocks | PreCompact Guard (CC 2.1.105) |
+| <span id="hook--lifecycle-pre-compact-task-done-prompt"></span>`pre-compact-task-done-prompt` | `*` | Silent | PreCompact Task-Done Prompt, Issue #1469 (extended by M119 dogfood cluster) |
+| <span id="hook--lifecycle-pre-compact-saver"></span>`pre-compact-saver` | `*` | Silent | PreCompact Saver, Compaction-Aware Memory Architecture CC 2.1.25+: Preserves critical context before context compaction. |
+| <span id="hook--lifecycle-webhook-forwarder"></span>`webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

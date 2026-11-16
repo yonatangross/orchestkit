@@ -22,6 +22,7 @@ const { parseYamlFrontmatter } = require('./lib/parse-frontmatter');
 const { slugLabel } = require('./lib/slug-label');
 const { tagPluginVersions } = require('./lib/release-version-marker');
 const { buildLibrary, listHooks } = require('./lib/library-stations');
+const { buildLibraryHosts } = require('./lib/library-hosts');
 
 // Paths
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -572,6 +573,11 @@ function writeLibraryData(skillsDetailed, agentsData, hookCounts) {
     '  | { id: string; kind: "agent"; name: string; station: LibraryStationKey; description: string; model: string | null }',
     '  | { id: string; kind: "hook"; name: string; station: LibraryStationKey; event: string; matcher: string; script: string };',
     'export type LibraryCounts = { items: number; skills: number; agents: number; hooks: number; skillScopedHooks: number; skillsWithHooks: number };',
+    '// What each host ships, read from the pack manifests (scripts/lib/library-hosts.js). A null set means',
+    '// "not verified": Devin stays null until one `devin plugins info ork` read gives a count.',
+    'export type LibraryHostSets = { skills: string[] | "all" | null; agents: string[] | "all" | null; roles?: string[]; hooks: "claude" | "none" | "unknown" };',
+    '',
+    `export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "opencode" | "muse" | "pi" | "agy", LibraryHostSets> = ${JSON.stringify(buildLibraryHosts(PROJECT_ROOT), null, 2)};`,
     '',
     `export const LIBRARY_STATIONS: LibraryStation[] = ${JSON.stringify(library.stations, null, 2)};`,
     '',

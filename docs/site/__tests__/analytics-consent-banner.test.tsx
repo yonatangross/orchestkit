@@ -67,21 +67,22 @@ describe("AnalyticsConsentBanner", () => {
 		expect(text.className).toContain("text-fd-card-foreground");
 	});
 
-	it("puts the buttons below the sentence, right-aligned, at every width (approved mockup v1)", () => {
+	it("stacks on a phone and is one slim row from 640 px up (mockup v2, consent-banner-slim-mockup.txt)", () => {
 		render(<AnalyticsConsentBanner />);
 		const card = screen.getByTestId("analytics-consent-card");
 		expect(card.className).toContain("flex-col");
-		// No breakpoint may turn the card into one row (the 1440 px build did).
-		expect(card.className).not.toMatch(/\b\w+:flex-row\b/);
+		// Only the sm breakpoint turns it into a row; no other width may.
+		expect(card.className).toMatch(/(^|\s)sm:flex-row(\s|$)/);
+		expect(card.className).not.toMatch(/\b(md|lg|xl|2xl):flex-row\b/);
 		const buttons = screen.getByRole("button", { name: "Decline" }).parentElement as HTMLElement;
 		expect(buttons.className).toContain("self-end");
 	});
 
-	it("puts the Privacy notice link on its own line under the sentence (approved mockup v1)", () => {
+	it("runs the Privacy notice link on after the sentence (mockup v2)", () => {
 		render(<AnalyticsConsentBanner />);
 		const link = screen.getByRole("link", { name: "Privacy notice" });
-		// A block element starts its own line; inline it ran on after the sentence.
-		expect(link.className).toMatch(/(^|\s)block(\s|$)/);
+		expect(link.className).not.toMatch(/(^|\s)block(\s|$)/);
+		expect(link.closest("p")).not.toBeNull();
 	});
 
 	it("gives Decline and Allow the same styling (equal weight)", () => {
