@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Create PR"
+  short_description: "Push the branch and open a verified pull request."
+  default_prompt: "Use $ork-create-pr to open a pull request for $ARGUMENTS."
