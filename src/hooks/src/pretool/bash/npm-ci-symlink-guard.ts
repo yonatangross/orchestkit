@@ -194,9 +194,9 @@ function readWord(text: string, start: number, stops: string): { value: string; 
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
-// The text inside the braces holds no `$` or `{`, so the scan from one opener ends at the next one
-// and a run of unclosed openers is linear.
-const IFS_BLANK = /\$\{IFS[^}${]*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+// The text inside the braces may hold `$` or `{` (`${IFS:-$x}`), but the scan from one `${IFS` stops
+// at the next one, so a run of unclosed openers is linear.
+const IFS_BLANK = /\$\{IFS(?:(?!\$\{IFS)[^}])*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
 
 /** The words before the first word that starts a comment (`#`). */
 function beforeComment(words: string[]): string[] {
