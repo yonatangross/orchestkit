@@ -1,0 +1,13 @@
+{
+  "slug": "t3-adopt-cli-detect",
+  "source": "docs/feat--t3-adopt-cli-detect/index.html",
+  "title": "orchestkit install: finds your coding agents",
+  "description": "npx orchestkit install now detects Claude Code, Cursor, Codex and five more agents on your machine and prints each install command. Tick hosts to see the output.",
+  "tags": [
+    "cli",
+    "install",
+    "hosts",
+    "explainer"
+  ],
+  "date": "2026-11-16"
+}

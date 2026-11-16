@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>orchestkit install: finds your coding agents</title>
+<style>
+:root{--bg:#0c0f19;--card:#141927;--ink:#e5e8f0;--muted:#a3abc0;--gold:#e8c365;--line:#2a3147}
+@media (prefers-color-scheme: light){:root{--bg:#f8fafe;--card:#fff;--ink:#080b14;--muted:#4a5168;--gold:#8a6410;--line:#d8dce8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:960px;margin:0 auto;padding:32px 20px}
+h1{font-size:clamp(1.5rem,1.2rem + 1.2vw,2.25rem);line-height:1.2;margin:0 0 8px}
+p.lead{color:var(--muted);margin:0 0 20px}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 16px;background:var(--card)}
+legend{padding:0 6px;color:var(--muted)}
+label{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-right:16px}
+input{width:20px;height:20px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+pre{background:#05070d;color:#e5e8f0;border:1px solid var(--line);border-radius:8px;padding:14px;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,monospace;margin:0 0 12px}
+.copy{min-height:44px;padding:8px 16px;border-radius:8px;border:1px solid var(--gold);background:none;color:var(--ink);font:600 14px system-ui;cursor:pointer}
+.status{color:var(--muted);font-size:14px;margin-left:10px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="orchestkit install: finds your coding agents"><meta property="og:description" content="npx orchestkit install now detects Claude Code, Cursor, Codex and five more agents on your machine and prints each install command. Tick hosts to see the output."><meta property="og:url" content="https://orchestkit.dev/lab/t3-adopt-cli-detect.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="orchestkit install: finds your coding agents"><meta name="twitter:description" content="npx orchestkit install now detects Claude Code, Cursor, Codex and five more agents on your machine and prints each install command. Tick hosts to see the output."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>orchestkit install: finds your coding agents</h1>
+<p class="lead">Before, <code>npx orchestkit install</code> printed the Claude Code command only. Now it looks for the coding agents on your machine and prints the install command for each. Tick what this machine has and see the output.</p>
+<fieldset>
+  <legend>On this machine</legend>
+  <div id="hosts"></div>
+</fieldset>
+<pre id="out" aria-live="polite"></pre>
+<button class="copy" id="copy" type="button">Copy as prompt</button><span class="status" id="status" role="status"></span>
+<noscript><p>Run <code>npx orchestkit install</code>, <code>npx orchestkit install codex</code> or <code>npx orchestkit install --all</code>.</p></noscript>
+</main>
+<script>
+// Same ids, order and commands as packages/cli/src/hosts.ts (which a test pins to docs/site/lib/host-installs.ts).
+const STARTER = "npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit";
+const HOSTS = [
+  { id: "claude", name: "Claude Code", how: "CLAUDECODE=1 or claude on PATH", where: "Paste in a terminal.", cmds: ["claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit"], then: "/ork:setup" },
+  { id: "cursor", name: "Cursor", how: "cursor or cursor-agent on PATH", where: "Settings → Plugins. Paste the repo, enable ork, open a new chat.", cmds: ["yonatangross/orchestkit"], then: "/ork:setup" },
+  { id: "codex", name: "Codex", how: "codex on PATH", where: "Paste in a terminal, then restart Codex.", cmds: ["codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex", "codex plugin add ork-codex@orchestkit-codex"], then: "$ork-implement" },
+  { id: "devin", name: "Devin", how: "devin on PATH", where: "Paste in a terminal with the Devin CLI signed in.", cmds: ["devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork"], then: "devin plugins info ork" },
+  { id: "opencode", name: "OpenCode", how: "opencode on PATH", where: "Paste in the repo.", cmds: [STARTER] },
+  { id: "muse", name: "Muse Code", how: "muse on PATH", where: "Paste in the repo. Muse Code already scans .agents/skills.", cmds: [STARTER], then: "muse skills list" },
+  { id: "pi", name: "Pi", how: "pi on PATH", where: "Paste in a terminal. Add -l to pin the project.", cmds: ["pi install git:github.com/yonatangross/orchestkit"] },
+  { id: "agy", name: "Antigravity", how: "agy on PATH", where: "Paste in the repo. agy reads the workspace .agents/skills.", cmds: [STARTER], then: 'agy -p "/skills" --add-dir "$PWD"' },
+];
+const $ = (id) => document.getElementById(id);
+const picked = new Set(["claude"]);
+function render() {
+  const found = HOSTS.filter((h) => picked.has(h.id));
+  const text = found.length === 0
+    ? ["No coding agent found on PATH. OrchestKit installs into any of these:", "", ...HOSTS.map((h) => `  ${h.id.padEnd(9)} ${h.name}`), "", "Run: orchestkit install <host>    (or --all to print every command)"].join("\n")
+    : found.map((h) => [`${h.name}: ${h.where}`, ...h.cmds.map((c) => `  ${c}`), ...(h.then ? [`  then: ${h.then}`] : [])].join("\n")).join("\n\n") + "\n\nDocs: https://orchestkit.dev/docs/getting-started/installation";
+  $("out").textContent = "$ npx orchestkit install\n" + text;
+  $("status").textContent = "";
+}
+for (const h of HOSTS) {
+  const l = document.createElement("label");
+  const i = document.createElement("input");
+  i.type = "checkbox"; i.checked = picked.has(h.id);
+  i.addEventListener("change", () => { i.checked ? picked.add(h.id) : picked.delete(h.id); render(); });
+  const t = document.createElement("span"); t.textContent = h.name; t.title = `detected by: ${h.how}`;
+  l.append(i, t); $("hosts").append(l);
+}
+$("copy").addEventListener("click", async () => {
+  const names = HOSTS.filter((h) => picked.has(h.id)).map((h) => h.name).join(", ") || "none of the hosts";
+  const prompt = `Install OrchestKit on ${names}. Start with: npx orchestkit install`;
+  try { await navigator.clipboard.writeText(prompt); $("status").textContent = "Copied."; }
+  catch { $("status").textContent = "Copy failed; run npx orchestkit install."; }
+});
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
