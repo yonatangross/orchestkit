@@ -552,4 +552,8 @@ describe('substitutions the scanner must not lose', () => {
   ])('control: %s is neither denied nor asked when nothing is linked', (command) => {
     expect(blocked(command, nothingLinked)).toBe(false);
   });
+
+  it("control: sh -c 'npm ci' in a cwd whose node_modules is real stays quiet when another dir is linked", () => {
+    expect(blocked("sh -c 'npm ci'", linked)).toBe(false);
+  });
 });
