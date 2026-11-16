@@ -96,6 +96,18 @@ function buildCompatRows(root) {
       row.agents = countFiles(path.join(root, 'plugins/ork/agents'), '.md');
       row.hooks = stampedHooks(root);
       row.minVersion = ccFloor(root);
+    } else if (id === 'devin') {
+      // .devin-plugin/plugin.json declares the skills folder; agents and hooks are not declared.
+      let manifest = null;
+      try {
+        manifest = JSON.parse(fs.readFileSync(path.join(root, '.devin-plugin/plugin.json'), 'utf8'));
+      } catch {
+        manifest = null;
+      }
+      const skillsDir = manifest && typeof manifest.skills === 'string' ? manifest.skills.replace(/^\.\//, '') : null;
+      row.skills = skillsDir ? countDirs(path.join(root, skillsDir)) : null;
+      row.agents = null;
+      row.hooks = null;
     } else {
       row.skills = size(s.skills);
       row.roles = Array.isArray(s.roles) && s.roles.length ? s.roles.length : null;

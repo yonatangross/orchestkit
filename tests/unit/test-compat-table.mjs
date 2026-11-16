@@ -72,8 +72,13 @@ check('minimum Claude Code version is read from shared/cc-support.json', () => {
   for (const r of rows.filter((r) => r.id !== 'claude')) assert.equal(r.minVersion, null);
 });
 
-check('an unknown number renders "?", never 0 (Devin is unverified)', () => {
-  assert.equal(byId.devin.skills, null);
+check('Devin skills = the skill dirs .devin-plugin/plugin.json declares (claims check 16.11)', () => {
+  const manifest = JSON.parse(readFileSync(join(root, '.devin-plugin/plugin.json'), 'utf8'));
+  assert.equal(byId.devin.skills, dirs(manifest.skills.replace(/^\.\//, '')));
+});
+
+check('an unknown number renders "?", never 0 (Devin agents and hooks are not declared)', () => {
+  assert.equal(byId.devin.agents, null);
   const md = renderCompatMarkdown(rows);
   const devinLine = md.split('\n').find((l) => l.startsWith('| Devin '));
   assert.ok(devinLine, 'Devin row missing');

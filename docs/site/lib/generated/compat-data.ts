@@ -45,7 +45,7 @@ export const COMPAT_ROWS: CompatRow[] = [
     "minVersion": null,
     "roles": null,
     "hooksIssue": null,
-    "skills": null,
+    "skills": 90,
     "agents": null,
     "hooks": null,
     "issues": null
