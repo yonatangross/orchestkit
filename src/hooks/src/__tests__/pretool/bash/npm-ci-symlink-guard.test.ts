@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { HookInput } from '../../../types.js';
 import { NOOP_CTX } from '../../../lib/context.js';
-import { npmCiSymlinkGuard, npmCiTargetDir } from '../../../pretool/bash/npm-ci-symlink-guard.js';
+import { npmCiSymlinkGuard, npmCiTargetDir, type NpmCiSymlinkGuardDeps } from '../../../pretool/bash/npm-ci-symlink-guard.js';
 import { syncBashDispatcher } from '../../../pretool/bash/sync-bash-dispatcher.js';
 
 function bash(command: string, cwd = '/wt'): HookInput {
@@ -267,5 +267,255 @@ describe('through sync-bash-dispatcher, real filesystem', () => {
   // escapes were removed, so the shell's npm spelled n\pm or np''m skipped the guard.
   it.each([['n\\pm ci'], ["np''m ci"], ['"np"m ci']])('denies %s in a worktree whose node_modules is a symlink', (command) => {
     expect(denied(syncBashDispatcher(bash(command, join(root, 'wt')), NOOP_CTX))).toBe(true);
+  });
+
+  // Vercel Security Review, row 16 (findings 3, 4 and 5 on main). Ten of the "denies" rows below
+  // were ALLOWED at 7fa39ab82 (a clean install that empties the shared tree): three of finding 3
+  // (the prefix, cd and brace-group shapes), one of finding 4 (the x=$(printf ")") shape) and
+  // six of finding 5. The other "denies" rows already passed at 7fa39ab82 and are kept as
+  // regression rows. Each finding has controls that the legitimate neighbour is still allowed. The cwd is always the real directory
+  // (not linked), so only reading the command correctly can find the linked worktree.
+  describe('the three bypasses the Vercel Security Review found', () => {
+    beforeEach(() => {
+      // finding 3: a linked worktree whose NAME ends in a literal closing brace; its brace-less
+      // sibling is a real directory
+      mkdirSync(join(root, 'lw}'));
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'lw}', 'node_modules'));
+      mkdirSync(join(root, 'lw'));
+      // finding 4: a parent that holds a linked worktree and a real one
+      mkdirSync(join(root, 'parent', 'lw'), { recursive: true });
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'parent', 'lw', 'node_modules'));
+      mkdirSync(join(root, 'parent', 'rl'), { recursive: true });
+    });
+
+    const run = (template: string, cwd = 'real') =>
+      syncBashDispatcher(bash(template.split('ROOT').join(root), join(root, cwd)), NOOP_CTX);
+
+    // finding 3: the grammar stripper must never remove a brace from argument text
+    it.each([
+      ['npm ci --prefix ROOT/lw}'],
+      ['npm --prefix=ROOT/lw} ci'],
+      ['npm -C ROOT/lw} ci'],
+      ['cd ROOT/lw} && npm ci'],
+      ['{ cd ROOT/lw}; } && npm ci'],
+      ['env -C ROOT/lw} npm ci'],
+    ])('finding 3: denies %s (a linked directory whose name ends in a closing brace)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      ['npm ci --prefix ROOT/lw'],
+      ['cd ROOT/lw && npm ci'],
+      ['{ npm ci; }'],
+      ['{ cd ROOT/real; } && npm ci'],
+      ['if true; then npm ci; fi'],
+    ])('finding 3 control: allows %s where no linked directory is reached', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+
+    // finding 4: a quoted closing parenthesis inside a substitution is not a subshell exit
+    it.each([
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd lw; npm ci )`],
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd lw && npm ci )`],
+      [`( cd ROOT/parent; x=$(printf ")"); cd lw; npm ci )`],
+      [`( cd ROOT/parent; echo '$(printf ")")' "$(printf '))')"; cd lw; npm ci )`],
+    ])('finding 4: denies %s (the relative cd resolves against the parent)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      [`( cd ROOT/parent; echo "$(printf ')')"; cd rl; npm ci )`],
+      [`( cd ROOT/parent; x=$(printf ")"); cd rl; npm ci )`],
+      [`( cd ROOT/parent; echo "$(date)"; cd rl; npm ci )`],
+    ])('finding 4 control: allows %s where the directory it reaches is real', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+
+    // finding 5: recognising an earlier install must not stop the scan before a later one
+    it.each([
+      ['env CI=1 npm ci --prefix ROOT/real && cd ROOT/wt && npm ci'],
+      ['env npm ci; cd ROOT/wt; npm ci'],
+      ['command npm ci && cd ROOT/wt && npm ci'],
+      ['npm ci && cd ROOT/wt && npm ci'],
+      ['time npm ci --prefix ROOT/real && npm ci --prefix ROOT/wt'],
+      ['(env npm ci) && (cd ROOT/wt && npm ci)'],
+    ])('finding 5: denies %s (a later clean install reaches the linked worktree)', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+
+    it.each([
+      ['env CI=1 npm ci --prefix ROOT/real && cd ROOT/parent/rl && npm ci'],
+      ['env npm ci; npm ci'],
+      ['npm ci && cd ROOT/real && npm ci'],
+    ])('finding 5 control: allows %s where every install is in a real directory', (template) => {
+      expect(denied(run(template))).toBe(false);
+    });
+  });
+
+  // Row 16 fix round 1 (verifier HOLD on acceptance 2: deny or ask when the command cannot be
+  // parsed with certainty). The guard reads command text with a few regexes, so a literal
+  // parenthesis inside a quote, after a backslash, in a comment, in a heredoc body or as a case
+  // pattern can still be mistaken for a subshell exit, and a later relative cd then resolves
+  // against the wrong base. Real bash runs each of these installs in the linked worktree
+  // (ROOT/parent/lw). All five were ALLOWED at 2f33f12db. When a clean install is found and the
+  // command holds a subshell paren together with a quote, a backslash, `#`, `<<` or `case`, the
+  // parse is uncertain, and the guard asks whenever a directory the command could reach has a
+  // linked node_modules. The controls below must stay allowed (verifier C1 to C15, C17).
+  describe('an uncertain parse that could reach a linked worktree asks', () => {
+    beforeEach(() => {
+      mkdirSync(join(root, 'parent', 'lw'), { recursive: true });
+      symlinkSync(join(root, 'shared', 'node_modules'), join(root, 'parent', 'lw', 'node_modules'));
+      mkdirSync(join(root, 'parent', 'rl'), { recursive: true });
+      mkdirSync(join(root, 'r}'));
+      mkdirSync(join(root, 'lw'));
+    });
+
+    const run = (template: string, cwd = 'real') =>
+      syncBashDispatcher(bash(template.split('ROOT').join(root), join(root, cwd)), NOOP_CTX);
+    const decision = (template: string, cwd = 'real') => run(template, cwd).hookSpecificOutput?.permissionDecision;
+
+    it.each([
+      ['H36 a quoted semicolon and parenthesis', "( cd ROOT/parent; echo 'q;q);q'; cd lw; npm ci )"],
+      ['H37 escaped parentheses', '( cd ROOT/parent; echo \\)\\); cd lw; npm ci )'],
+      ['H39 a case pattern inside a substitution', '( cd ROOT/parent; x=$(case a in a) echo;; esac); cd lw; npm ci )'],
+      ['H58b a quoted parenthesis and a comment', "( cd ROOT/parent; echo ')' # )\ncd lw; npm ci )"],
+      ['H64 a heredoc body holding a parenthesis', '( cd ROOT/parent\ncat <<EOF\n)\nEOF\ncd lw\nnpm ci )'],
+    ])('%s: asks (never allows)', (_name, template) => {
+      expect(['ask', 'deny']).toContain(decision(template));
+    });
+
+    // Fix round 2 (ruling B, the verifier's R1 to R3): two relative cds after the misparse landed
+    // outside the one-level set the first round probed, although the guard already knew the parse
+    // was uncertain. Now an uncertain parse that holds ANY relative cd asks whenever any linked
+    // node_modules is reachable at all (under the repo's .worktrees, the cwd or any directory the
+    // readings saw), with no depth to get wrong. Real bash runs each install in ROOT/parent/lw.
+    // All three were ALLOWED at d7215825a.
+    it.each([
+      ['R1 two relative cds after a quoted parenthesis', "( cd ROOT; echo 'q;q);q'; cd parent; cd lw; npm ci )"],
+      ['R2 a relative cd, then one that climbs back', '( cd ROOT/parent; echo \\)\\); cd x; cd ../lw; npm ci )'],
+      ['R3 a comment and two relative cds on their own lines', "( cd ROOT; echo ')' # )\ncd parent\ncd lw; npm ci )"],
+    ])('%s: asks (never allows)', (_name, template) => {
+      expect(['ask', 'deny']).toContain(decision(template));
+    });
+
+    // A CERTAIN parse (no quote, backslash, comment, heredoc or case word next to a subshell paren)
+    // keeps today's behaviour, relative cds included: only a link it actually reaches is denied.
+    it.each([
+      ['cd ROOT && cd lw && npm ci'],
+      ['cd ROOT/parent && cd rl && npm ci'],
+      ['( cd ROOT/parent; cd rl; npm ci )'],
+    ])('a certain parse with relative cds that reaches no link is allowed: %s', (template) => {
+      expect(decision(template)).toBeUndefined();
+    });
+
+    it('a certain parse with relative cds that reaches the link is still denied', () => {
+      expect(denied(run('cd ROOT/parent && cd lw && npm ci'))).toBe(true);
+    });
+
+    // Where the uncertain shapes hold a relative cd and a link is reachable (this fixture has
+    // ROOT/parent/lw), they ask; in a tree with no link anywhere they are allowed.
+    describe('uncertain shapes with a relative cd, when nothing is linked anywhere', () => {
+      let clean: string;
+      beforeEach(() => {
+        clean = mkdtempSync(join(tmpdir(), 'npmci-clean-'));
+        mkdirSync(join(clean, 'real'));
+        mkdirSync(join(clean, 'parent', 'rl'), { recursive: true });
+      });
+      afterEach(() => {
+        rmSync(clean, { recursive: true, force: true });
+      });
+      const runClean = (template: string) =>
+        syncBashDispatcher(bash(template.split('ROOT').join(clean), join(clean, 'real')), NOOP_CTX);
+
+      it.each([
+        ["( cd ROOT/parent; echo 'q;q);q'; cd rl; npm ci )"],
+        ['( cd ROOT/parent; echo \\)\\); cd rl; npm ci )'],
+        ['( cd ROOT/parent; x=$(case a in a) echo;; esac); cd rl; npm ci )'],
+        ["( cd ROOT/parent; echo ')' # )\ncd rl; npm ci )"],
+        ['( cd ROOT/parent\ncat <<EOF\n)\nEOF\ncd rl\nnpm ci )'],
+        ["( cd ROOT; echo 'q;q);q'; cd parent; cd rl; npm ci )"],
+        ['( cd ROOT/parent; echo "$(printf \')\')"; cd rl; npm ci )'],
+      ])('is allowed: %s', (template) => {
+        expect(runClean(template).hookSpecificOutput?.permissionDecision).toBeUndefined();
+      });
+    });
+
+    it.each([
+      ["( cd ROOT/parent; echo 'q;q);q'; cd rl; npm ci )"],
+      ['( cd ROOT/parent; x=$(case a in a) echo;; esac); cd rl; npm ci )'],
+      ['( cd ROOT/parent; echo "$(printf \')\')"; cd rl; npm ci )'],
+    ])('with a linked worktree reachable, an uncertain shape with a relative cd asks: %s', (template) => {
+      expect(['ask', 'deny']).toContain(decision(template));
+    });
+
+    // The verifier's controls C1 to C15 and C17: legitimate commands, allowed from a real cwd.
+    it.each([
+      ['C1', 'npm ci'],
+      ['C2', 'npm ci --no-audit --no-fund'],
+      ['C3', 'npm ci --prefix ROOT/lw'],
+      ['C4', 'npm ci --prefix ROOT/r}'],
+      ['C5', 'cd ROOT/r} && npm ci'],
+      ['C6', 'echo "(a)" && npm ci'],
+      ['C7', 'git commit -m "fix (scope): x)" && npm ci'],
+      ['C8', "echo ')' ; npm ci"],
+      // C9 (an uncertain shape with a relative cd) moved to the clean-tree block below: since fix
+      // round 2 it asks wherever a link is reachable, and stays allowed where nothing is linked.
+      ['C10', 'echo "$(date)" && npm ci'],
+      ['C11', '{ npm ci; }'],
+      ['C12', 'npm ci && cd ROOT/parent/rl && npm ci'],
+      ['C13', 'env CI=1 npm ci --prefix ROOT/real && npm ci --prefix ROOT/parent/rl'],
+      ['C14', "echo '(' && npm ci"],
+      ['C15', 'x=$(( (1+2) * 3 )) && npm ci'],
+      ['C17', 'npm install'],
+    ])('control %s is allowed: %s', (_id, template) => {
+      expect(decision(template)).toBeUndefined();
+    });
+
+    it('control C16: a plain npm ci in a linked cwd is still denied', () => {
+      expect(denied(run('npm ci', 'wt'))).toBe(true);
+    });
+
+    // The shapes that were already denied before this round stay denied.
+    it.each([
+      ['( cd ROOT/parent; echo "$(printf \')\')"; cd lw; npm ci )'],
+      ['( cd ROOT/parent; x=$(printf ")"); cd lw; npm ci )'],
+    ])('a certain parse into the linked worktree is still denied: %s', (template) => {
+      expect(denied(run(template))).toBe(true);
+    });
+  });
+});
+
+// Ruling B (row 16 fix round 2), with injected deps: where the search looks, and what it does at its bound.
+describe('the uncertain-parse search for a reachable link', () => {
+  const UNCERTAIN = "( cd a; echo 'q;q);q'; cd b; npm ci )";
+  const decisionOf = (command: string, cwd: string, deps: NpmCiSymlinkGuardDeps) =>
+    npmCiSymlinkGuard(bash(command, cwd), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  it("asks when a sibling worktree under the repo's .worktrees has a linked node_modules", () => {
+    const deps = {
+      isSymlink: (p: string) => p === '/repo/.worktrees/other/node_modules',
+      listSubdirs: (p: string) => (p === '/repo/.worktrees' ? ['me', 'other'] : []),
+    };
+    expect(decisionOf(UNCERTAIN, '/repo/.worktrees/me', deps)).toBe('ask');
+  });
+
+  it('is silent when nothing under any root is linked', () => {
+    const deps = { isSymlink: () => false, listSubdirs: (p: string) => (p === '/repo/.worktrees' ? ['me', 'other'] : []) };
+    expect(decisionOf(UNCERTAIN, '/repo/.worktrees/me', deps)).toBeUndefined();
+  });
+
+  it('asks when the search hits its bound before it finishes (never reads a cut-off search as clean)', () => {
+    const deps = { isSymlink: () => false, listSubdirs: () => ['a', 'b'] };
+    expect(decisionOf(UNCERTAIN, '/repo/me', deps)).toBe('ask');
+  });
+
+  it('does not search for a certain parse, whatever the deps hold', () => {
+    const deps = { isSymlink: (p: string) => p === '/repo/.worktrees/other/node_modules', listSubdirs: () => ['other'] };
+    expect(decisionOf('cd a && cd b && npm ci', '/repo/.worktrees/me', deps)).toBeUndefined();
+  });
+
+  it('does not search when the uncertain parse has only absolute cds (the one-level check still applies)', () => {
+    const deps = { isSymlink: (p: string) => p === '/repo/.worktrees/other/node_modules', listSubdirs: () => ['other'] };
+    expect(decisionOf("( cd /x; echo 'q;q);q'; cd /y; npm ci )", '/repo/.worktrees/me', deps)).toBeUndefined();
   });
 });

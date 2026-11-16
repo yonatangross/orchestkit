@@ -6,7 +6,7 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync }
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { isSymlinkPath } from '../../lib/fs-probe.js';
+import { isSymlinkPath, listSubdirs } from '../../lib/fs-probe.js';
 
 let root: string;
 
@@ -55,4 +55,15 @@ describe('isSymlinkPath', () => {
       expect(isSymlinkPath(join(root, 'real', 'node_modules'))).toBe(true);
     },
   );
+});
+
+describe('listSubdirs', () => {
+  it('lists real subdirectories only: not files, not symlinks (so a search cannot loop)', () => {
+    expect(listSubdirs(root).sort()).toEqual(['real']);
+  });
+
+  it('is [] for a missing path and for a regular file', () => {
+    expect(listSubdirs(join(root, 'missing'))).toEqual([]);
+    expect(listSubdirs(join(root, 'file'))).toEqual([]);
+  });
 });

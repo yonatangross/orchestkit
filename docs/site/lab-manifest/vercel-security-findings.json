@@ -1,0 +1,8 @@
+{
+  "slug": "vercel-security-findings",
+  "source": "docs/fix--vercel-security-findings/index.html",
+  "title": "Five Vercel Security Review findings, fixed",
+  "description": "Three bypasses of the npm ci symlink guard and two temp-file races in test scripts, each with the command shape that got through and what the guard does now.",
+  "tags": ["hooks", "security", "npm-ci", "ci"],
+  "date": "2026-11-14"
+}

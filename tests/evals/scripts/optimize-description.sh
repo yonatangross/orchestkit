@@ -128,17 +128,21 @@ optimize_skill() {
     echo -e "  Split: ${train_pos}+${train_neg} train / $((total_positive - train_pos))+$((total_negative - train_neg)) test"
 
     # Create train/test eval files
-    local train_file test_file
-    # BSD mktemp randomizes only trailing X's: reserve a unique name, then
-    # add the extension by rename (tests/ci/test-mktemp-template-trailing-x.sh).
-    local train_base test_base
-    train_base=$(mktemp "${TMPDIR:-/tmp}/ork-opt-train-XXXXXX")
-    test_base=$(mktemp "${TMPDIR:-/tmp}/ork-opt-test-XXXXXX")
-    train_file="$train_base.yaml"
-    test_file="$test_base.yaml"
-    mv "$train_base" "$train_file"
-    mv "$test_base" "$test_file"
-    CLEANUP_FILES+=("$train_file" "$test_file")
+    local train_file test_file split_dir
+    # Both files live in a private directory (mktemp -d makes it mode 0700 and
+    # reserves its name), so no other local user can pre-plant a path of the
+    # derived .yaml name in a shared TMPDIR. Renaming a reserved file to "$base.yaml"
+    # left that path unreserved, and the unchecked mv let the redirections below write
+    # through a planted symlink (Vercel Security Review, row 16 finding 1). The extension
+    # is fixed inside the directory, so the trailing-X rule holds
+    # (tests/ci/test-mktemp-template-trailing-x.sh). Any failure stops the run.
+    if ! split_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-opt-split-XXXXXX"); then
+        echo -e "${RED}ERROR: cannot create a private temp directory for the train/test split${NC}" >&2
+        return 1
+    fi
+    CLEANUP_DIRS+=("$split_dir")
+    train_file="$split_dir/train.yaml"
+    test_file="$split_dir/test.yaml"
 
     # Split via yq, jq, yq. The repo's yq is mikefarah/Go (no python-yq `-y` flag,
     # no jq-style `[:N]` slicing), so convert to JSON, let jq do the slice+concat
@@ -147,10 +151,12 @@ optimize_skill() {
     # as program text (tests/security/test-jq-injection.sh scans for the latter).
     yq -o=json "$eval_file" | jq --argjson tp "$train_pos" --argjson tn "$train_neg" \
         '{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][:$tp]) + ([.trigger_evals[] | select(.should_trigger == false)][:$tn]))}' \
-        | yq -p=json -o=yaml - > "$train_file"
+        | yq -p=json -o=yaml - > "$train_file" \
+        || { echo -e "${RED}ERROR: could not write the train split to $train_file${NC}" >&2; return 1; }
     yq -o=json "$eval_file" | jq --argjson tp "$train_pos" --argjson tn "$train_neg" \
         '{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][$tp:]) + ([.trigger_evals[] | select(.should_trigger == false)][$tn:]))}' \
-        | yq -p=json -o=yaml - > "$test_file"
+        | yq -p=json -o=yaml - > "$test_file" \
+        || { echo -e "${RED}ERROR: could not write the test split to $test_file${NC}" >&2; return 1; }
 
     # --- Baseline eval on train set ---
     local current_desc="$original_desc"
