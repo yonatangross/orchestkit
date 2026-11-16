@@ -11,23 +11,25 @@ import {
 	readDoc,
 	search,
 } from "./api.js";
+import { type HostEnv, HOST_IDS, detectHosts, installText, isHostId } from "./hosts.js";
 import { type McpTransport, mcpConfig } from "./mcp-config.js";
 
-/**
- * The one supported way to install the plugin from a shell. Mirrors
- * SITE.installCommand. `claude install` installs the Claude Code native build,
- * not a plugin, so it must never appear here.
- */
-export const PLUGIN_INSTALL_COMMAND =
-	"claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit";
+/** Detection that finds nothing: the default when the caller injects no HostEnv. */
+const NO_HOSTS: HostEnv = { env: {}, hasBin: () => false };
 
-export const HELP = `orchestkit, CLI for OrchestKit, the Claude Code plugin by Yonyon
+/** Claude Code's one-line install. Mirrors SITE.installCommand; defined in hosts.ts. */
+export { PLUGIN_INSTALL_COMMAND } from "./hosts.js";
+
+export const HELP = `orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for
+Claude Code, Cursor, Codex and five more coding agents
 
 USAGE
   orchestkit <command> [options]
 
 COMMANDS
-  install            Print the Claude Code command that installs the plugin
+  install [host]     Print the install command for the coding agents found here
+                     (or for one host: claude, cursor, codex, devin, opencode,
+                     muse, pi, agy; --all for every host)
   search <query>     Search the documentation
   ask <question>     Ask a natural-language question (NLWeb /ask)
   read <page>        Print a documentation page as Markdown
@@ -117,7 +119,11 @@ function formatSearch(
 
 export async function run(
 	argv: readonly string[],
-	deps: { version: string; clientFactory?: (o: Partial<Client>) => Client } = {
+	deps: {
+		version: string;
+		clientFactory?: (o: Partial<Client>) => Client;
+		hostEnv?: HostEnv;
+	} = {
 		version: "0.0.0",
 	},
 ): Promise<RunResult> {
@@ -136,22 +142,17 @@ export async function run(
 			case "--version":
 				return ok(`${deps.version}\n`);
 
-			case "install":
-				return ok(
-					[
-						"OrchestKit is a Claude Code plugin. Install it from a terminal:",
-						"",
-						`  ${PLUGIN_INSTALL_COMMAND}`,
-						"",
-						"Or inside a Claude Code session:",
-						"",
-						"  /plugin marketplace add yonatangross/orchestkit",
-						"  /plugin install ork",
-						"",
-						"Requires Claude Code. Docs: https://orchestkit.dev/docs/getting-started/installation",
-						"",
-					].join("\n"),
-				);
+			case "install": {
+				const target = args.positional[0];
+				if (target === "--all") return ok(installText(HOST_IDS));
+				if (target !== undefined) {
+					if (!isHostId(target)) {
+						return fail(`Unknown host "${target}". Use one of: ${HOST_IDS.join(", ")}.\n`, 2);
+					}
+					return ok(installText([target]));
+				}
+				return ok(installText(detectHosts(deps.hostEnv ?? NO_HOSTS)));
+			}
 
 			case "mcp": {
 				const transport = (args.positional[0] ?? "http") as McpTransport;
