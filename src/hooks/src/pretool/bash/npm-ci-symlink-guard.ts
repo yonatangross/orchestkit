@@ -48,7 +48,7 @@ const VALUE_FLAGS = new Set([
 const PREFIX_FLAGS = new Set(['--prefix', '-C']);
 
 /** Command words that run the rest of the segment as a command. */
-const WRAPPERS = new Set(['env', 'time', 'command', 'exec', 'nohup', 'nice', 'sudo', 'doas', 'timeout']);
+const WRAPPERS = new Set(['env', 'time', 'command', 'exec', 'nohup', 'nice', 'sudo', 'doas', 'timeout', 'npx', 'xargs', 'setsid', 'builtin']);
 
 /** Per wrapper, the options that take the next word as their value (#5169). */
 const WRAPPER_VALUE_OPTIONS: Record<string, Set<string>> = {
@@ -57,7 +57,33 @@ const WRAPPER_VALUE_OPTIONS: Record<string, Set<string>> = {
   doas: new Set(['-u', '-C']),
   env: new Set(['-u', '--unset', '-S', '--split-string']),
   timeout: new Set(['-s', '--signal', '-k', '--kill-after']),
+  xargs: new Set(['-n', '-I', '-L', '-P', '-s', '-d', '-E', '-a', '--max-args', '--max-procs', '--max-lines', '--delimiter', '--arg-file']),
+  npx: new Set(['-p', '--package']),
 };
+
+/** The shells whose `-c <script>` argument is read as one more command, by the name of the program. */
+const SHELL_NAMES = new Set(['bash', 'sh', 'zsh', 'dash', 'ksh']);
+
+/** Options `cd` and `pushd` accept before the directory. */
+const CD_OPTIONS = new Set(['-L', '-P', '-e', '-@', '--']);
+
+/** Builtins that set variables for the rest of the command line. */
+const DECLARE_WORDS = new Set(['export', 'declare', 'typeset', 'readonly', 'local']);
+
+/**
+ * Stands for a word the reader cannot know (a command substitution, an unset variable). Any word
+ * holding it, `$` or a backtick is dynamic: the guard asks about it where a link is at stake.
+ */
+const DYNAMIC = '\u0001';
+
+/** The last path segment of a command word: `/usr/local/bin/npm` is `npm`. */
+function baseName(word: string): string {
+  return word.slice(word.lastIndexOf('/') + 1);
+}
+
+function isDynamicWord(word: string): boolean {
+  return word.includes(DYNAMIC) || /[$`]/.test(word);
+}
 
 /** Shell words that open or continue a compound command; the command after them is what runs (#5169). */
 const SHELL_KEYWORDS = new Set(['then', 'do', 'else', 'elif', 'if', 'while', 'until', '!', '{', '}', 'esac', 'fi', 'done']);
@@ -71,8 +97,99 @@ const SHELLS = 'bash|sh|zsh|dash|ksh';
  * apostrophe inside double quotes is lost), so it must never produce a path.
  */
 function shellWord(word: string): string {
-  return word.replace(/\\(.)/g, '$1').replace(/["']/g, '');
+  // A backslash before a newline joins the two lines: `n\<newline>pm` is npm.
+  return word.replace(/\\\n/g, '').replace(/\\(.)/g, '$1').replace(/["']/g, '');
 }
+
+/** What `$'...'` reads for a backslash and the character after it. */
+const ANSI_C_SIMPLE: Record<string, string> = {
+  a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v', '\\': '\\', "'": "'", '"': '"', '?': '?',
+};
+
+/**
+ * The text of an ANSI-C quoted word (`$'...'`), from just past the opening quote: `\x63`, `\143`,
+ * `c`, `\n` and the other escapes become their characters. Returns where it ended.
+ */
+function readAnsiC(text: string, start: number): { value: string; end: number } {
+  let out = '';
+  let i = start;
+  while (i < text.length && text[i] !== "'") {
+    const c = text[i];
+    const n = text[i + 1];
+    if (c !== '\\' || n === undefined) {
+      out += c;
+      i++;
+    } else if (n in ANSI_C_SIMPLE) {
+      out += ANSI_C_SIMPLE[n];
+      i += 2;
+    } else if (n === 'x' || n === 'u' || n === 'U') {
+      const max = n === 'x' ? 2 : n === 'u' ? 4 : 8;
+      const digits = /^[0-9a-fA-F]+/.exec(text.slice(i + 2, i + 2 + max))?.[0] ?? '';
+      const code = digits === '' ? -1 : parseInt(digits, 16);
+      out += code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : `\\${n}${digits}`;
+      i += 2 + digits.length;
+    } else if (n >= '0' && n <= '7') {
+      const digits = /^[0-7]{1,3}/.exec(text.slice(i + 1, i + 4))?.[0] ?? n;
+      out += String.fromCharCode(parseInt(digits, 8) & 0xff);
+      i += 1 + digits.length;
+    } else if (n === 'c' && i + 2 < text.length) {
+      out += String.fromCharCode(text.charCodeAt(i + 2) & 0x1f);
+      i += 3;
+    } else {
+      out += `\\${n}`;
+      i += 2;
+    }
+  }
+  return { value: out, end: i < text.length ? i + 1 : i };
+}
+
+/**
+ * One shell word from `start` (not a blank): quotes, escapes and `$'...'` read the way the shell
+ * reads them. It ends at an unquoted blank, at an unquoted `<` or `>` (a redirection is not part of
+ * the word next to it) or at a character of `stops`.
+ */
+function readWord(text: string, start: number, stops: string): { value: string; end: number } {
+  let cur = '';
+  let i = start;
+  while (i < text.length) {
+    const c = text[i];
+    if (/\s/.test(c) || c === '<' || c === '>' || stops.includes(c)) break;
+    if (c === "'") {
+      const end = text.indexOf("'", i + 1);
+      cur += end === -1 ? text.slice(i + 1) : text.slice(i + 1, end);
+      i = end === -1 ? text.length : end + 1;
+    } else if (c === '"') {
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\' && i + 1 < text.length && DQ_ESCAPABLE.includes(text[i + 1])) {
+          // Inside double quotes a backslash before a newline vanishes with it.
+          if (text[i + 1] !== '\n') cur += text[i + 1];
+          i += 2;
+        } else {
+          cur += text[i++];
+        }
+      }
+      i++;
+    } else if (c === '$' && text[i + 1] === "'") {
+      const ansi = readAnsiC(text, i + 2);
+      cur += ansi.value;
+      i = ansi.end;
+    } else if (c === '$' && text[i + 1] === '"') {
+      // $"..." is a double-quoted word; the quote is read on the next turn.
+      i++;
+    } else if (c === '\\' && i + 1 < text.length) {
+      if (text[i + 1] !== '\n') cur += text[i + 1];
+      i += 2;
+    } else {
+      cur += c;
+      i++;
+    }
+  }
+  return { value: cur, end: i };
+}
+
+/** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
+const IFS_BLANK = /\$\{IFS[^}]*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
 
 /** Characters a backslash escapes inside double quotes. */
 const DQ_ESCAPABLE = '$`"\\\n';
@@ -87,44 +204,154 @@ const DQ_ESCAPABLE = '$`"\\\n';
  */
 function shellWords(segment: string): string[] {
   const words: string[] = [];
-  let cur = '';
-  let inWord = false;
   let i = 0;
+  // Where the last word ended, and whether the next word is the target of a redirection.
+  let lastEnd = -1;
+  let dropNext = false;
   while (i < segment.length) {
     const c = segment[i];
     if (/\s/.test(c)) {
-      if (inWord) words.push(cur);
-      cur = '';
-      inWord = false;
       i++;
       continue;
     }
-    inWord = true;
-    if (c === "'") {
-      const end = segment.indexOf("'", i + 1);
-      cur += end === -1 ? segment.slice(i + 1) : segment.slice(i + 1, end);
-      i = end === -1 ? segment.length : end + 1;
-    } else if (c === '"') {
-      i++;
-      while (i < segment.length && segment[i] !== '"') {
-        if (segment[i] === '\\' && i + 1 < segment.length && DQ_ESCAPABLE.includes(segment[i + 1])) {
-          cur += segment[i + 1];
-          i += 2;
-        } else {
-          cur += segment[i++];
-        }
-      }
-      i++;
-    } else if (c === '\\' && i + 1 < segment.length) {
-      cur += segment[i + 1];
-      i += 2;
-    } else {
-      cur += c;
-      i++;
+    if (c === '<' || c === '>') {
+      // A redirection: the operator, an fd number glued before it, and its target word are not arguments.
+      if (lastEnd === i && /^\d+$/.test(words[words.length - 1] ?? '')) words.pop();
+      while (i < segment.length && (segment[i] === '<' || segment[i] === '>')) i++;
+      dropNext = true;
+      continue;
+    }
+    const word = readWord(segment, i, '');
+    i = word.end;
+    if (dropNext) dropNext = false;
+    else {
+      words.push(word.value);
+      lastEnd = i;
     }
   }
-  if (inWord) words.push(cur);
   return words;
+}
+
+/**
+ * The commands of a text as lists of words, split at the separators the shell splits at when they
+ * are not quoted (newline, `;`, `&`, `|`, parentheses). Used to find the scripts a command hands to
+ * another shell; the reader above stays line-and-regex.
+ */
+function lexCommands(text: string): string[][] {
+  const commands: string[][] = [];
+  let words: string[] = [];
+  let i = 0;
+  let lastEnd = -1;
+  let dropNext = false;
+  const endCommand = (): void => {
+    if (words.length > 0) commands.push(words);
+    words = [];
+  };
+  while (i < text.length) {
+    const c = text[i];
+    if (c === ' ' || c === '\t') {
+      i++;
+    } else if (c === '\n' || c === ';' || c === '&' || c === '|' || c === '(' || c === ')') {
+      endCommand();
+      dropNext = false;
+      i++;
+    } else if (c === '<' || c === '>') {
+      if (lastEnd === i && /^\d+$/.test(words[words.length - 1] ?? '')) words.pop();
+      while (i < text.length && (text[i] === '<' || text[i] === '>')) i++;
+      dropNext = true;
+    } else {
+      const word = readWord(text, i, ';&|()\n');
+      // A word that makes no progress (a lone backslash-newline) still moves the cursor on.
+      i = word.end > i ? word.end : i + 1;
+      if (dropNext) dropNext = false;
+      else {
+        words.push(word.value);
+        lastEnd = i;
+      }
+    }
+  }
+  endCommand();
+  return commands;
+}
+
+/** Most words a brace expansion may produce before the word is read as dynamic. */
+const BRACE_MAX = 256;
+const BRACE_MAX_WORD = 512;
+
+/**
+ * Brace expansion: `c{i,}` is `ci` and `c`, and the shell hands both to the command as separate
+ * words. Returns every word, or [DYNAMIC] when the expansion is too large to follow. A brace that is
+ * not an expansion (`${x}`, no comma) is left alone. The shell does not expand quoted braces; the
+ * quotes are gone by now, so a quoted one is read as an expansion (it can only add a candidate).
+ */
+function braceExpand(word: string): string[] {
+  if (!word.includes('{') || word.length > BRACE_MAX_WORD) return [word];
+  const out: string[] = [];
+  const expand = (text: string): boolean => {
+    for (let open = text.indexOf('{'); open !== -1; open = text.indexOf('{', open + 1)) {
+      if (open > 0 && text[open - 1] === '$') continue;
+      let depth = 0;
+      const commas: number[] = [];
+      let close = -1;
+      for (let j = open; j < text.length; j++) {
+        if (text[j] === '{') depth++;
+        else if (text[j] === '}') {
+          depth--;
+          if (depth === 0) {
+            close = j;
+            break;
+          }
+        } else if (text[j] === ',' && depth === 1) commas.push(j);
+      }
+      if (close === -1 || commas.length === 0) continue;
+      const cuts = [open, ...commas, close];
+      for (let k = 0; k < cuts.length - 1; k++) {
+        const piece = text.slice(cuts[k] + 1, cuts[k + 1]);
+        if (!expand(text.slice(0, open) + piece + text.slice(close + 1))) return false;
+      }
+      return true;
+    }
+    if (out.length >= BRACE_MAX) return false;
+    out.push(text);
+    return true;
+  };
+  return expand(word) ? out : [DYNAMIC];
+}
+
+/**
+ * Variables the command sets in plain lines (`NPM=npm`, `export X=y`), so `$NPM ci` reads as
+ * `npm ci`. A variable set twice to different values is unknown (null): the later line may sit in
+ * the other branch of an if. Values are capped so a doubling assignment cannot grow without bound.
+ */
+type Vars = Map<string, string | null>;
+const VAR_VALUE_MAX = 4096;
+
+function expandVars(word: string, vars: Vars): string {
+  if (!word.includes('$')) return word;
+  return word.replace(/\$\{(\w+)\}|\$(\w+)/g, (whole, braced: string | undefined, bare: string | undefined) => {
+    const value = vars.get(braced ?? bare ?? '');
+    return typeof value === 'string' ? value : whole;
+  });
+}
+
+function assignmentsOf(words: string[]): Array<[string, string]> | null {
+  const isAssign = (w: string): boolean => /^[A-Za-z_]\w*=/.test(w);
+  let rest = words;
+  if (words.length > 0 && DECLARE_WORDS.has(words[0])) {
+    rest = words.slice(1).filter((w) => !w.startsWith('-'));
+  } else if (words.length === 0 || !words.every(isAssign)) {
+    return null;
+  }
+  return rest.filter(isAssign).map((w) => [w.slice(0, w.indexOf('=')), w.slice(w.indexOf('=') + 1)]);
+}
+
+function setVar(vars: Vars, name: string, value: string): void {
+  const tooLong = value.length > VAR_VALUE_MAX;
+  if (vars.has(name)) {
+    if (vars.get(name) !== value || tooLong) vars.set(name, null);
+  } else {
+    vars.set(name, tooLong ? null : value);
+  }
 }
 
 /**
@@ -165,6 +392,7 @@ const PARSE_MAX_SPANS = 4000;
 const PARSE_MAX_CHARS = 200_000;
 const PARSE_MAX_WORK = 2_000_000;
 const PARSE_MAX_UNCLOSED = 64;
+const PARSE_MAX_READ_WORK = 2_000_000;
 class ParseBudgetExceeded extends Error {}
 
 interface SubstitutionSpan {
@@ -274,7 +502,8 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
     } else if (c === '"') {
       inDouble = !inDouble;
       i++;
-    } else if (c === '$' && text[i + 1] === '(') {
+    } else if ((c === '$' || ((c === '<' || c === '>') && !inDouble)) && text[i + 1] === '(') {
+      // `$(...)`, and the process substitutions `<(...)` and `>(...)`, which run their body too.
       const end = closeOfParen(text, i + 1);
       if (end === -1) {
         stepOverUnclosed();
@@ -309,7 +538,7 @@ function blankSubstitutions(command: string, skipComments = false): string {
   let out = '';
   let last = 0;
   for (const span of substitutionSpans(command, skipComments)) {
-    out += `${command.slice(last, span.start)}_`;
+    out += `${command.slice(last, span.start)}${DYNAMIC}`;
     last = span.end;
   }
   return out + command.slice(last);
@@ -342,12 +571,102 @@ function nestedShellBodies(command: string): string[] {
   return bodies;
 }
 
+/**
+ * The scripts a command hands to another shell, read from the words the shell would pass: the
+ * argument of `-c` for any shell (by program name, so a path works, with options before the flag and
+ * a `--` after it), the words after `eval`, and what `npm exec` and `npx` run. The regex above stays
+ * as a second reading; this one follows quoting, so an escaped quote inside a double-quoted script
+ * and a quote closed and reopened (`'\''`) come out as the script the inner shell receives.
+ */
+function nestedScripts(text: string): string[] {
+  const scripts: string[] = [];
+  for (const words of lexCommands(text)) {
+    // The words after the first eval and the first npm or npx are joined whole; a second one in the
+    // same command is inside that text and is read when the text is read. That keeps a long run of
+    // `eval eval eval ...` from joining the rest of the line once per word.
+    let sawEval = false;
+    let sawNpm = false;
+    for (let k = 0; k < words.length; k++) {
+      const name = baseName(words[k]);
+      if (SHELL_NAMES.has(name)) {
+        // Options come before the flag: `bash -o pipefail -e -c script`. Bounded look-ahead.
+        const last = Math.min(words.length, k + 1 + SHELL_OPTIONS_MAX);
+        let flag = -1;
+        for (let j = k + 1; j < last; j++) {
+          if (SHELL_C_FLAG.test(words[j])) {
+            flag = j;
+            break;
+          }
+        }
+        if (flag === -1) continue;
+        const at = words[flag + 1] === '--' ? flag + 2 : flag + 1;
+        if (at < words.length) scripts.push(words[at]);
+      } else if (name === 'eval') {
+        if (!sawEval && k + 1 < words.length) scripts.push(words.slice(k + 1).join(' '));
+        sawEval = true;
+      } else if (name === 'npm' || name === 'npx') {
+        if (sawNpm) continue;
+        sawNpm = true;
+        const rest = words.slice(k + 1);
+        const subcommand = rest.find((w) => !w.startsWith('-'));
+        if (name === 'npm' && subcommand !== 'exec' && subcommand !== 'x') continue;
+        const dashes = rest.indexOf('--');
+        if (dashes !== -1 && dashes + 1 < rest.length) scripts.push(rest.slice(dashes + 1).join(' '));
+        const call = rest.findIndex((w) => w === '-c' || w === '--call' || w.startsWith('--call='));
+        if (call !== -1) {
+          const script = rest[call].startsWith('--call=') ? rest[call].slice('--call='.length) : rest[call + 1];
+          if (script !== undefined) scripts.push(script);
+        }
+      }
+    }
+  }
+  return scripts;
+}
+
+const SHELL_C_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
+const SHELL_OPTIONS_MAX = 12;
+
+/** A heredoc operator: `<<EOF`, `<<-EOF`, `<<'EOF'`, `<<"EOF"`, but not the here-string `<<<`. */
+const HEREDOC_OPERATOR = /(?<!<)<<(-?)\s*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([\w.-]+))/g;
+
+/**
+ * The command with its heredoc bodies cut out, and the bodies. The body of a quoted-delimiter
+ * heredoc is literal text, and an apostrophe or backtick in it must not pair with one in the command
+ * after it. Read as an extra reading beside the others, so a misplaced cut can only add candidates.
+ */
+function splitHeredocs(text: string): { rest: string; bodies: string[] } {
+  if (!text.includes('<<')) return { rest: text, bodies: [] };
+  const keep: string[] = [];
+  const bodies: string[] = [];
+  const pending: Array<{ delimiter: string; stripTabs: boolean }> = [];
+  let body: string[] = [];
+  for (const line of text.split('\n')) {
+    if (pending.length > 0) {
+      const { delimiter, stripTabs } = pending[0];
+      if ((stripTabs ? line.replace(/^\t+/, '') : line) === delimiter) {
+        pending.shift();
+        bodies.push(body.join('\n'));
+        body = [];
+      } else {
+        body.push(line);
+      }
+      continue;
+    }
+    keep.push(line);
+    for (const m of line.matchAll(HEREDOC_OPERATOR)) {
+      pending.push({ delimiter: m[2] ?? m[3] ?? m[4] ?? '', stripTabs: m[1] === '-' });
+    }
+  }
+  if (pending.length > 0 && body.length > 0) bodies.push(body.join('\n'));
+  return { rest: keep.join('\n'), bodies };
+}
+
 /** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
 function substitutionBodies(command: string): string[] {
   const bodies = new Set<string>();
   // No depth cap (a cap that stops quietly fails open): every body is strictly shorter than the
   // text it came from, so the walk ends; the set keeps repeated bodies from being walked twice.
-  // Dedup on the RAW inner text: blanked bodies of different nesting levels can be equal ("_"),
+  // Dedup on the RAW inner text: blanked bodies of different nesting levels can be equal (one placeholder),
   // and skipping on those would stop the walk before the innermost body. Iterative, under a work
   // budget: past it the command is too complex to read and the guard fails closed (ParseBudgetExceeded).
   const walked = new Set<string>();
@@ -400,17 +719,50 @@ export function npmCiCandidateDirs(command: string, cwd: string, home: string = 
  * script is a strict substring of its parent, so the recursion ends.
  */
 function readingsOf(command: string): string[] {
+  if (lastReadings?.command === command) return lastReadings.readings;
+  const readings = readAllWays(command);
+  lastReadings = { command, readings };
+  return readings;
+}
+
+/** The guard asks for the readings of one command several times; the last result is kept. */
+let lastReadings: { command: string; readings: string[] } | undefined;
+
+/** Characters a command may use to hide what it runs: a variable, a substitution, a brace expansion. */
+const MAY_BE_DYNAMIC = /[$`{]/;
+
+function readAllWays(command: string): string[] {
   if (command.length > PARSE_MAX_CHARS) throw new ParseBudgetExceeded();
   const readings: string[] = [];
   const stack = [command];
+  // Every text is read once: the two script readers, the line joiner and the heredoc cutter often
+  // hand back the same text, and a repeat at each depth would double the walk.
+  const queued = new Set<string>(stack);
   let scripts = 0;
+  let work = 0;
+  const enqueue = (next: string, parent: string): void => {
+    if (next.length >= parent.length || queued.has(next)) return;
+    queued.add(next);
+    if (++scripts > PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
+    stack.push(next);
+  };
   while (stack.length > 0) {
     const text = stack.pop() as string;
-    readings.push(blankSubstitutions(text), blankSubstitutions(text, true), text, ...substitutionBodies(text));
-    for (const body of nestedShellBodies(text)) {
-      if (body.length >= text.length) continue;
-      if (++scripts > PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
-      stack.push(body);
+    // Each text is read in full, so a chain of scripts that each drop one word costs length squared.
+    work += text.length;
+    if (work > PARSE_MAX_READ_WORK) throw new ParseBudgetExceeded();
+    const bodies = substitutionBodies(text);
+    readings.push(blankSubstitutions(text), blankSubstitutions(text, true), text, ...bodies);
+    for (const body of nestedShellBodies(text)) enqueue(body, text);
+    for (const source of [text, ...bodies]) {
+      for (const script of nestedScripts(source)) enqueue(script, text);
+    }
+    // A backslash before a newline joins the lines: `npm \<newline>ci` is `npm ci`.
+    enqueue(text.replace(/\\\n/g, ''), text);
+    const heredocs = splitHeredocs(text);
+    if (heredocs.bodies.length > 0) {
+      enqueue(heredocs.rest, text);
+      for (const body of heredocs.bodies) enqueue(body, text);
     }
   }
   return readings;
@@ -424,10 +776,14 @@ function readingsOf(command: string): string[] {
  */
 export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
   const words = shellWord(command).split(/[\s;&|()]+/).filter(Boolean);
-  const npmAt = words.indexOf('npm');
-  if (npmAt === -1 || !words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w))) return [];
+  const npmAt = words.findIndex((w) => baseName(w) === 'npm');
+  const mentioned = npmAt !== -1 && words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w));
+  // A command or subcommand the reader could not resolve (`$NPM ci`, `npm $SUB`) counts as a mention.
+  if (!mentioned && !MAY_BE_DYNAMIC.test(command)) return [];
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
+  if (!mentioned && !scans.some((s) => s.dynamic)) return [];
   const dirs = new Set<string>([cwd]);
-  for (const text of readingsOf(command)) for (const d of scan(text, cwd, home).seen) dirs.add(d);
+  for (const s of scans) for (const d of s.seen) dirs.add(d);
   return [...dirs];
 }
 
@@ -435,11 +791,15 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
  * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
  * directory it passed through. The whole command is scanned, never stopped at the first install.
  */
-function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[] } {
+function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean } {
   const seen: string[] = [cwd];
   const targets: string[] = [];
   // Every directory word the scan met (cd, env -C, --prefix), as written, for the uncertain-parse check.
   const cdArgs: string[] = [];
+  // True when a segment may be a clean install the reader cannot place: the command word or the
+  // subcommand is a variable or substitution it cannot resolve.
+  let dynamic = false;
+  const vars: Vars = new Map();
   let dir = cwd;
   // A subshell runs in a copy of the shell: a cd inside it ends when it
   // closes. Each '(' saves the directory, each ')' restores it.
@@ -456,11 +816,25 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     };
     // A brace group runs in the current shell, so `{ cd X; }` moves the
     // directory for what follows; only the grammar is stripped (#5169).
-    segment = stripShellGrammar(segment);
-    const words = shellWords(segment);
-    if (words.length === 2 && words[0] === 'cd') {
-      cdArgs.push(words[1]);
-      dir = resolveDir(dir, words[1], home);
+    // ${IFS} and $IFS (with an empty positional after it) are the blank the shell splits words at.
+    segment = stripShellGrammar(segment).replace(IFS_BLANK, ' ');
+    const rawWords = shellWords(segment);
+    const assigned = assignmentsOf(rawWords);
+    if (assigned !== null) {
+      for (const [name, value] of assigned) setVar(vars, name, expandVars(value, vars));
+      restore();
+      continue;
+    }
+    // Variables first, then brace expansion: `$X` set above, `c{i,}` for `ci` and `c`.
+    const words = rawWords.map((w) => expandVars(w, vars)).flatMap((w) => {
+      const parts = braceExpand(w);
+      return parts.length === 1 && parts[0] === w ? parts : parts.filter((p) => p !== '');
+    });
+    const cdWord = words[0] === 'cd' || words[0] === 'pushd';
+    const cdOperands = cdWord ? words.slice(1).filter((a) => !CD_OPTIONS.has(a)) : [];
+    if (cdWord && cdOperands.length === 1) {
+      cdArgs.push(cdOperands[0]);
+      dir = resolveDir(dir, cdOperands[0], home);
       seen.push(dir);
       restore();
       continue;
@@ -474,12 +848,13 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         start++;
         continue;
       }
-      if (!WRAPPERS.has(w)) break;
+      const wrapper = baseName(w);
+      if (!WRAPPERS.has(wrapper)) break;
       start++;
-      const valueOptions = WRAPPER_VALUE_OPTIONS[w] ?? new Set<string>();
+      const valueOptions = WRAPPER_VALUE_OPTIONS[wrapper] ?? new Set<string>();
       while (start < words.length && words[start].startsWith('-')) {
         const option = words[start++];
-        if (w === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
+        if (wrapper === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
           cdArgs.push(words[start]);
           cmdDir = resolveDir(cmdDir, words[start++], home);
           seen.push(cmdDir);
@@ -488,26 +863,47 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         }
       }
       // timeout takes a duration before the command.
-      if (w === 'timeout' && start < words.length && /^\d/.test(words[start])) start++;
+      if (wrapper === 'timeout' && start < words.length && /^\d/.test(words[start])) start++;
     }
     const tokens = words.slice(start);
-    if (tokens[0] !== 'npm') {
+    const commandIsNpm = tokens.length > 0 && baseName(tokens[0]) === 'npm';
+    const commandIsDynamic = tokens.length > 0 && isDynamicWord(tokens[0]);
+    if (!commandIsNpm && !commandIsDynamic) {
       restore();
       continue;
     }
     let prefix: string | null = null;
     let sub: string | null = null;
+    let dynamicSub = false;
     for (let i = 1; i < tokens.length; i++) {
       const t = tokens[i];
       // Words are already read as the shell reads them; no second unquote.
       if (t.startsWith('--prefix=')) prefix = t.slice('--prefix='.length);
       else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = tokens[++i];
       else if (VALUE_FLAGS.has(t)) i++;
-      else if (!t.startsWith('-') && sub === null) sub = t;
+      else if (!t.startsWith('-') && sub === null) {
+        if (isDynamicWord(t)) dynamicSub = true;
+        else sub = t;
+      }
     }
     if (prefix !== null) {
       cdArgs.push(prefix);
       seen.push(resolveDir(cmdDir, prefix, home));
+    }
+    if (commandIsDynamic && !commandIsNpm) {
+      // The command word is a variable or substitution the reader cannot resolve. A clean-install
+      // word after it is the shape of `$NPM ci`: not certain, so it is recorded, not denied.
+      if (sub !== null && CLEAN_INSTALL.has(sub)) {
+        dynamic = true;
+        seen.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
+      }
+      restore();
+      continue;
+    }
+    if (sub === null && dynamicSub) {
+      // `npm $SUB`: the subcommand cannot be read.
+      dynamic = true;
+      seen.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
     }
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
       // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
@@ -518,7 +914,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     }
     restore();
   }
-  return { target: targets[0] ?? null, targets, seen, cdArgs };
+  return { target: targets[0] ?? null, targets, seen, cdArgs, dynamic };
 }
 
 /**
@@ -617,8 +1013,9 @@ export function npmCiSymlinkGuard(
   deps: NpmCiSymlinkGuardDeps = DEFAULT_DEPS,
 ): HookResult {
   const command = input.tool_input?.command;
-  // The fast exit reads the loose text, so `n\pm` and `np''m` still enter (b137 P2 on #5195).
-  if (typeof command !== 'string' || !shellWord(command).includes('npm')) return outputSilentSuccess();
+  // The fast exit reads the loose text, so `n\pm` and `np''m` still enter (b137 P2 on #5195). A
+  // command with a variable, a substitution or a brace may build the name, so it enters too.
+  if (typeof command !== 'string' || !(shellWord(command).includes('npm') || MAY_BE_DYNAMIC.test(command))) return outputSilentSuccess();
 
   const cwd = input.cwd || ctx.projectDir;
   try {
@@ -628,7 +1025,7 @@ export function npmCiSymlinkGuard(
     // let it through quietly. Ask when the text mentions a clean install; the check below reads
     // the words only, with no recursion.
     const words = shellWord(command).split(/[\s;&|()$`"']+/).filter(Boolean);
-    const npmAt = words.indexOf('npm');
+    const npmAt = words.findIndex((w) => baseName(w) === 'npm');
     if (npmAt === -1 || !words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w))) return outputSilentSuccess();
     ctx.log(HOOK_NAME, `asked: command too complex to read (${err instanceof ParseBudgetExceeded ? 'work budget' : String(err)})`);
     return outputAsk(

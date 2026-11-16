@@ -578,3 +578,212 @@ describe('substitutions the scanner must not lose', () => {
     expect(blocked("sh -c 'npm ci'", linked)).toBe(false);
   });
 });
+
+// Command shapes the reader follows to the install. Every command here runs a clean install aimed
+// at /lw, a linked worktree, from /wt, which is not linked.
+describe('command shapes the reader must follow to the install', () => {
+  const linked = linksAt('/lw/node_modules');
+  const nothingLinked = linksAt();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps, cwd = '/wt') =>
+    npmCiSymlinkGuard(bash(command, cwd), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  describe('nested scripts, read the way the shell unquotes them', () => {
+    it.each([
+      ['a double-quoted sh -c body with escaped quotes', 'sh -c "echo \\"\\$(npm ci --prefix /lw)\\""'],
+      ['a sh -c inside a sh -c, double quotes inside single', `sh -c 'bash -c "echo \\$(npm ci --prefix /lw)"'`],
+      ['sh -c after a double dash', `sh -c -- 'echo "$(npm ci --prefix /lw)"'`],
+      ['a single-quoted script inside a single-quoted script', `sh -c 'sh -c '\\''echo "$(npm ci --prefix /lw)"'\\'''`],
+      ['three shells deep with escaped quotes', `sh -c 'sh -c "bash -c \\"npm ci --prefix /lw\\""'`],
+      ['a path-qualified shell', `/bin/sh -c 'npm ci --prefix /lw'`],
+      ['a shell after options', `bash -o pipefail -c 'npm ci --prefix /lw'`],
+      ['a combined option', `bash -ec 'npm ci --prefix /lw'`],
+      ['eval of a substitution', `eval 'echo "$(npm ci --prefix /lw)"'`],
+      ['eval of a plain command', 'eval "npm ci --prefix /lw"'],
+      ['eval with several words', 'eval npm ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ["sh -c 'npm install --prefix /lw'"],
+      ['eval "npm install --prefix /lw"'],
+      ["bash -c 'echo npm ci'"],
+      ['eval "$(ssh-agent -s)"'],
+    ])('control: %s is quiet while /lw is linked', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+
+    it.each([
+      ["sh -c 'sh -c \"echo \\$(npm ci --prefix /lw)\"'"],
+      ['eval "npm ci --prefix /lw"'],
+    ])('control: %s is quiet when nothing is linked', (command) => {
+      expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+  });
+
+  describe('a heredoc with a quoted delimiter is literal text', () => {
+    it('reads the install after an apostrophe and a backtick inside the heredoc body', () => {
+      const command = "cat <<'EOF'\nit's `x\nEOF\necho `npm ci --prefix /lw`";
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('reads an install on the line after the heredoc', () => {
+      expect(decision("cat <<'EOF'\nit's here\nEOF\nnpm ci --prefix /lw", linked)).toBe('deny');
+    });
+
+    it('control: the same heredoc with nothing linked is quiet', () => {
+      expect(decision("cat <<'EOF'\nit's `x\nEOF\necho `npm ci --prefix /lw`", nothingLinked)).toBeUndefined();
+    });
+
+  });
+
+  describe('a backslash before a newline joins the lines', () => {
+    it.each([
+      ['inside a word list', 'npm \\\nci --prefix /lw'],
+      ['inside a substitution', 'echo "$(npm \\\nci --prefix /lw)"'],
+      ['inside a word', 'n\\\npm ci --prefix /lw'],
+      ['inside the subcommand', 'npm c\\\ni --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('control: a continued npm install is quiet', () => {
+      expect(decision('npm \\\ninstall --prefix /lw', linked)).toBeUndefined();
+    });
+  });
+
+  describe('a redirection is not part of the word next to it', () => {
+    it.each([
+      ['glued to the subcommand', 'npm ci --prefix /lw>/dev/null'],
+      ['glued to the subcommand, fd number', 'npm ci --prefix /lw 2>/dev/null'],
+      ['before the subcommand', 'npm >/dev/null ci --prefix /lw'],
+      ['with an append', 'npm ci --prefix /lw >> out.log'],
+      ['after a cd', 'cd /lw 2>/dev/null && npm ci'],
+      ['an input redirect', 'npm ci --prefix /lw </dev/null'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('reads the cwd form too', () => {
+      expect(decision('npm ci>/dev/null', linked, '/lw')).toBe('deny');
+    });
+
+    it.each([
+      ['npm install --prefix /lw>/dev/null'],
+      ['npm test --prefix /lw 2>&1'],
+      ['echo ok >/dev/null'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('the command word', () => {
+    it.each([
+      ['an absolute path', '/usr/local/bin/npm ci --prefix /lw'],
+      ['a relative path', './node_modules/.bin/npm ci --prefix /lw'],
+      ['a path after a wrapper', 'sudo /opt/homebrew/bin/npm ci --prefix /lw'],
+      ['npx running npm', 'npx npm ci --prefix /lw'],
+      ['xargs running npm', 'echo x | xargs -n 1 npm ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['/usr/local/bin/npm install --prefix /lw'],
+      ['/usr/local/bin/npmx ci --prefix /lw'],
+      ['/opt/npm/bin/node ci --prefix /lw'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('words the shell rewrites before it runs them', () => {
+    it.each([
+      ['a braced IFS for the blank', `npm\${IFS}ci --prefix /lw`],
+      ['a braced IFS between every word', `npm\${IFS}ci\${IFS}--prefix\${IFS}/lw`],
+      ['$IFS for the blank', 'npm$IFS$9ci --prefix /lw'],
+      ['an ANSI-C escape for the subcommand', "npm $'\\x63i' --prefix /lw"],
+      ['an ANSI-C word for the command', "$'npm' ci --prefix /lw"],
+      ['an ANSI-C octal escape', "npm $'\\143i' --prefix /lw"],
+      ['a brace expansion for the subcommand', 'npm c{i,} --prefix /lw'],
+      ['a brace expansion with the install first', 'npm {ci,x} --prefix /lw'],
+      ['a brace expansion in the command', '{npm,} ci --prefix /lw'],
+      ['a variable holding the command', 'NPM=npm; $NPM ci --prefix /lw'],
+      ['a braced variable holding the command', `NPM=npm; \${NPM} ci --prefix /lw`],
+      ['a quoted variable holding the command', 'NPM=npm && "$NPM" ci --prefix /lw'],
+      ['an exported variable holding the command', 'export NPM=npm; $NPM ci --prefix /lw'],
+      ['a variable holding the subcommand', 'SUB=ci; npm $SUB --prefix /lw'],
+      ['a variable holding a path', 'D=/lw; npm ci --prefix $D'],
+      ['a variable chain', 'A=npm; B=$A; $B ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['a command word the command never defines', '$NPM ci --prefix /lw'],
+      ['a subcommand the command never defines', 'npm $SUB --prefix /lw'],
+      ['a substitution as the subcommand', 'npm $(echo ci) --prefix /lw'],
+      ['a variable assigned two different values', 'NPM=npm; NPM=echo; $NPM ci --prefix /lw'],
+    ])('%s: asked, because it cannot be read', (_name, command) => {
+      expect(decision(command, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['npm c{a,b} --prefix /lw'],
+      ['npm c{,i} --prefix /lw'],
+      ['npm {x,ci} --prefix /lw'],
+      ['n{p,}m ci --prefix /lw'],
+      ['NPM=npm; $NPM install --prefix /lw'],
+      ['SUB=install; npm $SUB --prefix /lw'],
+      ['npm $FLAGS install --prefix /lw'],
+      ["npm $'in\\x73tall' --prefix /lw"],
+      [`npm\${IFS}install --prefix /lw`],
+      ['echo $NPM ci'],
+      ['$EDITOR notes.md'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+
+    it('control: nothing linked, nothing asked, for the commands that ask above', () => {
+      for (const command of ['$NPM ci --prefix /lw', 'npm $SUB --prefix /lw', 'NPM=npm; $NPM ci --prefix /lw']) {
+        expect(decision(command, nothingLinked)).toBeUndefined();
+      }
+    });
+  });
+
+  describe('a cd with options', () => {
+    it.each([
+      ['cd -P'],
+      ['cd -L'],
+      ['cd --'],
+      ['pushd'],
+    ])('%s moves the directory for the install after it', (cdWord) => {
+      expect(decision(`${cdWord} /lw && npm ci`, linked)).toBe('deny');
+    });
+  });
+
+  describe('process substitution runs its body', () => {
+    it.each([
+      ['cat <(npm ci --prefix /lw)'],
+      ['diff a >(npm ci --prefix /lw)'],
+    ])('%s: denied', (command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+  });
+
+  // Each shape is near the size limit and built to make a new reader work hard. Never allowed, never
+  // slow (under vitest --coverage the bound has room for the linear scan).
+  it.each([
+    ['two thousand eval words', `${'eval '.repeat(2000)}npm ci --prefix /lw`],
+    ['a variable that doubles on every assignment', `${'a=$a$a; '.repeat(5000)}$a ci --prefix /lw`],
+    ['four thousand brace expansions per word', `${'npm c{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,} --prefix /lw; '.repeat(200)}`],
+    ['eight thousand redirections', `${'echo > /dev/null '.repeat(8000)}; npm ci --prefix /lw>x`],
+    ['four thousand sibling here-documents', `${"cat <<'E'\nx\nE\n".repeat(4000)}npm ci --prefix /lw`],
+    ['a chain of sh -c scripts, each one word shorter', `${'sh -c '.repeat(20000)}'npm ci --prefix /lw'`],
+    ['a long run of line continuations', `${'x \\\n'.repeat(40000)}; npm ci --prefix /lw`],
+  ])('%s: blocked and fast', (_name, command) => {
+    const started = Date.now();
+    expect(['deny', 'ask']).toContain(decision(command, linked));
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+});
