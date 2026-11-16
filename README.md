@@ -19,7 +19,7 @@
 
 ## Start here
 
-OrchestKit is a free, open source Claude Code plugin: skills, agents and hooks for review, testing, security and memory.
+OrchestKit is free and open source (MIT, no account): skills and agents for Claude Code, Cursor and Codex, plus hooks in Claude Code, for review, testing, security and memory.
 
 ```bash
 claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
