@@ -65,11 +65,12 @@ describe('session-registry (#1912)', () => {
       expect(existsSync(dbPath)).toBe(true);
       expect(readPragma(db, 'journal_mode')).toBe('wal');
       expect(readPragma(db, 'foreign_keys')).toBe(1);
-      expect(readPragma(db, 'user_version')).toBe(5);
+      expect(readPragma(db, 'user_version')).toBe(6);
       // sessions (001) + skill_invocation (002, #2010). 003 adds the
       // routing_edge VIEW — views are type='view', so it is not listed. 004
       // (#3318) adds a COLUMN to sessions. 005 (#3353) DROPS locks,
       // settings_overrides and worktree_links: 0 rows ever, no writer.
+      // 006 adds the rules_hash COLUMN (session stamp).
       const tables = db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",

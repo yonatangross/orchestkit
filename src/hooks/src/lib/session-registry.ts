@@ -79,7 +79,10 @@ export interface SessionRow {
   last_heartbeat: number;
   ended_at: number | null;
   cc_version: string | null;
+  /** Plugin manifest version, 'ork_version_unresolved', or NULL on rows before the session stamp. */
   ork_version: string | null;
+  /** sha256 of the loaded rule files (006), 'rules_hash_empty', or NULL on rows before 006. */
+  rules_hash: string | null;
   /** CLAUDE_CODE_MESSAGING_SOCKET verbatim; null = not reachable that way. */
   messaging_socket: string | null;
 }
