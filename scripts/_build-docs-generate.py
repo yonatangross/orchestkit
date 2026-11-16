@@ -987,7 +987,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_lines = [
         "---",
         "title: OrchestKit Skills Reference",
-        f'description: "Complete reference for all {count} OrchestKit skills."',
+        f'description: "Complete reference for all {count} OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."',
         "---",
         "",
         "import { SkillAtlas } from '@/components/world/skill-atlas';",
@@ -1215,7 +1215,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     index_lines = [
         "---",
         "title: OrchestKit Agents Reference",
-        f'description: "Complete reference for all {count} OrchestKit agents."',
+        f'description: "Complete reference for all {count} OrchestKit agents: specialist subagents for code review, testing, security and architecture, with the tools each one uses."',
         "---",
         "",
         "# OrchestKit Agents Reference",
@@ -1270,6 +1270,20 @@ def hook_name_from_command(cmd: str) -> tuple[str, str]:
             return hook_path, hook_path.split("/")[-1]
     name = cmd.split("/")[-1] if "/" in cmd else cmd
     return name, name
+
+
+def hook_anchor_id(matcher: str, hook_path: str) -> str:
+    """Anchor id of one hook row on its event page.
+
+    Must equal hookAnchorId() in docs/site/lib/library-view.ts: the library
+    section links every hook to this id. Matcher plus script path keeps it
+    unique inside one event page.
+    """
+
+    def part(value: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+    return f"hook-{part(matcher)}-{part(hook_path)}"
 
 
 def scope_from_path(hook_path: str) -> str:
@@ -1543,7 +1557,10 @@ def generate_hooks(hooks_json: str, hooks_out: str, shipped_json: str | None = N
                 badge = BEHAVIOR_BADGES.get(r["behavior"], r["behavior"])
                 desc = _ref_table_cell(r["description"]) if r["description"] else "\u2014"
                 matcher_escaped = r["matcher"].replace("|", "\\|")
-                lines.append(f"| `{r['name']}` | `{matcher_escaped}` | {badge} | {desc} |")
+                anchor = hook_anchor_id(r["matcher"], r["path"])
+                lines.append(
+                    f'| <span id="{anchor}"></span>`{r["name"]}` | `{matcher_escaped}` | {badge} | {desc} |'
+                )
         else:
             lines.append("*No hooks registered for this event.*")
         lines.append("")

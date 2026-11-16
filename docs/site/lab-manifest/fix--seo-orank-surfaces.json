@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-orank-surfaces",
+  "source": "docs/fix--seo-orank-surfaces/index.html",
+  "title": "OrchestKit CLI page and docs MCP output schemas",
+  "description": "A /cli page for the orchestkit npm CLI, linked from the home page, and output schemas plus longer server instructions on the docs MCP server.",
+  "tags": [
+    "seo",
+    "mcp",
+    "cli"
+  ],
+  "date": "2026-11-15"
+}

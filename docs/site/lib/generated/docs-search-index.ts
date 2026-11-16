@@ -273,7 +273,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 163-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's hook registration system works: bundles, runners, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -468,7 +468,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/agents",
     "title": "OrchestKit Agents Reference",
-    "description": "Complete reference for all 36 OrchestKit agents."
+    "description": "Complete reference for all 36 OrchestKit agents: specialist subagents for code review, testing, security and architecture, with the tools each one uses."
   },
   {
     "url": "/docs/reference/agents/infrastructure-architect",
@@ -1208,7 +1208,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 116 OrchestKit skills."
+    "description": "Complete reference for all 116 OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",

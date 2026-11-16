@@ -9,6 +9,10 @@ import { defineConfig, devices } from '@playwright/test';
  * one is already listening on :3000 (e.g., during local dev). On CI,
  * always starts fresh.
  */
+// E2E_PORT lets a seat run its own server on 127.0.0.1 without touching :3000.
+const e2ePort = process.env.E2E_PORT;
+const baseURL = e2ePort ? `http://127.0.0.1:${e2ePort}` : 'http://localhost:3000';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
@@ -21,7 +25,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -38,8 +42,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: e2ePort ? `npx next dev -H 127.0.0.1 -p ${e2ePort}` : 'npm run dev',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

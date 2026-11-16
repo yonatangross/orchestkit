@@ -6,6 +6,8 @@ description: "Hooks are deterministic TypeScript checks on Claude Code lifecycle
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 
+OrchestKit's hooks are a library of deterministic TypeScript checks that fire on Claude Code lifecycle events, from session start to every tool call. They block unsafe commands, gate quality and save memory without the model choosing to run them. Hooks run in Claude Code; the skills and agents also load in Cursor and Codex.
+
 Hooks are the deterministic layer. They fire on lifecycle events rather than being invoked, which makes them the right place for guardrails that must not depend on the model choosing to run them.
 
 <Cards>

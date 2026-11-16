@@ -10,8 +10,8 @@ import {
 import { COUNTS, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
-	title: "Alternatives",
-	description: `Alternatives to ${SITE.name} and how they differ. OrchestKit is the curated skill/agent/hook toolkit purpose-built for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks, MIT.`,
+	title: `Alternatives to ${SITE.name} for coding agents`,
+	description: `Alternatives to ${SITE.name} and how they differ. ${SITE.name} is a curated toolkit for Claude Code and other agents: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 	alternates: { canonical: `${SITE.domain}/alternatives` },
 };
 

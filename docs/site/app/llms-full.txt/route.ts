@@ -3,6 +3,7 @@
 
 import { COUNTS, SITE } from "@/lib/constants";
 import { developerResourceLines } from "@/lib/developer-resources";
+import { PRODUCT_LINE } from "@/lib/host-support";
 import { orderedPages, readDocBody } from "@/lib/docs-content";
 
 // /llms-full.txt — the entire documentation as one Markdown file so an agent can
@@ -19,13 +20,14 @@ function header(): string {
 	return [
 		`# ${SITE.name}: Full Documentation`,
 		"",
-		`> ${SITE.name} is a free, open-source plugin for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`,
+		`> ${SITE.name} is ${PRODUCT_LINE}. On Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`,
 		"",
-		"## Quickstart",
+		"## Quickstart (Claude Code)",
 		"",
 		`1. Install Claude Code ${SITE.ccVersion}.`,
 		`2. Run \`${SITE.installCommand}\`.`,
 		"3. Invoke any skill with `/ork:<skill>` (e.g. `/ork:implement`, `/ork:review-pr`).",
+		`Other hosts (Cursor, Codex, Devin, OpenCode, Muse Code, Pi, Antigravity): ${SITE.domain}/docs/getting-started/hosts`,
 		"",
 		"## Developer resources",
 		"",

@@ -15,6 +15,8 @@ import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 import { HomeHeroArt } from "@/components/home-hero-art";
+import { HomeFaq } from "@/components/home-faq";
+import { HostAnswer } from "@/components/host-answer";
 
 // Homepage-only social fields. Kept off the root layout so marketing pages that
 // only set `title` do not inherit this og/twitter title and description.
@@ -213,6 +215,12 @@ export default async function HomePage() {
               >
                 OrchestKit SDK packages
               </Link>
+              <Link
+                href="/cli"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit CLI
+              </Link>
             </div>
 
             {/* Spacing, not divider glyphs: a divider in a wrapping row ends a line
@@ -294,17 +302,18 @@ export default async function HomePage() {
             What is OrchestKit?
           </h2>
           <p className="mt-3 leading-7 text-fd-muted-foreground">
-            OrchestKit is a free, open-source (MIT) plugin for{" "}
+            OrchestKit is a free, open-source (MIT) library of{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.skills} skills</span> and{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.agents} agents</span> for AI
+            coding agents: Claude Code, Cursor, Codex and five more hosts. On{" "}
             <a href="https://www.anthropic.com/claude-code" className="text-fd-primary underline underline-offset-2">
               Claude Code
-            </a>
-            , Anthropic&apos;s agentic command-line coding tool. It packages{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.skills} skills</span>,{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.agents} agents</span>, and{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.hooks} lifecycle hooks</span>{" "}
-            into a single install, encoding security patterns and quality gates so the agent
-            works to your standards out of the box. It runs locally inside Claude Code; it is
-            not a hosted service and not an editor autocomplete. See the{" "}
+            </a>{" "}
+            it is one plugin that adds{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.hooks} lifecycle hooks</span>,
+            encoding security patterns and quality gates so the agent works to your standards
+            out of the box. It runs locally inside the agent you use; it is not a hosted service
+            and not an editor autocomplete. See the{" "}
             <Link href="/compare" className="text-fd-primary underline underline-offset-2">
               full comparison
             </Link>
@@ -312,6 +321,10 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+
+      <HostAnswer />
+
+      <HomeFaq />
 
       <AgentReadinessSection />
 

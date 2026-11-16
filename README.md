@@ -63,7 +63,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Surface | Claude Code | Cursor | Codex | pi | Devin | Antigravity |
 |---|---|---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 | all via workspace `.agents/skills` (skills.sh); `ork:<name>` via `agy plugin install` |
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 9 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 | all via workspace `.agents/skills` (skills.sh); `ork:<name>` via `agy plugin install` |
 | Agents | all | all | 4 role templates | none | not reported by `info` | 36 via `agy plugin install` (validated); none via `.agents/skills` |
 | Hooks | all | none | none | none | none | none of ork's; agy `hooks.json` is a different schema |
 | Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on | `AGENTS.md`, per-directory |
@@ -666,6 +666,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.13.0](https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0)** · 2026-11-15
+
+- **ci:** scheduled whole-tree npm audit with a cannot-audit item (#5230)
+- **plugins:** move 26 reference skills to the opt-in ork-extras plugin (#5220)
+- **ci:** make the nightly health report prove its Claude call (#5221)
+- **ci:** the npm audit gate judges the change, not the tree (#5233)
+- **disk-cleanup:** ask before images, keep new snapshots, pin apply (#5213)
+- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0)** · 2026-11-12
 
 - **hooks:** ship 2 hook processes per tool call, not 3 (#5214)
@@ -717,10 +726,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
 
 - **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
-
-**[v10.10.3](https://github.com/yonatangross/orchestkit/compare/v10.10.2...v10.10.3)** · 2026-11-07
-
-- **docs:** replay never starts without consent (#5106)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

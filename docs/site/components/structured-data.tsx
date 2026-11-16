@@ -19,7 +19,9 @@ const PERSON_ID = `${PERSON.url}#person`;
 // rather than a second Organization that competes with the apex (#4144).
 const YONYON_ORG_ID = `${YONYON.apex}/#organization`;
 
-const SUMMARY = `OrchestKit is a free, open-source plugin for Claude Code. It bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
+// Cross-harness, from lib/host-support.ts: the full plugin with hooks is Claude
+// Code; Cursor, Codex and five more hosts load the parts their formats support.
+const SUMMARY = `OrchestKit is a free, open-source library of skills and agents for AI coding agents: Claude Code, Cursor, Codex and five more hosts. On Claude Code it is one plugin with ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
 
 type JsonLdNode = Record<string, unknown>;
 
@@ -94,6 +96,7 @@ export function yonyonOrganizationNode(): JsonLdNode {
 		description: YONYON.description,
 		disambiguatingDescription: YONYON.disambiguation,
 		url: YONYON.apex,
+		logo: { "@type": "ImageObject", ...YONYON.logo },
 		mainEntityOfPage: YONYON.url,
 		sameAs: [YONYON.apex, YONYON.apexPage, YONYON.wikidata],
 		identifier: [
@@ -283,7 +286,8 @@ function homeWebPageNode(): JsonLdNode {
 }
 
 // The default homepage FAQ — accurate, fact-dense answers (chunk-friendly for
-// LLM retrieval). Kept here so the WebMCP/agent surfaces can reuse it later.
+// LLM retrieval). Plain text, no Markdown: components/home-faq.tsx renders the
+// same strings in the page, and the visible text must match the JSON-LD.
 export const HOME_FAQS: Faq[] = [
 	{
 		question: "What is OrchestKit?",
@@ -296,7 +300,7 @@ export const HOME_FAQS: Faq[] = [
 	},
 	{
 		question: "How do I install OrchestKit?",
-		answer: `Inside Claude Code ${SITE.ccVersion}, run \`${SITE.installSlashCommands[0]}\` then \`${SITE.installSlashCommands[1]}\`. From a terminal, run \`${SITE.installCommand}\`. The plugin installs all skills, agents, and hooks together.`,
+		answer: `Inside Claude Code ${SITE.ccVersion}, run ${SITE.installSlashCommands[0]} then ${SITE.installSlashCommands[1]}. From a terminal, run ${SITE.installCommand}. The plugin installs all skills, agents, and hooks together.`,
 	},
 	{
 		question: "What is Claude Code?",
@@ -311,7 +315,7 @@ export const HOME_FAQS: Faq[] = [
 	{
 		question: "How does OrchestKit compare to GitHub Copilot or Cursor?",
 		answer:
-			"OrchestKit operates at a different layer. Copilot and Cursor are general-purpose AI coding assistants in the editor; OrchestKit is a curated toolkit of skills, agents, and quality-gate hooks built specifically for the Claude Code agent.",
+			"Cursor is one of the hosts OrchestKit installs into: Cursor loads the same ork plugin as Claude Code, without the Claude hook scripts. GitHub Copilot is not one of its hosts today. OrchestKit is not an editor or an autocomplete; it is a library of skills, agents and quality-gate hooks that runs inside the agent you already use.",
 	},
 ];
 

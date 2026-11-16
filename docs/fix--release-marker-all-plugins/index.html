@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release PRs bump every plugin's version, not only the first</title>
+<meta name="description" content="The 10.13.0 release PR failed its build because release-please bumped ork and left ork-extras behind in plugins-data.ts. Step through what the release does before and after the fix.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --good:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --good:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.8rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.1rem; margin:30px 0 10px; }
+  p.lead { color:var(--muted); margin:0; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+  .controls button { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .controls button[aria-pressed="true"] { border-color:var(--ink); font-weight:600; }
+  .steps { display:grid; gap:12px; }
+  .step { background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:12px 14px; }
+  .step b { display:block; margin-bottom:6px; }
+  pre { margin:0; overflow-x:auto; font:.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .old { color:var(--bad); font-weight:600; }
+  .new { color:var(--good); font-weight:600; }
+  .verdict { margin-top:14px; padding:12px 14px; border-radius:8px; border:1px solid var(--rule); border-left:5px solid var(--bad); background:var(--card); }
+  .verdict.ok { border-left-color:var(--good); }
+  footer { margin-top:36px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Release PRs bump every plugin's version, not only the first</h1>
+  <p class="lead">release-please changes a version in <code>docs/site/lib/generated/plugins-data.ts</code> only on lines tagged <code>// x-release-please-version</code>. The generator tagged the first plugin only. When ork-extras became a second plugin, the 10.13.0 release PR bumped ork, left ork-extras at 10.12.0, and the build then regenerated the file and failed on the difference. Pick a version to walk through the release.</p>
+
+  <div class="controls" role="group" aria-label="Generator version">
+    <button type="button" data-mode="before" aria-pressed="true">Before the fix</button>
+    <button type="button" data-mode="after" aria-pressed="false">After the fix</button>
+    <button type="button" id="theme" aria-pressed="false">Dark theme</button>
+  </div>
+
+  <div class="steps" id="steps"></div>
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <h2>What changed</h2>
+  <p><code>scripts/generate-docs-data.js</code> now tags the version line of every plugin through <code>scripts/lib/release-version-marker.js</code>, and <code>plugins-data.ts</code> is regenerated with both tags. <code>tests/unit/test-plugins-data-release-marker.mjs</code> fails on the old generator (2 FAIL) and passes on the new one (3 ok).</p>
+  <footer>OrchestKit release tooling. Versions shown are the 10.12.0 to 10.13.0 release.</footer>
+</main>
+<script>
+  const STEPS = {
+    before: {
+      gen: '"name": "ork",        "version": "10.12.0", // x-release-please-version\n"name": "ork-extras", "version": "10.12.0",',
+      rp: '"name": "ork",        "version": "<span class="new">10.13.0</span>", // x-release-please-version\n"name": "ork-extras", "version": "<span class="old">10.12.0</span>",',
+      build: '"name": "ork",        "version": "10.13.0", // x-release-please-version\n"name": "ork-extras", "version": "<span class="new">10.13.0</span>",',
+      verdict: "Build (CI) fails: the rebuilt file differs from the release PR on the ork-extras line (Build drift detected).",
+      ok: false,
+    },
+    after: {
+      gen: '"name": "ork",        "version": "10.12.0", // x-release-please-version\n"name": "ork-extras", "version": "10.12.0", // x-release-please-version',
+      rp: '"name": "ork",        "version": "<span class="new">10.13.0</span>", // x-release-please-version\n"name": "ork-extras", "version": "<span class="new">10.13.0</span>", // x-release-please-version',
+      build: '"name": "ork",        "version": "10.13.0", // x-release-please-version\n"name": "ork-extras", "version": "10.13.0", // x-release-please-version',
+      verdict: "Build (CI) passes the drift check: the release PR and the rebuilt file agree on both plugins.",
+      ok: true,
+    },
+  };
+  const steps = document.getElementById("steps");
+  const verdict = document.getElementById("verdict");
+  function show(mode) {
+    const s = STEPS[mode];
+    steps.innerHTML = [
+      ["1. On main, the generator writes", s.gen],
+      ["2. release-please bumps the tagged lines on its PR", s.rp],
+      ["3. The release build regenerates the file", s.build],
+    ].map(([t, body]) => `<div class="step"><b>${t}</b><pre>${body}</pre></div>`).join("");
+    verdict.textContent = s.verdict;
+    verdict.classList.toggle("ok", s.ok);
+    document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  }
+  document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => show(b.dataset.mode)));
+  const theme = document.getElementById("theme");
+  theme.addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    theme.setAttribute("aria-pressed", String(dark));
+  });
+  show("before");
+</script>
+</body>
+</html>

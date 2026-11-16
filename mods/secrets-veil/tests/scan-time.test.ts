@@ -138,18 +138,34 @@ describe("mask() stays fast on long runs", () => {
     expect(scalesLinearly({ small: 3.97, large: 84.69 })).toBe(true);
   });
 
-  test("the scaling check still fails a quadratic implementation", () => {
-    // Stand-in for the old rescan: work grows with the square of the input,
-    // (n / 100)^2 steps, so 1M chars costs 100x what 100k does.
-    let sink = 0;
-    const quadratic: Run = (text) => {
-      const n = Math.floor(text.length / 100);
-      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) sink += (i ^ j) & 1;
-    };
-    const times = scaling("-----" + "BEGIN ", quadratic);
-    expect(sink).toBeGreaterThan(0);
-    expect(times.large, "quadratic stand-in must clear the floor").toBeGreaterThan(FLOOR_MS);
+  // The controls below prove scalesLinearly() itself: it must reject quadratic growth and
+  // accept linear growth. They count steps instead of timing them. The old control timed
+  // a quadratic loop, and on a slow GitHub runner the 100k side cost about 3x more per
+  // step than the 1M side, so it measured {small: 2.88, large: 84.04} ms, a 29.2x ratio,
+  // which this check (correctly) reads as linear, and the control failed (PR #5236, Mods
+  // job 132734827017). It did not reproduce locally (0 of 20 rounds under 31.6x), so a
+  // wall-clock control is a coin toss on a bad runner. The three timed tests above still
+  // measure the real mask() code.
+  const MS_PER_MILLION_STEPS = 1;
+  const modelled = (steps: (len: number) => number) => ({
+    small: (steps(100_000) / 1e6) * MS_PER_MILLION_STEPS,
+    large: (steps(1_000_000) / 1e6) * MS_PER_MILLION_STEPS,
+  });
+
+  test("the scaling check fails a quadratic implementation (counted steps, not wall time)", () => {
+    // Stand-in for the old rescan: (n / 100)^2 steps, so 1M chars costs 100x what 100k does.
+    const times = modelled((len) => Math.floor(len / 100) ** 2);
+    expect(times.large / times.small).toBe(100);
+    expect(times.large, "quadratic model must clear the floor").toBeGreaterThan(FLOOR_MS);
     expect(scalesLinearly(times), JSON.stringify(times)).toBe(false);
-  }, 30_000);
+  });
+
+  test("the scaling check passes a linear implementation (counted steps, not wall time)", () => {
+    // Same units, linear work: 1M chars costs 10x what 100k does.
+    const times = modelled((len) => len * 300);
+    expect(times.large / times.small).toBe(10);
+    expect(times.large).toBeGreaterThan(FLOOR_MS);
+    expect(scalesLinearly(times), JSON.stringify(times)).toBe(true);
+  });
 });
 

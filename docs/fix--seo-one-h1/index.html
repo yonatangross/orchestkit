@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One H1 per docs page: before and after</title>
+<meta name="description" content="Skill and agent pages on orchestkit.dev rendered two H1 headings. The page title stays the one H1 and the body heading renders as an H2.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:32px 20px 64px}h1.page{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.tree{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font:14px/1.9 ui-monospace,monospace}
+.tag{display:inline-block;min-width:34px;text-align:center;border-radius:5px;padding:0 6px;margin-right:10px;font-weight:700}
+.h1{background:rgba(248,81,73,.18);color:var(--bad)}.h1ok{background:rgba(63,185,80,.18);color:var(--ok)}.h2{background:#222833;color:var(--mute)}
+.d1{padding-left:0}.d2{padding-left:24px}.d3{padding-left:48px}.verdict{margin:14px 0 0;font-weight:600}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1 class="page">One H1 per docs page</h1>
+<p class="lead">Branch fix/seo-one-h1. The heading outline of /docs/reference/skills/brainstorm as a crawler reads it from the server HTML.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before (live, 15.11)</button>
+ <button id="b1" aria-pressed="true">After (this branch)</button>
+</div>
+<div class="tree" id="tree"></div>
+<p class="verdict" id="verdict"></p>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-one-h1 on orchestkit (SEO gaps row 7): components/content-h1.tsx maps an MDX body "# " heading to an H2 with the same anchor id, wired in app/docs/[[...slug]]/page.tsx; test __tests__/seo-pr-c-one-h1.test.tsx. After deploy, rerun seo-probe.py: h1 should read 1 on /docs/reference/skills, /docs/reference/skills/brainstorm and /docs/reference/agents.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const OUT={
+ before:[["h1","Brainstorm","page title (DocsTitle)",1],["h1","Brainstorm","SKILL.md body heading",1],["h2","Quick Start","",2],["h2","Phases","",2],["h3","Phase 1: Divergent","",3]],
+ after:[["h1","Brainstorm","page title (DocsTitle)",1],["h2","Brainstorm","SKILL.md body heading, now H2",2],["h2","Quick Start","",2],["h2","Phases","",2],["h3","Phase 1: Divergent","",3]]
+};
+let s="after";
+function draw(){
+ const t=document.getElementById("tree");t.textContent="";
+ for(const [lvl,txt,note,depth] of OUT[s]){
+  const row=document.createElement("div");row.className="d"+depth;
+  const tag=document.createElement("span");tag.className="tag "+(lvl==="h1"?(OUT[s].filter(r=>r[0]==="h1").length>1?"h1":"h1ok"):"h2");tag.textContent=lvl.toUpperCase();
+  row.appendChild(tag);row.appendChild(document.createTextNode(txt+(note?"   ("+note+")":"")));t.appendChild(row);
+ }
+ const n=OUT[s].filter(r=>r[0]==="h1").length;
+ const v=document.getElementById("verdict");v.textContent=n+" H1 on the page: "+(n===1?"pass":"fail");v.style.color=n===1?"var(--ok)":"var(--bad)";
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));
+}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

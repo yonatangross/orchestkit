@@ -67,7 +67,7 @@ export STUB_REPORTS="$TMP/reports"
 mkdir -p "$STUB_REPORTS"
 
 # lockfile dirs the script is pointed at (content is irrelevant to the stub, the file must exist)
-for d in clean hit low zero both noreport neterr; do
+for d in clean hit low zero both noreport neterr nosev sevodd; do
   mkdir -p "$TMP/trees/$d"
   echo '{}' > "$TMP/trees/$d/package-lock.json"
 done
@@ -138,6 +138,19 @@ check "an EXPIRED allowlist entry exits 1"          "$(run_audit --dir "$TMP/tre
 
 check "a low advisory is below moderate: exits 0"   "$(run_audit --dir "$TMP/trees/low")"    "0"
 check "a low advisory is a hit at --level low"      "$(run_audit --dir "$TMP/trees/low" --level low)" "1"
+
+# An advisory whose severity is missing or is a word npm does not use cannot be ranked: it is a HIT
+# at every level, never dropped (it used to count as "low" and vanish below moderate).
+jq -n '{vulnerabilities: {"pkg-a": {name: "pkg-a", via: [{source: 901, name: "pkg-a", title: "Stub advisory 901 in pkg-a"}]}},
+        metadata: {vulnerabilities: {info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 1}, dependencies: {total: 5}}}' > "$STUB_REPORTS/nosev.json"
+jq -n '{vulnerabilities: {"pkg-a": {name: "pkg-a", severity: "severe", via: [{source: 902, name: "pkg-a", title: "Stub advisory 902 in pkg-a", severity: "severe"}]}},
+        metadata: {vulnerabilities: {info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 1}, dependencies: {total: 5}}}' > "$STUB_REPORTS/sevodd.json"
+check "an advisory with NO severity is a hit (exit 1)" "$(run_audit --dir "$TMP/trees/nosev")" "1"
+check "...named with its id and an unknown severity"   "$(count_lines "$TMP/audit.out" '901 [unknown severity]')" "1"
+check "...and the summary keeps it as a hit"           "$(jq -r '.hits[0].severity' "$TMP/summary.json")" "unknown severity"
+check "an UNKNOWN severity string is a hit (exit 1)"   "$(run_audit --dir "$TMP/trees/sevodd")" "1"
+check "...named with its id and an unknown severity"   "$(count_lines "$TMP/audit.out" '902 [unknown severity]')" "1"
+check "an unknown severity is a hit at --level high too" "$(run_audit --dir "$TMP/trees/nosev" --level high)" "1"
 
 check "no usable report exits 2 (CANNOT AUDIT)"     "$(run_audit --dir "$TMP/trees/noreport")" "2"
 check "the error says no usable JSON report"        "$(jq -r '.errors[0].message | test("no usable JSON report")' "$TMP/summary.json")" "true"

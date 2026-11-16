@@ -50,6 +50,27 @@ const TOOLS = [
 			},
 			required: ["query"],
 		},
+		// MCP: a tool that returns structuredContent declares its shape, so a
+		// client can validate it (orank Usability, SEO gaps row 12).
+		outputSchema: {
+			type: "object",
+			properties: {
+				results: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							title: { type: "string" },
+							url: { type: "string" },
+							content: { type: "string" },
+						},
+						required: ["id", "title", "url", "content"],
+					},
+				},
+			},
+			required: ["results"],
+		},
 		// MCP Apps: results render inline via the ui:// template above.
 		uiResource: UI_SEARCH_RESULTS,
 		run: (args: Record<string, unknown>): ToolResult => {
@@ -81,6 +102,14 @@ const TOOLS = [
 			},
 			required: ["path"],
 		},
+		outputSchema: {
+			type: "object",
+			properties: {
+				path: { type: "string", description: "The page path that was read." },
+				markdown: { type: "string", description: "The page as Markdown." },
+			},
+			required: ["path", "markdown"],
+		},
 		run: async (args: Record<string, unknown>): Promise<ToolResult> => {
 			const path = String(args.path ?? "").trim();
 			if (!path) return errText("Provide a `path`, e.g. /docs/foundations/overview.");
@@ -90,14 +119,14 @@ const TOOLS = [
 					`No page at "${path}". Use orchestkit_docs_search to find a valid path.`,
 				);
 			}
-			return text(md);
+			return {
+				content: [{ type: "text", text: md }],
+				structuredContent: { path, markdown: md },
+			};
 		},
 	},
 ] as const;
 
-function text(value: string): ToolResult {
-	return { content: [{ type: "text", text: value }] };
-}
 function errText(value: string): ToolResult {
 	return { content: [{ type: "text", text: value }], isError: true };
 }
@@ -129,7 +158,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				},
 				serverInfo: { name: `${SITE.name} Docs MCP`, version: SITE.version },
 				instructions:
-					"Search the OrchestKit docs with orchestkit_docs_search, then read a page with orchestkit_docs_get.",
+					"Read-only access to the OrchestKit documentation. Call orchestkit_docs_search with a question to get ranked page URLs, then orchestkit_docs_get with one page path to read that page as Markdown. Neither tool changes anything.",
 			});
 		case "ping":
 			return rpcResult(req.id, {});
@@ -141,6 +170,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 						name: t.name,
 						description: t.description,
 						inputSchema: t.inputSchema,
+						outputSchema: t.outputSchema,
 						// Both tools only read documentation — agents can call them
 						// without user confirmation.
 						annotations: {

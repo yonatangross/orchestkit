@@ -1,4 +1,5 @@
 import { COUNTS, ORG, SITE } from "@/lib/constants";
+import { PRODUCT_LINE } from "@/lib/host-support";
 
 // A2A Agent Card — served at /.well-known/agent-card.json via a rewrite in
 // next.config.mjs. Describes the capabilities an agent can use against this site
@@ -11,7 +12,7 @@ export function GET() {
 	const card = {
 		protocolVersion: "0.3.0",
 		name: SITE.name,
-		description: `Documentation and capability discovery for ${SITE.name}, a free, open-source plugin for Claude Code (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks).`,
+		description: `Documentation and capability discovery for ${SITE.name}, ${PRODUCT_LINE} (${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} hooks on Claude Code).`,
 		url: `${d}/api/mcp`,
 		preferredTransport: "JSONRPC",
 		version: SITE.version,

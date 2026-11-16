@@ -13,6 +13,7 @@ export const STATIC_PAGES = [
   "/api-policy",
   "/best-claude-code-plugins",
   "/changelog",
+  "/cli",
   "/community",
   "/claude-agent-sdk-vs-claude-code-plugins",
   "/compare",

@@ -411,10 +411,27 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      # On a pull request this row judges the CHANGE through the one gate script the pre-push hook and
+      # "Security Tests" use (orchestkit row 10, part 2): advisories in packages the PR adds or changes,
+      # and high or critical anywhere in any lockfile. It diffs against the base tip, so the base must
+      # be fetched (the Performance job's step is the model); a missing base fails closed. On push to
+      # main the two whole-tree steps below run exactly as before, and the scheduled workflow owns the rest.
+      - name: Fetch the base branch for the change audit
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Audit the change (pull request)
+        if: github.event_name == 'pull_request'
+        run: bash .github/scripts/audit-gate.sh
+
       - name: Audit root dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh .
 
       - name: Audit hooks dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh src/hooks
 
   # ============================================================================
@@ -713,6 +730,17 @@ jobs:
       # An install-based fix was tried first and is wrong here — docs/site pulls
       # @yonatan-hq/analytics from GitHub Packages and NPM_TOKEN is deliberately
       # withheld on pull_request runs (#2536), so `npm ci` 401s on every PR.
+      #
+      # On a pull request the npm audit gate judges the CHANGE (orchestkit row 10, part 2), through
+      # .github/scripts/audit-gate.sh, by diffing every lockfile against the base tip. That needs the
+      # base branch, so it is fetched here (the Performance job's step is the model); a missing base
+      # fails closed with its own message. On push to main the gate stays whole-tree.
+      - name: Fetch the base branch for the npm audit gate
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
       - name: Run security tests
         shell: bash
         run: |

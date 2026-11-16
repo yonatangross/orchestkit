@@ -1,0 +1,12 @@
+{
+  "slug": "library-server-list",
+  "source": "docs/feat--library-server-list/index.html",
+  "title": "Library first page: server links, terminal run, per-host lines",
+  "description": "Filter the 303 library links by station and kind, step through the terminal run's four states, and read what each host ships, all from the generated library data.",
+  "tags": [
+    "library",
+    "docs-site",
+    "hosts"
+  ],
+  "date": "2026-11-15"
+}
