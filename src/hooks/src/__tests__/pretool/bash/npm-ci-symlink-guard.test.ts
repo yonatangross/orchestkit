@@ -519,3 +519,37 @@ describe('the uncertain-parse search for a reachable link', () => {
     expect(decisionOf("( cd /x; echo 'q;q);q'; cd /y; npm ci )", '/repo/.worktrees/me', deps)).toBeUndefined();
   });
 });
+
+// Two shapes the substitution scanner of the previous round let through: a clean install inside a
+// substitution, aimed by an absolute --prefix at a linked worktree, run from a cwd that is not linked.
+// The earlier extraction denied both. Neither may be allowed.
+describe('substitutions the scanner must not lose', () => {
+  const linked = linksAt('/lw/node_modules');
+  const nothingLinked = linksAt();
+  const blocked = (command: string, deps: NpmCiSymlinkGuardDeps) => {
+    const d = npmCiSymlinkGuard(bash(command, '/wt'), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+    return d === 'deny' || d === 'ask';
+  };
+
+  it.each([
+    ['a lone backtick in a comment before it', '# don`t run this\necho "$(npm ci --prefix /lw)"'],
+    ['a lone backtick in a comment on the same line', 'true # `\necho "$(npm ci --prefix /lw)"'],
+    ['a lone backtick in a comment, backtick substitution after', '# a ` here\necho `npm ci --prefix /lw`'],
+    ["a single-quoted sh -c body", "sh -c 'echo \"$(npm ci --prefix /lw)\"'"],
+    ["a single-quoted bash -c body", "bash -c 'echo \"$(npm ci --prefix /lw)\"'"],
+    ["a single-quoted sh -c body with a backtick substitution", "sh -c 'echo `npm ci --prefix /lw`'"],
+  ])('%s: never allowed', (_name, command) => {
+    expect(blocked(command, linked)).toBe(true);
+  });
+
+  it('control: the same substitution without the trick is denied today', () => {
+    expect(denied(npmCiSymlinkGuard(bash('echo "$(npm ci --prefix /lw)"', '/wt'), NOOP_CTX, linked))).toBe(true);
+  });
+
+  it.each([
+    ['# don`t run this\necho "$(npm ci --prefix /lw)"'],
+    ["sh -c 'echo \"$(npm ci --prefix /lw)\"'"],
+  ])('control: %s is neither denied nor asked when nothing is linked', (command) => {
+    expect(blocked(command, nothingLinked)).toBe(false);
+  });
+});

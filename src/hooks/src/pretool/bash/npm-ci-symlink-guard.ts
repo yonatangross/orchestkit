@@ -229,10 +229,11 @@ function closeOfBacktick(text: string, open: number): number {
 
 /**
  * The outermost command substitutions of a text, read the way the shell reads
- * quotes: `$(` and a backtick are inert inside single quotes and after a
- * backslash, and live inside double quotes. A substitution that never closes
- * ends the scan, so the rest of the text is left as it is (other readings of the
- * command still see it, and the guard asks when no reading finds an install).
+ * quotes: `$(` and a backtick are inert inside single quotes, after a backslash
+ * and in a comment, and live inside double quotes. An opener that never closes
+ * (a quote, `$(` or a backtick) is stepped over, not taken as the end of the
+ * text: stopping there would leave every later substitution unread, and an
+ * unread clean install is an allowed one.
  */
 function substitutionSpans(text: string): SubstitutionSpan[] {
   const spans: SubstitutionSpan[] = [];
@@ -242,21 +243,30 @@ function substitutionSpans(text: string): SubstitutionSpan[] {
     const c = text[i];
     if (c === '\\') {
       i += 2;
+    } else if (c === '#' && !inDouble && (i === 0 || /[\s;&|()]/.test(text[i - 1] ?? ''))) {
+      // A comment runs to the end of its line; nothing in it is a substitution.
+      const end = text.indexOf('\n', i + 1);
+      i = end === -1 ? text.length : end + 1;
     } else if (c === "'" && !inDouble) {
       const end = text.indexOf("'", i + 1);
-      if (end === -1) break;
-      i = end + 1;
+      i = end === -1 ? i + 1 : end + 1;
     } else if (c === '"') {
       inDouble = !inDouble;
       i++;
     } else if (c === '$' && text[i + 1] === '(') {
       const end = closeOfParen(text, i + 1);
-      if (end === -1) break;
+      if (end === -1) {
+        i += 2;
+        continue;
+      }
       spans.push({ start: i, end, inner: text.slice(i + 2, end - 1) });
       i = end;
     } else if (c === '`') {
       const end = closeOfBacktick(text, i);
-      if (end === -1) break;
+      if (end === -1) {
+        i++;
+        continue;
+      }
       spans.push({ start: i, end, inner: text.slice(i + 1, end - 1) });
       i = end;
     } else {
@@ -343,9 +353,19 @@ export function npmCiCandidateDirs(command: string, cwd: string, home: string = 
   return [...dirs];
 }
 
-/** Every reading of a command: substitutions blanked, raw, each substitution body, each nested shell script. */
-function readingsOf(command: string): string[] {
-  return [blankSubstitutions(command), command, ...substitutionBodies(command), ...nestedShellBodies(command)];
+/** How deep `sh -c '...'` scripts inside scripts are read; deeper ones are still read raw. */
+const NESTED_SHELL_DEPTH = 3;
+
+/**
+ * Every reading of a command: substitutions blanked, raw, each substitution body, and every nested
+ * shell script read the same way. A script in single quotes is inert text to the outer shell, so its
+ * substitutions only come out when the script itself is read as a command.
+ */
+function readingsOf(command: string, depth = 0): string[] {
+  const own = [blankSubstitutions(command), command, ...substitutionBodies(command)];
+  const nested = nestedShellBodies(command);
+  if (depth >= NESTED_SHELL_DEPTH) return [...own, ...nested];
+  return [...own, ...nested.flatMap((body) => readingsOf(body, depth + 1))];
 }
 
 /**
