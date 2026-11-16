@@ -542,6 +542,9 @@ describe('substitutions the scanner must not lose', () => {
     ['a # right after a substitution (not a word start)', 'echo $(true)# $(npm ci --prefix /lw)'],
     ['a # line inside an unquoted heredoc', 'cat <<EOF\n# $(npm ci --prefix /lw)\nEOF'],
     ["a # after an escaped quote in $'...'", "echo $'a\\' #' \"$(npm ci --prefix /lw)\""],
+    // No depth at which reading stops: every body is shorter than its parent, so it ends anyway.
+    ['five nested sh -c scripts', 'sh -c "sh -c \\"sh -c \'sh -c \\\\\\"sh -c \\\\\\\\\\\\\\"echo \\\\\\\\\\\\\\\\$(npm ci --prefix /lw)\\\\\\\\\\\\\\"\\\\\\"\'\\""'],
+    ['seventy nested substitutions', `${'$('.repeat(70)}npm ci --prefix /lw${')'.repeat(70)}`],
   ])('%s: never allowed', (_name, command) => {
     expect(blocked(command, linked)).toBe(true);
   });

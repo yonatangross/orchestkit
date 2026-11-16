@@ -327,19 +327,23 @@ function nestedShellBodies(command: string): string[] {
 /** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
 function substitutionBodies(command: string): string[] {
   const bodies = new Set<string>();
-  const walk = (text: string, depth: number): void => {
-    if (depth > 64) return;
+  // No depth cap (a cap that stops quietly fails open): every body is strictly shorter than the
+  // text it came from, so the walk ends; the set keeps repeated bodies from being walked twice.
+  // Dedup on the RAW inner text: blanked bodies of different nesting levels can be equal ("_"),
+  // and skipping on those would stop the walk before the innermost body.
+  const walked = new Set<string>();
+  const walk = (text: string): void => {
     // Both readings: with comments skipped and without (see substitutionSpans).
     for (const skip of [false, true]) {
       for (const span of substitutionSpans(text, skip)) {
-        const body = blankSubstitutions(span.inner);
-        if (bodies.has(body)) continue;
-        bodies.add(body);
-        walk(span.inner, depth + 1);
+        if (walked.has(span.inner)) continue;
+        walked.add(span.inner);
+        bodies.add(blankSubstitutions(span.inner));
+        walk(span.inner);
       }
     }
   };
-  walk(command, 0);
+  walk(command);
   return [...bodies];
 }
 
@@ -364,19 +368,15 @@ export function npmCiCandidateDirs(command: string, cwd: string, home: string = 
   return [...dirs];
 }
 
-/** How deep `sh -c '...'` scripts inside scripts are read; deeper ones are still read raw. */
-const NESTED_SHELL_DEPTH = 3;
-
 /**
  * Every reading of a command: substitutions blanked, raw, each substitution body, and every nested
  * shell script read the same way. A script in single quotes is inert text to the outer shell, so its
- * substitutions only come out when the script itself is read as a command.
+ * substitutions only come out when the script itself is read as a command. No depth cap: a nested
+ * script is a strict substring of its parent, so the recursion ends.
  */
-function readingsOf(command: string, depth = 0): string[] {
+function readingsOf(command: string): string[] {
   const own = [blankSubstitutions(command), blankSubstitutions(command, true), command, ...substitutionBodies(command)];
-  const nested = nestedShellBodies(command);
-  if (depth >= NESTED_SHELL_DEPTH) return [...own, ...nested];
-  return [...own, ...nested.flatMap((body) => readingsOf(body, depth + 1))];
+  return [...own, ...nestedShellBodies(command).filter((body) => body.length < command.length).flatMap((body) => readingsOf(body))];
 }
 
 /**
