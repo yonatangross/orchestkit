@@ -276,7 +276,7 @@ function blankSubstitutions(command: string): string {
   let out = '';
   let last = 0;
   for (const span of substitutionSpans(command)) {
-    out += command.slice(last, span.start) + '_';
+    out += `${command.slice(last, span.start)}_`;
     last = span.end;
   }
   return out + command.slice(last);
