@@ -194,8 +194,15 @@ function readWord(text: string, start: number, stops: string): { value: string; 
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
-// The text inside the braces is short and holds no `$` or `{`, so a run of unclosed openers is linear.
-const IFS_BLANK = /\$\{IFS[^}${]{0,16}\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+// The text inside the braces holds no `$` or `{`, so the scan from one opener ends at the next one
+// and a run of unclosed openers is linear.
+const IFS_BLANK = /\$\{IFS[^}${]*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+
+/** The words before the first word that starts a comment (`#`). */
+function beforeComment(words: string[]): string[] {
+  const at = words.findIndex((w) => w.startsWith('#'));
+  return at === -1 ? words : words.slice(0, at);
+}
 
 /** Characters a backslash escapes inside double quotes. */
 const DQ_ESCAPABLE = '$`"\\\n';
@@ -227,8 +234,6 @@ function shellWords(segment: string): string[] {
       dropNext = true;
       continue;
     }
-    // A `#` that starts a word starts a comment: nothing after it on the line is a word.
-    if (c === '#' && !dropNext) break;
     const word = readWord(segment, i, '');
     i = word.end;
     if (dropNext) dropNext = false;
@@ -841,7 +846,11 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       return parts.length === 1 && parts[0] === w ? parts : parts.filter((p) => p !== '');
     });
     const cdWord = words[0] === 'cd' || words[0] === 'pushd';
-    const cdOperands = cdWord ? words.slice(1).filter((a) => !CD_OPTIONS.has(a)) : [];
+    let cdOperands = cdWord ? words.slice(1).filter((a) => !CD_OPTIONS.has(a)) : [];
+    // `cd /dir # note`: the comment is not an operand. Only a cd is cut at a comment, and only when the
+    // whole line holds no single directory: on an npm line a cut could drop words the shell keeps
+    // (the guard splits at more blanks than the shell does), and an npm line is read in full.
+    if (cdWord && cdOperands.length !== 1) cdOperands = beforeComment(words).slice(1).filter((a) => !CD_OPTIONS.has(a));
     if (cdWord && cdOperands.length === 1) {
       cdArgs.push(cdOperands[0]);
       dir = resolveDir(dir, cdOperands[0], home);

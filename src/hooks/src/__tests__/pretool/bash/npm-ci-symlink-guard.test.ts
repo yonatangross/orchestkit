@@ -773,6 +773,21 @@ describe('command shapes the reader must follow to the install', () => {
       expect(decision(command, linked)).toBe('deny');
     });
 
+    // The comment cut applies to cd and pushd only. On an npm line it would drop words the shell
+    // keeps, whenever the guard splits finer than the shell does.
+    it.each([
+      ['a # after a space inside a parameter expansion', `npm ci \${x:- #} --prefix /lw`],
+      ['a # after IFS blanks', `npm\${IFS}ci\${IFS}#\${IFS}--prefix\${IFS}/lw`],
+      ['a # after a bare IFS', 'npm$IFS$9ci$IFS#$IFS--prefix$IFS/lw'],
+      ['a braced IFS body of more than sixteen characters', `npm\${IFS//zzzzzzzzzzzzzzzzzzz/}ci --prefix /lw`],
+      ['a carriage return before a # word', 'npm ci --foo\r#bar --prefix /lw'],
+      ['a no-break space before a # word', 'npm ci --foo #bar --prefix /lw'],
+      ['a form feed before a # word', 'npm ci --foo\f#bar --prefix /lw'],
+      ['an ideographic space before a # word', 'npm ci --foo　#bar --prefix /lw'],
+    ])('%s: the install after it is still read', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
     it.each([
       ['cd /wt # reclaimed worktree\nnpm ci'],
       ['cd /lw # reclaimed worktree\nnpm install'],
