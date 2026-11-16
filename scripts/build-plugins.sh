@@ -903,6 +903,8 @@ echo ""
 echo "Stamping counts and version markers…"
 bash "$(dirname "$0")/stamp-counts.sh"
 node "$(dirname "$0")/stamp-whats-new.mjs"
+# After stamp-counts: the compatibility table reads the stamped hooks count (README, docs guide).
+node "$(dirname "$0")/stamp-compat-table.js"
 
 # Docs site data includes the manifest version, synchronized by stamp-counts.
 if [[ -f "$SCRIPT_DIR/generate-docs-data.js" ]]; then
