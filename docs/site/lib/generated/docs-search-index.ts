@@ -41,6 +41,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Every OrchestKit release, newest first, with what changed, why it matters and the PR to open. Follows Keep a Changelog and Semantic Versioning. RSS too."
   },
   {
+    "url": "/docs/compatibility",
+    "title": "Compatibility",
+    "description": "What OrchestKit runs in on each coding agent (skills, agents, hooks, install route), generated from the pack manifests."
+  },
+  {
     "url": "/docs/cookbook/claude-design-handoff",
     "title": "Claude Design → PR",
     "description": "Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command, the closed-loop pipeline from design exploration to production code."

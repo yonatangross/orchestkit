@@ -37,6 +37,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Changelog",
       "inbound": 1
     },
+    "/docs/compatibility": {
+      "title": "Compatibility",
+      "inbound": 0
+    },
     "/docs/cookbook": {
       "title": "Cookbook",
       "inbound": 0
@@ -163,7 +167,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/installation": {
       "title": "OrchestKit Installation and Setup",
-      "inbound": 7
+      "inbound": 8
     },
     "/docs/getting-started/muse": {
       "title": "Muse Code",
@@ -207,7 +211,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/guides/orchestkit-on-pi-codex-cursor": {
       "title": "OrchestKit on pi, Codex and Cursor",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/guides/orchestkit-with-nextjs": {
       "title": "Using OrchestKit with Next.js",
@@ -1357,6 +1361,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/analytics": [],
     "/docs/changelog": [],
+    "/docs/compatibility": [
+      "/docs/getting-started/installation",
+      "/docs/guides/orchestkit-on-pi-codex-cursor"
+    ],
     "/docs/cookbook": [
       "/docs/cookbook/claude-design-handoff",
       "/docs/cookbook/create-demo-video",

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
-import { StarLink } from "./star-link";
+import { HeroStrip } from "@/components/hero-strip";
 import { COUNTS, HOME_TITLE, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
@@ -144,7 +144,7 @@ export default async function HomePage() {
                 data-speakable-headline
                 className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground [text-wrap:balance]"
               >
-                <span className="sr-only">OrchestKit, Claude Code plugin. </span>
+                <span className="sr-only">OrchestKit, the skill and agent library for coding agents. </span>
                 Stop explaining your stack.
                 <br />
                 Start shipping.
@@ -166,7 +166,7 @@ export default async function HomePage() {
                   {COUNTS.hooks} hooks
                 </span>
                 <span className="mt-1 block text-[0.9em]">
-                  A Claude Code plugin library. Search it, install it, ship.
+                  Skills and agents for Claude Code, Cursor, Codex and more. Search it, install it, ship.
                 </span>
               </p>
             </div>
@@ -223,15 +223,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* Spacing, not divider glyphs: a divider in a wrapping row ends a line
-                on its own ("MIT license |" at 390). */}
-            <div className="mt-6 flex flex-wrap items-center justify-start gap-x-6 gap-y-1.5 font-mono text-[12px] text-fd-muted-foreground min-[901px]:justify-center">
-              <StarLink stars={stars} />
-              <span className="inline-flex items-center gap-1.5">MIT license</span>
-              <span className="inline-flex items-center gap-1.5">
-                Claude Code ≥ {SITE.ccVersion}
-              </span>
-            </div>
+            <HeroStrip stars={stars} />
           </div>
         </div>
       </section>
