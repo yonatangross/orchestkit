@@ -2,6 +2,7 @@
 // cli-core.ts so it can be tested without spawning a process.
 import { readFileSync } from "node:fs";
 import { run } from "./cli-core.js";
+import { realHostEnv } from "./host-env.js";
 
 function packageVersion(): string {
 	try {
@@ -13,7 +14,7 @@ function packageVersion(): string {
 	}
 }
 
-const result = await run(process.argv.slice(2), { version: packageVersion() });
+const result = await run(process.argv.slice(2), { version: packageVersion(), hostEnv: realHostEnv() });
 if (result.stdout) process.stdout.write(result.stdout);
 if (result.stderr) process.stderr.write(result.stderr);
 process.exitCode = result.exitCode;

@@ -65,8 +65,11 @@ describe("offline commands", () => {
 		expect((await run(["--version"], { version: "1.2.3" })).stdout).toBe("1.2.3\n");
 	});
 
-	it("install prints the documented Claude Code command", async () => {
-		const res = await run(["install"], { version: "1.2.3" });
+	it("install prints the documented Claude Code command inside Claude Code", async () => {
+		const res = await run(["install"], {
+			version: "1.2.3",
+			hostEnv: { env: { CLAUDECODE: "1" }, hasBin: () => false },
+		});
 		expect(res.stdout).toContain(PLUGIN_INSTALL_COMMAND);
 		expect(res.exitCode).toBe(0);
 	});

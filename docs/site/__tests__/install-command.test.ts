@@ -88,7 +88,7 @@ describe("plugin install command", () => {
 	});
 
 	it("the orchestkit npm CLI prints the same command as the site", () => {
-		const src = readFileSync(resolve(REPO, "packages/cli/src/cli-core.ts"), "utf8");
+		const src = readFileSync(resolve(REPO, "packages/cli/src/hosts.ts"), "utf8");
 		expect(src).toContain(JSON.stringify(SITE.installCommand));
 	});
 });
