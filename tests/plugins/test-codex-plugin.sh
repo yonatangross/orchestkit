@@ -11,7 +11,7 @@ for path in "$SOURCE_ROOT" "$PLUGIN_ROOT" "$MARKETPLACE"; do
   [[ -e "$path" ]] || { echo "FAIL: missing $path"; exit 1; }
 done
 
-expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr ork-implement ork-glyph)
+expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr ork-implement ork-glyph ork-commit ork-create-pr)
 # The built manifest discovers a directory, not an array of skill names.
 # Resolve that path so the presence check proves the skill is exported.
 skills_path="$(jq -er '.skills | select(type == "string")' "$PLUGIN_ROOT/.codex-plugin/plugin.json")"
@@ -174,4 +174,4 @@ jq -s '
     and all($keys[]; . as $key | $row | has($key))))
 ' "$all_rows" >/dev/null || { echo "FAIL: Jev hook fixture leaked or lost its contract"; exit 1; }
 
-echo "PASS: Codex plugin contract (7 skills, 4 roles, context7 MCP server, ork-mech profile)"
+echo "PASS: Codex plugin contract (9 skills, 4 roles, context7 MCP server, ork-mech profile)"
