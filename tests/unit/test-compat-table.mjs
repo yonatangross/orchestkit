@@ -90,6 +90,11 @@ for (const file of ['README.md', 'docs/site/content/docs/guides/orchestkit-on-pi
   });
 }
 
+check('docs/site/lib/generated/compat-data.ts is the fresh build (stamp --check)', () => {
+  const { execFileSync } = require('node:child_process');
+  execFileSync(process.execPath, [join(root, 'scripts/stamp-compat-table.js'), '--check'], { stdio: 'pipe' });
+});
+
 if (failed) {
   console.log(`\n${failed} check(s) failed`);
   process.exit(1);
