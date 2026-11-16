@@ -147,8 +147,9 @@ plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
 export CONTEXT7_API_KEY_CODEX="<your-context7-api-key>"
 ```
 
-What loads: six workflow skills (`$ork-brainstorm`, `$ork-explore`, `$ork-implement`,
-`$ork-assess`, `$ork-verify`, `$ork-review-pr`), one MCP server (context7 over HTTP, key by
+What loads: nine workflow skills (`$ork-brainstorm`, `$ork-explore`, `$ork-implement`,
+`$ork-assess`, `$ork-verify`, `$ork-review-pr`, `$ork-glyph`, `$ork-commit`,
+`$ork-create-pr`), one MCP server (context7 over HTTP, key by
 environment variable, never written to `config.toml`), and four role templates if you ran the
 script. Codex also reads project `.agents/skills`, `~/.agents/skills` and `AGENTS.md`, so a
 checkout of this repo already contributes its `AGENTS.md`.
