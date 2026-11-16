@@ -564,6 +564,8 @@ describe('substitutions the scanner must not lose', () => {
     ['twenty thousand nested substitutions', `${'$('.repeat(20000)}npm ci --prefix /lw${')'.repeat(20000)}`],
     ['twenty thousand nested double-quoted substitutions', `${'"$('.repeat(20000)}npm ci --prefix /lw${')"'.repeat(20000)}`],
     ['three thousand sibling substitutions', `${'echo "$(true)" '.repeat(3000)}"$(npm ci --prefix /lw)"`],
+    ['twenty thousand unclosed $( before it', `${'$( '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
+    ['twenty thousand lone backticks before it', `${'` '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
   ])('%s: fails closed (never allowed, never throws) and stays fast', (_name, command) => {
     const started = Date.now();
     expect(blocked(command, linked)).toBe(true);

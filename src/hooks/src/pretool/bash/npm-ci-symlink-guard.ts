@@ -164,6 +164,7 @@ function expandHome(dir: string, home: string): string {
 const PARSE_MAX_SPANS = 4000;
 const PARSE_MAX_CHARS = 200_000;
 const PARSE_MAX_WORK = 2_000_000;
+const PARSE_MAX_UNCLOSED = 64;
 class ParseBudgetExceeded extends Error {}
 
 interface SubstitutionSpan {
@@ -254,6 +255,11 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
   const spans: SubstitutionSpan[] = [];
   let inDouble = false;
   let i = 0;
+  // Each unclosed opener is a scan to the end of the text; many of them cost length squared.
+  let unclosed = 0;
+  const stepOverUnclosed = (): void => {
+    if (++unclosed > PARSE_MAX_UNCLOSED) throw new ParseBudgetExceeded();
+  };
   while (i < text.length) {
     const c = text[i];
     if (c === '\\') {
@@ -271,6 +277,7 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
     } else if (c === '$' && text[i + 1] === '(') {
       const end = closeOfParen(text, i + 1);
       if (end === -1) {
+        stepOverUnclosed();
         i += 2;
         continue;
       }
@@ -279,6 +286,7 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
     } else if (c === '`') {
       const end = closeOfBacktick(text, i);
       if (end === -1) {
+        stepOverUnclosed();
         i++;
         continue;
       }
