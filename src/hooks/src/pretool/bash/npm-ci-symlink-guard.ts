@@ -234,8 +234,13 @@ function closeOfBacktick(text: string, open: number): number {
  * (a quote, `$(` or a backtick) is stepped over, not taken as the end of the
  * text: stopping there would leave every later substitution unread, and an
  * unread clean install is an allowed one.
+ *
+ * `skipComments` is one of two readings, never the only one: a `#` the shell does not
+ * take as a comment (right after a substitution, in a heredoc body, after `$'\''`)
+ * would hide what follows it. readingsOf() reads both ways, so a misread comment can
+ * only add candidates, never remove them.
  */
-function substitutionSpans(text: string): SubstitutionSpan[] {
+function substitutionSpans(text: string, skipComments = false): SubstitutionSpan[] {
   const spans: SubstitutionSpan[] = [];
   let inDouble = false;
   let i = 0;
@@ -243,7 +248,7 @@ function substitutionSpans(text: string): SubstitutionSpan[] {
     const c = text[i];
     if (c === '\\') {
       i += 2;
-    } else if (c === '#' && !inDouble && (i === 0 || /[\s;&|()]/.test(text[i - 1] ?? ''))) {
+    } else if (skipComments && c === '#' && !inDouble && (i === 0 || /[\s;&|()]/.test(text[i - 1] ?? ''))) {
       // A comment runs to the end of its line; nothing in it is a substitution.
       const end = text.indexOf('\n', i + 1);
       i = end === -1 ? text.length : end + 1;
@@ -282,10 +287,10 @@ function substitutionSpans(text: string): SubstitutionSpan[] {
  * its separators do not split the outer command. Quote-aware: a quoted ')' does
  * not end a substitution early and leave a real terminator behind.
  */
-function blankSubstitutions(command: string): string {
+function blankSubstitutions(command: string, skipComments = false): string {
   let out = '';
   let last = 0;
-  for (const span of substitutionSpans(command)) {
+  for (const span of substitutionSpans(command, skipComments)) {
     out += `${command.slice(last, span.start)}_`;
     last = span.end;
   }
@@ -321,15 +326,21 @@ function nestedShellBodies(command: string): string[] {
 
 /** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
 function substitutionBodies(command: string): string[] {
-  const bodies: string[] = [];
-  const walk = (text: string): void => {
-    for (const span of substitutionSpans(text)) {
-      bodies.push(blankSubstitutions(span.inner));
-      walk(span.inner);
+  const bodies = new Set<string>();
+  const walk = (text: string, depth: number): void => {
+    if (depth > 64) return;
+    // Both readings: with comments skipped and without (see substitutionSpans).
+    for (const skip of [false, true]) {
+      for (const span of substitutionSpans(text, skip)) {
+        const body = blankSubstitutions(span.inner);
+        if (bodies.has(body)) continue;
+        bodies.add(body);
+        walk(span.inner, depth + 1);
+      }
     }
   };
-  walk(command);
-  return bodies;
+  walk(command, 0);
+  return [...bodies];
 }
 
 /**
@@ -362,7 +373,7 @@ const NESTED_SHELL_DEPTH = 3;
  * substitutions only come out when the script itself is read as a command.
  */
 function readingsOf(command: string, depth = 0): string[] {
-  const own = [blankSubstitutions(command), command, ...substitutionBodies(command)];
+  const own = [blankSubstitutions(command), blankSubstitutions(command, true), command, ...substitutionBodies(command)];
   const nested = nestedShellBodies(command);
   if (depth >= NESTED_SHELL_DEPTH) return [...own, ...nested];
   return [...own, ...nested.flatMap((body) => readingsOf(body, depth + 1))];

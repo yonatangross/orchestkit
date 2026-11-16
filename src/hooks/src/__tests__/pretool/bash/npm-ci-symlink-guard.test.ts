@@ -538,6 +538,10 @@ describe('substitutions the scanner must not lose', () => {
     ["a single-quoted sh -c body", "sh -c 'echo \"$(npm ci --prefix /lw)\"'"],
     ["a single-quoted bash -c body", "bash -c 'echo \"$(npm ci --prefix /lw)\"'"],
     ["a single-quoted sh -c body with a backtick substitution", "sh -c 'echo `npm ci --prefix /lw`'"],
+    // A # that is not a comment to the shell must not hide what follows it.
+    ['a # right after a substitution (not a word start)', 'echo $(true)# $(npm ci --prefix /lw)'],
+    ['a # line inside an unquoted heredoc', 'cat <<EOF\n# $(npm ci --prefix /lw)\nEOF'],
+    ["a # after an escaped quote in $'...'", "echo $'a\\' #' \"$(npm ci --prefix /lw)\""],
   ])('%s: never allowed', (_name, command) => {
     expect(blocked(command, linked)).toBe(true);
   });
