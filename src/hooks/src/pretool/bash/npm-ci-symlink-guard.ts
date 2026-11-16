@@ -156,6 +156,16 @@ function expandHome(dir: string, home: string): string {
 }
 
 /** One command substitution in a text: [start, end) covers the whole `$(...)` or backtick form. */
+/**
+ * Work budget for reading one command. A command past it is not read further: the guard asks
+ * when the text mentions a clean install (fails closed), instead of stopping quietly, running out
+ * of stack (the dispatcher's catch would let the command through) or stalling the hook.
+ */
+const PARSE_MAX_SPANS = 4000;
+const PARSE_MAX_CHARS = 200_000;
+const PARSE_MAX_WORK = 2_000_000;
+class ParseBudgetExceeded extends Error {}
+
 interface SubstitutionSpan {
   start: number;
   end: number;
@@ -330,20 +340,27 @@ function substitutionBodies(command: string): string[] {
   // No depth cap (a cap that stops quietly fails open): every body is strictly shorter than the
   // text it came from, so the walk ends; the set keeps repeated bodies from being walked twice.
   // Dedup on the RAW inner text: blanked bodies of different nesting levels can be equal ("_"),
-  // and skipping on those would stop the walk before the innermost body.
+  // and skipping on those would stop the walk before the innermost body. Iterative, under a work
+  // budget: past it the command is too complex to read and the guard fails closed (ParseBudgetExceeded).
   const walked = new Set<string>();
-  const walk = (text: string): void => {
+  const stack = [command];
+  let work = 0;
+  while (stack.length > 0) {
+    const text = stack.pop() as string;
+    // Each body is rescanned on its own, so nesting costs about depth x length: bound the total.
+    work += text.length;
+    if (work > PARSE_MAX_WORK) throw new ParseBudgetExceeded();
     // Both readings: with comments skipped and without (see substitutionSpans).
     for (const skip of [false, true]) {
       for (const span of substitutionSpans(text, skip)) {
         if (walked.has(span.inner)) continue;
+        if (walked.size >= PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
         walked.add(span.inner);
         bodies.add(blankSubstitutions(span.inner));
-        walk(span.inner);
+        stack.push(span.inner);
       }
     }
-  };
-  walk(command);
+  }
   return [...bodies];
 }
 
@@ -375,8 +392,20 @@ export function npmCiCandidateDirs(command: string, cwd: string, home: string = 
  * script is a strict substring of its parent, so the recursion ends.
  */
 function readingsOf(command: string): string[] {
-  const own = [blankSubstitutions(command), blankSubstitutions(command, true), command, ...substitutionBodies(command)];
-  return [...own, ...nestedShellBodies(command).filter((body) => body.length < command.length).flatMap((body) => readingsOf(body))];
+  if (command.length > PARSE_MAX_CHARS) throw new ParseBudgetExceeded();
+  const readings: string[] = [];
+  const stack = [command];
+  let scripts = 0;
+  while (stack.length > 0) {
+    const text = stack.pop() as string;
+    readings.push(blankSubstitutions(text), blankSubstitutions(text, true), text, ...substitutionBodies(text));
+    for (const body of nestedShellBodies(text)) {
+      if (body.length >= text.length) continue;
+      if (++scripts > PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
+      stack.push(body);
+    }
+  }
+  return readings;
 }
 
 /**
@@ -584,6 +613,24 @@ export function npmCiSymlinkGuard(
   if (typeof command !== 'string' || !shellWord(command).includes('npm')) return outputSilentSuccess();
 
   const cwd = input.cwd || ctx.projectDir;
+  try {
+    return decide(command, cwd, ctx, deps);
+  } catch (err) {
+    // Too complex to read (the work budget, or a stack overflow in the quote-aware reader): never
+    // let it through quietly. Ask when the text mentions a clean install; the check below reads
+    // the words only, with no recursion.
+    const words = shellWord(command).split(/[\s;&|()$`"']+/).filter(Boolean);
+    const npmAt = words.indexOf('npm');
+    if (npmAt === -1 || !words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w))) return outputSilentSuccess();
+    ctx.log(HOOK_NAME, `asked: command too complex to read (${err instanceof ParseBudgetExceeded ? 'work budget' : String(err)})`);
+    return outputAsk(
+      'This command mentions npm ci (or another clean install) in a form too complex for the npm ci guard to read. ' +
+        'If it runs npm ci where node_modules is a symlink, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command.',
+    );
+  }
+}
+
+function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymlinkGuardDeps): HookResult {
   const candidates = npmCiCandidateDirs(command, cwd);
   if (candidates.length === 0) {
     // No reading found a clean install, yet the text names one: a shape the

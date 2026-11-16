@@ -560,6 +560,16 @@ describe('substitutions the scanner must not lose', () => {
     expect(blocked(command, nothingLinked)).toBe(false);
   });
 
+  it.each([
+    ['twenty thousand nested substitutions', `${'$('.repeat(20000)}npm ci --prefix /lw${')'.repeat(20000)}`],
+    ['twenty thousand nested double-quoted substitutions', `${'"$('.repeat(20000)}npm ci --prefix /lw${')"'.repeat(20000)}`],
+    ['three thousand sibling substitutions', `${'echo "$(true)" '.repeat(3000)}"$(npm ci --prefix /lw)"`],
+  ])('%s: fails closed (never allowed, never throws) and stays fast', (_name, command) => {
+    const started = Date.now();
+    expect(blocked(command, linked)).toBe(true);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   it("control: sh -c 'npm ci' in a cwd whose node_modules is real stays quiet when another dir is linked", () => {
     expect(blocked("sh -c 'npm ci'", linked)).toBe(false);
   });
