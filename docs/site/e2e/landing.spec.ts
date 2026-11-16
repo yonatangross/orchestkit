@@ -224,6 +224,9 @@ test.describe('Landing library catalog', () => {
 
   test('the Agents segment shows only agents', async ({ page }) => {
     await page.goto('/');
+    // A click before the client starts follows the no-JS #kind-agent hash, which the
+    // enhancer then resets on mount. Wait for its mark, as library-terminal.spec does.
+    await expect(page.locator('#library.lib-js')).toHaveCount(1);
     const agents = page.getByRole('group', { name: 'Kind' }).getByRole('link', { name: /Agents/ });
     await agents.click();
     await expect(agents).toHaveAttribute('aria-pressed', 'true');

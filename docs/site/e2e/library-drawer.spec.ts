@@ -3,7 +3,10 @@ import { expect, test } from "@playwright/test";
 test.describe("library drawer", () => {
   test("opens from a row, Esc closes it, focus returns to the row link", async ({ page }) => {
     await page.goto("/");
-    const link = page.locator('#library a[data-lib-item="skill:implement"]');
+    // Before the client starts, Enter follows the link instead of opening the drawer.
+    await expect(page.locator("#library.lib-js")).toHaveCount(1);
+    // The terminal lines carry data-lib-item too; the row is the one in the list.
+    const link = page.locator('#library-list a[data-lib-item="skill:implement"]');
     await link.scrollIntoViewIfNeeded();
     await link.focus();
     await page.keyboard.press("Enter");
