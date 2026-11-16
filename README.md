@@ -67,7 +67,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 |---|---|---|---|---|---|
 | Claude Code | 116 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
 | Cursor | 116 | 36 | not yet (#4004) | plugin (Settings) |  |
-| Codex | 7 | 4 roles | not yet (#4004) | ork-codex pack |  |
+| Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
 | Devin | 90 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
 | Muse Code | 12 | ? | ? | .agents/skills |  |

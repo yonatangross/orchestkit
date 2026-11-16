@@ -1,0 +1,13 @@
+{
+  "slug": "t3-adopt-codex-commit-pr",
+  "source": "docs/feat--t3-adopt-codex-commit-pr/index.html",
+  "title": "Codex pack: commit and open a PR the OrchestKit way",
+  "description": "The ork-codex pack adds $ork-commit and $ork-create-pr. Pick a skill to see its rules in Codex, then copy a prompt to try it.",
+  "tags": [
+    "codex",
+    "skills",
+    "git",
+    "explainer"
+  ],
+  "date": "2026-11-16"
+}

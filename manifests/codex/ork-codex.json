@@ -11,7 +11,9 @@
     "ork-verify",
     "ork-review-pr",
     "ork-implement",
-    "ork-glyph"
+    "ork-glyph",
+    "ork-commit",
+    "ork-create-pr"
   ],
   "roles": [
     "ork_explorer",
