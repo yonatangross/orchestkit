@@ -168,7 +168,7 @@ export const SAME_AS = [
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
-export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills (${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills (${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · works in ${SITE_HOSTS.length} agents`;
 
 // Providers OrchestKit or this docs site genuinely integrates with — each entry
 // below is backed by a real dependency or documented integration, not a

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HeroStrip } from "@/components/hero-strip";
+import { BANNER_TEXT, SITE_HOSTS } from "@/lib/constants";
 import { HOST_INSTALLS } from "@/lib/host-installs";
 
 // Approved mockup (strip and table, Yonatan 16.11.2026 09:28): stars, MIT and free, and every
@@ -32,8 +33,14 @@ describe("HeroStrip", () => {
 		expect(container.textContent).not.toMatch(/Claude Code ≥/);
 	});
 
-	it("the hero no longer calls OrchestKit a Claude Code plugin library", () => {
+	it("the hero no longer calls OrchestKit a Claude Code plugin library, in text or hidden h1 text", () => {
 		const page = readFileSync(join(__dirname, "../app/(home)/page.tsx"), "utf8");
 		expect(page).not.toContain("A Claude Code plugin library");
+		expect(page).not.toContain("OrchestKit, Claude Code plugin.");
+	});
+
+	it("the banner on every page names the agent count, not one host's version", () => {
+		expect(BANNER_TEXT).not.toMatch(/Claude Code \d/);
+		expect(BANNER_TEXT).toContain(`works in ${SITE_HOSTS.length} agents`);
 	});
 });

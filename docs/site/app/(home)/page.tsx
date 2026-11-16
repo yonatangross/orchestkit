@@ -144,7 +144,7 @@ export default async function HomePage() {
                 data-speakable-headline
                 className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground [text-wrap:balance]"
               >
-                <span className="sr-only">OrchestKit, Claude Code plugin. </span>
+                <span className="sr-only">OrchestKit, the skill and agent library for coding agents. </span>
                 Stop explaining your stack.
                 <br />
                 Start shipping.

@@ -44,10 +44,32 @@ describe("CompatTable", () => {
 		}
 	});
 
+	it("never prints none; tracked hooks read not yet with the issue (looks review 16.11)", () => {
+		const { container } = render(<CompatTable />);
+		expect(container.textContent).not.toMatch(/\bnone\b/);
+		const cursor = screen.getByRole("rowheader", { name: rowName("Cursor") }).closest("tr") as HTMLElement;
+		expect(cursor.textContent).toContain("not yet");
+		expect(within(cursor).getByRole("link", { name: /#4004/ }).getAttribute("href")).toContain("/issues/4004");
+	});
+
+	it("on a phone, a card per host carries every column, with no table to scroll", () => {
+		render(<CompatTable />);
+		const list = screen.getByRole("list", { name: /compatibility by host/i });
+		const items = within(list).getAllByRole("listitem");
+		expect(items).toHaveLength(COMPAT_ROWS.length);
+		expect(items[0].textContent).toMatch(/Claude Code.*skills.*agents.*hooks.*plugin \(CLI\).*open issues/s);
+	});
+
+	it("explains the open issues column instead of leaving bare ?", () => {
+		render(<CompatTable />);
+		expect(screen.getAllByText(/counted once each host's issues are labelled/i).length).toBeGreaterThan(0);
+	});
+
 	it("states the Claude Code minimum version from the generated data", () => {
 		render(<CompatTable />);
 		const claude = COMPAT_ROWS.find((r) => r.id === "claude");
 		expect(claude?.minVersion).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(screen.getByText(new RegExp(`Claude Code ${claude?.minVersion} or newer`))).toBeTruthy();
+		// Once in the phone card and once in the table row.
+		expect(screen.getAllByText(new RegExp(`Claude Code ${claude?.minVersion} or newer`))).toHaveLength(2);
 	});
 });

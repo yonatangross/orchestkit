@@ -12,7 +12,7 @@ export function HeroStrip({ stars }: { stars: number | null }) {
 			<span className="inline-flex items-center gap-1.5">MIT, free, no account</span>
 			<a
 				href="/docs/compatibility"
-				className="inline-flex min-h-11 items-center gap-1.5 underline-offset-2 hover:text-fd-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
+				className="inline-flex min-h-11 items-center gap-1.5 text-fd-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
 			>
 				Works in {HOST_INSTALLS.length} agents: {HOST_INSTALLS.map((h) => h.name).join(" · ")} →
 			</a>

@@ -77,13 +77,20 @@ function ccFloor(root) {
 
 const size = (set) => (Array.isArray(set) ? set.length : null);
 
+// A cell says "none" only where a manifest positively says so; nothing here does yet. Hooks that a
+// tracked issue will bring are "not yet" with the issue number (approved mockup); every other
+// number no manifest gives is null ("?"). Outside looks review 16.11: "none" read as a measured zero.
+const HOOKS_NOT_YET = { cursor: 4004, codex: 4004, pi: 4004 };
+// Agents: only Cursor's marketplace (ork, ork-extras) and Codex's roles are read from a pack.
+const AGENTS_READ = new Set(['cursor', 'codex']);
+
 function buildCompatRows(root) {
   const sets = buildLibraryHosts(root);
   const ork = countDirs(path.join(root, 'plugins/ork/skills'));
   const extras = countDirs(path.join(root, 'plugins/ork-extras/skills'));
   return hostOrder(root).map(({ id, name }) => {
     const s = sets[id] || { skills: null, agents: null, hooks: 'unknown' };
-    const row = { id, name, route: ROUTE[id] || '?', minVersion: null, roles: null };
+    const row = { id, name, route: ROUTE[id] || '?', minVersion: null, roles: null, hooksIssue: null };
     if (id === 'claude') {
       row.skills = ork === null || extras === null ? null : ork + extras;
       row.agents = countFiles(path.join(root, 'plugins/ork/agents'), '.md');
@@ -91,9 +98,10 @@ function buildCompatRows(root) {
       row.minVersion = ccFloor(root);
     } else {
       row.skills = size(s.skills);
-      row.agents = size(s.agents);
-      row.roles = Array.isArray(s.roles) ? s.roles.length : null;
-      row.hooks = s.hooks === 'none' ? 'none' : null;
+      row.roles = Array.isArray(s.roles) && s.roles.length ? s.roles.length : null;
+      row.agents = AGENTS_READ.has(id) && !row.roles ? size(s.agents) : null;
+      row.hooks = HOOKS_NOT_YET[id] ? 'not yet' : null;
+      row.hooksIssue = HOOKS_NOT_YET[id] || null;
     }
     return row;
   });
@@ -101,8 +109,11 @@ function buildCompatRows(root) {
 
 function cell(v) {
   if (v === null || v === undefined) return '?';
-  if (v === 0 || v === 'none') return 'none';
   return String(v);
+}
+
+function hooksCell(r) {
+  return r.hooks === 'not yet' && r.hooksIssue ? `not yet (#${r.hooksIssue})` : cell(r.hooks);
 }
 
 function renderCompatMarkdown(rows) {
@@ -113,10 +124,10 @@ function renderCompatMarkdown(rows) {
   for (const r of rows) {
     const agents = r.roles ? `${r.roles} roles` : cell(r.agents);
     const needs = r.minVersion ? `${r.name} ${r.minVersion} or newer` : '';
-    lines.push(`| ${r.name} | ${cell(r.skills)} | ${agents} | ${cell(r.hooks)} | ${r.route} | ${needs} |`);
+    lines.push(`| ${r.name} | ${cell(r.skills)} | ${agents} | ${hooksCell(r)} | ${r.route} | ${needs} |`);
   }
   lines.push('');
-  lines.push('`?` means not measured yet. `none` means the pack ships none on that host.');
+  lines.push('`?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.');
   return lines.join('\n');
 }
 

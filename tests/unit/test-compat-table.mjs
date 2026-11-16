@@ -81,6 +81,16 @@ check('an unknown number renders "?", never 0 (Devin is unverified)', () => {
   assert.ok(!/\| 0 \|/.test(devinLine), `Devin row must not show 0: ${devinLine}`);
 });
 
+check('"none" never appears: unread numbers are ?, tracked gaps are "not yet (#N)" (looks review 16.11)', () => {
+  const md = renderCompatMarkdown(rows);
+  assert.ok(!/\| none \|/.test(md), 'a cell reads "none"');
+  for (const id of ['cursor', 'codex', 'pi']) {
+    assert.equal(byId[id].hooks, 'not yet');
+    assert.equal(byId[id].hooksIssue, 4004);
+  }
+  for (const id of ['opencode', 'muse', 'pi', 'agy']) assert.equal(byId[id].agents, null, `${id} agents`);
+});
+
 for (const file of ['README.md', 'docs/site/content/docs/guides/orchestkit-on-pi-codex-cursor.mdx']) {
   check(`${file} carries exactly the generated table`, () => {
     const text = readFileSync(join(root, file), 'utf8');

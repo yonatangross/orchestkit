@@ -34,7 +34,7 @@ pre{background:var(--card);border:1px solid var(--line);border-radius:8px;paddin
 <body>
 <main>
 <h1>Where OrchestKit runs: the generated compatibility table</h1>
-<p class="lead">This PR replaces two hand-typed host tables with one generated from the pack manifests, adds the page /docs/compatibility, and makes the home page strip name every host. Filter the table by what a host ships; "?" means not measured yet, never zero.</p>
+<p class="lead">This PR replaces two hand-typed host tables with one generated from the pack manifests, adds the page /docs/compatibility, and makes the home page strip name every host. Filter the table by what a host ships; "?" means not measured yet, never zero; "not yet" means a tracked issue will bring it.</p>
 <div class="strip" aria-label="The new hero strip">☆ 304 stars · MIT, free, no account · Works in 8 agents: <span id="hosts"></span> →</div>
 <div class="controls" role="group" aria-label="Filter hosts">
   <button type="button" data-f="all" aria-pressed="true">All hosts</button>
@@ -55,11 +55,11 @@ pre{background:var(--card);border:1px solid var(--line);border-radius:8px;paddin
 </main>
 <script>
 // Rows: the output of scripts/lib/compat-table.js buildCompatRows() at this branch, pasted as data.
-const ROWS = [{"id":"claude","name":"Claude Code","route":"plugin (CLI)","minVersion":"2.1.277","roles":null,"skills":116,"agents":36,"hooks":163},{"id":"cursor","name":"Cursor","route":"plugin (Settings)","minVersion":null,"roles":null,"skills":116,"agents":36,"hooks":"none"},{"id":"codex","name":"Codex","route":"ork-codex pack","minVersion":null,"roles":4,"skills":7,"agents":0,"hooks":"none"},{"id":"devin","name":"Devin","route":"plugin (git)","minVersion":null,"roles":null,"skills":null,"agents":null,"hooks":null},{"id":"opencode","name":"OpenCode","route":"skills.sh","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"},{"id":"muse","name":"Muse Code","route":".agents/skills","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"},{"id":"pi","name":"Pi","route":"pi manifest","minVersion":null,"roles":null,"skills":90,"agents":0,"hooks":"none"},{"id":"agy","name":"Antigravity","route":".agents/skills","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"}];
+const ROWS = [{"id":"claude","name":"Claude Code","route":"plugin (CLI)","minVersion":"2.1.277","roles":null,"hooksIssue":null,"skills":116,"agents":36,"hooks":163},{"id":"cursor","name":"Cursor","route":"plugin (Settings)","minVersion":null,"roles":null,"hooksIssue":4004,"skills":116,"agents":36,"hooks":"not yet"},{"id":"codex","name":"Codex","route":"ork-codex pack","minVersion":null,"roles":4,"hooksIssue":4004,"skills":7,"agents":null,"hooks":"not yet"},{"id":"devin","name":"Devin","route":"plugin (git)","minVersion":null,"roles":null,"hooksIssue":null,"skills":null,"agents":null,"hooks":null},{"id":"opencode","name":"OpenCode","route":"skills.sh","minVersion":null,"roles":null,"hooksIssue":null,"skills":12,"agents":null,"hooks":null},{"id":"muse","name":"Muse Code","route":".agents/skills","minVersion":null,"roles":null,"hooksIssue":null,"skills":12,"agents":null,"hooks":null},{"id":"pi","name":"Pi","route":"pi manifest","minVersion":null,"roles":null,"hooksIssue":4004,"skills":90,"agents":null,"hooks":"not yet"},{"id":"agy","name":"Antigravity","route":".agents/skills","minVersion":null,"roles":null,"hooksIssue":null,"skills":12,"agents":null,"hooks":null}];
 const $ = (id) => document.getElementById(id);
 function el(tag, text, attrs = {}) { const e = document.createElement(tag); if (text !== undefined && text !== null) e.textContent = text; for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; }
 function unknown(why) { const f = document.createDocumentFragment(); f.append(el("span", "?", { "aria-hidden": "true" }), el("span", why, { class: "sr" })); return f; }
-function cell(v, cls) { const td = el("td", undefined, cls ? { class: cls } : {}); if (v === null) td.append(unknown("not measured yet")); else td.textContent = v === 0 || v === "none" ? "none" : String(v); return td; }
+function cell(v, cls) { const td = el("td", undefined, cls ? { class: cls } : {}); if (v === null) td.append(unknown("not measured yet")); else td.textContent = String(v); return td; }
 let filter = "all";
 const MATCH = { all: () => true, agents: (r) => (r.agents ?? 0) > 0 || (r.roles ?? 0) > 0, hooks: (r) => typeof r.hooks === "number" && r.hooks > 0, unknown: (r) => r.skills === null || r.agents === null || r.hooks === null };
 function draw() {
@@ -67,7 +67,7 @@ function draw() {
     const tr = el("tr");
     const th = el("th", r.name, { scope: "row" });
     if (r.minVersion) th.append(el("small", `needs ${r.name} ${r.minVersion} or newer`));
-    tr.append(th, cell(r.skills, "n"), r.roles ? el("td", `${r.roles} roles`, { class: "n" }) : cell(r.agents, "n"), cell(r.hooks, "n"), el("td", r.route));
+    tr.append(th, cell(r.skills, "n"), r.roles ? el("td", `${r.roles} roles`, { class: "n" }) : cell(r.agents, "n"), r.hooks === "not yet" ? el("td", `not yet (#${r.hooksIssue})`) : cell(r.hooks, "n"), el("td", r.route));
     const issues = el("td"); issues.append(unknown("not counted yet")); tr.append(issues);
     if (!MATCH[filter](r)) tr.hidden = true;
     return tr;
