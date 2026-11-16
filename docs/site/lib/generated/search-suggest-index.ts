@@ -135,6 +135,11 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "headings": []
   },
   {
+    "url": "/docs/compatibility",
+    "title": "Compatibility",
+    "headings": []
+  },
+  {
     "url": "/docs/cookbook/claude-design-handoff",
     "title": "Claude Design → PR",
     "headings": [
