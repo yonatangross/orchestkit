@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Codex pack: commit and open a PR the OrchestKit way</title>
+<style>
+:root{--bg:#0c0f19;--card:#141927;--ink:#e5e8f0;--muted:#a3abc0;--gold:#e8c365;--line:#2a3147}
+@media (prefers-color-scheme: light){:root{--bg:#f8fafe;--card:#fff;--ink:#080b14;--muted:#4a5168;--gold:#8a6410;--line:#d8dce8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:960px;margin:0 auto;padding:32px 20px}
+h1{font-size:clamp(1.5rem,1.2rem + 1.2vw,2.25rem);line-height:1.2;margin:0 0 8px}
+p.lead{color:var(--muted);margin:0 0 24px}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:760px){.grid{grid-template-columns:280px 1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+ul{list-style:none;margin:0;padding:0}
+li button{width:100%;min-height:44px;text-align:left;background:none;border:1px solid transparent;border-radius:8px;color:var(--ink);font:500 15px/1.3 ui-monospace,monospace;padding:8px 10px;cursor:pointer}
+li button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+li button:focus-visible,.copy:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tag{font:600 11px/1 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-left:6px}
+h2{font:600 1.1rem/1.3 ui-monospace,monospace;margin:0 0 8px;color:var(--gold)}
+.rules{margin:12px 0;padding-left:18px}
+.rules li{list-style:disc;margin:4px 0}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;font:14px/1.5 ui-monospace,monospace;margin:12px 0}
+.copy{min-height:44px;padding:8px 16px;border-radius:8px;border:1px solid var(--gold);background:none;color:var(--ink);font:600 14px system-ui;cursor:pointer}
+.status{color:var(--muted);font-size:14px;margin-left:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Codex pack: commit and open a PR the OrchestKit way</h1>
+<p class="lead">The ork-codex pack goes from 7 to 9 skills. Pick a skill to see what it does in Codex, then copy a prompt to try it.</p>
+<div class="grid">
+  <nav class="panel" aria-label="Codex skills">
+    <ul id="list"></ul>
+  </nav>
+  <section class="panel" aria-live="polite">
+    <h2 id="name"></h2>
+    <p id="what"></p>
+    <ul class="rules" id="rules"></ul>
+    <pre id="prompt"></pre>
+    <button class="copy" id="copy" type="button">Copy as prompt</button><span class="status" id="status" role="status"></span>
+  </section>
+</div>
+<noscript><p>Skills in the pack: $ork-brainstorm, $ork-explore, $ork-assess, $ork-verify, $ork-review-pr, $ork-implement, $ork-glyph, and new: $ork-commit, $ork-create-pr.</p></noscript>
+</main>
+<script>
+const SKILLS = [
+  {id:"ork-commit", added:true, what:"One Conventional Commit of the intended change, on a feature branch, with the repository's own hooks and signing left on.",
+   rules:["Refuses the default branch (main, master, dev, or what origin/HEAD names)","Stages only the files that belong to the change; never secrets or generated-only diffs","type(scope): subject under 72 characters, issue number when the branch names one","Never --no-verify or --no-gpg-sign; a failed hook is reported, then fixed","Ends with git log -1 --stat; never pushes"],
+   prompt:"Use $ork-commit to commit the staged change on this branch."},
+  {id:"ork-create-pr", added:true, what:"Pushes the feature branch and opens a pull request with a conventional title and a summary of what changed and how it was verified.",
+   rules:["Base derived from origin/HEAD, never hardcoded","Runs the repository's own checks first and reports each summary line","Host from git remote: gh on GitHub, glab on GitLab, web flow on Bitbucket","Stacked PRs: base is the parent branch, the body says so","Draft by default; never merges, never force-pushes"],
+   prompt:"Use $ork-create-pr to open a draft pull request for this branch."},
+  {id:"ork-implement", what:"Makes an approved, scoped change and proves the affected behavior.", rules:["Small diff, focused tests, exact verification output"], prompt:"Use $ork-implement to add the agreed change."},
+  {id:"ork-review-pr", what:"Reviews a pull request for real risks with file and line evidence.", rules:["Read-only; findings ordered by severity"], prompt:"Use $ork-review-pr to review this pull request."},
+  {id:"ork-verify", what:"Checks that work is ready with an explicit evidence contract.", rules:["PASS, FAIL or BLOCKED with evidence"], prompt:"Use $ork-verify to check this branch is ready to merge."},
+  {id:"ork-explore", what:"Maps an unfamiliar codebase before a change.", rules:["Read-only"], prompt:"Use $ork-explore to map how this repository is built."},
+  {id:"ork-assess", what:"Scores a design or approach with pros, cons and fixes.", rules:["Evidence for each score"], prompt:"Use $ork-assess to rate this approach."},
+  {id:"ork-brainstorm", what:"Generates and filters options before choosing one.", rules:["Trade-offs stated"], prompt:"Use $ork-brainstorm to list ways to solve this."},
+  {id:"ork-glyph", what:"Draws a compact inline diagram of status, comparisons or pipelines.", rules:["One render per answer"], prompt:"Use $ork-glyph to show where this work stands."}
+];
+const $ = (id) => document.getElementById(id);
+let current = SKILLS[0];
+function el(tag, text, attrs = {}) { const e = document.createElement(tag); if (text) e.textContent = text; for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; }
+function show(skill) {
+  current = skill;
+  for (const b of document.querySelectorAll("#list button")) b.setAttribute("aria-pressed", String(b.dataset.id === skill.id));
+  $("name").textContent = "$" + skill.id;
+  $("what").textContent = skill.what;
+  $("rules").replaceChildren(...skill.rules.map((r) => el("li", r)));
+  $("prompt").textContent = skill.prompt;
+  $("status").textContent = "";
+}
+$("list").replaceChildren(...SKILLS.map((s) => {
+  const b = el("button", "$" + s.id, { type: "button", "data-id": s.id, "aria-pressed": "false" });
+  if (s.added) b.append(el("span", "new", { class: "tag" }));
+  b.addEventListener("click", () => show(s));
+  return el("li", null).appendChild(b).parentNode;
+}));
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(current.prompt); $("status").textContent = "Copied."; }
+  catch { $("status").textContent = "Copy failed; select the prompt above."; }
+});
+show(SKILLS[0]);
+</script>
+</body>
+</html>
