@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Where OrchestKit runs: the generated compatibility table</title>
+<style>
+:root{--bg:#0c0f19;--card:#141927;--ink:#e5e8f0;--muted:#a3abc0;--gold:#e8c365;--line:#2a3147}
+@media (prefers-color-scheme: light){:root{--bg:#f8fafe;--card:#fff;--ink:#080b14;--muted:#4a5168;--gold:#8a6410;--line:#d8dce8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:32px 20px}
+h1{font-size:clamp(1.5rem,1.2rem + 1.2vw,2.25rem);line-height:1.2;margin:0 0 8px}
+p.lead{color:var(--muted);margin:0 0 20px}
+.strip{font:12px/1.6 ui-monospace,monospace;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-bottom:20px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.controls button,.copy{min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 14px system-ui;cursor:pointer}
+.controls button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{position:relative;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+caption{text-align:left;padding:10px 12px;color:var(--muted)}
+th,td{padding:10px 12px;border-top:1px solid var(--line);text-align:left;white-space:nowrap}
+td.n{text-align:right;font-family:ui-monospace,monospace}
+thead th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+tbody tr[hidden]{display:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+small{color:var(--muted);font-weight:400;display:block}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace}
+.status{color:var(--muted);font-size:14px;margin-left:10px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Where OrchestKit runs: the generated compatibility table"><meta property="og:description" content="One table generated from the pack manifests replaces two typed ones: skills, agents, hooks and install route per host, with ? where not measured. Filter the hosts and copy a prompt."><meta property="og:url" content="https://orchestkit.dev/lab/strip-compat-table.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Where OrchestKit runs: the generated compatibility table"><meta name="twitter:description" content="One table generated from the pack manifests replaces two typed ones: skills, agents, hooks and install route per host, with ? where not measured. Filter the hosts and copy a prompt."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Where OrchestKit runs: the generated compatibility table</h1>
+<p class="lead">This PR replaces two hand-typed host tables with one generated from the pack manifests, adds the page /docs/compatibility, and makes the home page strip name every host. Filter the table by what a host ships; "?" means not measured yet, never zero.</p>
+<div class="strip" aria-label="The new hero strip">☆ 304 stars · MIT, free, no account · Works in 8 agents: <span id="hosts"></span> →</div>
+<div class="controls" role="group" aria-label="Filter hosts">
+  <button type="button" data-f="all" aria-pressed="true">All hosts</button>
+  <button type="button" data-f="agents" aria-pressed="false">Ships agents</button>
+  <button type="button" data-f="hooks" aria-pressed="false">Runs hooks</button>
+  <button type="button" data-f="unknown" aria-pressed="false">Not measured yet</button>
+</div>
+<div class="wrap">
+<table>
+  <caption>Compatibility: what OrchestKit runs in, per host (rows generated 16.11.2026 from the manifests).</caption>
+  <thead><tr><th scope="col">Host</th><th scope="col">Skills</th><th scope="col">Agents</th><th scope="col">Hooks</th><th scope="col">Install</th><th scope="col">Open issues</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+</div>
+<p><button class="copy" id="copy" type="button">Copy as prompt</button><span class="status" id="status" role="status"></span></p>
+<pre id="prompt"></pre>
+<noscript><p>Hosts: Claude Code, Cursor, Codex, Devin, OpenCode, Muse Code, Pi, Antigravity. The table needs JavaScript on this page; the site's own page is server HTML.</p></noscript>
+</main>
+<script>
+// Rows: the output of scripts/lib/compat-table.js buildCompatRows() at this branch, pasted as data.
+const ROWS = [{"id":"claude","name":"Claude Code","route":"plugin (CLI)","minVersion":"2.1.277","roles":null,"skills":116,"agents":36,"hooks":163},{"id":"cursor","name":"Cursor","route":"plugin (Settings)","minVersion":null,"roles":null,"skills":116,"agents":36,"hooks":"none"},{"id":"codex","name":"Codex","route":"ork-codex pack","minVersion":null,"roles":4,"skills":7,"agents":0,"hooks":"none"},{"id":"devin","name":"Devin","route":"plugin (git)","minVersion":null,"roles":null,"skills":null,"agents":null,"hooks":null},{"id":"opencode","name":"OpenCode","route":"skills.sh","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"},{"id":"muse","name":"Muse Code","route":".agents/skills","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"},{"id":"pi","name":"Pi","route":"pi manifest","minVersion":null,"roles":null,"skills":90,"agents":0,"hooks":"none"},{"id":"agy","name":"Antigravity","route":".agents/skills","minVersion":null,"roles":null,"skills":12,"agents":0,"hooks":"none"}];
+const $ = (id) => document.getElementById(id);
+function el(tag, text, attrs = {}) { const e = document.createElement(tag); if (text !== undefined && text !== null) e.textContent = text; for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; }
+function unknown(why) { const f = document.createDocumentFragment(); f.append(el("span", "?", { "aria-hidden": "true" }), el("span", why, { class: "sr" })); return f; }
+function cell(v, cls) { const td = el("td", undefined, cls ? { class: cls } : {}); if (v === null) td.append(unknown("not measured yet")); else td.textContent = v === 0 || v === "none" ? "none" : String(v); return td; }
+let filter = "all";
+const MATCH = { all: () => true, agents: (r) => (r.agents ?? 0) > 0 || (r.roles ?? 0) > 0, hooks: (r) => typeof r.hooks === "number" && r.hooks > 0, unknown: (r) => r.skills === null || r.agents === null || r.hooks === null };
+function draw() {
+  $("rows").replaceChildren(...ROWS.map((r) => {
+    const tr = el("tr");
+    const th = el("th", r.name, { scope: "row" });
+    if (r.minVersion) th.append(el("small", `needs ${r.name} ${r.minVersion} or newer`));
+    tr.append(th, cell(r.skills, "n"), r.roles ? el("td", `${r.roles} roles`, { class: "n" }) : cell(r.agents, "n"), cell(r.hooks, "n"), el("td", r.route));
+    const issues = el("td"); issues.append(unknown("not counted yet")); tr.append(issues);
+    if (!MATCH[filter](r)) tr.hidden = true;
+    return tr;
+  }));
+  const shown = ROWS.filter(MATCH[filter]).map((r) => r.name);
+  $("prompt").textContent = `Show me how to install OrchestKit on ${shown.join(", ")}, using the compatibility table at https://orchestkit.dev/docs/compatibility.`;
+  $("status").textContent = "";
+}
+$("hosts").textContent = ROWS.map((r) => r.name).join(" · ");
+for (const b of document.querySelectorAll(".controls button")) b.addEventListener("click", () => {
+  filter = b.dataset.f;
+  for (const x of document.querySelectorAll(".controls button")) x.setAttribute("aria-pressed", String(x === b));
+  draw();
+});
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("prompt").textContent); $("status").textContent = "Copied."; }
+  catch { $("status").textContent = "Copy failed; select the prompt text."; }
+});
+draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
