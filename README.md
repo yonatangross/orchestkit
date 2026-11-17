@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->116<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
+**<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -65,13 +65,13 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Host | Skills | Agents | Hooks | Install | Needs |
 |---|---|---|---|---|---|
-| Claude Code | 116 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
-| Cursor | 116 | 36 | not yet (#4004) | plugin (Settings) |  |
+| Claude Code | 115 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
+| Cursor | 115 | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
-| Devin | 90 | ? | ? | plugin (git) |  |
+| Devin | 89 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
 | Muse Code | 12 | ? | ? | .agents/skills |  |
-| Pi | 90 | ? | not yet (#4004) | pi manifest |  |
+| Pi | 89 | ? | not yet (#4004) | pi manifest |  |
 | Antigravity | 12 | ? | ? | .agents/skills |  |
 
 `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.
@@ -137,7 +137,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->116<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->115<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 

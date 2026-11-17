@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { CHANGELOG_ENTRIES } from '../lib/generated/changelog-data';
+import { LIBRARY_COUNTS } from '../lib/generated/library-data';
 
 /**
  * E2E coverage for the catalog-first landing page.
@@ -7,7 +8,7 @@ import { CHANGELOG_ENTRIES } from '../lib/generated/changelog-data';
  *
  * Coverage scope:
  *   - Hero structure + brand copy
- *   - Library section (303 links, kind segment, station filters)
+ *   - Library section (one link per catalog item, kind segment, station filters)
  *   - Eight recipe cards
  *   - Changelog What's new strip
  *   - Mobile viewport stacks correctly
@@ -217,8 +218,8 @@ test.describe('Landing library catalog', () => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: /One request, \/ork:implement/ })).toBeVisible();
-    await expect(page.locator('#library #library-list li a')).toHaveCount(303);
-    await expect(page.locator('#library [data-lib-count]')).toHaveText('303 of 303');
+    await expect(page.locator('#library #library-list li a')).toHaveCount(LIBRARY_COUNTS.items);
+    await expect(page.locator('#library [data-lib-count]')).toHaveText(`${LIBRARY_COUNTS.items} of ${LIBRARY_COUNTS.items}`);
     await expect(page.getByRole('group', { name: 'Kind' })).toBeVisible();
   });
 
@@ -230,8 +231,8 @@ test.describe('Landing library catalog', () => {
     const agents = page.getByRole('group', { name: 'Kind' }).getByRole('link', { name: /Agents/ });
     await agents.click();
     await expect(agents).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('#library .lib-row:visible')).toHaveCount(36);
-    await expect(page.locator('#library [data-lib-count]')).toHaveText('36 of 303');
+    await expect(page.locator('#library .lib-row:visible')).toHaveCount(LIBRARY_COUNTS.agents);
+    await expect(page.locator('#library [data-lib-count]')).toHaveText(`${LIBRARY_COUNTS.agents} of ${LIBRARY_COUNTS.items}`);
   });
 });
 
