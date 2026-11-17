@@ -52,9 +52,10 @@ describe("llms.txt says what works where", () => {
 	});
 	it("keeps the counts", async () => {
 		const t = await llms();
-		expect(t).toMatch(/116 skills/);
-		expect(t).toMatch(/36 agents/);
-		expect(t).toMatch(/163 hooks/);
+		const { COUNTS } = await import("@/lib/constants");
+		expect(t).toContain(`${COUNTS.skills} skills`);
+		expect(t).toContain(`${COUNTS.agents} agents`);
+		expect(t).toContain(`${COUNTS.hooks} hooks`);
 	});
 });
 
