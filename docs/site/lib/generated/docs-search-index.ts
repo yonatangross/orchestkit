@@ -218,7 +218,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/ork-extras",
     "title": "ork-extras, the opt-in reference skills",
-    "description": "33 library, engineering and operator skills moved from core ork to the opt-in ork-extras plugin. How to install it, the new /ork-extras: names, and what each host gets."
+    "description": "33 library, engineering and operator skills moved from core ork to the opt-in ork-extras plugin. How to install it, new /ork-extras: names, what each host gets."
   },
   {
     "url": "/docs/getting-started/sandbox",
