@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The safety_proof criterion gets a minimum, so the skill eval measures it</title>
+<meta name="description" content="The review-pr rubric's safety_proof criterion had weight 0 and no min_blocker, so the skill eval skipped it. It now carries 4.0 like the other six; move the score to see the band and what changes.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  input[type=range]{width:100%}
+  button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem;margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-word;min-height:4rem}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)} .warn{color:var(--status-warn)}
+  .changed td{background:var(--pg-well)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The safety_proof criterion gets a minimum, so the skill eval measures it"><meta property="og:description" content="The review-pr rubric's safety_proof criterion had weight 0 and no min_blocker, so the skill eval skipped it. It now carries 4.0 like the other six; move the score to see the band and what changes."><meta property="og:url" content="https://orchestkit.dev/lab/review-safety-proof-minimum.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The safety_proof criterion gets a minimum, so the skill eval measures it"><meta name="twitter:description" content="The review-pr rubric's safety_proof criterion had weight 0 and no min_blocker, so the skill eval skipped it. It now carries 4.0 like the other six; move the score to see the band and what changes."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>The safety_proof criterion gets a minimum, so the skill eval measures it</h1>
+<p class="sub">The review-pr rubric has a criterion, safety_proof, that asks a behavior-changing diff to state the one fact it is safe because of and the step of the proof ladder that fact reached. It has weight 0 and, until now, no min_blocker. The skill eval skips a dimension without a min_blocker, so the criterion was never measured. It now carries 4.0, the same as the other six. The review verdict does not change.</p>
+
+<section><h2>1 / The rubric, before and after</h2>
+<table id="rubric"></table>
+<p>Only the last row changes. Its weight stays 0, so the composite is unchanged.</p>
+</section>
+
+<section><h2>2 / Move the score</h2>
+<label for="score">safety_proof score on the 0 to 10 scale: <span id="val">4</span></label>
+<input type="range" id="score" min="0" max="10" step="1" value="4">
+<div class="grid">
+  <div><h3>Band (from the rubric)</h3><div class="out" id="band"></div></div>
+  <div><h3>Skill eval, before and after this change</h3><div class="out" id="eval"></div></div>
+</div>
+<p>The review itself: a criterion scored low is marked UNPROVEN in the review text and never changes the review verdict by itself, before and after.</p>
+</section>
+
+<section><h2>3 / What was checked</h2>
+<p>The contract test now asserts that every dimension, safety_proof included, carries the same min_blocker, and it has a control that fails on a rubric where safety_proof has none or a different one. On the base commit that test failed 2 of 8; with the floor it passes 8 of 8. No eval was run: the minimum takes effect at the next eval.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const DIMS = [
+  ['security', 0.25, 4.0, 4.0],
+  ['correctness', 0.20, 4.0, 4.0],
+  ['testing', 0.15, 4.0, 4.0],
+  ['maintainability', 0.15, 4.0, 4.0],
+  ['performance', 0.15, 4.0, 4.0],
+  ['accessibility', 0.10, 4.0, 4.0],
+  ['safety_proof', 0.0, null, 4.0],
+];
+const BANDS = [
+  [0, 3, 'unproven', 'No safety fact stated, or it stops at ladder step 1 to 3: the reviewer marks it UNPROVEN.'],
+  [4, 9, 'proven-by-run', 'Safety fact stated and a script or test that ran against the real code backs it (ladder step 4).'],
+  [10, 10, 'proven-in-app', 'Safety fact reproduced in the running app (ladder step 5).'],
+];
+const table = document.getElementById('rubric');
+const head = document.createElement('tr');
+for (const h of ['Dimension', 'Weight', 'min_blocker before', 'min_blocker now']) { const th = document.createElement('th'); th.textContent = h; head.append(th); }
+table.append(head);
+for (const [name, w, before, now] of DIMS) {
+  const tr = document.createElement('tr');
+  if (before !== now) tr.className = 'changed';
+  for (const v of [name, w.toFixed(2), before === null ? 'none' : before.toFixed(1), now.toFixed(1)]) { const td = document.createElement('td'); td.textContent = v; tr.append(td); }
+  table.append(tr);
+}
+const slider = document.getElementById('score');
+function render() {
+  const s = Number(slider.value);
+  document.getElementById('val').textContent = String(s);
+  const [, , label, text] = BANDS.find(([lo, hi]) => s >= lo && s <= hi);
+  document.getElementById('band').textContent = label + '\n' + text;
+  const under = s < 4.0;
+  document.getElementById('eval').textContent =
+    'Before: this criterion has no min_blocker, so the eval skips it. Nothing happens at any score.\n\n' +
+    'Now: ' + (under ? 'score ' + s + ' is under 4.0, so a challenger version of the skill that scores this low on the criterion is not promoted.' : 'score ' + s + ' is at or above 4.0, so the criterion does not block a promotion.');
+}
+slider.addEventListener('input', render);
+render();
+const PROMPT = 'In the orchestkit repo, run node tests/unit/test-fix-blast-radius-contract.mjs and tell me whether src/skills/review-pr/rubric.json gives safety_proof a min_blocker of 4.0 like the other six dimensions.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

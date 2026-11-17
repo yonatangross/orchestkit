@@ -1,0 +1,11 @@
+{
+  "slug": "review-safety-proof-minimum",
+  "source": "docs/fix--safety-proof-floor/index.html",
+  "title": "The safety_proof criterion gets a minimum, so the skill eval measures it",
+  "description": "The review-pr rubric's safety_proof criterion had weight 0 and no min_blocker, so the skill eval skipped it. It now carries 4.0 like the other six; move the score to see the band and what changes.",
+  "tags": [
+    "skills",
+    "evals"
+  ],
+  "date": "2026-11-17"
+}
