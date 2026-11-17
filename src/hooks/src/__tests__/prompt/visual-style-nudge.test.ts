@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
@@ -26,16 +26,42 @@ let session = 0;
 // src/hooks/.claude/memory/sessions/ and survived between runs, so the suite
 // passed once on a clean tree and then failed on every rerun. Isolation here
 // is load-bearing, not hygiene: the whole point of these tests is counting.
+// The nudge is OFF by default. Every test below that exercises the firing
+// logic opts in explicitly; the "opt-in" describe block at the end owns the
+// off-by-default and text-source behaviour.
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'viz-nudge-'));
   process.env.CLAUDE_PLUGIN_DATA = dir;
+  process.env.ORK_VISUAL_STYLE_NUDGE = '1';
+  delete process.env.ORK_VISUAL_STYLE_NUDGE_FILE;
   session += 1;
 });
 
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
   delete process.env.CLAUDE_PLUGIN_DATA;
+  delete process.env.ORK_VISUAL_STYLE_NUDGE;
+  delete process.env.ORK_VISUAL_STYLE_NUDGE_FILE;
 });
+
+/** The full message the hook injected before this change, byte for byte, for ordinal #1. */
+const TEXT_BEFORE =
+  '[visual-style-nudge #1] If this answer has shape, render it: one render, ' +
+  'up to ~50 lines and 76 cells wide, verdict first. Lead with one prose line ' +
+  'that states the point, then the render (header and headline meter, sections ' +
+  'opened by a light rule and a traffic-light word, rows as icon / label / bar / ' +
+  'value / action, a total line per section, one arithmetic summary line, ' +
+  'info caveat lines), then two or three bold-led bullets on what the numbers ' +
+  'told you. Status icons come from the closed semantic set; one domain icon ' +
+  'per row in the leading column. A definition, a single fact or a one-line ask ' +
+  'gets no render; over 50 lines is a page, not a chat answer. Applies to this ' +
+  'reply and later ones. Full vocabulary and anatomy: the ork:glyph skill, ' +
+  'rules/visual-style.md. Sub-agents do not inherit this rule; restate it in ' +
+  'their prompt if their output reaches the user.';
+
+function injected(r: ReturnType<typeof visualStyleNudge>): string {
+  return (r.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext ?? '';
+}
 
 function prompt(text: string, sid = `s-${session}`): HookInput {
   return { tool_name: '', session_id: sid, prompt: text, tool_input: {} } as unknown as HookInput;
@@ -78,13 +104,12 @@ describe('visual-style-nudge', () => {
     }
   });
 
-  it('still fires on a genuine comparison ask, but the message now says prose first and one small visual', () => {
+  it('still fires on a genuine comparison ask, and the default text says verdict first and prose for a one-liner', () => {
     const r = visualStyleNudge(prompt('Explain the difference between rebasing onto main and merging main into my branch, and say which keeps the PR review history readable.', 'cmp-1'));
     expect(fired(r)).toBe(true);
-    const c = (r.hookSpecificOutput as { additionalContext?: string }).additionalContext ?? '';
-    expect(c).toMatch(/one prose line/);
-    expect(c).toMatch(/up to ~50 lines/);
+    const c = injected(r);
     expect(c).toMatch(/verdict first/);
+    expect(c).toMatch(/prose only/);
     expect(c).not.toMatch(/12 lines/);
     expect(c).not.toMatch(/not prose paragraphs/);
   });
@@ -184,9 +209,99 @@ describe('visual-style-nudge', () => {
     expect(new Set(messages).size).toBe(messages.length); // and never repeats itself
   });
 
-  it('names the sub-agent non-inheritance caveat (the second diagnosed gap)', () => {
-    const r = visualStyleNudge(prompt('show me the comparison please', 'caveat-1'));
-    const out = r.hookSpecificOutput as { additionalContext?: string };
-    expect(out.additionalContext).toMatch(/[Ss]ub-agents do not inherit/);
+});
+
+describe('visual-style-nudge opt-in: off by default, text is the user\'s own', () => {
+  const ASK = 'vis in ascii emojies status of the migration';
+
+  it('is OFF by default: no env var means no injected text, even on an explicit ask', () => {
+    delete process.env.ORK_VISUAL_STYLE_NUDGE;
+    const r = visualStyleNudge(prompt(ASK, 'off-default'));
+    expect(fired(r)).toBe(false);
+    expect(injected(r)).toBe('');
+    expect(r.hookSpecificOutput).toBeUndefined();
+  });
+
+  it('stays off for anything but the exact string 1', () => {
+    for (const v of ['0', 'true', 'yes', '']) {
+      process.env.ORK_VISUAL_STYLE_NUDGE = v;
+      session += 1;
+      expect(fired(visualStyleNudge(prompt(ASK, `off-${v}-${session}`)))).toBe(false);
+    }
+    // Positive control: the same prompt in a fresh session fires with the exact value 1.
+    process.env.ORK_VISUAL_STYLE_NUDGE = '1';
+    session += 1;
+    expect(fired(visualStyleNudge(prompt(ASK, `on-control-${session}`)))).toBe(true);
+  });
+
+  it('does not touch the throttle counter while off', () => {
+    // An off hook must not burn the 1st-fire slot: opting in mid-session still fires on the next prompt.
+    delete process.env.ORK_VISUAL_STYLE_NUDGE;
+    visualStyleNudge(prompt('what is the status here', 'counter-off'));
+    process.env.ORK_VISUAL_STYLE_NUDGE = '1';
+    expect(fired(visualStyleNudge(prompt('what is the status here', 'counter-off')))).toBe(true);
+  });
+
+  it('BEFORE vs AFTER: opted in with no file, the injected text is the short neutral line, not the old long text', () => {
+    const after = injected(visualStyleNudge(prompt(ASK, 'before-after')));
+    expect(after).toBe(
+      '[visual-style-nudge #1] If this answer has shape (a status, a comparison, options), render it visually ' +
+        'with the verdict first. A definition, a single fact or a one-line ask gets prose only.',
+    );
+    expect(after.length).toBeLessThan(TEXT_BEFORE.length / 2);
+    // Nothing of the old vocabulary survives in the shipped default.
+    for (const gone of ['76 cells', 'traffic-light', 'bar /', 'ork:glyph', 'visual-style.md', 'closed semantic set', 'Sub-agents do not inherit']) {
+      expect(after).not.toContain(gone);
+      expect(TEXT_BEFORE).toContain(gone);
+    }
+  });
+
+  it('uses the text in ORK_VISUAL_STYLE_NUDGE_FILE when set, behind the same ordinal prefix', () => {
+    const file = join(dir, 'my-style.txt');
+    writeFileSync(file, '  Render status as a table, then one line of verdict.\n');
+    process.env.ORK_VISUAL_STYLE_NUDGE_FILE = file;
+    expect(injected(visualStyleNudge(prompt(ASK, 'user-text')))).toBe(
+      '[visual-style-nudge #1] Render status as a table, then one line of verdict.',
+    );
+  });
+
+  it('keeps the ordinal varying with user text, so dispatcher delta-skip still cannot swallow re-anchors', () => {
+    const file = join(dir, 'my-style.txt');
+    writeFileSync(file, 'Constant user text.');
+    process.env.ORK_VISUAL_STYLE_NUDGE_FILE = file;
+    const sid = 'user-text-varies';
+    const a = injected(visualStyleNudge(prompt(ASK, sid)));
+    const b = injected(visualStyleNudge(prompt(ASK, sid)));
+    expect(a).not.toBe('');
+    expect(b).not.toBe('');
+    expect(a).not.toBe(b);
+  });
+
+  it('falls back to the neutral line for a missing, empty, whitespace-only or non-file path', () => {
+    const empty = join(dir, 'empty.txt');
+    writeFileSync(empty, '   \n');
+    // dir itself is a directory: reading it must fall back, not throw or block.
+    for (const f of [join(dir, 'does-not-exist.txt'), empty, dir]) {
+      process.env.ORK_VISUAL_STYLE_NUDGE_FILE = f;
+      session += 1;
+      expect(injected(visualStyleNudge(prompt(ASK, `fallback-${session}`)))).toContain('prose only');
+    }
+  });
+
+  it('caps a runaway text file at 1500 characters', () => {
+    const file = join(dir, 'big.txt');
+    writeFileSync(file, 'x'.repeat(50_000));
+    process.env.ORK_VISUAL_STYLE_NUDGE_FILE = file;
+    const out = injected(visualStyleNudge(prompt(ASK, 'cap')));
+    expect(out).toBe(`[visual-style-nudge #1] ${'x'.repeat(1500)}`);
+  });
+
+  it('counts the cap in characters, so a multi-byte or emoji text is never cut in half', () => {
+    const file = join(dir, 'emoji.txt');
+    writeFileSync(file, '😀'.repeat(3000)); // 4 bytes and 2 UTF-16 units each
+    process.env.ORK_VISUAL_STYLE_NUDGE_FILE = file;
+    const out = injected(visualStyleNudge(prompt(ASK, 'cap-emoji')));
+    expect(out).toBe(`[visual-style-nudge #1] ${'😀'.repeat(1500)}`);
+    expect(out).not.toContain('�');
   });
 });
