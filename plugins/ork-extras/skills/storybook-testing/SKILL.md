@@ -198,7 +198,7 @@ npx storybook add @storybook/addon-mcp   # current: 0.6.0, Apr 2026
 npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
 ```
 
-See `storybook-mcp-integration` skill for full tool reference and patterns.
+See the Storybook mode of the `design-to-code` skill for full tool reference and patterns.
 
 ---
 
@@ -210,7 +210,7 @@ See `storybook-mcp-integration` skill for full tool reference and patterns.
 
 ## Related Skills
 
-- `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
+- `design-to-code` (Storybook mode): Storybook MCP tools for component discovery, testing, previews
 - `react-server-components-framework` — React 19 + Next.js 16 patterns (component architecture)
 - `accessibility` — Broader accessibility patterns beyond Storybook
 - `devops-deployment` — CI/CD pipeline patterns for automated testing

@@ -775,11 +775,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/design-import": {
       "title": "Design Import",
-      "inbound": 4
+      "inbound": 3
     },
     "/docs/reference/skills/design-ship": {
       "title": "Design Ship",
-      "inbound": 4
+      "inbound": 3
     },
     "/docs/reference/skills/design-stylecards": {
       "title": "Design Stylecards",
@@ -791,7 +791,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/design-to-code": {
       "title": "Design To Code",
-      "inbound": 6
+      "inbound": 9
     },
     "/docs/reference/skills/dev": {
       "title": "Dev",
@@ -1136,10 +1136,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/setup": {
       "title": "Setup",
       "inbound": 5
-    },
-    "/docs/reference/skills/storybook-mcp-integration": {
-      "title": "Storybook MCP Integration",
-      "inbound": 6
     },
     "/docs/reference/skills/storybook-testing": {
       "title": "Storybook Testing",
@@ -1723,8 +1719,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/agents/claude-design-orchestrator": [
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/design-context-extract",
-      "/docs/reference/skills/design-import",
-      "/docs/reference/skills/design-ship",
       "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/remember"
@@ -1742,9 +1736,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/agents/component-curator": [
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/design-system-tokens",
+      "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
-      "/docs/reference/skills/storybook-mcp-integration"
+      "/docs/reference/skills/remember"
     ],
     "/docs/reference/agents/data-pipeline-engineer": [
       "/docs/reference/skills/browser-tools",
@@ -1787,10 +1781,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/design-context-extract",
       "/docs/reference/skills/design-system-tokens",
+      "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
       "/docs/reference/skills/remember",
-      "/docs/reference/skills/storybook-mcp-integration",
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-unit"
     ],
@@ -1834,7 +1828,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/performance",
       "/docs/reference/skills/react-server-components-framework",
       "/docs/reference/skills/remember",
-      "/docs/reference/skills/storybook-mcp-integration",
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-unit"
     ],
@@ -2118,7 +2111,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/scope-appropriate-architecture",
       "/docs/reference/skills/security-patterns",
       "/docs/reference/skills/setup",
-      "/docs/reference/skills/storybook-mcp-integration",
       "/docs/reference/skills/storybook-testing",
       "/docs/reference/skills/swarm-migrate",
       "/docs/reference/skills/task-dependency-patterns",
@@ -2406,7 +2398,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/scope-appropriate-architecture": [],
     "/docs/reference/skills/security-patterns": [],
     "/docs/reference/skills/setup": [],
-    "/docs/reference/skills/storybook-mcp-integration": [],
     "/docs/reference/skills/storybook-testing": [],
     "/docs/reference/skills/swarm-migrate": [],
     "/docs/reference/skills/task-dependency-patterns": [],
@@ -2465,6 +2456,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/agent-orchestration",
       "/docs/reference/skills/auto",
       "/docs/reference/skills/chain-patterns",
+      "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/doctor",
       "/docs/reference/skills/dream",
       "/docs/reference/skills/langgraph",
@@ -2478,7 +2470,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/react-server-components-framework",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/setup",
-      "/docs/reference/skills/storybook-mcp-integration",
       "/docs/reference/skills/task-dependency-patterns",
       "/docs/reference/skills/testing-llm",
       "/docs/reference/skills/visualize-plan"
@@ -2552,7 +2543,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/performance",
       "/docs/reference/skills/react-server-components-framework",
       "/docs/reference/skills/responsive-patterns",
-      "/docs/reference/skills/storybook-mcp-integration",
       "/docs/reference/skills/storybook-testing",
       "/docs/reference/skills/ui-components",
       "/docs/reference/skills/vite-advanced",

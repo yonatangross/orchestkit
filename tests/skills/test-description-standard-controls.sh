@@ -50,7 +50,7 @@ done
 for d in \
     "Async Python: asyncio TaskGroup, FastAPI. Not for the API contract (use api-design)." \
     "Does stuff." \
-    "For Storybook MCP tools alone, use storybook-mcp-integration." \
+    "For Storybook MCP tools alone, use design-to-code." \
     "Reuse existing components. Misuse of the word is not a trigger."; do
     if description_has_trigger_phrase "$d"; then bad "should NOT be a trigger: $d"; else ok "not a trigger: $d"; fi
 done
