@@ -1,0 +1,8 @@
+{
+  "slug": "design-to-code-one-skill",
+  "source": "docs/feat--design-to-code-claude-exports/index.html",
+  "title": "One design-to-code skill that reads Claude Design exports",
+  "description": "Pick what you have (a .zip export, standalone HTML, a screenshot, an old command) and see which mode of the merged skill takes it.",
+  "tags": ["skills", "design", "claude-design"],
+  "date": "2026-11-17"
+}

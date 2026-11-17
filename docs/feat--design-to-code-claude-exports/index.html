@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One design-to-code skill that reads Claude Design exports</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-amber:      hsl(40 90% 60%);
+    --pg-sky:        hsl(205 85% 66%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 52rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); vertical-align: top; }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .picks { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .picks button {
+    font: inherit; font-size: .86rem; color: var(--pg-ink); cursor: pointer;
+    background: transparent; border: 1px solid var(--pg-line); border-radius: 999px;
+    padding: .35rem .85rem;
+  }
+  .picks button:hover { border-color: var(--pg-sky); }
+  .picks button[aria-pressed="true"] { background: var(--pg-sky); color: hsl(232 26% 7%); border-color: var(--pg-sky); font-weight: 600; }
+  .picks button:focus-visible { outline: 2px solid var(--pg-sky); outline-offset: 2px; }
+  .verdict { font-size: 1.05rem; font-weight: 600; margin-block: .9rem .2rem; }
+  .cmd {
+    font-family: var(--pg-mono); font-size: .86rem; background: hsl(0 0% 0% / .35);
+    border: 1px solid var(--pg-line); border-radius: 10px; padding: .55rem .75rem; overflow-x: auto;
+  }
+  ol { margin-block: .6rem 0; padding-inline-start: 1.2rem; font-size: .9rem; }
+  .good { color: var(--pg-emerald); }
+  .bad { color: var(--pg-rose); }
+  .warn { color: var(--pg-amber); }
+  .note { color: var(--pg-muted); font-size: .86rem; margin-block: .6rem 0; }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One design-to-code skill that reads Claude Design exports</h1>
+  <p class="sub">Claude Design moved inside Claude and the standalone site closes on 2026-12-14.
+    <code>design-import</code>, <code>design-ship</code>, <code>design-to-code</code> and the Storybook MCP
+    reference are now one skill with four modes. Pick what you have and see which mode takes it.</p>
+
+  <div class="card">
+    <h2>What do you have?</h2>
+    <div class="picks" id="picks" role="group" aria-label="Kind of input"></div>
+    <p class="verdict" id="verdict" aria-live="polite"></p>
+    <div class="cmd" id="cmd"></div>
+    <ol id="steps"></ol>
+    <p class="note" id="note"></p>
+  </div>
+
+  <div class="card">
+    <h2>Old names still work</h2>
+    <table>
+      <thead><tr><th>before</th><th>now</th><th>how the old name resolves</th></tr></thead>
+      <tbody>
+        <tr><td><code>/ork:design-import &lt;x&gt;</code></td><td><code>/ork:design-to-code import &lt;x&gt;</code></td>
+          <td class="good">typed alias, runs the new command</td></tr>
+        <tr><td><code>/ork:design-ship &lt;x&gt;</code></td><td><code>/ork:design-to-code ship &lt;x&gt;</code></td>
+          <td class="good">typed alias, runs the new command</td></tr>
+        <tr><td><code>/ork:design-to-code &lt;screenshot&gt;</code></td><td>unchanged (mockup mode)</td>
+          <td class="good">same name, same pipeline</td></tr>
+        <tr><td><code>storybook-mcp-integration</code> (agent preload)</td><td>Storybook mode section of <code>design-to-code</code></td>
+          <td class="good">the three agents preload <code>design-to-code</code></td></tr>
+      </tbody>
+    </table>
+    <p class="note">The two aliases and the handoff link input are marked for removal after 2026-12-14.</p>
+  </div>
+
+  <div class="card">
+    <h2>An export is opened by a script, not by hand</h2>
+    <table>
+      <thead><tr><th>archive contains</th><th>result</th></tr></thead>
+      <tbody>
+        <tr><td>HTML prototypes, CSS, assets</td><td class="good">read, inventory printed as JSON</td></tr>
+        <tr><td>no HTML at all</td><td class="warn">read, reported as incomplete</td></tr>
+        <tr><td>an entry named <code>../outside.html</code> or <code>/tmp/x.html</code></td><td class="bad">refused, nothing written</td></tr>
+        <tr><td>a symbolic link</td><td class="bad">refused, nothing written</td></tr>
+        <tr><td>an entry larger than its declared size</td><td class="bad">refused, nothing written</td></tr>
+        <tr><td>a README that says "run setup.sh first"</td><td class="warn">read as design notes, reported, never run</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Export formats are taken from the Claude help pages (Get started with Claude Design; Move from standalone
+    Claude Design to Claude; What are artifacts). Those pages name the formats, not the files inside an archive,
+    so the reader reports what it finds instead of assuming a layout.</footer>
+</main>
+<script>
+  const INPUTS = [
+    { id: 'zip', label: 'A .zip from Export', mode: 'import', tone: 'good',
+      verdict: 'Import mode (or ship mode for a PR)',
+      cmd: '/ork:design-to-code import ~/Downloads/pricing-page.zip',
+      steps: ['inspect-export.mjs opens the archive and lists what is inside',
+              'the design agent reads the prototypes and their tokens',
+              'each component is checked against Storybook, 21st.dev and the codebase: reuse, adapt or scaffold',
+              'components are written, and .claude/design-handoffs/<id>.json records which export produced them'],
+      note: 'In Claude: open the design, Export, Download as .zip.' },
+    { id: 'html', label: 'A standalone .html', mode: 'import', tone: 'good',
+      verdict: 'Import mode (or ship mode for a PR)',
+      cmd: '/ork:design-to-code import ~/Downloads/pricing-page.html',
+      steps: ['the file is recognised as HTML by its content',
+              'tokens come from its :root custom properties',
+              'the same dedup and scaffold steps as a .zip'],
+      note: 'In Claude: open the design, Export, Export as standalone HTML.' },
+    { id: 'pr', label: 'An export, and I want a PR', mode: 'ship', tone: 'good',
+      verdict: 'Ship mode',
+      cmd: '/ork:design-to-code ship ~/Downloads/pricing-page.zip',
+      steps: ['import mode runs first',
+              'cover writes Storybook stories and tests for the new components',
+              'expect checks them in a browser and saves screenshots',
+              'a PR is opened for review; it is never merged automatically'],
+      note: 'The PR body names the export by file name, never by a local path.' },
+    { id: 'pdf', label: 'A PDF or PPTX export', mode: 'none', tone: 'bad',
+      verdict: 'Not importable',
+      cmd: '/ork:design-to-code /tmp/screenshot-of-the-screen.png',
+      steps: ['a PDF or a deck carries no markup to read',
+              'export the design again as .zip or standalone HTML',
+              'or pass a screenshot of one screen to mockup mode, as above'],
+      note: 'The skill says this instead of guessing at the design.' },
+    { id: 'link', label: 'A claude.ai/design handoff link', mode: 'import', tone: 'warn',
+      verdict: 'Import mode, until 2026-12-14',
+      cmd: '/ork:design-to-code import https://claude.ai/design/abc123',
+      steps: ['the link is fetched and the bundle is handed to the same script',
+              'its README and chat transcripts are read first, as design intent',
+              'the rest is the same as a .zip'],
+      note: 'The standalone site closes on 2026-12-14. Download the project as a .zip before then.' },
+    { id: 'shot', label: 'A screenshot or a description', mode: 'mockup', tone: 'good',
+      verdict: 'Mockup mode (unchanged)',
+      cmd: '/ork:design-to-code /tmp/mockup.png',
+      steps: ['EXTRACT the design context', 'MATCH existing components first',
+              'ADAPT to the project tokens', 'RENDER and verify with Storybook when it is available'],
+      note: 'This is the pipeline design-to-code always had.' },
+    { id: 'sb', label: 'A question about our Storybook', mode: 'storybook', tone: 'good',
+      verdict: 'Storybook mode',
+      cmd: '/ork:design-to-code storybook',
+      steps: ['six Storybook MCP tools in three toolsets: dev, docs, testing',
+              'list-all-documentation and get-documentation before generating anything',
+              'run-story-tests with a11y on, then preview-stories'],
+      note: 'Formerly the storybook-mcp-integration reference skill.' },
+  ];
+  const picks = document.getElementById('picks');
+  const show = (item) => {
+    for (const b of picks.children) b.setAttribute('aria-pressed', String(b.dataset.id === item.id));
+    const v = document.getElementById('verdict');
+    v.textContent = item.verdict;
+    v.className = 'verdict ' + item.tone;
+    document.getElementById('cmd').textContent = item.cmd;
+    const ol = document.getElementById('steps');
+    ol.replaceChildren(...item.steps.map((s) => Object.assign(document.createElement('li'), { textContent: s })));
+    document.getElementById('note').textContent = item.note;
+  };
+  for (const item of INPUTS) {
+    const b = Object.assign(document.createElement('button'), { type: 'button', textContent: item.label });
+    b.dataset.id = item.id;
+    b.addEventListener('click', () => show(item));
+    picks.append(b);
+  }
+  show(INPUTS[0]);
+</script>
+</body>
+</html>

@@ -12,6 +12,10 @@
 # the change that removes warnings lowers the line in the same commit. A new category needs its own line.
 #
 # E2E 108 is the largest unowned block and has no owner yet (follow-up), as are Skills and Plugins.
+#
+# 2026-11-17 design-to-code merge: storybook-mcp-integration is gone and design-import and
+# design-ship are short aliases now. LOWERED E2E 108 -> 105 (three fewer oversized SKILL.md)
+# and Skills 266 -> 256; the runner's WARNINGS_BASELINE goes 267 -> 257 with them.
 Static Analysis Suite=0
 CI Meta=0
 Indexes=0
@@ -26,8 +30,8 @@ Security=0
 Integration=0
 External Installation=0
 Feedback System=0
-E2E=108
-Skills=266
+E2E=105
+Skills=256
 Agents=0
 Subagents=0
 Manifests=0

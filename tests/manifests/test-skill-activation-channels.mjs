@@ -47,6 +47,10 @@ const STANDALONE_ALLOWLIST = {
     'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
   freeze:
     'operator guard: invoking it registers a session-long edit fence and takes the dir as a typed argument; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
+  'design-import':
+    'typed-only alias for the old command name: it runs design-to-code import and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
+  'design-ship':
+    'typed-only alias for the old command name: it runs design-to-code ship and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
   // setup and swarm-migrate left this list in #4981: ork:auto now routes to both
   // (SKILL.md table + routing-benchmark setup-* and mig-* cases), so they pass on
   // the chain channel instead of an allowlist entry.

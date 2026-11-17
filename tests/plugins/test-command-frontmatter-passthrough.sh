@@ -85,6 +85,11 @@ SKILL_ONLY=(
   version author license tags complexity compatibility
   persuasion-type triggers metadata skills paths hooks
   invocation_hooks disallowed-tools
+  # targets: the library floor a skill's text needs. Read from SKILL.md only
+  # (scripts/check-labs-versions.mjs, test-targets-floor-agreement.mjs). It
+  # reached a user-invocable skill when the Storybook reference merged into
+  # design-to-code.
+  targets
 )
 
 in_list() { local n="$1"; shift; local x; for x in "$@"; do [[ "$x" == "$n" ]] && return 0; done; return 1; }

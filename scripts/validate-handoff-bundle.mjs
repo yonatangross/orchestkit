@@ -11,6 +11,14 @@
 //   ├── chats/*.md                (required — at least one)
 //   └── project/*.html            (optional — absent = incomplete bundle)
 //
+// Scope: a repository test helper for the standalone-site bundle layout only
+// (tests/unit/test-handoff-bundle-schema.sh, on fixtures the test builds
+// itself). It is not shipped and is not the runtime reader: the skill opens
+// every export, this layout included, with
+// src/skills/design-to-code/scripts/inspect-export.mjs, which never calls tar.
+// The standalone site closes on 2026-12-14; remove this file and its test with
+// the tar.gz branch of that script.
+//
 // Usage:
 //   node scripts/validate-handoff-bundle.mjs <path-to-bundle.tar.gz>
 //

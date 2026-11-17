@@ -1,290 +1,42 @@
 ---
-description: "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship."
-argument-hint: "<handoff-url | path-to-bundle.json>"
-model: sonnet
-effort: high
-context: fork
-agent: claude-design-orchestrator
+description: "Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; new work calls design-to-code import."
+argument-hint: "<export.zip | export.html | folder>"
+disable-model-invocation: true
 user-invocable: true
 name: design-import
-background: false
-allowed-tools: "Read Write Edit Glob Grep Bash WebFetch AskUserQuestion Agent TaskCreate TaskUpdate TaskList"
+allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
 # Auto-generated from skills/design-import/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
 
-# Design Import
+# Design Import (alias)
 
-Turn a Claude Design handoff bundle into scaffolded React components, with provenance and dedup against the existing codebase.
+`design-import` is now the **import mode of `design-to-code`**. This file only keeps the typed command `/ork:design-import` working. It holds no logic of its own, and the model never loads it on its own.
 
-```bash
-design-import https://claude.ai/design/abc123      # From handoff URL
-design-import /tmp/handoff-bundle.json             # From local file
-```
+## When to Use
 
-> **Standalone Claude Design closes by 2026-12-14** (CC 2.1.302 adds this notice to `/design-sync` and `/design-login`). After that date a `claude.ai/design` handoff URL may stop resolving. Export the bundle to a local file now and pass the file path, which this skill accepts.
+Only when someone types `/ork:design-import`. Do these two things and nothing else:
 
-## When to use
-After exporting a handoff bundle from claude.ai/design. This skill is the **entry point** — it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `design-ship` instead.
-
-## Pipeline
-
-```
-Handoff bundle (URL or file)
-  │
-  ▼
-┌──────────────────────────────┐
-│ 1. PARSE + VALIDATE          │  via claude-design-orchestrator agent
-│    - Fetch bundle             │  Schema validation
-│    - Compute bundle_id (sha)  │  Surface deviations
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│ 2. RECONCILE TOKENS           │  Diff bundle tokens vs project tokens
-│    - Read project tokens      │  Conflicts → AskUserQuestion
-│    - Apply additions          │  Additions → write to design-tokens.json
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│ 3. DEDUP COMPONENTS           │  For each proposed component:
-│    Storybook MCP first        │   • exact match → reuse (skip)
-│    21st.dev next              │   • similar match → adapt
-│    Filesystem grep last       │   • no match → scaffold
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│ 4. SCAFFOLD                   │  Delegate to design-to-code per component
-│    (skipped components        │  Use bundle's tsx_scaffold as seed
-│     logged but not touched)   │  Apply project tokens
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│ 5. WRITE PROVENANCE           │  .claude/design-handoffs/<bundle_id>.json
-│    Bundle → files → (PR)      │  PR field empty until design-ship
-└──────────┬───────────────────┘
-           │
-           ▼
-   Import manifest (stdout)
-```
-
-## Argument resolution
+1. Say in one line: "design-import is now `design-to-code import`. Running that."
+2. Run the merged skill with the same arguments:
 
 ```python
-ARG = "$1"  # First positional argument
-
-if ARG.startswith("http://") or ARG.startswith("https://"):
-    bundle_source = "url"
-    bundle_input = ARG
-elif Path(ARG).exists():
-    bundle_source = "file"
-    bundle_input = ARG
-else:
-    AskUserQuestion(questions=[{
-      "question": "I couldn't resolve that as a URL or file. What is it?",
-      "header": "Bundle source",
-      "options": [
-        {"label": "Paste handoff URL", "description": "claude.ai/design URL"},
-        {"label": "Paste file path", "description": "Local handoff JSON"},
-        {"label": "Cancel", "description": "Abort import"}
-      ],
-      "multiSelect": False
-    }])
+Skill(skill="ork:design-to-code", args="import $ARGUMENTS")
 ```
 
-## Phase 1 — Parse + validate
+## What changed
 
-Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here — the agent owns the (real, tarball-based) schema.
+- **Input.** Claude Design lives inside Claude now, so import reads an exported file: a `.zip` ("Download as .zip"), a standalone `.html`, or the unpacked folder. A `claude.ai/design` handoff link still works until the standalone site closes on 2026-12-14.
+- **Where the instructions live.** The full import pipeline (open, reconcile tokens, dedup, scaffold, provenance) moved, text intact, to `design-to-code/references/import-mode.md`.
+- **Output.** Unchanged: components on disk plus `.claude/design-handoffs/<bundle_id>.json`. No tests, no PR.
 
-````python
-Agent(
-  subagent_type="ork:claude-design-orchestrator",
-  description="Parse and normalize handoff bundle",
-  prompt=f"""Parse the Claude Design handoff bundle at {bundle_input}.
+## Removal
 
-  This is a gzipped tarball (NOT a JSON manifest). Layout:
-    <project>/README.md          ← read first
-    <project>/chats/*.md         ← read all (load-bearing)
-    <project>/project/*.html     ← prototypes (may be absent if incomplete)
+This alias goes away together with the handoff link input, after 2026-12-14. Update scripts, notes and muscle memory to `/ork:design-to-code import <export>`.
 
-  Tasks:
-  1. Fetch the bundle (WebFetch if URL → saved .bin path; Read if local file)
-  2. Extract: `tar -xzf <bin> -C /tmp/<scratch>/`
-  3. Read README.md, then every chats/*.md (intent + clarifications live here)
-  4. Compute bundle_id = sha256(canonical bundle URL or absolute path)
-  5. If project/ is MISSING → return status="incomplete" with the assistant's
-     last unanswered question; do NOT crash. Surface "what user should do".
-  6. If project/ exists → pick primary HTML:
-     - Prefer the file matching the URL's ?open_file= query param
-     - Else first alphabetical
-  7. From the primary HTML, extract:
-     - Inline `:root { --... }` CSS custom properties as design tokens
-     - Component sections (named via class/id/data-screen-label)
-     - Asset references (<link>, <img>) — keep as URLs, do not download
-     - EDITMODE JSON block (design-time state — capture as ANNOTATION only)
-  8. Produce normalized output payload (see agent spec)
-  9. Write provenance to .claude/design-handoffs/<bundle_id>.json:
-     - bundle_url, bundle_id, fetched_at, status, components: [], pr: null
-  10. Return the normalized payload as JSON
+## Related Skills
 
-  Surface any deviations from the expected tarball layout explicitly.
-  Never expect a JSON `components[]` field — that was the old (wrong) shape.
-  """
-)
-````
-
-## Phase 2 — Reconcile tokens
-
-Read the normalized `token_diff` from the agent's payload.
-
-| Diff field | Action |
-|---|---|
-| `added` | Append to project's design-tokens.json (or Tailwind config). No prompt — additions are safe. |
-| `modified` | Show diff. AskUserQuestion: keep project value, accept bundle value, or open editor. |
-| `conflicts` | Block scaffolding. AskUserQuestion to resolve before continuing. |
-
-```python
-if token_diff["conflicts"]:
-    AskUserQuestion(questions=[{
-      "question": f"Token conflict on {conflict.path}. Project says {conflict.project}, bundle says {conflict.bundle}. Resolve?",
-      "header": "Token conflict",
-      "options": [
-        {"label": "Keep project value", "description": "Bundle adapts to project"},
-        {"label": "Accept bundle value", "description": "Project adapts to bundle (writes new token)"},
-        {"label": "Both — namespace bundle's", "description": f"Add as {conflict.path}.imported"}
-      ],
-      "multiSelect": False
-    }])
-```
-
-## Phase 3 — Dedup components
-
-The agent already ran component-search per component. Read decisions from the normalized payload:
-
-| `decision` | Behavior |
-|---|---|
-| `reuse` | Log "skipped (existing: <path>)" — do nothing on disk |
-| `adapt` | Pipe through `ork:design-to-code` with `--adapt-from <existing-path>` context |
-| `scaffold` | Pipe through `ork:design-to-code` with the bundle's `tsx_scaffold` as seed |
-
-## Phase 4 — Scaffold
-
-For each component with decision `scaffold` or `adapt`, invoke design-to-code.
-The spawns run in the background at the same time, so each one gets its own
-worktree (`isolation="worktree"`, #4557): ork agents carry no frontmatter
-isolation, and without it every component writes into your tree at once.
-
-````python
-for component in payload["components"]:
-    if component["decision"] in ("scaffold", "adapt"):
-        # Compose, don't reimplement — design-to-code owns the EXTRACT/MATCH/ADAPT/RENDER pipeline
-        Agent(
-          subagent_type="ork:frontend-ui-developer",
-          name=f"scaffold-{component['name']}",
-          description=f"Scaffold {component['name']} from bundle",
-          prompt=f"""Use the design-to-code skill to scaffold this component.
-
-          Source: handoff bundle {payload['bundle_id']}
-          Component: {component['name']}
-          Target path: {component['target_path']}
-          Bundle scaffold seed:
-          ```tsx
-          {component['tsx_scaffold']}
-          ```
-          Resolved tokens: {component['tokens_resolved']}
-          Decision: {component['decision']}
-          {f"Adapt from: {component['existing_match']}" if component['decision'] == 'adapt' else ''}
-
-          Write the component, mirror existing project file structure, use project tokens.
-          Commit it in your worktree before you return, and end your reply with
-          your branch name and commit sha. Uncommitted files are not merged.
-          """,
-          run_in_background=True,
-          isolation="worktree",
-          max_turns=25,
-        )
-````
-
-### Collect and merge the component worktrees
-
-Wait for every scaffold agent to return before Phase 5. For each one:
-
-1. Check its worktree is clean: `git -C <worktree> status --porcelain` prints
-   nothing. If it prints files, commit them there and note it in the report.
-2. Merge its branch into the current branch. A conflict means two components
-   wrote the same file: stop and report both paths.
-3. Confirm `component['target_path']` exists after the merge. A component whose
-   agent failed or wrote elsewhere goes into `failed_components`: it is
-   reported, not recorded as written.
-
-## Phase 5 — Provenance
-
-Update the provenance file with the actual file paths written:
-
-```python
-provenance = Read(payload["provenance_path"])
-provenance["components"] = [
-    {"name": c["name"], "decision": c["decision"], "path": c["target_path"]}
-    for c in payload["components"]
-    if c["name"] not in failed_components  # from "Collect and merge" step 3
-]
-provenance["imported_at"] = now()
-Write(payload["provenance_path"], provenance)
-```
-
-## Output — import manifest
-
-Print a concise summary (not a wall of JSON):
-
-```
-Imported bundle <bundle_id>
-  Source: <bundle_url>
-  Provenance: .claude/design-handoffs/<bundle_id>.json
-
-Components:
-  ✓ PricingCard          scaffold  src/components/pricing/PricingCard.tsx
-  ↻ Button               reuse     existing: src/components/ui/Button.tsx
-  ⤳ Hero                 adapt     adapted from: src/components/Hero.tsx
-
-Tokens:
-  + 3 new (added to design-tokens.json)
-  ~ 1 modified (user accepted bundle value)
-  ✗ 0 conflicts unresolved
-
-Next: design-ship <bundle_id>   # to open PR
-      expect                     # to verify
-```
-
-## Hooks
-
-- After completion, the `post-design-import` hook recommends `expect` (non-blocking, see hook for details).
-
-## Composition
-
-| Skill | Role |
-|---|---|
-| `design-to-code` | Owns the actual scaffold pipeline (EXTRACT/MATCH/ADAPT/RENDER). This skill delegates to it per component. |
-| `component-search` | Used by the orchestrator agent for dedup |
-| `design-context-extract` | Used if bundle is missing `design_tokens` block |
-| `design-system-tokens` | Token reconciliation reference |
-| `remember` / `memory` | Provenance + prior-import detection |
-
-## NOT this skill's job
-
-| Concern | Owned by |
-|---|---|
-| Open PR | `design-ship` |
-| Run tests | `post-design-import` hook → `expect` |
-| Generate Storybook stories | `cover` (called by `design-ship`) |
-| Re-prompt Claude Design | Not yet — no public API |
-
-## Limitations
-
-- **No public Claude Design API yet**: bundles are one-shot exports. To iterate, re-export from claude.ai/design and re-import. The reverse-path (drift detection + refinement prompt) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391, #1393, #1394, #1395, #1397.
-- **Schema is provisional**: Claude Design has not published a stable bundle schema. The orchestrator agent adapts to deviations but may need updates as the format stabilizes.
-- **Asset URLs are referenced, not downloaded**: bundle `asset_urls` are kept as-is. If you need them in-repo, run a separate sync step.
+- `design-to-code`: the merged skill (import, ship, mockup and Storybook modes)
+- `design-ship`: the other alias, for ship mode
