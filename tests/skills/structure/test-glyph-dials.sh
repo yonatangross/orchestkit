@@ -84,7 +84,8 @@ fi
 # Output modes guide: env var table matches the hook sources.
 if [[ -f "$GUIDE" ]]; then
   mapfile -t vars < <(grep -oE '^\| `(ORK|ORCHESTKIT)_[A-Z_]+' "$GUIDE" | tr -d '|` ' | sort -u)
-  if [[ "${#vars[@]}" -eq 16 ]]; then ok "guide lists 16 display env vars"; else bad "guide lists ${#vars[@]} display env vars, want 16"; fi
+  # 16 -> 18: ORK_VISUAL_STYLE_NUDGE and ORK_VISUAL_STYLE_NUDGE_FILE (prompt/visual-style-nudge), documented in the guide.
+  if [[ "${#vars[@]}" -eq 18 ]]; then ok "guide lists 18 display env vars"; else bad "guide lists ${#vars[@]} display env vars, want 18"; fi
   for v in "${vars[@]}"; do
     if grep -rqF --include='*.ts' -- "$v" "$HOOKS_SRC"; then ok "$v is read by a hook"; else bad "$v is not read by any hook in src/hooks/src"; fi
   done
