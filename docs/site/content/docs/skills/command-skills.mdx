@@ -123,7 +123,7 @@ Commands not yet filed under a task above.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork-extras:audit-full`](/docs/reference/skills/audit-full) | Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. | max | `/ork-extras:audit-full [scope]` |
-| [`/ork-extras:bare-eval`](/docs/reference/skills/bare-eval) | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. | medium | `/ork-extras:bare-eval` |
+| [`/ork-extras:bare-eval`](/docs/reference/skills/bare-eval) | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. | medium | `/ork-extras:bare-eval [grade\|trigger\|optimize]` |
 | [`/ork-extras:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork-extras:careful` |
 | [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. | medium | `/ork:create-plan <task> [slug]` |
 | [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how code works today for a task's questions, with file:line citations. | medium | `/ork:create-research <task> <question or questions file>` |

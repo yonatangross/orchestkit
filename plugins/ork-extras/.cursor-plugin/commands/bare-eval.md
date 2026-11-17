@@ -1,5 +1,6 @@
 ---
 description: "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy."
+argument-hint: "[grade|trigger|optimize]"
 disable-model-invocation: true
 effort: low
 context: inherit
