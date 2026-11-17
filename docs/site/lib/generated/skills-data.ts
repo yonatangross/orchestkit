@@ -2557,7 +2557,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.",
     "version": "2.6.0",
-    "sha256": "20ba904cc64b4037c002e85a26fc1d61d82a85fc4de4cd9bed6dd6d65e11f6c2",
+    "sha256": "81891da0b7084b78c6ff0e97edf920b0dd148c2e34086bad0558361c3faa6f5e",
     "author": "OrchestKit",
     "tags": [
       "issue",
