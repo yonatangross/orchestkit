@@ -32,6 +32,11 @@
 //      the command, its output and the output the intent requires; a finding
 //      without a command is only unrefuted; the two are listed apart; a run
 //      never moves a verdict, a refuter vote or a kill; the refuter stays blind.
+//  10. Proof tier follow-ups: the result carries allowRuns and with runs off a
+//      claimed run is unverified, never proven; SKILL.md says in three places
+//      that a command the gate denies is quoted as the reviewer's claim; the
+//      zero-width strip is written as escapes; an output that is the word null,
+//      None, undefined or empty counts when the intent names that word.
 //
 // HOW
 //
@@ -475,7 +480,7 @@ await test('proof tier: a critical finding without a command is not PROVEN, it i
   assert.match(why(result), /1 critical or high finding\(s\) carry no run/);
 });
 await test('proof tier: command, output and required output together make a finding PROVEN', async () => {
-  const { result } = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  const { result } = await run({ args: { allowRuns: true }, review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
   assert.equal(proofOf(result), 'proven');
   assert.equal(result.proof.proven.length, 1);
   assert.deepEqual(result.proof.onlyUnrefuted, []);
@@ -505,7 +510,7 @@ await test('proof tier: only critical and high findings are in it; medium and lo
 });
 await test('proof tier: a proven and an unproven finding land in separate lists', async () => {
   const { result } = await run({
-    args: { effort: 'medium' },
+    args: { effort: 'medium', allowRuns: true },
     review: { security: WITH(F(RUN), F({ id: 'SEC-002', line: 90, title: 'second' })) },
   });
   assert.deepEqual(result.proof.proven.map((p) => p.key), ['api/db.py:40:security']);
@@ -535,7 +540,7 @@ await test('proof tier: a downgraded finding follows its post-refutation severit
   assert.equal(result.proof.proven.length + result.proof.onlyUnrefuted.length, 0);
 });
 await test('proof tier: at high effort an advisory overturn does not change the tier', async () => {
-  const { result } = await run({ args: { effort: 'high' }, review: { security: WITH(F(RUN)) }, refute: [KILL()] });
+  const { result } = await run({ args: { effort: 'high', allowRuns: true }, review: { security: WITH(F(RUN)) }, refute: [KILL()] });
   assert.equal(find(result, 'api/db.py:40:security').refutation.outcome, 'advisory-refuted');
   assert.equal(proofOf(result), 'proven');
 });
@@ -547,7 +552,7 @@ await test('proof tier: ground truth is its own class, never counted as proven o
 });
 await test('proof tier: a run from a duplicate finding makes the merged finding PROVEN', async () => {
   const { result } = await run({
-    args: { effort: 'medium' },
+    args: { effort: 'medium', allowRuns: true },
     review: { security: WITH(F()), readability: WITH(F({ id: 'MAINT-9', ...RUN })) },
   });
   assert.equal(result.findings.length, 1, 'one root cause, one entry');
@@ -586,27 +591,27 @@ await test('proof tier: a run whose output equals the required output shows no d
   assert.equal(proofOf(result), 'only-unrefuted');
 });
 await test('proof tier: wider placeholders, zero-width and symbol-only text are not a run; real commands that start like one are', async () => {
-  for (const bad of ['(none)', '<none>', 'TBD', 'todo', 'did not run', 'not executed', 'N/A - not run', 'not run (static analysis)', 'no output', 'empty', 'skipped', '...', '?', '​', '—']) {
+  for (const bad of ['(none)', '<none>', 'TBD', 'todo', 'did not run', 'not executed', 'N/A - not run', 'not run (static analysis)', 'no output', 'empty', 'skipped', '...', '?', '\u200B', '—']) {
     const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, command: bad })) } });
     assert.equal(proofOf(result), 'only-unrefuted', `command=${JSON.stringify(bad)} must not be PROVEN`);
   }
   for (const good of ['nano check.sh', 'notebook-run.sh --fast', 'node -e "1"', '0']) {
-    const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, command: good })) } });
+    const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, command: good })) } });
     assert.equal(proofOf(result), 'proven', `command=${JSON.stringify(good)} is real text`);
   }
 });
 await test('proof tier: very long run text is capped in the result', async () => {
-  const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, output: 'x'.repeat(200000) })) } });
+  const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, output: 'x'.repeat(200000) })) } });
   assert.equal(proofOf(result), 'proven');
   assert.ok(result.proof.proven[0].output.length < 4100);
   assert.match(result.proof.proven[0].output, /\[truncated\]$/);
 });
 await test('proof tier: a run never costs a refuter spawn; counts and ceiling are the same with and without it', async () => {
-  const a = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  const a = await run({ args: { allowRuns: true }, review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
   const b = await run({ review: { security: WITH(F()) }, refute: [UP, UP, UP] });
   assert.equal(a.result.refutersSpawned, b.result.refutersSpawned);
   assert.equal(a.refuters.length, 3);
-  const ceil = await run({ args: { maxRefuters: 0 }, review: { security: WITH(F(RUN)) } });
+  const ceil = await run({ args: { maxRefuters: 0, allowRuns: true }, review: { security: WITH(F(RUN)) } });
   assert.equal(ceil.result.manualReview.length, 1, 'a proven finding over the ceiling still goes to manual review');
   assert.equal(proofOf(ceil.result), 'proven');
 });
@@ -687,6 +692,120 @@ await test('control: a stub that approves everything fails a core case of this h
   const stub = compile('return { status: "reviewed", verdict: "approve", postRefutationVerdict: "approve", confirmationNeeded: [], manualReview: [], advisory: [], reasons: [], reviewers: [], findings: [], ledger: [], refutersSpawned: 0, refuterCeiling: 24 };');
   const res = await stub({ ...BASE, failingChecks: ['ci / unit'] }, async () => CLEAN, () => {}, () => {}, pipeline);
   assert.throws(() => assert.equal(res.verdict, 'request-changes'), 'the stub must not pass the failing-check case');
+});
+
+// 6c. the four follow-up points on the proven tier
+// 1. the result carries allowRuns; with runs off a claimed run is unverified, never proven
+await test('allowRuns: the result carries it, false by default and true only for the exact flag', async () => {
+  for (const args of [{}, { allowRuns: false }, { allowRuns: 'false' }, { allowRuns: 'yes' }, { allowRuns: 1 }]) {
+    assert.strictEqual((await run({ args })).result.allowRuns, false, `args ${JSON.stringify(args)} must report runs off`);
+  }
+  for (const args of [{ allowRuns: true }, { allowRuns: 'true' }]) {
+    assert.strictEqual((await run({ args })).result.allowRuns, true, `args ${JSON.stringify(args)} must report runs on`);
+  }
+});
+await test('allowRuns off: command, output and required output make a finding UNVERIFIED, never PROVEN', async () => {
+  const { result } = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  assert.equal(result.allowRuns, false);
+  assert.equal(proofOf(result), 'unverified');
+  assert.deepEqual(result.proof.proven, []);
+  assert.deepEqual(result.proof.onlyUnrefuted, []);
+  assert.equal(result.proof.unverified.length, 1);
+  assert.equal(result.proof.unverified[0].key, 'api/db.py:40:security');
+  assert.equal(result.proof.unverified[0].command, RUN.command, 'the claim stays visible to the reader');
+  assert.match(why(result), /1 critical or high finding\(s\) carry a command, but runs were off/);
+});
+await test('allowRuns off vs on: the same finding changes label only; verdicts and spawns are the same', async () => {
+  const off = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  const on = await run({ args: { allowRuns: true }, review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  assert.equal(proofOf(off.result), 'unverified');
+  assert.equal(proofOf(on.result), 'proven');
+  assert.equal(on.result.proof.unverified.length, 0);
+  assert.equal(off.result.verdict, on.result.verdict);
+  assert.equal(off.result.postRefutationVerdict, on.result.postRefutationVerdict);
+  assert.equal(off.result.refutersSpawned, on.result.refutersSpawned);
+});
+await test('allowRuns off: a finding with no run stays only unrefuted and ground truth stays ground truth', async () => {
+  const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F(), F({ id: 'SEC-002', line: 90, ground_truth: true })) } });
+  assert.equal(proofOf(result), 'only-unrefuted');
+  assert.equal(proofOf(result, 'api/db.py:90:security'), 'ground-truth');
+  assert.equal(result.proof.unverified.length, 0);
+});
+await test('control: a stub that labels a runs-off finding PROVEN fails the allowRuns case', async () => {
+  const stub = compile('return { allowRuns: false, findings: [{ key: "api/db.py:40:security", proof: "proven" }], proof: { proven: [{ key: "api/db.py:40:security" }], unverified: [], onlyUnrefuted: [], groundTruth: [] }, reasons: [] };');
+  const res = await stub({ ...BASE }, async () => CLEAN, () => {}, () => {}, pipeline);
+  assert.throws(() => assert.equal(res.findings[0].proof, 'unverified'), 'the stub must not pass the runs-off case');
+  assert.throws(() => assert.equal(res.proof.proven.length, 0), 'the stub must not pass the runs-off case');
+});
+
+// 2. SKILL.md says the same thing in all three places about re-running a proven finding's command
+const SKILL_MD = readFileSync(path.join(REPO, 'src', 'skills', 'review-pr', 'SKILL.md'), 'utf8');
+const skillLine = (start) => SKILL_MD.split('\n').find((l) => l.startsWith(start)) || '';
+const CLAIM_RULE = /as the reviewer's claim, not as seen/;
+await test('SKILL.md: step 5, the CI paragraph and the gate paragraph all say a command the gate denies is quoted as the reviewer claim', () => {
+  for (const [name, start] of [['step 5', '5. Report `proof`'], ['CI paragraph', 'CI is the only test evidence'], ['gate paragraph', "The skill's `skill/review-post-gate` hook enforces"]]) {
+    const l = skillLine(start);
+    assert.ok(l, `${name}: line not found`);
+    assert.match(l, CLAIM_RULE, `${name} must say a denied command is quoted as the reviewer's claim, not as seen`);
+  }
+  assert.doesNotMatch(skillLine('5. Report `proof`'), /re-run a proven finding's command before quoting its output as seen/, 'step 5 must not tell the reader to re-run what the gate denies');
+});
+await test('SKILL.md: step 5 and the returned list name allowRuns and the unverified list', () => {
+  assert.match(skillLine('5. Report `proof`'), /`proof\.unverified`/);
+  assert.match(skillLine('5. Report `proof`'), /`allowRuns`/);
+  assert.match(SKILL_MD, /`advisory`, `allowRuns`, `proof`/);
+});
+await test('control: the SKILL.md check fails on the old step 5 wording', () => {
+  const old = 're-run a proven finding\'s command before quoting its output as seen, and strip any secret from it.';
+  assert.doesNotMatch(old, CLAIM_RULE);
+});
+
+// 3. the zero-width strip is written with escapes and pinned
+const INVISIBLE = /[\u200B-\u200F\u2060\uFEFF]/;
+await test('source: the script holds no literal invisible character, the zero-width strip is written as escapes', () => {
+  assert.ok(!INVISIBLE.test(SOURCE), 'a literal zero-width character is in review-fanout.js; write it as a \\u escape');
+  assert.match(SOURCE, /\[\\u200B-\\u200D\\uFEFF\]/, 'the strip must be the escaped range');
+});
+await test('control: the invisible-character check fails on text that holds one', () => {
+  assert.ok(INVISIBLE.test('a\u200Bb'));
+  assert.ok(INVISIBLE.test('x\uFEFFy'));
+});
+await test('zero-width strip: an invisible prefix cannot turn a placeholder into a command or an output; a real command keeps its text', async () => {
+  for (const bad of ['\u200Bn/a', '\u200B\u200Cnone', '\uFEFFTBD']) {
+    const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, command: bad })) } });
+    assert.equal(proofOf(result), 'only-unrefuted', `command=${JSON.stringify(bad)} must not be PROVEN`);
+  }
+  const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, command: 'node\u200B -e 1' })) } });
+  assert.equal(proofOf(result), 'proven');
+  assert.equal(result.proof.proven[0].command, 'node -e 1');
+});
+
+// 4. an output that is the word null / None / undefined / empty counts when the intent names it
+await test('a proof whose real output is the word null counts when the intent names that word', async () => {
+  for (const word of ['null', 'None', 'undefined', 'empty', 'nil', 'null.']) {
+    const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, output: word, required_output: `a user object, never ${word.replace('.', '')}` })) } });
+    assert.equal(proofOf(result), 'proven', `output=${word} named by the intent must be PROVEN`);
+    assert.equal(result.proof.proven[0].output, word);
+  }
+});
+await test('control: the word counts only when the intent names it; other placeholders stay refused even when named', async () => {
+  const cases = [
+    ['null', 'a user object'],
+    ['None', 'a user object, not null'],
+    ['TBD', 'a value, not TBD'],
+    ['todo', 'a value, not todo'],
+    ['skipped', 'a value, not skipped'],
+    ['no output', 'a value, not no output'],
+    ['n/a', 'a value, not n/a'],
+  ];
+  for (const [output, required_output] of cases) {
+    const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, output, required_output })) } });
+    assert.equal(proofOf(result), 'only-unrefuted', `output=${output} required=${required_output} must not be PROVEN`);
+  }
+});
+await test('a null output equal to the required output still shows no defect, so it is not PROVEN', async () => {
+  const { result } = await run({ args: { effort: 'medium', allowRuns: true }, review: { security: WITH(F({ ...RUN, output: 'null', required_output: 'null' })) } });
+  assert.equal(proofOf(result), 'only-unrefuted');
 });
 
 await test('control: a stub that marks every critical finding PROVEN fails the no-command case', async () => {
