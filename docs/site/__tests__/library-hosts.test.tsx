@@ -65,7 +65,7 @@ describe("on: marks", () => {
       renderToStaticMarkup(<LibraryCatalog />),
       "text/html",
     );
-    expect(doc.querySelectorAll("#library-list .lib-on")).toHaveLength(303);
+    expect(doc.querySelectorAll("#library-list .lib-on")).toHaveLength(LIBRARY_ITEMS.length);
     expect(doc.querySelectorAll("[data-host-line]")).toHaveLength(7);
   });
 });

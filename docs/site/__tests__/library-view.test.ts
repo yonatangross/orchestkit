@@ -27,9 +27,10 @@ describe("library-view", () => {
     }
   });
 
-  it("gives all 303 items a unique href", () => {
+  it("gives every library item a unique href", () => {
     const hrefs = LIBRARY_ITEMS.map(libraryItemHref);
-    expect(new Set(hrefs).size).toBe(303);
+    expect(new Set(hrefs).size).toBe(LIBRARY_ITEMS.length);
+    expect(LIBRARY_ITEMS.length).toBe(LIBRARY_COUNTS.items);
   });
 
   it("the hooks note carries LIBRARY_COUNTS numbers, never typed ones", () => {
