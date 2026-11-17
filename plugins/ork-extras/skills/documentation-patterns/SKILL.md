@@ -8,6 +8,7 @@ context: inherit
 effort: low
 allowed-tools: "Read Glob Grep"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   version: "1.0.0"
   author: "OrchestKit"
   complexity: "low"
