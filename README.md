@@ -682,6 +682,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.14.0](https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0)** · 2026-11-17
+
+- **cli:** orchestkit install finds the coding agents on this machine (#5267)
+- **codex:** add ork-commit and ork-create-pr to the Codex pack (#5261)
+- **fix-issue:** safety-fact proof ladder and review-pr proof criterion (#5273)
+- **hooks:** record a fixed error_class on PostToolUseFailure telemetry (#5248)
+- **review-pr:** proven-by-a-run tier in review-fanout (#5274)
+- …and 27 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.13.0](https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0)** · 2026-11-15
 
 - **ci:** scheduled whole-tree npm audit with a cannot-audit item (#5230)
@@ -738,10 +747,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **skills:** bill long Haiku 5.5 prompts on the higher rate card (#5124)
 - **skills:** send the event name from fork skill body loaders (#5122)
 - **skills:** skill quality round 5, pass the fitness checklist (#5104)
-
-**[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
-
-- **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
