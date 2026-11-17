@@ -873,22 +873,111 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
-  // Each shape is near the size limit and built to make a new reader work hard. Never allowed, never
-  // slow (under vitest --coverage the bound has room for the linear scan).
-  it.each([
-    ['two thousand eval words', `${'eval '.repeat(2000)}npm ci --prefix /lw`],
-    ['a variable that doubles on every assignment', `${'a=$a$a; '.repeat(5000)}$a ci --prefix /lw`],
-    ['four thousand brace expansions per word', `${'npm c{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,} --prefix /lw; '.repeat(200)}`],
-    ['eight thousand redirections', `${'echo > /dev/null '.repeat(8000)}; npm ci --prefix /lw>x`],
-    ['four thousand sibling here-documents', `${"cat <<'E'\nx\nE\n".repeat(4000)}npm ci --prefix /lw`],
-    ['a chain of sh -c scripts, each one word shorter', `${'sh -c '.repeat(20000)}'npm ci --prefix /lw'`],
-    ['a long run of line continuations', `${'x \\\n'.repeat(40000)}; npm ci --prefix /lw`],
-    ['a run of unclosed braced IFS words', `npm ci --prefix /lw ${`$${'{IFS'}`.repeat(30000)}`],
-    ['a run of closing parentheses before a word', `npm ci --prefix /lw; echo x ${')'.repeat(150000)}x`],
-    ['a run of hash words', `npm ci --prefix /lw ${'# '.repeat(90000)}`],
-  ])('%s: blocked and fast', (_name, command) => {
-    const started = Date.now();
-    expect(['deny', 'ask']).toContain(decision(command, linked));
-    expect(Date.now() - started).toBeLessThan(2000);
+  // Each shape is near the size limit and built to make a new reader work hard. Never allowed, and
+  // the time grows no faster than the input. A wall-clock bound would measure the machine (a
+  // coverage run is several times slower than a plain one); the growth between a small and a full
+  // size, timed back to back in this process, measures the guard.
+  const growthCases: ReadonlyArray<readonly [string, (n: number) => string, number]> = [
+    ['two thousand eval words', (n) => `${'eval '.repeat(n)}npm ci --prefix /lw`, 2000],
+    ['a variable that doubles on every assignment', (n) => `${'a=$a$a; '.repeat(n)}$a ci --prefix /lw`, 5000],
+    ['four thousand brace expansions per word', (n) => `${'npm c{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,} --prefix /lw; '.repeat(n)}`, 200],
+    ['eight thousand redirections', (n) => `${'echo > /dev/null '.repeat(n)}; npm ci --prefix /lw>x`, 8000],
+    ['four thousand sibling here-documents', (n) => `${"cat <<'E'\nx\nE\n".repeat(n)}npm ci --prefix /lw`, 4000],
+    ['a chain of sh -c scripts, each one word shorter', (n) => `${'sh -c '.repeat(n)}'npm ci --prefix /lw'`, 20000],
+    ['a long run of line continuations', (n) => `${'x \\\n'.repeat(n)}; npm ci --prefix /lw`, 40000],
+    ['a run of unclosed braced IFS words', (n) => `npm ci --prefix /lw ${'${IFS'.repeat(n)}`, 30000],
+    ['a run of closing parentheses before a word', (n) => `npm ci --prefix /lw; echo x ${')'.repeat(n)}x`, 150000],
+    ['a run of hash words', (n) => `npm ci --prefix /lw ${'# '.repeat(n)}`, 90000],
+  ];
+
+  // Four times the input may cost at most eight times the time: linear is four, quadratic is sixteen.
+  const SIZE_STEP = 4;
+  const GROWTH_BOUND = 8;
+
+  const growth = (run: (n: number) => void, n: number) => measureGrowth(run, n, SIZE_STEP);
+
+  it('the growth table is not empty', () => {
+    expect(growthCases.length).toBeGreaterThanOrEqual(10);
   });
+
+  // The ratio check must be able to fail. A workload whose cost grows with the square of its input
+  // is measured with the same helper and must come out above the bound; a linear one must stay under.
+  describe('the growth check itself', () => {
+    it('control: a quadratic workload is above the bound', () => {
+      const g = growth((n) => sink(quadratic(n)), 4000);
+      expect(g.small).toBeGreaterThan(0);
+      expect(g.large).toBeGreaterThan(0);
+      expect(g.ratio, `quadratic ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeGreaterThan(GROWTH_BOUND);
+    }, 30000);
+
+    it('control: a linear workload is under the bound', () => {
+      const g = growth((n) => sink(linear(n * 4000)), 4000);
+      expect(g.small).toBeGreaterThan(0);
+      expect(g.large).toBeGreaterThan(0);
+      expect(g.ratio, `linear ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+    }, 30000);
+  });
+
+  it.each(growthCases)('%s: blocked, and time grows no faster than the input', (_name, build, n) => {
+    const small = Math.floor(n / SIZE_STEP);
+    expect(small).toBeGreaterThan(0);
+    // Blocked at both sizes: the shape never lets the install through.
+    expect(['deny', 'ask']).toContain(decision(build(small), linked));
+    expect(['deny', 'ask']).toContain(decision(build(n), linked));
+    const g = growth((size) => void decision(build(size), linked), n);
+    // The timer returned a real duration for both sizes, or the ratio below says nothing.
+    expect(g.small).toBeGreaterThan(0);
+    expect(g.large).toBeGreaterThan(0);
+    expect(g.ratio, `${_name}: ${g.small.toFixed(1)} ms at ${small}, ${g.large.toFixed(1)} ms at ${n}, ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+  }, 120000);
 });
+
+let sinkValue = 0;
+/** Keeps a computed number alive so the optimizer cannot drop the workload. */
+function sink(value: number): void {
+  sinkValue = (sinkValue + value) % 1000003;
+}
+
+/** Work that grows with the square of n (the shape the guard must never have). */
+function quadratic(n: number): number {
+  let total = 0;
+  for (let i = 0; i < n; i += 1) for (let j = 0; j < n; j += 1) total += (i ^ j) & 7;
+  return total;
+}
+
+/** Work that grows linearly with n. */
+function linear(n: number): number {
+  let total = 0;
+  for (let i = 0; i < n; i += 1) total += (i * 31) & 7;
+  return total;
+}
+
+/** CPU milliseconds this process has used (user plus system): a busy machine does not add to it. */
+function cpuMs(): number {
+  const { user, system } = process.cpuUsage();
+  return (user + system) / 1000;
+}
+
+/**
+ * Times `run` at n / step and at n in the same process and returns both times in ms and their ratio.
+ * It measures CPU time, not the clock, and alternates the small and the full size in each round, so
+ * a loaded runner (a coverage run with many files in parallel) slows both sizes alike. The best of
+ * six rounds is kept for each size so one slow tick does not decide. One warm-up round comes first.
+ */
+function measureGrowth(run: (n: number) => void, n: number, step: number): { small: number; large: number; ratio: number } {
+  const smallSize = Math.floor(n / step);
+  const time = (size: number): number => {
+    const started = cpuMs();
+    run(size);
+    return cpuMs() - started;
+  };
+  run(smallSize);
+  run(n);
+  let small = Number.POSITIVE_INFINITY;
+  let large = Number.POSITIVE_INFINITY;
+  for (let round = 0; round < 6; round += 1) {
+    small = Math.min(small, time(smallSize));
+    large = Math.min(large, time(n));
+  }
+  return { small, large, ratio: large / small };
+}
