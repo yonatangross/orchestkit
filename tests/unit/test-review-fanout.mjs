@@ -28,6 +28,10 @@
 //      returns (pipeline, not a barrier).
 //   7. Determinism: no Date.now(), Math.random() or argless new Date().
 //   8. Control: a stub script that approves everything fails this harness.
+//   9. Proof tier: a critical or high finding is PROVEN only when it carries
+//      the command, its output and the output the intent requires; a finding
+//      without a command is only unrefuted; the two are listed apart; a run
+//      never moves a verdict, a refuter vote or a kill; the refuter stays blind.
 //
 // HOW
 //
@@ -459,6 +463,113 @@ await test('the ledger follows engine section 10', async () => {
   assert.deepEqual(result.ledger[0], { finding_id: 'SEC-001', key: 'api/db.py:40:security', refuters: 3, votes: { refuted: 2, upheld: 1, downgrade: 0 }, verified_citations: ['api/db.py:40', 'api/db.py:40'], outcome: 'killed', confidence: 'high', original_value: 'critical', revised_value: 'killed' });
 });
 
+// 6b. the "proven by a run" tier: label and list, never a verdict or a vote
+const RUN = { command: 'python -m pytest tests/test_db.py::test_injection -x', output: 'FAILED test_injection: executed "SELECT * FROM u WHERE n=\'x\' OR 1=1"', required_output: 'PASSED: the bound parameter keeps the quote literal' };
+const proofOf = (result, key = 'api/db.py:40:security') => find(result, key).proof;
+await test('proof tier: a critical finding without a command is not PROVEN, it is only unrefuted', async () => {
+  const { result } = await run({ review: { security: WITH(F()) }, refute: [UP, UP, UP] });
+  assert.equal(proofOf(result), 'only-unrefuted');
+  assert.deepEqual(result.proof.proven, []);
+  assert.equal(result.proof.onlyUnrefuted.length, 1);
+  assert.equal(result.proof.onlyUnrefuted[0].key, 'api/db.py:40:security');
+  assert.match(why(result), /1 critical or high finding\(s\) carry no run/);
+});
+await test('proof tier: command, output and required output together make a finding PROVEN', async () => {
+  const { result } = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  assert.equal(proofOf(result), 'proven');
+  assert.equal(result.proof.proven.length, 1);
+  assert.deepEqual(result.proof.onlyUnrefuted, []);
+  assert.equal(result.proof.proven[0].command, RUN.command);
+  assert.equal(result.proof.proven[0].output, RUN.output);
+  assert.equal(result.proof.proven[0].requiredOutput, RUN.required_output);
+  assert.doesNotMatch(why(result), /carry no run/);
+});
+await test('proof tier: any one of the three missing, blank or a placeholder is not PROVEN', async () => {
+  for (const missing of ['command', 'output', 'required_output']) {
+    for (const bad of [undefined, '', '   ', 'n/a', 'None', 'not run', 7]) {
+      const run1 = { ...RUN, [missing]: bad };
+      const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F(run1)) } });
+      assert.equal(proofOf(result), 'only-unrefuted', `${missing}=${JSON.stringify(bad)} must not be PROVEN`);
+    }
+  }
+});
+await test('proof tier: only critical and high findings are in it; medium and low are not required', async () => {
+  const { result } = await run({
+    args: { effort: 'medium' },
+    review: { readability: WITH(F({ severity: 'medium', category: 'maintainability', conventional_comment: 'suggestion' }), F({ severity: 'high', line: 7, category: 'correctness' })) },
+  });
+  assert.equal(proofOf(result, 'api/db.py:40:maintainability'), 'not-required');
+  assert.equal(proofOf(result, 'api/db.py:7:correctness'), 'only-unrefuted');
+  assert.equal(result.proof.onlyUnrefuted.length, 1);
+  assert.equal(result.proof.proven.length + result.proof.groundTruth.length, 0);
+});
+await test('proof tier: a proven and an unproven finding land in separate lists', async () => {
+  const { result } = await run({
+    args: { effort: 'medium' },
+    review: { security: WITH(F(RUN), F({ id: 'SEC-002', line: 90, title: 'second' })) },
+  });
+  assert.deepEqual(result.proof.proven.map((p) => p.key), ['api/db.py:40:security']);
+  assert.deepEqual(result.proof.onlyUnrefuted.map((p) => p.key), ['api/db.py:90:security']);
+});
+await test('proof tier: it never moves a verdict (same verdict with and without a run)', async () => {
+  const withRun = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  const without = await run({ review: { security: WITH(F()) }, refute: [UP, UP, UP] });
+  assert.equal(withRun.result.verdict, 'request-changes');
+  assert.equal(without.result.verdict, 'request-changes');
+  assert.equal(withRun.result.postRefutationVerdict, without.result.postRefutationVerdict);
+  assert.equal(without.result.confirmationNeeded.length, 0);
+});
+await test('proof tier: a run does not protect a finding from a refuter quorum', async () => {
+  const { result } = await run({ review: { security: WITH(F(RUN)) }, refute: [KILL(), KILL(), UP] });
+  assert.equal(find(result, 'api/db.py:40:security').refutation.outcome, 'killed');
+  assert.equal(result.proof.proven.length, 0, 'a killed finding is in neither list');
+  assert.equal(result.proof.onlyUnrefuted.length, 0);
+  assert.equal(result.postRefutationVerdict, 'approve');
+  assert.equal(result.verdict, 'request-changes');
+  assert.equal(result.confirmationNeeded.length, 1, 'the kill still goes to the user');
+});
+await test('proof tier: a downgraded finding follows its post-refutation severity', async () => {
+  const { result } = await run({ review: { security: WITH(F(RUN)) }, refute: [DOWN('medium'), DOWN('medium'), UP] });
+  assert.equal(find(result, 'api/db.py:40:security').refutation.outcome, 'downgraded');
+  assert.equal(proofOf(result), 'not-required');
+  assert.equal(result.proof.proven.length + result.proof.onlyUnrefuted.length, 0);
+});
+await test('proof tier: at high effort an advisory overturn does not change the tier', async () => {
+  const { result } = await run({ args: { effort: 'high' }, review: { security: WITH(F(RUN)) }, refute: [KILL()] });
+  assert.equal(find(result, 'api/db.py:40:security').refutation.outcome, 'advisory-refuted');
+  assert.equal(proofOf(result), 'proven');
+});
+await test('proof tier: ground truth is its own class, never counted as proven or only unrefuted', async () => {
+  const { result } = await run({ review: { tests: WITH(F({ id: 'TEST-1', file: 'api/auth.py', line: 3, category: 'testing', ground_truth: true })) } });
+  assert.equal(proofOf(result, 'api/auth.py:3:testing'), 'ground-truth');
+  assert.equal(result.proof.groundTruth.length, 1);
+  assert.equal(result.proof.proven.length + result.proof.onlyUnrefuted.length, 0);
+});
+await test('proof tier: a run from a duplicate finding makes the merged finding PROVEN', async () => {
+  const { result } = await run({
+    args: { effort: 'medium' },
+    review: { security: WITH(F()), readability: WITH(F({ id: 'MAINT-9', ...RUN })) },
+  });
+  assert.equal(result.findings.length, 1, 'one root cause, one entry');
+  assert.equal(proofOf(result), 'proven');
+  assert.deepEqual(result.findings[0].raisedBy.sort(), ['readability', 'security']);
+});
+await test('proof tier: the reviewer is told to run critical and high findings and never invent output', async () => {
+  const { calls } = await run();
+  const prompt = calls.find((c) => c.kind === 'review').prompt;
+  assert.match(prompt, /command \(the exact command you ran\)/);
+  assert.match(prompt, /output \(what it printed\)/);
+  assert.match(prompt, /required_output/);
+  assert.match(prompt, /Never write output you did not see/);
+});
+await test('proof tier: the refuter stays blind to the producer run (neutral claim only)', async () => {
+  const { refuters } = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  assert.equal(refuters.length, 3);
+  for (const r of refuters) {
+    assert.doesNotMatch(r.prompt, /pytest|1=1|bound parameter|FAILED|required_output/);
+  }
+});
+
 // 7. streaming, not a barrier
 await test('a finding reaches its refuters before a slower reviewer returns', async () => {
   let sawRefute;
@@ -518,6 +629,13 @@ await test('control: a stub that approves everything fails a core case of this h
   const stub = compile('return { status: "reviewed", verdict: "approve", postRefutationVerdict: "approve", confirmationNeeded: [], manualReview: [], advisory: [], reasons: [], reviewers: [], findings: [], ledger: [], refutersSpawned: 0, refuterCeiling: 24 };');
   const res = await stub({ ...BASE, failingChecks: ['ci / unit'] }, async () => CLEAN, () => {}, () => {}, pipeline);
   assert.throws(() => assert.equal(res.verdict, 'request-changes'), 'the stub must not pass the failing-check case');
+});
+
+await test('control: a stub that marks every critical finding PROVEN fails the no-command case', async () => {
+  const stub = compile('return { verdict: "request-changes", findings: [{ key: "api/db.py:40:security", proof: "proven" }], proof: { proven: [{ key: "api/db.py:40:security" }], onlyUnrefuted: [], groundTruth: [] }, reasons: [] };');
+  const res = await stub({ ...BASE }, async () => CLEAN, () => {}, () => {}, pipeline);
+  assert.throws(() => assert.equal(res.findings[0].proof, 'only-unrefuted'), 'the stub must not pass the no-command case');
+  assert.throws(() => assert.equal(res.proof.proven.length, 0), 'the stub must not pass the no-command case');
 });
 
 console.log(`\n${passed} passed, ${failures.length} failed`);
