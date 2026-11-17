@@ -11,8 +11,7 @@
 |code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices,testing
 |architecture-patterns:{SKILL.md,references/{naming-conventions.md,ork-delta.md,structure-import-direction.md,testing-naming-conventions.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
-|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
-|design-to-code:{SKILL.md}|design-to-code,stitch,21st-dev,ui-generation,mockup,component,react,frontend
+|design-to-code:{SKILL.md,references/{export-formats.md,import-mode.md,ship-mode.md}}|design-to-code,claude-design,design-export,design-import,design-ship,stitch,21st-dev,storybook,mcp,ui-generation,mockup,component,react,frontend
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

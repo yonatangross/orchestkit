@@ -234,7 +234,7 @@ Output shape: `[{skill: "frontend-design", total: 23, user_slash: 4, claude_proa
 **Reading the data:**
 - High `proactive_ratio` (>50%) → description is doing its job; model is finding the skill from intent.
 - Low `proactive_ratio` (<10%) and low `total` → description may be too narrow, or skill not user-invocable. Candidate for sharpening or for `user-invocable: true`.
-- High `nested_skill` → skill is composed by other skills (e.g., `/ork:design-import` → `component-search`). Verify the chain is intentional.
+- High `nested_skill` → skill is composed by other skills (e.g., `/ork:design-to-code import` → `component-search`). Verify the chain is intentional.
 
 Falls back to `[]` when the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.126)".
 

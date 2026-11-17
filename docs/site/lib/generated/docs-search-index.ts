@@ -383,7 +383,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/agents/claude-design-orchestrator",
     "title": "Claude Design Orchestrator",
-    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code"
+    "description": "Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks export-to-PR provenance so design intent stays linked to shipped code"
   },
   {
     "url": "/docs/reference/agents/code-quality-reviewer",
@@ -958,12 +958,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-import",
     "title": "Design Import",
-    "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship."
+    "description": "Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; new work calls design-to-code import."
   },
   {
     "url": "/docs/reference/skills/design-ship",
     "title": "Design Ship",
-    "description": "Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design should come back as a PR. For files on disk only, use design-import."
+    "description": "Alias: runs design-to-code in ship mode (design export to an opened PR) for people who still type the earlier command. Use only when someone types /ork:design-ship."
   },
   {
     "url": "/docs/reference/skills/design-stylecards",
@@ -978,7 +978,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-to-code",
     "title": "Design To Code",
-    "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration."
+    "description": "Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse existing ones; ship mode adds tests and a PR. Use when a design should become code, or for Storybook MCP tools."
   },
   {
     "url": "/docs/reference/skills/dev",
@@ -1078,7 +1078,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 116 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 115 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1213,7 +1213,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "OrchestKit Skills Reference",
-    "description": "Complete reference for all 116 OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."
+    "description": "Complete reference for all 115 OrchestKit skills: workflows, patterns and quality gates a coding agent loads on demand, each with its command and examples."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1406,11 +1406,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes."
   },
   {
-    "url": "/docs/reference/skills/storybook-mcp-integration",
-    "title": "Storybook MCP Integration",
-    "description": "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code."
-  },
-  {
     "url": "/docs/reference/skills/storybook-testing",
     "title": "Storybook Testing",
     "description": "Storybook 10 testing: Vitest integration, CSF3 factories, play() interaction tests, Chromatic TurboSnap, automocking, a11y addon, autodocs. Use when writing component stories, setting up visual regression, Storybook CI, or migrating from Storybook 9."
@@ -1588,7 +1583,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 116 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 115 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",
@@ -1603,7 +1598,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 72 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
+    "description": "The 71 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",

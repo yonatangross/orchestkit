@@ -4,7 +4,9 @@
 /**
  * Design-Import Auto-Verify (#1386)
  *
- * PostToolUse hook that fires after /ork:design-import completes successfully.
+ * PostToolUse hook that fires after a design import completes successfully:
+ * /ork:design-to-code in import mode (design-import merged into it), or the
+ * old /ork:design-import name, which is kept as an alias.
  * Reads the most recent provenance file and injects a system reminder nudging
  * Claude to run /ork:expect against the freshly-imported components.
  * Non-blocking — failures here never roll back the import.
@@ -14,8 +16,11 @@
  * ork does not bundle). Recommending it printed a command that resolves for
  * nobody, so it is gone rather than renamed.
  *
- * Fires on: PostToolUse Skill (tool_input.skill === 'design-import')
- * Condition: tool_output indicates an import manifest was produced
+ * Fires on: PostToolUse Skill (tool_input.skill is 'design-to-code' or the
+ *           alias 'design-import')
+ * Condition: tool_output indicates an import manifest was produced. Mockup and
+ *            Storybook runs of design-to-code print no manifest, so they stay
+ *            silent. Ship mode opens its own PR, so it stays silent too.
  * Action: emits prompt context with the next-step verification commands
  */
 
@@ -27,20 +32,23 @@ import { safeProjectDir } from '../../lib/paths.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { stringifyOutput } from '../../lib/stringify-output.js';
 
+/** Skills whose output can be an import manifest: the merged skill and its old name. */
+const IMPORT_SKILLS: ReadonlySet<string> = new Set(['design-to-code', 'design-import']);
+
 export async function postDesignImportAutoVerify(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
 ): Promise<HookResult> {
-  // Guard: only fire for /ork:design-import skill completion
+  // Guard: only fire for a design import skill completion
   if (input.tool_name !== 'Skill') {
     return outputSilentSuccess();
   }
 
-  // CC sends the skill name with its plugin prefix (`ork:design-import`) and
+  // CC sends the skill name with its plugin prefix (`ork:design-to-code`) and
   // the tool result as `tool_response`; `tool_output` is a legacy alias.
   const skillName = String((input.tool_input as Record<string, unknown>)?.skill ?? '')
     .replace(/^ork:/, '');
-  if (skillName !== 'design-import') {
+  if (!IMPORT_SKILLS.has(skillName)) {
     return outputSilentSuccess();
   }
 
@@ -48,6 +56,15 @@ export async function postDesignImportAutoVerify(
   const output = stringifyOutput(input.tool_response ?? input.tool_output) ?? '';
   if (!output.includes('Imported bundle')) {
     ctx.log('post-design-import', 'No import manifest detected — skipping verify nudge');
+    return outputSilentSuccess();
+  }
+
+  // Ship mode runs the import, then expect, then opens the PR itself. Its
+  // output carries the import manifest too, so the nudge would repeat what
+  // already happened.
+  const args = String((input.tool_input as Record<string, unknown>)?.args ?? '').trimStart();
+  if (/^ship(\s|$)/i.test(args)) {
+    ctx.log('post-design-import', 'Ship mode verifies and opens the PR itself: skipping verify nudge');
     return outputSilentSuccess();
   }
 
@@ -83,7 +100,7 @@ export async function postDesignImportAutoVerify(
     'Recommended next steps (non-blocking):',
     '  1. /ork:expect    — diff-aware browser verification on the imported diff',
     '',
-    'When ready to ship: /ork:design-ship <bundle_id-or-url> opens a PR with screenshots + tests.',
+    'When ready to ship: /ork:design-to-code ship <export> opens a PR with screenshots + tests.',
   ].join('\n');
 
   ctx.log('post-design-import', `Verify nudge emitted (bundle=${bundleId ?? 'unknown'})`);
