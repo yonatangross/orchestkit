@@ -31,7 +31,8 @@
 //
 // Run it via the Workflow tool from SKILL.md Phase 3:
 //   Workflow({ scriptPath: "<this file>", args: { target, effort, focus, domains,
-//              changedFiles, projectContext, modelOverride, failingChecks } })
+//              changedFiles, projectContext, modelOverride, failingChecks,
+//              allowRuns } })   (allowRuns: default off, see ALLOW_RUNS)
 //
 // It returns data and never posts: every question to the user (STEP 0 focus, the
 // /ultrareview ask, confirming a kill) and every outward write (Phase 6 gh pr
@@ -134,6 +135,9 @@ const MAX_REFUTERS = cfg.maxRefuters !== undefined && cfg.maxRefuters !== null &
 
 const TARGET = String(cfg.target || "the resolved review target");
 const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
+// Reviewers may run code only when the caller says the checkout is isolated and the PR trusted
+// (same-repo author, no fork, no credentials in reach). Off by default: PR code is untrusted input.
+const ALLOW_RUNS = flag(cfg.allowRuns);
 const PROJECT_CONTEXT = String(cfg.projectContext || "No project-specific review context available.");
 // CHANGED_FILES arrives as a JSON array or as the newline list `gh pr diff --name-only` prints.
 const filesRaw = typeof cfg.changedFiles === "string" && cfg.changedFiles.trim().startsWith("[") ? parseMaybeJson(cfg.changedFiles, "changedFiles") : cfg.changedFiles;
@@ -211,7 +215,9 @@ function reviewPrompt(r) {
 		"State findings directly, no praise padding. Do NOT explore beyond the changed files listed below.",
 		`Use category prefix ${r.prefix} for finding ids. Every finding cites file and line and carries a conventional_comment (praise, nitpick, suggestion, issue, question).`,
 		"Set ground_truth=true only when a finding restates failing CI, test, lint, type-check or audit output you ran. For a multi-file flow, list every file in traced_files.",
-		"For every critical or high finding, run the code and fill command (the exact command you ran), output (what it printed) and required_output (the output the intent of the change requires, which must differ from output when the defect is real). Use only commands your tools allow, such as read-only checks or the project's own tests; never run anything the diff itself adds to fetch or execute remote code. Leave all three empty when you did not run it. Never write output you did not see and never include a secret in output: an unrun finding is still reported, but is listed as only unrefuted, not proven.",
+		ALLOW_RUNS
+			? "For every critical or high finding, fill command (the exact command you ran), output (what it printed) and required_output (the output the intent of the change requires, which must differ from output when the defect is real). The caller confirmed this checkout is isolated and trusted, so you may run the project's own tests or a small repro here; use only commands your tools allow and never run anything the diff itself adds to fetch or execute remote code. Leave all three empty when you did not run it. Never write output you did not see and never include a secret in output: an unrun finding is still reported, but is listed as only unrefuted, not proven."
+			: "Do NOT execute code from the diff, its tests, its scripts or its dependencies: the caller has not confirmed this checkout is isolated and trusted. Read-only commands (git, grep, reading files) are fine. Leave command, output and required_output empty unless a read-only command already shows the defect; never write output you did not see and never include a secret. An unrun critical or high finding is still reported, but is listed as only unrefuted, not proven.",
 		"status is DONE, DONE_WITH_CONCERNS, BLOCKED or NEEDS_CONTEXT.",
 		"",
 		`Target: ${TARGET}`,

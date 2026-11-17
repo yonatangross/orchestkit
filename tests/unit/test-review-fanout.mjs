@@ -554,13 +554,24 @@ await test('proof tier: a run from a duplicate finding makes the merged finding 
   assert.equal(proofOf(result), 'proven');
   assert.deepEqual(result.findings[0].raisedBy.sort(), ['readability', 'security']);
 });
-await test('proof tier: the reviewer is told to run critical and high findings and never invent output', async () => {
-  const { calls } = await run();
+await test('proof tier: with allowRuns the reviewer fills command, output and required_output and never invents output', async () => {
+  const { calls } = await run({ args: { allowRuns: true } });
   const prompt = calls.find((c) => c.kind === 'review').prompt;
   assert.match(prompt, /command \(the exact command you ran\)/);
   assert.match(prompt, /output \(what it printed\)/);
   assert.match(prompt, /required_output/);
+  assert.match(prompt, /isolated and trusted, so you may run/);
   assert.match(prompt, /Never write output you did not see/);
+});
+await test('proof tier: allowRuns is off by default, and the string "false" or a missing flag keeps it off', async () => {
+  for (const args of [{}, { allowRuns: false }, { allowRuns: 'false' }, { allowRuns: 'yes' }, { allowRuns: 1 }]) {
+    const { calls } = await run({ args });
+    const prompt = calls.find((c) => c.kind === 'review').prompt;
+    assert.match(prompt, /Do NOT execute code from the diff/, `args ${JSON.stringify(args)} must keep runs off`);
+    assert.doesNotMatch(prompt, /you may run the project's own tests/);
+  }
+  const on = await run({ args: { allowRuns: 'true' } });
+  assert.match(on.calls.find((c) => c.kind === 'review').prompt, /you may run the project's own tests/);
 });
 await test('proof tier: the refuter stays blind to the producer run (neutral claim only)', async () => {
   const { refuters } = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
