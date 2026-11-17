@@ -6,6 +6,7 @@ description: Vision, audio, video generation, and multimodal LLM patterns. Use w
 user-invocable: false
 effort: high
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "multimodal-specialist"
   category: mcp-enhancement
   version: "2.1.1"

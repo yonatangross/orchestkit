@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
 user-invocable: false
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.1.0"
