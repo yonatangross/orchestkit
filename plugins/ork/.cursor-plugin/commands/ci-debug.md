@@ -1,5 +1,5 @@
 ---
-description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures."
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures."
 argument-hint: "<PR-number | run-URL | job-URL> | sweep [install|status|enable|disable]"
 disable-model-invocation: false
 model: sonnet
@@ -22,6 +22,7 @@ Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 s
 
 User invokes with one of:
 
+- **sweep**: `/ci-debug sweep <install|status|enable|disable>` runs sweep mode, see the Sweep mode section below (not the steps in Execution)
 - **PR number**: `/ci-debug 822` (default repo from context; ask if ambiguous)
 - **Run URL**: `/ci-debug https://github.com/owner/repo/actions/runs/12345`
 - **Job URL**: `/ci-debug https://github.com/owner/repo/actions/runs/X/job/Y`

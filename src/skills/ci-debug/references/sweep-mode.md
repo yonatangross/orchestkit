@@ -44,7 +44,7 @@ Runs the `/ci-debug` playbook classification over every red PR in one dispatch, 
 
 ## Install on a new repo
 
-1. Copy `.github/workflows/ci-sentinel.yml` from the OrchestKit repo into the target repo (this skill ships it).
+1. Copy `.github/workflows/ci-sentinel.yml` from the OrchestKit repo into the target repo (this repo ships it).
 2. Mint a Max-plan OAuth token with `claude setup-token`, then add it as the `CLAUDE_CODE_OAUTH_TOKEN` secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN -R <owner>/<repo>`. The workflow reads this natively from job-level env; `ANTHROPIC_API_KEY` is **not** used any more, and setting it alone leaves the run red: the workflow's auth canary hard-fails when `CLAUDE_CODE_OAUTH_TOKEN` is unset or expired.
 3. Trigger a manual run with `inputs.dry_run = true` to validate the wiring.
 4. Once a dry-run posts no comments and looks healthy in the job summary, dispatch a real run whenever you want a sweep. Do not add a schedule: automatic runs draw on the shared weekly quota, and the workflow allows only `workflow_dispatch` by policy.

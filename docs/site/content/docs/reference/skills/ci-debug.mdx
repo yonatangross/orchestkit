@@ -1,6 +1,6 @@
 ---
 title: "CI Debug"
-description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures."
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,7 +11,7 @@ description: "Diagnoses one failing CI run or PR check against an 11-pattern pla
 
 <ContextualSkillSidebar slug="ci-debug" />
 
-> **CI Debug** Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures.
+> **CI Debug** Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures.
 
 
 # /ci-debug: classify a failing CI run
@@ -22,6 +22,7 @@ Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 s
 
 User invokes with one of:
 
+- **sweep**: `/ci-debug sweep <install|status|enable|disable>` runs sweep mode, see the Sweep mode section below (not the steps in Execution)
 - **PR number**: `/ci-debug 822` (default repo from context; ask if ambiguous)
 - **Run URL**: `/ci-debug https://github.com/owner/repo/actions/runs/12345`
 - **Job URL**: `/ci-debug https://github.com/owner/repo/actions/runs/X/job/Y`
@@ -220,7 +221,7 @@ Runs the `/ci-debug` playbook classification over every red PR in one dispatch, 
 
 ## Install on a new repo
 
-1. Copy `.github/workflows/ci-sentinel.yml` from the OrchestKit repo into the target repo (this skill ships it).
+1. Copy `.github/workflows/ci-sentinel.yml` from the OrchestKit repo into the target repo (this repo ships it).
 2. Mint a Max-plan OAuth token with `claude setup-token`, then add it as the `CLAUDE_CODE_OAUTH_TOKEN` secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN -R <owner>/<repo>`. The workflow reads this natively from job-level env; `ANTHROPIC_API_KEY` is **not** used any more, and setting it alone leaves the run red: the workflow's auth canary hard-fails when `CLAUDE_CODE_OAUTH_TOKEN` is unset or expired.
 3. Trigger a manual run with `inputs.dry_run = true` to validate the wiring.
 4. Once a dry-run posts no comments and looks healthy in the job summary, dispatch a real run whenever you want a sweep. Do not add a schedule: automatic runs draw on the shared weekly quota, and the workflow allows only `workflow_dispatch` by policy.

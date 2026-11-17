@@ -1,4 +1,4 @@
-15588
+15028
 # Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) that core ork ships,
 # which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
@@ -13,3 +13,5 @@
 # 2026-11-12 orchestkit#4936 (ork-extras split): the test measures what core ships. LOWERED 16006 -> 15588:
 # portless (no longer in core) and design-stylecards left the core listing (-414 bytes, 83 skills).
 # Not raised. The 23 skills made model-invocable in ork-extras do not count here.
+# 2026-11-17 catalog trim stage 1a: remember, dream and ci-sentinel left the model's list (their typed-only
+# aliases are hidden from it). LOWERED 15588 -> 15028 (-560 bytes). Not raised.

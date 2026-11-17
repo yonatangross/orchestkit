@@ -600,7 +600,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "ci-debug",
     "station": "ship",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures.",
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures.",
     "command": true,
     "scopedHooks": 0
   },

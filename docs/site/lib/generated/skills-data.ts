@@ -939,9 +939,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures.",
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures.",
     "version": "0.2.0",
-    "sha256": "467d1ddf51fdc7d2cf6376cc24165b47dd4b57e969a73323ed4915010ff33d63",
+    "sha256": "66c999aeae2a16edfdcad2be48bb2fe3ef3432e68f3e0b4cb46a313896e18b06",
     "author": "OrchestKit",
     "tags": [
       "ci",
