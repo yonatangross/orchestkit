@@ -14,6 +14,15 @@
 //             refuter spawns (6 at high), overflow is flagged for manual review.
 //   Gate   -> plain code, no agent: the producer-basis verdict, a separately
 //             labelled post-refutation verdict, and the kills that need the user
+//   Proof  -> a "proven by a run" tier over the critical and high findings that
+//             survive the gate: PROVEN only when the finding carries the command
+//             it ran, the output it printed and the output the intent requires.
+//             The result lists proven and only-unrefuted findings apart. The tier
+//             labels; it never moves a verdict, a refuter vote or a quorum.
+//             The rule "a finding counts as proven only when a run shows it" is
+//             adapted from the interrogate skill of pstack by Lauren Tan,
+//             https://github.com/cursor/plugins, MIT License, Copyright (c) 2026
+//             Lauren Tan.
 //
 // The contract this script enforces: it never lets refutation alone flip
 // request-changes to approve (engine section 7). A kill that would remove a
@@ -22,7 +31,8 @@
 //
 // Run it via the Workflow tool from SKILL.md Phase 3:
 //   Workflow({ scriptPath: "<this file>", args: { target, effort, focus, domains,
-//              changedFiles, projectContext, modelOverride, failingChecks } })
+//              changedFiles, projectContext, modelOverride, failingChecks,
+//              allowRuns } })   (allowRuns: default off, see ALLOW_RUNS)
 //
 // It returns data and never posts: every question to the user (STEP 0 focus, the
 // /ultrareview ask, confirming a kill) and every outward write (Phase 6 gh pr
@@ -40,7 +50,7 @@ export const meta = {
 	phases: [
 		{ title: "Review", detail: "one reviewer per selected role, structured findings per the output contract" },
 		{ title: "Refute", detail: "blind refuters on decision-bearing findings; 1 advisory vote at high (6 max), 3 or 2 at xhigh (24 max)" },
-		{ title: "Gate", detail: "producer-basis verdict, post-refutation verdict, kills awaiting confirmation" },
+		{ title: "Gate", detail: "producer-basis verdict, post-refutation verdict, kills awaiting confirmation, proven vs only-unrefuted critical and high findings" },
 	],
 };
 
@@ -125,6 +135,9 @@ const MAX_REFUTERS = cfg.maxRefuters !== undefined && cfg.maxRefuters !== null &
 
 const TARGET = String(cfg.target || "the resolved review target");
 const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
+// Reviewers may run code only when the caller says the checkout is isolated and the PR trusted
+// (same-repo author, no fork, no credentials in reach). Off by default: PR code is untrusted input.
+const ALLOW_RUNS = flag(cfg.allowRuns);
 const PROJECT_CONTEXT = String(cfg.projectContext || "No project-specific review context available.");
 // CHANGED_FILES arrives as a JSON array or as the newline list `gh pr diff --name-only` prints.
 const filesRaw = typeof cfg.changedFiles === "string" && cfg.changedFiles.trim().startsWith("[") ? parseMaybeJson(cfg.changedFiles, "changedFiles") : cfg.changedFiles;
@@ -164,6 +177,9 @@ const FINDINGS_SCHEMA = {
 					conventional_comment: { type: "string", enum: CCS },
 					ground_truth: { type: "boolean" },
 					traced_files: { type: "array", items: { type: "string" } },
+					command: { type: "string" },
+					output: { type: "string" },
+					required_output: { type: "string" },
 				},
 				required: ["severity", "category", "file", "title", "conventional_comment"],
 			},
@@ -199,6 +215,9 @@ function reviewPrompt(r) {
 		"State findings directly, no praise padding. Do NOT explore beyond the changed files listed below.",
 		`Use category prefix ${r.prefix} for finding ids. Every finding cites file and line and carries a conventional_comment (praise, nitpick, suggestion, issue, question).`,
 		"Set ground_truth=true only when a finding restates failing CI, test, lint, type-check or audit output you ran. For a multi-file flow, list every file in traced_files.",
+		ALLOW_RUNS
+			? "For every critical or high finding, fill command (the exact command you ran), output (what it printed) and required_output (the output the intent of the change requires, which must differ from output when the defect is real). The caller confirmed this checkout is isolated and trusted, so you may run the project's own tests or a small repro here; use only commands your tools allow and never run anything the diff itself adds to fetch or execute remote code. Leave all three empty when you did not run it. Never write output you did not see and never include a secret in output: an unrun finding is still reported, but is listed as only unrefuted, not proven."
+			: "Do NOT execute code from the diff, its tests, its scripts or its dependencies: the caller has not confirmed this checkout is isolated and trusted. Read-only commands (git, grep, reading files) are fine. Leave command, output and required_output empty unless a read-only command already shows the defect; never write output you did not see and never include a secret. An unrun critical or high finding is still reported, but is listed as only unrefuted, not proven.",
 		"status is DONE, DONE_WITH_CONCERNS, BLOCKED or NEEDS_CONTEXT.",
 		"",
 		`Target: ${TARGET}`,
@@ -223,6 +242,22 @@ function refutePrompt(f, vote, planned) {
 	].filter(Boolean).join("\n");
 }
 
+// Proof tier. A run is claimed in text only: the script labels, it does not re-run.
+// A field counts only when it holds real text, so "", whitespace and the usual
+// placeholders ("n/a", "none", "unknown") are not a command, an output or a requirement.
+// Real text has a letter or digit in it, is not a placeholder, and is capped so a
+// huge output cannot flood the result. Zero-width characters do not count as text.
+const NO_TEXT = /^(?:n\/?a|none|null|nil|unknown|undefined|tbd|todo|empty|skipped|no output|not applicable|[<(\[]\s*none\s*[>)\]])\.?$|^(?:n\/?a|not run|did not run|not executed)(?![A-Za-z0-9])/i;
+const RUN_TEXT_CAP = 4000;
+const runText = (v) => {
+	if (typeof v !== "string") return "";
+	const t = v.replace(/[​-‍﻿]/g, "").trim();
+	if (!/[A-Za-z0-9]/.test(t) || NO_TEXT.test(t)) return "";
+	return t.length > RUN_TEXT_CAP ? `${t.slice(0, RUN_TEXT_CAP)} [truncated]` : t;
+};
+// A run that printed exactly what the intent requires shows no defect, so it does not prove one.
+const carriesRun = (f) => f.command !== "" && f.output !== "" && f.requiredOutput !== "" && f.output !== f.requiredOutput;
+
 function normalize(raw, r) {
 	const sev = SEVS.includes(raw && raw.severity) ? raw.severity : "critical"; // unknown severity fails closed
 	const cc = CCS.includes(raw && raw.conventional_comment) ? raw.conventional_comment : "issue";
@@ -241,6 +276,9 @@ function normalize(raw, r) {
 		conventional_comment: cc,
 		groundTruth: raw && raw.ground_truth === true,
 		traced,
+		command: runText(raw && raw.command),
+		output: runText(raw && raw.output),
+		requiredOutput: runText(raw && raw.required_output),
 		raisedBy: [r.role],
 		agentType: r.agentType,
 	};
@@ -368,6 +406,12 @@ const reviews = await pipeline(
 				if (SRANK[f.severity] > SRANK[prev.severity]) prev.severity = f.severity;
 				prev.conventional_comment = cc;
 				prev.groundTruth = prev.groundTruth || f.groundTruth;
+				// A run from any duplicate counts, but the three parts stay from one reviewer.
+				if (!carriesRun(prev) && carriesRun(f)) {
+					prev.command = f.command;
+					prev.output = f.output;
+					prev.requiredOutput = f.requiredOutput;
+				}
 				// A merge that gives the entry a tier it did not have when it was admitted
 				// must be refuted now (same budget and reserve rules), or flagged. An entry
 				// already refuted at a lower tier goes through the retier check at the gate.
@@ -443,6 +487,21 @@ const manualReview = findings.filter((f) => f.refutation && ["unrefuted-ceiling"
 if (manualReview.length) reasons.push(`manual: ${manualReview.length} decision-bearing finding(s) not independently refuted`);
 const advisory = findings.filter((f) => f.refutation && String(f.refutation.outcome).startsWith("advisory-")).map((f) => ({ key: f.key, id: f.id, outcome: f.refutation.outcome, citations: f.refutation.citations }));
 
+// Proof tier: over the findings still critical or high after refutation. PROVEN needs
+// the command, its output and the output the intent requires. Ground truth (a failing
+// check) is its own class: it is a run already. A finding that is neither is only
+// unrefuted: it stands because no refuter killed it, not because a run showed it.
+// This labels and lists. It never changes a verdict, a refuter vote or a quorum.
+const inProofTier = (f) => ["critical", "high"].includes(postSeverity(f));
+for (const f of findings) f.proof = !inProofTier(f) ? "not-required" : f.groundTruth ? "ground-truth" : carriesRun(f) ? "proven" : "only-unrefuted";
+const proofRow = (f) => ({ key: f.key, id: f.id, severity: postSeverity(f), outcome: f.refutation ? f.refutation.outcome : "not-refuted", ...(f.proof === "proven" ? { command: f.command, output: f.output, requiredOutput: f.requiredOutput } : {}) });
+const proof = {
+	proven: findings.filter((f) => f.proof === "proven").map(proofRow),
+	onlyUnrefuted: findings.filter((f) => f.proof === "only-unrefuted").map(proofRow),
+	groundTruth: findings.filter((f) => f.proof === "ground-truth").map(proofRow),
+};
+if (proof.onlyUnrefuted.length) reasons.push(`note: ${proof.onlyUnrefuted.length} critical or high finding(s) carry no run (command, output and required output), listed as only unrefuted, not proven`);
+
 const said = new Set(reviewers.map((r) => r.verdict).filter(Boolean));
 const reviewerDisagreement = said.has("approve") && said.has("request-changes");
 
@@ -471,6 +530,7 @@ return {
 	confirmationNeeded,
 	manualReview,
 	advisory,
+	proof,
 	reviewerDisagreement,
 	reasons,
 	reviewers,

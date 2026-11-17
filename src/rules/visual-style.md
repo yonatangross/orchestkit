@@ -113,8 +113,9 @@ or any character that requires a non-default monospace font.
 
 ## Triggering
 
-- The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
-  this answer has shape, render it", not "draw something every turn".
+- The `visual-style-nudge` hook is opt-in (`ORK_VISUAL_STYLE_NUDGE=1`). When on,
+  it fires on qualifying prompts and means "if this answer has shape, render
+  it", not "draw something every turn".
 - `/ork:glyph` is the reference implementation; use it unprompted whenever
   rule 1 applies. Once it is loaded, render in place and
   do not invoke the other name (`glyph`, `/glyph`, `/ork:glyph`): a second

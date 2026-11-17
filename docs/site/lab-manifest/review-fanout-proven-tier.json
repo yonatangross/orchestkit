@@ -1,0 +1,8 @@
+{
+  "slug": "review-fanout-proven-tier",
+  "source": "docs/feat--review-fanout-proven-tier/index.html",
+  "title": "review-pr: a proven-by-a-run tier for critical and high findings",
+  "description": "The review fanout now says which critical and high findings carry a run: the command, its output and the output the intent requires. Fill the three parts and see whether a finding is proven or only unrefuted. The tier labels; it never moves a verdict.",
+  "tags": ["skills", "review-pr", "workflows"],
+  "date": "2026-11-17"
+}

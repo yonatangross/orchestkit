@@ -4,5 +4,9 @@
     "example": {
       "1234567": { "reason": "no upstream fix yet", "until": "2026-07-01" }
     }
+  },
+  "1247710": {
+    "reason": "GHSA-fc5q-39xc-vjpf, picomatch ReDoS through single-branch repeated extglobs. No patched release exists upstream: the vulnerable range is <= 4.0.7 and 4.0.7 is the latest published version. picomatch reaches this repository only through build and test tooling (vite, vitest, tinyglobby, fumadocs-mdx), which match file paths and patterns written in this repository. Remove this entry when a fixed picomatch version ships and the lockfiles move to it.",
+    "until": "2026-12-17"
   }
 }
