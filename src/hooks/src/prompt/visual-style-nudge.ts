@@ -25,9 +25,16 @@
  * Runs inside prompt/unified-dispatcher (no separate hooks.json entry), and
  * costs ZERO permanent system-prompt tokens — the cost is per-turn, only when
  * it fires, inside the dispatcher's existing 800t/turn cap.
+ *
+ * OPT-IN: the reminder is one person's chat style, so it is
+ * OFF by default and never part of the plugin's defaults. Set
+ * `ORK_VISUAL_STYLE_NUDGE=1` to turn it on. When on, the reminder text is the
+ * user's own: the file named by `ORK_VISUAL_STYLE_NUDGE_FILE` (first
+ * MAX_TEXT_CHARS characters), or a short neutral line when that is unset,
+ * missing or empty. Documented in docs/guides/output-modes.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputPromptContext, outputSilentSuccess } from '../lib/common.js';
@@ -36,6 +43,20 @@ import { getSessionStorageDir } from '../lib/paths.js';
 import { safeIdentifier } from '../lib/safe-fs.js';
 
 const HOOK_NAME = 'visual-style-nudge';
+
+/** Opt-in switch. Anything other than the exact string '1' leaves the hook silent. */
+const ENABLE_ENV = 'ORK_VISUAL_STYLE_NUDGE';
+
+/** Optional path to the user's own reminder text. */
+const TEXT_FILE_ENV = 'ORK_VISUAL_STYLE_NUDGE_FILE';
+
+/** Cap on the user's text so a wrong path cannot flood every prompt. */
+const MAX_TEXT_CHARS = 1500;
+
+/** Neutral fallback: names no vocabulary, no budget, no icon set. */
+const DEFAULT_TEXT =
+  'If this answer has shape (a status, a comparison, options), render it visually ' +
+  'with the verdict first. A definition, a single fact or a one-line ask gets prose only.';
 
 /** Re-anchor at most once per this many qualifying prompts. */
 const THROTTLE_EVERY = 8;
@@ -127,10 +148,44 @@ function fireOrdinal(sessionId: string, explicit: boolean): number | null {
   return Math.floor(seen / THROTTLE_EVERY) + 1;
 }
 
+/**
+ * The reminder text: the user's own file when it is readable and non-empty,
+ * otherwise the neutral default. Never throws; a bad path must not break a prompt.
+ */
+function reminderText(): string {
+  const file = process.env[TEXT_FILE_ENV];
+  if (!file) return DEFAULT_TEXT;
+  let fd: number | null = null;
+  try {
+    // A regular file only (a directory, FIFO or device path must not block or
+    // throw on every prompt), and only its first bytes: the cap is on characters,
+    // so 4 bytes per character is the most MAX_TEXT_CHARS can need.
+    if (!statSync(file).isFile()) return DEFAULT_TEXT;
+    fd = openSync(file, 'r');
+    const buf = Buffer.alloc(MAX_TEXT_CHARS * 4);
+    const read = readSync(fd, buf, 0, buf.length, 0);
+    // Spread counts characters, so the cap cannot cut an emoji in half.
+    const text = [...buf.toString('utf8', 0, read).trim()].slice(0, MAX_TEXT_CHARS).join('');
+    return text || DEFAULT_TEXT;
+  } catch {
+    return DEFAULT_TEXT;
+  } finally {
+    if (fd !== null) {
+      try {
+        closeSync(fd);
+      } catch {
+        /* fd already gone; nothing to salvage */
+      }
+    }
+  }
+}
+
 export function visualStyleNudge(
   input: HookInput,
   _ctx: HookContext = NOOP_CTX,
 ): HookResult {
+  if (process.env[ENABLE_ENV] !== '1') return outputSilentSuccess();
+
   const prompt = typeof input.prompt === 'string' ? input.prompt : '';
   const sessionId = input.session_id || 'unknown-session';
 
@@ -154,18 +209,5 @@ export function visualStyleNudge(
   // swallowed — reproducing the decay this hook exists to fix. Verified
   // through the real dispatcher: constant text fired 1/20, the varying text
   // below fires on schedule. Keep this varying.
-  return outputPromptContext(
-    `[${HOOK_NAME} #${ordinal}] If this answer has shape, render it: one render, ` +
-      `up to ~50 lines and 76 cells wide, verdict first. Lead with one prose line ` +
-      `that states the point, then the render (header and headline meter, sections ` +
-      `opened by a light rule and a traffic-light word, rows as icon / label / bar / ` +
-      `value / action, a total line per section, one arithmetic summary line, ` +
-      `info caveat lines), then two or three bold-led bullets on what the numbers ` +
-      `told you. Status icons come from the closed semantic set; one domain icon ` +
-      `per row in the leading column. A definition, a single fact or a one-line ask ` +
-      `gets no render; over 50 lines is a page, not a chat answer. Applies to this ` +
-      `reply and later ones. Full vocabulary and anatomy: the ork:glyph skill, ` +
-      `rules/visual-style.md. Sub-agents do not inherit this rule; restate it in ` +
-      `their prompt if their output reaches the user.`,
-  );
+  return outputPromptContext(`[${HOOK_NAME} #${ordinal}] ${reminderText()}`);
 }

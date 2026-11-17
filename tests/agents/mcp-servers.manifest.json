@@ -110,7 +110,7 @@
         "run-story-tests"
       ],
       "toolsVerifiedOn": "2026-09-22",
-      "toolsVerifiedBy": "Attested against src/skills/storybook-mcp-integration/SKILL.md Quick Reference (6 tools, 3 toolsets)."
+      "toolsVerifiedBy": "Attested against src/skills/design-to-code/SKILL.md, Storybook mode Quick Reference (6 tools, 3 toolsets)."
     }
   }
 }

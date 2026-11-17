@@ -36,7 +36,7 @@ tools:
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
   # mcpServers storybook-mcp is metadata only (F12).
-  # Full storybook-mcp surface (dev + docs + testing) from storybook-mcp-integration.
+  # Full storybook-mcp surface (dev + docs + testing) from design-to-code, Storybook mode.
   - mcp__storybook-mcp__get-storybook-story-instructions
   - mcp__storybook-mcp__preview-stories
   - mcp__storybook-mcp__list-all-documentation
@@ -52,7 +52,6 @@ skills:
   - code-review-playbook
   - architecture-patterns
   - component-search
-  - storybook-mcp-integration
   - design-to-code
   - design-context-extract
   - memory
@@ -598,8 +597,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices,testing
 |architecture-patterns:{SKILL.md,references/{naming-conventions.md,ork-delta.md,structure-import-direction.md,testing-naming-conventions.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
-|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
-|design-to-code:{SKILL.md}|design-to-code,stitch,21st-dev,ui-generation,mockup,component,react,frontend
+|design-to-code:{SKILL.md,references/{export-formats.md,import-mode.md,ship-mode.md}}|design-to-code,claude-design,design-export,design-import,design-ship,stitch,21st-dev,storybook,mcp,ui-generation,mockup,component,react,frontend
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

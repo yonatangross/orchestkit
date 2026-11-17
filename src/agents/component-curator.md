@@ -34,13 +34,13 @@ tools:
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
   # mcpServers storybook-mcp is metadata only (F12).
-  # Docs toolset only (storybook-mcp-integration Toolset Selection).
+  # Docs toolset only (design-to-code, Storybook mode, Toolset Selection).
   - mcp__storybook-mcp__list-all-documentation
   - mcp__storybook-mcp__get-documentation
   - mcp__storybook-mcp__get-documentation-for-story
 skills:
   - component-search
-  - storybook-mcp-integration
+  - design-to-code
   - design-system-tokens
   - memory
 mcpServers: [storybook-mcp, context7]

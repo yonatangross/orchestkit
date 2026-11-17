@@ -1,4 +1,4 @@
-15028
+14539
 # Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) that core ork ships,
 # which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
@@ -15,3 +15,6 @@
 # Not raised. The 23 skills made model-invocable in ork-extras do not count here.
 # 2026-11-17 catalog trim stage 1a: remember, dream and ci-sentinel left the model's list (their typed-only
 # aliases are hidden from it). LOWERED 15588 -> 15028 (-560 bytes). Not raised.
+# 2026-11-17 design-to-code merge: storybook-mcp-integration left the listing and design-import
+# and design-ship became typed-only aliases (hidden from the model). Alone it lowered 15588 -> 15099 (-489 bytes, 80 skills).
+# Merged with stage 1a: LOWERED 15028 -> 14539 (-489 bytes, measured by the test, see the ship request). Not raised.

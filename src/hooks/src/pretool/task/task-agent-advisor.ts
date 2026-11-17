@@ -110,7 +110,7 @@ export const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp 
 export const NOT_ROUTED: Readonly<Record<string, string>> = {
   'ork:accessibility-specialist': 'WCAG words also appear in frontend tasks; frontend row owns them',
   'ork:ai-safety-auditor': 'overlaps security-auditor, which owns security phrasing',
-  'ork:claude-design-orchestrator': 'spawned by the design-import skill, not from free text',
+  'ork:claude-design-orchestrator': 'spawned by the design-to-code skill (import and ship modes), not from free text',
   'ork:component-curator': 'spawned by the component-search skill, not from free text',
   'ork:data-pipeline-engineer': 'embedding and chunking words overlap llm-integrator; no narrow phrase',
   'ork:demo-producer': 'spawned by the demo-producer skill',

@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "065f202ffdd4c112748774615fceef1b0d87c30aa361c4a2b1c09883995fc126",
+    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1592,98 +1592,51 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-import": {
     "name": "design-import",
-    "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship.",
-    "version": "1.0.0",
-    "sha256": "bc926c1d59861da2911e9a21cbc67736d584a8458b2f1f5fd4a2fcf7d25ec6c2",
+    "description": "Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; new work calls design-to-code import.",
+    "version": "2.0.0",
+    "sha256": "f609c4caeb5216d4c2a1d6cfd010f9de2cb9bbe4ef9128b135063007892125a3",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
-      "handoff",
       "design-import",
-      "design-to-code",
-      "bundle",
-      "scaffold",
-      "frontend"
+      "alias",
+      "deprecated"
     ],
     "userInvocable": true,
     "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep",
-      "Bash",
-      "WebFetch",
-      "AskUserQuestion",
-      "Agent",
-      "TaskCreate",
-      "TaskUpdate",
-      "TaskList"
-    ],
-    "skills": [
-      "design-to-code",
-      "component-search",
-      "design-context-extract",
-      "design-system-tokens",
-      "memory"
-    ],
-    "agent": "claude-design-orchestrator",
-    "complexity": "medium",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "claude-design-orchestrator"
-    ]
+    "relatedAgents": []
   },
   "design-ship": {
     "name": "design-ship",
-    "description": "Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design should come back as a PR. For files on disk only, use design-import.",
-    "version": "1.0.0",
-    "sha256": "0055ab3213f8e289f73a7f752d81c9332e825f2cfb53a37b1ab74201957162ce",
+    "description": "Alias: runs design-to-code in ship mode (design export to an opened PR) for people who still type the earlier command. Use only when someone types /ork:design-ship.",
+    "version": "2.0.0",
+    "sha256": "5fd9630ed9e91e1030b2db7c689052893efe72d1ffe04336bb52402e5107e612",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
       "design-ship",
-      "end-to-end",
-      "pr",
-      "handoff",
-      "ship-it",
-      "frontend"
+      "alias",
+      "deprecated"
     ],
     "userInvocable": true,
     "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep",
-      "Bash",
-      "WebFetch",
-      "AskUserQuestion",
-      "Agent",
-      "TaskCreate",
-      "TaskUpdate",
-      "TaskList"
-    ],
-    "skills": [
-      "design-import",
-      "cover",
-      "expect",
-      "memory"
-    ],
-    "agent": "claude-design-orchestrator",
-    "complexity": "complex",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "claude-design-orchestrator"
-    ]
+    "relatedAgents": []
   },
   "design-stylecards": {
     "name": "design-stylecards",
@@ -1775,14 +1728,20 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-to-code": {
     "name": "design-to-code",
-    "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration.",
-    "version": "1.0.1",
-    "sha256": "05617dfdf0991367f21a16b9b52a00ab6afcbe6d8a07dc0f4bfd37ead238a045",
+    "description": "Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse existing ones; ship mode adds tests and a PR. Use when a design should become code, or for Storybook MCP tools.",
+    "version": "2.0.0",
+    "sha256": "d6440327d7237ee4af74ed3bef505c51587d3975091872484ef0dcea6e444b75",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
+      "claude-design",
+      "design-export",
+      "design-import",
+      "design-ship",
       "stitch",
       "21st-dev",
+      "storybook",
+      "mcp",
       "ui-generation",
       "mockup",
       "component",
@@ -1800,6 +1759,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Bash",
       "WebFetch",
       "WebSearch",
+      "ToolSearch",
       "AskUserQuestion",
       "Agent",
       "TaskCreate",
@@ -1820,26 +1780,38 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__plugin_hq-ext_stitch__get_screen",
       "mcp__stitch__generate_screen_from_text",
       "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+      "mcp__storybook-mcp__get-storybook-story-instructions",
       "mcp__storybook-mcp__list-all-documentation",
       "mcp__storybook-mcp__get-documentation",
+      "mcp__storybook-mcp__get-documentation-for-story",
       "mcp__storybook-mcp__preview-stories",
       "mcp__storybook-mcp__run-story-tests"
     ],
     "skills": [
       "design-system-tokens",
       "component-search",
-      "storybook-mcp-integration",
       "design-context-extract",
       "memory"
     ],
     "agent": null,
     "complexity": "complex",
-    "structure": {},
+    "structure": {
+      "references": [
+        "export-formats.md",
+        "import-mode.md",
+        "ship-mode.md"
+      ],
+      "scripts": [
+        "inspect-export.mjs"
+      ]
+    },
     "plugins": [
       "ork"
     ],
     "relatedAgents": [
       "claude-design-orchestrator",
+      "component-curator",
+      "design-system-architect",
       "frontend-ui-developer"
     ]
   },
@@ -4444,7 +4416,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "b84de32d20693032e28f5eb7ee478bc680a0bc18e9bab39dbed35db8e5eded06",
+    "sha256": "c708cd4a2a641700f7852b5978df73052fdbd7d163e7a95936f18d014996866b",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4688,56 +4660,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "storybook-mcp-integration": {
-    "name": "storybook-mcp-integration",
-    "description": "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code.",
-    "version": "1.0.0",
-    "sha256": "bcc4555c4b60fb5c7a70cd893f7a1da297f36d3c4fa259f6fe4bcd8cff3dd20a",
-    "author": "OrchestKit",
-    "tags": [
-      "storybook",
-      "mcp",
-      "component-discovery",
-      "story-preview",
-      "component-testing",
-      "a11y",
-      "design-system",
-      "react"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Glob",
-      "Grep",
-      "WebFetch",
-      "WebSearch",
-      "ToolSearch",
-      "mcp__storybook-mcp__get-storybook-story-instructions",
-      "mcp__storybook-mcp__preview-stories",
-      "mcp__storybook-mcp__list-all-documentation",
-      "mcp__storybook-mcp__get-documentation",
-      "mcp__storybook-mcp__get-documentation-for-story",
-      "mcp__storybook-mcp__run-story-tests"
-    ],
-    "skills": [],
-    "agent": null,
-    "complexity": "medium",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "component-curator",
-      "design-system-architect",
-      "frontend-ui-developer"
-    ]
-  },
   "storybook-testing": {
     "name": "storybook-testing",
     "description": "Storybook 10 testing: Vitest integration, CSF3 factories, play() interaction tests, Chromatic TurboSnap, automocking, a11y addon, autodocs. Use when writing component stories, setting up visual regression, Storybook CI, or migrating from Storybook 9.",
     "version": "2.0.0",
-    "sha256": "f48f45e8f0271a0e3e5c1efc69aa6eaeb00eb42fe68fac86c2e20ade2c23c3c4",
+    "sha256": "b8b16b4efa67a6d3be8ac171b08067a78dc7b9acce8cdbd36a75140565039879",
     "author": "OrchestKit",
     "tags": [
       "storybook",

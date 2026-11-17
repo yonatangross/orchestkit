@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->116<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
+**<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -65,13 +65,13 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Host | Skills | Agents | Hooks | Install | Needs |
 |---|---|---|---|---|---|
-| Claude Code | 116 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
-| Cursor | 116 | 36 | not yet (#4004) | plugin (Settings) |  |
+| Claude Code | 115 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
+| Cursor | 115 | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
-| Devin | 90 | ? | ? | plugin (git) |  |
+| Devin | 89 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
 | Muse Code | 12 | ? | ? | .agents/skills |  |
-| Pi | 90 | ? | not yet (#4004) | pi manifest |  |
+| Pi | 89 | ? | not yet (#4004) | pi manifest |  |
 | Antigravity | 12 | ? | ? | .agents/skills |  |
 
 `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.
@@ -137,7 +137,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->116<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->115<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
@@ -682,6 +682,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.14.0](https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0)** · 2026-11-17
+
+- **cli:** orchestkit install finds the coding agents on this machine (#5267)
+- **codex:** add ork-commit and ork-create-pr to the Codex pack (#5261)
+- **fix-issue:** safety-fact proof ladder and review-pr proof criterion (#5273)
+- **hooks:** record a fixed error_class on PostToolUseFailure telemetry (#5248)
+- **review-pr:** proven-by-a-run tier in review-fanout (#5274)
+- …and 27 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.13.0](https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0)** · 2026-11-15
 
 - **ci:** scheduled whole-tree npm audit with a cannot-audit item (#5230)
@@ -738,10 +747,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **skills:** bill long Haiku 5.5 prompts on the higher rate card (#5124)
 - **skills:** send the event name from fork skill body loaders (#5122)
 - **skills:** skill quality round 5, pass the fitness checklist (#5104)
-
-**[v10.10.4](https://github.com/yonatangross/orchestkit/compare/v10.10.3...v10.10.4)** · 2026-11-08
-
-- **hooks:** stop Windows paths blocking edits and version check (#5116), closes [#5113](https://github.com/yonatangross/orchestkit/issues/5113) [#5114](https://github.com/yonatangross/orchestkit/issues/5114)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

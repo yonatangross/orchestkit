@@ -24,7 +24,7 @@ Storybook stories
    └─[ storybook-to-catalog.mjs ]──▶ catalog.ts (Zod schemas) + components.tsx (registry)
 ```
 
-1. Run Storybook with `@storybook/addon-mcp` enabled (see `ork:storybook-mcp-integration`).
+1. Run Storybook with `@storybook/addon-mcp` enabled (see `ork:design-to-code`, Storybook mode).
 2. Capture the manifest:
    ```bash
    curl -s http://localhost:6006/mcp -X POST \

@@ -2330,44 +2330,30 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
     ]
   },
   "design-import": {
-    "tier": "headings",
+    "tier": "sections",
     "lanes": [
       {
-        "id": "core",
-        "label": "Steps",
+        "id": "map",
+        "label": "What it covers",
         "nodes": [
           {
-            "num": "1",
-            "label": "Parse + validate",
-            "does": "Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here, the agent owns the (real, tarball-based) schema.",
+            "num": "",
+            "label": "When to Use",
+            "does": "",
             "out": null,
             "tag": null
           },
           {
-            "num": "2",
-            "label": "Reconcile tokens",
-            "does": "Read the normalized token_diff from the agent's payload.",
+            "num": "",
+            "label": "What changed",
+            "does": "",
             "out": null,
             "tag": null
           },
           {
-            "num": "3",
-            "label": "Dedup components",
-            "does": "The agent already ran component-search per component. Read decisions from the normalized payload:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "4",
-            "label": "Scaffold",
-            "does": "For each component with decision scaffold or adapt, invoke design-to-code.",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "5",
-            "label": "Provenance",
-            "does": "Update the provenance file with the actual file paths written:",
+            "num": "",
+            "label": "Removal",
+            "does": "",
             "out": null,
             "tag": null
           }
@@ -2376,52 +2362,31 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
     ]
   },
   "design-ship": {
-    "tier": "table",
+    "tier": "sections",
     "lanes": [
       {
-        "id": "core",
-        "label": "Phases",
+        "id": "map",
+        "label": "What it covers",
         "nodes": [
           {
-            "num": "1",
-            "label": "Pre-flight",
-            "does": "Dirty tree, on main",
-            "out": "AskUserQuestion, do not proceed silently",
+            "num": "",
+            "label": "When to Use",
+            "does": "",
+            "out": null,
             "tag": null
           },
           {
-            "num": "1",
-            "label": "Import",
-            "does": "Schema deviation, token conflict",
-            "out": "design-import already prompts; if user cancels, abort",
+            "num": "",
+            "label": "What changed",
+            "does": "",
+            "out": null,
             "tag": null
           },
           {
-            "num": "2",
-            "label": "Cover",
-            "does": "Test generation fails",
-            "out": "Continue to expect, tests are recoverable in PR review",
-            "tag": null
-          },
-          {
-            "num": "3",
-            "label": "Expect",
-            "does": "Browser verification fails",
-            "out": "Continue to PR, failures noted in PR body",
-            "tag": null
-          },
-          {
-            "num": "4",
-            "label": "Create PR",
-            "does": "gh not authenticated",
-            "out": "Stop, surface auth error",
-            "tag": null
-          },
-          {
-            "num": "5",
-            "label": "Provenance",
-            "does": "File not writable",
-            "out": "Warn but do not fail (PR is already open)",
+            "num": "",
+            "label": "Removal",
+            "does": "",
+            "out": null,
             "tag": null
           }
         ]
@@ -2571,6 +2536,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Modes",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Pipeline Overview",
             "does": "",
             "out": null,
@@ -2614,6 +2586,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Graceful Degradation",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Storybook mode",
             "does": "",
             "out": null,
             "tag": null
@@ -6706,66 +6685,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "label": "Plan",
             "does": "Prioritized improvements with runnable commands",
             "out": "",
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
-  "storybook-mcp-integration": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "When to Use",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Quick Reference, 6 Tools, 3 Toolsets",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Prerequisites",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Detection Pattern",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Toolset Selection",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Chromatic Remote Publishing",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Graceful Degradation",
-            "does": "",
-            "out": null,
             "tag": null
           }
         ]
