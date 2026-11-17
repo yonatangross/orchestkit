@@ -2525,9 +2525,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one.",
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one.",
     "version": "2.6.0",
-    "sha256": "1a44996afb841d50bf82214db907a0ebd008947f0a43ee4d91a144c0b76efaa6",
+    "sha256": "6a291f0ba5cb912ad2b1e09db63fb4ac0c1c056c6d0dbb246fcc82d9b3088539",
     "author": "OrchestKit",
     "tags": [
       "issue",

@@ -895,7 +895,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "fix-issue",
     "station": "ship",
-    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one.",
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one.",
     "command": true,
     "scopedHooks": 0
   },
