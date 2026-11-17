@@ -2,7 +2,7 @@
 name: fix-issue
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server, context7 MCP server, gh CLI."
-description: "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue."
+description: "Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for bug reports, broken behavior, regressions or issue #N."
 argument-hint: "[issue-number]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

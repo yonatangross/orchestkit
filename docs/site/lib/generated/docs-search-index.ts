@@ -933,7 +933,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
-    "description": "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a branch is ready for review. Not for a bare gh pr create."
   },
   {
     "url": "/docs/reference/skills/create-research",
@@ -1158,7 +1158,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/fix-issue",
     "title": "Fix Issue",
-    "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue."
+    "description": "Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for bug reports, broken behavior, regressions or issue #N."
   },
   {
     "url": "/docs/reference/skills/freeze",
@@ -1388,7 +1388,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
-    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess)."
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before a merge. Not for design scores (use assess)."
   },
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",

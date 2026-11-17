@@ -13,6 +13,8 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 ## diagnose → /ork:fix-issue (investigation-first)
 
 - A "why…" question is a gentler entry than a fix command. Frame the plan as **observe → hypothesize → propose**, then offer to apply the fix.
+- **"Triage this bug report", "what is the root cause", "find the culprit commit" are `diagnose`**: the goal is a diagnosis, so frame it observe → hypothesize → propose, and take `fix-issue`'s "Investigate first" option when the user asked for no patch. They stay `diagnose` when worded as "how should I find …": rule 4 below sends "how should we …" to `design` only when the thing to decide is what to build.
+- **`fix-issue` resolves its target from an issue number or URL** and stops with `TARGET_UNRESOLVED` otherwise. When the user pastes the report and names no issue, ask for the issue number, or say plainly that the skill cannot take the pasted text. It has no bisect step; "which commit broke it" is answered from `git blame` in its root-cause phase.
 - **A "why…" question is ALWAYS `diagnose`, even when it names a failure** ("why isn't the build green", "why does the API return 500", "why can't users log in"). The **question form** is what makes it `diagnose` — without one, a statement of breakage or a repair imperative is `fix` ("there's a regression in checkout", "resolve the 500 errors on /api/users").
 - **Invoke:** `/ork:fix-issue {question}` with an investigation framing. ("I'll investigate first, then propose a fix — ok?")
 
@@ -51,7 +53,15 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 
 - **Extract:** PR/MR number (`#123` → 123), scope filter if named.
 - **Invoke:** `/ork:review-pr {number or branch}`
-- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`.
+- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`. A diff pasted into the message with a verdict asked for ("review this diff before I merge it") is `review`, but `review-pr` takes a PR, a branch or a `base...head` range, not pasted text: ask which PR or range the paste came from, and say that the resolver cannot take the text itself.
+- **Opening a PR is not reviewing one:** "open a PR", "write the PR title and body" is `open-pr`, below.
+
+## open-pr → /ork:create-pr
+
+- **Signals:** open a PR, make a PR, PR title and body, ready for review, go up for review.
+- **Extract:** the branch, the issue it closes (`#N`), an explicit title if given. `create-pr` asks for the PR type (feature, bug fix, refactor, quick) itself and derives the base branch from the remote, so do not pass either.
+- **Invoke:** `/ork:create-pr {title if given}`
+- **Edges:** `create-pr` opens the PR with `gh`; it has no text-only mode. When the user cannot run `gh`, say that the skill ends at that step and give the title and body its own rules produce (`rules/pr-title-format.md`, `rules/pr-body-structure.md`). A bare "push my branch" or "gh pr create" with the title already decided is plain tooling, not `open-pr`. A question about which branch flow a repo uses (feature PRs into `dev`, `dev` promoted to `main`) is not `open-pr`: answer it from the repo's own rules first.
 
 ## verify → /ork:verify
 
@@ -129,6 +139,7 @@ Defaults, not verdicts. The rubric overrides any row here when the goal carries 
 | design | Standard | architecture, protocol, or cross-cutting design | never (design is judgment by definition) |
 | build | Standard | new public API, schema, or auth surface | single-file change fully specified in the goal |
 | review | Standard | security, auth, crypto, or safety in scope | style or formatting only |
+| open-pr | Standard | the PR touches auth, schema or a public API | a PR for a docs-only or one-file change |
 | verify | Standard | verifying a security-critical claim | running the existing checks and reporting the result |
 | improve-skill | Standard | rewriting the evaluation contract itself | executing an existing benchmark (`eval-runner`, haiku) |
 | setup | Standard | never (setup reads and recommends; writes stay behind its own gates) | a rescan of a project that already ran setup |
@@ -167,7 +178,7 @@ Everything else is a documented hint carried into the handoff. Per the no-bypass
 3. Percentage in a test context → `cover`.
 3b. An e2e or browser signal → `e2e` (or `cover` when the tests do not exist yet). It beats the plain verify verb and the request form "why don't you ..."; a failing or flaky e2e run stays `diagnose`/`fix`.
 4. Question form → `design` ("how should") or `diagnose` ("why") — and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
-5. PR/MR/`#N` → `review`.
+5. PR/MR/`#N` to be read and judged → `review`. A PR to be opened or written up → `open-pr`.
 6. Ticket reference → `build`.
 6b. Many repos named or implied ("every repo", "all consumers", "org-wide") with a change to make → `migrate`; one repo → `build`. OrchestKit itself as the object of "set up" or "onboard" → `setup`; any other object of "set up" → `build`.
 7. Truly ambiguous → ask ONE question naming the two candidate routes. **Do not guess when two DIFFERENT skills are plausible and the goal names no artifact, metric, or number.** Canonical fallbacks: "fix performance on the dashboard" (fix vs optimize), "review my code" with no PR/branch named (review vs verify), "test the new feature" (cover vs verify vs build), "the queries are slow and maybe vulnerable to injection" (optimize vs review).

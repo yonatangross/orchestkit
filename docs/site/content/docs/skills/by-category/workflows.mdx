@@ -21,7 +21,7 @@ description: "User-invocable commands for common development workflows."
 | [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, presets. Use when customizing... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
 | [Create Plan](/docs/reference/skills/create-plan) | Command | medium | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success c... |
-| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a bran... |
 | [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how code works today for a task's questions, with file:line citations. Use before planning a change; descri... |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tai... |
 | [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests... |
@@ -34,7 +34,7 @@ description: "User-invocable commands for common development workflows."
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. U... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfami... |
-| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention n... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a... |
 | [Freeze](/docs/reference/skills/freeze) | Command | low | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path w... |
 | [Glyph](/docs/reference/skills/glyph) | Command | low | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, ... |
 | [Help](/docs/reference/skills/help) | Command | low | OrchestKit skill directory by category. Use when looking for the right skill or workflow. |
@@ -49,7 +49,7 @@ description: "User-invocable commands for common development workflows."
 | [Release Sync](/docs/reference/skills/release-sync) | Command | low | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Us... |
 | [Remember](/docs/reference/skills/remember) | Command | low | Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping w... |
 | [Review Artifact Comments](/docs/reference/skills/review-artifact-comments) | Command | low | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate... |
-| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an ... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and giv... |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when settin... |
 | [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and... |
 | [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable ... |

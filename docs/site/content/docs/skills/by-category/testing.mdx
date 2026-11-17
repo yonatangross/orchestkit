@@ -14,17 +14,17 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 | [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Review process, conventional comments, language checklists and feedback templates. Use when reviewing code or standar... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
-| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use o... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a bran... |
 | [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when se... |
 | [Error Analysis](/docs/reference/skills/error-analysis) | Reference | high | Clusters real LLM traces (Langfuse or JSONL) into a confirmed failure taxonomy with counts, then proposes pass/fail e... |
 | [Errors](/docs/reference/skills/errors) | Reference | low | Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrenc... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
-| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention n... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a... |
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building... |
 | [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuses a verdict a check did not earn: runs it with the fault present and absent and blocks when both agree; catches... |
 | [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after rep... |
 | [RAG Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
-| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an ... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and giv... |
 | [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing: Vitest integration, CSF3 factories, play() interaction tests, Chromatic TurboSnap, automocking,... |
 | [Testing E2E](/docs/reference/skills/testing-e2e) | Reference | medium | Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or s... |
 | [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract tests: API endpoints, databases, Pact contracts, property-based tests, Zod validation. Use w... |
