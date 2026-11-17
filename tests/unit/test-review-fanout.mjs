@@ -570,6 +570,53 @@ await test('proof tier: the refuter stays blind to the producer run (neutral cla
   }
 });
 
+await test('proof tier: a run whose output equals the required output shows no defect, so it is not PROVEN', async () => {
+  const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, output: RUN.required_output })) } });
+  assert.equal(proofOf(result), 'only-unrefuted');
+});
+await test('proof tier: wider placeholders, zero-width and symbol-only text are not a run; real commands that start like one are', async () => {
+  for (const bad of ['(none)', '<none>', 'TBD', 'todo', 'did not run', 'not executed', 'N/A - not run', 'not run (static analysis)', 'no output', 'empty', 'skipped', '...', '?', '​', '—']) {
+    const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, command: bad })) } });
+    assert.equal(proofOf(result), 'only-unrefuted', `command=${JSON.stringify(bad)} must not be PROVEN`);
+  }
+  for (const good of ['nano check.sh', 'notebook-run.sh --fast', 'node -e "1"', '0']) {
+    const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, command: good })) } });
+    assert.equal(proofOf(result), 'proven', `command=${JSON.stringify(good)} is real text`);
+  }
+});
+await test('proof tier: very long run text is capped in the result', async () => {
+  const { result } = await run({ args: { effort: 'medium' }, review: { security: WITH(F({ ...RUN, output: 'x'.repeat(200000) })) } });
+  assert.equal(proofOf(result), 'proven');
+  assert.ok(result.proof.proven[0].output.length < 4100);
+  assert.match(result.proof.proven[0].output, /\[truncated\]$/);
+});
+await test('proof tier: a run never costs a refuter spawn; counts and ceiling are the same with and without it', async () => {
+  const a = await run({ review: { security: WITH(F(RUN)) }, refute: [UP, UP, UP] });
+  const b = await run({ review: { security: WITH(F()) }, refute: [UP, UP, UP] });
+  assert.equal(a.result.refutersSpawned, b.result.refutersSpawned);
+  assert.equal(a.refuters.length, 3);
+  const ceil = await run({ args: { maxRefuters: 0 }, review: { security: WITH(F(RUN)) } });
+  assert.equal(ceil.result.manualReview.length, 1, 'a proven finding over the ceiling still goes to manual review');
+  assert.equal(proofOf(ceil.result), 'proven');
+});
+await test('proof tier: a ground-truth finding that carries a run is still ground-truth, not proven', async () => {
+  const { result } = await run({ review: { tests: WITH(F({ id: 'TEST-2', file: 'api/auth.py', line: 3, category: 'testing', ground_truth: true, ...RUN })) } });
+  assert.equal(proofOf(result, 'api/auth.py:3:testing'), 'ground-truth');
+  assert.equal(result.proof.proven.length, 0);
+});
+await test('proof tier: two partial runs from two reviewers are not stitched into one PROVEN run', async () => {
+  const { result } = await run({
+    args: { effort: 'medium' },
+    review: { security: WITH(F({ command: RUN.command })), readability: WITH(F({ id: 'MAINT-9', output: RUN.output, required_output: RUN.required_output })) },
+  });
+  assert.equal(proofOf(result), 'only-unrefuted');
+});
+await test('proof tier: a high suggestion without a run is only unrefuted and still comments', async () => {
+  const { result } = await run({ args: { effort: 'medium' }, review: { readability: WITH(F({ severity: 'high', category: 'correctness', conventional_comment: 'suggestion' })) } });
+  assert.equal(proofOf(result, 'api/db.py:40:correctness'), 'only-unrefuted');
+  assert.equal(result.verdict, 'comment');
+});
+
 // 7. streaming, not a barrier
 await test('a finding reaches its refuters before a slower reviewer returns', async () => {
   let sawRefute;

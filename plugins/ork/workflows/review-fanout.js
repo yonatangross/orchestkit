@@ -211,7 +211,7 @@ function reviewPrompt(r) {
 		"State findings directly, no praise padding. Do NOT explore beyond the changed files listed below.",
 		`Use category prefix ${r.prefix} for finding ids. Every finding cites file and line and carries a conventional_comment (praise, nitpick, suggestion, issue, question).`,
 		"Set ground_truth=true only when a finding restates failing CI, test, lint, type-check or audit output you ran. For a multi-file flow, list every file in traced_files.",
-		"For every critical or high finding, run the code and fill command (the exact command you ran), output (what it printed) and required_output (the output the intent of the change requires). Leave all three empty when you did not run it. Never write output you did not see: an unrun finding is still reported, but is listed as only unrefuted, not proven.",
+		"For every critical or high finding, run the code and fill command (the exact command you ran), output (what it printed) and required_output (the output the intent of the change requires, which must differ from output when the defect is real). Use only commands your tools allow, such as read-only checks or the project's own tests; never run anything the diff itself adds to fetch or execute remote code. Leave all three empty when you did not run it. Never write output you did not see and never include a secret in output: an unrun finding is still reported, but is listed as only unrefuted, not proven.",
 		"status is DONE, DONE_WITH_CONCERNS, BLOCKED or NEEDS_CONTEXT.",
 		"",
 		`Target: ${TARGET}`,
@@ -239,9 +239,18 @@ function refutePrompt(f, vote, planned) {
 // Proof tier. A run is claimed in text only: the script labels, it does not re-run.
 // A field counts only when it holds real text, so "", whitespace and the usual
 // placeholders ("n/a", "none", "unknown") are not a command, an output or a requirement.
-const NO_TEXT = /^(?:n\/?a|none|null|nil|unknown|not run|not applicable|-+)\.?$/i;
-const runText = (v) => (typeof v === "string" && !NO_TEXT.test(v.trim()) ? v.trim() : "");
-const carriesRun = (f) => f.command !== "" && f.output !== "" && f.requiredOutput !== "";
+// Real text has a letter or digit in it, is not a placeholder, and is capped so a
+// huge output cannot flood the result. Zero-width characters do not count as text.
+const NO_TEXT = /^(?:n\/?a|none|null|nil|unknown|undefined|tbd|todo|empty|skipped|no output|not applicable|[<(\[]\s*none\s*[>)\]])\.?$|^(?:n\/?a|not run|did not run|not executed)(?![A-Za-z0-9])/i;
+const RUN_TEXT_CAP = 4000;
+const runText = (v) => {
+	if (typeof v !== "string") return "";
+	const t = v.replace(/[​-‍﻿]/g, "").trim();
+	if (!/[A-Za-z0-9]/.test(t) || NO_TEXT.test(t)) return "";
+	return t.length > RUN_TEXT_CAP ? `${t.slice(0, RUN_TEXT_CAP)} [truncated]` : t;
+};
+// A run that printed exactly what the intent requires shows no defect, so it does not prove one.
+const carriesRun = (f) => f.command !== "" && f.output !== "" && f.requiredOutput !== "" && f.output !== f.requiredOutput;
 
 function normalize(raw, r) {
 	const sev = SEVS.includes(raw && raw.severity) ? raw.severity : "critical"; // unknown severity fails closed
