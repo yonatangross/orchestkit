@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seven operator skills move to ork-extras, slash-only</title>
+<meta name="description" content="audit-activation, audit-full, bare-eval, careful, freeze, prompt-focus and swarm-migrate leave core ork for the opt-in ork-extras plugin. Each keeps its file. Pick a skill to see its old and new command and what stays in core.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, select { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; min-height:44px; }
+  button { cursor:pointer; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:0 0 4px; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; word-break:break-all; }
+  .bars { display:grid; gap:10px; margin-top:12px; }
+  .bar { display:grid; grid-template-columns:150px 1fr 64px; gap:10px; align-items:center; font-size:.9rem; }
+  .bar .track { background:var(--rule); border-radius:4px; height:14px; overflow:hidden; }
+  .bar .fill { height:100%; background:var(--accent); }
+  .result { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--accent); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:12px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Seven operator skills move to ork-extras, slash-only"><meta property="og:description" content="audit-activation, audit-full, bare-eval, careful, freeze, prompt-focus and swarm-migrate leave core ork for the opt-in ork-extras plugin. Each keeps its file. Pick a skill to see its old and new command and what stays in core."><meta property="og:url" content="https://orchestkit.dev/lab/trim-s1c-seven-to-ork-extras.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Seven operator skills move to ork-extras, slash-only"><meta name="twitter:description" content="audit-activation, audit-full, bare-eval, careful, freeze, prompt-focus and swarm-migrate leave core ork for the opt-in ork-extras plugin. Each keeps its file. Pick a skill to see its old and new command and what stays in core."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Seven operator skills move to ork-extras, slash-only</h1>
+      <p class="lead">Trim stage 1, the moves. Seven skills with no call in 90 days leave core <code>ork</code> for the opt-in <code>ork-extras</code> plugin, the way the first 26 did. Each keeps its source file. Nothing is deleted.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>What core ships now</h2>
+  <div class="bars" id="bars"></div>
+
+  <h2>Pick a skill</h2>
+  <div class="row">
+    <div>
+      <label for="pick">Skill</label>
+      <select id="pick"></select>
+    </div>
+  </div>
+  <div class="result" id="out" aria-live="polite"></div>
+
+  <h2>All seven</h2>
+  <table>
+    <thead><tr><th scope="col">Skill</th><th scope="col">Before</th><th scope="col">Now</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>What changed</h2>
+  <p><b>Slash-only.</b> All seven are hidden from the model, so the ork-extras listing does not grow and core's shrinks. Three of them were <code>user-invocable: false</code>; they are now user-invocable, or nobody could start them.</p>
+  <p><b>The workflows stay put.</b> <code>audit-full-mapreduce</code> and <code>skill-fitness</code> stay registered in core, so <code>ork:audit-full-mapreduce</code> and <code>ork:skill-fitness</code> still launch by name.</p>
+  <p><b>Self-contained.</b> audit-full carries byte copies of the two core files it used to read through the plugin root. audit-activation finds the core agent catalog next to it when it runs from ork-extras.</p>
+  <p><b>Old names.</b> Every <code>ork:&lt;name&gt;</code> reference to a moved skill now says <code>ork-extras:&lt;name&gt;</code>. Install the plugin with <code>/plugin install ork-extras@orchestkit</code>.</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const SKILLS = [
+    { n: 'audit-activation', note: 'Audits sub-agent activation from telemetry. Its collector now finds the core agents folder next to the ork-extras copy.' },
+    { n: 'audit-full', note: 'Whole-codebase audit in one pass. Its scale tier, the audit-full-mapreduce workflow, still launches by name from core.' },
+    { n: 'bare-eval', note: 'Isolated eval and grading calls. The skill-fitness workflow it describes still launches by name from core.' },
+    { n: 'careful', note: 'Blocks destructive shell commands once invoked. The guard hook travels with the skill into ork-extras.' },
+    { n: 'freeze', note: 'Confines file edits to one directory until lifted. The edit-fence hook travels with the skill.' },
+    { n: 'prompt-focus', note: 'Shows where your attention went from your own prompts, as a local counts-only report.' },
+    { n: 'swarm-migrate', note: 'Cross-repo migration swarm. ork:auto now prints the command for you to run and says the plugin is needed.' },
+  ];
+  const COUNTS = [
+    { label: 'core ork before', v: 90, max: 116 },
+    { label: 'core ork now', v: 83, max: 116 },
+    { label: 'ork-extras before', v: 26, max: 116 },
+    { label: 'ork-extras now', v: 33, max: 116 },
+  ];
+  const bars = document.getElementById('bars');
+  COUNTS.forEach((c) => {
+    const row = document.createElement('div'); row.className = 'bar';
+    const l = document.createElement('span'); l.textContent = c.label;
+    const t = document.createElement('div'); t.className = 'track';
+    const f = document.createElement('div'); f.className = 'fill'; f.style.width = `${Math.round((c.v / c.max) * 100)}%`;
+    t.appendChild(f);
+    const v = document.createElement('span'); v.textContent = `${c.v} skills`;
+    row.append(l, t, v);
+    bars.appendChild(row);
+  });
+  const pick = document.getElementById('pick');
+  const out = document.getElementById('out');
+  SKILLS.forEach((s, i) => {
+    const o = document.createElement('option'); o.value = String(i); o.textContent = s.n; pick.appendChild(o);
+    const tr = document.createElement('tr');
+    const td = (t) => { const d = document.createElement('td'); const k = document.createElement('code'); k.textContent = t; d.appendChild(k); return d; };
+    tr.append(td('/ork:' + s.n), td('/ork-extras:' + s.n + ' (slash-only)'));
+    const first = document.createElement('td'); first.textContent = s.n;
+    tr.replaceChildren(first, ...[td('/ork:' + s.n), td('/ork-extras:' + s.n)]);
+    document.getElementById('rows').appendChild(tr);
+  });
+  function show() {
+    const s = SKILLS[Number(pick.value)];
+    out.replaceChildren();
+    const b = document.createElement('b'); b.textContent = `${s.n}: /ork:${s.n} becomes /ork-extras:${s.n}, typed by you, not started by the model.`;
+    const p = document.createElement('p'); p.textContent = s.note;
+    out.append(b, p);
+  }
+  pick.addEventListener('change', show);
+  show();
+  document.getElementById('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    document.getElementById('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  document.getElementById('copy').addEventListener('click', async () => {
+    const s = SKILLS[Number(pick.value)];
+    const text = `In orchestkit, ${s.n} moved from core ork to ork-extras and is slash-only. Check that /ork-extras:${s.n} resolves, that plugins/ork/skills has no ${s.n} directory, and that no file still says the old ork: form.`;
+    try { await navigator.clipboard.writeText(text); document.getElementById('copy').textContent = 'Copied'; } catch { document.getElementById('copy').textContent = 'Copy failed'; }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
