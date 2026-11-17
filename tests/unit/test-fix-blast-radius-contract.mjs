@@ -46,7 +46,8 @@ const refProblems = (text) => {
     if (!text.includes(step)) problems.push(`ladder row missing: ${step}`);
   }
   if (!/A pass needs step 4/.test(text)) problems.push('no rule that a pass needs step 4');
-  if (!/unproven/.test(text)) problems.push('no unproven mark');
+  if (!/written down as\s+\*\*unproven\*\*/.test(text)) problems.push('no rule that a fact below step 4 is written as unproven');
+  if (/\b(floor|lane|seat|conductor|desk)\b/i.test(text)) problems.push('public text names an internal term');
   if (!/Lauren Tan/.test(text) || !/MIT License/.test(text)) problems.push('credit or MIT notice missing');
   if (!/Copyright \(c\) 2026 Lauren Tan/.test(text)) problems.push('upstream copyright line missing');
   return problems;
@@ -65,6 +66,8 @@ check('fix-issue SKILL.md and claude-code.md point at the ladder, not the questi
   for (const p of ['src/skills/fix-issue/SKILL.md', 'src/skills/fix-issue/references/claude-code.md']) {
     const t = read(p);
     assert.ok(/proof ladder/.test(t), `${p}: no proof ladder mention`);
+    assert.ok(/step 4/.test(t), `${p}: no step 4 pass rule`);
+    assert.ok(/No user questions/.test(t), `${p}: does not say the gate asks nothing`);
     assert.ok(!/blast-radius\*\* via ordered `AskUserQuestion`/.test(t), `${p}: still carries the four questions`);
   }
 });
@@ -83,6 +86,16 @@ check('rubric: safety_proof is a zero-weight criterion that requires step 4', ()
   assert.ok(byRun && byRun.score_min === 4, 'proven-by-run band must start at step 4');
   const sum = rubric.dimensions.reduce((s, d) => s + d.weight, 0);
   assert.ok(Math.abs(sum - 1) < 0.001, `weights must still sum to 1 (got ${sum})`);
+});
+
+check('generated plugin copies match src (run npm run build after editing)', () => {
+  for (const p of ['skills/fix-issue/references/fix-blast-radius.md', 'skills/fix-issue/references/claude-code.md', 'skills/review-pr/rubric.json']) {
+    assert.equal(read(`plugins/ork/${p}`), read(`src/${p}`), `plugins/ork/${p} differs from src/${p}`);
+  }
+});
+
+check('rubric text carries no internal term', () => {
+  assert.ok(!/\b(floor|lane|seat|conductor|desk)\b/i.test(read('src/skills/review-pr/rubric.json')));
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
