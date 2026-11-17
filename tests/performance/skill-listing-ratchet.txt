@@ -19,3 +19,4 @@
 # Not raised. The ork-extras ceiling does not move: all 7 are slash-only there.
 # 2026-11-17 design-to-code merge: storybook-mcp-integration left the listing and design-import
 # and design-ship became typed-only aliases (hidden from the model). LOWERED 15588 -> 15099 (80 skills).
+# 2026-11-17 trim stage 1c merged with the design-to-code merge: core measured 14094 bytes over 82 skills (15588 - 1005 - 489). Replica of Test 4b (review-fable-b192) read 14094 at ceiling 14094; extras 6254 at ceiling 6254. Not raised.

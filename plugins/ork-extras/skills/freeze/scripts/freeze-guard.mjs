@@ -133,12 +133,12 @@ function hook() {
   try {
     payload = JSON.parse(readFileSync(0, 'utf8'));
   } catch (err) {
-    return deny(`[ork:freeze] could not read the hook input (${err.message}); blocking because the target cannot be checked.`);
+    return deny(`[ork-extras:freeze] could not read the hook input (${err.message}); blocking because the target cannot be checked.`);
   }
   const sessionId = payload?.session_id;
   const projectDir = process.env.CLAUDE_PROJECT_DIR || payload?.cwd;
   if (typeof sessionId !== 'string' || !SAFE_SESSION.test(sessionId) || typeof projectDir !== 'string') {
-    return deny('[ork:freeze] the hook input carries no usable session id or project dir; blocking because the freeze state cannot be found.');
+    return deny('[ork-extras:freeze] the hook input carries no usable session id or project dir; blocking because the freeze state cannot be found.');
   }
   const file = statePath(projectDir, sessionId);
   if (!existsSync(file)) return 0;
@@ -146,7 +146,7 @@ function hook() {
   try {
     frozen = JSON.parse(readFileSync(file, 'utf8')).dir;
   } catch (err) {
-    return deny(`[ork:freeze] the freeze state at ${file} is unreadable (${err.message}); blocking until the freeze skill is run again.`);
+    return deny(`[ork-extras:freeze] the freeze state at ${file} is unreadable (${err.message}); blocking until the freeze skill is run again.`);
   }
   const input = payload.tool_input ?? {};
   const target = input.file_path ?? input.notebook_path;
@@ -154,7 +154,7 @@ function hook() {
   const { inside, real } = checkFrozenPath(target, frozen, cwd);
   if (inside) return 0;
   return deny([
-    `[ork:freeze] ${payload.tool_name ?? 'edit'} blocked: ${real ?? target ?? '(no path)'} is outside the frozen dir ${frozen}.`,
+    `[ork-extras:freeze] ${payload.tool_name ?? 'edit'} blocked: ${real ?? target ?? '(no path)'} is outside the frozen dir ${frozen}.`,
     'freeze limits Edit, Write, MultiEdit and NotebookEdit to that directory for this session (symlinks are followed).',
     'To proceed, ask the operator to widen the freeze, or to lift it with the freeze skill and the argument off.',
   ].join('\n'));
