@@ -1,6 +1,6 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 102,
+  "total_violations": 101,
   "files_with_violations": 61,
   "files": {
     "src/skills/animation-motion-design/SKILL.md": [
@@ -74,7 +74,6 @@
       "house-key:targets"
     ],
     "src/skills/design-to-code/SKILL.md": [
-      "house-key:targets",
       "house-key:triggers",
       "unknown-key:skills"
     ],

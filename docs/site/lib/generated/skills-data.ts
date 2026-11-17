@@ -1740,7 +1740,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse existing ones; ship mode adds tests and a PR. Use when a design should become code, or for Storybook MCP tools.",
     "version": "2.0.0",
-    "sha256": "4c98aba0d9c7d9d804d413acfd914761bb65a973dfb22f0503bf807343d53e1c",
+    "sha256": "6a5c56a1531f0ab4223fd6103fe4622ac5b9629344d76f34b931f454593880e2",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
