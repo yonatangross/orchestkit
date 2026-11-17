@@ -12,6 +12,7 @@ targets:
     version: ">=4.16.0"
 upstream-version-tested: "4.16.0"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
   version: "3.0.0"
   author: "OrchestKit"

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>25 ork-extras skills flagged as archive candidates, nothing moved</title>
+<meta name="description" content="Which 25 skills of the opt-in ork-extras pack carry the archive-candidate flag, what the flag does and does not do, and the 16 and 9 split if only the library skills should carry it.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-word;margin-top:.6rem}
+  .chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
+  .chip{background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:999px;padding:.1rem .6rem;font-size:.75rem}
+  .warn{color:var(--status-warn)} .ok{color:var(--status-ok)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="25 ork-extras skills flagged as archive candidates, nothing moved"><meta property="og:description" content="Which 25 skills of the opt-in ork-extras pack carry the archive-candidate flag, what the flag does and does not do, and the 16 and 9 split if only the library skills should carry it."><meta property="og:url" content="https://orchestkit.dev/lab/ork-extras-archive-candidate-flag.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="25 ork-extras skills flagged as archive candidates, nothing moved"><meta name="twitter:description" content="Which 25 skills of the opt-in ork-extras pack carry the archive-candidate flag, what the flag does and does not do, and the 16 and 9 split if only the library skills should carry it."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>25 ork-extras skills flagged as archive candidates, nothing moved</h1>
+<p class="sub">One frontmatter field is added to 25 skills of the opt-in ork-extras pack. It is a flag only: no skill is moved, renamed, removed or hidden, no description changes, and the pack manifest is unchanged.</p>
+
+<section><h2>1 / The flag</h2>
+<div class="out">metadata:
+  archive-candidate: "pending an outside usage signal"</div>
+<p>A skill is archived, if ever, only after a usage signal from outside this repository exists. Until then the flag changes nothing at run time. The core listing total is unchanged, since the field is not part of the listed description, and no skill count changes.</p>
+</section>
+
+<section><h2>2 / Which skills carry it</h2>
+<label for="group">Group</label>
+<select id="group">
+  <option value="all">All 25 flagged</option>
+  <option value="lib">Library patterns (the first 16 in the pack manifest)</option>
+  <option value="dom">Domain guides (the other 9)</option>
+</select>
+<div class="chips" id="chips"></div>
+<p id="tally"></p>
+<p>Not flagged: <code>design-stylecards</code>, the 26th skill of the pack, which has logged use.</p>
+</section>
+
+<section><h2>3 / Why a flag and not a move</h2>
+<p>The pack shipped inside the core plugin until it was split out, and it is now an opt-in install. Usage logs on one machine therefore cannot see it, so a count of zero there is not evidence the skills are unused. The flag records that these are the first candidates to review and states the bar for acting on it, without removing anything an outside user may rely on.</p>
+<p class="warn">Not verified: which skills have outside users. No usage signal from outside the repository was available, which is the point of the flag. The group is read as all pack skills except design-stylecards. If only the library skills should carry the flag, drop the 9 domain guides.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const LIB = ['ai-ui-generation','animation-motion-design','async-jobs','figma-design-handoff','i18n-date-patterns','langgraph','llm-integration','mcp-patterns','monitoring-observability','multimodal-llm','portless','rag-retrieval','storybook-testing','ui-components','vite-advanced','zustand-patterns'];
+const DOM = ['accessibility','agent-orchestration','distributed-systems','documentation-patterns','domain-driven-design','golden-dataset','interaction-patterns','release-management','responsive-patterns'];
+const sel = document.getElementById('group');
+function render() {
+  const names = sel.value === 'lib' ? LIB : sel.value === 'dom' ? DOM : LIB.concat(DOM);
+  document.getElementById('chips').replaceChildren(...names.map((n) => { const s = document.createElement('span'); s.className = 'chip'; s.textContent = n; return s; }));
+  document.getElementById('tally').textContent = names.length + ' shown of 25 (' + LIB.length + ' library patterns + ' + DOM.length + ' domain guides).';
+}
+sel.addEventListener('change', render);
+render();
+const PROMPT = 'In the orchestkit repo, list the skills whose SKILL.md carries metadata archive-candidate, and confirm design-stylecards is not one of them and that the count is 25.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
