@@ -83,22 +83,14 @@ describe('failureHandler event-name stamp', () => {
     expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
   });
 
-  it('stamps PostToolUseFailure on the regex-suggestion path', () => {
-    const result = failureHandler(
-      makeInput({ error: 'ENOENT: no such file or directory', exit_code: 1 }),
-      testCtx,
-    );
-
-    // Prove we actually took the regex fallback branch.
-    expect(result.hookSpecificOutput?.additionalContext).toContain('File not found');
-    expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
-  });
-
   it('never emits the PostToolUse name that CC rejects on this event', () => {
-    for (const error of [STRUCTURED_ERROR, 'EACCES: permission denied']) {
-      const result = failureHandler(makeInput({ error, exit_code: 1 }), testCtx);
-      expect(result.hookSpecificOutput?.hookEventName).not.toBe('PostToolUse');
-    }
+    // The regex-suggestion path that used to be the second emitter was cut, so the
+    // structured path is the only context-bearing exit. Assert it emitted at all, so an
+    // absent stamp cannot pass as "not PostToolUse".
+    const result = failureHandler(makeInput({ error: STRUCTURED_ERROR, exit_code: 1 }), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toBeTruthy();
+    expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
+    expect(result.hookSpecificOutput?.hookEventName).not.toBe('PostToolUse');
   });
 
   it('has no PostToolUse default: every caller names its event (#4683)', () => {
@@ -112,10 +104,10 @@ describe('failureHandler event-name stamp', () => {
     const noError = failureHandler(makeInput({ exit_code: 0 }), testCtx);
     expect(noError.hookSpecificOutput).toBeUndefined();
 
-    const noPatternMatched = failureHandler(
-      makeInput({ error: 'zzz unrecognised failure text zzz', exit_code: 1 }),
+    const notStructured = failureHandler(
+      makeInput({ error: 'ENOENT: no such file or directory', exit_code: 1 }),
       testCtx,
     );
-    expect(noPatternMatched.hookSpecificOutput).toBeUndefined();
+    expect(notStructured.hookSpecificOutput).toBeUndefined();
   });
 });
