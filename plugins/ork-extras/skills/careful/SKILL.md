@@ -1,59 +1,26 @@
 ---
+name: careful
+license: MIT
+compatibility: "Claude Code 2.1.277+."
 description: "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster."
 argument-hint: ""
-disable-model-invocation: true
 context: inherit
 user-invocable: true
-name: careful
+disable-model-invocation: true
 allowed-tools: "Read"
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/careful/scripts/careful-guard.mjs"'
+metadata:
+  category: workflow-automation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "careful, guard, safety, destructive-commands, hooks, skill-scoped-hooks, production"
 ---
-
-## Before running a script from this command (Cursor)
-
-Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
-
-Find the installed plugin directory first:
-
-```bash
-(
-  ork_ws="$(pwd -P)"
-  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
-  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
-  ork_above=""
-  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
-  ork_pick() {
-    ork_best=""
-    ork_best_pj=""
-    while IFS= read -r ork_pj; do
-      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
-      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
-      if [ -z "$ork_above" ]; then
-        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
-      fi
-      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
-      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
-      [ -d "$ork_r/skills/careful" ] || continue
-      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
-        ork_best="$ork_r"
-        ork_best_pj="$ork_pj"
-      fi
-    done
-    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
-  }
-  ork_real=""
-  if [ -n "$ork_base" ]; then
-    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
-  fi
-  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
-  echo "ORK_PLUGIN_DIR=$ork_real"
-)
-```
-
-Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
-
-# Auto-generated from skills/careful/SKILL.md
-# Source: https://github.com/yonatangross/orchestkit
-
 
 # careful, block destructive commands for this session
 
@@ -85,7 +52,7 @@ remote command of `ssh host '...'` are checked as well.
 The hook exits 2 and Claude sees the reason, for example:
 
 ```
-[ork:careful] blocked by rule git-push-force: git push with --force-with-lease.
+[ork-extras:careful] blocked by rule git-push-force: git push with --force-with-lease.
 careful mode is on for this session, so destructive commands do not run unattended.
 To proceed, ask the operator: they can run the command themselves, or confirm it and run it outside careful mode.
 ```
@@ -115,11 +82,11 @@ sandbox. It does NOT see:
 - If the hook cannot read its input it blocks (exit 2) rather than guess.
 - To also fence file edits to one directory, use the freeze skill.
 
-The guard is `<ORK_PLUGIN_DIR>/skills/careful/scripts/careful-guard.mjs` (Node, no dependencies); its matcher
+The guard is `scripts/careful-guard.mjs` (Node, no dependencies); its matcher
 cases live in `tests/unit/test-careful-guard.mjs`.
 
 ## Related Skills
 
-- `ork:freeze`: fence file edits to one directory; careful covers shell commands, freeze covers the edit tools.
+- `ork-extras:freeze`: fence file edits to one directory; careful covers shell commands, freeze covers the edit tools.
 - `ork:security-patterns`: defense in depth, the wider picture a text matcher is one layer of.
 - `ork:commit`: history hygiene and branch protection for the force pushes careful asks about.

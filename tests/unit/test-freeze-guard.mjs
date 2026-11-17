@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// ork:freeze guard unit tests (offline, real temp dirs and symlinks)
+// ork-extras:freeze guard unit tests (offline, real temp dirs and symlinks)
 // ============================================================================
 // WHAT THIS GUARDS
 //

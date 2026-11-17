@@ -55,7 +55,7 @@ so there is no "too obvious for auto".
 | **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **setup** | set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack | `/ork:setup` |
-| **migrate** | across all repos, every repo, org-wide, roll out to N repos, bump in each consumer | `/ork:swarm-migrate` |
+| **migrate** | across all repos, every repo, org-wide, roll out to N repos, bump in each consumer | `/ork-extras:swarm-migrate` (formerly a core ork skill; needs the opt-in ork-extras plugin, slash-only) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `skills/auto/references/routing-rules.md`.
@@ -156,8 +156,8 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 78 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
 
 ```bash
-# isolated classification check: /ork:bare-eval grades router output against routing-benchmark.json
-/ork:bare-eval
+# isolated classification check: /ork-extras:bare-eval grades router output against routing-benchmark.json
+/ork-extras:bare-eval
 ```
 
 Target ≥95% category accuracy; track the fallback rate as a degradation alarm as the skill library grows.

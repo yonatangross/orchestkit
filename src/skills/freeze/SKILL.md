@@ -55,9 +55,9 @@ outside the frozen dir:
 ## Usage
 
 ```
-/ork:freeze src/hooks        # fence edits to src/hooks
-/ork:freeze                  # show the current fence
-/ork:freeze off              # lift it
+/ork-extras:freeze src/hooks        # fence edits to src/hooks
+/ork-extras:freeze                  # show the current fence
+/ork-extras:freeze off              # lift it
 ```
 
 Invoking again with another dir moves the fence; a dir that does not exist is
@@ -82,6 +82,6 @@ The fence is `scripts/freeze-guard.mjs` (Node, no dependencies); its cases live 
 
 ## Related Skills
 
-- `ork:careful`: block destructive shell commands; freeze covers the edit tools, careful covers Bash.
+- `ork-extras:careful`: block destructive shell commands; freeze covers the edit tools, careful covers Bash.
 - `ork:implement`: parallel feature work in worktrees, the real isolation freeze points to.
 - `ork:fix-issue`: a bug fix that should stay inside one package or module.

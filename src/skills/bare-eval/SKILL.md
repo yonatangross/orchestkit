@@ -2,7 +2,8 @@
 name: bare-eval
 compatibility: "Claude Code 2.1.277+"
 description: "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy."
-user-invocable: false
+user-invocable: true
+disable-model-invocation: true
 context: inherit
 effort: low
 metadata:

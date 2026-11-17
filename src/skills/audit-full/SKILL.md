@@ -4,7 +4,8 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
 description: "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce."
 argument-hint: "[scope]"
-user-invocable: false
+user-invocable: true
+disable-model-invocation: true
 allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"
 skills: [security-patterns, architecture-patterns, quality-gates]
 effort: high
@@ -173,7 +174,7 @@ anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single
 refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
 
 Load the protocol + audit-full bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
+(which loads the engine copy in `references/adversarial-refutation-engine.md`).
 
 These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
 always isolated `Agent(...)` with no `team_name`, fed only a neutral claim (category +
@@ -203,12 +204,12 @@ A full-codebase 1M-context audit typically runs 15–60 minutes on medium projec
 
 ```python
 PushNotification(
-  message=f"ork:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
+  message=f"ork-extras:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
   status="proactive"
 )
 ```
 
-Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("references/push-notification-on-completion.md")`.
 
 ---
 
@@ -262,7 +263,9 @@ Load on demand with `Read("references/<file>")`:
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
 | `references/architecture-review-guide.md` | Pattern and coupling analysis |
 | `references/dependency-audit-guide.md` | CVE, license, currency checks |
-| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5) — loads the shared engine |
+| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5), loads the engine copy below |
+| `references/adversarial-refutation-engine.md` | Byte copy of core's shared refutation engine, so the skill runs from ork-extras (a test keeps it equal) |
+| `references/push-notification-on-completion.md` | Byte copy of core's push-notification rule, same reason |
 | `references/token-estimation.md` | File type ratios and budget planning |
 | `assets/audit-report-template.md` | Structured output format |
 | `assets/severity-matrix.md` | Finding classification criteria |

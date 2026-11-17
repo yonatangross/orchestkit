@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// ork:careful guard unit tests (offline, no Claude Code needed)
+// ork-extras:careful guard unit tests (offline, no Claude Code needed)
 // ============================================================================
 // WHAT THIS GUARDS
 //

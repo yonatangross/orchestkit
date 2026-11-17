@@ -19,7 +19,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 |---|---|---|
 | 🧪 Coverage climb | 100% Test Coverage | `/ork:cover` |
 | 🔴 Production error sweep | Production Error Sweep | `/ork:fix-issue` |
-| 📚 Docs-drift sweep | Docs Sweep | `/ork:audit-full` |
+| 📚 Docs-drift sweep | Docs Sweep | `/ork-extras:audit-full` |
 | ⚡ Page-load budget | Sub-50ms Page-Load | `/ork:performance` |
 | 🧹 Repository cleanup | Repository Cleanup | `/ork:dream` |
 | ✅ Quality streak | Quality Streak | `/ork:verify` |
@@ -53,7 +53,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 ## 📚 Docs-drift sweep
 
 **Use when:** generated reference, links, or examples drift from the code.
-**Backs each pass:** `/ork:audit-full` (docs lens) or your docs checker · **Convergent signal:** drift checks → all pass.
+**Backs each pass:** `/ork-extras:audit-full` (docs lens) or your docs checker · **Convergent signal:** drift checks → all pass.
 
 ```
 /goal until <DOCS_DRIFT_CMD> passes AND <LINK_CHECK_CMD> passes, or stop after 15 turns

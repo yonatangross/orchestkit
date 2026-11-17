@@ -42,7 +42,14 @@
     "golden-dataset",
     "interaction-patterns",
     "release-management",
-    "responsive-patterns"
+    "responsive-patterns",
+    "audit-activation",
+    "audit-full",
+    "bare-eval",
+    "careful",
+    "freeze",
+    "prompt-focus",
+    "swarm-migrate"
   ],
   "agents": "none",
   "hooks": "none",

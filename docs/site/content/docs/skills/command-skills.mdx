@@ -1,5 +1,5 @@
 ---
-title: "44 Commands You Can Invoke"
+title: "47 Commands You Can Invoke"
 description: "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
 ---
 
@@ -7,7 +7,7 @@ description: "Every /ork: command skill in OrchestKit, grouped by task, with wha
 
 ## What Are Command Skills?
 
-Command skills are the **44 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
+Command skills are the **47 skills** with `user-invocable: true` in their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. Each one is a structured workflow that guides Claude through a multi-step process, often spawning parallel agents and pulling in reference skills automatically.
 
 Command skills differ from reference skills in three ways:
 
@@ -31,7 +31,7 @@ Plan, build, and fix features, from a plain-English goal to working code.
 | [`/ork:assess`](/docs/reference/skills/assess) | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. | high | `/ork:assess [code-path-or-topic] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high\|xhigh]` |
 | [`/ork:write-prd`](/docs/reference/skills/write-prd) | Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. | medium | `/ork:write-prd product name or feature` |
 | [`/ork:prd-to-goal`](/docs/reference/skills/prd-to-goal) | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. | low | `/ork:prd-to-goal [prd-text \| issue#N \| path/to/spec.md]` |
-| [`/ork:swarm-migrate`](/docs/reference/skills/swarm-migrate) | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. | high | `/ork:swarm-migrate <spec-file.yaml> [--dry-run] [--max-parallel=N]` |
+| [`/ork-extras:swarm-migrate`](/docs/reference/skills/swarm-migrate) | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. | high | `/ork-extras:swarm-migrate <spec-file.yaml> [--dry-run] [--max-parallel=N]` |
 
 ---
 
@@ -111,7 +111,7 @@ Set up, diagnose, and inspect OrchestKit itself.
 | [`/ork:setup`](/docs/reference/skills/setup) | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. | medium | `/ork:setup [--rescan] [--score-only] [--plan-only] [--channel] [--configure]` |
 | [`/ork:doctor`](/docs/reference/skills/doctor) | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. | low | `/ork:doctor [--verbose]` |
 | [`/ork:help`](/docs/reference/skills/help) | OrchestKit skill directory by category. | low | `/ork:help [category]` |
-| [`/ork:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. | medium | `/ork:audit-activation [--json]` |
+| [`/ork-extras:audit-activation`](/docs/reference/skills/audit-activation) | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. | medium | `/ork-extras:audit-activation [--json]` |
 | [`/ork:telemetry-inspect`](/docs/reference/skills/telemetry-inspect) | Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. | low | `/ork:telemetry-inspect [--session <id>] [--json]` |
 
 ---
@@ -122,13 +122,16 @@ Commands not yet filed under a task above.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork:careful` |
+| [`/ork-extras:audit-full`](/docs/reference/skills/audit-full) | Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. | max | `/ork-extras:audit-full [scope]` |
+| [`/ork-extras:bare-eval`](/docs/reference/skills/bare-eval) | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. | medium | `/ork-extras:bare-eval` |
+| [`/ork-extras:careful`](/docs/reference/skills/careful) | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. | low | `/ork-extras:careful` |
 | [`/ork:create-plan`](/docs/reference/skills/create-plan) | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success criteria. | medium | `/ork:create-plan <task> [slug]` |
 | [`/ork:create-research`](/docs/reference/skills/create-research) | Documents how code works today for a task's questions, with file:line citations. | medium | `/ork:create-research <task> <question or questions file>` |
 | [`/ork:disk-cleanup`](/docs/reference/skills/disk-cleanup) | Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. | low | `/ork:disk-cleanup [--apply] [--only ID] [--tier safe\|regenerable] [--root DIR] [--json]` |
-| [`/ork:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork:freeze <dir> \| off` |
+| [`/ork-extras:freeze`](/docs/reference/skills/freeze) | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. | low | `/ork-extras:freeze <dir> \| off` |
 | [`/ork:iterate-plan`](/docs/reference/skills/iterate-plan) | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. | medium | `/ork:iterate-plan <plan file> [instructions]` |
 | [`/ork:iterate-research`](/docs/reference/skills/iterate-research) | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. | medium | `/ork:iterate-research <research file> [follow-up]` |
+| [`/ork-extras:prompt-focus`](/docs/reference/skills/prompt-focus) | Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only report. | low | `/ork-extras:prompt-focus [scan\|report\|daily\|demo]` |
 | [`/ork:review-artifact-comments`](/docs/reference/skills/review-artifact-comments) | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate-research, approves when none are open. | low | `/ork:review-artifact-comments [artifact file]` |
 
 ---
@@ -169,7 +172,7 @@ You do not need to remember which reference skills exist. The command skill know
 
 ## What's Next
 
-- [72 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
+- [69 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition): how these commands orchestrate agents and skills together.
 - [How Skills Work](/docs/skills/overview): the fundamentals of the skill system.
 

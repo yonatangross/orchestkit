@@ -71,10 +71,10 @@ A follow-up that depends on the caller's conversation ("now fix that", "verify i
 - **Invoke:** `/ork:setup [--rescan]`
 - **Edges:** the object must be OrchestKit or the project's ork configuration. "Set up CI for this repo" or "set up a postgres container" is `build`. Tuning one ork setting ("turn on the hook X") is `/ork:configure`, not setup, and stays a direct skill call.
 
-## migrate → /ork:swarm-migrate
+## migrate → /ork-extras:swarm-migrate
 - **Signals:** the same change in many repos: across all repos, every consumer, org-wide, roll out to N repos, bump X in each repo that uses it.
 - **Extract:** the transformation (bump, codemod, workflow change) and the target repo list or the selector that yields it, then the spec file that holds them. Swarm-migrate takes a YAML spec (`swarm-specs/<name>.yaml`), not free text: use an existing spec that matches, or write one from the extracted transformation and repo list and show it to the user before invoking.
-- **Invoke:** `/ork:swarm-migrate swarm-specs/{name}.yaml`
+- **Invoke:** `/ork-extras:swarm-migrate swarm-specs/{name}.yaml` (formerly a core ork skill; it now lives in the opt-in ork-extras plugin and is slash-only, so print the command for the user to run. If ork-extras is not installed, say so and give `/plugin install ork-extras@orchestkit` first.)
 - **Edges:** one repo is `build` (`/ork:implement`), even when the change is a migration ("migrate this repo to vitest"). A database or schema migration is `build`, never `migrate`. "Which repos still pin X" with no change asked is a question: answer it, do not start a swarm.
 
 ## Model weight (second, orthogonal dimension)

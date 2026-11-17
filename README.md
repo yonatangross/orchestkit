@@ -68,10 +68,10 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 | Claude Code | 116 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
 | Cursor | 116 | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
-| Devin | 90 | ? | ? | plugin (git) |  |
+| Devin | 83 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
 | Muse Code | 12 | ? | ? | .agents/skills |  |
-| Pi | 90 | ? | not yet (#4004) | pi manifest |  |
+| Pi | 83 | ? | not yet (#4004) | pi manifest |  |
 | Antigravity | 12 | ? | ? | .agents/skills |  |
 
 `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.

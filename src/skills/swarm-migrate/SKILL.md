@@ -7,7 +7,7 @@ argument-hint: "<spec-file.yaml> [--dry-run] [--max-parallel=N]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: true
 allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch Monitor"
 skills: [github-operations, verify, memory, explore]

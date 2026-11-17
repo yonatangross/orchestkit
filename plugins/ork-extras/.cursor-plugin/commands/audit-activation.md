@@ -1,7 +1,7 @@
 ---
 description: "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog."
 argument-hint: "[--json]"
-disable-model-invocation: false
+disable-model-invocation: true
 context: fork
 user-invocable: true
 name: audit-activation

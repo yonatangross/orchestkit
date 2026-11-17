@@ -1,7 +1,7 @@
 ---
 description: "Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. Use for org-wide dependency bumps or codemods. Not for one repo (use implement)."
 argument-hint: "<spec-file.yaml> [--dry-run] [--max-parallel=N]"
-disable-model-invocation: false
+disable-model-invocation: true
 model: sonnet
 context: fork
 user-invocable: true

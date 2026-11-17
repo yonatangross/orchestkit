@@ -1,16 +1,16 @@
 ---
-name: bare-eval
-compatibility: "Claude Code 2.1.277+"
 description: "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy."
-user-invocable: false
-context: inherit
+disable-model-invocation: true
 effort: low
-metadata:
-  version: "1.1.0"
-  author: "OrchestKit"
-  complexity: "medium"
-  tags: "eval, bare, grading, pipeline, testing, ci"
+context: inherit
+user-invocable: true
+name: bare-eval
+allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
+
+# Auto-generated from skills/bare-eval/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
 
 # Bare Eval — Isolated Evaluation Calls
 
@@ -76,7 +76,7 @@ Use `stream-json` over `json` when:
 Load detailed patterns and examples:
 
 ```
-Read("references/invocation-patterns.md")
+Read("skills/bare-eval/references/invocation-patterns.md")
 ```
 
 ## Grading Schemas
@@ -84,7 +84,7 @@ Read("references/invocation-patterns.md")
 JSON schemas for structured eval output:
 
 ```
-Read("references/grading-schemas.md")
+Read("skills/bare-eval/references/grading-schemas.md")
 ```
 
 ## Pipeline Integration
@@ -154,18 +154,18 @@ This produced ~5–10% retry rate and non-reproducible scores — the eval basel
 ## Rules
 
 ```
-Read("rules/_sections.md")
+Read("skills/bare-eval/rules/_sections.md")
 ```
 
 ## Troubleshooting
 
 ```
-Read("references/troubleshooting.md")
+Read("skills/bare-eval/references/troubleshooting.md")
 ```
 
 ## Dynamic-workflow harness (template-in-skill)
 
-`workflows/skill-fitness.js` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
+`skills/bare-eval/workflows/skill-fitness.js` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
 
 ```
 Workflow({ name: "ork:skill-fitness",

@@ -3,7 +3,7 @@ name: audit-activation
 compatibility: "Claude Code 2.1.277+"
 description: "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog."
 user-invocable: true
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[--json]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

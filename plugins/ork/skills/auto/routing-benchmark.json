@@ -87,9 +87,9 @@
     { "id": "setup-03", "goal": "we moved to a monorepo, rescan the stack and update the ork config", "category": "setup", "route": "/ork:setup", "note": "rescan after a major change" },
     { "id": "setup-04", "goal": "set up CI for this repo", "category": "build", "route": "/ork:implement", "note": "set up X where X is not OrchestKit is build (#4981)" },
 
-    { "id": "mig-01", "goal": "bump zod to v4 in every repo that uses it", "category": "migrate", "route": "/ork:swarm-migrate" },
-    { "id": "mig-02", "goal": "roll out the new lint workflow to all 12 repos and open a PR in each", "category": "migrate", "route": "/ork:swarm-migrate" },
-    { "id": "mig-03", "goal": "apply the vitest codemod org-wide", "category": "migrate", "route": "/ork:swarm-migrate" },
+    { "id": "mig-01", "goal": "bump zod to v4 in every repo that uses it", "category": "migrate", "route": "/ork-extras:swarm-migrate" },
+    { "id": "mig-02", "goal": "roll out the new lint workflow to all 12 repos and open a PR in each", "category": "migrate", "route": "/ork-extras:swarm-migrate" },
+    { "id": "mig-03", "goal": "apply the vitest codemod org-wide", "category": "migrate", "route": "/ork-extras:swarm-migrate" },
     { "id": "mig-04", "goal": "migrate this repo from jest to vitest", "category": "build", "route": "/ork:implement", "note": "one repo is build, even when the verb is migrate (#4981)" },
     { "id": "mig-05", "goal": "write the alembic migration for the orders table", "category": "build", "route": "/ork:implement", "note": "a schema migration is build, never the cross-repo swarm" }
   ]

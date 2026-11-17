@@ -6,11 +6,11 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 export const TOTALS: Totals = {
   "plugins": 2,
   "skills": 116,
-  "coreSkills": 90,
-  "extrasSkills": 26,
+  "coreSkills": 83,
+  "extrasSkills": 33,
   "agents": 36,
   "hooks": 163,
-  "commands": 44,
+  "commands": 47,
   "compositions": 14
 };
 
@@ -408,7 +408,6 @@ export const SKILLS_SUMMARY = {
     ],
     "product": [
       "business-case",
-      "careful",
       "okr-design",
       "prioritization",
       "product-analytics",
@@ -418,12 +417,12 @@ export const SKILLS_SUMMARY = {
     "git": [
       "api-design",
       "assess",
-      "careful",
       "ci-debug",
       "ci-sentinel",
       "code-review-playbook",
       "commit",
-      "create-pr"
+      "create-pr",
+      "demo-producer"
     ],
     "video": [
       "demo-producer",
@@ -441,16 +440,15 @@ export const SKILLS_SUMMARY = {
     ],
     "testing": [
       "architecture-patterns",
-      "bare-eval",
       "code-review-playbook",
       "cover",
       "emulate-seed",
       "error-analysis",
       "expect",
-      "product-analytics"
+      "product-analytics",
+      "review-pr"
     ],
     "security": [
-      "audit-full",
       "browser-tools",
       "review-pr",
       "security-patterns"
@@ -472,7 +470,6 @@ export const SKILLS_SUMMARY = {
     "llm": [
       "error-analysis",
       "performance",
-      "prompt-focus",
       "react-server-components-framework",
       "security-patterns",
       "testing-llm"
@@ -485,11 +482,11 @@ export const SKILLS_SUMMARY = {
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
-      "audit-full",
       "browser-tools",
       "emulate-seed",
       "explore",
-      "github-operations"
+      "github-operations",
+      "python-backend"
     ]
   }
 };

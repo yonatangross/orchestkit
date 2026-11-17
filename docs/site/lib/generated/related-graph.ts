@@ -647,7 +647,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/audit-full": {
       "title": "Audit Full",
-      "inbound": 3
+      "inbound": 5
     },
     "/docs/reference/skills/auto": {
       "title": "Auto",
@@ -655,7 +655,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/bare-eval": {
       "title": "Bare Eval",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/brainstorm": {
       "title": "Brainstorm",
@@ -1075,7 +1075,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/prompt-focus": {
       "title": "Prompt Focus",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/python-backend": {
       "title": "Python Backend",
@@ -1274,7 +1274,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "44 Commands You Can Invoke",
+      "title": "47 Commands You Can Invoke",
       "inbound": 11
     },
     "/docs/skills/dependency-graph": {
@@ -2599,7 +2599,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/skills/by-category/workflows": [
       "/docs/reference/skills/assess",
       "/docs/reference/skills/audit-activation",
+      "/docs/reference/skills/audit-full",
       "/docs/reference/skills/auto",
+      "/docs/reference/skills/bare-eval",
       "/docs/reference/skills/brainstorm",
       "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
@@ -2634,6 +2636,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/review-artifact-comments",
@@ -2649,7 +2652,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/skills/command-skills": [
       "/docs/reference/skills/assess",
       "/docs/reference/skills/audit-activation",
+      "/docs/reference/skills/audit-full",
       "/docs/reference/skills/auto",
+      "/docs/reference/skills/bare-eval",
       "/docs/reference/skills/brainstorm",
       "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
@@ -2681,6 +2686,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/review-artifact-comments",
