@@ -13,6 +13,7 @@ targets:
     version: ">=1.11.0"
 model: haiku
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
   version: "1.2.0"
   author: "Yonatan Gross"

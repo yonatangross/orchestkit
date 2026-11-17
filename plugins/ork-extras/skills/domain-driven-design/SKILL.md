@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: "DDD tactical patterns: entities, value objects, aggregates, domain services, repositories, specifications, bounded contexts (Python, TypeScript). Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
 user-invocable: false
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "backend-system-architect"
   category: document-asset-creation
   version: "1.0.0"

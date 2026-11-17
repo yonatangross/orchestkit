@@ -9,6 +9,7 @@ disable-model-invocation: true
 effort: low
 model: haiku
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"
