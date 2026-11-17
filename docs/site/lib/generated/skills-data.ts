@@ -626,7 +626,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
+    "sha256": "fdc1d3a06cbfcaf29be1c36bfaf7fdd1e718ea4851afbc4d042bdc6dd7d73f64",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1335,9 +1335,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling.",
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling.",
     "version": "2.7.0",
-    "sha256": "be88e0415b04e8759ac918432ce7c9411e7bbc23014799446628791744349783",
+    "sha256": "9c137a7bc5172198a0c867d862bb97e0aa20edc454ebde3ed6abce8e12218689",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -2525,9 +2525,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.",
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one.",
     "version": "2.6.0",
-    "sha256": "81891da0b7084b78c6ff0e97edf920b0dd148c2e34086bad0558361c3faa6f5e",
+    "sha256": "1a44996afb841d50bf82214db907a0ebd008947f0a43ee4d91a144c0b76efaa6",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -4481,9 +4481,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before a merge. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "c708cd4a2a641700f7852b5978df73052fdbd7d163e7a95936f18d014996866b",
+    "sha256": "9baf70f715b092e7fad0238221008b0a47ee1c14e57b2fbabae0ca2022cd2474",
     "author": "OrchestKit",
     "tags": [
       "code-review",
