@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: "WCAG 2.2 accessibility patterns: keyboard focus management, React Aria, cognitive inclusion, native HTML-first. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible components, or reduced motion."
 user-invocable: false
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "accessibility-specialist"
   category: document-asset-creation
   version: "2.1.0"
