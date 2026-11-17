@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>review-pr: a proven-by-a-run tier for critical and high findings</title>
+<meta name="description" content="The review fanout now says which critical and high findings carry a run: the command, its output and the output the intent requires. Fill the three parts, pick a refuter outcome, and see whether a finding is proven or only unrefuted. The tier labels; it never moves a verdict.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, select, input[type="text"], textarea { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; min-height:44px; }
+  textarea { width:100%; min-height:64px; font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  button { cursor:pointer; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:10px 0 4px; }
+  label.inline { display:inline-flex; align-items:center; gap:8px; margin:0; min-height:44px; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; }
+  @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
+  .result { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .result[data-tier="proven"] { border-left-color:var(--accent); }
+  .result[data-tier="only-unrefuted"] { border-left-color:var(--bad); }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="review-pr: a proven-by-a-run tier for critical and high findings"><meta property="og:description" content="The review fanout now says which critical and high findings carry a run: the command, its output and the output the intent requires. Fill the three parts and see whether a finding is proven or only unrefuted. The tier labels; it never moves a verdict."><meta property="og:url" content="https://orchestkit.dev/lab/review-fanout-proven-tier.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="review-pr: a proven-by-a-run tier for critical and high findings"><meta name="twitter:description" content="The review fanout now says which critical and high findings carry a run: the command, its output and the output the intent requires. Fill the three parts and see whether a finding is proven or only unrefuted. The tier labels; it never moves a verdict."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>review-pr: a proven-by-a-run tier for critical and high findings</h1>
+      <p class="lead">Until now a critical or high finding stood whenever no refuter killed it. The fanout now also says which of them carry a run. A finding is <b>proven</b> only with the command it ran, the output it printed and the output the intent requires.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>Try a finding</h2>
+  <div class="grid">
+    <div>
+      <label for="sev">Severity from the reviewer</label>
+      <select id="sev"><option>critical</option><option>high</option><option>medium</option><option>low</option></select>
+    </div>
+    <div>
+      <label for="ref">What the blind refuters did</label>
+      <select id="ref">
+        <option value="survived">upheld, or none ran (low and medium effort)</option>
+        <option value="killed">killed by the quorum</option>
+        <option value="downgraded">downgraded to medium</option>
+      </select>
+    </div>
+  </div>
+  <label class="inline"><input type="checkbox" id="gt"> The finding restates a failing CI check (ground truth)</label>
+  <label for="cmd">Command it ran</label>
+  <textarea id="cmd" spellcheck="false"></textarea>
+  <div class="grid">
+    <div><label for="outp">Output it printed</label><textarea id="outp" spellcheck="false"></textarea></div>
+    <div><label for="req">Output the intent requires</label><textarea id="req" spellcheck="false"></textarea></div>
+  </div>
+  <div class="row">
+    <button type="button" id="full">Fill a real run</button>
+    <button type="button" id="empty">Clear (no run)</button>
+    <button type="button" id="ph">Fill placeholders</button>
+    <button type="button" id="same">Output equals required</button>
+  </div>
+  <div class="result" id="out" aria-live="polite"></div>
+
+  <h2>The rule</h2>
+  <table>
+    <thead><tr><th scope="col">Label</th><th scope="col">When</th></tr></thead>
+    <tbody>
+      <tr><td><code>proven</code></td><td>critical or high after refutation, three parts hold real text, and the output differs from the required output.</td></tr>
+      <tr><td><code>only-unrefuted</code></td><td>critical or high after refutation, but no run behind it. It stands because no refuter killed it.</td></tr>
+      <tr><td><code>ground-truth</code></td><td>a failing check restated; it is a run already and is never refuted.</td></tr>
+      <tr><td><code>not-required</code></td><td>medium, low, or downgraded below high.</td></tr>
+      <tr><td>in neither list</td><td>killed by the refuters.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What did not change</h2>
+  <p>The verdict, the refuter votes, the quorum and the spawn ceiling are untouched, and the refuter prompt never carries the run text. The script reads the three parts as text and does not re-run the command, so re-run it before quoting the output as seen.</p>
+  <p><b>Runs are opt-in.</b> The new <code>allowRuns</code> argument is off by default because PR code is untrusted input. Off, reviewers are told not to execute anything from the diff and critical or high findings come back only unrefuted. Pass it only for a same-repository PR from a trusted author in an isolated checkout.</p>
+  <p class="lead">The rule that a finding counts as proven only when a run shows it is adapted from the <code>interrogate</code> skill of pstack by Lauren Tan (MIT License, github.com/cursor/plugins).</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const NO_TEXT = /^(?:n\/?a|none|null|nil|unknown|undefined|tbd|todo|empty|skipped|no output|not applicable|[<(\[]\s*none\s*[>)\]])\.?$|^(?:n\/?a|not run|did not run|not executed)(?![A-Za-z0-9])/i;
+  const CAP = 4000;
+  const runText = (v) => {
+    const t = String(v).replace(/[​-‍﻿]/g, '').trim();
+    if (!/[A-Za-z0-9]/.test(t) || NO_TEXT.test(t)) return '';
+    return t.length > CAP ? t.slice(0, CAP) + ' [truncated]' : t;
+  };
+  const $ = (id) => document.getElementById(id);
+  function classify() {
+    const sev = $('sev').value, ref = $('ref').value, gt = $('gt').checked;
+    const post = ref === 'killed' ? null : ref === 'downgraded' ? 'medium' : sev;
+    if (post === null) return { tier: 'killed', why: 'The refuter quorum killed it. It is in neither list, and the kill still goes to the user to confirm when it would lower the verdict.' };
+    if (post !== 'critical' && post !== 'high') return { tier: 'not-required', why: 'Below high after refutation, so the proof tier does not apply.' };
+    if (gt) return { tier: 'ground-truth', why: 'A failing check is a run already. It is listed apart and never refuted.' };
+    const c = runText($('cmd').value), o = runText($('outp').value), r = runText($('req').value);
+    if (!c || !o || !r) return { tier: 'only-unrefuted', why: 'One of the three parts is empty, a placeholder, or has no letter or digit. It stands because no refuter killed it, not because a run showed it.' };
+    if (o === r) return { tier: 'proven-no', why: 'The output equals the required output: the run shows no defect, so it does not prove one. Listed as only unrefuted.' };
+    return { tier: 'proven', why: 'Command, output and required output are real text and the output differs from the requirement.' };
+  }
+  function show() {
+    const k = classify();
+    const label = k.tier === 'proven-no' ? 'only-unrefuted' : k.tier;
+    $('out').dataset.tier = label;
+    $('out').replaceChildren();
+    const b = document.createElement('b');
+    b.textContent = `Label: ${label}. The verdict is unchanged.`;
+    const p = document.createElement('p');
+    p.textContent = k.why;
+    $('out').append(b, p);
+  }
+  const RUN = { cmd: 'python -m pytest tests/test_db.py::test_injection -x', out: "FAILED test_injection: executed \"SELECT * FROM u WHERE n='x' OR 1=1\"", req: 'PASSED: the bound parameter keeps the quote literal' };
+  const set = (c, o, r) => { $('cmd').value = c; $('outp').value = o; $('req').value = r; show(); };
+  $('full').addEventListener('click', () => set(RUN.cmd, RUN.out, RUN.req));
+  $('empty').addEventListener('click', () => set('', '', ''));
+  $('ph').addEventListener('click', () => set('n/a', 'TBD', 'none'));
+  $('same').addEventListener('click', () => set(RUN.cmd, RUN.req, RUN.req));
+  ['sev', 'ref', 'gt', 'cmd', 'outp', 'req'].forEach((id) => $(id).addEventListener('input', show));
+  set(RUN.cmd, RUN.out, RUN.req);
+  $('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    $('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  $('copy').addEventListener('click', async () => {
+    const k = classify();
+    const text = `In orchestkit, review-fanout labels a ${$('sev').value} finding (refuters: ${$('ref').value}) as ${k.tier === 'proven-no' ? 'only-unrefuted' : k.tier}. Check src/skills/review-pr/workflows/review-fanout.js and tests/unit/test-review-fanout.mjs agree.`;
+    try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; } catch { $('copy').textContent = 'Copy failed'; }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

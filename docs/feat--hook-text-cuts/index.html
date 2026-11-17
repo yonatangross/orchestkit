@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three hook texts that no longer reach the model by default</title>
+<meta name="description" content="What the visual-style reminder, the failure tips and the version notice put in the model's context before and after the cut, with the setting that turns the reminder back on.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;min-height:4rem;white-space:pre-wrap;word-break:break-word}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)}
+  .meter{display:flex;gap:.6rem;align-items:center;margin:.3rem 0;font-size:.8rem}
+  .bar{height:.7rem;border-radius:3px;background:var(--pg-accent)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>Three hook texts that no longer reach the model by default</h1>
+<p class="sub">Branch feat/hook-text-cuts. Each of these hooks used to put text in the model's context on its own. Now the first is opt-in, the second keeps only structured errors, and the third goes to the person instead of the model. The text in each pane is the text the code in this branch produces; the character counts in section 1 are counted from it.</p>
+
+<section><h2>1 / Visual-style reminder: off until you turn it on</h2>
+<p>The reminder carried one person's chat style (render size, icon set, a skill name) as default text on every prompt that asked for a shaped answer. It is now silent unless <code>ORK_VISUAL_STYLE_NUDGE=1</code>. With it on, the text is your own file (<code>ORK_VISUAL_STYLE_NUDGE_FILE</code>, first 1500 characters), or one neutral line.</p>
+<div class="grid">
+  <div><h3>Before: injected by default</h3><div class="out bad" id="vbefore"></div></div>
+  <div><h3>After: <code>ORK_VISUAL_STYLE_NUDGE=1</code>, no file</h3><div class="out ok" id="vafter"></div></div>
+</div>
+<div id="vmeter"></div>
+<p>With the variable unset, nothing is injected.</p>
+</section>
+
+<section><h2>2 / Failure tips: structured errors only</h2>
+<p>The generic tips table matched any failure whose text contained a common word. <code>lock</code> matches <code>blocked</code>, so a pane that refused input because a dialog was open was told "Resource is locked". The table is gone; structured errors (RFC 9457 payloads with their own title and retry guidance) still get their block.</p>
+<label for="pick">Example failure</label>
+<select id="pick"></select>
+<div class="grid">
+  <div><h3>Before: injected into the model's context</h3><div class="out bad" id="fbefore"></div></div>
+  <div><h3>After</h3><div class="out ok" id="fafter"></div></div>
+</div>
+</section>
+
+<section><h2>3 / Version notice: to the person, not the model</h2>
+<p>A newer Claude Code than the feature matrix knows is news for the person. It used to arrive as session-start context written as an instruction to the model. It is now a message to the person only. The hook also runs synchronously now: an async hook's message is delivered to the model on the next turn and is not shown to the person.</p>
+<div class="grid">
+  <div><h3>Before: <code>additionalContext</code> (model)</h3><div class="out bad" id="cbefore"></div></div>
+  <div><h3>After: <code>systemMessage</code> (person)</h3><div class="out ok" id="cafter"></div></div>
+</div>
+</section>
+
+<section><h2>Copy as prompt</h2>
+<p>Turn the reminder on with your own wording:</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+
+<script>
+const VISUAL_BEFORE = '[visual-style-nudge #1] If this answer has shape, render it: one render, up to ~50 lines and 76 cells wide, verdict first. Lead with one prose line that states the point, then the render (header and headline meter, sections opened by a light rule and a traffic-light word, rows as icon / label / bar / value / action, a total line per section, one arithmetic summary line, info caveat lines), then two or three bold-led bullets on what the numbers told you. Status icons come from the closed semantic set; one domain icon per row in the leading column. A definition, a single fact or a one-line ask gets no render; over 50 lines is a page, not a chat answer. Applies to this reply and later ones. Full vocabulary and anatomy: the ork:glyph skill, rules/visual-style.md. Sub-agents do not inherit this rule; restate it in their prompt if their output reaches the user.';
+const VISUAL_AFTER = '[visual-style-nudge #1] If this answer has shape (a status, a comparison, options), render it visually with the verdict first. A definition, a single fact or a one-line ask gets prose only.';
+document.getElementById('vbefore').textContent = VISUAL_BEFORE;
+document.getElementById('vafter').textContent = VISUAL_AFTER;
+const vmax = VISUAL_BEFORE.length;
+document.getElementById('vmeter').replaceChildren(...[['before', VISUAL_BEFORE.length], ['after', VISUAL_AFTER.length]].map(([n, v]) => {
+  const row = document.createElement('div'); row.className = 'meter';
+  const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = (v / vmax * 16) + 'rem';
+  row.append(n + ' ', bar, ' ' + v + ' characters');
+  return row;
+}));
+
+const EXAMPLES = [
+  ['Pane refused input (word "blocked")', '{"error":{"kind":"blocked","message":"pane is blocked (question)"}}', 'Resource is locked. Wait for the lock to be released or check for stale locks.'],
+  ['Missing file', 'ENOENT: no such file or directory', 'File not found. Check the path exists. Use Glob to search for the correct filename.'],
+  ['Permission denied', 'EACCES: permission denied', 'Permission denied. The file may be read-only or owned by another user.'],
+  ['Out of memory', 'JavaScript heap out of memory', 'Out of memory. Try processing smaller chunks or increasing available memory.'],
+  ['Structured error (kept)', '{"title":"Upstream rate limit exceeded","error_category":"rate_limit","retryable":true,"retry_after":30,...}', null],
+];
+const pick = document.getElementById('pick');
+pick.replaceChildren(...EXAMPLES.map((e, i) => new Option(e[0], String(i))));
+function renderF() {
+  const [, err, tip] = EXAMPLES[Number(pick.value)];
+  if (tip) {
+    document.getElementById('fbefore').textContent = '[OrchestKit] Tool failure analysis for Bash:\n- ' + tip;
+    document.getElementById('fafter').textContent = '(nothing injected; the failure is still counted)';
+  } else {
+    const kept = '[OrchestKit] Structured error from Bash (rate_limit):\n- Upstream rate limit exceeded\n- Back off and retry the request.\n- Retryable: wait 30s before retrying';
+    document.getElementById('fbefore').textContent = kept;
+    document.getElementById('fafter').textContent = kept + '\n(unchanged)';
+  }
+}
+pick.addEventListener('change', renderF);
+renderF();
+
+const NOTICE_BEFORE = "[cc-version-check] Running CC 2.1.999 — OrchestKit's feature matrix knows up to 2.1.322. New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.";
+const NOTICE_AFTER = "[cc-version-check] Running CC 2.1.999 — OrchestKit's feature matrix knows up to 2.1.322. New features may be available for adoption. Run /release-notes (CC 2.1.173+) for the upstream notes; see skills/doctor/references/version-compatibility.md in this plugin, or https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.";
+document.getElementById('cbefore').textContent = NOTICE_BEFORE;
+document.getElementById('cafter').textContent = NOTICE_AFTER;
+
+const PROMPT = 'Turn on the OrchestKit visual-style reminder with my own wording: export ORK_VISUAL_STYLE_NUDGE=1 and ORK_VISUAL_STYLE_NUDGE_FILE=<path to my text file> (or set both in the env block of my Claude Code settings).';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main></body>
+</html>
