@@ -29,4 +29,4 @@ description: "Hooks triggered on SessionStart events (21 hooks)."
 | <span id="hook--lifecycle-sync-session-dispatcher"></span>`sync-session-dispatcher` | `*` | Injects | Consolidates 4 synchronous SessionStart hooks into a single dispatcher. |
 | <span id="hook--lifecycle-session-handoff-injector"></span>`session-handoff-injector` | `*` | Silent | Session Handoff Injector, Injects previous session context at SessionStart |
 | <span id="hook--lifecycle-webhook-forwarder"></span>`webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
-| <span id="hook--lifecycle-cc-version-check"></span>`cc-version-check` | `*` | Fire-and-forget | Fires on SessionStart. Four branches: |
+| <span id="hook--lifecycle-cc-version-check"></span>`cc-version-check` | `*` | Silent | Fires on SessionStart. Four branches: |

@@ -2,10 +2,20 @@
  * CC Version Check — drift-warn hook (M130 #1487)
  *
  * Fires on SessionStart. Four branches:
- *   - Version unresolvable                    → additionalContext saying the check did NOT run
+ *   - Version unresolvable                    → systemMessage saying the check did NOT run
  *   - Below floor (< MIN_CC_VERSION)          → systemMessage warning to the user
- *   - Above latest-known (> LATEST_KNOWN_CC)  → additionalContext nudge to Claude with adoption pointer
+ *   - Above latest-known (> LATEST_KNOWN_CC)  → systemMessage adoption notice with pointers
  *   - In range                                → silent success
+ *
+ * Every notice goes to the PERSON (systemMessage) and none to the model
+ * (additionalContext), since a version notice is for the person, not the model.
+ * The two branches that used additionalContext put 282 and about 390 bytes into
+ * the model's context on every session that hit them.
+ *
+ * Registered SYNC in hooks.json, on purpose: an async hook's systemMessage is
+ * delivered to the model on the next turn and is not shown to the person (CC
+ * hooks docs, "How async hooks execute"). The work is a bounded read of the
+ * transcript prefix inside a 3 s budget, so running it inline costs little.
  *
  * The first branch is why this file changed (2026-08-28). It used to read
  * process.env.CLAUDE_CODE_VERSION and return outputSilentSuccess() when unset. CC does
@@ -26,7 +36,7 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, rea
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { HookContext, HookInput, HookResult } from '../types.js';
-import { outputSessionStartContext, outputSilentSuccess, outputWithNotification } from '../lib/common.js';
+import { outputSilentSuccess, outputWithNotification } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { LATEST_KNOWN_CC, MIN_CC_VERSION, compareCCVersions } from '../lib/cc-version-matrix.js';
 
@@ -199,10 +209,11 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
     // fine" — so a check that never once ran looked identical to a check that
     // passed, every session, for months. Say so instead of implying a verdict.
     ctx.log('cc-version-check', 'could not resolve the running CC version — check did NOT run');
-    return outputSessionStartContext(
+    return outputWithNotification(
       '[cc-version-check] Could not determine the running Claude Code version (no CLAUDE_CODE_VERSION, ' +
         'no versioned transcript record, no resolvable install path). The support-floor and adoption ' +
         'checks did NOT run this session. This is not a pass. Set ORK_NO_CC_VERSION_CHECK=1 to silence.',
+      undefined,
     );
   }
   const running = resolved.version;
@@ -241,13 +252,14 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   }
 
   if (compareCCVersions(running, matrixLatest) > 0) {
-    ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) > matrix=${matrixLatest} — adoption nudge to Claude`);
+    ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) > matrix=${matrixLatest}, adoption notice to user`);
     return settle(
-      outputSessionStartContext(
+      outputWithNotification(
         `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
-          `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
-          `read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, ` +
-          `review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+          `New features may be available for adoption. Run /release-notes (CC 2.1.173+) for the upstream notes; ` +
+          `see skills/doctor/references/version-compatibility.md in this plugin, or ` +
+          `https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+        undefined,
       ),
       false,
     );
