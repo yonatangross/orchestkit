@@ -8,6 +8,7 @@ targets:
   - library: motion
     version: ">=13.4.6"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.0.0"

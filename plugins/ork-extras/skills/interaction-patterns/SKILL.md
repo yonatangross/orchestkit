@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: "UI interaction patterns: skeleton loading, infinite scroll, progressive disclosure, modal/drawer/inline selection, drag-and-drop, tab overflow, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications."
 user-invocable: false
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   version: "1.0.0"

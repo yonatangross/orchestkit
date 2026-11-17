@@ -8,6 +8,7 @@ targets:
   - library: vite
     version: ">=8.3.1"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   vite-version: "8.0"
