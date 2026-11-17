@@ -1,0 +1,11 @@
+{
+  "slug": "audit-allowlist-picomatch-1247710",
+  "source": "docs/fix--audit-allowlist-picomatch-1247710/index.html",
+  "title": "picomatch advisory 1247710: one dated allowlist entry until 2026-12-17",
+  "description": "What the audit allowlist entry for npm advisory 1247710 (GHSA-fc5q-39xc-vjpf, picomatch) covers, which of the 11 lockfiles hold picomatch and through which tools, and when the entry stops being honored.",
+  "tags": [
+    "security",
+    "dependencies"
+  ],
+  "date": "2026-11-17"
+}
