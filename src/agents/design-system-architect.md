@@ -26,7 +26,7 @@ tools:
   - mcp__context7__query-docs
   # mcpServers stitch + storybook-mcp are metadata only (F12).
   # Stitch: BOTH mcp__stitch__* and mcp__plugin_hq-ext_stitch__* (hq-ext).
-  # Storybook: docs toolset (storybook-mcp-integration Toolset Selection).
+  # Storybook: docs toolset (design-to-code, Storybook mode, Toolset Selection).
   # https://code.claude.com/docs/en/mcp-servers
   - mcp__stitch__list_projects
   - mcp__plugin_hq-ext_stitch__list_projects
@@ -46,7 +46,7 @@ skills:
   - testing-e2e
   - design-context-extract
   - component-search
-  - storybook-mcp-integration
+  - design-to-code
   - remember
   - memory
 mcpServers: [context7, stitch, storybook-mcp]

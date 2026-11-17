@@ -51,6 +51,10 @@ const STANDALONE_ALLOWLIST = {
     'slash-only in the opt-in ork-extras plugin (trim stage 1 ruling): 0 Skill-tool and 0 typed calls in 90 days, so the model listing no longer carries it; the audit is run by typing /ork-extras:audit-full',
   'prompt-focus':
     'slash-only in the opt-in ork-extras plugin (trim stage 1 ruling): reads the operator\'s own prompts, so it runs only when typed as /ork-extras:prompt-focus',
+  'design-import':
+    'typed-only alias for the old command name: it runs design-to-code import and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
+  'design-ship':
+    'typed-only alias for the old command name: it runs design-to-code ship and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
   // setup and swarm-migrate left this list in #4981: ork:auto now routes to both
   // (SKILL.md table + routing-benchmark setup-* and mig-* cases), so they pass on
   // the chain channel instead of an allowlist entry.

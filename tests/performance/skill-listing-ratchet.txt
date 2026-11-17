@@ -1,4 +1,4 @@
-14583
+14094
 # Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) that core ork ships,
 # which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
@@ -17,3 +17,5 @@
 # audit-activation, audit-full, bare-eval, prompt-focus and swarm-migrate left the core listing; careful and
 # freeze were already hidden. Measured over src/skills minus manifests/ork.json skillsExclude (83 skills).
 # Not raised. The ork-extras ceiling does not move: all 7 are slash-only there.
+# 2026-11-17 design-to-code merge: storybook-mcp-integration left the listing and design-import
+# and design-ship became typed-only aliases (hidden from the model). LOWERED 15588 -> 15099 (80 skills).

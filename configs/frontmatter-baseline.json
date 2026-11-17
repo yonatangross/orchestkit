@@ -1,7 +1,7 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 106,
-  "files_with_violations": 64,
+  "total_violations": 102,
+  "files_with_violations": 61,
   "files": {
     "src/skills/animation-motion-design/SKILL.md": [
       "house-key:path_patterns",
@@ -66,14 +66,6 @@
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/design-import/SKILL.md": [
-      "house-key:triggers",
-      "unknown-key:skills"
-    ],
-    "src/skills/design-ship/SKILL.md": [
-      "house-key:triggers",
-      "unknown-key:skills"
-    ],
     "src/skills/design-stylecards/SKILL.md": [
       "house-key:triggers",
       "unknown-key:skills"
@@ -82,6 +74,7 @@
       "house-key:targets"
     ],
     "src/skills/design-to-code/SKILL.md": [
+      "house-key:targets",
       "house-key:triggers",
       "unknown-key:skills"
     ],
@@ -185,9 +178,6 @@
     "src/skills/setup/SKILL.md": [
       "house-key:triggers",
       "unknown-key:skills"
-    ],
-    "src/skills/storybook-mcp-integration/SKILL.md": [
-      "house-key:targets"
     ],
     "src/skills/storybook-testing/SKILL.md": [
       "house-key:targets",

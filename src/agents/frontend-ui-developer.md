@@ -36,7 +36,7 @@ tools:
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
   # mcpServers storybook-mcp is metadata only (F12).
-  # Full storybook-mcp surface (dev + docs + testing) from storybook-mcp-integration.
+  # Full storybook-mcp surface (dev + docs + testing) from design-to-code, Storybook mode.
   - mcp__storybook-mcp__get-storybook-story-instructions
   - mcp__storybook-mcp__preview-stories
   - mcp__storybook-mcp__list-all-documentation
@@ -52,7 +52,6 @@ skills:
   - code-review-playbook
   - architecture-patterns
   - component-search
-  - storybook-mcp-integration
   - design-to-code
   - design-context-extract
   - remember
