@@ -126,7 +126,7 @@ export const PLUGINS: Plugin[] = [
   {
     "name": "ork-extras",
     "description": "Opt-in reference skills split out of ork: 33 skills, no agents or hooks.",
-    "fullDescription": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork.",
+    "fullDescription": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) engineering domain guides (accessibility, distributed systems, DDD, release management) and slash-only operator tools (audit-full, careful, freeze, swarm-migrate and more). Skills only, no agents or hooks. Install next to ork.",
     "category": "development",
     "version": "10.13.0", // x-release-please-version
     "skillCount": 33,

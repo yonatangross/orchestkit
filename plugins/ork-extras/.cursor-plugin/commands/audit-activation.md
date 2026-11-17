@@ -97,7 +97,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
    ```
 
    It resolves the catalog beside its source or installed script, while every consumer telemetry root is explicit. It reports attempts, starts, and stop-feed completions separately. Never eyeball JSONL by hand when the script exists.
-2. **Inventory** — let the script resolve its own source or installed `agents/` catalog. Do not point it at a consumer project's agent directory.
+2. **Inventory** — let the script resolve its own source or installed `agents/` catalog (beside it in core ork; from ork-extras it finds the core ork plugin's `agents/` next to it, and `--catalog-root` overrides). Do not point it at a consumer project's agent directory.
 3. **Read telemetry** — `.claude/logs/subagent-spawns.jsonl` carries pretool intent and start events. Triangulate it with the restored global `~/.claude/analytics/agent-usage.jsonl` stop feed when available. The streams have no stable common event ID, so never add them together or infer unique spawns.
 4. **Compute** — all checks from `Read("skills/audit-activation/rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
 5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("skills/audit-activation/rules/activation-status.md")`).

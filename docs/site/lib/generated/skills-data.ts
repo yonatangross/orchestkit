@@ -521,7 +521,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog.",
     "version": "1.0.0",
-    "sha256": "8c183aecce9221d8860618ddb85e5dc3be8242e5139a8930adbcda4e69640a02",
+    "sha256": "6f21e790099f5ca27bfac03a4406da541f2474e065fc9bce7176badf060ab2ef",
     "author": "OrchestKit",
     "tags": [
       "audit",

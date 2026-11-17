@@ -22,7 +22,9 @@
 // ============================================================================
 
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -126,7 +128,7 @@ await test('ork:audit-full-mapreduce runs from the core plugin copy to a result'
   assert.ok(result && typeof result === 'object', 'no result object');
 });
 
-await test('audit-full runs from ork-extras: its two core files are byte copies inside the skill and no read leaves it', async () => {
+await test('audit-full runs from ork-extras: its two core files are byte copies inside the skill and SKILL.md and its refutation binding read nothing from core', async () => {
   const pairs = [
     ['src/shared/rules/adversarial-refutation.md', 'src/skills/audit-full/references/adversarial-refutation-engine.md'],
     ['src/skills/chain-patterns/rules/push-notification-on-completion.md', 'src/skills/audit-full/references/push-notification-on-completion.md'],
@@ -134,6 +136,17 @@ await test('audit-full runs from ork-extras: its two core files are byte copies 
   for (const [core, copy] of pairs) assert.equal(read(copy), read(core), `${copy} drifted from ${core}`);
   const text = ['SKILL.md', 'references/adversarial-refutation.md'].map((f) => read(`src/skills/audit-full/${f}`)).join('\n');
   assert.doesNotMatch(text, /CLAUDE_PLUGIN_ROOT\}\/(shared|skills\/chain-patterns)\//, 'audit-full still reads a core-only path');
+});
+
+await test('audit-activation run from ork-extras finds the core agents catalog instead of failing on a missing agents/', async () => {
+  const tmp = mkdtempSync(path.join(tmpdir(), 'aa-'));
+  mkdirSync(path.join(tmp, '.claude', 'logs'), { recursive: true });
+  writeFileSync(path.join(tmp, '.claude', 'logs', 'subagent-spawns.jsonl'), '');
+  const script = path.join(REPO, 'plugins/ork-extras/skills/audit-activation/scripts/collect-activation-audit.mjs');
+  assert.ok(!existsSync(path.join(REPO, 'plugins/ork-extras/agents')), 'ork-extras must still ship no agents');
+  const out = execFileSync('node', [script, '--json', '--telemetry-root', tmp], { encoding: 'utf8' });
+  assert.ok(JSON.parse(out), 'no JSON from the collector');
+  assert.throws(() => execFileSync('node', [script, '--json', '--catalog-root', path.join(tmp, 'nope'), '--telemetry-root', tmp], { encoding: 'utf8', stdio: 'pipe' }), /catalog unreadable|Command failed/, 'control: a bad --catalog-root must fail');
 });
 
 await test('control: a script that throws on start fails the launch case', async () => {
