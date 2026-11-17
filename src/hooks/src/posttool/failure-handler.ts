@@ -1,8 +1,12 @@
 /**
  * PostToolUseFailure Handler
- * CC 2.1.25: Error-path hook providing solution suggestions when tools fail
+ * CC 2.1.25: Error-path hook that counts tool failures and adds context for structured errors
  *
- * Analyzes tool failures and injects helpful context via additionalContext
+ * Tracks tool failures (auto-enables debug mode after 3) and injects context via
+ * additionalContext ONLY for RFC 9457 structured errors, which carry their own
+ * title, category and retry guidance. Unstructured failures stay silent: the
+ * generic regex tips table was cut because its unanchored matches fired on
+ * unrelated failures and restated what the error text already said.
  */
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
@@ -13,50 +17,6 @@ import { getLogDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { extractStructuredError } from '../lib/retry-manager.js';
 import { NOOP_CTX } from '../lib/context.js';
-
-// Common failure patterns and their solutions
-const FAILURE_PATTERNS: Array<{ pattern: RegExp; suggestion: string }> = [
-  {
-    pattern: /ENOENT|no such file|not found/i,
-    suggestion: 'File not found. Check the path exists. Use Glob to search for the correct filename.',
-  },
-  {
-    pattern: /EACCES|permission denied/i,
-    suggestion: 'Permission denied. The file may be read-only or owned by another user.',
-  },
-  {
-    pattern: /ECONNREFUSED|ETIMEDOUT|network/i,
-    suggestion: 'Network error. Check if the service is running and accessible.',
-  },
-  {
-    pattern: /syntax error|SyntaxError|parse error/i,
-    suggestion: 'Syntax error in the code. Review the file for missing brackets, quotes, or semicolons.',
-  },
-  {
-    pattern: /command not found|not recognized/i,
-    suggestion: 'Command not found. Check if the tool is installed and in PATH.',
-  },
-  {
-    pattern: /timeout|timed out/i,
-    suggestion: 'Command timed out. Consider increasing the timeout or breaking the command into smaller steps.',
-  },
-  {
-    pattern: /ENOMEM|out of memory|heap/i,
-    suggestion: 'Out of memory. Try processing smaller chunks or increasing available memory.',
-  },
-  {
-    pattern: /merge conflict|CONFLICT/i,
-    suggestion: 'Merge conflict detected. Resolve conflicts manually before continuing.',
-  },
-  {
-    pattern: /lock|locked|ELOCK/i,
-    suggestion: 'Resource is locked. Wait for the lock to be released or check for stale locks.',
-  },
-  {
-    pattern: /type error|TypeError|cannot read prop/i,
-    suggestion: 'Type error. Check for null/undefined values and ensure correct types are passed.',
-  },
-];
 
 /** Track failures and auto-enable debug mode after 3 in a session */
 const FAILURE_THRESHOLD = 3;
@@ -141,24 +101,10 @@ export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): H
     return outputWithContext(parts.join('\n'), 'PostToolUseFailure');
   }
 
-  // Fallback: regex pattern matching for unstructured errors
-  const suggestions: string[] = [];
-  for (const { pattern, suggestion } of FAILURE_PATTERNS) {
-    if (pattern.test(errorMessage)) {
-      suggestions.push(suggestion);
-    }
-  }
-
-  // If no specific pattern matched, provide generic guidance
-  if (suggestions.length === 0) {
-    // Don't inject noise for every failure
-    return outputSilentSuccess();
-  }
-
-  const context = [
-    `[OrchestKit] Tool failure analysis for ${toolName}:`,
-    ...suggestions.map(s => `- ${s}`),
-  ].join('\n');
-
-  return outputWithContext(context, 'PostToolUseFailure');
+  // Not a structured error: stay silent. The generic tips table that used to
+  // answer here ("File not found", "Resource is locked", ...) matched any
+  // failure whose text merely contained a common word (`lock` matches `block`
+  // and `clock`, `heap` matches any heap-related message) and told the model
+  // what the error text already said. Failure tracking above still runs.
+  return outputSilentSuccess();
 }
