@@ -1115,7 +1115,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/review-pr": {
       "title": "Review Pr",
-      "inbound": 6
+      "inbound": 8
+    },
+    "/docs/reference/skills/review-pr/references": {
+      "title": "Review Pr: References",
+      "inbound": 1
+    },
+    "/docs/reference/skills/review-pr/rules": {
+      "title": "Review Pr: Rules",
+      "inbound": 1
     },
     "/docs/reference/skills/scope-appropriate-architecture": {
       "title": "Scope Appropriate Architecture",
@@ -2385,7 +2393,16 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/remember": [],
     "/docs/reference/skills/responsive-patterns": [],
     "/docs/reference/skills/review-artifact-comments": [],
-    "/docs/reference/skills/review-pr": [],
+    "/docs/reference/skills/review-pr": [
+      "/docs/reference/skills/review-pr/references",
+      "/docs/reference/skills/review-pr/rules"
+    ],
+    "/docs/reference/skills/review-pr/references": [
+      "/docs/reference/skills/review-pr"
+    ],
+    "/docs/reference/skills/review-pr/rules": [
+      "/docs/reference/skills/review-pr"
+    ],
     "/docs/reference/skills/scope-appropriate-architecture": [],
     "/docs/reference/skills/security-patterns": [],
     "/docs/reference/skills/setup": [],

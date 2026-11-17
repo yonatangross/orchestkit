@@ -10620,16 +10620,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Related Skills",
       "vs. the built-in /review and /code-review",
       "References",
-      "Rules (3)",
-      "Agent Prompts: Agent Teams Mode: HIGH",
-      "Project Context Injection",
-      "Structured Output Contract",
-      "Team Formation",
-      "Agent Prompts: Agent Tool Mode: HIGH",
-      "Project Context Injection",
-      "Structured Output Contract",
-      "Agent Prompts",
-      "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM",
+      "Companion pages"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/review-pr/references",
+    "title": "Review Pr: References",
+    "headings": [
       "References (11)",
       "Adversarial Refutation",
       "Bindings",
@@ -10675,6 +10672,22 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "When triggers fire: voice-friendly prompt",
       "After user response",
       "Opt-out"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/review-pr/rules",
+    "title": "Review Pr: Rules",
+    "headings": [
+      "Rules (3)",
+      "Agent Prompts: Agent Teams Mode: HIGH",
+      "Project Context Injection",
+      "Structured Output Contract",
+      "Team Formation",
+      "Agent Prompts: Agent Tool Mode: HIGH",
+      "Project Context Injection",
+      "Structured Output Contract",
+      "Agent Prompts",
+      "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM"
     ]
   },
   {

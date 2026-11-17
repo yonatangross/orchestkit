@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four follow-ups on the proven-by-a-run tier of the PR review</title>
+<meta name="description" content="With runs off a claimed run is labelled unverified, never proven; one rule for re-running a command in three places of SKILL.md; the zero-width strip written as escapes; and the word null counting when the intent names it.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-word;min-height:3.5rem}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)} .warn{color:var(--status-warn)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>Four follow-ups on the proven-by-a-run tier of the PR review</h1>
+<p class="sub">The review script labels a critical or high finding proven only when it carries the command it ran, its output and the output the intent requires. A review of that tier found four small points about how honest the label reads. Each one has a test that fails on the base commit and passes here.</p>
+
+<section><h2>1 / The result says whether runs were allowed</h2>
+<p>Runs are off unless the caller sets <code>allowRuns</code> to true. With runs off the reviewers are told to run read-only commands only, so a command, output and required output they fill in is a read, not a run of the code. Before, it could still be labelled proven.</p>
+<label for="runs">allowRuns</label>
+<select id="runs"><option value="off">off (the default)</option><option value="on">true</option></select>
+<div class="grid">
+  <div><h3>Before</h3><div class="out bad" id="b1"></div></div>
+  <div><h3>Now</h3><div class="out ok" id="a1"></div></div>
+</div>
+<p>The result carries <code>allowRuns</code> and a separate <code>proof.unverified</code> list. Verdicts, refuter votes and spawn counts are the same either way; only the label changes.</p>
+</section>
+
+<section><h2>2 / One rule for re-running a proven command</h2>
+<p>Step 5 of SKILL.md said to re-run a proven finding's command before quoting its output as seen, while two other places say the skill's own post gate denies local tests and builds. All three now say the same: a command the gate denies is quoted as the reviewer's claim, not as seen, unless it was re-run read-only. A test pins the sentence in all three places and the old wording out of step 5.</p>
+</section>
+
+<section><h2>3 / The zero-width strip is written as escapes</h2>
+<p>The check that strips invisible characters before testing for real text held the characters themselves, which an editor can drop without a sign. It is now the range of escapes (U+200B to U+200D and U+FEFF). A test fails if the script holds any literal invisible character, and another shows an invisible prefix cannot turn a placeholder such as n/a into a command.</p>
+</section>
+
+<section><h2>4 / The word null counts when the intent names it</h2>
+<p>The placeholder check refused an output that was exactly null, None, undefined or empty, so a defect whose proof is "printed null" could never be proven. Now such a word counts as output when the required output names the same word. Every other placeholder stays refused, even when named.</p>
+<label for="case">Example</label>
+<select id="case"></select>
+<div class="out" id="r4"></div>
+</section>
+
+<section><h2>Not shown here</h2>
+<p class="warn">No real, non-stubbed proven finding exists yet, and whether the skill's own gate also binds the reviewers the workflow spawns is not answered here: if it does, a run of a test is denied and a proven finding can only hold read-only commands. The review page of the skill is now generated as a folder because it crossed the page size cap; that is a build effect, not a content change.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const runs = document.getElementById('runs');
+function render1() {
+  const on = runs.value === 'on';
+  document.getElementById('b1').textContent = 'finding with command, output and required output\nallowRuns off or on: label "proven"';
+  document.getElementById('a1').textContent = on
+    ? 'allowRuns true: label "proven", listed in proof.proven'
+    : 'allowRuns not true: label "unverified", listed in proof.unverified, the claim stays visible, never "proven"';
+}
+runs.addEventListener('change', render1);
+render1();
+
+const CASES = [
+  ['null', 'a user object, never null', 'counts: proven'],
+  ['None', 'a user object, never None', 'counts: proven'],
+  ['undefined', 'a user object, never undefined', 'counts: proven'],
+  ['empty', 'a user object, never empty', 'counts: proven'],
+  ['nil', 'a user object, never nil', 'counts: proven'],
+  ['null', 'a user object', 'refused: the intent does not name the word'],
+  ['None', 'a user object, not null', 'refused: the intent names a different word'],
+  ['null', 'null', 'refused: output equals the required output, so no defect is shown'],
+  ['TBD', 'a value, not TBD', 'refused: a placeholder stays refused even when named'],
+  ['todo', 'a value, not todo', 'refused: a placeholder stays refused even when named'],
+  ['skipped', 'a value, not skipped', 'refused: a placeholder stays refused even when named'],
+  ['no output', 'a value, not no output', 'refused: a placeholder stays refused even when named'],
+  ['n/a', 'a value, not n/a', 'refused: a placeholder stays refused even when named'],
+];
+const sel = document.getElementById('case');
+sel.replaceChildren(...CASES.map((c, i) => new Option('output "' + c[0] + '" with required "' + c[1] + '"', String(i))));
+function render4() {
+  const [out, req, res] = CASES[Number(sel.value)];
+  const el = document.getElementById('r4');
+  el.textContent = 'output: ' + out + '\nrequired output: ' + req + '\nresult: ' + res;
+  el.className = 'out ' + (res.startsWith('counts') ? 'ok' : 'warn');
+}
+sel.addEventListener('change', render4);
+render4();
+
+const PROMPT = 'In the orchestkit repo, run node tests/unit/test-review-fanout.mjs and tell me how many cases pass, then confirm that with allowRuns off a finding that has a command, output and required output is labelled unverified and not proven.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main></body>
+</html>
