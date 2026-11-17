@@ -18,6 +18,69 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.14.0",
+    "date": "2026-11-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cli:** orchestkit install finds the coding agents on this machine ([#5267](https://github.com/yonatangross/orchestkit/issues/5267)) ([6574f4d](https://github.com/yonatangross/orchestkit/commit/6574f4deb1c58556807ac30ed9e6e1309574d7f1))",
+          "**codex:** add ork-commit and ork-create-pr to the Codex pack ([#5261](https://github.com/yonatangross/orchestkit/issues/5261)) ([0625e64](https://github.com/yonatangross/orchestkit/commit/0625e6414bf3d4dca5bfb75037de93dc04a550de))",
+          "**fix-issue:** safety-fact proof ladder and review-pr proof criterion ([#5273](https://github.com/yonatangross/orchestkit/issues/5273)) ([c6f5306](https://github.com/yonatangross/orchestkit/commit/c6f5306203df58222260d77333bdf3d79f431804))",
+          "**hooks:** record a fixed error_class on PostToolUseFailure telemetry ([#5248](https://github.com/yonatangross/orchestkit/issues/5248)) ([558ce64](https://github.com/yonatangross/orchestkit/commit/558ce64e4a9d1f76de34d47b778b5c7c5562b987))",
+          "**review-pr:** proven-by-a-run tier in review-fanout ([#5274](https://github.com/yonatangross/orchestkit/issues/5274)) ([c9e5bd8](https://github.com/yonatangross/orchestkit/commit/c9e5bd875dc614ba9ce45214d9cab87c9e00e0cc))",
+          "**site:** agents block as a scoreboard with proof ([#5249](https://github.com/yonatangross/orchestkit/issues/5249)) ([61b9927](https://github.com/yonatangross/orchestkit/commit/61b9927e0abd8b5b8abe219b566bbfebab4d9e61))",
+          "**site:** answer-first openers and one cross-harness summary ([#5250](https://github.com/yonatangross/orchestkit/issues/5250)) ([bec2ccb](https://github.com/yonatangross/orchestkit/commit/bec2ccb10413568395958f3f0eacdb6be0bf3ce6))",
+          "**site:** generate the host compatibility table and name every host ([#5266](https://github.com/yonatangross/orchestkit/issues/5266)) ([94e6e4d](https://github.com/yonatangross/orchestkit/commit/94e6e4da67f7df99a29fba3732da2e25266327e8))",
+          "**site:** generate the library's workflow stations from source ([#5252](https://github.com/yonatangross/orchestkit/issues/5252)) ([89b655d](https://github.com/yonatangross/orchestkit/commit/89b655d14e33bd96a07fd6263a28d98c07956cf4))",
+          "**site:** the library first page, server links, a live terminal and host lines ([#5253](https://github.com/yonatangross/orchestkit/issues/5253)) ([9becb19](https://github.com/yonatangross/orchestkit/commit/9becb1910a93e87dd6ce4d08bd306bd96a9c062d))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs-site:** refresh next to 16.4.6 for the npm audit gate ([#5272](https://github.com/yonatangross/orchestkit/issues/5272)) ([b8154d2](https://github.com/yonatangross/orchestkit/commit/b8154d27d54ca6bda960c37db8a9a5b2446ae79b)), closes [#5271](https://github.com/yonatangross/orchestkit/issues/5271)",
+          "**hooks:** close five Vercel security findings in the npm ci guard and two test scripts ([#5268](https://github.com/yonatangross/orchestkit/issues/5268)) ([fdc1287](https://github.com/yonatangross/orchestkit/commit/fdc1287ed57b7be06e38189776860941b6ab8d0e))",
+          "**hooks:** cut three default hook texts from the model's context ([#5279](https://github.com/yonatangross/orchestkit/issues/5279)) ([17e6b3c](https://github.com/yonatangross/orchestkit/commit/17e6b3cf40fbc85dd2889d5debacb4d392cb62b4))",
+          "**hooks:** stamp every session with ork_version and rules_hash ([#5251](https://github.com/yonatangross/orchestkit/issues/5251)) ([e54ea0b](https://github.com/yonatangross/orchestkit/commit/e54ea0b3fed7a90516546a14e537854db3ec772c))",
+          "**release:** pin ork-extras in the stable set, drop its index stamp ([#5245](https://github.com/yonatangross/orchestkit/issues/5245)) ([9aa707a](https://github.com/yonatangross/orchestkit/commit/9aa707a83ec9854b28657aff9f2103c52cbe33c8))",
+          "**review-pr:** give the safety_proof criterion a min_blocker ([#5280](https://github.com/yonatangross/orchestkit/issues/5280)) ([121b31b](https://github.com/yonatangross/orchestkit/commit/121b31b763b63e60f7814ce3534b7fe2aaaabfbd))",
+          "**site:** add the CLI page and MCP output schemas ([#5244](https://github.com/yonatangross/orchestkit/issues/5244)) ([c0c4d05](https://github.com/yonatangross/orchestkit/commit/c0c4d051908bc827b3db17f71ea1988c9c9fc92c))",
+          "**site:** give library chips and cards their own background ([#5235](https://github.com/yonatangross/orchestkit/issues/5235)) ([ee9954c](https://github.com/yonatangross/orchestkit/commit/ee9954c215109b261132453a4ec27187bef2776c))",
+          "**site:** name every host on five more surfaces ([#5247](https://github.com/yonatangross/orchestkit/issues/5247)) ([0d14b57](https://github.com/yonatangross/orchestkit/commit/0d14b57edf01d889ec4a9000168c22c09e8f9029))",
+          "**site:** one H1 per docs page ([#5242](https://github.com/yonatangross/orchestkit/issues/5242)) ([26f47ab](https://github.com/yonatangross/orchestkit/commit/26f47ab6f984234d60493fcaab7026eccf732670))",
+          "**site:** robots.txt signal in the * group, real sitemap lastmod ([#5237](https://github.com/yonatangross/orchestkit/issues/5237)) ([92f33c6](https://github.com/yonatangross/orchestkit/commit/92f33c6f85235a891c077f03f0a51c200c61eaaf))",
+          "**site:** say what OrchestKit gives on each agent host ([#5246](https://github.com/yonatangross/orchestkit/issues/5246)) ([8465dcd](https://github.com/yonatangross/orchestkit/commit/8465dcd72f2930be34437ca545e5f0bca03e5968))",
+          "**site:** search titles, descriptions and Organization logo ([#5239](https://github.com/yonatangross/orchestkit/issues/5239)) ([c18e86e](https://github.com/yonatangross/orchestkit/commit/c18e86e32fa76bdabbb7d1e0ac7d319c86d9e1ce))",
+          "**site:** show the home FAQ and put key facts in the Markdown ([#5243](https://github.com/yonatangross/orchestkit/issues/5243)) ([fbfbe3a](https://github.com/yonatangross/orchestkit/commit/fbfbe3a7e078cf400e2a125354c5846958d3d8ab))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump @types/node ([#5254](https://github.com/yonatangross/orchestkit/issues/5254)) ([db561af](https://github.com/yonatangross/orchestkit/commit/db561aff5ee9a53156468b5aa05a5b553bd1902c))",
+          "**deps-dev:** bump @types/node ([#5256](https://github.com/yonatangross/orchestkit/issues/5256)) ([f2d7b55](https://github.com/yonatangross/orchestkit/commit/f2d7b5509d2d9cfde1ce1f2910a1641e45b89aa3))",
+          "**deps-dev:** bump the npm-minor-patch group ([#5255](https://github.com/yonatangross/orchestkit/issues/5255)) ([6bfd300](https://github.com/yonatangross/orchestkit/commit/6bfd30019bcb5297c2d4aaa90cf44ab95ccc1836))",
+          "**deps:** bump the npm-minor-patch group in /docs/site with 8 updates ([#5257](https://github.com/yonatangross/orchestkit/issues/5257)) ([3b900c9](https://github.com/yonatangross/orchestkit/commit/3b900c9b0d427363794a27c04e3fff27ec3dfb7d))",
+          "**deps:** bump the remotion group ([#5258](https://github.com/yonatangross/orchestkit/issues/5258)) ([37263d1](https://github.com/yonatangross/orchestkit/commit/37263d145684293d84100298881c3b63f0912140))",
+          "**skills:** flag 25 ork-extras skills as archive candidates ([#5276](https://github.com/yonatangross/orchestkit/issues/5276)) ([ee2cf56](https://github.com/yonatangross/orchestkit/commit/ee2cf567c4086666ce213596a4bb72597fb33e8f))",
+          "**traffic:** snapshot week of 2026-11-09 ([#5260](https://github.com/yonatangross/orchestkit/issues/5260)) ([e39baed](https://github.com/yonatangross/orchestkit/commit/e39baedbc9f9cb8df78a9b1b1a1e9a3d2d3db3ee))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**hooks:** align architecture page with actual hooks.json runners (carries [#5128](https://github.com/yonatangross/orchestkit/issues/5128)) ([#5207](https://github.com/yonatangross/orchestkit/issues/5207)) ([5d1771c](https://github.com/yonatangross/orchestkit/commit/5d1771c4a315ef68d018be4400c0d6b97841d51e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.13.0",
     "date": "2026-11-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0",
