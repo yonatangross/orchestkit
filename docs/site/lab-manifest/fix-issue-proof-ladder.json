@@ -1,0 +1,8 @@
+{
+  "slug": "fix-issue-proof-ladder",
+  "source": "docs/feat--fix-issue-proof-ladder/index.html",
+  "title": "fix-issue: prove the safety fact before a fix ships",
+  "description": "fix-issue no longer asks the user four questions about a fix. It finds the one fact the fix is safe because of and proves it on a five-step ladder; a pass needs a script that ran against the real code. Pick a step to see what counts.",
+  "tags": ["skills", "fix-issue", "review-pr"],
+  "date": "2026-11-17"
+}
