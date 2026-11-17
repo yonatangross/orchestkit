@@ -1,5 +1,5 @@
 ---
-description: "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a branch is ready for review. Not for a bare gh pr create."
+description: "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
 argument-hint: "[title]"
 disable-model-invocation: false
 context: fork

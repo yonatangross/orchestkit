@@ -6,8 +6,12 @@
 // from what the listing shows it. For each prompt this checks:
 //
 //   1. RANK   the expected skill is the best match among the listing lines "name: description" of every model-facing
-//             core skill. The match is a lexical proxy: distinct stemmed content
-//             words, weighted by how rare each word is across the listing.
+//             core skill, and wins by at least MIN_MARGIN points over the runner-up. The match is a lexical proxy: distinct
+//             stemmed content words, weighted by how rare each word is across the listing. A pasted diff is not
+//             part of the request, so fenced diff blocks are dropped before scoring: their identifiers (an
+//             `expect(...)` line in a test hunk scored as the name of another skill) moved a case by more than the
+//             whole margin once a sibling change reworded the listing. The margin is enforced here, so a thin win
+//             fails in the change that makes it thin and not in a sibling change.
 //   2. ROUTE  the ork:auto intent table has a row for the case's intent that
 //             points at the expected skill, and the prompt holds at least one
 //             of that row's signal phrases.
@@ -47,6 +51,20 @@ function stem(w) {
     if (w.endsWith(suf) && w.length - suf.length >= 3) return w.slice(0, -suf.length);
   }
   return w;
+}
+
+// The smallest lead the expected skill must have over the runner-up. The thinnest checked case
+// leads by 1.5 on the merged tree of the open changes; a lead under this is one reworded listing line from a flip.
+const MIN_MARGIN = 1.0;
+
+// What the user asked, without a pasted diff: fenced diff blocks carry code identifiers, not the request.
+const request = (text) => text.replace(/```diff[\s\S]*?```/g, ' ');
+
+// The verdict for one case from its scores: the expected skill must be first AND lead by MIN_MARGIN.
+function judge(scores, want) {
+  const ranked = [...scores.keys()].sort((a, b) => scores.get(b) - scores.get(a) || (a < b ? -1 : 1));
+  const margin = scores.get(ranked[0]) - scores.get(ranked[1]);
+  return { ranked, margin, ok: ranked[0] === want && margin >= MIN_MARGIN };
 }
 
 function words(text) {
@@ -132,20 +150,19 @@ for (const c of spec.cases) {
     continue;
   }
   const prompt = promptOf(c.eval);
-  const q = words(prompt);
+  const q = words(request(prompt));
   const scores = new Map();
   for (const [skill, ws] of docs) {
     let s = 0;
     for (const w of q) if (ws.has(w)) s += Math.log(n / df.get(w));
     scores.set(skill, s);
   }
-  const ranked = [...scores.keys()].sort((a, b) => scores.get(b) - scores.get(a) || (a < b ? -1 : 1));
-  const okRank = ranked[0] === c.skill;
+  const { ranked, margin, ok: okRank } = judge(scores, c.skill);
   const top3 = ranked
     .slice(0, 3)
     .map((s) => `${s} ${scores.get(s).toFixed(1)}`)
     .join(', ');
-  console.log(`${okRank ? 'PASS' : 'FAIL'} rank  ${c.eval.padEnd(36)} want ${c.skill.padEnd(10)} top: ${top3}`);
+  console.log(`${okRank ? 'PASS' : 'FAIL'} rank  ${c.eval.padEnd(36)} want ${c.skill.padEnd(10)} lead ${margin.toFixed(1)} (min ${MIN_MARGIN.toFixed(1)}) top: ${top3}`);
   if (!okRank) failed++;
   if (c.intent) {
     const row = rows.get(c.intent);
@@ -163,6 +180,18 @@ for (const c of spec.cases) {
     if (!okRoute) failed++;
   }
 }
+// Planted controls: the judge and the diff strip must fail on the inputs they exist to catch.
+const control = (name, ok) => {
+  console.log(`${ok ? 'PASS' : 'FAIL'} control ${name}`);
+  if (!ok) failed++;
+};
+control('a win by less than the margin is not a pass', !judge(new Map([['a', 5], ['b', 5 - MIN_MARGIN / 2]]), 'a').ok);
+control('a tie is not a pass', !judge(new Map([['a', 5], ['b', 5]]), 'a').ok);
+control('the wrong skill first is not a pass', !judge(new Map([['a', 9], ['b', 1]]), 'b').ok);
+control('a lead of the margin or more is a pass', judge(new Map([['a', 5], ['b', 5 - MIN_MARGIN]]), 'a').ok);
+control('a fenced diff block is dropped before scoring', !/expect/.test(request('review this\n```diff\n+  expect(true).toBe(true);\n```\nplease')));
+control('a fenced block that is not a diff is kept', /conclusion/.test(request('why\n```json\n{"conclusion": "failure"}\n```\nplease')));
+
 const skipped = spec.cases.filter((c) => c.known_gap).length;
 console.log(`${failed} check(s) failed over ${spec.cases.length - skipped} checked cases, ${skipped} skipped as known gaps`);
 if (failed) {

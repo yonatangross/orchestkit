@@ -1335,9 +1335,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a branch is ready for review. Not for a bare gh pr create.",
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling.",
     "version": "2.7.0",
-    "sha256": "37ec82bd15d07056b48c2dbfea5d7fb05ca524f392585c9c088ea053928218fa",
+    "sha256": "9c137a7bc5172198a0c867d862bb97e0aa20edc454ebde3ed6abce8e12218689",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -2525,9 +2525,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for bug reports, broken behavior, regressions or issue #N.",
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one.",
     "version": "2.6.0",
-    "sha256": "0337a0441ee6bcf1051ab87f7bd0fc95ec6aea75e2c5aef9fce2b4434969c3a6",
+    "sha256": "90918e97a11a25245f2e07290f54bcd565352fbc50219890b782907341acf73a",
     "author": "OrchestKit",
     "tags": [
       "issue",

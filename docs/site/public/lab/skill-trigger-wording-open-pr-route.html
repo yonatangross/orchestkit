@@ -55,7 +55,15 @@
 </section>
 
 <section><h2>3 / The offline fire cases</h2>
-<p>Nine natural prompts, none naming a skill. For each, the test checks without a model call that the expected skill is the best lexical match in the listing, and that the ork:auto table has a row for the intent that points at it. Two cases are recorded as gaps the skills do not cover, and they print SKIP, never pass.</p>
+<p>Nine natural prompts, none naming a skill. For each, the test checks without a model call that the expected skill is the best lexical match in the listing and leads the runner-up by at least 1.0 point, and that the ork:auto table has a row for the intent that points at it. A pasted diff is dropped before scoring, because its code identifiers are not the request (an <code>expect(...)</code> line once scored as the name of another skill). The minimum is enforced in the test, with planted controls that fail on a tie, on a thin win and on the wrong skill first. Two cases are recorded as gaps the skills do not cover, and they print SKIP, never pass.</p>
+<table>
+<tr><th>Case</th><th>Lead over the runner-up</th></tr>
+<tr><td>40 triage root cause</td><td>6.0</td></tr>
+<tr><td>50 review sql injection</td><td>14.1</td></tr>
+<tr><td>51 review unawaited forEach</td><td>7.4 (it lost by 0.1 when the design-to-code rework was merged, before this change)</td></tr>
+<tr><td>60 promote, PR title and body</td><td>1.5 (10.9 before the create-pr gate sentence was restored: still first, thin)</td></tr>
+<tr><td>70, 71, 72 ci-debug</td><td>3.7, 1.6, 6.6</td></tr>
+</table>
 <label><input type="checkbox" id="gaps" checked> show the two known gaps</label>
 <table id="cases"><tr><th>Case</th><th>Expected skill</th><th>auto intent</th><th>Result</th></tr></table>
 <p id="tally"></p>
@@ -71,8 +79,8 @@
 const SKILLS = {
   'fix-issue': {
     before: 'Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.',
-    after: 'Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for bug reports, broken behavior, regressions or issue #N.',
-    note: 'Adds the words people type for triage: bug report, broken behavior, culprit. The phases already did this work.'
+    after: 'Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one.',
+    note: 'Adds the words people type for triage (root cause, culprit) and says what the skill needs: it resolves its target from an issue number or URL and stops with TARGET_UNRESOLVED otherwise, so the listing line now says so instead of inviting pasted bug reports.'
   },
   'review-pr': {
     before: 'PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).',
@@ -81,8 +89,8 @@ const SKILLS = {
   },
   'create-pr': {
     before: 'Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling.',
-    after: 'Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a branch is ready for review. Not for a bare gh pr create.',
-    note: 'The old gate "use only when asked for this skill" is gone so a plain "my branch is ready for review" can pick it. If that gate was deliberate, restore it and keep the rest. A bare gh pr create stays out of scope.'
+    after: 'Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling.',
+    note: 'The gate sentence from the earlier description diet is kept as it was: this skill opens a PR with gh, so it is used when asked for. Only the first sentence changed (GitHub PR to PR, summary to body). The ork:auto open-pr route is how a person asks for it by intent.'
   }
 };
 const CASES = [

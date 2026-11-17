@@ -933,7 +933,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
-    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use when a branch is ready for review. Not for a bare gh pr create."
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
   },
   {
     "url": "/docs/reference/skills/create-research",
@@ -1158,7 +1158,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/fix-issue",
     "title": "Fix Issue",
-    "description": "Triages and fixes a bug, regression or GitHub issue: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for bug reports, broken behavior, regressions or issue #N."
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or an issue URL; it stops without one."
   },
   {
     "url": "/docs/reference/skills/freeze",
