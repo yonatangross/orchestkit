@@ -3839,6 +3839,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "design → /ork:brainstorm",
       "build → /ork:implement",
       "review → /ork:review-pr",
+      "open-pr → /ork:create-pr",
       "verify → /ork:verify",
       "improve-skill → holdout-promotion gate",
       "setup → /ork:setup",

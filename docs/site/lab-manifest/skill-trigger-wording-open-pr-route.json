@@ -1,0 +1,11 @@
+{
+  "slug": "skill-trigger-wording-open-pr-route",
+  "source": "docs/fix--g7-trigger-fix/index.html",
+  "title": "Trigger wording for three skills and an open-pr route",
+  "description": "Before and after of the descriptions of fix-issue, review-pr and create-pr, the new open-pr route in ork:auto, and the nine offline fire cases that pin them, with the two recorded gaps.",
+  "tags": [
+    "skills",
+    "routing"
+  ],
+  "date": "2026-11-17"
+}
