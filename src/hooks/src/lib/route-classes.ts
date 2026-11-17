@@ -132,7 +132,7 @@ export const ROUTE_CLASS_TO_EXECUTOR: Record<RouteIntent, RouteTarget | null> = 
   ops_security_infra: null,
   research: { kind: 'agent', name: 'Explore' },
   visual: skill('glyph'),
-  session_admin: skill('remember'),
+  session_admin: skill('memory'),
   continuation: null,
   ambiguous: null,
 };

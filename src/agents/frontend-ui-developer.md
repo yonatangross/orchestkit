@@ -55,7 +55,6 @@ skills:
   - storybook-mcp-integration
   - design-to-code
   - design-context-extract
-  - remember
   - memory
 mcpServers: [context7, 21st-dev-magic, storybook-mcp]
 metadata:

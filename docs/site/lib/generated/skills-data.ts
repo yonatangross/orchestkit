@@ -151,7 +151,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Local OrchestKit usage analytics: agent and skill frequency, hook timing, session replay, cost estimates, model delegation trends. Use when reviewing usage, performance or costs.",
     "version": "2.1.0",
-    "sha256": "9e7f3ecd8e6fe3b9b873fe7c90a4c19f3e45b723c7dc36c53af9ebbd34742a46",
+    "sha256": "98caa3a15535f96c77838a85d6d75825a50af5133d6ceca6986708c44d2f76ec",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -695,7 +695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).",
     "version": "4.10.0",
-    "sha256": "98ba19679806c95b4808885f3f417ffbec75040447d620792148748fcf2f6789",
+    "sha256": "a3ad2b6d1c3c3e08b42bba2e6626a6f18075d083f087e133774963c463a9986e",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -726,7 +726,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "architecture-decision-record",
       "api-design",
       "memory",
-      "remember",
       "scope-appropriate-architecture",
       "testing-unit",
       "testing-integration",
@@ -940,9 +939,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures.",
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Sweep mode classifies every open red PR through the manually dispatched workflow. Not for app test failures.",
     "version": "0.2.0",
-    "sha256": "83ea2a8b310efa5272c6066fd6a32b5eeff858e394a7192cd301c1b294c5aea4",
+    "sha256": "467d1ddf51fdc7d2cf6376cc24165b47dd4b57e969a73323ed4915010ff33d63",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -965,7 +964,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": null,
     "complexity": "medium",
-    "structure": {},
+    "structure": {
+      "references": [
+        "sweep-mode.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],
@@ -973,34 +976,22 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-sentinel": {
     "name": "ci-sentinel",
-    "description": "Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug.",
-    "version": "0.1.0",
-    "sha256": "b19d24509d2d9737d73258275e890587ae5681d32741e7aeb1b693dbc9f36fe2",
+    "description": "Formerly ci-sentinel, now ci-debug sweep. Use when /ork:ci-sentinel is typed to install or check the red-PR sweep. Removed 2027-01-31.",
+    "version": "1.0.0",
+    "sha256": "f5d8841040c1b2be7b45f3a450d2cad9cbb75e90bdf8df4c41f20b63521799ba",
     "author": "OrchestKit",
     "tags": [
       "ci",
       "sentinel",
-      "automation",
-      "github-actions",
-      "propose-dont-apply",
-      "autonomous"
+      "alias",
+      "deprecated"
     ],
     "userInvocable": true,
     "context": "fork",
-    "allowedTools": [
-      "Bash",
-      "Read",
-      "Write",
-      "Edit",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [
-      "github-operations",
-      "memory"
-    ],
+    "allowedTools": [],
+    "skills": [],
     "agent": null,
-    "complexity": "medium",
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -1546,7 +1537,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity.",
     "version": "1.0.1",
-    "sha256": "e0ac61b74cccf475ef28e757f430a37db286527f4814257e5fb70384dd08fa26",
+    "sha256": "b3c618e7cd9b10a123e10b234d4261ca044d5430fee68206e6e48202ece70ea1",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1584,7 +1575,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "design-system-tokens",
-      "remember",
       "memory"
     ],
     "agent": "design-context-extractor",
@@ -1604,7 +1594,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-import",
     "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship.",
     "version": "1.0.0",
-    "sha256": "405f13d5ae02fe13edde80eabd2c1edeef4616840ded156299cbdaf729b782ba",
+    "sha256": "bc926c1d59861da2911e9a21cbc67736d584a8458b2f1f5fd4a2fcf7d25ec6c2",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1636,7 +1626,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "component-search",
       "design-context-extract",
       "design-system-tokens",
-      "remember",
       "memory"
     ],
     "agent": "claude-design-orchestrator",
@@ -1653,7 +1642,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-ship",
     "description": "Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design should come back as a PR. For files on disk only, use design-import.",
     "version": "1.0.0",
-    "sha256": "bc1452f8356153bc344a2ef7f6708a72f564c456fc568619e419b44d77007fe4",
+    "sha256": "0055ab3213f8e289f73a7f752d81c9332e825f2cfb53a37b1ab74201957162ce",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1684,7 +1673,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "design-import",
       "cover",
       "expect",
-      "remember",
       "memory"
     ],
     "agent": "claude-design-orchestrator",
@@ -1789,7 +1777,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "d55c9aa4c25786a27935318385ca2454ba36c1411046df01aa1ddcedb782d833",
+    "sha256": "05617dfdf0991367f21a16b9b52a00ab6afcbe6d8a07dc0f4bfd37ead238a045",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1842,7 +1830,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "component-search",
       "storybook-mcp-integration",
       "design-context-extract",
-      "remember",
       "memory"
     ],
     "agent": null,
@@ -2193,41 +2180,23 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "dream": {
     "name": "dream",
-    "description": "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. Use when memory needs cleanup. To store use remember; to search use memory.",
-    "version": "1.1.0",
-    "sha256": "14530a582568df659417917efebb7641f9188ff125240d0a8c75d4800875978f",
+    "description": "Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31.",
+    "version": "2.0.0",
+    "sha256": "8ba3f4de780ce59d9f3f49efba5c5e32d35d3707e35a266b250ba192e30c9448",
     "author": "OrchestKit",
     "tags": [
       "memory",
-      "maintenance",
-      "consolidation"
+      "dream",
+      "alias",
+      "deprecated"
     ],
     "userInvocable": true,
-    "context": "inherit",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep",
-      "Bash",
-      "mcp__memory__search_nodes",
-      "mcp__memory__open_nodes",
-      "mcp__memory__read_graph"
-    ],
+    "context": "fork",
+    "allowedTools": [],
     "skills": [],
     "agent": null,
-    "complexity": "medium",
-    "structure": {
-      "references": [
-        "housekeeping.md",
-        "index-budget.md",
-        "safe-deletes.md"
-      ],
-      "scripts": [
-        "index-budget.mjs"
-      ]
-    },
+    "complexity": "low",
+    "structure": {},
     "plugins": [
       "ork"
     ],
@@ -2557,7 +2526,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.",
     "version": "2.6.0",
-    "sha256": "20ba904cc64b4037c002e85a26fc1d61d82a85fc4de4cd9bed6dd6d65e11f6c2",
+    "sha256": "1e5acba811414f277be36961ff42162e5cd313d31b53acb147f6ae1c4c6f3ac1",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2596,7 +2565,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "verify",
       "memory",
-      "remember",
       "chain-patterns"
     ],
     "agent": null,
@@ -3377,42 +3345,58 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory": {
     "name": "memory",
-    "description": "Read-side memory: search past decisions, load context, timelines and graph views. Use when finding what memory holds. To store use remember; to clean up use dream.",
-    "version": "2.0.1",
-    "sha256": "cec1557415c9a74c9b99b84cdcbae94620ed2e607532677615e7441dcaadfe3e",
+    "description": "Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream (consolidate stale memory files). Use when storing, finding or cleaning up what was learned or decided.",
+    "version": "3.0.0",
+    "sha256": "fbe54c0d3805caeaa659bf1407d055a715759c241a49532ec28a4eb3911392c2",
     "author": "OrchestKit",
     "tags": [
       "memory",
+      "best-practices",
       "graph",
       "session",
       "context",
-      "sync",
-      "visualization",
-      "history",
-      "search"
+      "search",
+      "remember",
+      "dream"
     ],
     "userInvocable": true,
     "context": "inherit",
     "allowedTools": [
       "Read",
+      "Write",
+      "Edit",
       "Grep",
       "Glob",
       "Bash",
       "AskUserQuestion",
       "mcp__memory__search_nodes",
-      "mcp__memory__read_graph"
+      "mcp__memory__read_graph",
+      "mcp__memory__open_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__create_relations",
+      "mcp__memory__add_observations"
     ],
     "skills": [],
     "agent": null,
-    "complexity": "low",
+    "complexity": "medium",
     "structure": {
       "references": [
+        "category-detection.md",
+        "confirmation-templates.md",
+        "entity-extraction-workflow.md",
+        "examples.md",
+        "graph-operations.md",
+        "housekeeping.md",
+        "index-budget.md",
         "memory-commands.md",
         "mermaid-patterns.md",
-        "session-resume-patterns.md"
+        "safe-deletes.md",
+        "session-resume-patterns.md",
+        "verb-dream.md"
       ],
       "scripts": [
         "graph-utils.mjs",
+        "index-budget.mjs",
         "playground-template.html",
         "render-graph.mjs",
         "render-playground.mjs",
@@ -3461,9 +3445,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory-fabric": {
     "name": "memory-fabric",
-    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream.",
+    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory search; entry storage to memory remember; consolidation to memory dream.",
     "version": "2.1.0",
-    "sha256": "0031f3f2b890e4a68964f8335635a4b4096c19044d5be75cf13fa9b5294b3dfe",
+    "sha256": "dc2d0d640f4c2bfa09d3fc868ce589df0adae62f72603b566d60effd2b2e576e",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3849,7 +3833,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prd-to-goal",
     "description": "Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal against a spec.",
     "version": "0.1.0",
-    "sha256": "12f571ddb0c10b668f5499a3b566a0c20670b5790e48ae692d438ac1ff85f50e",
+    "sha256": "b584403e7a788e22059e27a8d3922e6def9cf5f849db3b9d33706e252f4cb812",
     "author": "OrchestKit",
     "tags": [
       "/goal",
@@ -4346,80 +4330,27 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "remember": {
     "name": "remember",
-    "description": "Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping was learned or decided. To search use memory; to consolidate use dream.",
-    "version": "3.0.1",
-    "sha256": "8497fc4888fcddafc6a9256b31d4bb3a0fa5513cfa0dd2875bd7605807f88cee",
+    "description": "Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. Removed 2027-01-31.",
+    "version": "4.0.0",
+    "sha256": "07577138da8a4ffdf7be6c7bab95430f3413cece7dab75d75339224577a5c85d",
     "author": "OrchestKit",
     "tags": [
       "memory",
-      "decisions",
-      "patterns",
-      "best-practices",
-      "graph-memory"
+      "remember",
+      "alias",
+      "deprecated"
     ],
     "userInvocable": true,
-    "context": "inherit",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Bash",
-      "AskUserQuestion",
-      "mcp__memory__create_entities",
-      "mcp__memory__create_relations",
-      "mcp__memory__add_observations",
-      "mcp__memory__search_nodes"
-    ],
+    "context": "fork",
+    "allowedTools": [],
     "skills": [],
     "agent": null,
     "complexity": "low",
-    "structure": {
-      "references": [
-        "category-detection.md",
-        "confirmation-templates.md",
-        "entity-extraction-workflow.md",
-        "examples.md",
-        "graph-operations.md"
-      ]
-    },
+    "structure": {},
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "accessibility-specialist",
-      "ai-safety-auditor",
-      "backend-system-architect",
-      "ci-cd-engineer",
-      "claude-design-orchestrator",
-      "code-quality-reviewer",
-      "component-curator",
-      "data-pipeline-engineer",
-      "database-engineer",
-      "debug-investigator",
-      "demo-producer",
-      "deployment-manager",
-      "design-context-extractor",
-      "design-system-architect",
-      "eval-runner",
-      "event-driven-architect",
-      "frontend-performance-engineer",
-      "frontend-ui-developer",
-      "git-operations-engineer",
-      "infrastructure-architect",
-      "llm-integrator",
-      "market-intelligence",
-      "monitoring-engineer",
-      "multimodal-specialist",
-      "product-strategist",
-      "python-performance-engineer",
-      "release-engineer",
-      "security-auditor",
-      "security-layer-auditor",
-      "system-design-reviewer",
-      "test-generator",
-      "web-research-analyst",
-      "workflow-architect"
-    ]
+    "relatedAgents": []
   },
   "responsive-patterns": {
     "name": "responsive-patterns",
@@ -4699,7 +4630,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes.",
     "version": "2.1.0",
-    "sha256": "a37b382c70bd4841ee6888a56360b259235d06729dc90d67e22502f3347aeff5",
+    "sha256": "8314420dc477c62f65d3b7bcc18b0351f6e5f31cc001d65b7bbffe827e6a3600",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4729,7 +4660,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "configure",
-      "remember",
+      "memory",
       "explore",
       "help"
     ],
@@ -5415,7 +5346,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph).",
     "version": "2.1.0",
-    "sha256": "7f9c05cdd789615647ac95036c890aa9df3f26360332746b81494072302d2b1b",
+    "sha256": "2a9e471c1c4fd87832a62408f0c45082427aed312452fe04514c98036fbb3c92",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -5452,7 +5383,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "explore",
       "architecture-decision-record",
       "memory",
-      "remember",
       "page-serve"
     ],
     "agent": "workflow-architect",

@@ -17,7 +17,6 @@ skills:
   - component-search
   - design-context-extract
   - design-system-tokens
-  - remember
   - memory
 metadata:
   category: workflow-automation
@@ -296,7 +295,7 @@ Next: design-ship <bundle_id>   # to open PR
 | `component-search` | Used by the orchestrator agent for dedup |
 | `design-context-extract` | Used if bundle is missing `design_tokens` block |
 | `design-system-tokens` | Token reconciliation reference |
-| `remember` / `memory` | Provenance + prior-import detection |
+| `memory` | Provenance + prior-import detection |
 
 ## NOT this skill's job
 

@@ -1,7 +1,7 @@
 {
   "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
-  "total_violations": 106,
-  "files_with_violations": 64,
+  "total_violations": 102,
+  "files_with_violations": 61,
   "files": {
     "src/skills/animation-motion-design/SKILL.md": [
       "house-key:path_patterns",
@@ -31,10 +31,6 @@
       "house-key:tool-coverage"
     ],
     "src/skills/ci-debug/SKILL.md": [
-      "house-key:triggers",
-      "unknown-key:skills"
-    ],
-    "src/skills/ci-sentinel/SKILL.md": [
       "house-key:triggers",
       "unknown-key:skills"
     ],
@@ -95,9 +91,6 @@
     "src/skills/doctor/SKILL.md": [
       "house-key:triggers",
       "unknown-key:skills"
-    ],
-    "src/skills/dream/SKILL.md": [
-      "house-key:triggers"
     ],
     "src/skills/error-analysis/SKILL.md": [
       "house-key:triggers",
@@ -170,9 +163,6 @@
       "house-key:targets"
     ],
     "src/skills/release-sync/SKILL.md": [
-      "house-key:triggers"
-    ],
-    "src/skills/remember/SKILL.md": [
       "house-key:triggers"
     ],
     "src/skills/review-pr/SKILL.md": [

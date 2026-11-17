@@ -30,7 +30,6 @@ skills:
   - database-patterns
   - performance
   - python-backend
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
@@ -229,6 +228,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |database-patterns:{SKILL.md,references/{cost-comparison.md,db-migration-paths.md,migration-testing.md,ork-delta.md,postgres-vs-mongodb.md,storage-and-cms.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |python-backend:{SKILL.md,references/{eager-loading.md,fastapi-app-boilerplate.md,ork-delta.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

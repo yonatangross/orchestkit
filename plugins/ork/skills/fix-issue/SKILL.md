@@ -9,7 +9,7 @@ context: fork
 background: false
 user-invocable: true
 allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Agent TaskCreate TaskUpdate TaskStop Grep Glob ToolSearch ExitWorktree CronCreate CronDelete PushNotification mcp__memory__search_nodes mcp__memory__create_entities mcp__context7__resolve-library-id mcp__context7__query-docs"
-skills: [explore, verify, memory, remember, chain-patterns]
+skills: [explore, verify, memory, chain-patterns]
 model: sonnet
 metadata:
   category: workflow-automation
@@ -455,7 +455,7 @@ Done means all of these hold:
 - `debug-investigator` - Debug complex issues
 - `browser-tools` - Visual inspection with agent-browser + Portless
 - `ork:issue-progress-tracking` - Auto-updates from commits
-- `ork:remember` - Store lessons learned
+- `ork:memory remember` - Store lessons learned
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 

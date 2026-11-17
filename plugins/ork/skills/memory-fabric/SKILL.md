@@ -2,7 +2,7 @@
 name: memory-fabric
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream."
+description: "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory search; entry storage to memory remember; consolidation to memory dream."
 user-invocable: false
 disable-model-invocation: true
 allowed-tools: "Read Bash mcp__memory__search_nodes"
@@ -244,7 +244,7 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 ## Related Skills
 
 - `ork:memory` - User-facing memory operations (search, load, sync, viz)
-- `ork:remember` - User-facing memory storage
+- `ork:memory remember` - User-facing memory storage
 - `caching` - Caching layer that can use fabric
 
 ## Key Decisions

@@ -93,6 +93,14 @@ export function siteRedirects() {
 	];
 }
 
+// Reference pages of skills that merged into another skill (stage 1 of the
+// catalog trim). The old URL answers a temporary redirect to the merged page.
+const RETIRED_SKILL_PAGES = [
+	["remember", "memory"],
+	["dream", "memory"],
+	["ci-sentinel", "ci-debug"],
+];
+
 // The site's own path redirects (canonical host).
 function pathRedirects() {
 	return [
@@ -116,6 +124,11 @@ function pathRedirects() {
 			destination: "/docs/showcase/lab",
 			permanent: false,
 		},
+		...RETIRED_SKILL_PAGES.map(([from, to]) => ({
+			source: `/docs/reference/skills/${from}`,
+			destination: `/docs/reference/skills/${to}`,
+			permanent: false,
+		})),
 		// Predictable aliases for the developer resources (orank "Developer
 		// resource discoverability": use predictable URLs). Each lands on the
 		// existing product-titled page; no page moves. Temporary for the same

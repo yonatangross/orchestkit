@@ -158,7 +158,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 /ork:verify       # Multi-agent validation
 /ork:commit       # Conventional commit with pre-checks
 /ork:explore      # Analyze unfamiliar codebase
-/ork:remember     # Save to persistent memory
+/ork:memory remember     # Save to persistent memory
 /ork:doctor       # Health check
 ```
 

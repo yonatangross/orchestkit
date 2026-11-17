@@ -32,7 +32,6 @@ skills:
   - design-ship
   - component-search
   - design-context-extract
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

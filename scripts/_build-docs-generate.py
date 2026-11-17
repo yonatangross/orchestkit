@@ -2258,7 +2258,7 @@ COMMAND_SECTIONS = [
     (
         "Git, GitHub, and CI",
         "Commits, pull requests, reviews, and failing CI runs.",
-        ["commit", "create-pr", "review-pr", "ci-debug", "ci-sentinel"],
+        ["commit", "create-pr", "review-pr", "ci-debug"],
     ),
     (
         "Design to Code",
@@ -2275,7 +2275,7 @@ COMMAND_SECTIONS = [
     (
         "Memory and Knowledge",
         "Store and recall decisions, patterns, and release knowledge across sessions.",
-        ["remember", "memory", "dream", "release-sync"],
+        ["memory", "release-sync"],
     ),
     (
         "Dev Loop and Visuals",

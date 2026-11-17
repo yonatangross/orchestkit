@@ -21,7 +21,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 | 🔴 Production error sweep | Production Error Sweep | `/ork:fix-issue` |
 | 📚 Docs-drift sweep | Docs Sweep | `/ork:audit-full` |
 | ⚡ Page-load budget | Sub-50ms Page-Load | `/ork:performance` |
-| 🧹 Repository cleanup | Repository Cleanup | `/ork:dream` |
+| 🧹 Repository cleanup | Repository Cleanup | `/ork:memory dream` |
 | ✅ Quality streak | Quality Streak | `/ork:verify` |
 | 🎫 Ticket → PR-ready | Ticket-to-PR-Ready | `/ork:fix-issue` → `/ork:create-pr` |
 | 🧼 Type/lint zero | (static-analysis baseline) | fixer agent |
@@ -75,7 +75,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 ## 🧹 Repository cleanup
 
 **Use when:** memory files, stale branches, or dead state have accumulated.
-**Backs each pass:** `/ork:dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating — each pass strictly reduces the stale set).
+**Backs each pass:** `/ork:memory dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating — each pass strictly reduces the stale set).
 
 ```
 /goal until <DREAM_DRYRUN_CMD> reports 0 stale AND 0 duplicate AND 0 contradiction, or stop after 8 turns

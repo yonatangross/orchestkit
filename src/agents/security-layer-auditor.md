@@ -17,7 +17,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - security-patterns
-  - remember
   - memory
 mcpServers: []
 background: true

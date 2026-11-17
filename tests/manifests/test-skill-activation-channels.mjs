@@ -43,6 +43,12 @@ const STANDALONE_ALLOWLIST = {
   // Add entries as: 'skill-name': 'why it is intentionally direct-only',
   'audit-activation':
     'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork:audit-activation is the only intended trigger',
+  remember:
+    'typed-only alias of the remember verb of memory (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the verb through the memory skill',
+  dream:
+    'typed-only alias of the dream verb of memory (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the verb through the memory skill',
+  'ci-sentinel':
+    'typed-only alias of the sweep mode of ci-debug (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the mode through the ci-debug skill',
   careful:
     'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
   freeze:

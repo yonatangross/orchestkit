@@ -15,7 +15,7 @@ description: "User-invocable commands for common development workflows."
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when b... |
 | [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
 | [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
-| [CI Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdi... |
+| [CI Sentinel](/docs/reference/skills/ci-sentinel) | Command | low | Formerly ci-sentinel, now ci-debug sweep. Use when /ork:ci-sentinel is typed to install or check the red-PR sweep. Re... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-... |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI ... |
 | [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, presets. Use when customizing... |
@@ -31,7 +31,7 @@ description: "User-invocable commands for common development workflows."
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to t... |
 | [Disk Cleanup](/docs/reference/skills/disk-cleanup) | Command | low | Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry ru... |
 | [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
-| [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. U... |
+| [Dream](/docs/reference/skills/dream) | Command | low | Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31. |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfami... |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention n... |
@@ -43,11 +43,11 @@ description: "User-invocable commands for common development workflows."
 | [Iterate Plan](/docs/reference/skills/iterate-plan) | Command | medium | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. U... |
 | [Iterate Research](/docs/reference/skills/iterate-research) | Command | medium | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use afte... |
 | [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, hum... |
-| [Memory](/docs/reference/skills/memory) | Command | low | Read-side memory: search past decisions, load context, timelines and graph views. Use when finding what memory holds.... |
+| [Memory](/docs/reference/skills/memory) | Command | medium | Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream ... |
 | [Page Serve](/docs/reference/skills/page-serve) | Command | low | Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request... |
 | [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal agains... |
 | [Release Sync](/docs/reference/skills/release-sync) | Command | low | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Us... |
-| [Remember](/docs/reference/skills/remember) | Command | low | Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping w... |
+| [Remember](/docs/reference/skills/remember) | Command | low | Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. R... |
 | [Review Artifact Comments](/docs/reference/skills/review-artifact-comments) | Command | low | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate... |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an ... |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when settin... |

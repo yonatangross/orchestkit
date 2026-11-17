@@ -67,7 +67,7 @@ function expectAdvisory(result: ReturnType<typeof contextFileBudgetGuard>): void
   expect(result.continue).toBe(true);
   expect(isAsk(result)).toBe(false);
   expect(advisoryOf(result)).toContain('not asking, advising');
-  expect(advisoryOf(result)).toContain('/ork:dream');
+  expect(advisoryOf(result)).toContain('/ork:memory dream');
 }
 
 describe('context-file-budget-guard', () => {
@@ -168,7 +168,7 @@ describe('context-file-budget-guard', () => {
     const ctxText = (result.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext ?? '';
     expect(ctxText).toContain('not asking, advising');
     expect(ctxText).toContain('MEMORY.md');
-    expect(ctxText).toContain('/ork:dream');
+    expect(ctxText).toContain('/ork:memory dream');
   });
 
   it('#3741 bypass mode stays silent under budget', () => {

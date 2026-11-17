@@ -37,7 +37,6 @@ tools:
 skills:
   - relevant-skill-1
   - relevant-skill-2
-  - remember
   - memory
 metadata:
   category: "backend"
@@ -165,7 +164,7 @@ Choose skills that give the agent the knowledge it needs without bloating its co
 
 1. **Start small**: Begin with 3-5 core skills. You can always add more.
 2. **Match the domain**: Use skills from the same category as the agent.
-3. **Always include memory**: Add `remember` and `memory` so the agent can persist and retrieve decisions.
+3. **Always include memory**: Add `memory` so the agent can persist and retrieve decisions.
 4. **Check existing agents**: Look at agents in the same category for skill inspiration.
 
 ### Skills by Domain
@@ -180,7 +179,7 @@ Choose skills that give the agent the knowledge it needs without bloating its co
 | DevOps | `devops-deployment`, `github-operations`, `monitoring-observability` |
 | LLM / AI | `langgraph`, `llm-integration`, `rag-retrieval`, `multimodal-llm` |
 | Architecture | `architecture-decision-record`, `architecture-patterns`, `domain-driven-design` |
-| Cross-cutting | `task-dependency-patterns`, `remember`, `memory` |
+| Cross-cutting | `task-dependency-patterns`, `memory` |
 
 ### Skill Budget Awareness
 
@@ -361,7 +360,6 @@ skills:
   - secondary-skill
   - supporting-skill
   - task-dependency-patterns
-  - remember
   - memory
 metadata:
   category: "backend"
@@ -499,7 +497,7 @@ Or test keyword activation by typing a prompt that matches your agent's keywords
 | Too many skills | Start with 3-5, add more only if the agent needs them |
 | No task boundaries | Always include DO and DON'T lists |
 | No output format | Define a JSON output structure for consistency |
-| Forgot `remember` and `memory` skills | Always include these for decision persistence |
+| Forgot the `memory` skill | Always include these for decision persistence |
 | Using `opus` unnecessarily | Default to `inherit` unless the agent needs deep reasoning |
 
 ## What's Next

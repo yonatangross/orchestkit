@@ -32,7 +32,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - security-patterns
-  - remember
   - memory
 mcpServers: [tavily, context7]
 background: true

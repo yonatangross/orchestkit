@@ -47,7 +47,6 @@ skills:
   - design-context-extract
   - component-search
   - storybook-mcp-integration
-  - remember
   - memory
 mcpServers: [context7, stitch, storybook-mcp]
 metadata:

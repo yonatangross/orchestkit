@@ -25,7 +25,6 @@ skills:
   - component-search
   - storybook-mcp-integration
   - design-context-extract
-  - remember
   - memory
 metadata:
   category: workflow-automation

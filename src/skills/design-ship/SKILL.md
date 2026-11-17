@@ -16,7 +16,6 @@ skills:
   - design-import
   - cover
   - expect
-  - remember
   - memory
 metadata:
   category: workflow-automation
@@ -244,7 +243,7 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 | `cover` | Phase 2 — Storybook + Playwright |
 | `expect` | Phase 3 — diff-aware browser verification |
 | `create-pr` | Phase 4 — open PR with templated body |
-| `remember` / `memory` | Provenance updates |
+| `memory` | Provenance updates |
 
 ## NOT this skill's job
 

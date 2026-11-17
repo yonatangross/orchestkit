@@ -151,7 +151,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 18,
+    "depCount": 17,
     "usedByCount": 0
   },
   {
@@ -208,10 +208,10 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "id": "ci-sentinel",
     "label": "CI Sentinel",
     "type": "command",
-    "complexity": "medium",
+    "complexity": "low",
     "category": "workflow",
-    "hasDeps": true,
-    "depCount": 2,
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -331,7 +331,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "frontend",
     "hasDeps": true,
-    "depCount": 3,
+    "depCount": 2,
     "usedByCount": 3
   },
   {
@@ -341,7 +341,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 6,
+    "depCount": 5,
     "usedByCount": 1
   },
   {
@@ -351,7 +351,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "complex",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 5,
+    "depCount": 4,
     "usedByCount": 0
   },
   {
@@ -381,7 +381,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "complex",
     "category": "frontend",
     "hasDeps": true,
-    "depCount": 6,
+    "depCount": 5,
     "usedByCount": 2
   },
   {
@@ -458,7 +458,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "id": "dream",
     "label": "Dream",
     "type": "command",
-    "complexity": "medium",
+    "complexity": "low",
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
@@ -531,7 +531,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 5,
+    "depCount": 4,
     "usedByCount": 0
   },
   {
@@ -552,7 +552,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "other",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 3
+    "usedByCount": 2
   },
   {
     "id": "glyph",
@@ -708,7 +708,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "id": "memory",
     "label": "Memory",
     "type": "command",
-    "complexity": "low",
+    "complexity": "medium",
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
@@ -922,7 +922,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 8
+    "usedByCount": 0
   },
   {
     "id": "responsive-patterns",
@@ -1121,7 +1121,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 6,
+    "depCount": 5,
     "usedByCount": 0
   },
   {
@@ -1217,10 +1217,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "brainstorm",
-    "target": "remember"
-  },
-  {
-    "source": "brainstorm",
     "target": "scope-appropriate-architecture"
   },
   {
@@ -1284,14 +1280,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
     "target": "memory"
   },
   {
-    "source": "ci-sentinel",
-    "target": "github-operations"
-  },
-  {
-    "source": "ci-sentinel",
-    "target": "memory"
-  },
-  {
     "source": "commit",
     "target": "chain-patterns"
   },
@@ -1345,10 +1333,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "design-context-extract",
-    "target": "remember"
-  },
-  {
-    "source": "design-context-extract",
     "target": "memory"
   },
   {
@@ -1369,10 +1353,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "design-import",
-    "target": "remember"
-  },
-  {
-    "source": "design-import",
     "target": "memory"
   },
   {
@@ -1386,10 +1366,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "design-ship",
     "target": "expect"
-  },
-  {
-    "source": "design-ship",
-    "target": "remember"
   },
   {
     "source": "design-ship",
@@ -1414,10 +1390,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "design-to-code",
     "target": "design-context-extract"
-  },
-  {
-    "source": "design-to-code",
-    "target": "remember"
   },
   {
     "source": "design-to-code",
@@ -1478,10 +1450,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "fix-issue",
     "target": "memory"
-  },
-  {
-    "source": "fix-issue",
-    "target": "remember"
   },
   {
     "source": "fix-issue",
@@ -1561,7 +1529,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "setup",
-    "target": "remember"
+    "target": "memory"
   },
   {
     "source": "setup",
@@ -1642,10 +1610,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "visualize-plan",
     "target": "memory"
-  },
-  {
-    "source": "visualize-plan",
-    "target": "remember"
   },
   {
     "source": "visualize-plan",

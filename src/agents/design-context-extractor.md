@@ -41,7 +41,6 @@ tools:
 skills:
   - design-context-extract
   - design-system-tokens
-  - remember
   - memory
 mcpServers: [stitch, context7]
 metadata:
