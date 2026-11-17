@@ -133,7 +133,7 @@ RATCHET_MSG=""
 TOTAL_WARNINGS=0
 TOTAL_UNREADABLE=0
 TOTAL_TESTS_RUN=0
-WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-267}"  # ratcheted 348->267 (#3235): two consecutive full v4 runs measured exactly 267. 2026-11-13 row 11: old 267 (the true count then was 271, two colour-coded counts were invisible), measured 267 (colour codes now counted) after the description checks follow the #5043 standard and 8 skills got a Related Skills section. Down only.
+WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-265}"  # ratcheted 348->267 (#3235): two consecutive full v4 runs measured exactly 267. 2026-11-13 row 11: old 267 (the true count then was 271, two colour-coded counts were invisible), measured 267 (colour codes now counted) after the description checks follow the #5043 standard and 8 skills got a Related Skills section. Down only. 2026-11-17 catalog trim stage 1a: 267 -> 265, the memory and ci-debug merges removed two skill warnings (the full run printed 265).
 
 # One "<category>|<warnings>|<unreadable lines>" row per category that ran (row 12). The
 # baselines file holds one "<category>=<number>" line per category; the gate before the
