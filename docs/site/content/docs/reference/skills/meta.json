@@ -101,7 +101,6 @@
     "scope-appropriate-architecture",
     "security-patterns",
     "setup",
-    "storybook-mcp-integration",
     "storybook-testing",
     "swarm-migrate",
     "task-dependency-patterns",

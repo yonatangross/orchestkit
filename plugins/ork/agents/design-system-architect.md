@@ -26,7 +26,7 @@ tools:
   - mcp__context7__query-docs
   # mcpServers stitch + storybook-mcp are metadata only (F12).
   # Stitch: BOTH mcp__stitch__* and mcp__plugin_hq-ext_stitch__* (hq-ext).
-  # Storybook: docs toolset (storybook-mcp-integration Toolset Selection).
+  # Storybook: docs toolset (design-to-code, Storybook mode, Toolset Selection).
   # https://code.claude.com/docs/en/mcp-servers
   - mcp__stitch__list_projects
   - mcp__plugin_hq-ext_stitch__list_projects
@@ -46,7 +46,7 @@ skills:
   - testing-e2e
   - design-context-extract
   - component-search
-  - storybook-mcp-integration
+  - design-to-code
   - remember
   - memory
 mcpServers: [context7, stitch, storybook-mcp]
@@ -472,7 +472,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
-|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
+|design-to-code:{SKILL.md,references/{export-formats.md,import-mode.md,ship-mode.md}}|design-to-code,claude-design,design-export,design-import,design-ship,stitch,21st-dev,storybook,mcp,ui-generation,mockup,component,react,frontend
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

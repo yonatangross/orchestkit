@@ -83,19 +83,19 @@ done
 # 6102187489, 6102749088). In the caller templates below, a writer spawn that
 # runs concurrently must pass isolation="worktree". Concurrent means: marked
 # run_in_background=true/True, created as a teammate (team_name=), or the
-# design-import Phase 4 loop. A call block ends when its parentheses balance,
+# design-to-code import-mode Phase 4 loop. A call block ends when its parentheses balance,
 # counted OUTSIDE quoted strings (triple-quoted, and plain "..." even across
 # lines), so a "1)" list marker in a prompt cannot end the block early. Keys
 # match with or without spaces around =. Skipped: **Incorrect** examples, agent-phases.md Phase 4
 # (architecture specs, no file writes), prompts that cd into a manual
 # worktree, and fix-issue spawns other than test-generator (design only).
-# Isolated or manual-worktree writers in implement, design-import, fix-issue
+# Isolated or manual-worktree writers in implement, design-to-code import mode, fix-issue
 # and task-dependency-patterns must also be told to commit: "commit your/the/
 # it/them/any" or "commit +" ("do not commit", "uncommitted" and "commit sha"
 # do not count). A named call (name=, a teammate) must NOT pass isolation on the call
 # (that makes a plain subagent); it works in a manual .worktrees/<role>.
 writer_re='ork:(backend-system-architect|frontend-ui-developer|test-generator|llm-integrator)"'
-caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-import/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/references/monitor-patterns.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md" "$REPO_ROOT/src/skills/task-dependency-patterns/SKILL.md")
+caller_files=$(find "$REPO_ROOT/src/skills/implement" -name '*.md'; printf '%s\n' "$REPO_ROOT/src/skills/design-to-code/references/import-mode.md" "$REPO_ROOT/src/skills/chain-patterns/SKILL.md" "$REPO_ROOT/src/skills/chain-patterns/references/monitor-patterns.md" "$REPO_ROOT/src/skills/fix-issue/references/fix-phases.md" "$REPO_ROOT/src/skills/fix-issue/references/agent-teams-rca.md" "$REPO_ROOT/src/skills/task-dependency-patterns/SKILL.md")
 scan_callers() {
   awk -v re="$writer_re" '
   # Parentheses on this line outside """...""" (state carried across lines)
@@ -117,8 +117,8 @@ scan_callers() {
   FNR == 1 { inc = 0; open_ = 0; skip = 0; loop = 0; tq = 0; dq = 0 }
   FILENAME ~ /agent-phases[.]md$/ && /^## Phase 4/ { skip = 1 }
   FILENAME ~ /agent-phases[.]md$/ && /^## Phase 5/ { skip = 0 }
-  FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 4/ { loop = 1 }
-  FILENAME ~ /design-import\/SKILL[.]md$/ && /^## Phase 5/ { loop = 0 }
+  FILENAME ~ /design-to-code\/references\/import-mode[.]md$/ && /^## Phase 4/ { loop = 1 }
+  FILENAME ~ /design-to-code\/references\/import-mode[.]md$/ && /^## Phase 5/ { loop = 0 }
   !open_ && /^[*][*]Incorrect/ { inc = 1 }
   !open_ && (/^[*][*]Correct/ || /^##+ /) { inc = 0 }
   !open_ && /Agent[(]/ { open_ = 1; buf = ""; code_buf = ""; depth = 0; start = FNR; tq = 0; dq = 0 }
@@ -133,8 +133,8 @@ scan_callers() {
       # isolation, which makes it a plain subagent (Claude Code docs: sub-agents,
       # agent-teams). So name= plus isolation= is flagged for every agent type,
       # except a block that is meant as a plain named subagent: no team_name=,
-      # in chain-patterns Pattern 6 or the design-import loop.
-      plain_ok = (code_buf !~ /(^|[^[:alnum:]_])team_name[ ]*=/ && FILENAME ~ /(chain-patterns\/SKILL|design-import\/SKILL)[.]md$/)
+      # in chain-patterns Pattern 6 or the design-to-code import-mode loop.
+      plain_ok = (code_buf !~ /(^|[^[:alnum:]_])team_name[ ]*=/ && FILENAME ~ /(chain-patterns\/SKILL|design-to-code\/references\/import-mode)[.]md$/)
       if (code_buf ~ /(^|[^[:alnum:]_])(team_)?name[ ]*=/ && code_buf ~ /(^|[^[:alnum:]_])isolation[ ]*=/ && !plain_ok) print "TEAMISO " FILENAME ":" start
       # The Phase 4 skip covers the writer checks below, never TEAMISO above.
       if (skip || buf !~ re) next
@@ -146,7 +146,7 @@ scan_callers() {
       if (conc && buf !~ /isolation[ ]*=[ ]*"worktree"/ && !manual) print FILENAME ":" start
       # A worktree branch is merged, so an uncommitted file is lost.
       told = buf; gsub(/([Dd]o not|[Dd]on.t|[Nn]ever) commit/, "", told)
-      if ((buf ~ /isolation[ ]*=[ ]*"worktree"/ || manual) && FILENAME ~ /(agent-phases|agent-teams-phases|manual-worktree-pattern|design-import\/SKILL|fix-phases|agent-teams-rca|task-dependency-patterns\/SKILL)[.]md$/ && told !~ /(^|[^A-Za-z])[Cc]ommit (your|the|it|them|any|[+])/) print "NOCOMMIT " FILENAME ":" start
+      if ((buf ~ /isolation[ ]*=[ ]*"worktree"/ || manual) && FILENAME ~ /(agent-phases|agent-teams-phases|manual-worktree-pattern|design-to-code\/references\/import-mode|fix-phases|agent-teams-rca|task-dependency-patterns\/SKILL)[.]md$/ && told !~ /(^|[^A-Za-z])[Cc]ommit (your|the|it|them|any|[+])/) print "NOCOMMIT " FILENAME ":" start
     }
   }
 ' "$@"

@@ -118,7 +118,6 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "scope-appropriate-architecture",
       "security-patterns",
       "setup",
-      "storybook-mcp-integration",
       "storybook-testing",
       "swarm-migrate",
       "task-dependency-patterns",
@@ -317,7 +316,6 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "scope-appropriate-architecture",
       "security-patterns",
       "setup",
-      "storybook-mcp-integration",
       "swarm-migrate",
       "task-dependency-patterns",
       "telemetry-inspect",
@@ -376,7 +374,7 @@ export const LIBRARY_STATIONS: LibraryStation[] = [
     "key": "build",
     "label": "Build",
     "line": "Agents work in parallel, each with the pattern skills it loads.",
-    "skills": 41,
+    "skills": 40,
     "agents": 16,
     "hooks": 18
   },
@@ -415,8 +413,8 @@ export const LIBRARY_STATIONS: LibraryStation[] = [
 ];
 
 export const LIBRARY_COUNTS: LibraryCounts = {
-  "items": 303,
-  "skills": 116,
+  "items": 302,
+  "skills": 115,
   "agents": 36,
   "hooks": 151,
   "skillScopedHooks": 12,
@@ -726,7 +724,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "design-import",
     "station": "build",
-    "description": "Scaffolds React components from a claude.ai/design URL or bundle, stopping at files on disk. For a full PR with tests and browser checks, use design-ship.",
+    "description": "Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; new work calls design-to-code import.",
     "command": true,
     "scopedHooks": 0
   },
@@ -735,7 +733,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "design-ship",
     "station": "build",
-    "description": "Turns a claude.ai/design link into a PR: design-import, then cover, then expect, then open the PR. Use when a design should come back as a PR. For files on disk only, use design-import.",
+    "description": "Alias: runs design-to-code in ship mode (design export to an opened PR) for people who still type the earlier command. Use only when someone types /ork:design-ship.",
     "command": true,
     "scopedHooks": 0
   },
@@ -762,7 +760,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "design-to-code",
     "station": "build",
-    "description": "Mockup or screenshot to a React component via Stitch, 21st.dev and Storybook MCP, reusing existing components. For Storybook MCP tools alone, use storybook-mcp-integration.",
+    "description": "Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse existing ones; ship mode adds tests and a PR. Use when a design should become code, or for Storybook MCP tools.",
     "command": true,
     "scopedHooks": 0
   },
@@ -1307,15 +1305,6 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "scopedHooks": 0
   },
   {
-    "id": "skill:storybook-mcp-integration",
-    "kind": "skill",
-    "name": "storybook-mcp-integration",
-    "station": "build",
-    "description": "Storybook MCP server (@storybook/addon-mcp) tools and toolsets. Use when calling them on existing components. To build from a mockup, use design-to-code.",
-    "command": false,
-    "scopedHooks": 0
-  },
-  {
     "id": "skill:storybook-testing",
     "kind": "skill",
     "name": "storybook-testing",
@@ -1505,7 +1494,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "agent",
     "name": "claude-design-orchestrator",
     "station": "build",
-    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code.",
+    "description": "Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks export-to-PR provenance so design intent stays linked to shipped code.",
     "model": "sonnet"
   },
   {

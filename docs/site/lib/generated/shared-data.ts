@@ -5,8 +5,8 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 2,
-  "skills": 116,
-  "coreSkills": 90,
+  "skills": 115,
+  "coreSkills": 89,
   "extrasSkills": 26,
   "agents": 36,
   "hooks": 163,
@@ -56,7 +56,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "claude-design-orchestrator",
-    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code.",
+    "description": "Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks export-to-PR provenance so design intent stays linked to shipped code.",
     "plugins": [
       "ork"
     ],
@@ -432,7 +432,6 @@ export const SKILLS_SUMMARY = {
     "accessibility": [
       "design-system-tokens",
       "expect",
-      "storybook-mcp-integration",
       "testing-e2e"
     ],
     "devops": [
@@ -461,13 +460,10 @@ export const SKILLS_SUMMARY = {
     ],
     "react": [
       "component-search",
-      "design-import",
-      "design-ship",
       "design-to-code",
       "multi-surface-render",
       "performance",
-      "react-server-components-framework",
-      "storybook-mcp-integration"
+      "react-server-components-framework"
     ],
     "llm": [
       "error-analysis",

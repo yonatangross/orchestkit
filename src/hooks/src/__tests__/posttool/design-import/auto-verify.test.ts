@@ -8,6 +8,9 @@
  * and the tool result as `tool_response`, not `tool_output`. Both the bare
  * name match and the tool_output read meant this hook never fired on a real
  * payload.
+ *
+ * design-import merged into design-to-code (import mode); the old name stays
+ * as an alias. The hook fires for both names, and only on an import manifest.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -39,11 +42,12 @@ function makeSkillInput(
   skill: string,
   toolResponse: unknown,
   projectDir = workspace,
+  args?: string,
 ): HookInput {
   return {
     tool_name: 'Skill',
     session_id: 'sid-test',
-    tool_input: { skill } as Record<string, unknown>,
+    tool_input: (args === undefined ? { skill } : { skill, args }) as Record<string, unknown>,
     tool_response: toolResponse,
     project_dir: projectDir,
   };
@@ -61,6 +65,69 @@ describe('postDesignImportAutoVerify', () => {
       testCtx,
     );
     expect(contextOf(r)).toContain('/ork:expect');
+  });
+
+  it('fires for the merged skill in import mode and names the new ship command', async () => {
+    const r = await postDesignImportAutoVerify(
+      makeSkillInput(
+        'ork:design-to-code',
+        'Imported bundle bundle-123\n3 components written',
+        workspace,
+        'import ~/Downloads/pricing.zip',
+      ),
+      testCtx,
+    );
+    expect(contextOf(r)).toContain('/ork:expect');
+    expect(contextOf(r)).toContain('/ork:design-to-code ship');
+    expect(contextOf(r)).not.toContain('/ork:design-ship');
+  });
+
+  it('fires for the merged skill when the mode was inferred (no mode word)', async () => {
+    const r = await postDesignImportAutoVerify(
+      makeSkillInput('ork:design-to-code', 'Imported bundle bundle-123', workspace, '~/Downloads/pricing.zip'),
+      testCtx,
+    );
+    expect(contextOf(r)).toContain('/ork:expect');
+  });
+
+  it('stays silent for the merged skill in ship mode (it verifies and opens the PR itself)', async () => {
+    const r = await postDesignImportAutoVerify(
+      makeSkillInput(
+        'ork:design-to-code',
+        'Imported bundle bundle-123\nPR opened',
+        workspace,
+        'ship ~/Downloads/pricing.zip',
+      ),
+      testCtx,
+    );
+    expect(r.hookSpecificOutput).toBeUndefined();
+  });
+
+  it.each(['ship', 'Ship ./design-export/', '  SHIP x.zip'])(
+    'reads the ship mode word alone, capitalised or indented: %j',
+    async (args) => {
+      const r = await postDesignImportAutoVerify(
+        makeSkillInput('ork:design-to-code', 'Imported bundle bundle-123', workspace, args),
+        testCtx,
+      );
+      expect(r.hookSpecificOutput).toBeUndefined();
+    },
+  );
+
+  it('does not mistake a path that starts with "ship" for ship mode', async () => {
+    const r = await postDesignImportAutoVerify(
+      makeSkillInput('ork:design-to-code', 'Imported bundle bundle-123', workspace, 'shipping-page.zip'),
+      testCtx,
+    );
+    expect(contextOf(r)).toContain('/ork:expect');
+  });
+
+  it('stays silent for the merged skill in mockup or Storybook mode (no import manifest)', async () => {
+    const r = await postDesignImportAutoVerify(
+      makeSkillInput('ork:design-to-code', 'Wrote src/components/Hero/Hero.tsx', workspace, '/tmp/mockup.png'),
+      testCtx,
+    );
+    expect(r.hookSpecificOutput).toBeUndefined();
   });
 
   it('fires on the bare skill name too (legacy callers)', async () => {
