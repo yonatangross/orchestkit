@@ -12,6 +12,7 @@ targets:
     version: ">=5.0.0"
 model: haiku
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
   version: "1.0.0"
   author: "OrchestKit"

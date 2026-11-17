@@ -5,6 +5,7 @@ description: "Named HTTPS .localhost URLs with portless (v0.15.x): no port colli
 user-invocable: false
 context: inherit
 metadata:
+  archive-candidate: "pending an outside usage signal"
   upstream-package: portless
   upstream-version-tested: "0.15.6"
   version: "1.2.0"

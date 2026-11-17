@@ -11,6 +11,7 @@ targets:
   - library: storybook
     version: ">=10.6.1"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   storybook-version: "10.3"

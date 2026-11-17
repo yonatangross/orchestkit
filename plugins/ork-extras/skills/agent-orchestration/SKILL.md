@@ -6,6 +6,7 @@ description: Agent orchestration patterns for agentic loops, multi-agent coordin
 user-invocable: false
 effort: high
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "workflow-architect"
   category: workflow-automation
   version: "2.0.0"
