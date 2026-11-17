@@ -363,9 +363,9 @@ if capabilities.memory:
 - **Prevention required** -- at least one of: automated test, validation rule, or process check
 - Make minimal, focused changes; DO NOT over-engineer
 
-### Clarify the Fix's Blast-Radius (Phase 4 → 5 gate)
+### Prove the Fix's Blast-Radius (Phase 4 → 5 gate)
 
-Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom** — is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **blast-radius** via ordered `AskUserQuestion` (schema/migration → auth → public contract/breaking → backfill/scale; skip cosmetic, cap ~4). Each answer becomes a row in `.claude/chain/decisions.json` and the PR body, feeding Phase 5 and the regression test. Skip for **Hotfix** / `low` effort. Full protocol: `Read("references/fix-blast-radius.md")`.
+Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom**: is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **safety fact**: the one fact the fix is safe because of, pushed down a 5-step proof ladder (said so, pointed at the line, showed the bad case cannot happen, ran it, reproduced it in the app). A pass needs step 4: a script or test that ran against the real code. No user questions. The fact, its ladder step and the risks go to `.claude/chain/decisions.json` and the **PR body**, feeding Phase 5 and the regression test; a fact below step 4 is written as unproven. Skip for **Hotfix** / `low` effort. Full protocol: `Read("references/fix-blast-radius.md")`.
 
 ## CC 2.1.49 Enhancements
 
@@ -475,7 +475,7 @@ Load on demand with `Read("references/<file>")`:
 | `agent-teams-rca.md` | Agent Teams RCA workflow |
 | `prevention-patterns.md` | Recurrence prevention patterns |
 | `cc-enhancements.md` | CC 2.1.49 session resume, task metrics, adaptive thinking |
-| `fix-blast-radius.md` | Phase 4→5 gate: root-cause-vs-symptom + ordered blast-radius clarification, decisions table |
+| `fix-blast-radius.md` | Phase 4→5 gate: root-cause-vs-symptom + the fix's safety fact on a 5-step proof ladder (pass needs a run) |
 
 ---
 

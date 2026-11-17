@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fix-issue: prove the safety fact before a fix ships</title>
+<meta name="description" content="fix-issue no longer asks the user four questions about a fix. It finds the one fact the fix is safe because of and proves it on a five-step ladder. A pass needs step 4, a script that ran against the real code. Pick a step to see what counts.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; min-height:44px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .steps { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .result { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .result[data-pass="yes"] { border-left-color:var(--accent); }
+  .result[data-pass="no"] { border-left-color:var(--bad); }
+  .meter { display:flex; gap:4px; margin:10px 0 0; }
+  .meter span { flex:1; height:10px; border-radius:3px; background:var(--rule); }
+  .meter span.on { background:var(--accent); }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>fix-issue: prove the safety fact before a fix ships</h1>
+      <p class="lead">A blast-radius write-up that sounds right is worthless: it reads as convincing whether or not it is true. So fix-issue now finds the one fact a fix is safe because of and proves it by running real code. The four user questions are gone.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>Pick how far the fact got</h2>
+  <p class="lead">Example fix: a cache cleanup call. The fact it is safe because of: <em>this call only drops entries that are already dead and does nothing else</em>.</p>
+  <div class="steps" id="steps" role="group" aria-label="Proof ladder step"></div>
+  <div class="meter" id="meter" aria-hidden="true"></div>
+  <div class="result" id="out" aria-live="polite"></div>
+
+  <h2>The ladder</h2>
+  <table>
+    <thead><tr><th scope="col">Step</th><th scope="col">What you have</th><th scope="col">Counts as</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>What changed</h2>
+  <p><b>fix-issue reference.</b> <code>fix-blast-radius.md</code> no longer asks the user. It names the one safety fact, pushes it down the ladder, and writes the fact, its step and the risks into the PR body. A fact below step 4 is written down as unproven.</p>
+  <p><b>review-pr rubric.</b> One new criterion, <code>safety_proof</code>, with weight 0 so the other weights and the verdict maths do not move. A change states its safety fact at step 4, or the reviewer marks it unproven. It is a mark, not a blocker.</p>
+  <p class="lead">The method is adapted from the <code>blast-radius</code> skill of pstack by Lauren Tan (MIT License, github.com/cursor/plugins). The notice is kept in the reference.</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const STEPS = [
+    { n: 1, have: 'You said so', counts: 'Worthless on its own', pass: false, band: 'unproven (0 to 3)', example: '"It only drops dead entries." No citation, no run.' },
+    { n: 2, have: 'You pointed at the line: a real file:line, or the library\'s own source', counts: 'A claim with a citation', pass: false, band: 'unproven (0 to 3)', example: 'cache.ts:88 filters on expiresAt before it deletes.' },
+    { n: 3, have: 'You showed the bad case cannot happen, step by step', counts: 'Reasoning, not a run', pass: false, band: 'unproven (0 to 3)', example: 'Walked the delete path: a live entry never reaches line 88.' },
+    { n: 4, have: 'You ran it: a script or test that calls the real code and fails loudly if you are wrong', counts: 'The minimum for a pass', pass: true, band: 'proven-by-run (4 to 9)', example: 'scripts/check-evict.ts seeds one live and one dead entry, calls the real evict(), asserts the live one survives. Output pasted in the PR.' },
+    { n: 5, have: 'You reproduced it in the running app', counts: 'Strongest', pass: true, band: 'proven-in-app (10)', example: 'Started the app, let an entry expire, watched a live one stay in the admin view.' },
+  ];
+  const steps = document.getElementById('steps');
+  const meter = document.getElementById('meter');
+  const out = document.getElementById('out');
+  let cur = 4;
+  STEPS.forEach((s) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `Step ${s.n}`;
+    b.dataset.n = String(s.n);
+    b.addEventListener('click', () => { cur = s.n; show(); });
+    steps.appendChild(b);
+    const m = document.createElement('span');
+    meter.appendChild(m);
+    const tr = document.createElement('tr');
+    const td = (t) => { const d = document.createElement('td'); d.textContent = t; return d; };
+    tr.append(td(String(s.n)), td(s.have), td(s.counts));
+    document.getElementById('rows').appendChild(tr);
+  });
+  function show() {
+    const s = STEPS[cur - 1];
+    steps.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === cur)));
+    meter.querySelectorAll('span').forEach((m, i) => m.classList.toggle('on', i < cur));
+    out.dataset.pass = s.pass ? 'yes' : 'no';
+    out.replaceChildren();
+    const b = document.createElement('b');
+    b.textContent = s.pass ? `Step ${s.n}: a pass. Rubric band: ${s.band}.` : `Step ${s.n}: not a pass. The reviewer marks it UNPROVEN. Rubric band: ${s.band}.`;
+    const p = document.createElement('p');
+    p.textContent = s.example;
+    out.append(b, p);
+  }
+  show();
+  document.getElementById('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    document.getElementById('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  document.getElementById('copy').addEventListener('click', async () => {
+    const s = STEPS[cur - 1];
+    const text = `In orchestkit, a fix states its safety fact and the ladder step it reached. Step ${s.n} (${s.have}). Is this a pass under fix-issue references/fix-blast-radius.md and the review-pr safety_proof criterion? Expected: ${s.pass ? 'pass' : 'unproven'}.`;
+    try { await navigator.clipboard.writeText(text); document.getElementById('copy').textContent = 'Copied'; } catch { document.getElementById('copy').textContent = 'Copy failed'; }
+  });
+</script>
+</body>
+</html>

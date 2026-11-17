@@ -16,6 +16,7 @@ targets:
   - library: "mcp"
     version: ">=1.28.0,<2.0.0"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: mcp-enhancement
   spec-version: "2025-11-25"
   version: "3.1.0"

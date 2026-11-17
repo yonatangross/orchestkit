@@ -26,9 +26,6 @@ skills:
   - design-context-extract
   - remember
   - memory
-targets:
-  - library: storybook
-    version: ">=10.6.1"
 metadata:
   category: workflow-automation
   mcp-server: stitch, 21st-dev-magic, storybook-mcp
@@ -350,6 +347,8 @@ The skill ALWAYS produces output regardless of MCP availability. Storybook MCP a
 ## Storybook mode
 
 Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness of a project's actual component library: props, stories, tests, and live previews. Formerly the `storybook-mcp-integration` skill; agents that work on existing components preload this section.
+
+**Version floor:** the tool list below is written against Storybook 10.6.1 or newer. On an older Storybook, run `get-storybook-story-instructions` first and treat any tool the server does not list as unavailable.
 
 ### When to Use
 

@@ -57,7 +57,10 @@ describe("CompatTable", () => {
 		const list = screen.getByRole("list", { name: /compatibility by host/i });
 		const items = within(list).getAllByRole("listitem");
 		expect(items).toHaveLength(COMPAT_ROWS.length);
-		expect(items[0].textContent).toMatch(/Claude Code.*Skills 116.*Agents 36.*Hooks 163.*Install: plugin \(CLI\).*Open issues/s);
+		const claude = COMPAT_ROWS.find((r) => r.id === "claude");
+		expect(items[0].textContent).toMatch(
+			new RegExp(`Claude Code.*Skills ${claude?.skills}.*Agents ${claude?.agents}.*Hooks ${claude?.hooks}.*Install: plugin \\(CLI\\).*Open issues`, "s"),
+		);
 		expect(items[2].textContent).toContain("Agents 4 roles");
 	});
 
