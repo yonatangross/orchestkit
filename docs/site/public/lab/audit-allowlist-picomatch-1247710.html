@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>picomatch advisory 1247710: one dated allowlist entry until 2026-12-17</title>
+<meta name="description" content="What the audit allowlist entry for npm advisory 1247710 (GHSA-fc5q-39xc-vjpf, picomatch) covers, which of the 11 lockfiles hold picomatch and through which tools, and when the entry stops being honored.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button,input{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select,input{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-word;margin-top:.6rem}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:.8rem}
+  th,td{text-align:left;vertical-align:top;padding:.4rem .5rem;border-bottom:1px solid var(--pg-edge)}
+  th{color:var(--pg-dim);font-weight:400}
+  .warn{color:var(--status-warn)} .ok{color:var(--status-ok)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="picomatch advisory 1247710: one dated allowlist entry until 2026-12-17"><meta property="og:description" content="What the audit allowlist entry for npm advisory 1247710 (GHSA-fc5q-39xc-vjpf, picomatch) covers, which of the 11 lockfiles hold picomatch and through which tools, and when the entry stops being honored."><meta property="og:url" content="https://orchestkit.dev/lab/audit-allowlist-picomatch-1247710.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="picomatch advisory 1247710: one dated allowlist entry until 2026-12-17"><meta name="twitter:description" content="What the audit allowlist entry for npm advisory 1247710 (GHSA-fc5q-39xc-vjpf, picomatch) covers, which of the 11 lockfiles hold picomatch and through which tools, and when the entry stops being honored."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>picomatch advisory 1247710: one dated allowlist entry until 2026-12-17</h1>
+<p class="sub">One entry is added to <code>.claude/audit-allowlist.json</code>. No lockfile, script or workflow changes. The entry stops being honored by date, and it is removed as soon as a fixed picomatch version ships.</p>
+
+<section><h2>1 / The advisory and the entry</h2>
+<p>npm advisory <code>1247710</code> is GHSA-fc5q-39xc-vjpf, severity high: picomatch is vulnerable to ReDoS through single-branch repeated extglobs. The vulnerable range is <code>&lt;= 4.0.7</code> and 4.0.7 is the latest published version, so no patched release exists and no lockfile update can clear it today.</p>
+<p>The audit gate fails on a high advisory anywhere in the tree. The allowlist is keyed by the numeric npm advisory id, because that is the value the gate compares.</p>
+<div class="out">"1247710": {
+  "reason": "GHSA-fc5q-39xc-vjpf, picomatch ReDoS through single-branch repeated extglobs. No patched release exists upstream ...",
+  "until": "2026-12-17"
+}</div>
+</section>
+
+<section><h2>2 / Reach, read from the lockfiles</h2>
+<label for="group">Show</label>
+<select id="group">
+  <option value="all">All 11 tracked lockfiles</option>
+  <option value="dev">picomatch flagged dev</option>
+  <option value="prod">picomatch not flagged dev</option>
+  <option value="none">No picomatch</option>
+</select>
+<table><thead><tr><th>Lockfile</th><th>Brought in by</th><th>Flag</th><th>Can a pattern from outside reach it</th></tr></thead><tbody id="rows"></tbody></table>
+<p id="tally"></p>
+<p>The five mods have no runtime dependencies and no build step. What a user installs from a mod is its tracked <code>hooks/</code> and <code>src/</code> source, whose imports are relative paths inside the mod, so no shipped mod file contains picomatch.</p>
+<p class="warn">Not read: the deployed build output of the docs site and the rendered output of the demos.</p>
+</section>
+
+<section><h2>3 / When the entry stops being honored</h2>
+<p>The gate keeps an entry only while its <code>until</code> date is later than the current UTC day. Pick a day to see what the gate does with this entry.</p>
+<label for="day">UTC day</label>
+<input id="day" type="date" value="2026-11-17" min="2026-11-01" max="2027-01-31">
+<div class="out" id="verdict"></div>
+<p>Removal rule: delete the entry when a fixed picomatch version ships and the lockfiles move to it. Extending the date needs a fresh reachability writeup.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const UNTIL = '2026-12-17';
+const TOOLS = 'tinyglobby, vite, vitest';
+const MOD = 'No. The mod ships source with relative imports and has no runtime dependencies';
+const ROWS = [
+  ['package-lock.json (root)', TOOLS, 'dev', 'No. Test tooling only'],
+  ['docs/site', 'fumadocs-mdx, tinyglobby, vite, vitest', 'prod', 'Not found. Build time tools that read the content folders of this repository'],
+  ['mods/lesson-cards', TOOLS, 'dev', MOD],
+  ['mods/memory-lens', TOOLS, 'dev', MOD],
+  ['mods/promote-lights', TOOLS, 'dev', MOD],
+  ['mods/prompt-enhancer', TOOLS, 'dev', MOD],
+  ['mods/secrets-veil', TOOLS, 'dev', MOD],
+  ['orchestkit-demos', TOOLS, 'dev', 'No. Test tooling only'],
+  ['packages/hook-contract/examples/generic-client', TOOLS, 'dev', 'No. The runtime dependency is express, and picomatch is not in its production tree'],
+  ['src/hooks', TOOLS, 'dev', 'No. Test tooling only'],
+  ['src/mcp-server', 'nothing', 'none', 'No picomatch entry in this lockfile'],
+];
+const LABEL = { dev: 'dev', prod: 'not dev flagged', none: 'absent' };
+const sel = document.getElementById('group');
+function cell(text) { const td = document.createElement('td'); td.textContent = text; return td; }
+function renderRows() {
+  const shown = ROWS.filter((r) => sel.value === 'all' || r[2] === sel.value);
+  document.getElementById('rows').replaceChildren(...shown.map((r) => {
+    const tr = document.createElement('tr');
+    tr.append(cell(r[0]), cell(r[1]), cell(LABEL[r[2]]), cell(r[3]));
+    return tr;
+  }));
+  const holding = ROWS.filter((r) => r[2] !== 'none').length;
+  document.getElementById('tally').textContent = shown.length + ' shown of ' + ROWS.length + '. ' + holding + ' lockfiles hold picomatch 4.0.7.';
+}
+sel.addEventListener('change', renderRows);
+renderRows();
+const day = document.getElementById('day');
+function renderVerdict() {
+  const out = document.getElementById('verdict');
+  const today = day.value;
+  if (!today) { out.textContent = 'Pick a day.'; out.className = 'out'; return; }
+  const honored = UNTIL > today;
+  out.textContent = honored
+    ? 'until ' + UNTIL + ' is later than ' + today + ': the entry is honored and the advisory is reported as allowlisted.'
+    : 'until ' + UNTIL + ' is not later than ' + today + ': the entry is ignored and the gate fails on the advisory again.';
+  out.className = 'out ' + (honored ? 'ok' : 'warn');
+}
+day.addEventListener('input', renderVerdict);
+renderVerdict();
+const PROMPT = 'In the orchestkit repo, read .claude/audit-allowlist.json and report every entry with its until date, whether that date is still later than the current UTC day, and whether npm now lists a patched picomatch version above 4.0.7 so that entry 1247710 can be removed.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
