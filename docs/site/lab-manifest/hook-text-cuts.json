@@ -1,0 +1,10 @@
+{
+  "slug": "hook-text-cuts",
+  "source": "docs/feat--hook-text-cuts/index.html",
+  "title": "Three hook texts that no longer reach the model by default",
+  "description": "What the visual-style reminder, the failure tips and the version notice put in the model's context before and after the cut, with the setting that turns the reminder back on.",
+  "tags": [
+    "hooks"
+  ],
+  "date": "2026-11-17"
+}

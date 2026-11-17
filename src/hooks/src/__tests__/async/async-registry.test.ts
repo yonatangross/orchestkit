@@ -187,7 +187,8 @@ describe('Async Hooks Registry', () => {
       // 108 -> 110: #4297 route observation is async PreToolUse telemetry:
       //             pretool/skill/skill-tracker async again, plus the new
       //             pretool/task/route-observer (Agent, async 5s).
-      expect(asyncHooks.length, 'Should have exactly 110 async hooks').toBe(110);
+      // 110 -> 109: lifecycle/cc-version-check is sync now: an async hook's systemMessage reaches the model, not the person.
+      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

@@ -373,7 +373,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
       // 109 -> 108: Jev pairing observes Skill selection synchronously.
       // 108 -> 110: #4297 skill-tracker async again + pretool/task/route-observer (Agent, async).
-      expect(asyncHooks.length, 'Should have exactly 110 async hooks').toBe(110);
+      // 110 -> 109: lifecycle/cc-version-check is sync now: an async hook's systemMessage reaches the model, not the person.
+      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -521,7 +522,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
       // 109 -> 108: Jev pairing observes Skill selection synchronously.
       // 108 -> 110: #4297 skill-tracker async again + pretool/task/route-observer (Agent, async).
-      expect(asyncCount).toBe(110);
+      // 110 -> 109: lifecycle/cc-version-check is sync now: an async hook's systemMessage reaches the model, not the person.
+      expect(asyncCount).toBe(109);
     });
 
     it('should have hooks for all critical security operations', () => {

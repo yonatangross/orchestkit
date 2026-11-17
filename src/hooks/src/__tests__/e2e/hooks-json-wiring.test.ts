@@ -63,6 +63,20 @@ describe('hooks.json wiring E2E', () => {
     });
   });
 
+  describe('SessionStart version notice reaches the person', () => {
+    it('lifecycle/cc-version-check is registered SYNC, in both hooks.json copies', () => {
+      // An async hook's systemMessage is delivered to the MODEL on the next turn and is
+      // not shown to the person (CC hooks docs, "How async hooks execute"). The notice
+      // is for the person, so the hook must run sync.
+      for (const rel of [['..', '..', '..', 'hooks.json'], ['..', '..', '..', '..', '..', 'plugins', 'ork', 'hooks', 'hooks.json']]) {
+        const cfg = JSON.parse(fs.readFileSync(path.resolve(__dirname, ...rel), 'utf-8')) as HooksConfig;
+        const found = cfg.hooks.SessionStart.flatMap(g => g.hooks ?? []).filter(h => h.args?.[1] === 'lifecycle/cc-version-check');
+        expect(found, rel.join('/')).toHaveLength(1);
+        expect(found[0].async, rel.join('/')).not.toBe(true);
+      }
+    });
+  });
+
   // ===========================================================================
   // StopFailure event wiring
   // ===========================================================================
