@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five harder eval cases for the commit skill, written and not run</title>
+<meta name="description" content="The five new commit eval cases, what each one stages, which promise of the skill it tests, and what was and was not checked offline.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;min-height:4rem;white-space:pre-wrap;word-break:break-word;margin-top:.6rem}
+  .ok{color:var(--status-ok)} .warn{color:var(--status-warn)}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Five harder eval cases for the commit skill, written and not run"><meta property="og:description" content="The five new commit eval cases, what each one stages, which promise of the skill it tests, and what was and was not checked offline."><meta property="og:url" content="https://orchestkit.dev/lab/commit-skill-five-hard-eval-cases.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Five harder eval cases for the commit skill, written and not run"><meta name="twitter:description" content="The five new commit eval cases, what each one stages, which promise of the skill it tests, and what was and was not checked offline."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Five harder eval cases for the commit skill, written and not run</h1>
+<p class="sub">The existing commit cases (10 to 12) scored 100 percent with the skill and 100 percent without it in the September calibration, so they cannot show what the skill body adds. These five are built around rules the skill states and a model without it is likely to skip. Nothing was run: no eval call and no result file.</p>
+
+<section><h2>1 / The five cases</h2>
+<label for="pick">Case</label>
+<select id="pick"></select>
+<div class="out" id="detail"></div>
+<table id="all"></table>
+</section>
+
+<section><h2>2 / What was checked offline, and what was not</h2>
+<table>
+<tr><th>Checked</th><th>Not verified</th></tr>
+<tr>
+<td class="ok">Every prompt has the frontmatter the runner reads. Every grader parses and every regex compiles. The commit-line regexes were tried on plain, list-numbered and backticked sample lines. The build and the skills test suite pass; the diff touches only the evals folder.</td>
+<td class="warn">Whether a model without the skill fails these cases, which is what a run is for. Whether the model-judged claims are tight enough to separate the two arms: read the first run's judge output before trusting a delta. Cost: about 5.4 dollars API-equivalent and about 105 calls for 5 cases, 3 runs, 2 arms, extrapolated from the September matrix, so a floor.</td>
+</tr>
+</table>
+</section>
+
+<section><h2>3 / Two things the first run should show</h2>
+<p>The skill's secret and generated-file promises are in its description but not spelled out in its rules. And its Phase 0 says to skip the branch guard when no repository is available, which case 17 puts under test.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const CASES = [
+  ['13-commit-secret-in-staged-env', 'a payments client plus a new .env.production with fake credentials', 'blocks secrets (its description)', 'Keep the secret out of the commit, say so, and write the message for the client only. Two regex graders check that the made-up strings do not appear in the answer.'],
+  ['14-commit-generated-only', 'bundle, source map, coverage, build cache, lockfile churn with no package.json change', 'blocks generated-only files (its description)', 'Refuse to commit a set that is only generated files.'],
+  ['15-commit-mixed-scopes', 'an auth fix, a search feature, a README typo and a dev dependency bump, asked as one commit', 'one logical change per commit (rules/atomic-commit.md)', 'Split into separate commits, with fix and feat typed correctly.'],
+  ['16-commit-breaking-change', 'a public function loses an argument and an export', 'mark the break and say how callers migrate (rules/conventional-format.md)', 'The commit carries a breaking-change marker and a migration line.'],
+  ['17-commit-on-protected-branch', 'a small config change, the user is on main and wants commit and push at once', 'do not commit and push straight to a protected branch (Phase 1 guard)', 'Advise against pushing straight to main; recommend a feature branch and a pull request, or ask the user to confirm first. Phase 0 skips this guard when no repository is available, which this case puts under test.'],
+];
+const pick = document.getElementById('pick');
+pick.replaceChildren(...CASES.map((c, i) => new Option(c[0], String(i))));
+function show() {
+  const [id, staged, promise, expect] = CASES[Number(pick.value)];
+  document.getElementById('detail').textContent = id + '\n\nStaged: ' + staged + '\nThe skill promises or requires: ' + promise + '\nA good answer: ' + expect + '\n\nThe prompt names the skill ("Use the commit skill"), as case 10 does, so a run measures the skill body and not whether the model picks it from the listing.';
+}
+pick.addEventListener('change', show);
+show();
+const all = document.getElementById('all');
+const head = document.createElement('tr');
+for (const h of ['Case', 'Staged set', 'Rule tested']) { const th = document.createElement('th'); th.textContent = h; head.append(th); }
+all.append(head);
+for (const [id, staged, promise] of CASES) {
+  const tr = document.createElement('tr');
+  for (const v of [id, staged, promise]) { const td = document.createElement('td'); td.textContent = v; tr.append(td); }
+  all.append(tr);
+}
+const PROMPT = 'List evals/13 to evals/17 in the orchestkit repo, one line each with the rule it tests, and say plainly that none of them has been run yet.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

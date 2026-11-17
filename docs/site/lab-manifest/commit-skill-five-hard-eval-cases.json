@@ -1,0 +1,11 @@
+{
+  "slug": "commit-skill-five-hard-eval-cases",
+  "source": "docs/feat--g6-commit-eval-cases/index.html",
+  "title": "Five harder eval cases for the commit skill, written and not run",
+  "description": "The five new commit eval cases, what each one stages, which promise of the skill it tests, and what was and was not checked offline.",
+  "tags": [
+    "skills",
+    "evals"
+  ],
+  "date": "2026-11-17"
+}

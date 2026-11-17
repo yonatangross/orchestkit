@@ -5,6 +5,7 @@ compatibility: "Claude Code 2.1.277+."
 description: Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.
 user-invocable: false
 metadata:
+  archive-candidate: "pending an outside usage signal"
   owner-agent: "python-performance-engineer"
   category: workflow-automation
   version: "2.0.0"
